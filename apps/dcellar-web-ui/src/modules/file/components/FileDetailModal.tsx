@@ -8,15 +8,22 @@ import {
   toast,
   Box,
   Link,
+  useOutsideClick,
 } from '@totejs/uikit';
+import { MenuCloseIcon } from '@totejs/icons';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { getAccount, CreateObjectTx } from '@bnb-chain/gnfd-js-sdk';
 import {
   generatePutObjectOptions,
   listObjectsByBucketName,
+  VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import axios from 'axios';
+import PrivateFileIcon from '@/public/images/icons/private_file.svg';
+import PublicFileIcon from '@/public/images/icons/public_file.svg';
+
+// TODO replace moment with dayjs
 import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -25,19 +32,23 @@ import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
 import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import {
   BUTTON_GOT_IT,
+  FETCH_OBJECT_APPROVAL_ERROR,
   FILE_DESCRIPTION_UPLOAD_ERROR,
   FILE_FAILED_URL,
   FILE_STATUS_UPLOADING,
   FILE_TITLE_UPLOAD_FAILED,
   FILE_TITLE_UPLOADING,
   FILE_UPLOAD_URL,
+  OBJECT_CREATE_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
 import {
+  formatBytes,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
+  transformVisibility,
 } from '@/modules/file/utils';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { useAvailableBalance } from '@/hooks/useAvailableBalance';
@@ -49,6 +60,8 @@ import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
+import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { useRouter } from 'next/router';
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -158,6 +171,9 @@ interface modalProps {
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   listObjects: Array<any>;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
+  fetchCreateObjectApproval: any;
+  getLockFeeAndSet: any;
+  getGasFeeAndSet: any;
 }
 
 export const FileDetailModal = (props: modalProps) => {
@@ -174,6 +190,19 @@ export const FileDetailModal = (props: modalProps) => {
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
+  const [visibility, setVisibility] = useState<string>(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+  const [showPanel, setShowPanel] = useState(false);
+  const ref = useRef(null);
+  useOutsideClick({
+    ref,
+    handler: () => {
+      if (showPanel) {
+        setTimeout(() => {
+          setShowPanel(false);
+        }, 50);
+      }
+    },
+  });
   const provider = useProvider();
   const { connector } = useAccount();
   const {
@@ -202,7 +231,12 @@ export const FileDetailModal = (props: modalProps) => {
     setListObjects,
     listObjects,
     setStatusModalErrorText,
+    fetchCreateObjectApproval,
+    getLockFeeAndSet,
+    getGasFeeAndSet,
   } = props;
+  const router = useRouter();
+
   const startPolling = (makeRequest: any) => {
     timeoutRef.current = setTimeout(() => {
       makeRequest();
@@ -361,6 +395,7 @@ export const FileDetailModal = (props: modalProps) => {
           object_status: OBJECT_STATUS_UPLOADING,
           checksums: objectSignedMsg.expect_checksums,
           create_at: moment().unix(),
+          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
         },
         removed: false,
         lock_balance: 0,
@@ -373,7 +408,6 @@ export const FileDetailModal = (props: modalProps) => {
         let objectTxnHash = '';
         if (txRes.code === 0) {
           objectTxnHash = txRes.transactionHash;
-          // fixme fix toast pop constantly when page switches
           toast.success({
             description: (
               <>
@@ -457,6 +491,16 @@ export const FileDetailModal = (props: modalProps) => {
               ),
               duration: 5000,
             });
+            // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
+            const newFileObjectStatus = listObjects[0].object_info.object_status;
+            const isNewestList = listObjects[0].object_info.object_name === finalName;
+            if (
+              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
+              newFileObjectStatus === OBJECT_CREATE_STATUS ||
+              !isNewestList
+            ) {
+              router.reload();
+            }
           } else {
             setIsSealed(false);
           }
@@ -502,11 +546,149 @@ export const FileDetailModal = (props: modalProps) => {
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton />
       <Flex mt="32px" flexDirection={'column'} alignItems={'center'} display={'flex'}>
-        <Flex w="100%" overflow="hidden">
+        <Flex w="100%">
           <Image src={FILE_INFO_IMAGE_URL} w="120px" h="120px" mr={'24px'} alt="" />
           <Flex flex={1} flexDirection={'column'}>
-            {renderFileInfo('Name', finalName)}
-            {renderFileInfo('Size', `${(size / 1024 / 1024).toFixed(2)} MB`)}
+            {/*{renderFileInfo('Name', finalName)}*/}
+
+            {/*{renderFileInfo('Size', `${(size / 1024 / 1024).toFixed(2)} MB`)}*/}
+            <Text
+              fontSize={'14px'}
+              lineHeight={'17px'}
+              fontWeight={500}
+              wordBreak={'break-all'}
+              color={'readable.normal'}
+              mb="8px"
+            >
+              {finalName}
+            </Text>
+            <Text
+              fontSize={'12px'}
+              lineHeight={'15px'}
+              fontWeight={400}
+              wordBreak={'break-all'}
+              color={'readable.tertiary'}
+              mb="8px"
+            >
+              {formatBytes(size)}
+            </Text>
+            <Flex position={'relative'} cursor={'pointer'}>
+              <Text
+                fontSize={'14px'}
+                fontWeight={400}
+                lineHeight={'24px'}
+                color={'primary'}
+                _hover={{ bg: 'rgba(0,186,52,0.1)' }}
+                border={'1px solid #00ba34'}
+                borderRadius={'18px'}
+                paddingLeft={'12px'}
+                paddingRight={'4px'}
+                wordBreak={'break-all'}
+                onClick={() => {
+                  setShowPanel(true);
+                }}
+              >
+                {transformVisibility(visibility)}
+                <MenuCloseIcon
+                  w={'18px'}
+                  transform={showPanel ? 'rotate(180deg)' : 'rotate(0)'}
+                  ml={'2px'}
+                />
+              </Text>
+              <Flex
+                position={'absolute'}
+                w={'200px'}
+                flexDirection={'column'}
+                bg={'white'}
+                top={'32px'}
+                border={'1px solid #E6E8EA'}
+                borderRadius={'8px'}
+                paddingY={'8px'}
+                visibility={showPanel ? 'visible' : 'hidden'}
+                cursor={'pointer'}
+              >
+                <Flex
+                  w={'100%'}
+                  h={'32px'}
+                  alignItems={'center'}
+                  paddingLeft={'16px'}
+                  _hover={{
+                    bg:
+                      visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                        ? 'rgba(0,186,52,0.1)'
+                        : 'bg.bottom',
+                  }}
+                  cursor={'pointer'}
+                  bg={
+                    visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                      ? 'rgba(0,186,52,0.1)'
+                      : 'bg.middle'
+                  }
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      if (visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE) return;
+                      setVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+                      setShowPanel(false);
+                      await fetchCreateObjectApproval(
+                        file,
+                        finalName,
+                        VisibilityType.VISIBILITY_TYPE_PRIVATE,
+                      );
+                      setLoading(false);
+                    } catch (error) {
+                      toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
+                      console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
+                    }
+                    // await getGasFeeAndSet(file, currentObjectSignedMessage);
+                    // await getLockFeeAndSet(file.size);
+                  }}
+                >
+                  <PrivateFileIcon style={{ marginRight: '6px' }} />
+                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE)}
+                </Flex>
+                <Flex
+                  w={'100%'}
+                  h={'32px'}
+                  alignItems={'center'}
+                  paddingLeft={'16px'}
+                  _hover={{
+                    bg:
+                      visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                        ? 'rgba(0,186,52,0.1)'
+                        : 'bg.bottom',
+                  }}
+                  cursor={'pointer'}
+                  bg={
+                    visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                      ? 'rgba(0,186,52,0.1)'
+                      : 'bg.middle'
+                  }
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      if (visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ) return;
+                      setVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ);
+                      setShowPanel(false);
+                      await fetchCreateObjectApproval(
+                        file,
+                        finalName,
+                        VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+                      );
+                      setLoading(false);
+                      // await getGasFeeAndSet(file, currentObjectSignedMessage);
+                      // await getLockFeeAndSet(file.size);
+                    } catch (error) {
+                      toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
+                      console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
+                    }
+                  }}
+                >
+                  <PublicFileIcon style={{ marginRight: '6px' }} />
+                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ)}
+                </Flex>
+              </Flex>
+            </Flex>
           </Flex>
         </Flex>
         <Flex

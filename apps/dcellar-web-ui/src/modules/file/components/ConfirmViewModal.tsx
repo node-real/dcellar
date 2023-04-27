@@ -1,38 +1,19 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Button,
-  Text,
-  Flex,
-  Checkbox,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
 import React, { useEffect, useMemo, useState } from 'react';
-import { downloadFile } from '@bnb-chain/greenfield-storage-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import {
-  directlyDownload,
-  downloadWithProgress,
-  formatBytes,
-  saveFileByAxiosResponse,
-  viewFileByAxiosResponse,
-} from '@/modules/file/utils';
+import { downloadWithProgress, formatBytes, viewFileByAxiosResponse } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_DOWNLOAD_ERROR,
-  FILE_DOWNLOAD_URL,
   FILE_FAILED_URL,
-  FILE_STATUS_DOWNLOADING,
   FILE_TITLE_DOWNLOAD_FAILED,
-  FILE_TITLE_DOWNLOADING,
   NOT_ENOUGH_QUOTA,
   NOT_ENOUGH_QUOTA_ERROR,
   NOT_ENOUGH_QUOTA_URL,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { GAClick } from '@/components/common/GATracker';
 
 interface modalProps {
   title?: string;
@@ -51,7 +32,7 @@ interface modalProps {
   onStatusModalOpen: () => void;
   onStatusModalClose: () => void;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
-  shareLink?: string;
+  viewLink?: string;
   remainingQuota: number | null;
   visibility?: number;
 }
@@ -69,15 +50,15 @@ const renderProp = (key: string, value: string) => {
   );
 };
 
-export const ConfirmDownloadModal = (props: modalProps) => {
+export const ConfirmViewModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState, loginDispatch } = loginData;
-  const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
-  const [hasChangedDownload, setHasChangedDownload] = useState(false);
+  const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
+  const [hasChangedView, setHasChangedView] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const {
-    title = 'Confirm Download',
+    title = 'Confirm View',
     onClose,
     isOpen,
     bucketName,
@@ -91,7 +72,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     onStatusModalClose,
     setStatusModalButtonText,
     setStatusModalErrorText,
-    shareLink,
+    viewLink,
     remainingQuota,
     visibility = 0,
   } = props;
@@ -108,21 +89,13 @@ export const ConfirmDownloadModal = (props: modalProps) => {
   };
 
   const transformedRemainingQuota = remainingQuota ? formatBytes(remainingQuota, true) : '--';
-  const isAbleDownload = useMemo(() => {
+  const isAbleView = useMemo(() => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
   return (
-    <DCModal
-      isOpen={isOpen}
-      onClose={onClose}
-      p={'48px 24px'}
-      w="568px"
-      overflow="hidden"
-      gaShowName="dc.file.download_confirm.0.show"
-      gaClickCloseName="dc.file.download_confirm.close.click"
-    >
+    <DCModal isOpen={isOpen} onClose={onClose} p={'48px 24px'} w="568px" overflow="hidden">
       <ModalHeader>{title}</ModalHeader>
-      <ModalCloseButton />
+      <ModalCloseButton mt={'4px'} />
       <Text
         fontSize="18px"
         lineHeight={'22px'}
@@ -157,12 +130,11 @@ export const ConfirmDownloadModal = (props: modalProps) => {
       </Flex>
       <ModalFooter margin={0} flexDirection={'column'} gap={0}>
         <DCButton
-          gaClickName="dc.file.download_confirm.confirm.click"
           w="100%"
           variant={'dcPrimary'}
           onClick={async () => {
             try {
-              if (!isAbleDownload) {
+              if (!isAbleView) {
                 setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
                 setStatusModalTitle(NOT_ENOUGH_QUOTA);
                 setStatusModalErrorText('');
@@ -174,21 +146,31 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               }
               setLoading(true);
               onClose();
-              if (!hasChangedDownload) {
+              if (!hasChangedView) {
                 loginDispatch({
-                  type: 'UPDATE_DOWNLOAD_OPTION',
+                  type: 'UPDATE_VIEW_OPTION',
                   payload: {
-                    allowDirectDownload: true,
+                    allowDirectView: true,
                   },
                 });
               }
               setLoading(false);
-              // only public file can be direct download
-              if (shareLink && visibility === 1) {
-                directlyDownload(shareLink);
+              if (visibility === 1) {
+                window.open(viewLink, '_blank');
               } else {
-                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size));
-                saveFileByAxiosResponse(result, name);
+                // viewFile({ bucketName, objectName: object_name, endpoint });
+                // preview file
+                try {
+                  const result = await downloadWithProgress(
+                    bucketName,
+                    name,
+                    endpoint,
+                    Number(size),
+                  );
+                  viewFileByAxiosResponse(result);
+                } catch (error: any) {
+                  throw new Error(error);
+                }
               }
             } catch (error: any) {
               setLoading(false);
@@ -204,37 +186,27 @@ export const ConfirmDownloadModal = (props: modalProps) => {
           Confirm
         </DCButton>
         <Flex w={'100%'} alignItems={'center'} justifyContent={'center'} marginTop={'24px'}>
-          <GAClick
-            name={
-              currentAllowDirectDownload
-                ? 'dc.file.download_confirm.check_n.click'
-                : 'dc.file.download_confirm.check_y.click'
-            }
+          <Checkbox
+            isChecked={currentAllowDirectView}
+            color="readable.tertiary"
+            fontWeight={400}
+            fontSize={16}
+            lineHeight="19px"
+            onChange={() => {
+              if (!hasChangedView) {
+                setHasChangedView(true);
+              }
+              loginDispatch({
+                type: 'UPDATE_VIEW_OPTION',
+                payload: {
+                  allowDirectView: !currentAllowDirectView,
+                },
+              });
+              setCurrentAllowDirectView(!currentAllowDirectView);
+            }}
           >
-            <Checkbox
-              isChecked={currentAllowDirectDownload}
-              color="readable.tertiary"
-              fontWeight={400}
-              fontSize={16}
-              lineHeight="19px"
-              onChange={(e) => {
-                e.stopPropagation();
-
-                if (!hasChangedDownload) {
-                  setHasChangedDownload(true);
-                }
-                loginDispatch({
-                  type: 'UPDATE_DOWNLOAD_OPTION',
-                  payload: {
-                    allowDirectDownload: !currentAllowDirectDownload,
-                  },
-                });
-                setCurrentAllowDirectDownload(!currentAllowDirectDownload);
-              }}
-            >
-              Don't show again.
-            </Checkbox>
-          </GAClick>
+            Don't show again.
+          </Checkbox>
         </Flex>
       </ModalFooter>
     </DCModal>
