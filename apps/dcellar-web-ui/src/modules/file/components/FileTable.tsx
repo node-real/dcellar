@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { ReactNode, useMemo, useRef, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -20,11 +20,20 @@ import {
   MenuList,
   SkeletonSquare,
   Text,
+  Image,
+  Tooltip,
   toast,
   useDisclosure,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import { downloadFile, getBucketReadQuota } from '@bnb-chain/greenfield-storage-js-sdk';
+import {
+  downloadFile,
+  generateGetObjectOptions,
+  generatePutObjectOptions,
+  getBucketReadQuota,
+  getObject,
+  viewFile,
+} from '@bnb-chain/greenfield-storage-js-sdk';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
 import { useNetwork } from 'wagmi';
 import { CancelCreateObjectTx, DelObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
@@ -57,22 +66,29 @@ import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
+import { ConfirmViewModal } from '@/modules/file/components/ConfirmViewModal';
 import { ConfirmDeleteModal } from '@/modules/file/components/ConfirmDeleteModal';
 import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal';
 import {
   contentTypeToExtension,
-  directylyDownload,
+  directlyDownload,
   formatBytes,
+  downloadWithProgress,
   getQuota,
+  viewFileByAxiosResponse,
+  saveFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { formatTime, getMillisecond } from '@/modules/buckets/utils/formatTime';
 import { ShareModal } from '@/modules/file/components/ShareModal';
+// import PublicFileIcon from '@/public/images/icons/public_file.svg';
+import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
+const PUBLIC_FILE_ICON_PATH = '/images/icons/public_file.svg';
 const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
   const { children, onClick, gaClickName, ...rest } = props;
 
@@ -109,7 +125,6 @@ interface fileListProps {
   onStatusModalClose: () => void;
   setStatusModalButtonText: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
-  restriction?: boolean;
 }
 
 const isSealed = (info: any) => {
@@ -213,11 +228,10 @@ export const FileTable = (props: fileListProps) => {
     onStatusModalClose,
     setStatusModalButtonText,
     setStatusModalErrorText,
-    restriction = false,
   } = props;
   const loginData = useLogin();
   const { loginState } = loginData;
-  const { allowDirectDownload, address } = loginState;
+  const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
   const flatData = useMemo(() => {
     return listObjects.filter((v: any) => !v.removed).map((v: any) => v.object_info);
@@ -232,8 +246,11 @@ export const FileTable = (props: fileListProps) => {
   const [gasLimit, setGasLimit] = useState(0);
   const [gasPrice, setGasPrice] = useState('0');
   const [shareLink, setShareLink] = useState('');
+  const [viewLink, setViewLink] = useState('');
+
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [currentVisibility, setCurrentVisibility] = useState(0);
   const { width, height } = useWindowSize();
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
@@ -257,6 +274,11 @@ export const FileTable = (props: fileListProps) => {
     isOpen: isConfirmDownloadModalOpen,
     onOpen: onConfirmDownloadModalOpen,
     onClose: onConfirmDownloadModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isConfirmViewModalOpen,
+    onOpen: onConfirmViewModalOpen,
+    onClose: onConfirmViewModalClose,
   } = useDisclosure();
   const {
     isOpen: isConfirmDeleteModalOpen,
@@ -385,7 +407,36 @@ export const FileTable = (props: fileListProps) => {
       return;
     }
   };
+  const renderVisibilityIcon = (showIcon = false, canView = true) => {
+    if (!showIcon) return <></>;
+    const renderIconByObjectStatus = () => {
+      if (!canView) {
+        return (
+          <Flex className="canNotViewPublicIcon">
+            <PublicFileIcon fillColor={'#AEB4BC'} />
+          </Flex>
+        );
+      }
+      return (
+        <>
+          <Flex className="originPublicFileIcon">
+            <PublicFileIcon fillColor={'#1E2026'} />
+          </Flex>
+          <Flex className="hoverPublicFileIcon" style={{ display: 'none' }}>
+            <PublicFileIcon fillColor={'#009E2C'} />
+          </Flex>
+        </>
+      );
+    };
 
+    return (
+      <Tooltip content={'Everyone can access.'} placement={'bottom-start'}>
+        <Flex ml={'6px'} mt={'2px'}>
+          {renderIconByObjectStatus()}
+        </Flex>
+      </Tooltip>
+    );
+  };
   const columns = useMemo<ColumnDef<any>[]>(() => {
     return [
       {
@@ -397,6 +448,9 @@ export const FileTable = (props: fileListProps) => {
             row: { original: rowData },
           } = info;
           const isNormal = isSealed(rowData);
+          const { visibility, object_status } = rowData;
+          const canView = object_status === OBJECT_SEALED_STATUS;
+          const showFileIcon = visibility === 1;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
           return (
             <Flex
@@ -413,6 +467,7 @@ export const FileTable = (props: fileListProps) => {
               <TableText info={rowData} fontWeight={500}>
                 {info.getValue()}
               </TableText>
+              {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
           );
         },
@@ -500,30 +555,38 @@ export const FileTable = (props: fileListProps) => {
             checksums,
             object_status: objectStatus,
             create_at,
+            visibility,
           } = rowData;
           const isSealed = objectStatus === OBJECT_SEALED_STATUS;
           const isUploading = objectStatus === OBJECT_STATUS_UPLOADING;
           const isUploadFailed = objectStatus === OBJECT_STATUS_FAILED;
           const downloadText = 'Download';
           const deleteText = isSealed ? 'Delete' : 'Cancel';
-
+          const showFileIcon = visibility === 1;
           const isCurrentUser = rowData.owner === address;
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
             try {
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
-              if (url) {
-                directylyDownload(url);
+              if (url && visibility === 1) {
+                directlyDownload(url);
               } else {
-                setStatusModalIcon(FILE_DOWNLOAD_URL);
-                setStatusModalTitle(FILE_TITLE_DOWNLOADING);
-                setStatusModalErrorText('');
-                setStatusModalDescription(FILE_STATUS_DOWNLOADING);
-                setStatusModalButtonText('');
-                onStatusModalOpen();
-                await downloadFile({ bucketName, objectName, endpoint });
-                onStatusModalClose();
+                // setStatusModalIcon(FILE_DOWNLOAD_URL);
+                // setStatusModalTitle(FILE_TITLE_DOWNLOADING);
+                // setStatusModalErrorText('');
+                // setStatusModalDescription(FILE_STATUS_DOWNLOADING);
+                // setStatusModalButtonText('');
+                // onStatusModalOpen();
+                // await downloadFile({ bucketName, objectName, endpoint });
+                const result = await downloadWithProgress(
+                  bucketName,
+                  objectName,
+                  endpoint,
+                  Number(payloadSize),
+                );
+                saveFileByAxiosResponse(result, objectName);
+                // onStatusModalClose();
               }
             } catch (error: any) {
               setStatusModalIcon(FILE_EMPTY_URL);
@@ -564,6 +627,7 @@ export const FileTable = (props: fileListProps) => {
             } else {
               setFileInfo({ name: objectName, size: payloadSize });
               setShareLink(url);
+              setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
               const quotaData = await getQuota(bucketName, endpoint);
@@ -582,7 +646,7 @@ export const FileTable = (props: fileListProps) => {
           const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
-              {isSealed && isCurrentUser && (
+              {isSealed && isCurrentUser && showFileIcon && (
                 <ActionButton gaClickName="dc.file.share_btn.0.click" onClick={onShare}>
                   <ShareIcon />
                 </ActionButton>
@@ -635,6 +699,7 @@ export const FileTable = (props: fileListProps) => {
                             setHash(checksums?.[0] ?? '');
                             setCreatedDate(create_at);
                             setShareLink(directDownloadLink);
+                            setCurrentVisibility(visibility);
                             onInfoModalOpen();
                             const quotaData = await getQuota(bucketName, endpoint);
                             if (quotaData) {
@@ -656,7 +721,7 @@ export const FileTable = (props: fileListProps) => {
                           {downloadText}
                         </GreenfieldMenuItem>
                       )}
-                      {isSealed && isCurrentUser && (
+                      {isSealed && isCurrentUser && showFileIcon && (
                         <GreenfieldMenuItem
                           gaClickName="dc.file.list_menu.share.click"
                           onClick={onShare}
@@ -846,14 +911,8 @@ export const FileTable = (props: fileListProps) => {
               {virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
-                const { object_status, create_at, object_name } = row.original;
+                const { object_status, visibility, object_name, payload_size } = row.original;
                 const canView = object_status === OBJECT_SEALED_STATUS;
-
-                const onClickViewFile = () => {
-                  if (!canView) return;
-                  const previewLink = encodeURI(`${endpoint}/view/${bucketName}/${object_name}`);
-                  window.open(previewLink, '_blank', 'noopener,noreferrer');
-                };
 
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
@@ -868,9 +927,48 @@ export const FileTable = (props: fileListProps) => {
                         '.btn-action': {
                           visibility: 'visible',
                         },
+                        '.originPublicFileIcon': {
+                          display: 'none',
+                        },
+                        '.hoverPublicFileIcon': {
+                          display: 'flex!important',
+                        },
                       }}
                       borderBottom="1px solid #E6E8EA"
-                      onClick={onClickViewFile}
+                      onClick={async () => {
+                        if (!canView) return;
+                        const previewLink = encodeURI(
+                          `${endpoint}/view/${bucketName}/${object_name}`,
+                        );
+                        if (!allowDirectView) {
+                          setFileInfo({ name: object_name, size: payload_size });
+                          setViewLink(previewLink);
+                          onConfirmViewModalOpen();
+                          setRemainingQuota(null);
+                          const quotaData = await getQuota(bucketName, endpoint);
+                          if (quotaData) {
+                            const { freeQuota, readQuota, consumedQuota } = quotaData;
+                            setRemainingQuota(readQuota + freeQuota - consumedQuota);
+                          }
+                          return;
+                        }
+                        if (visibility === 1) {
+                          window.open(previewLink, '_blank');
+                        } else {
+                          // preview file
+                          try {
+                            const result = await downloadWithProgress(
+                              bucketName,
+                              object_name,
+                              endpoint,
+                              Number(payload_size),
+                            );
+                            viewFileByAxiosResponse(result);
+                          } catch (error: any) {
+                            throw new Error(error);
+                          }
+                        }
+                      }}
                     >
                       {row.getVisibleCells().map((cell) => {
                         return (
@@ -901,6 +999,7 @@ export const FileTable = (props: fileListProps) => {
         shareLink={shareLink}
         createdDate={createdDate}
         primarySpUrl={endpoint}
+        visibility={currentVisibility}
         primarySpAddress={spAddress}
         primarySpSealAddress={primarySpSealAddress}
         onShareModalOpen={onShareModalOpen}
@@ -913,8 +1012,6 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
         onConfirmDownloadModalOpen={onConfirmDownloadModalOpen}
-        // fixme remove restrictions
-        restriction={restriction}
       />
       <ConfirmDownloadModal
         onClose={onConfirmDownloadModalClose}
@@ -922,6 +1019,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName={bucketName}
         fileInfo={fileInfo}
         endpoint={endpoint}
+        visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
         setStatusModalDescription={setStatusModalDescription}
@@ -930,6 +1028,22 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
         shareLink={shareLink}
+        remainingQuota={remainingQuota}
+      />
+      <ConfirmViewModal
+        onClose={onConfirmViewModalClose}
+        isOpen={isConfirmViewModalOpen}
+        bucketName={bucketName}
+        fileInfo={fileInfo}
+        endpoint={endpoint}
+        viewLink={viewLink}
+        setStatusModalIcon={setStatusModalIcon}
+        setStatusModalTitle={setStatusModalTitle}
+        setStatusModalDescription={setStatusModalDescription}
+        onStatusModalOpen={onStatusModalOpen}
+        onStatusModalClose={onStatusModalClose}
+        setStatusModalErrorText={setStatusModalErrorText}
+        setStatusModalButtonText={setStatusModalButtonText}
         remainingQuota={remainingQuota}
       />
       <ConfirmDeleteModal

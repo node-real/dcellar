@@ -2,55 +2,36 @@ import {
   ModalCloseButton,
   ModalHeader,
   ModalFooter,
-  Button,
   Image,
   Text,
   Flex,
   Link,
   Divider,
-  toast,
 } from '@totejs/uikit';
-import { downloadFile } from '@bnb-chain/greenfield-storage-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { directylyDownload, formatBytes } from '@/modules/file/utils';
+import {
+  directlyDownload,
+  downloadWithProgress,
+  formatBytes,
+  saveFileByAxiosResponse,
+} from '@/modules/file/utils';
 import { formatDateUTC } from '@/utils/time';
 import { CopyText } from '@/components/common/CopyText';
 import { formatAddress, trimAddress } from '@/utils/string';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useMemo, useState } from 'react';
+import {
+  BUTTON_GOT_IT,
+  NOT_ENOUGH_QUOTA,
+  NOT_ENOUGH_QUOTA_ERROR,
+  NOT_ENOUGH_QUOTA_URL,
+  FILE_INFO_IMAGE_URL,
+} from '@/modules/file/constant';
 import { DCButton } from '@/components/common/DCButton';
-import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
-
-const renderFileInfo = (key: string, value: string) => {
-  return (
-    <>
-      <Text
-        fontSize={'12px'}
-        lineHeight={'16px'}
-        fontWeight={400}
-        wordBreak={'break-all'}
-        color={'readable.tertiary'}
-        mb="4px"
-        w={'100%'}
-      >
-        {key}
-      </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight={'18px'}
-        fontWeight={500}
-        wordBreak={'break-all'}
-        color={'readable.normal'}
-        mb="8px"
-        w={'100%'}
-      >
-        {value}
-      </Text>
-    </>
-  );
-};
+import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
+import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 
 interface modalProps {
   title?: string;
@@ -68,6 +49,7 @@ interface modalProps {
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;
   shareLink?: string;
+  visibility?: number;
   remainingQuota: number | null;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
@@ -76,7 +58,6 @@ interface modalProps {
   onStatusModalOpen: () => void;
   onStatusModalClose: () => void;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
-  restriction?: boolean;
 }
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
@@ -197,6 +178,44 @@ const renderCopyAddress = (address: string, gaClickName?: string) => {
   );
 };
 
+const renderVisibilityTag = (visibility: number) => {
+  // public File
+  if (visibility === 1) {
+    return (
+      <Flex h={'24px'} alignItems={'center'}>
+        <PublicFileIcon fillColor={'#009E2C'} w={14} h={14} />
+        <Text
+          color={'readable.primary'}
+          fontWeight={400}
+          fontSize={'14px'}
+          lineHeight={'17px'}
+          ml={'6px'}
+        >
+          Everyone can access
+        </Text>
+      </Flex>
+    );
+  }
+  // private file
+  if (visibility === 2) {
+    return (
+      <Flex h={'24px'} alignItems={'center'}>
+        <PrivateFileIcon fillColor={'#009E2C'} w={14} h={14} />
+        <Text
+          color={'readable.primary'}
+          fontWeight={400}
+          fontSize={'14px'}
+          lineHeight={'17px'}
+          ml={'6px'}
+        >
+          Private
+        </Text>
+      </Flex>
+    );
+  }
+  return <></>;
+};
+
 export const FileInfoModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
@@ -213,16 +232,17 @@ export const FileInfoModal = (props: modalProps) => {
     primarySpSealAddress = '',
     shareLink,
     remainingQuota,
+    visibility = 0,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
     onStatusModalOpen,
+    onStatusModalClose,
     setStatusModalButtonText,
     setStatusModalErrorText,
     hash = '',
-    restriction = false,
   } = props;
 
   const { name = '', size = '0' } = fileInfo;
@@ -252,8 +272,38 @@ export const FileInfoModal = (props: modalProps) => {
           <Flex w="100%" overflow="hidden">
             <Image src={FILE_INFO_IMAGE_URL} boxSize={120} mr={'24px'} alt="" />
             <Flex flex={1} flexDirection={'column'}>
-              {renderFileInfo('Name', name)}
-              {renderFileInfo('Size', `${formatBytes(size)}`)}
+              <Text
+                fontSize={'14px'}
+                lineHeight={'17px'}
+                fontWeight={500}
+                wordBreak={'break-all'}
+                color={'readable.normal'}
+                mb="8px"
+                w={'100%'}
+              >
+                {name}
+              </Text>
+              <Text
+                fontSize={'12px'}
+                lineHeight={'15px'}
+                fontWeight={400}
+                wordBreak={'break-all'}
+                color={'readable.tertiary'}
+                mb="12px"
+                w={'100%'}
+              >
+                {formatBytes(size)}
+              </Text>
+              <Flex>
+                <Flex
+                  h={'24px'}
+                  bg={'rgba(0, 186, 52, 0.1)'}
+                  paddingX={'10px'}
+                  borderRadius={'12px'}
+                >
+                  {renderVisibilityTag(visibility)}
+                </Flex>
+              </Flex>
             </Flex>
           </Flex>
         </Flex>
@@ -274,54 +324,63 @@ export const FileInfoModal = (props: modalProps) => {
             'Object hash',
             renderCopyAddress(hash, 'dc.file.f_detail_pop.copy_hash.click'),
           )}
-          {renderPropRow(
-            'Universal link',
-            renderUrlWithLink(
-              `${primarySpUrl}/view/${bucketName}/${name}`,
-              true,
-              32,
-              'dc.file.f_detail_pop.copy_universal.click',
-            ),
-          )}
+          {visibility === 1 &&
+            renderPropRow(
+              'Universal link',
+              renderUrlWithLink(
+                `${primarySpUrl}/view/${bucketName}/${name}`,
+                true,
+                32,
+                'dc.file.f_detail_pop.copy_universal.click',
+              ),
+            )}
         </Flex>
 
         <ModalFooter flexDirection={'column'}>
           <Flex w={'100%'}>
-            <DCButton
-              variant={'dcGhost'}
-              flex={1}
-              mr={'16px'}
-              borderColor={'readable.normal'}
-              gaClickName="dc.file.f_detail_pop.share.click"
-              onClick={() => {
-                onShareModalOpen();
-                onClose();
-              }}
-            >
-              Share
-            </DCButton>
+            {visibility === 1 && (
+              <DCButton
+                variant={'dcGhost'}
+                flex={1}
+                mr={'16px'}
+                borderColor={'readable.normal'}
+                gaClickName="dc.file.f_detail_pop.share.click"
+                onClick={() => {
+                  onShareModalOpen();
+                  onClose();
+                }}
+              >
+                Share
+              </DCButton>
+            )}
             <DCButton
               variant={'dcPrimary'}
               flex={1}
               isDisabled={downloadButtonDisabled}
               gaClickName="dc.file.f_detail_pop.download.click"
-              onClick={() => {
+              onClick={async () => {
                 if (allowDirectDownload) {
                   onClose();
-                  if (shareLink) {
-                    // if (!isAbleDownload) {
-                    //   setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
-                    //   setStatusModalTitle(NOT_ENOUGH_QUOTA);
-                    //   setStatusModalErrorText('');
-                    //   setStatusModalDescription(NOT_ENOUGH_QUOTA_ERROR);
-                    //   setStatusModalButtonText(BUTTON_GOT_IT);
-                    //   onClose();
-                    //   onStatusModalOpen();
-                    //   return;
-                    // }
-                    directylyDownload(shareLink);
+                  if (shareLink && visibility === 1) {
+                    if (!isAbleDownload) {
+                      setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
+                      setStatusModalTitle(NOT_ENOUGH_QUOTA);
+                      setStatusModalErrorText('');
+                      setStatusModalDescription(NOT_ENOUGH_QUOTA_ERROR);
+                      setStatusModalButtonText(BUTTON_GOT_IT);
+                      onClose();
+                      onStatusModalOpen();
+                      return;
+                    }
+                    directlyDownload(shareLink);
                   } else {
-                    downloadFile({ bucketName, objectName: name, endpoint: primarySpUrl });
+                    const result = await downloadWithProgress(
+                      bucketName,
+                      name,
+                      primarySpUrl,
+                      Number(size),
+                    );
+                    saveFileByAxiosResponse(result, name);
                   }
                 } else {
                   onClose();
