@@ -54,6 +54,7 @@ const GET_LOCK_FEE_ERROR = `Get lock fee error, please retry`;
 const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
 const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
 const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimating gas fee, please check.`;
+const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 
 export {
   FILE_BOX_IMAGE_URL,
@@ -100,4 +101,5 @@ export {
   DELETE_ICON_URL,
   UPLOAD_IMAGE_URL,
   FILE_INFO_IMAGE_URL,
+  FETCH_OBJECT_APPROVAL_ERROR,
 };

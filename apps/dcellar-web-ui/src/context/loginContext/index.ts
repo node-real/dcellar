@@ -9,6 +9,7 @@ export const initialState = {
   loading: false,
   errorMessage: null,
   allowDirectDownload: false,
+  allowDirectView: false,
 };
 
 export const initializer = (initialValue = initialState) => {
@@ -25,6 +26,7 @@ export interface LoginState {
     loading: boolean;
     errorMessage: null | string;
     allowDirectDownload: boolean;
+    allowDirectView: boolean;
   };
   loginDispatch: React.Dispatch<any>;
 }
@@ -51,6 +53,11 @@ export const LoginReducer = (state: any, action: any) => {
       return {
         ...state,
         allowDirectDownload: action.payload.allowDirectDownload,
+      };
+    case 'UPDATE_VIEW_OPTION':
+      return {
+        ...state,
+        allowDirectView: action.payload.allowDirectView,
       };
     default:
       return state;

@@ -9,7 +9,14 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/links';
-import { getBucketReadQuota } from '@bnb-chain/greenfield-storage-js-sdk';
+import {
+  generateGetObjectOptions,
+  getBucketReadQuota,
+  VisibilityType,
+} from '@bnb-chain/greenfield-storage-js-sdk';
+import axios, { AxiosResponse } from 'axios';
+import React from 'react';
+import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
@@ -69,6 +76,64 @@ const getFileExtension = (filename: string): string | undefined => {
     return filename.substring(dotIndex + 1).toUpperCase();
   } else {
     return '';
+  }
+};
+
+const downloadWithProgress = async (
+  bucketName: string,
+  objectName: string,
+  endpoint: string,
+  payloadSize: number,
+) => {
+  try {
+    const uploadOptions = await generateGetObjectOptions({
+      bucketName,
+      objectName,
+      endpoint,
+    });
+    const { url, headers } = uploadOptions;
+    const toastId = toast.info({
+      description: ``,
+      render: () => {
+        return (
+          <ProgressBarToast
+            progress={0}
+            fileName={objectName}
+            closeToast={() => {
+              toast.close(toastId);
+            }}
+          />
+        );
+      },
+      duration: -1,
+    });
+    const result = await axios.get(url, {
+      onDownloadProgress: (progressEvent) => {
+        const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
+        toast.update(toastId, {
+          description: ``,
+          render: () => {
+            return (
+              <ProgressBarToast
+                progress={progress}
+                fileName={objectName}
+                closeToast={() => {
+                  toast.close(toastId);
+                }}
+              />
+            );
+          },
+        });
+      },
+      headers: {
+        Authorization: headers.get('Authorization'),
+      },
+      responseType: 'blob',
+    });
+    toast.close(toastId);
+    return result;
+  } catch (error: any) {
+    throw new Error(error);
   }
 };
 
@@ -136,7 +201,7 @@ const renderInsufficientBalance = (
   );
 };
 
-const directylyDownload = (url: string) => {
+const directlyDownload = (url: string) => {
   if (!url) {
     toast.error({
       description: 'Download url not existed. Please check.',
@@ -182,6 +247,66 @@ const getQuota = async (
   }
 };
 
+const transformVisibility = (visibility: string) => {
+  switch (visibility) {
+    case VisibilityType.VISIBILITY_TYPE_UNSPECIFIED:
+      return 'Unspecified';
+
+    case VisibilityType.VISIBILITY_TYPE_PUBLIC_READ:
+      return 'Everyone can access';
+
+    case VisibilityType.VISIBILITY_TYPE_PRIVATE:
+      return 'Private';
+
+    case VisibilityType.VISIBILITY_TYPE_INHERIT:
+      return 'Inherit';
+
+    case VisibilityType.UNRECOGNIZED:
+    default:
+      return 'Unrecognized';
+  }
+};
+
+const viewFileByAxiosResponse = (result: AxiosResponse) => {
+  try {
+    const { data, headers: resultHeaders } = result;
+    const blob = new Blob([data], { type: resultHeaders['content-type'] });
+    const fileURL = URL.createObjectURL(blob);
+    window.open(fileURL);
+  } catch (error) {
+    console.error('view file error', error);
+  }
+};
+
+const saveFileByAxiosResponse = (result: AxiosResponse, objectName: string) => {
+  try {
+    const { data, headers: resultHeaders } = result;
+    const blob = new Blob([data], { type: resultHeaders['content-type'] });
+    const fileURL = URL.createObjectURL(blob);
+    const fileLink = document.createElement('a');
+    fileLink.href = fileURL;
+    fileLink.download = objectName as string;
+    fileLink.click();
+  } catch (error) {
+    console.error('save file error', error);
+  }
+};
+
+const truncateFileName = (fileName: string) => {
+  if (!fileName || fileName.length === 0) return '';
+  const maxFileNameLength = 25;
+  const fileExtension = fileName.slice(fileName.lastIndexOf('.'));
+  const fileNameWithoutExtension = fileName.slice(0, fileName.lastIndexOf('.'));
+  const truncatedFileNameLength = maxFileNameLength - fileExtension.length - 4;
+  if (fileName.length <= maxFileNameLength) {
+    return fileName;
+  }
+  return `${fileNameWithoutExtension.slice(
+    0,
+    truncatedFileNameLength,
+  )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
+};
+
 export {
   formatBytes,
   getObjectInfo,
@@ -191,6 +316,11 @@ export {
   contentTypeToExtension,
   renderBalanceNumber,
   renderInsufficientBalance,
-  directylyDownload,
+  directlyDownload,
   getQuota,
+  transformVisibility,
+  downloadWithProgress,
+  viewFileByAxiosResponse,
+  saveFileByAxiosResponse,
+  truncateFileName,
 };

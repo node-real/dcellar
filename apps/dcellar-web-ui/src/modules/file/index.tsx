@@ -5,6 +5,7 @@ import {
   getCreateObjectApproval,
   listObjectsByBucketName,
   validateObjectName,
+  VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import { CreateObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
 import { useNetwork } from 'wagmi';
@@ -245,7 +246,11 @@ export const File = (props: pageProps) => {
     });
   };
 
-  const fetchCreateObjectApproval = async (uploadFile: File, newFileName?: string) => {
+  const fetchCreateObjectApproval = async (
+    uploadFile: File,
+    newFileName?: string,
+    visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
+  ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
 
@@ -258,6 +263,7 @@ export const File = (props: pageProps) => {
         endpoint,
         expectSecondarySpAddresses: secondarySpAddresses,
         hashResult,
+        visibility,
       });
       if (result.statusCode !== 200) {
         throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
@@ -281,6 +287,7 @@ export const File = (props: pageProps) => {
   };
   const getLockFeeAndSet = async (size = 0) => {
     try {
+      setLockFeeLoading(true);
       const lockFeeInBNB = await getLockFee(size, primarySpAddress);
       setLockFee(lockFeeInBNB.toString());
       setLockFeeLoading(false);
@@ -301,6 +308,7 @@ export const File = (props: pageProps) => {
 
   const getGasFeeAndSet = async (uploadFile: File, currentObjectSignedMessage: any) => {
     try {
+      setGasFeeLoading(true);
       const { sequence } = await getAccount(GRPC_URL!, address!);
       const simulateBytes = createObjectTx.getSimulateBytes({
         objectName: currentObjectSignedMessage.object_name,
@@ -362,7 +370,6 @@ export const File = (props: pageProps) => {
     if (e.target.files) {
       setGasFee('-1');
       const uploadFile = e.target.files[0];
-      debugger;
       // clear input value to prevent onChange hook doesn't apply when select same file from explorer again
       e.target.value = '';
       setStatusModalErrorText('');
@@ -391,6 +398,7 @@ export const File = (props: pageProps) => {
             <Link
               href={FILE_NAME_RULES_DOC}
               color="readable.normal"
+              isExternal={true}
               _hover={{ color: '#1184EE' }}
               textDecoration={'underline'}
             >
@@ -402,24 +410,20 @@ export const File = (props: pageProps) => {
         onStatusModalOpen();
         return;
       }
-
-      // }
       setFile(uploadFile);
       setFileName(uploadFile.name);
       setLockFee('-1');
       setGasFeeLoading(true);
       setLockFeeLoading(true);
-      onDetailModalOpen();
 
       if (!uploadFile) {
         // eslint-disable-next-line no-console
         console.error('Must select file first.');
         return;
       }
+      onDetailModalOpen();
       const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile);
-
       await getGasFeeAndSet(uploadFile, currentObjectSignedMessage);
-
       await getLockFeeAndSet(uploadFile.size);
     }
   };
@@ -565,6 +569,9 @@ export const File = (props: pageProps) => {
         endpoint={endpoint}
         listObjects={listObjects}
         setStatusModalButtonText={setStatusModalButtonText}
+        fetchCreateObjectApproval={fetchCreateObjectApproval}
+        getGasFeeAndSet={getGasFeeAndSet}
+        getLockFeeAndSet={getLockFeeAndSet}
       />
       <DuplicateNameModal
         isOpen={isDuplicateNameModalOpen}
