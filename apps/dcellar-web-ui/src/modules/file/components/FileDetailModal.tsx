@@ -1,9 +1,7 @@
 import {
   ModalCloseButton,
   ModalHeader,
-  Modal,
   ModalFooter,
-  Button,
   Image,
   Text,
   Flex,
@@ -19,7 +17,6 @@ import {
   listObjectsByBucketName,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import axios from 'axios';
-// TODO replace moment with dayjs
 import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -122,7 +119,7 @@ const getObjectIsSealed = async (bucketName: string, endpoint: string, objectNam
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
       .map((v: any) => v.object_info)
-      .findIndex((v) => v.object_name === objectName && v.object_status === 1);
+      .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
     if (sealObjectIndex >= 0) {
       return listObjects[sealObjectIndex].seal_tx_hash;
     }
@@ -153,7 +150,7 @@ interface modalProps {
   gasPrice: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
-  setStatusModalDescription: React.Dispatch<React.SetStateAction<string>>;
+  setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
   onStatusModalOpen: () => void;
   onStatusModalClose: () => void;
   outsideLoading: boolean;
@@ -391,7 +388,7 @@ export const FileDetailModal = (props: modalProps) => {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.error('create object on chain error!');
+          console.error('create object on chain error!', txRes);
           throw new Error('create object on chain error!');
         }
         // 2. upload file to sp server

@@ -1,4 +1,8 @@
-import { getCreateBucketApproval, getUserBuckets } from '@bnb-chain/greenfield-storage-js-sdk';
+import {
+  decodeObjectFromHexString,
+  getCreateBucketApproval,
+  getUserBuckets,
+} from '@bnb-chain/greenfield-storage-js-sdk';
 import {
   CreateBucketTx,
   DelBucketTx,
@@ -10,7 +14,6 @@ import Long from 'long';
 import { QueryClientImpl as spQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/query';
 import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 
-import { decodeFromHex } from '@/modules/buckets/utils/decodeFromHex';
 import { IApprovalCreateBucket } from '@/modules/buckets/type';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
@@ -138,7 +141,7 @@ export const getFee = async ({
     throw res;
   }
   const { sequence } = await getAccount(GRPC_URL, address);
-  const decodedSPMsg = JSON.parse(decodeFromHex(xSPSignedMsg)) as IApprovalCreateBucket;
+  const decodedSPMsg = decodeObjectFromHexString(xSPSignedMsg) as IApprovalCreateBucket;
   const createBucketTx = new CreateBucketTx(GRPC_URL!, String(chainId)!);
   const simulateBytes = createBucketTx.getSimulateBytes({
     from: decodedSPMsg.creator,
@@ -216,7 +219,7 @@ export const createBucketTxUtil = async ({
   if (code !== 0) {
     throw res;
   }
-  const decodedSPMsg = JSON.parse(decodeFromHex(xSPSignedMsg)) as IApprovalCreateBucket;
+  const decodedSPMsg = decodeObjectFromHexString(xSPSignedMsg) as IApprovalCreateBucket;
   const createBucketTx = new CreateBucketTx(GRPC_URL, String(chainId)!);
   const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
   const simulateBytes = createBucketTx.getSimulateBytes({

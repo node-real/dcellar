@@ -104,7 +104,7 @@ interface fileListProps {
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
-  setStatusModalDescription: React.Dispatch<React.SetStateAction<string>>;
+  setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
   onStatusModalOpen: () => void;
   onStatusModalClose: () => void;
   setStatusModalButtonText: React.Dispatch<React.SetStateAction<string>>;

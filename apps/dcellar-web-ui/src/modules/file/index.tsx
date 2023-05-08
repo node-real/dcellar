@@ -1,8 +1,10 @@
-import { Flex, Text, Image, useDisclosure, toast } from '@totejs/uikit';
+import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
+  decodeObjectFromHexString,
   getCreateObjectApproval,
   listObjectsByBucketName,
+  validateObjectName,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import { CreateObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
 import { useNetwork } from 'wagmi';
@@ -12,7 +14,6 @@ import * as Comlink from 'comlink';
 import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
-import { decodeFromHex } from '@/utils/hex';
 import { useLogin } from '@/hooks/useLogin';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { GRPC_URL } from '@/base/env';
@@ -41,8 +42,8 @@ interface pageProps {
   bucketName: string;
 }
 
-const ENGLISH_FILE_NAME_REGEX =
-  /^[a-zA-Z0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
+const FILE_NAME_REGEX = /^[\s\S0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
+const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
 const MAX_SIZE = 268435456;
@@ -255,7 +256,7 @@ export const File = (props: pageProps) => {
       if (result.statusCode !== 200) {
         throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
       }
-      let currentObjectSignedMessage = JSON.parse(decodeFromHex(result.body));
+      let currentObjectSignedMessage = decodeObjectFromHexString(result.body);
       setObjectSignedMsg(currentObjectSignedMessage);
       return currentObjectSignedMessage;
     } catch (error: any) {
@@ -355,6 +356,7 @@ export const File = (props: pageProps) => {
     if (e.target.files) {
       setGasFee('-1');
       const uploadFile = e.target.files[0];
+      debugger;
       // clear input value to prevent onChange hook doesn't apply when select same file from explorer again
       e.target.value = '';
       setStatusModalErrorText('');
@@ -372,15 +374,30 @@ export const File = (props: pageProps) => {
         onStatusModalOpen();
         return;
       }
-      if (!uploadFile.name.match(ENGLISH_FILE_NAME_REGEX)) {
+      try {
+        validateObjectName(uploadFile.name);
+      } catch (error) {
         setStatusModalIcon(FILE_FAILED_URL);
         setStatusModalTitle(FILE_TITLE_FILE_NAME_ERROR);
         setStatusModalDescription(
-          'Greenfield testnet only supports the English alphabet in the file names now (It will support other letters later). Please change your file name.',
+          <Text>
+            Oops, your file’s name is not supported. Please check the naming rules in the{' '}
+            <Link
+              href={FILE_NAME_RULES_DOC}
+              color="readable.normal"
+              _hover={{ color: '#1184EE' }}
+              textDecoration={'underline'}
+            >
+              docs
+            </Link>{' '}
+            and change your file name accordingly.
+          </Text>,
         );
         onStatusModalOpen();
         return;
       }
+
+      // }
       setFile(uploadFile);
       setFileName(uploadFile.name);
       setLockFee('-1');
@@ -411,11 +428,11 @@ export const File = (props: pageProps) => {
     onClose: onDuplicateNameModalClose,
   } = useDisclosure();
   const [detailModalTitle, setDetailModalTitle] = useState('Upload File');
-  const [statusModalIcon, setStatusModalIcon] = useState('');
+  const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
   const [statusModalErrorText, setStatusModalErrorText] = useState('');
 
-  const [statusModalDescription, setStatusModalDescription] = useState('');
+  const [statusModalDescription, setStatusModalDescription] = useState<string | JSX.Element>('');
   const [duplicateNameModalDescription, setDuplicateNameModalDescription] = useState('');
 
   const {
@@ -482,8 +499,7 @@ export const File = (props: pageProps) => {
             color={'readable.tertiary'}
             textAlign={'center'}
           >
-            (Please make sure your file is named in English and smaller than 256MB during testnet
-            phase. <br />
+            (Please make sure your file is smaller than 256MB during testnet phase. <br />
             Please be aware that data loss might occur during testnet phase.)
           </Text>
           <GAShow name="dc.file.empty.upload.show" />
