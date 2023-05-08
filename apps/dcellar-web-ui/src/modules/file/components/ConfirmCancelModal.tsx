@@ -54,7 +54,7 @@ interface modalProps {
   listObjects: Array<any>;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
-  setStatusModalDescription: React.Dispatch<React.SetStateAction<string>>;
+  setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
   setStatusModalButtonText: React.Dispatch<React.SetStateAction<string>>;
   onStatusModalOpen: () => void;
   onStatusModalClose: () => void;
