@@ -25,7 +25,7 @@ interface modalProps {
   title?: string;
   onClose: () => void;
   isOpen: boolean;
-  description?: string;
+  description?: string | JSX.Element;
   buttonText?: string;
   buttonOnClick?: () => void;
   errorText?: string;
