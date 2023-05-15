@@ -172,6 +172,7 @@ export const FileDetailModal = (props: modalProps) => {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAvailableBalance();
   const timeoutRef = useRef<any>(null);
+  const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
   const provider = useProvider();
   const { connector } = useAccount();
@@ -205,14 +206,20 @@ export const FileDetailModal = (props: modalProps) => {
   const startPolling = (makeRequest: any) => {
     timeoutRef.current = setTimeout(() => {
       makeRequest();
-      timeoutRef.current = setInterval(makeRequest, POLLING_INTERVAL);
+      intervalRef.current = setInterval(makeRequest, POLLING_INTERVAL);
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }, INITIAL_DELAY);
   };
 
   const stopPolling = () => {
-    if (timeoutRef.current !== undefined) {
-      clearInterval(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
   };
   useEffect(() => {
@@ -428,27 +435,28 @@ export const FileDetailModal = (props: modalProps) => {
           },
         });
         startPolling(async () => {
+          // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
           const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
-            // fixme fix toast pop constantly when page switches
-            // toast.success({
-            //   description: (
-            //     <>
-            //       File uploaded successfully! View in{' '}
-            //       <Link
-            //         color="#3C9AF1"
-            //         _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
-            //         href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/${sealTxHash}`}
-            //         isExternal
-            //       >
-            //         GreenfieldScan
-            //       </Link>
-            //       .
-            //     </>
-            //   ),
-            //   duration: 5000,
-            // });
+            stopPolling();
+            toast.success({
+              description: (
+                <>
+                  File uploaded successfully! View in{' '}
+                  <Link
+                    color="#3C9AF1"
+                    _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
+                    href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/${sealTxHash}`}
+                    isExternal
+                  >
+                    GreenfieldScan
+                  </Link>
+                  .
+                </>
+              ),
+              duration: 5000,
+            });
           } else {
             setIsSealed(false);
           }
