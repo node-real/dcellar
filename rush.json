@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
+  "rushVersion": "5.97.1",
+  "pnpmVersion": "6.7.1",
+  "nodeSupportedVersionRange": ">=14.15.0 <15.0.0 || >=16.13.0 <17.0.0 || >=18.0.0 <19.0.0 || >=20.0.0 <21.0.0",
+  "gitPolicy": {},
+  "repository": {},
+  "eventHooks": {
+    "preRushInstall": [],
+    "postRushInstall": [
+       // https://github.com/microsoft/rushstack/issues/2837
+      "find ./common -name node_gyp_bins -type d -exec rm -r '{}' \\;"
+    ],
+    "preRushBuild": [],
+    "postRushBuild": []
+  },
+  "variants": [],
+  "projects": [
+    {
+      "packageName": "dcellar-web-ui",
+      "projectFolder": "apps/dcellar-web-ui"
+    }
+  ]
+}

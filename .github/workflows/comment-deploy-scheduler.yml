@@ -1,0 +1,62 @@
+name: comment deploy scheduler
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  pre-check:
+    runs-on: [self-hosted, qa-infra-k8s]
+    if: (contains(github.event.comment.body, '/nn-e2e-deploy')) || (contains(github.event.comment.body, '/nn-qa-deploy'))
+    outputs:
+      codeowners: ${{ steps.codeowners.outputs.content }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Read codeowners
+      id: codeowners
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: .github/CODEOWNERS
+  check-codeowners:
+    runs-on: [self-hosted, qa-infra-k8s]
+    needs: [pre-check]
+    if: (!contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Create Version Comment
+      uses: peter-evans/create-or-update-comment@v2
+      with:
+        issue-number: ${{ github.event.issue.number }}
+        comment-id: ${{ github.event.comment.id }}
+        body: |
+          ++++++
+          Please contact codeowners to deploy!
+        reactions: rocket
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  dcellar-web-ui-e2e-deploy-with-qa:
+    needs: [pre-check]
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && (github.event.comment.body == '/e2e-deploy:dcellar-web-ui' || github.event.comment.body == '/e2e-deploy-qa:dcellar-web-ui')
+    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    secrets: inherit
+    with:
+      app_name: dcellar-web-ui
+      env: qa
+  dcellar-web-ui-e2e-deploy-with-testnet:
+    needs: [pre-check]
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && github.event.comment.body == '/e2e-deploy-testnet:dcellar-web-ui'
+    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    secrets: inherit
+    with:
+      app_name: dcellar-web-ui
+      env: testnet
+  dcellar-web-ui-qa-deploy:
+    needs: [pre-check]
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && github.event.comment.body == '/qa-deploy:dcellar-web-ui'
+    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-qa-cicd.yml@main
+    secrets: inherit
+    with:
+      app_name: dcellar-web-ui
+      env: qa

@@ -1,0 +1,157 @@
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Regular.woff2');
+  font-weight: 100;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Regular.woff2');
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Regular.woff2');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Regular.woff2');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Medium.woff2');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-SemiBold.woff2');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Bold.woff2');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Bold.woff2');
+  font-weight: 800;
+}
+
+@font-face {
+  font-family: 'poppins';
+  font-display: swap;
+  src: url('./Poppins-Bold.woff2');
+  font-weight: 900;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-Regular.woff2');
+  font-weight: 100;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-Regular.woff2');
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-Regular.woff2');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-Regular.woff2');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-Medium.woff2');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-SemiBold.woff2');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-SemiBold.woff2');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-SemiBold.woff2');
+  font-weight: 800;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: url('./Inter-SemiBold.woff2');
+  font-weight: 900;
+}
+
+:root {
+  font-family: poppins, -apple-system, '.SFNSText-Regular', 'San Francisco', BlinkMacSystemFont,
+    '.PingFang-SC-Regular', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+}
+
+body,
+*,
+*::before,
+*::after {
+  font-weight: 400;
+  font-family: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  border: 1px solid lightgray;
+  height: 500px;
+  max-width: 100% !important;
+  overflow: auto;
+}

@@ -1,0 +1,23 @@
+name: dcellar-web-ui qa CICD
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: 'app name in gitops, only used in branch name'
+        type: string
+        required: true
+        default: 'dcellar-web-ui'
+      env:
+        description: 'Specify the deployment environment'
+        type: string
+        required: true
+        default: 'qa'
+
+jobs:
+  CICD:
+    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-qa-cicd.yml@feat/opt-fe/devin
+    secrets: inherit
+    with:
+      app_name: ${{ inputs.app_name }}
+      env: ${{ inputs.env }}

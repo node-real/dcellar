@@ -1,0 +1,27 @@
+name: Check dependency consistent
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  check-version:
+    name: Check mis-matching dependencies
+    runs-on: [self-hosted]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Run rush check
+        run: node common/scripts/install-run-rush.js check
+  validate-shrinkwrap-file:
+    name: Check pnpm-lock.yml is consistent
+    runs-on: [self-hosted]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Run rush install --check-only
+        run: node common/scripts/install-run-rush.js install --check-only

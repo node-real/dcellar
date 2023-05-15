@@ -1,0 +1,12 @@
+{
+  "name": "gen-templates",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "gen-templates": "node src/index.js"
+  },
+  "dependencies": {
+    "inquirer": "^8.2.0",
+    "jsonc-parser": "^3.0.0"
+  }
+}

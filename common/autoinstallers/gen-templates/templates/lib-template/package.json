@@ -1,0 +1,34 @@
+{
+  "name": "PLACEHOLDER_packageName_PLACEHOLDER",
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "tsc",
+    "lint-staged": "lint-staged"
+  },
+  "devDependencies": {
+    "typescript": "~4.9.4",
+    "@totejs/uikit": "^2.39.1",
+    "eslint": "^7.32.0",
+    "prettier": "^2.5.1",
+    "lint-staged": "~12.1.7"
+  },
+  "dependencies": {
+
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,less,md}": ["prettier --write"]
+  },
+  "prettier": "@totejs/prettier-config",
+  "eslintConfig": {
+    "extends": [
+      "@totejs/eslint-config/react"
+    ]
+  }
+}
