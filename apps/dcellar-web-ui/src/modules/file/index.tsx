@@ -45,9 +45,7 @@ const ENGLISH_FILE_NAME_REGEX =
   /^[a-zA-Z0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
-// const MAX_SIZE = 268435456;
-// fixme change to 20mb temporarily
-const MAX_SIZE = 20971520;
+const MAX_SIZE = 268435456;
 const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
   if (!isCurrentUser) return <></>;
   return (
@@ -363,7 +361,7 @@ export const File = (props: pageProps) => {
       if (uploadFile.size > MAX_SIZE) {
         setStatusModalIcon(FILE_TOO_LARGE_URL);
         setStatusModalTitle(FILE_TITLE_FILE_TOO_LARGE);
-        setStatusModalDescription('File size exceeded the maximum allowed size (20MB).');
+        setStatusModalDescription('File size exceeded the maximum allowed size (256MB).');
         onStatusModalOpen();
         return;
       }
@@ -484,7 +482,7 @@ export const File = (props: pageProps) => {
             color={'readable.tertiary'}
             textAlign={'center'}
           >
-            (Please make sure your file is named in English and smaller than 20MB during testnet
+            (Please make sure your file is named in English and smaller than 256MB during testnet
             phase. <br />
             Please be aware that data loss might occur during testnet phase.)
           </Text>
