@@ -37,6 +37,7 @@ import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { useRouter } from 'next/router';
 
 interface pageProps {
   bucketName: string;
@@ -101,93 +102,84 @@ export const File = (props: pageProps) => {
   const greenfieldRef = useRef<Worker>();
   const comlinkWorkerRef = useRef<Worker>();
   const comlinkWorkerApiRef = useRef<Comlink.Remote<WorkerApi>>();
-
-  useEffect(() => {
-    const getObjectList = async (currentEndpoint: string) => {
-      try {
-        const listResult = await listObjectsByBucketName({
-          bucketName,
-          endpoint: currentEndpoint,
-        });
-        if (listResult) {
-          const tempListObjects = listResult.body ?? [];
-          setListObjects(listResult.body ?? []);
-          const realListObjects = tempListObjects
-            .filter((v: any) => !v.removed)
-            .map((v: any) => v.object_info);
-          if (realListObjects.length === 0) {
-            setIsEmptyData(true);
-          } else {
-            setIsEmptyData(false);
-          }
-        } else {
+  const router = useRouter();
+  const getObjectList = async (currentEndpoint: string) => {
+    try {
+      const listResult = await listObjectsByBucketName({
+        bucketName,
+        endpoint: currentEndpoint,
+      });
+      if (listResult) {
+        const tempListObjects = listResult.body ?? [];
+        setListObjects(listResult.body ?? []);
+        const realListObjects = tempListObjects
+          .filter((v: any) => !v.removed)
+          .map((v: any) => v.object_info);
+        if (realListObjects.length === 0) {
           setIsEmptyData(true);
+        } else {
+          setIsEmptyData(false);
         }
-        setListLoading(false);
-        setIsInitReady(true);
-        // eslint-disable-next-line no-console
-        // console.log('list result', listResult);
-      } catch (error) {
-        setIsInitReady(true);
+      } else {
         setIsEmptyData(true);
-        setListLoading(false);
+      }
+      setListLoading(false);
+      setIsInitReady(true);
+    } catch (error) {
+      setIsInitReady(true);
+      setIsEmptyData(true);
+      setListLoading(false);
+      toast.error({
+        description: 'Error occurred when fetching file list.',
+      });
+      // eslint-disable-next-line no-console
+      console.error('list result error', error);
+    }
+  };
+  const getGatewayParams = async () => {
+    try {
+      setIsInitReady(false);
+      const bucketInfo = await getBucketInfo(bucketName);
+      const { sps } = await getStorageProviders();
+      setIsCurrentUser(bucketInfo?.owner === address);
+
+      const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
+      if (!currentPrimarySpAddress) {
         toast.error({
-          description: 'Error occurred when fetching file list.',
+          description: `Current bucket is lacking of sp address, please check.`,
         });
-        // eslint-disable-next-line no-console
-        console.error('list result error', error);
+        return;
       }
-    };
-    const getGatewayParams = async () => {
-      try {
-        const bucketInfo = await getBucketInfo(bucketName);
-        const { sps } = await getStorageProviders();
-        // eslint-disable-next-line no-console
-        // console.log('bucketInfo', bucketInfo);
-        setIsCurrentUser(bucketInfo?.owner === address);
-
-        const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
-        if (!currentPrimarySpAddress) {
-          toast.error({
-            description: `Current bucket is lacking of sp address, please check.`,
-          });
-          return;
-        }
-        setPrimarySpAddress(currentPrimarySpAddress);
-        const primarySpInfo = await getSpInfo(currentPrimarySpAddress);
-        setPrimarySpSealAddress(primarySpInfo.sealAddress);
-        // eslint-disable-next-line no-console
-        // console.log('primary address', bucketInfo?.primarySpAddress);
-        const spIndex = sps.findIndex(function (item: any) {
-          return item.operatorAddress === bucketInfo?.primarySpAddress;
+      setPrimarySpAddress(currentPrimarySpAddress);
+      const primarySpInfo = await getSpInfo(currentPrimarySpAddress);
+      setPrimarySpSealAddress(primarySpInfo.sealAddress);
+      const spIndex = sps.findIndex(function (item: any) {
+        return item.operatorAddress === bucketInfo?.primarySpAddress;
+      });
+      if (spIndex < 0) {
+        toast.error({
+          description: `Sp address info is mismatched, please retry.`,
         });
-        if (spIndex < 0) {
-          toast.error({
-            description: `Sp address info is mismatched, please retry.`,
-          });
-          return;
-        }
-        const currentEndpoint = sps[spIndex]?.endpoint;
-        // eslint-disable-next-line no-console
-        // console.log('current endpoint', currentEndpoint);
-        setEndpoint(currentEndpoint);
-        const currentSecondaryAddresses = sps
-          .filter((v: any, i: number) => i !== spIndex)
-          .map((item: any) => item.operatorAddress);
-        // eslint-disable-next-line no-console
-        // console.log('secondary address', currentSecondaryAddresses);
-        setSecondarySpAddresses(currentSecondaryAddresses);
-        getObjectList(currentEndpoint);
-      } catch (error: any) {
-        toast.error({ description: error.message });
-        setIsCurrentUser(false);
+        return;
       }
-    };
-
+      const currentEndpoint = sps[spIndex]?.endpoint;
+      setEndpoint(currentEndpoint);
+      const currentSecondaryAddresses = sps
+        .filter((v: any, i: number) => i !== spIndex)
+        .map((item: any) => item.operatorAddress);
+      setSecondarySpAddresses(currentSecondaryAddresses);
+      getObjectList(currentEndpoint);
+    } catch (error: any) {
+      toast.error({ description: error.message });
+      setIsCurrentUser(false);
+    }
+  };
+  // only get list when init
+  useEffect(() => {
     if (bucketName) {
       getGatewayParams();
     }
-  }, [bucketName, address]);
+  }, []);
   useEffect(() => {
     if (!isInitReady) return;
     const realListObjects = listObjects
@@ -212,6 +204,20 @@ export const File = (props: pageProps) => {
       comlinkWorkerRef.current?.terminate();
     };
   }, []);
+  // monitor route change to get new list info
+  useEffect(() => {
+    function handleRouteChange() {
+      router.events.on('routeChangeComplete', () => {
+        if (bucketName) {
+          getGatewayParams();
+        }
+      });
+    }
+    handleRouteChange();
+    return () => {
+      router.events.off('routeChangeComplete', () => {});
+    };
+  }, [router.events]);
 
   const generateWorker = () => {
     greenfieldRef.current = new Worker(new URL('./greenfield.ts', import.meta.url));
