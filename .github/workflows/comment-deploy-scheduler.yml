@@ -6,8 +6,8 @@ on:
 
 jobs:
   pre-check:
-    runs-on: [self-hosted, qa-infra-k8s]
-    if: (contains(github.event.comment.body, '/e2e-deploy')) || (contains(github.event.comment.body, '/qa-deploy'))
+    runs-on: ubuntu-latest
+    if: ((startsWith(github.event.comment.body, '/e2e-deploy')) || (startsWith(github.event.comment.body, '/qa-deploy'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
     steps:
@@ -19,7 +19,7 @@ jobs:
       with:
         path: .github/CODEOWNERS
   check-codeowners:
-    runs-on: [self-hosted, qa-infra-k8s]
+    runs-on: ubuntu-latest
     needs: [pre-check]
     if: (!contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
     steps:
@@ -38,7 +38,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   dcellar-web-ui-e2e-deploy-with-qa:
     needs: [pre-check]
-    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && (github.event.comment.body == '/e2e-deploy:dcellar-web-ui' || github.event.comment.body == '/e2e-deploy-qa:dcellar-web-ui')
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && ((github.event.comment.body == '/e2e-deploy:dcellar-web-ui') || (github.event.comment.body == '/e2e-deploy-qa:dcellar-web-ui'))
     uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
@@ -46,7 +46,7 @@ jobs:
       env: qa
   dcellar-web-ui-e2e-deploy-with-testnet:
     needs: [pre-check]
-    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && github.event.comment.body == '/e2e-deploy-testnet:dcellar-web-ui'
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/e2e-deploy-testnet:dcellar-web-ui')
     uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
@@ -54,7 +54,7 @@ jobs:
       env: testnet
   dcellar-web-ui-qa-deploy:
     needs: [pre-check]
-    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)) && github.event.comment.body == '/qa-deploy:dcellar-web-ui'
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/qa-deploy:dcellar-web-ui')
     uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-qa-cicd.yml@main
     secrets: inherit
     with:
