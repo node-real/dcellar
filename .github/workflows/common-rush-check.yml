@@ -7,7 +7,7 @@ on:
 jobs:
   check-version:
     name: Check mis-matching dependencies
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -17,7 +17,7 @@ jobs:
         run: node common/scripts/install-run-rush.js check
   validate-shrinkwrap-file:
     name: Check pnpm-lock.yml is consistent
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
