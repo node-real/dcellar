@@ -15,7 +15,7 @@
   "dependencies": {
     "@babel/core": "^7.20.12",
     "@bnb-chain/gnfd-js-sdk": "1.5.0-alpha.24",
-    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.8",
+    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.7",
     "@bnb-chain/greenfield-storage-js-sdk": "1.2.0-alpha.19",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
