@@ -37,10 +37,12 @@ import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { useRouter } from 'next/router';
 
 interface pageProps {
   bucketName: string;
+  folderName: string;
 }
 
 const FILE_NAME_REGEX = /^[\s\S0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
@@ -62,6 +64,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
           alignItems="center"
           borderRadius={'8px'}
           cursor="pointer"
+          ml={'12px'}
         >
           <Image src={UPLOAD_IMAGE_URL} w="24px" h="24px" alt="" />
           <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
@@ -74,7 +77,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
 };
 
 export const File = (props: pageProps) => {
-  const { bucketName } = props;
+  const { bucketName,folderName } = props;
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -93,7 +96,7 @@ export const File = (props: pageProps) => {
   const [listObjects, setListObjects] = useState<Array<any>>([]);
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
-  const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
+  const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>(['']);
   const [endpoint, setEndpoint] = useState('');
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
@@ -218,6 +221,31 @@ export const File = (props: pageProps) => {
       router.events.off('routeChangeComplete', () => {});
     };
   }, [router.events]);
+
+  const renderUploadFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
+    if (!isCurrentUser) return <></>;
+    return (
+      <GAClick name={gaClickName}>
+        <Flex
+          bgColor="readable.normal"
+          _hover={{ bg: 'readable.tertiary' }}
+          position="relative"
+          paddingX="16px"
+          paddingY="8px"
+          alignItems="center"
+          borderRadius={'8px'}
+          cursor="pointer"
+          onClick={() => {
+            onCreateFolderModalOpen();
+          }}
+        >
+          <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+            Create Folder
+          </Text>
+        </Flex>
+      </GAClick>
+    );
+  };
 
   const generateWorker = () => {
     greenfieldRef.current = new Worker(new URL('./greenfield.ts', import.meta.url));
@@ -449,13 +477,19 @@ export const File = (props: pageProps) => {
     onOpen: onDetailModalOpen,
     onClose: onDetailModalClose,
   } = useDisclosure();
+  const {
+    isOpen: isCreateFolderModalOpen,
+    onOpen: onCreateFolderModalOpen,
+    onClose: onCreateFolderModalClose,
+  } = useDisclosure();
   if (!bucketName) return <></>;
-
+  const showUploadButtonOnHeader = !isEmptyData && !listLoading;
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
         <Text
           as={'h1'}
+          flex={1}
           fontWeight="700"
           fontSize={'24px'}
           lineHeight="36px"
@@ -466,7 +500,12 @@ export const File = (props: pageProps) => {
         >
           {bucketName}
         </Text>
-        {renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
+        <Flex>
+          {/*fixme add create folder click event*/}
+          {showUploadButtonOnHeader && renderUploadFolderButton(isCurrentUser)}
+          {showUploadButtonOnHeader &&
+            renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
+        </Flex>
         <input
           type="file"
           id="file-upload"
@@ -474,10 +513,8 @@ export const File = (props: pageProps) => {
           style={{
             visibility: 'hidden',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            width: 0,
+            height: 0,
           }}
         />
       </Flex>
@@ -512,7 +549,10 @@ export const File = (props: pageProps) => {
             Please be aware that data loss might occur during testnet phase.)
           </Text>
           <GAShow name="dc.file.empty.upload.show" />
-          {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
+          <Flex>
+            {renderUploadFolderButton(isCurrentUser)}
+            {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
+          </Flex>
         </Flex>
       ) : (
         <FileTable
@@ -596,6 +636,22 @@ export const File = (props: pageProps) => {
           await getGasFeeAndSet(file, currentObjectSignedMessage);
           await getLockFeeAndSet(file.size);
         }}
+      />
+      <CreateFolderModal
+        endpoint={endpoint}
+        onClose={onCreateFolderModalClose}
+        isOpen={isCreateFolderModalOpen}
+        bucketName={bucketName}
+        setStatusModalIcon={setStatusModalIcon}
+        setStatusModalTitle={setStatusModalTitle}
+        setStatusModalDescription={setStatusModalDescription}
+        onStatusModalOpen={onStatusModalOpen}
+        onStatusModalClose={onStatusModalClose}
+        setStatusModalButtonText={setStatusModalButtonText}
+        setListObjects={setListObjects}
+        listObjects={listObjects}
+        setStatusModalErrorText={setStatusModalErrorText}
+        secondarySpAddresses={secondarySpAddresses}
       />
     </Flex>
   );

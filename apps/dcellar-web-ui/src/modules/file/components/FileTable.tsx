@@ -88,6 +88,7 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import FolderIcon from '@/public/images/files/folder.svg';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -457,6 +458,13 @@ export const FileTable = (props: fileListProps) => {
           const canView = object_status === OBJECT_SEALED_STATUS;
           const showFileIcon = visibility === 1;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
+          const isFolder = info.getValue().endsWith('/');
+          const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue();
+          const icon = isFolder ? (
+            <FolderIcon color={iconColor} />
+          ) : (
+            <FileIcon size="md" color={iconColor} />
+          );
           return (
             <Flex
               className="object-name"
@@ -466,11 +474,9 @@ export const FileTable = (props: fileListProps) => {
               position={'relative'}
               overflow={'hidden'}
             >
-              <Flex mr={4}>
-                <FileIcon size="md" color={iconColor} />
-              </Flex>
+              <Flex mr={4}>{icon}</Flex>
               <TableText info={rowData} fontWeight={500}>
-                {info.getValue()}
+                {name}
               </TableText>
               {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
@@ -499,7 +505,15 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const { payload_size, object_status, progress } = rowData;
+          const { payload_size, object_status, progress, object_name } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) {
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
+          }
           if (object_status === OBJECT_STATUS_FAILED || object_status === OBJECT_CREATE_STATUS) {
             return (
               <Flex
@@ -569,6 +583,7 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === 1;
           const isCurrentUser = rowData.owner === address;
+          const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
@@ -649,6 +664,7 @@ export const FileTable = (props: fileListProps) => {
           };
 
           const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
+          if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
               {isSealed && isCurrentUser && showFileIcon && (
@@ -918,7 +934,7 @@ export const FileTable = (props: fileListProps) => {
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
                 const canView = object_status === OBJECT_SEALED_STATUS;
-
+                const isFolder = object_name.endsWith('/');
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
                     <Box
@@ -942,6 +958,10 @@ export const FileTable = (props: fileListProps) => {
                       borderBottom="1px solid #E6E8EA"
                       onClick={async () => {
                         if (!canView) return;
+                        if (isFolder) {
+                          toast.info({ description: 'Click here to view folder files.' });
+                          return;
+                        }
                         const previewLink = encodeURI(
                           `${endpoint}/view/${bucketName}/${object_name}`,
                         );

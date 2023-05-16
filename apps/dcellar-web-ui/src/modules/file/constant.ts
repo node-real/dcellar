@@ -19,6 +19,7 @@ const FILE_TITLE_UPLOADING = 'Uploading File';
 const FILE_TITLE_DOWNLOADING = 'Downloading File';
 const FILE_TITLE_DELETING = 'Deleting File';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
+const FOLDER_CREATING = 'Creating Folder';
 // error title
 const FILE_TITLE_UPLOAD_FAILED = 'Upload Failed';
 const FILE_TITLE_DOWNLOAD_FAILED = 'Download Failed';
@@ -49,6 +50,7 @@ const OBJECT_SEALED_STATUS = 1;
 const OBJECT_CREATE_STATUS = 0;
 const OBJECT_STATUS_UPLOADING = 'OBJECT_STATUS_UPLOADING';
 const OBJECT_STATUS_FAILED = 'OBJECT_STATUS_FAILED';
+const FOLDER_STATUS_CREATING = 'FOLDER_STATUS_CREATING';
 
 const GET_LOCK_FEE_ERROR = `Get lock fee error, please retry`;
 const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
@@ -101,5 +103,7 @@ export {
   DELETE_ICON_URL,
   UPLOAD_IMAGE_URL,
   FILE_INFO_IMAGE_URL,
+  FOLDER_CREATING,
   FETCH_OBJECT_APPROVAL_ERROR,
+  FOLDER_STATUS_CREATING,
 };

@@ -19,6 +19,6 @@ export function reportEvent({ command = 'event', name, data = {} }: IReportEvent
   const isProduction = process.env.NODE_ENV === 'production';
   if (!isProduction) {
     // eslint-disable-next-line no-console
-    console.log('[report] %c%s', 'color:#f00', name, `data=${JSON.stringify(data)}`);
+    // console.log('[report] %c%s', 'color:#f00', name, `data=${JSON.stringify(data)}`);
   }
 }
