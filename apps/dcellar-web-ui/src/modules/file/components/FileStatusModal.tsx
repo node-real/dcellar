@@ -16,6 +16,7 @@ import {
   FILE_TITLE_FILE_EMPTY,
   FILE_TITLE_FILE_NAME_ERROR,
   FILE_TITLE_SP_REJECTED,
+  FOLDER_CREATING,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -176,6 +177,10 @@ function getGAOptions(title: string = '') {
     [FILE_TITLE_SP_REJECTED]: {
       showName: 'dc.file.sp_reject.0.show',
       closeName: 'dc.file.sp_reject.close.click',
+    },
+    [FOLDER_CREATING]: {
+      showName: 'dc.file.creating_folder_m.0.show',
+      closeName: 'dc.file.creating_folder_m.0..close.click',
     },
   };
 

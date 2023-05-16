@@ -43,6 +43,7 @@ import {
 } from '@/modules/file/constant';
 import {
   formatBytes,
+  getObjectIsSealed,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
@@ -121,34 +122,8 @@ const renderFee = (
   );
 };
 
-// fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string, address: string) => {
-  const domain = getDomain();
-  const { seedString } = await getOffChainData(address);
-  // TODO add auth error handling
-  const listResult = await listObjectsByBucketName({
-    bucketName,
-    endpoint,
-    userAddress: address,
-    seedString,
-    domain,
-  });
-  if (listResult) {
-    const listObjects = listResult.body ?? [];
-    const sealObjectIndex = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
-      .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
-    if (sealObjectIndex >= 0) {
-      return listObjects[sealObjectIndex].seal_tx_hash;
-    }
-    return '';
-  }
-  return false;
-};
-
 const INITIAL_DELAY = 500; // ms
-const POLLING_INTERVAL = 3000; // ms
+const POLLING_INTERVAL = 2000; // ms
 
 interface modalProps {
   title?: string;
@@ -160,6 +135,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   errorText?: string;
   bucketName: string;
+  folderName: string;
   file?: File;
   fileName?: string;
   simulateGasFee: string;
@@ -224,6 +200,7 @@ export const FileDetailModal = (props: modalProps) => {
     objectSignedMsg,
     gasLimit,
     gasPrice = '0',
+    folderName = '',
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -280,19 +257,19 @@ export const FileDetailModal = (props: modalProps) => {
       setLoading(false);
       // fixme temp fix for list seal status display
       // We don't know yet why final name and size is changing if we open the modal again during uploading
-      const finalObjects = listObjects.map((v, i) => {
-        if (i === 0) {
-          v.object_info.object_status = 1;
-        }
-        return v;
-      });
-      // const finalObjects = listObjects.map((v) => {
-      //   if (v?.object_info?.object_name === finalName) {
-      //     v.object_info.payload_size = file?.size ?? 0;
-      //     v.object_info.object_status = 1;
+      // const finalObjects = listObjects.map((v, i) => {
+      //   if (i === 0) {
+      //     v.object_status = 1;
       //   }
       //   return v;
       // });
+      const finalObjects = listObjects.map((v) => {
+        if (v?.object_name === finalName) {
+          v.payload_size = file?.size ?? 0;
+          v.object_status = 1;
+        }
+        return v;
+      });
       setListObjects(finalObjects);
       setIsSealed(false);
     }
@@ -305,7 +282,7 @@ export const FileDetailModal = (props: modalProps) => {
 
   const { name, size } = file;
   const finalName = fileName ? fileName : name;
-
+  const finalNameWithoutFolderPrefix = finalName.replace(folderName, '');
   const setFailedStatusModal = (description: string, error?: any) => {
     onStatusModalClose();
     setStatusModalIcon(FILE_FAILED_URL);
@@ -391,19 +368,19 @@ export const FileDetailModal = (props: modalProps) => {
         expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
       });
       let newFileInfo = {
-        object_info: {
-          bucket_name: bucketName,
-          object_name: finalName,
-          owner: address,
-          content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
-          payload_size: '0',
-          object_status: OBJECT_STATUS_UPLOADING,
-          checksums: objectSignedMsg.expect_checksums,
-          create_at: moment().unix(),
-          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
-        },
-        removed: false,
-        lock_balance: 0,
+        // object_info: {
+        bucket_name: bucketName,
+        object_name: finalName,
+        owner: address,
+        content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
+        payload_size: '0',
+        object_status: OBJECT_STATUS_UPLOADING,
+        checksums: objectSignedMsg.expect_checksums,
+        create_at: moment().unix(),
+        visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
+        // },
+        // removed: false,
+        // lock_balance: 0,
       };
       const fileUploadingLists = [newFileInfo, ...listObjects];
       setListObjects(fileUploadingLists);
@@ -466,9 +443,9 @@ export const FileDetailModal = (props: modalProps) => {
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             const currentProgressObjects = fileUploadingLists.map((v) => {
-              if (v?.object_info?.object_name === finalName) {
-                v.object_info.payload_size = size;
-                v.object_info.progress = progress;
+              if (v?.object_name === finalName) {
+                v.payload_size = size;
+                v.progress = progress;
               }
               return v;
             });
@@ -482,8 +459,7 @@ export const FileDetailModal = (props: modalProps) => {
           }
         })
         startPolling(async () => {
-          // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
-          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName, loginState.address);
+          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();
@@ -504,24 +480,24 @@ export const FileDetailModal = (props: modalProps) => {
               ),
               duration: 3000,
             });
-            // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
-            const newFileObjectStatus = listObjects[0].object_info.object_status;
-            const isNewestList = listObjects[0].object_info.object_name === finalName;
-            if (
-              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
-              newFileObjectStatus === OBJECT_CREATE_STATUS ||
-              !isNewestList
-            ) {
-              router.reload();
-            }
+            // // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
+            // const newFileObjectStatus = listObjects[0].object_info.object_status;
+            // const isNewestList = listObjects[0].object_info.object_name === finalName;
+            // if (
+            //   newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
+            //   newFileObjectStatus === OBJECT_CREATE_STATUS ||
+            //   !isNewestList
+            // ) {
+            //   router.reload();
+            // }
           } else {
             setIsSealed(false);
           }
         });
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.map((v: any) => {
-          if (v?.object_info?.object_name === finalName) {
-            v.object_info.object_status = OBJECT_STATUS_FAILED;
+          if (v?.object_name === finalName) {
+            v.object_status = OBJECT_STATUS_FAILED;
           }
           return v;
         });
@@ -546,6 +522,7 @@ export const FileDetailModal = (props: modalProps) => {
       console.error('Upload file error', error);
     }
   };
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -572,7 +549,7 @@ export const FileDetailModal = (props: modalProps) => {
               color={'readable.normal'}
               mb="8px"
             >
-              {finalName}
+              {finalNameWithoutFolderPrefix}
             </Text>
             <Text
               fontSize={'12px'}

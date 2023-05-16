@@ -80,6 +80,8 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import FolderIcon from '@/public/images/files/folder.svg';
+import { useRouter } from 'next/router';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
@@ -111,6 +113,7 @@ const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
 interface fileListProps {
   listObjects: any;
   bucketName: string;
+  folderName: string;
   endpoint: string;
   spAddress: string;
   primarySpSealAddress: string;
@@ -219,6 +222,7 @@ export const FileTable = (props: fileListProps) => {
     primarySpSealAddress,
     isLoading = false,
     setListObjects,
+    folderName,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -231,9 +235,7 @@ export const FileTable = (props: fileListProps) => {
   const { loginState } = loginData;
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
-  const flatData = useMemo(() => {
-    return listObjects.filter((v: any) => !v.removed).map((v: any) => v.object_info);
-  }, [listObjects]);
+  const flatData = listObjects;
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
   const [hash, setHash] = useState('');
@@ -250,6 +252,7 @@ export const FileTable = (props: fileListProps) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentVisibility, setCurrentVisibility] = useState(0);
   const { width, height } = useWindowSize();
+  const router = useRouter();
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
     return newWidth - 269 - 24 - 24;
@@ -460,6 +463,14 @@ export const FileTable = (props: fileListProps) => {
           const canView = object_status === OBJECT_SEALED_STATUS;
           const showFileIcon = visibility === 1;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
+          const isFolder = info.getValue().endsWith('/');
+          const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue();
+          const nameWithoutFolderPrefix = name.replace(folderName, '');
+          const icon = isFolder ? (
+            <FolderIcon color={iconColor} />
+          ) : (
+            <FileIcon size="md" color={iconColor} />
+          );
           return (
             <Flex
               className="object-name"
@@ -469,11 +480,9 @@ export const FileTable = (props: fileListProps) => {
               position={'relative'}
               overflow={'hidden'}
             >
-              <Flex mr={4}>
-                <FileIcon size="md" color={iconColor} />
-              </Flex>
+              <Flex mr={4}>{icon}</Flex>
               <TableText info={rowData} fontWeight={500}>
-                {info.getValue()}
+                {nameWithoutFolderPrefix}
               </TableText>
               {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
@@ -502,7 +511,15 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const { payload_size, object_status, progress } = rowData;
+          const { payload_size, object_status, progress, object_name } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) {
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
+          }
           if (object_status === OBJECT_STATUS_FAILED || object_status === OBJECT_CREATE_STATUS) {
             return (
               <Flex
@@ -538,14 +555,16 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const create_at = info.getValue();
+          const { object_name, create_at } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) return '';
           return (
             <TableText info={rowData} color={'readable.normal'}>
               {formatTime(getMillisecond(create_at as number)) as ReactNode}
             </TableText>
           );
         },
-        header: () => 'Date Uploaded',
+        header: () => 'Date Created',
         size: 120,
       },
       {
@@ -572,6 +591,7 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === 1;
           const isCurrentUser = rowData.owner === address;
+          const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
@@ -580,13 +600,6 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
-                // setStatusModalIcon(FILE_DOWNLOAD_URL);
-                // setStatusModalTitle(FILE_TITLE_DOWNLOADING);
-                // setStatusModalErrorText('');
-                // setStatusModalDescription(FILE_STATUS_DOWNLOADING);
-                // setStatusModalButtonText('');
-                // onStatusModalOpen();
-                // await downloadFile({ bucketName, objectName, endpoint });
                 const result = await downloadWithProgress(
                   bucketName,
                   objectName,
@@ -595,7 +608,6 @@ export const FileTable = (props: fileListProps) => {
                   loginState.address,
                 );
                 saveFileByAxiosResponse(result, objectName);
-                // onStatusModalClose();
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
@@ -658,6 +670,7 @@ export const FileTable = (props: fileListProps) => {
           };
 
           const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
+          if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
               {isSealed && isCurrentUser && showFileIcon && (
@@ -930,7 +943,7 @@ export const FileTable = (props: fileListProps) => {
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
                 const canView = object_status === OBJECT_SEALED_STATUS;
-
+                const isFolder = object_name?.endsWith('/') ?? false;
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
                     <Box
@@ -954,12 +967,18 @@ export const FileTable = (props: fileListProps) => {
                       borderBottom="1px solid #E6E8EA"
                       onClick={async () => {
                         if (!canView) return;
+                        if (isFolder) {
+                          // toast.info({ description: 'Click here to view folder files.' });
+                          router.push(`/buckets/${bucketName}/${object_name}`);
+                          return;
+                        }
                         const previewLink = encodeURI(
                           `${endpoint}/view/${bucketName}/${object_name}`,
                         );
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
                           setViewLink(previewLink);
+                          setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
                           const quotaData = await getQuota(bucketName, endpoint, address, setCloseAllAndShowAuthModal);
@@ -1016,6 +1035,7 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isInfoModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
+        folderName={folderName}
         hash={hash}
         shareLink={shareLink}
         createdDate={createdDate}
@@ -1058,6 +1078,7 @@ export const FileTable = (props: fileListProps) => {
         fileInfo={fileInfo}
         endpoint={endpoint}
         viewLink={viewLink}
+        visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
         setStatusModalDescription={setStatusModalDescription}

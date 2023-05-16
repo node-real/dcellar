@@ -10,6 +10,7 @@ import {
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/links';
 import {
+  fetchWithTimeout,
   generateGetObjectOptions,
   getBucketReadQuota,
   VisibilityType,
@@ -151,6 +152,7 @@ const downloadWithProgress = async (
 };
 
 const contentTypeToExtension = (contentType = '', fileName?: string) => {
+  if (fileName?.endsWith('/')) return 'FOLDER';
   switch (contentType) {
     case 'image/jpeg':
       return 'JPG';
@@ -330,6 +332,44 @@ const truncateFileName = (fileName: string) => {
   )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
 };
 
+const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string) => {
+  try {
+    const uploadOptions = await generateGetObjectOptions({
+      bucketName,
+      objectName,
+      endpoint,
+    });
+    const { url } = uploadOptions;
+    const objectMetaUrl = url + '?object-meta';
+    const result = await fetchWithTimeout(
+      objectMetaUrl,
+      {
+        method: 'GET',
+      },
+      30000,
+    );
+    const { status } = result;
+    if (!result.ok) {
+      throw new Error(
+        JSON.stringify({
+          code: -1,
+          message: `Get object info error. Bucket name: ${bucketName}, object name: ${objectName}`,
+          statusCode: status,
+        }),
+      );
+    }
+    const { object } = await result.json();
+    if (object && object.object_info.object_status === 1) {
+      const { seal_tx_hash = '' } = object;
+      return seal_tx_hash;
+    }
+    return '';
+  } catch (error: any) {
+    console.error(error.message);
+    return '';
+  }
+};
+
 export {
   formatBytes,
   getObjectInfo,
@@ -346,4 +386,5 @@ export {
   viewFileByAxiosResponse,
   saveFileByAxiosResponse,
   truncateFileName,
+  getObjectIsSealed,
 };

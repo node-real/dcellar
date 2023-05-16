@@ -1,7 +1,9 @@
-import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
+import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
   decodeObjectFromHexString,
+  fetchWithTimeout,
+  generateListObjectsByBucketNameOptions,
   getCreateObjectApproval,
   listObjectsByBucketName,
   validateObjectName,
@@ -37,6 +39,7 @@ import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { getOffChainData } from '../off-chain-auth/utils';
@@ -44,9 +47,10 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface pageProps {
   bucketName: string;
+  folderName: string;
 }
 
-const FILE_NAME_REGEX = /^[\s\S0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
+const MAX_FOLDER_LEVEL = 20;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
@@ -65,6 +69,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
           alignItems="center"
           borderRadius={'8px'}
           cursor="pointer"
+          ml={'12px'}
         >
           <Image src={UPLOAD_IMAGE_URL} w="24px" h="24px" alt="" />
           <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
@@ -77,7 +82,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
 };
 
 export const File = (props: pageProps) => {
-  const { bucketName } = props;
+  const { bucketName, folderName } = props;
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -96,7 +101,7 @@ export const File = (props: pageProps) => {
   const [listObjects, setListObjects] = useState<Array<any>>([]);
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
-  const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
+  const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>(['']);
   const [endpoint, setEndpoint] = useState('');
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
@@ -109,22 +114,50 @@ export const File = (props: pageProps) => {
   const { setOpenAuthModal } = useOffChainAuth();
   const getObjectList = async (currentEndpoint: string) => {
     try {
-      const domain = getDomain();
-      const { seedString } = await getOffChainData(address);
-      // TODO add auth error handling
-      const listResult = await listObjectsByBucketName({
-        userAddress: address,
+      const { url, headers, method } = await generateListObjectsByBucketNameOptions({
         bucketName,
         endpoint: currentEndpoint,
-        domain,
-        seedString,
       });
-      if (listResult) {
-        const tempListObjects = listResult.body ?? [];
-        setListObjects(listResult.body ?? []);
-        const realListObjects = tempListObjects
-          .filter((v: any) => !v.removed)
-          .map((v: any) => v.object_info);
+      let finalUrl: string;
+      const params = new URLSearchParams();
+      params.append('delimiter', '/');
+      params.append('max-keys', '100');
+      if (folderName && folderName.length > 0) {
+        params.append('prefix', folderName);
+      }
+      finalUrl = `${url}?${params.toString()}`;
+
+      const result = await fetchWithTimeout(
+        finalUrl,
+        {
+          headers,
+          method,
+        },
+        30000,
+      );
+
+      const { status } = result;
+      if (!result.ok) {
+        return { code: -1, message: 'List object error.', statusCode: status };
+      }
+      const { objects, common_prefixes } = await result.json();
+      if (objects) {
+        let realListObjects = objects
+          .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+          .map((v: any) => v.object_info)
+          .sort(function (a: any, b: any) {
+            return Number(b.create_at) - Number(a.create_at);
+          });
+        if (Array.isArray(common_prefixes) && common_prefixes.length > 0) {
+          const folderArray = common_prefixes.map((v) => {
+            return {
+              object_name: v,
+              object_status: 1,
+            };
+          });
+          realListObjects = [...folderArray, ...realListObjects];
+        }
+        setListObjects(realListObjects ?? []);
         if (realListObjects.length === 0) {
           setIsEmptyData(true);
         } else {
@@ -173,6 +206,7 @@ export const File = (props: pageProps) => {
         return;
       }
       const currentEndpoint = sps[spIndex]?.endpoint;
+
       setEndpoint(currentEndpoint);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
@@ -186,16 +220,16 @@ export const File = (props: pageProps) => {
   };
   // only get list when init
   useEffect(() => {
+    setListObjects([]);
+    setListLoading(true);
+    setIsInitReady(false);
     if (bucketName) {
       getGatewayParams();
     }
-  }, []);
+  }, [bucketName, folderName]);
   useEffect(() => {
     if (!isInitReady) return;
-    const realListObjects = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info);
-    if (realListObjects.length === 0) {
+    if (listObjects.length === 0) {
       setIsEmptyData(true);
     } else {
       setIsEmptyData(false);
@@ -214,20 +248,59 @@ export const File = (props: pageProps) => {
       comlinkWorkerRef.current?.terminate();
     };
   }, []);
-  // monitor route change to get new list info
-  useEffect(() => {
-    function handleRouteChange() {
-      router.events.on('routeChangeComplete', () => {
-        if (bucketName) {
-          getGatewayParams();
-        }
-      });
-    }
-    handleRouteChange();
-    return () => {
-      router.events.off('routeChangeComplete', () => {});
-    };
-  }, [router.events]);
+  // // monitor route change to get new list info
+  // useEffect(() => {
+  //   function handleRouteChange() {
+  //     router.events.on('routeChangeComplete', () => {
+  //       if (bucketName) {
+  //         getGatewayParams();
+  //       }
+  //     });
+  //   }
+  //   handleRouteChange();
+  //   return () => {
+  //     router.events.off('routeChangeComplete', () => {});
+  //   };
+  // }, [router.events]);
+
+  const renderCreteFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
+    if (!isCurrentUser) return <></>;
+    const isOver20LevelsDeep = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
+    return (
+      <GAClick name={gaClickName}>
+        <Tooltip
+          content={'You have reached the maximum supported folder depth (20).'}
+          placement={'bottom-start'}
+          visibility={isOver20LevelsDeep ? 'visible' : 'hidden'}
+        >
+          <Flex
+            bgColor={isOver20LevelsDeep ? 'readable.tertiary' : 'readable.normal'}
+            _hover={{ bg: 'readable.tertiary' }}
+            position="relative"
+            paddingX="16px"
+            paddingY="8px"
+            alignItems="center"
+            borderRadius={'8px'}
+            cursor={isOver20LevelsDeep ? 'default' : 'pointer'}
+            onClick={() => {
+              if (isOver20LevelsDeep) return;
+              if (!endpoint) {
+                toast.error({
+                  description: 'SP Endpoint is not ready',
+                });
+              } else {
+                onCreateFolderModalOpen();
+              }
+            }}
+          >
+            <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+              Create Folder
+            </Text>
+          </Flex>
+        </Tooltip>
+      </GAClick>
+    );
+  };
 
   const generateWorker = () => {
     greenfieldRef.current = new Worker(new URL('./greenfield.ts', import.meta.url));
@@ -432,7 +505,8 @@ export const File = (props: pageProps) => {
         return;
       }
       setFile(uploadFile);
-      setFileName(uploadFile.name);
+      const newFileName = `${folderName}${uploadFile.name}`;
+      setFileName(newFileName);
       setLockFee('-1');
       setGasFeeLoading(true);
       setLockFeeLoading(true);
@@ -443,7 +517,7 @@ export const File = (props: pageProps) => {
         return;
       }
       onDetailModalOpen();
-      const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile);
+      const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile, newFileName);
       await getGasFeeAndSet(uploadFile, currentObjectSignedMessage);
       await getLockFeeAndSet(uploadFile.size);
     }
@@ -471,24 +545,45 @@ export const File = (props: pageProps) => {
     onOpen: onDetailModalOpen,
     onClose: onDetailModalClose,
   } = useDisclosure();
+  const {
+    isOpen: isCreateFolderModalOpen,
+    onOpen: onCreateFolderModalOpen,
+    onClose: onCreateFolderModalClose,
+  } = useDisclosure();
   if (!bucketName) return <></>;
-
+  const showUploadButtonOnHeader = !isEmptyData && !listLoading;
+  const renderTitle = () => {
+    if (folderName) {
+      const folderNameArray = folderName.split('/');
+      return folderNameArray[folderNameArray.length - 2];
+    }
+    if (bucketName) {
+      return bucketName;
+    }
+    return '';
+  };
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
         <Text
           as={'h1'}
+          flex={1}
           fontWeight="700"
           fontSize={'24px'}
           lineHeight="36px"
-          maxWidth="400px"
-          whiteSpace="nowrap"
+          maxWidth="700px"
           overflow="hidden"
+          noOfLines={1}
           textOverflow="ellipsis"
         >
-          {bucketName}
+          {renderTitle()}
         </Text>
-        {renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
+        <Flex>
+          {showUploadButtonOnHeader &&
+            renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
+          {showUploadButtonOnHeader &&
+            renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
+        </Flex>
         <input
           type="file"
           id="file-upload"
@@ -496,10 +591,8 @@ export const File = (props: pageProps) => {
           style={{
             visibility: 'hidden',
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            width: 0,
+            height: 0,
           }}
         />
       </Flex>
@@ -534,11 +627,15 @@ export const File = (props: pageProps) => {
             Please be aware that data loss might occur during testnet phase.)
           </Text>
           <GAShow name="dc.file.empty.upload.show" />
-          {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
+          <Flex>
+            {renderCreteFolderButton(isCurrentUser, 'dc.file.empty.create_folder.click')}
+            {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
+          </Flex>
         </Flex>
       ) : (
         <FileTable
           bucketName={bucketName}
+          folderName={folderName}
           listObjects={listObjects}
           endpoint={endpoint}
           spAddress={primarySpAddress}
@@ -572,6 +669,7 @@ export const File = (props: pageProps) => {
         }}
         file={file}
         fileName={fileName}
+        folderName={folderName}
         title={detailModalTitle}
         bucketName={bucketName}
         simulateGasFee={gasFee}
@@ -619,6 +717,25 @@ export const File = (props: pageProps) => {
           await getLockFeeAndSet(file.size);
         }}
       />
+      {endpoint && (
+        <CreateFolderModal
+          endpoint={endpoint}
+          onClose={onCreateFolderModalClose}
+          isOpen={isCreateFolderModalOpen}
+          bucketName={bucketName}
+          folderName={folderName}
+          setStatusModalIcon={setStatusModalIcon}
+          setStatusModalTitle={setStatusModalTitle}
+          setStatusModalDescription={setStatusModalDescription}
+          onStatusModalOpen={onStatusModalOpen}
+          onStatusModalClose={onStatusModalClose}
+          setStatusModalButtonText={setStatusModalButtonText}
+          setListObjects={setListObjects}
+          listObjects={listObjects}
+          setStatusModalErrorText={setStatusModalErrorText}
+          secondarySpAddresses={secondarySpAddresses}
+        />
+      )}
     </Flex>
   );
 };
