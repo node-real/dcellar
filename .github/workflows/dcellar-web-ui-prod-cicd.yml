@@ -21,7 +21,7 @@ on:
 jobs:
   pre-check:
     runs-on: self-hosted
-    if: (github.event.pull_request.merged && contains(github.event.pull_request.labels.*.name, 'dcellar-web-ui')) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'testnet'))
+    if: (github.event.pull_request.merged && (contains(github.event.pull_request.labels.*.name, 'dcellar-web-ui'))) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'testnet'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
     steps:
@@ -52,7 +52,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CICD:
     needs: [pre-check]
-    if: contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login)
+    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
     uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-prod-cicd.yml@feat/opt-fe/devin
     secrets: inherit
     with:
