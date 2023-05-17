@@ -16,6 +16,7 @@ const getRandomSP = (sps: StorageProvider[]) => {
     return {} as StorageProvider;
   }
   // TODO remove this filter after nodereal is ready
+  console.log('sps', sps);
   const tempFilterSps = sps.filter((v) => v?.description?.moniker !== 'Nodereal');
   const randomIndex = Math.floor(Math.random() * tempFilterSps.length);
 

@@ -11,7 +11,7 @@ importers:
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
       '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.24
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.7
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.8
       '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.19
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
@@ -67,7 +67,7 @@ importers:
     dependencies:
       '@babel/core': 7.21.4
       '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.24
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.7
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.8
       '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.19
       '@emotion/react': 11.10.6_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.10.6_a9f92909a869aeea3dbe24dcf2a7977e
@@ -1478,8 +1478,8 @@ packages:
       protobufjs: 6.11.3
     dev: false
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.7:
-    resolution: {integrity: sha512-Ms6ujNb3l+b7Y/yazFoKfs+9SfEh+rBkp5aPd1fNzWeB3bORGKvL30+J0m7CihQfBXEtAqgtdEI7dWDIosZPLA==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.8:
+    resolution: {integrity: sha512-baOO2qSKMuzIn6Wj/D3lb9GIHCdVpebczjzgJx5QDuCJuhOTEyNRFeZ4afTn+nnJpb42BIS2jsjBr9XnJ7sc1Q==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.3
