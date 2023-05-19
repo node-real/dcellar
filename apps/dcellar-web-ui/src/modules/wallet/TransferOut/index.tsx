@@ -2,7 +2,13 @@ import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useState } from 'react';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import { useForm } from 'react-hook-form';
-import { getAccount, TransferOutTx, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  TransferOutTx,
+  ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 import { isEmpty } from 'lodash-es';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
@@ -20,8 +26,6 @@ import {
   GREENFIELD_CHAIN_EXPLORER_URL,
   GRPC_URL,
 } from '@/base/env';
-import { recoverPk } from '../utils/pk/recoverPk';
-import { makeCosmsPubKey } from '../utils/pk/makeCosmsPk';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
 import { Fee } from '../components/Fee';
