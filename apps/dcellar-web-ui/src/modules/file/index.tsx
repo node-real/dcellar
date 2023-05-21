@@ -112,12 +112,14 @@ export const File = (props: pageProps) => {
         bucketName,
         endpoint: currentEndpoint,
       })
-      console.log('url',url);
-      console.log('folder name',folderName);
-      const params = new URLSearchParams();
-      params.append('delimiter', '/');
-      params.append('prefix', folderName);
-      const finalUrl=`${url}?${params.toString()}`
+      let finalUrl=url;
+      if(folderName && folderName.length>0){
+        const params = new URLSearchParams();
+        params.append('delimiter', '/');
+        params.append('prefix', folderName);
+         finalUrl=`${url}?${params.toString()}`
+      }
+
       const result = await fetchWithTimeout(finalUrl, {
         headers,
         method,

@@ -14,11 +14,14 @@ const Folder = () => {
   let folderNameArray = [] as string[];
   if (typeof bucketName === 'string') {
     finalBucketName = bucketName;
-  } else if (Array.isArray(bucketName)) {
+  } else if (Array.isArray(bucketName) ) {
     finalBucketName = bucketName[0];
-    folderNameArray = bucketName.slice(1);
-    finalFolderName=folderNameArray.join('/')+'/';
+    if(bucketName.length>1){
+      folderNameArray = bucketName.slice(1);
+      finalFolderName=folderNameArray.join('/')+'/';
+    }
   }
+  console.log('folder name',finalFolderName)
 
   const renderBreadcrumbItem = (isLastItem: boolean, link: string, text: string) => {
     if (isLastItem) {
