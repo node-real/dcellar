@@ -679,6 +679,7 @@ export const File = (props: pageProps) => {
         onClose={onCreateFolderModalClose}
         isOpen={isCreateFolderModalOpen}
         bucketName={bucketName}
+        folderName={folderName}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
         setStatusModalDescription={setStatusModalDescription}

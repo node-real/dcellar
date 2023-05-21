@@ -164,6 +164,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   errorText?: string;
   bucketName: string;
+  folderName:string;
   fileName?: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
@@ -220,6 +221,7 @@ export const CreateFolderModal = (props: modalProps) => {
     buttonOnClick,
     errorText,
     fileName,
+      folderName:parentFolderName,
     bucketName,
     setStatusModalIcon,
     setStatusModalTitle,
@@ -376,10 +378,11 @@ export const CreateFolderModal = (props: modalProps) => {
   ) => {
     try {
       setLoading(true);
-      const file = new File([], folderName + '/', { type: 'text/plain' });
+      const finalObjectName=parentFolderName && parentFolderName.length>0?`${parentFolderName}${folderName}/`:`${folderName}+'/'`
+      const file = new File([], finalObjectName, { type: 'text/plain' });
       const result = await getCreateObjectApproval({
         bucketName,
-        objectName: folderName + '/',
+        objectName: finalObjectName,
         creator: address,
         file: file,
         endpoint,
