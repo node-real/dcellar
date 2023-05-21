@@ -89,7 +89,7 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import FolderIcon from '@/public/images/files/folder.svg';
-import {useRouter} from "next/router";
+import { useRouter } from 'next/router';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -120,7 +120,7 @@ const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
 interface fileListProps {
   listObjects: any;
   bucketName: string;
-  folderName:string;
+  folderName: string;
   endpoint: string;
   spAddress: string;
   primarySpSealAddress: string;
@@ -242,10 +242,12 @@ export const FileTable = (props: fileListProps) => {
   const { loginState } = loginData;
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
-  const flatData = useMemo(() => {
-    return listObjects.filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
-        .map((v: any) => v.object_info);
-  }, [listObjects]);
+  const flatData = listObjects;
+  // const flatData = useMemo(() => {
+  //   return listObjects
+  //     // .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+  //     // .map((v: any) => v.object_info);
+  // }, [listObjects]);
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
   const [hash, setHash] = useState('');
@@ -262,7 +264,7 @@ export const FileTable = (props: fileListProps) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentVisibility, setCurrentVisibility] = useState(0);
   const { width, height } = useWindowSize();
-  const router=useRouter();
+  const router = useRouter();
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
     return newWidth - 269 - 24 - 24;
@@ -939,7 +941,7 @@ export const FileTable = (props: fileListProps) => {
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
                 const canView = object_status === OBJECT_SEALED_STATUS;
-                const isFolder = object_name.endsWith('/');
+                const isFolder = object_name?.endsWith('/') ?? false;
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
                     <Box
@@ -965,7 +967,7 @@ export const FileTable = (props: fileListProps) => {
                         if (!canView) return;
                         if (isFolder) {
                           // toast.info({ description: 'Click here to view folder files.' });
-                          router.push(`/buckets/${bucketName}/${object_name}`)
+                          router.push(`/buckets/${bucketName}/${object_name}`);
                           return;
                         }
                         const previewLink = encodeURI(

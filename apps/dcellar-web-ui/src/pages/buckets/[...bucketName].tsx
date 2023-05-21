@@ -10,18 +10,18 @@ const Folder = () => {
   const router = useRouter();
   const { bucketName } = router.query;
   let finalBucketName = '';
-  let finalFolderName='';
+  let finalFolderName = '';
   let folderNameArray = [] as string[];
   if (typeof bucketName === 'string') {
     finalBucketName = bucketName;
-  } else if (Array.isArray(bucketName) ) {
+  } else if (Array.isArray(bucketName)) {
     finalBucketName = bucketName[0];
-    if(bucketName.length>1){
+    if (bucketName.length > 1) {
       folderNameArray = bucketName.slice(1);
-      finalFolderName=folderNameArray.join('/')+'/';
+      finalFolderName = folderNameArray.join('/') + '/';
     }
   }
-  console.log('folder name',finalFolderName)
+  console.log('folder name', finalFolderName);
 
   const renderBreadcrumbItem = (isLastItem: boolean, link: string, text: string) => {
     if (isLastItem) {
@@ -77,7 +77,7 @@ const Folder = () => {
           )}
           {renderFolderBreadcrumb()}
         </Breadcrumb>
-        <File bucketName={finalBucketName as string} folderName={finalFolderName}/>
+        <File bucketName={finalBucketName as string} folderName={finalFolderName} />
       </Flex>
     </>
   );

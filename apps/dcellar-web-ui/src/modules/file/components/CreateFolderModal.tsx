@@ -164,7 +164,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   errorText?: string;
   bucketName: string;
-  folderName:string;
+  folderName: string;
   fileName?: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
@@ -221,7 +221,7 @@ export const CreateFolderModal = (props: modalProps) => {
     buttonOnClick,
     errorText,
     fileName,
-      folderName:parentFolderName,
+    folderName: parentFolderName,
     bucketName,
     setStatusModalIcon,
     setStatusModalTitle,
@@ -378,7 +378,10 @@ export const CreateFolderModal = (props: modalProps) => {
   ) => {
     try {
       setLoading(true);
-      const finalObjectName=parentFolderName && parentFolderName.length>0?`${parentFolderName}${folderName}/`:`${folderName}+'/'`
+      const finalObjectName =
+        parentFolderName && parentFolderName.length > 0
+          ? `${parentFolderName}${folderName}/`
+          : `${folderName}+'/'`;
       const file = new File([], finalObjectName, { type: 'text/plain' });
       const result = await getCreateObjectApproval({
         bucketName,
@@ -485,21 +488,23 @@ export const CreateFolderModal = (props: modalProps) => {
         expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
       });
       let newFolderInfo = {
-        object_info: {
-          bucket_name: bucketName,
-          object_name: objectSignedMsg.object_name,
-          owner: address,
-          content_type: '',
-          payload_size: '0',
-          object_status: FOLDER_STATUS_CREATING,
-          checksums: objectSignedMsg.expect_checksums,
-          create_at: moment().unix(),
-          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
-        },
-        removed: false,
-        lock_balance: 0,
+        // object_info: {
+
+        bucket_name: bucketName,
+        object_name: objectSignedMsg.object_name,
+        owner: address,
+        content_type: '',
+        payload_size: '0',
+        object_status: FOLDER_STATUS_CREATING,
+        checksums: objectSignedMsg.expect_checksums,
+        create_at: moment().unix(),
+        visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
+        // },
+        // removed: false,
+        // lock_balance: 0,
       };
       const fileUploadingLists = [newFolderInfo, ...listObjects];
+      debugger;
       setListObjects(fileUploadingLists);
       onStatusModalClose();
       try {

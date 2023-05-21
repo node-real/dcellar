@@ -1,7 +1,9 @@
 import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
-  decodeObjectFromHexString, fetchWithTimeout, generateListObjectsByBucketNameOptions,
+  decodeObjectFromHexString,
+  fetchWithTimeout,
+  generateListObjectsByBucketNameOptions,
   getCreateObjectApproval,
   listObjectsByBucketName,
   validateObjectName,
@@ -77,7 +79,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
 };
 
 export const File = (props: pageProps) => {
-  const { bucketName,folderName } = props;
+  const { bucketName, folderName } = props;
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -108,35 +110,49 @@ export const File = (props: pageProps) => {
   const router = useRouter();
   const getObjectList = async (currentEndpoint: string) => {
     try {
-      const {url,headers,method}=await generateListObjectsByBucketNameOptions({
+      const { url, headers, method } = await generateListObjectsByBucketNameOptions({
         bucketName,
         endpoint: currentEndpoint,
-      })
-      let finalUrl=url;
-      if(folderName && folderName.length>0){
-        const params = new URLSearchParams();
-        params.append('delimiter', '/');
+      });
+      let finalUrl: string;
+      const params = new URLSearchParams();
+      params.append('delimiter', '/');
+      if (folderName && folderName.length > 0) {
         params.append('prefix', folderName);
-         finalUrl=`${url}?${params.toString()}`
       }
+      finalUrl = `${url}?${params.toString()}`;
 
-      const result = await fetchWithTimeout(finalUrl, {
-        headers,
-        method,
-      }, 30000);
+      const result = await fetchWithTimeout(
+        finalUrl,
+        {
+          headers,
+          method,
+        },
+        30000,
+      );
 
-      const {status} = result;
+      const { status } = result;
       if (!result.ok) {
-        return {code: -1, message: "List object error.", statusCode: status};
+        return { code: -1, message: 'List object error.', statusCode: status };
       }
-      const {objects} = await result.json();
-      console.log('result',objects);
+      const { objects, common_prefixes } = await result.json();
+      console.log('result', objects);
       if (objects) {
-        setListObjects(objects ?? []);
-        const realListObjects = objects
-            .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
-            .map((v: any) => v.object_info);
-        console.log('real list objects',realListObjects);
+        let realListObjects = objects
+          .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+          .map((v: any) => v.object_info);
+        if (Array.isArray(common_prefixes) && common_prefixes.length > 0) {
+          const folderArray = common_prefixes.map((v) => {
+            return {
+              object_name: v,
+              object_status: 1,
+            };
+          });
+          console.log('folderArray', folderArray);
+          realListObjects = [...folderArray, ...realListObjects];
+        }
+        setListObjects(realListObjects ?? []);
+        console.log('real list objects', realListObjects);
         if (realListObjects.length === 0) {
           setIsEmptyData(true);
         } else {
@@ -217,16 +233,19 @@ export const File = (props: pageProps) => {
   };
   // only get list when init
   useEffect(() => {
+    setListObjects([]);
+    setListLoading(true);
+    setIsInitReady(false);
     if (bucketName) {
       getGatewayParams();
     }
-  }, [bucketName,folderName]);
+  }, [bucketName, folderName]);
   useEffect(() => {
     if (!isInitReady) return;
-    const realListObjects = listObjects
-        .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
-        .map((v: any) => v.object_info);
-    if (realListObjects.length === 0) {
+    // const realListObjects = listObjects
+    //   .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+    //   .map((v: any) => v.object_info);
+    if (listObjects.length === 0) {
       setIsEmptyData(true);
     } else {
       setIsEmptyData(false);

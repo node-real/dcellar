@@ -384,19 +384,19 @@ export const FileDetailModal = (props: modalProps) => {
         expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
       });
       let newFileInfo = {
-        object_info: {
-          bucket_name: bucketName,
-          object_name: finalName,
-          owner: address,
-          content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
-          payload_size: '0',
-          object_status: OBJECT_STATUS_UPLOADING,
-          checksums: objectSignedMsg.expect_checksums,
-          create_at: moment().unix(),
-          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
-        },
-        removed: false,
-        lock_balance: 0,
+        // object_info: {
+        bucket_name: bucketName,
+        object_name: finalName,
+        owner: address,
+        content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
+        payload_size: '0',
+        object_status: OBJECT_STATUS_UPLOADING,
+        checksums: objectSignedMsg.expect_checksums,
+        create_at: moment().unix(),
+        visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
+        // },
+        // removed: false,
+        // lock_balance: 0,
       };
       const fileUploadingLists = [newFileInfo, ...listObjects];
       setListObjects(fileUploadingLists);
