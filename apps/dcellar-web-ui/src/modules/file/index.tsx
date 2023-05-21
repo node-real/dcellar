@@ -1,7 +1,7 @@
 import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
-  decodeObjectFromHexString,
+  decodeObjectFromHexString, fetchWithTimeout, generateListObjectsByBucketNameOptions,
   getCreateObjectApproval,
   listObjectsByBucketName,
   validateObjectName,
@@ -108,16 +108,33 @@ export const File = (props: pageProps) => {
   const router = useRouter();
   const getObjectList = async (currentEndpoint: string) => {
     try {
-      const listResult = await listObjectsByBucketName({
+      const {url,headers,method}=await generateListObjectsByBucketNameOptions({
         bucketName,
         endpoint: currentEndpoint,
-      });
-      if (listResult) {
-        const tempListObjects = listResult.body ?? [];
-        setListObjects(listResult.body ?? []);
-        const realListObjects = tempListObjects
-          .filter((v: any) => !v.removed)
-          .map((v: any) => v.object_info);
+      })
+      console.log('url',url);
+      console.log('folder name',folderName);
+      const params = new URLSearchParams();
+      params.append('delimiter', '/');
+      params.append('prefix', folderName);
+      const finalUrl=`${url}?${params.toString()}`
+      const result = await fetchWithTimeout(finalUrl, {
+        headers,
+        method,
+      }, 30000);
+
+      const {status} = result;
+      if (!result.ok) {
+        return {code: -1, message: "List object error.", statusCode: status};
+      }
+      const {objects} = await result.json();
+      console.log('result',objects);
+      if (objects) {
+        setListObjects(objects ?? []);
+        const realListObjects = objects
+            .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+            .map((v: any) => v.object_info);
+        console.log('real list objects',realListObjects);
         if (realListObjects.length === 0) {
           setIsEmptyData(true);
         } else {
@@ -126,6 +143,25 @@ export const File = (props: pageProps) => {
       } else {
         setIsEmptyData(true);
       }
+      // const listResult = await listObjectsByBucketName({
+      //   bucketName,
+      //   endpoint: currentEndpoint,
+      // });
+      //
+      // if (listResult) {
+      //   const tempListObjects = listResult.body ?? [];
+      //   setListObjects(listResult.body ?? []);
+      //   const realListObjects = tempListObjects
+      //     .filter((v: any) => !v.removed)
+      //     .map((v: any) => v.object_info);
+      //   if (realListObjects.length === 0) {
+      //     setIsEmptyData(true);
+      //   } else {
+      //     setIsEmptyData(false);
+      //   }
+      // } else {
+      //   setIsEmptyData(true);
+      // }
       setListLoading(false);
       setIsInitReady(true);
     } catch (error) {
@@ -182,12 +218,12 @@ export const File = (props: pageProps) => {
     if (bucketName) {
       getGatewayParams();
     }
-  }, []);
+  }, [bucketName,folderName]);
   useEffect(() => {
     if (!isInitReady) return;
     const realListObjects = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info);
+        .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+        .map((v: any) => v.object_info);
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
     } else {
@@ -207,20 +243,20 @@ export const File = (props: pageProps) => {
       comlinkWorkerRef.current?.terminate();
     };
   }, []);
-  // monitor route change to get new list info
-  useEffect(() => {
-    function handleRouteChange() {
-      router.events.on('routeChangeComplete', () => {
-        if (bucketName) {
-          getGatewayParams();
-        }
-      });
-    }
-    handleRouteChange();
-    return () => {
-      router.events.off('routeChangeComplete', () => {});
-    };
-  }, [router.events]);
+  // // monitor route change to get new list info
+  // useEffect(() => {
+  //   function handleRouteChange() {
+  //     router.events.on('routeChangeComplete', () => {
+  //       if (bucketName) {
+  //         getGatewayParams();
+  //       }
+  //     });
+  //   }
+  //   handleRouteChange();
+  //   return () => {
+  //     router.events.off('routeChangeComplete', () => {});
+  //   };
+  // }, [router.events]);
 
   const renderUploadFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
     if (!isCurrentUser) return <></>;
@@ -557,6 +593,7 @@ export const File = (props: pageProps) => {
       ) : (
         <FileTable
           bucketName={bucketName}
+          folderName={folderName}
           listObjects={listObjects}
           endpoint={endpoint}
           spAddress={primarySpAddress}

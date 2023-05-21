@@ -56,7 +56,7 @@ const Folder = () => {
   return (
     <>
       <Head>
-        <title>{bucketName} - DCellar</title>
+        <title>{finalBucketName} - DCellar</title>
       </Head>
       <Flex flexDirection={'column'} w={'100%'} height="100%">
         <Breadcrumb marginX="16px" marginTop="16px">
