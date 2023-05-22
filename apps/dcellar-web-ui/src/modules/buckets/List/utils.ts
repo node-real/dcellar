@@ -9,6 +9,8 @@ import {
   getAccount,
   makeRpcClient,
   ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
 } from '@bnb-chain/gnfd-js-sdk';
 import Long from 'long';
 import { QueryClientImpl as spQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/query';
@@ -16,8 +18,6 @@ import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield
 
 import { IApprovalCreateBucket } from '@/modules/buckets/type';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { parseError } from '../utils/parseError';
 import { GRPC_URL } from '@/base/env';
 
@@ -122,18 +122,25 @@ export const getFee = async ({
   chainId,
   primarySpAddress,
   endpoint,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
   chainId: number;
   primarySpAddress: string;
   endpoint: string;
+  seedString: string;
+  domain: string;
 }) => {
   const getApprovalParams = {
     bucketName,
     creator: address,
     primarySpAddress,
     endpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   const res = await getCreateBucketApproval(getApprovalParams);
   const { body: xSPSignedMsg, code } = res;
@@ -199,6 +206,8 @@ export const createBucketTxUtil = async ({
   spAddress,
   spEndpoint,
   provider,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
@@ -206,12 +215,17 @@ export const createBucketTxUtil = async ({
   spAddress: string;
   spEndpoint: string;
   provider: any;
+  seedString: string;
+  domain: string;
 }) => {
   const approvalParams = {
     creator: address,
     bucketName,
     primarySpAddress: spAddress,
     endpoint: spEndpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   //1. Check that the name is not already taken and get the gas limit.
   const res = await getCreateBucketApproval(approvalParams);

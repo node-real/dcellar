@@ -34,7 +34,11 @@ import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-
+import {
+  checkOffChainDataAvailable,
+  getOffChainData,
+} from '@/modules/off-chain-auth/utils';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';
 const Welcome = () => {
@@ -51,6 +55,7 @@ const Welcome = () => {
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
   const router = useRouter();
+  const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const network = useSwitchNetwork({
     throwForSwitchChainNotSupported: true,
     onSuccess() {
@@ -113,10 +118,8 @@ const Welcome = () => {
     },
     onError(data) {
       setLoading(false);
-      // todo send the error to Sentry
       // console.error('use connect error', data.cause);
       if (data instanceof ConnectorNotFoundError) {
-        // todo support more wallet, now only support metamask and trust wallet
         if (currentConnector instanceof MetaMaskConnector) {
           toast.warning({
             description: `Metamask not installed. Please install and reconnect.`,
@@ -180,13 +183,27 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          loginDispatch({
-            type: 'LOGIN',
-            payload: {
-              address: currentAddress,
-            },
-          });
-          // router.push('/wallet');
+          const offChainData = getOffChainData(currentAddress);
+          const isAvailable = checkOffChainDataAvailable(offChainData);
+          if (!isAvailable) {
+            onOffChainAuth(currentAddress).then((res: any) => {
+              if (res.code === 0) {
+                loginDispatch({
+                  type: 'LOGIN',
+                  payload: {
+                    address: currentAddress,
+                  },
+                });
+              }
+            });
+          } else {
+            loginDispatch({
+              type: 'LOGIN',
+              payload: {
+                address: currentAddress,
+              },
+            });
+          }
         }
       }
     } else {
@@ -209,7 +226,7 @@ const Welcome = () => {
             disconnect();
             onToggle();
           }}
-          isLoading={loading}
+          isLoading={loading || isAuthPending}
         >
           Connect Wallet
         </DCButton>

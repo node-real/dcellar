@@ -51,6 +51,7 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     const rpcClient = await makeRpcClient(GRPC_URL);
     const spRpc = new spQueryClientImpl(rpcClient);
     const storageRpc = new storageQueryClientImpl(rpcClient);
+
     const paymentRpc = new paymentQueryClientImpl(rpcClient);
     const { spStoragePrice } = await spRpc.QueryGetSpStoragePriceByTime({
       spAddr: primarySpAddress,
@@ -59,11 +60,15 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     const { secondarySpStorePrice } = await spRpc.QueryGetSecondarySpStorePriceByTime({
       timestamp: Long.fromNumber(Date.now()),
     });
-    const { params = {} } = await storageRpc.Params();
-    const { minChargeSize, redundantDataChunkNum, redundantParityChunkNum } = params as any;
+    const { params } = await storageRpc.Params();
+    const {
+      minChargeSize = new Long(0),
+      redundantDataChunkNum = 0,
+      redundantParityChunkNum = 0,
+    } = params?.versionedParams ?? {};
     const { params: paymentParams = {} } = await paymentRpc.Params();
     const { reserveTime } = paymentParams as any;
-    const chargeSize = size >= minChargeSize ? size : minChargeSize.toString();
+    const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
       .plus(
         BigNumber((secondarySpStorePrice as any).storePrice).times(

@@ -1,10 +1,15 @@
 import { ethers } from 'ethers';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork } from 'wagmi';
-import { getAccount, TransferOutTx, TransferTx, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  TransferOutTx,
+  TransferTx,
+  ZERO_PUBKEY,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 import BigNumber from 'bignumber.js';
 
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { GRPC_URL } from '@/base/env';
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';

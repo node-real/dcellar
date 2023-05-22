@@ -16,6 +16,8 @@ import { runtimeEnv } from '@/base/env';
 import { BnbPriceProvider } from '@/context/GlobalContext/BnbPriceProvider';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
 import { GAPageView } from '@/components/common/GATracker';
+import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
+import { SPProvider } from '@/context/GlobalContext/SPProvider';
 
 const wagmiClient = createClient({
   autoConnect: true,
@@ -31,11 +33,17 @@ function App({ Component, pageProps }: AppProps) {
     <QueryClientProvider client={queryClient}>
       <WagmiConfig client={wagmiClient}>
         <BnbPriceProvider>
+          {/* <OffChainAuthProvider> */}
           <Layout>
-            <PageProtect>
-              <Component {...pageProps} />
-              <GAPageView />
-            </PageProtect>
+            <SPProvider>
+              {/* TODO provider should locate up layout */}
+              <OffChainAuthProvider>
+                <PageProtect>
+                  <Component {...pageProps} />
+                  <GAPageView />
+                </PageProtect>
+              </OffChainAuthProvider>
+            </SPProvider>
           </Layout>
         </BnbPriceProvider>
       </WagmiConfig>

@@ -18,6 +18,8 @@ import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { getDomain } from '@/utils/getDomain';
+import { getOffChainData } from '@/modules/off-chain-auth/utils';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -84,12 +86,18 @@ const downloadWithProgress = async (
   objectName: string,
   endpoint: string,
   payloadSize: number,
+  userAddress: string,
 ) => {
   try {
+    const domain = getDomain();
+    const {seedString} = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
       endpoint,
+      userAddress,
+      domain,
+      seedString,
     });
     const { url, headers } = uploadOptions;
     const toastId = toast.info({
@@ -127,12 +135,17 @@ const downloadWithProgress = async (
       },
       headers: {
         Authorization: headers.get('Authorization'),
+        'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+        'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
       },
       responseType: 'blob',
     });
     toast.close(toastId);
     return result;
   } catch (error: any) {
+    if (error.statusCode === 500) {
+      // setOpenAuthModal();
+    }
     throw new Error(error);
   }
 };
@@ -218,12 +231,23 @@ const directlyDownload = (url: string) => {
 const getQuota = async (
   bucketName: string,
   endpoint: string,
+  userAddress: string,
+  setCloseAllAndShowAuthModal: () => void,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const { code, body } = await getBucketReadQuota({
+    const domain = getDomain();
+    const {seedString} = await getOffChainData(userAddress);
+    const { code, body, statusCode } = await getBucketReadQuota({
       bucketName,
       endpoint,
+      domain,
+      userAddress,
+      seedString,
     });
+    console.log('statusCode', statusCode, setCloseAllAndShowAuthModal);
+    if (statusCode === 500) {
+      setCloseAllAndShowAuthModal();
+    }
     if (code !== 0 || !body) {
       toast.error({
         description: 'Get bucket read quota met error.',

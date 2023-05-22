@@ -30,6 +30,7 @@ export const SPProvider: React.FC<any> = ({ children }) => {
     queryFn: getStorageProviders,
   });
   const finalSps = (data?.sps ?? []).filter((v: any) => v?.description?.moniker !== 'QATest');
+
   const DefaultSp = {
     isLoading: isLoading,
     isError: isError,
