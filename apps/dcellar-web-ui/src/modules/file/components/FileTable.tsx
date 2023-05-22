@@ -467,6 +467,7 @@ export const FileTable = (props: fileListProps) => {
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
           const isFolder = info.getValue().endsWith('/');
           const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue();
+          const nameWithoutFolderPrefix = name.replace(folderName, '');
           const icon = isFolder ? (
             <FolderIcon color={iconColor} />
           ) : (
@@ -483,7 +484,7 @@ export const FileTable = (props: fileListProps) => {
             >
               <Flex mr={4}>{icon}</Flex>
               <TableText info={rowData} fontWeight={500}>
-                {name}
+                {nameWithoutFolderPrefix}
               </TableText>
               {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
@@ -976,6 +977,7 @@ export const FileTable = (props: fileListProps) => {
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
                           setViewLink(previewLink);
+                          setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
                           const quotaData = await getQuota(bucketName, endpoint);
@@ -1028,6 +1030,7 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isInfoModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
+        folderName={folderName}
         hash={hash}
         shareLink={shareLink}
         createdDate={createdDate}
@@ -1070,6 +1073,7 @@ export const FileTable = (props: fileListProps) => {
         fileInfo={fileInfo}
         endpoint={endpoint}
         viewLink={viewLink}
+        visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
         setStatusModalDescription={setStatusModalDescription}

@@ -40,6 +40,7 @@ interface modalProps {
   buttonText?: string;
   buttonOnClick?: () => void;
   bucketName: string;
+  folderName: string;
   fileInfo?: { name: string; size: number };
   createdDate?: number;
   primarySpUrl?: string;
@@ -232,6 +233,7 @@ export const FileInfoModal = (props: modalProps) => {
     primarySpSealAddress = '',
     shareLink,
     remainingQuota,
+    folderName = '',
     visibility = 0,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
@@ -250,6 +252,7 @@ export const FileInfoModal = (props: modalProps) => {
   const isAbleDownload = useMemo(() => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
+  const nameWithoutFolderPrefix = name.replace(folderName, '');
 
   return (
     <>
@@ -279,7 +282,7 @@ export const FileInfoModal = (props: modalProps) => {
                 mb="8px"
                 w={'100%'}
               >
-                {name}
+                {nameWithoutFolderPrefix}
               </Text>
               <Text
                 fontSize={'12px'}

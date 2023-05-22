@@ -273,7 +273,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
               }
 
               const newListObject = listObjects.filter((v, i) => {
-                return v?.object_info?.object_name !== name;
+                return v?.object_name !== name;
               });
               setListObjects(newListObject);
               onStatusModalClose();

@@ -275,7 +275,7 @@ export const FileDetailModal = (props: modalProps) => {
       // We don't know yet why final name and size is changing if we open the modal again during uploading
       const finalObjects = listObjects.map((v, i) => {
         if (i === 0) {
-          v.object_info.object_status = 1;
+          v.object_status = 1;
         }
         return v;
       });

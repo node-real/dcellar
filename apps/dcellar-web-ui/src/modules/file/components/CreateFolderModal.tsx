@@ -20,6 +20,8 @@ import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getAccount, CreateObjectTx, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import {
+  fetchWithTimeout,
+  generateGetObjectOptions,
   getCreateObjectApproval,
   listObjectsByBucketName,
   VisibilityType,
@@ -49,6 +51,7 @@ import {
 } from '@/modules/file/constant';
 import {
   formatBytes,
+  getObjectIsSealed,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
@@ -129,26 +132,6 @@ const renderFee = (
       </Text>
     </Flex>
   );
-};
-
-// fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string) => {
-  const listResult = await listObjectsByBucketName({
-    bucketName,
-    endpoint,
-  });
-  if (listResult) {
-    const listObjects = listResult.body ?? [];
-    const sealObjectIndex = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
-      .findIndex((v) => v.object_name === objectName && v.object_status === 1);
-    if (sealObjectIndex >= 0) {
-      return listObjects[sealObjectIndex].seal_tx_hash;
-    }
-    return '';
-  }
-  return false;
 };
 
 const INITIAL_DELAY = 500; // ms
@@ -504,7 +487,6 @@ export const CreateFolderModal = (props: modalProps) => {
         // lock_balance: 0,
       };
       const fileUploadingLists = [newFolderInfo, ...listObjects];
-      debugger;
       setListObjects(fileUploadingLists);
       onStatusModalClose();
       try {
@@ -533,7 +515,6 @@ export const CreateFolderModal = (props: modalProps) => {
           });
           startPolling(async () => {
             const folderName = objectSignedMsg.object_name;
-            // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
             const sealTxHash = await getObjectIsSealed(bucketName, endpoint, folderName);
             if (sealTxHash && sealTxHash.length > 0) {
               setIsSealed(true);
@@ -563,8 +544,8 @@ export const CreateFolderModal = (props: modalProps) => {
           });
         } else {
           // eslint-disable-next-line no-console
-          console.error('create object on chain error!');
-          throw new Error('create object on chain error!');
+          console.error('create folder on chain error!');
+          throw new Error('create folder on chain error!');
         }
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.map((v: any) => {
@@ -587,7 +568,7 @@ export const CreateFolderModal = (props: modalProps) => {
       }
       setFailedStatusModal(FILE_DESCRIPTION_UPLOAD_ERROR, error);
       // eslint-disable-next-line no-console
-      console.error('Upload file error', error);
+      console.error('Create folder error', error);
     }
   };
   return (
