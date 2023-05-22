@@ -127,7 +127,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
       gaClickCloseName={gaOptions.closeName}
     >
       <ModalCloseButton />
-      <ModalBody>
+      <ModalBody mt={0}>
         <Flex justifyContent={'center'} marginBottom="16px">
           {contentText?.icon}
         </Flex>
