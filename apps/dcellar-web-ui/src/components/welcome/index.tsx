@@ -120,7 +120,7 @@ const Welcome = () => {
         if (currentConnector instanceof MetaMaskConnector) {
           toast.warning({
             description: `Metamask not installed. Please install and reconnect.`,
-            duration: 5000,
+            duration: 3000,
           });
           window.open(METAMASK_DOWNLOAD_URL, '_blank');
           return;
@@ -129,7 +129,7 @@ const Welcome = () => {
           if (currentConnector.name === 'Trust Wallet') {
             toast.warning({
               description: `Trust wallet not installed. Please install and reconnect.`,
-              duration: 5000,
+              duration: 3000,
             });
             window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
             return;
@@ -137,7 +137,7 @@ const Welcome = () => {
         }
         toast.warning({
           description: `Wallet not installed. Please install and reconnect.`,
-          duration: 5000,
+          duration: 3000,
         });
       } else {
         const { code = '', message = '' } = data?.cause as any;
