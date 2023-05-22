@@ -6,3 +6,6 @@ export const InternalRoutePaths = {
   send: '/wallet?type=send',
   buckets: '/buckets',
 };
+
+export const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
+export const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';

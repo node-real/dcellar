@@ -2,13 +2,11 @@ import {
   ModalCloseButton,
   ModalHeader,
   ModalFooter,
-  Button,
   Text,
   Flex,
   Checkbox,
 } from '@totejs/uikit';
-import React, { useEffect, useMemo, useState } from 'react';
-import { downloadFile } from '@bnb-chain/greenfield-storage-js-sdk';
+import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
 import {
@@ -33,6 +31,7 @@ import {
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
   title?: string;
@@ -74,7 +73,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
   const { loginState, loginDispatch } = loginData;
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
   const [hasChangedDownload, setHasChangedDownload] = useState(false);
-
+  const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
   const {
     title = 'Confirm Download',
@@ -186,10 +185,13 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size));
+                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size), loginState.address);
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
+              if (error.statusCode === 500) {
+                setOpenAuthModal()
+              }
               setLoading(false);
               onClose();
               setFailedStatusModal(FILE_DESCRIPTION_DOWNLOAD_ERROR, error);

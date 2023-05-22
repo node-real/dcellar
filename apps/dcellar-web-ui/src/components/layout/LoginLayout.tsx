@@ -12,6 +12,10 @@ import { InternalRoutePaths } from '@/constants/links';
 
 const IgnoreFooterPaths = ['/buckets'];
 
+/**
+ * 需要有一个全局检测，如果没有登录，就跳转到登录页面，welcome页面最好处理出来，index就是welcome页面；
+ * 重写钱包连接状态
+ */
 export const LoginLayout = ({
   children,
   disconnect,
