@@ -543,6 +543,16 @@ export const File = (props: pageProps) => {
   } = useDisclosure();
   if (!bucketName) return <></>;
   const showUploadButtonOnHeader = !isEmptyData && !listLoading;
+  const renderTitle=()=>{
+    if(folderName){
+      const folderNameArray=folderName.split('/');
+      return folderNameArray[folderNameArray.length-2];
+    }
+    if(bucketName){
+      return bucketName
+    }
+    return "";
+  }
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
@@ -552,12 +562,12 @@ export const File = (props: pageProps) => {
           fontWeight="700"
           fontSize={'24px'}
           lineHeight="36px"
-          maxWidth="400px"
-          whiteSpace="nowrap"
+          maxWidth="700px"
           overflow="hidden"
+          noOfLines={1}
           textOverflow="ellipsis"
         >
-          {bucketName}
+          {renderTitle()}
         </Text>
         <Flex>
           {/*fixme add create folder click event*/}

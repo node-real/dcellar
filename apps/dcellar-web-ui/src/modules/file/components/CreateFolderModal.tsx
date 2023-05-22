@@ -75,6 +75,7 @@ import { parseError } from '@/modules/buckets/utils/parseError';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { decodeFromHex } from '@/utils/hex';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
+import {ErrorDisplay} from "@/modules/buckets/List/components/ErrorDisplay";
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -571,6 +572,33 @@ export const CreateFolderModal = (props: modalProps) => {
       console.error('Create folder error', error);
     }
   };
+
+  const validateAndSetGasFee= debounce(async(folderName)=>{
+    const objectMsg = await fetchCreateFolderApproval(folderName);
+    await getGasFeeAndSet(objectMsg);
+  },500);
+
+  const handleInputChange = useCallback(
+      (event: any) => {
+        const currentFolderName = event.target.value;
+        setFolderName(currentFolderName);
+
+        // 1. validate name rules
+        const types = validateNameRules(currentFolderName);
+        if (Object.values(types).length > 0) {
+          setError('bucketName', { types });
+          setValidateNameAndGas(initValidateNameAndGas);
+          return;
+        } else {
+          clearErrors();
+        }
+
+        // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
+        validateAndSetGasFee(currentFolderName);
+      },
+      // [checkGasFee, clearErrors, setError, setValue, validateNameRules],
+      []
+  );
   return (
     <DCModal
       isOpen={isOpen}
@@ -605,11 +633,12 @@ export const CreateFolderModal = (props: modalProps) => {
             lineHeight={'19px'}
             fontWeight={500}
             height="52px"
-            onChange={async (e) => {
-              setFolderName(e.target.value);
-              const objectMsg = await fetchCreateFolderApproval(e.target.value);
-              await getGasFeeAndSet(objectMsg);
-            }}
+            onChange={handleInputChange}
+            // onChange={async (e) => {
+            //   const newestFolderName=e.target.value;
+            //   setFolderName(newestFolderName);
+            //   validateAndSetGasFee(newestFolderName)
+            // }}
           />
           <InputRightElement marginRight={'8px'}>
             <Tips
@@ -648,6 +677,10 @@ export const CreateFolderModal = (props: modalProps) => {
             />
           </InputRightElement>
         </InputGroup>
+        {errors?.bucketName && Object.values(errors.bucketName.types).length > 0 && (
+            // @ts-ignore
+            <ErrorDisplay errorMsgs={Object.values(errors.bucketName.types)} />
+        )}
         <Flex
           w="100%"
           padding={'16px'}
