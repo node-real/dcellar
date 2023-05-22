@@ -42,7 +42,7 @@ import {
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
 import {
-  formatBytes,
+  formatBytes, getObjectIsSealed,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
@@ -119,26 +119,6 @@ const renderFee = (
   );
 };
 
-// fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string) => {
-  const listResult = await listObjectsByBucketName({
-    bucketName,
-    endpoint,
-  });
-  if (listResult) {
-    const listObjects = listResult.body ?? [];
-    const sealObjectIndex = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
-      .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
-    if (sealObjectIndex >= 0) {
-      return listObjects[sealObjectIndex].seal_tx_hash;
-    }
-    return '';
-  }
-  return false;
-};
-
 const INITIAL_DELAY = 500; // ms
 const POLLING_INTERVAL = 3000; // ms
 
@@ -152,6 +132,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   errorText?: string;
   bucketName: string;
+  folderName: string;
   file?: File;
   fileName?: string;
   simulateGasFee: string;
@@ -217,6 +198,7 @@ export const FileDetailModal = (props: modalProps) => {
     objectSignedMsg,
     gasLimit,
     gasPrice = '0',
+      folderName="",
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -298,7 +280,7 @@ export const FileDetailModal = (props: modalProps) => {
 
   const { name, size } = file;
   const finalName = fileName ? fileName : name;
-
+  const finalNameWithoutFolderPrefix=finalName.replace(folderName,"");
   const setFailedStatusModal = (description: string, error?: any) => {
     onStatusModalClose();
     setStatusModalIcon(FILE_FAILED_URL);
@@ -467,7 +449,6 @@ export const FileDetailModal = (props: modalProps) => {
           },
         });
         startPolling(async () => {
-          // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
           const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
@@ -531,6 +512,7 @@ export const FileDetailModal = (props: modalProps) => {
       console.error('Upload file error', error);
     }
   };
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -557,7 +539,7 @@ export const FileDetailModal = (props: modalProps) => {
               color={'readable.normal'}
               mb="8px"
             >
-              {finalName}
+              {finalNameWithoutFolderPrefix}
             </Text>
             <Text
               fontSize={'12px'}

@@ -650,6 +650,7 @@ export const File = (props: pageProps) => {
         }}
         file={file}
         fileName={fileName}
+        folderName={folderName}
         title={detailModalTitle}
         bucketName={bucketName}
         simulateGasFee={gasFee}
