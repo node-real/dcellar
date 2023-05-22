@@ -271,7 +271,7 @@ export const CreateFolderModal = (props: modalProps) => {
       // We don't know yet why final name and size is changing if we open the modal again during uploading
       const finalObjects = listObjects.map((v, i) => {
         if (i === 0) {
-          v.object_info.object_status = 1;
+          v.object_status = 1;
         }
         return v;
       });
@@ -569,7 +569,7 @@ export const CreateFolderModal = (props: modalProps) => {
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.map((v: any) => {
           if (v?.object_info?.object_name === objectSignedMsg.object_name) {
-            v.object_info.object_status = OBJECT_STATUS_FAILED;
+            v.object_status = OBJECT_STATUS_FAILED;
           }
           return v;
         });

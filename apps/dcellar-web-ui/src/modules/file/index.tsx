@@ -495,7 +495,7 @@ export const File = (props: pageProps) => {
         return;
       }
       setFile(uploadFile);
-      setFileName(uploadFile.name);
+      setFileName(`${folderName}${uploadFile.name}`);
       setLockFee('-1');
       setGasFeeLoading(true);
       setLockFeeLoading(true);
@@ -507,6 +507,7 @@ export const File = (props: pageProps) => {
       }
       onDetailModalOpen();
       const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile);
+      console.log('object signed msg',currentObjectSignedMessage);
       await getGasFeeAndSet(uploadFile, currentObjectSignedMessage);
       await getLockFeeAndSet(uploadFile.size);
     }

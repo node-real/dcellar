@@ -453,9 +453,9 @@ export const FileDetailModal = (props: modalProps) => {
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             const currentProgressObjects = fileUploadingLists.map((v) => {
-              if (v?.object_info?.object_name === finalName) {
-                v.object_info.payload_size = size;
-                v.object_info.progress = progress;
+              if (v?.object_name === finalName) {
+                v.payload_size = size;
+                v.progress = progress;
               }
               return v;
             });
@@ -505,8 +505,8 @@ export const FileDetailModal = (props: modalProps) => {
         });
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.map((v: any) => {
-          if (v?.object_info?.object_name === finalName) {
-            v.object_info.object_status = OBJECT_STATUS_FAILED;
+          if (v?.object_name === finalName) {
+            v.object_status = OBJECT_STATUS_FAILED;
           }
           return v;
         });
