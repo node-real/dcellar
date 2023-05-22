@@ -425,7 +425,7 @@ export const FileDetailModal = (props: modalProps) => {
                 .
               </>
             ),
-            duration: 5000,
+            duration: 3000,
           });
         } else {
           // eslint-disable-next-line no-console
@@ -489,7 +489,7 @@ export const FileDetailModal = (props: modalProps) => {
                   .
                 </>
               ),
-              duration: 5000,
+              duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
             const newFileObjectStatus = listObjects[0].object_info.object_status;
