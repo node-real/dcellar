@@ -198,6 +198,7 @@ export const File = (props: pageProps) => {
       setIsInitReady(false);
       const bucketInfo = await getBucketInfo(bucketName);
       const { sps } = await getStorageProviders();
+      console.log('sps', sps);
       setIsCurrentUser(bucketInfo?.owner === address);
 
       const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
@@ -296,7 +297,13 @@ export const File = (props: pageProps) => {
           borderRadius={'8px'}
           cursor="pointer"
           onClick={() => {
-            onCreateFolderModalOpen();
+            if (!endpoint) {
+              toast.error({
+                description: 'Endpoint is not ready',
+              });
+            } else {
+              onCreateFolderModalOpen();
+            }
           }}
         >
           <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
@@ -711,23 +718,25 @@ export const File = (props: pageProps) => {
           await getLockFeeAndSet(file.size);
         }}
       />
-      <CreateFolderModal
-        endpoint={endpoint}
-        onClose={onCreateFolderModalClose}
-        isOpen={isCreateFolderModalOpen}
-        bucketName={bucketName}
-        folderName={folderName}
-        setStatusModalIcon={setStatusModalIcon}
-        setStatusModalTitle={setStatusModalTitle}
-        setStatusModalDescription={setStatusModalDescription}
-        onStatusModalOpen={onStatusModalOpen}
-        onStatusModalClose={onStatusModalClose}
-        setStatusModalButtonText={setStatusModalButtonText}
-        setListObjects={setListObjects}
-        listObjects={listObjects}
-        setStatusModalErrorText={setStatusModalErrorText}
-        secondarySpAddresses={secondarySpAddresses}
-      />
+      {endpoint && (
+        <CreateFolderModal
+          endpoint={endpoint}
+          onClose={onCreateFolderModalClose}
+          isOpen={isCreateFolderModalOpen}
+          bucketName={bucketName}
+          folderName={folderName}
+          setStatusModalIcon={setStatusModalIcon}
+          setStatusModalTitle={setStatusModalTitle}
+          setStatusModalDescription={setStatusModalDescription}
+          onStatusModalOpen={onStatusModalOpen}
+          onStatusModalClose={onStatusModalClose}
+          setStatusModalButtonText={setStatusModalButtonText}
+          setListObjects={setListObjects}
+          listObjects={listObjects}
+          setStatusModalErrorText={setStatusModalErrorText}
+          secondarySpAddresses={secondarySpAddresses}
+        />
+      )}
     </Flex>
   );
 };

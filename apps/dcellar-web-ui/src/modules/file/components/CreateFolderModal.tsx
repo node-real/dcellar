@@ -14,6 +14,8 @@ import {
   InputGroup,
   Input,
   InputRightElement,
+  FormErrorMessage,
+  FormControl,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
@@ -69,7 +71,7 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { debounce } from 'lodash-es';
+import { debounce, isEmpty } from 'lodash-es';
 import { getFee } from '@/modules/buckets/List/utils';
 import BigNumber from 'bignumber.js';
 import { parseError } from '@/modules/buckets/utils/parseError';
@@ -214,7 +216,8 @@ export const CreateFolderModal = (props: modalProps) => {
 
   const getApprovalAndGasFee = useCallback(
     async (folderName: string) => {
-      debugger;
+      setLoading(true);
+      setGasFeeLoading(true);
       const objectMsg = await fetchCreateFolderApproval(folderName, endpoint);
       await getGasFeeAndSet(objectMsg);
     },
@@ -288,23 +291,19 @@ export const CreateFolderModal = (props: modalProps) => {
       setGasFee('-1');
       if (error.message.includes('Object already exists')) {
         // todo add error object text under input
-        // setDuplicateNameModalDescription(
-        //     `${uploadFile.name} is already existed in current bucket. Do you want to automatically rename it to keep both files?`,
-        // );
+        const fullObjectName = currentObjectSignedMessage.object_name;
+        const fullPathArray = fullObjectName.split('/');
+        const currentFolderName = fullPathArray[fullPathArray.length - 2];
+        setFormErrors([`"${currentFolderName}" is already existed.`]);
       } else {
-        setStatusModalIcon(FILE_FAILED_URL);
-        setStatusModalTitle('Chain Rejected');
         if (
           error.message.includes('lack of') ||
           error.message.includes('static balance is not enough')
         ) {
-          // todo get the number of lacking money
-          setStatusModalDescription(GET_GAS_FEE_LACK_BALANCE_ERROR);
+          setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
         } else {
-          setStatusModalDescription(GET_GAS_FEE_DEFAULT_ERROR);
-          setStatusModalErrorText('Error message: ' + error?.message ?? '');
+          setFormErrors([GET_GAS_FEE_DEFAULT_ERROR]);
         }
-        onStatusModalOpen();
       }
       // eslint-disable-next-line no-console
       console.error('Get gas fee error', error);
@@ -327,7 +326,7 @@ export const CreateFolderModal = (props: modalProps) => {
         toast.error({
           description: 'endpoint is null',
         });
-        return;
+        return Promise.reject();
       }
       const result = await getCreateObjectApproval({
         bucketName,
@@ -348,11 +347,7 @@ export const CreateFolderModal = (props: modalProps) => {
       return currentObjectSignedMessage;
     } catch (error: any) {
       setGasFeeLoading(false);
-      setStatusModalIcon(FILE_FAILED_URL);
-      setStatusModalTitle(FILE_TITLE_SP_REJECTED);
-      setStatusModalErrorText('Error message: ' + error?.message ?? '');
-      setStatusModalDescription('');
-      onStatusModalOpen();
+      setFormErrors([`Sp rejected. Error message: ${error?.message ?? ''}`]);
       // eslint-disable-next-line no-console
       console.error('Sp get object approval error', error);
       return Promise.reject();
@@ -504,27 +499,19 @@ export const CreateFolderModal = (props: modalProps) => {
     }
   };
 
-  const handleInputChange = useCallback(
-    (event: any) => {
-      const currentFolderName = event.target.value;
-      setFolderName(currentFolderName);
-
-      // 1. validate name rules
-      const types = validateNameRules(currentFolderName);
-      if (Object.values(types).length > 0) {
-        setFormErrors(Object.values(types));
-        setGasFee('-1');
-        return;
-      } else {
-        setFormErrors([]);
-      }
-
-      // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
-      validateAndSetGasFee(currentFolderName);
-    },
-    // [checkGasFee, clearErrors, setError, setValue, validateNameRules],
-    [],
-  );
+  const handleInputChange = useCallback((event: any) => {
+    const currentFolderName = event.target.value;
+    setFolderName(currentFolderName);
+    const types = validateNameRules(currentFolderName);
+    if (Object.values(types).length > 0) {
+      setFormErrors(Object.values(types));
+      setGasFee('-1');
+      return;
+    } else {
+      setFormErrors([]);
+    }
+    validateAndSetGasFee(currentFolderName);
+  }, []);
   return (
     <DCModal
       isOpen={isOpen}
@@ -547,63 +534,60 @@ export const CreateFolderModal = (props: modalProps) => {
       </Text>
       <ModalCloseButton />
       <Flex mt="32px" flexDirection={'column'} alignItems={'center'} display={'flex'}>
-        <InputGroup>
-          <Input
-            autoFocus
-            autoComplete="off"
-            type="text"
-            id="bucketName"
-            border="1px solid #EAECF0"
-            placeholder="Enter a folder name"
-            fontSize="16px"
-            lineHeight={'19px'}
-            fontWeight={500}
-            height="52px"
-            onChange={handleInputChange}
-            // onChange={async (e) => {
-            //   const newestFolderName=e.target.value;
-            //   setFolderName(newestFolderName);
-            //   validateAndSetGasFee(newestFolderName)
-            // }}
-          />
-          <InputRightElement marginRight={'8px'}>
-            <Tips
-              iconSize={'24px'}
-              containerWidth={'308px'}
-              trigger="hover"
-              tips={
-                <Box width={'308px'} paddingRight="8px">
-                  <Text
-                    color="readable.normal"
-                    fontSize={'14px'}
-                    fontWeight={600}
-                    marginBottom="4px"
-                  >
-                    Naming Rules
-                  </Text>
-                  <Box
-                    as="ul"
-                    color={'readable.secondary'}
-                    fontSize="14px"
-                    lineHeight={'150%'}
-                    listStyleType="disc"
-                    listStylePosition={'outside'}
-                    marginLeft="20px"
-                    wordBreak={'break-word'}
-                  >
-                    <Box as="li" marginBottom={'4px'}>
-                      Must be between 1 and 50 characters long.
-                    </Box>
-                    <Box as="li" marginBottom={'4px'}>
-                      Can't not include "/"
+        <FormControl isInvalid={!isEmpty(formErrors)} w={'100%'}>
+          <InputGroup>
+            <Input
+              autoFocus
+              autoComplete="off"
+              type="text"
+              id="bucketName"
+              border="1px solid #EAECF0"
+              placeholder="Enter a folder name"
+              fontSize="16px"
+              lineHeight={'19px'}
+              fontWeight={500}
+              height="52px"
+              onChange={handleInputChange}
+            />
+            <InputRightElement marginRight={'8px'}>
+              <Tips
+                iconSize={'24px'}
+                containerWidth={'308px'}
+                trigger="hover"
+                tips={
+                  <Box width={'308px'} paddingRight="8px">
+                    <Text
+                      color="readable.normal"
+                      fontSize={'14px'}
+                      fontWeight={600}
+                      marginBottom="4px"
+                    >
+                      Naming Rules
+                    </Text>
+                    <Box
+                      as="ul"
+                      color={'readable.secondary'}
+                      fontSize="14px"
+                      lineHeight={'150%'}
+                      listStyleType="disc"
+                      listStylePosition={'outside'}
+                      marginLeft="20px"
+                      wordBreak={'break-word'}
+                    >
+                      <Box as="li" marginBottom={'4px'}>
+                        Must be between 1 and 50 characters long.
+                      </Box>
+                      <Box as="li" marginBottom={'4px'}>
+                        Can't not include "/"
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              }
-            />
-          </InputRightElement>
-        </InputGroup>
-        {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
+                }
+              />
+            </InputRightElement>
+          </InputGroup>
+          {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
+        </FormControl>
         <Flex
           w="100%"
           padding={'16px'}
