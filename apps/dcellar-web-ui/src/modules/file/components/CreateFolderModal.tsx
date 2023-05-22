@@ -192,7 +192,6 @@ export const CreateFolderModal = (props: modalProps) => {
     setStatusModalErrorText,
     secondarySpAddresses,
   } = props;
-  console.log('folder endpoint', endpoint);
 
   useEffect(() => {
     if (!gasFee || Number(gasFee) < 0) {
@@ -234,8 +233,8 @@ export const CreateFolderModal = (props: modalProps) => {
       if (value === '') {
         types['required'] = 'Folder name is required';
       }
-      if (value !== '' && !/^.{1,100}$/.test(value)) {
-        types['validateLen'] = 'Must be between 1 to 100 characters long.';
+      if (value !== '' && !/^.{1,50}$/.test(value)) {
+        types['validateLen'] = 'Must be between 1 to 50 characters long.';
       }
       if (value.includes('/')) {
         types['validateChar'] = `Folder name can't contain "/"`;

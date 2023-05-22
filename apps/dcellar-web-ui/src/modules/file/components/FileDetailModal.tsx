@@ -121,7 +121,7 @@ const renderFee = (
 };
 
 const INITIAL_DELAY = 500; // ms
-const POLLING_INTERVAL = 3000; // ms
+const POLLING_INTERVAL = 2000; // ms
 
 interface modalProps {
   title?: string;
@@ -452,6 +452,7 @@ export const FileDetailModal = (props: modalProps) => {
         startPolling(async () => {
           const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
           if (sealTxHash && sealTxHash.length > 0) {
+            console.log('seal tx', sealTxHash);
             setIsSealed(true);
             stopPolling();
             toast.success({

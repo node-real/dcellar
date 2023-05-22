@@ -117,6 +117,7 @@ export const File = (props: pageProps) => {
       let finalUrl: string;
       const params = new URLSearchParams();
       params.append('delimiter', '/');
+      params.append('max-keys', '100');
       if (folderName && folderName.length > 0) {
         params.append('prefix', folderName);
       }
@@ -140,7 +141,10 @@ export const File = (props: pageProps) => {
       if (objects) {
         let realListObjects = objects
           .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
-          .map((v: any) => v.object_info);
+          .map((v: any) => v.object_info)
+          .sort(function (a: any, b: any) {
+            return Number(b.create_at) - Number(a.create_at);
+          });
         if (Array.isArray(common_prefixes) && common_prefixes.length > 0) {
           const folderArray = common_prefixes.map((v) => {
             return {
@@ -148,11 +152,10 @@ export const File = (props: pageProps) => {
               object_status: 1,
             };
           });
-          console.log('folderArray', folderArray);
           realListObjects = [...folderArray, ...realListObjects];
         }
-        setListObjects(realListObjects ?? []);
         console.log('real list objects', realListObjects);
+        setListObjects(realListObjects ?? []);
         if (realListObjects.length === 0) {
           setIsEmptyData(true);
         } else {
@@ -161,25 +164,6 @@ export const File = (props: pageProps) => {
       } else {
         setIsEmptyData(true);
       }
-      // const listResult = await listObjectsByBucketName({
-      //   bucketName,
-      //   endpoint: currentEndpoint,
-      // });
-      //
-      // if (listResult) {
-      //   const tempListObjects = listResult.body ?? [];
-      //   setListObjects(listResult.body ?? []);
-      //   const realListObjects = tempListObjects
-      //     .filter((v: any) => !v.removed)
-      //     .map((v: any) => v.object_info);
-      //   if (realListObjects.length === 0) {
-      //     setIsEmptyData(true);
-      //   } else {
-      //     setIsEmptyData(false);
-      //   }
-      // } else {
-      //   setIsEmptyData(true);
-      // }
       setListLoading(false);
       setIsInitReady(true);
     } catch (error) {

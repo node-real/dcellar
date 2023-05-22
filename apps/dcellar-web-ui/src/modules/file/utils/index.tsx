@@ -336,7 +336,7 @@ const getObjectIsSealed = async (bucketName: string, endpoint: string, objectNam
       );
     }
     const { object } = await result.json();
-    if (object) {
+    if (object && object.object_info.object_status === 1) {
       const { seal_tx_hash = '' } = object;
       return seal_tx_hash;
     }
