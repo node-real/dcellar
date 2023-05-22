@@ -30,14 +30,13 @@ export const DuplicateNameModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.duplicate_name_modal.0.show"
       gaClickCloseName="dc.file.duplicate_name_modal.close.click"
     >
       <ModalCloseButton />
-      <ModalBody flexDirection={'column'} alignItems={'center'} display={'flex'}>
+      <ModalBody flexDirection={'column'} alignItems={'center'} display={'flex'} mt={0}>
         <Image src={icon} w="120px" h="120px" alt="" />
         <Text
           fontSize="24px"
@@ -72,7 +71,7 @@ export const DuplicateNameModal = (props: modalProps) => {
           </Text>
         )}
       </ModalBody>
-      <ModalFooter mb="24px">
+      <ModalFooter>
         <DCButton
           variant={'dcGhost'}
           flex={1}

@@ -247,7 +247,6 @@ const Welcome = () => {
       return (
         <DCButton
           variant="second"
-          mb="16px"
           height="68px"
           w="100%"
           key={`${name}-${index}`}
@@ -255,6 +254,9 @@ const Welcome = () => {
           border="1px solid transparent"
           _hover={{ border: '1px solid readable.brand6' }}
           position="relative"
+          _notLast={{
+            mb: 16
+          }}
           onClick={() => {
             setLoading(true);
             setCurrentConnector(connector);
@@ -288,7 +290,7 @@ const Welcome = () => {
         gaClickCloseName="dc.walletconnect.modal.close.click"
       >
         <ModalCloseButton />
-        <ModalHeader marginTop={'16px'}>Connect a Wallet</ModalHeader>
+        <ModalHeader>Connect a Wallet</ModalHeader>
         <ModalBody marginTop={'32px'}>
           <Flex w="100%" flexDirection="column" alignItems="center">
             {renderWalletButtons(connectors)}

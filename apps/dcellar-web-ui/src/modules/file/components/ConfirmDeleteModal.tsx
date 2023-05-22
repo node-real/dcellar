@@ -167,7 +167,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.delete_confirm.modal.show"

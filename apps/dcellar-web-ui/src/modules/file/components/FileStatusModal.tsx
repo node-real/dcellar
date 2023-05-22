@@ -52,7 +52,6 @@ export const FileStatusModal = (props: modalProps) => {
       onClose={onClose}
       w="568px"
       overflow="hidden"
-      p={'24px 24px 0'}
       gaShowName={gaOptions.showName}
       gaClickCloseName={gaOptions.closeName}
     >
@@ -61,7 +60,7 @@ export const FileStatusModal = (props: modalProps) => {
         flexDirection={'column'}
         alignItems={'center'}
         display={'flex'}
-        mt="0"
+        mt={0}
         overflowY={'hidden'}
       >
         <Image src={icon} w="120px" h="120px" alt="" />
@@ -108,8 +107,8 @@ export const FileStatusModal = (props: modalProps) => {
           </Text>
         )}
       </ModalBody>
-      <ModalFooter mb="24px" mt="24px">
-        {buttonText && (
+      {buttonText && (
+        <ModalFooter mt={24}>
           <DCButton
             variant={'dcPrimary'}
             w="100%"
@@ -118,8 +117,8 @@ export const FileStatusModal = (props: modalProps) => {
           >
             {buttonText}
           </DCButton>
-        )}
-      </ModalFooter>
+        </ModalFooter>
+      )}
     </DCModal>
   );
 };

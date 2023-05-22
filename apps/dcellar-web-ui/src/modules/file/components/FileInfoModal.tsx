@@ -256,8 +256,6 @@ export const FileInfoModal = (props: modalProps) => {
       <DCModal
         isOpen={isOpen}
         onClose={onClose}
-        py={48}
-        px={24}
         w="568px"
         overflow="hidden"
         gaShowName="dc.file.f_detail_pop.0.show"
