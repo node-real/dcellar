@@ -68,10 +68,14 @@ importers:
       '@babel/core': 7.21.4
       '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.25
 <<<<<<< HEAD
+<<<<<<< HEAD
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
       '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.20
 =======
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.8
+=======
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
+>>>>>>> 49dd8f6 (chore(dcellar-web-ui): update shrinkwrap file)
       '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.23
 >>>>>>> 0057deb (feat(dcellar-web-ui): add off-chain-auth and fix some issues)
       '@emotion/react': 11.10.6_627697682086d325a0e273fee4549116
@@ -1477,6 +1481,7 @@ packages:
     dev: false
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.8:
     resolution: {integrity: sha512-baOO2qSKMuzIn6Wj/D3lb9GIHCdVpebczjzgJx5QDuCJuhOTEyNRFeZ4afTn+nnJpb42BIS2jsjBr9XnJ7sc1Q==}
@@ -1486,6 +1491,8 @@ packages:
     dev: false
 
 >>>>>>> 0057deb (feat(dcellar-web-ui): add off-chain-auth and fix some issues)
+=======
+>>>>>>> 49dd8f6 (chore(dcellar-web-ui): update shrinkwrap file)
   /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.9:
     resolution: {integrity: sha512-SHkCoA/71pmEiwo4hw5z3GK0SOLYFPilcYCv/QpGFY0nhM4E0F9Qih+kIAZRmk4zPe50+6zF+NE9V46UjsS4WQ==}
     dependencies:
