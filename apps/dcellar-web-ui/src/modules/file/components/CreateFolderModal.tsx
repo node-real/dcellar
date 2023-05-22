@@ -46,6 +46,7 @@ import {
   GET_GAS_FEE_DEFAULT_ERROR,
   GET_GAS_FEE_LACK_BALANCE_ERROR,
   OBJECT_CREATE_STATUS,
+  OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
@@ -75,34 +76,7 @@ import { parseError } from '@/modules/buckets/utils/parseError';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { decodeFromHex } from '@/utils/hex';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import {ErrorDisplay} from "@/modules/buckets/List/components/ErrorDisplay";
-
-const renderFileInfo = (key: string, value: string) => {
-  return (
-    <Flex w={'100%'} flexDirection={'column'}>
-      <Text
-        fontSize={'12px'}
-        lineHeight={'16px'}
-        fontWeight={400}
-        wordBreak={'break-all'}
-        color={'readable.tertiary'}
-        mb="4px"
-      >
-        {key}
-      </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight={'18px'}
-        fontWeight={500}
-        wordBreak={'break-all'}
-        color={'readable.normal'}
-        mb="8px"
-      >
-        {value}
-      </Text>
-    </Flex>
-  );
-};
+import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 
 const renderFee = (
   key: string,
@@ -134,9 +108,6 @@ const renderFee = (
     </Flex>
   );
 };
-
-const INITIAL_DELAY = 500; // ms
-const POLLING_INTERVAL = 3000; // ms
 
 interface modalProps {
   title?: string;
@@ -173,6 +144,7 @@ export const CreateFolderModal = (props: modalProps) => {
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [gasFee, setGasFee] = useState('-1');
+  const [formErrors, setFormErrors] = useState<string[]>([]);
   const { availableBalance } = useAvailableBalance();
   const timeoutRef = useRef<any>(null);
   const [folderName, setFolderName] = useState<string | null>(null);
@@ -182,7 +154,6 @@ export const CreateFolderModal = (props: modalProps) => {
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
   const [gasLimit, setGasLimit] = useState(0);
   const [gasPrice, setGasPrice] = useState('0');
-  const [isSealed, setIsSealed] = useState(false);
 
   useOutsideClick({
     ref,
@@ -219,21 +190,8 @@ export const CreateFolderModal = (props: modalProps) => {
     setStatusModalErrorText,
     secondarySpAddresses,
   } = props;
-  const nonceRef = useRef(0);
+  console.log('folder endpoint', endpoint);
 
-  const startPolling = (makeRequest: any) => {
-    timeoutRef.current = setTimeout(() => {
-      makeRequest();
-      timeoutRef.current = setInterval(makeRequest, POLLING_INTERVAL);
-    }, INITIAL_DELAY);
-  };
-
-  const stopPolling = () => {
-    if (timeoutRef.current !== undefined) {
-      clearInterval(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  };
   useEffect(() => {
     if (!gasFee || Number(gasFee) < 0) {
       setButtonDisabled(false);
@@ -247,25 +205,22 @@ export const CreateFolderModal = (props: modalProps) => {
     setButtonDisabled(true);
   }, [gasFee]);
 
-  useEffect(() => {
-    if (isSealed) {
-      stopPolling();
-      setLoading(false);
-      // fixme temp fix for list seal status display
-      // We don't know yet why final name and size is changing if we open the modal again during uploading
-      const finalObjects = listObjects.map((v, i) => {
-        if (i === 0) {
-          v.object_status = 1;
-        }
-        return v;
-      });
-      setListObjects(finalObjects);
-      setIsSealed(false);
-    }
-    return () => {
-      stopPolling();
-    };
-  }, [isSealed]);
+  // const validateAndSetGasFee = useCallback(
+  //     debounce(async (folderName) => {
+  //       const objectMsg = await fetchCreateFolderApproval(folderName,endpoint);
+  //       await getGasFeeAndSet(objectMsg);
+  //     }, 500)
+  //     ,[endpoint]);
+
+  const getApprovalAndGasFee = useCallback(
+    async (folderName: string) => {
+      debugger;
+      const objectMsg = await fetchCreateFolderApproval(folderName, endpoint);
+      await getGasFeeAndSet(objectMsg);
+    },
+    [endpoint],
+  );
+  const validateAndSetGasFee = debounce(getApprovalAndGasFee, 500);
 
   const validateNameRules = useCallback(
     (value: string) => {
@@ -358,6 +313,7 @@ export const CreateFolderModal = (props: modalProps) => {
   };
   const fetchCreateFolderApproval = async (
     folderName: string,
+    endpoint: string,
     visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
   ) => {
     try {
@@ -365,8 +321,14 @@ export const CreateFolderModal = (props: modalProps) => {
       const finalObjectName =
         parentFolderName && parentFolderName.length > 0
           ? `${parentFolderName}${folderName}/`
-          : `${folderName}+'/'`;
+          : `${folderName}/`;
       const file = new File([], finalObjectName, { type: 'text/plain' });
+      if (!endpoint) {
+        toast.error({
+          description: 'endpoint is null',
+        });
+        return;
+      }
       const result = await getCreateObjectApproval({
         bucketName,
         objectName: finalObjectName,
@@ -385,17 +347,15 @@ export const CreateFolderModal = (props: modalProps) => {
       setLoading(false);
       return currentObjectSignedMessage;
     } catch (error: any) {
-      // onDetailModalClose();
-      // setGasFeeLoading(false);
-      // setLockFeeLoading(false);
-      // setStatusModalIcon(FILE_FAILED_URL);
-      // setStatusModalTitle(FILE_TITLE_SP_REJECTED);
-      // setStatusModalErrorText('Error message: ' + error?.message ?? '');
-      // setStatusModalDescription('');
-      // onStatusModalOpen();
-      // // eslint-disable-next-line no-console
-      // console.error('Sp error', error);
-      // return Promise.reject();
+      setGasFeeLoading(false);
+      setStatusModalIcon(FILE_FAILED_URL);
+      setStatusModalTitle(FILE_TITLE_SP_REJECTED);
+      setStatusModalErrorText('Error message: ' + error?.message ?? '');
+      setStatusModalDescription('');
+      onStatusModalOpen();
+      // eslint-disable-next-line no-console
+      console.error('Sp get object approval error', error);
+      return Promise.reject();
     }
   };
 
@@ -410,7 +370,6 @@ export const CreateFolderModal = (props: modalProps) => {
       setStatusModalErrorText('');
       setStatusModalDescription(FILE_STATUS_UPLOADING);
       setStatusModalButtonText('');
-      // setIsSealed(false);
       onStatusModalOpen();
       // 1. execute create object on chain
       if (!objectSignedMsg) {
@@ -472,8 +431,6 @@ export const CreateFolderModal = (props: modalProps) => {
         expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
       });
       let newFolderInfo = {
-        // object_info: {
-
         bucket_name: bucketName,
         object_name: objectSignedMsg.object_name,
         owner: address,
@@ -483,9 +440,6 @@ export const CreateFolderModal = (props: modalProps) => {
         checksums: objectSignedMsg.expect_checksums,
         create_at: moment().unix(),
         visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
-        // },
-        // removed: false,
-        // lock_balance: 0,
       };
       const fileUploadingLists = [newFolderInfo, ...listObjects];
       setListObjects(fileUploadingLists);
@@ -498,7 +452,7 @@ export const CreateFolderModal = (props: modalProps) => {
           toast.success({
             description: (
               <>
-                Transaction created successfully! View in{' '}
+                Folder created successfully! View in{' '}
                 <Link
                   color="#3C9AF1"
                   _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
@@ -514,35 +468,13 @@ export const CreateFolderModal = (props: modalProps) => {
             ),
             duration: 5000,
           });
-          startPolling(async () => {
-            const folderName = objectSignedMsg.object_name;
-            const sealTxHash = await getObjectIsSealed(bucketName, endpoint, folderName);
-            if (sealTxHash && sealTxHash.length > 0) {
-              setIsSealed(true);
-              stopPolling();
-              toast.success({
-                description: (
-                  <>
-                    Folder created successfully! View in{' '}
-                    <Link
-                      color="#3C9AF1"
-                      _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
-                      href={`${removeTrailingSlash(
-                        GREENFIELD_CHAIN_EXPLORER_URL,
-                      )}/tx/${sealTxHash}`}
-                      isExternal
-                    >
-                      GreenfieldScan
-                    </Link>
-                    .
-                  </>
-                ),
-                duration: 5000,
-              });
-            } else {
-              setIsSealed(false);
+          const successListObjects = fileUploadingLists.map((v: any) => {
+            if (v?.object_name === objectSignedMsg.object_name) {
+              v.object_status = OBJECT_SEALED_STATUS;
             }
+            return v;
           });
+          setListObjects(successListObjects);
         } else {
           // eslint-disable-next-line no-console
           console.error('create folder on chain error!');
@@ -550,7 +482,7 @@ export const CreateFolderModal = (props: modalProps) => {
         }
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.map((v: any) => {
-          if (v?.object_info?.object_name === objectSignedMsg.object_name) {
+          if (v?.object_name === objectSignedMsg.object_name) {
             v.object_status = OBJECT_STATUS_FAILED;
           }
           return v;
@@ -561,7 +493,6 @@ export const CreateFolderModal = (props: modalProps) => {
       }
     } catch (error: any) {
       setLoading(false);
-      // setIsSealed(false);
       const { code = '' } = error;
       if (code && parseInt(code) === USER_REJECT_STATUS_NUM) {
         onStatusModalClose();
@@ -573,31 +504,26 @@ export const CreateFolderModal = (props: modalProps) => {
     }
   };
 
-  const validateAndSetGasFee= debounce(async(folderName)=>{
-    const objectMsg = await fetchCreateFolderApproval(folderName);
-    await getGasFeeAndSet(objectMsg);
-  },500);
-
   const handleInputChange = useCallback(
-      (event: any) => {
-        const currentFolderName = event.target.value;
-        setFolderName(currentFolderName);
+    (event: any) => {
+      const currentFolderName = event.target.value;
+      setFolderName(currentFolderName);
 
-        // 1. validate name rules
-        const types = validateNameRules(currentFolderName);
-        if (Object.values(types).length > 0) {
-          setError('bucketName', { types });
-          setValidateNameAndGas(initValidateNameAndGas);
-          return;
-        } else {
-          clearErrors();
-        }
+      // 1. validate name rules
+      const types = validateNameRules(currentFolderName);
+      if (Object.values(types).length > 0) {
+        setFormErrors(Object.values(types));
+        setGasFee('-1');
+        return;
+      } else {
+        setFormErrors([]);
+      }
 
-        // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
-        validateAndSetGasFee(currentFolderName);
-      },
-      // [checkGasFee, clearErrors, setError, setValue, validateNameRules],
-      []
+      // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
+      validateAndSetGasFee(currentFolderName);
+    },
+    // [checkGasFee, clearErrors, setError, setValue, validateNameRules],
+    [],
   );
   return (
     <DCModal
@@ -677,10 +603,7 @@ export const CreateFolderModal = (props: modalProps) => {
             />
           </InputRightElement>
         </InputGroup>
-        {errors?.bucketName && Object.values(errors.bucketName.types).length > 0 && (
-            // @ts-ignore
-            <ErrorDisplay errorMsgs={Object.values(errors.bucketName.types)} />
-        )}
+        {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
         <Flex
           w="100%"
           padding={'16px'}
@@ -715,7 +638,9 @@ export const CreateFolderModal = (props: modalProps) => {
                 // handleUploadClick()
                 createFolder();
               }}
-              isDisabled={loading || buttonDisabled}
+              isDisabled={
+                loading || buttonDisabled || gasFeeLoading || (formErrors && formErrors.length > 0)
+              }
               justifyContent={'center'}
               gaClickName="dc.file.upload_modal.confirm.click"
             >

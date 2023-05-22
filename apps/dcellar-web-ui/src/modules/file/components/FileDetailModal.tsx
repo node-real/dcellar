@@ -42,7 +42,8 @@ import {
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
 import {
-  formatBytes, getObjectIsSealed,
+  formatBytes,
+  getObjectIsSealed,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
@@ -198,7 +199,7 @@ export const FileDetailModal = (props: modalProps) => {
     objectSignedMsg,
     gasLimit,
     gasPrice = '0',
-      folderName="",
+    folderName = '',
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -280,7 +281,7 @@ export const FileDetailModal = (props: modalProps) => {
 
   const { name, size } = file;
   const finalName = fileName ? fileName : name;
-  const finalNameWithoutFolderPrefix=finalName.replace(folderName,"");
+  const finalNameWithoutFolderPrefix = finalName.replace(folderName, '');
   const setFailedStatusModal = (description: string, error?: any) => {
     onStatusModalClose();
     setStatusModalIcon(FILE_FAILED_URL);
