@@ -1,10 +1,7 @@
 import {
   ModalCloseButton,
   ModalHeader,
-  Modal,
   ModalFooter,
-  Button,
-  Image,
   Text,
   Flex,
   toast,
@@ -14,19 +11,14 @@ import {
   InputGroup,
   Input,
   InputRightElement,
-  FormErrorMessage,
   FormControl,
 } from '@totejs/uikit';
-import { MenuCloseIcon } from '@totejs/icons';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { getAccount, CreateObjectTx, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
+import { getAccount, CreateObjectTx, ZERO_PUBKEY, makeCosmsPubKey, recoverPk } from '@bnb-chain/gnfd-js-sdk';
 import {
   decodeObjectFromHexString,
-  fetchWithTimeout,
-  generateGetObjectOptions,
   getCreateObjectApproval,
-  listObjectsByBucketName,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 
@@ -34,34 +26,25 @@ import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_EXPLORER_URL, GRPC_URL } from '@/base/env';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_UPLOAD_ERROR,
   FILE_FAILED_URL,
   FILE_STATUS_UPLOADING,
-  FILE_TITLE_SP_REJECTED,
   FILE_TITLE_UPLOAD_FAILED,
-  FILE_TITLE_UPLOADING,
   FILE_UPLOAD_URL,
   FOLDER_CREATING,
   FOLDER_STATUS_CREATING,
-  GET_GAS_FEE_DEFAULT_ERROR,
   GET_GAS_FEE_LACK_BALANCE_ERROR,
-  OBJECT_CREATE_STATUS,
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
-  OBJECT_STATUS_UPLOADING,
   UNKNOWN_ERROR,
 } from '@/modules/file/constant';
 import {
-  formatBytes,
-  getObjectIsSealed,
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
   renderUsd,
-  transformVisibility,
 } from '@/modules/file/utils';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { useAvailableBalance } from '@/hooks/useAvailableBalance';
@@ -72,14 +55,8 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
-import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { debounce, isEmpty } from 'lodash-es';
-import { getFee } from '@/modules/buckets/List/utils';
-import BigNumber from 'bignumber.js';
-import { parseError } from '@/modules/buckets/utils/parseError';
-import { MIN_AMOUNT } from '@/modules/wallet/constants';
-import { decodeFromHex } from '@/utils/hex';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 
