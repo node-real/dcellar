@@ -20,6 +20,7 @@ import {
   useDisclosure,
   toast,
   Box,
+  useMediaQuery,
 } from '@totejs/uikit';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 import { useRouter } from 'next/router';
@@ -51,6 +52,14 @@ const Welcome = () => {
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
   const router = useRouter();
+  const [isLargerThan1000, isLargerThan1463] = useMediaQuery([
+    '(min-width: 1001px) and (max-width: 1464px)',
+    '(min-width: 1463px)',
+  ]);
+
+  const [isHigherThan800] = useMediaQuery('(min-height: 801px)');
+  const TitleGap = isHigherThan800 ? 246 : 206;
+
   const network = useSwitchNetwork({
     throwForSwitchChainNotSupported: true,
     onSuccess() {
@@ -195,15 +204,14 @@ const Welcome = () => {
       }
     }
   }, [isConnected, chain, currentAddress, switchNetworkDone]);
-
   const renderConnectWalletButton = () => {
     if (isConnected)
       return (
         <DCButton
           variant="dcPrimary"
-          mt="128px"
-          minH="48px"
-          minW={229}
+          mt={48}
+          h={54}
+          w={229}
           fontSize={18}
           onClick={() => {
             disconnect();
@@ -217,9 +225,9 @@ const Welcome = () => {
     return (
       <DCButton
         variant="dcPrimary"
-        mt="128px"
-        minW={229}
-        minH="48px"
+        mt={48}
+        w={229}
+        h={54}
         fontSize={18}
         onClick={onToggle}
         isLoading={loading}
@@ -298,35 +306,51 @@ const Welcome = () => {
         </ModalBody>
       </DCModal>
       <Flex
+        w="100%"
         minH={'calc(100vh - 64px)'}
-        alignItems="center"
-        justifyContent="center"
-        flexDirection="column"
+        overflow="hidden"
+        bg={
+          isLargerThan1463
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 80% top 100px /1215px`
+            : isLargerThan1000
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 248px top 100px/1215px`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 248px top 100px/972px`
+        }
       >
         <Image
-          src={`${assetPrefix}/images/icons/storage_icon.svg`}
+          src={`${assetPrefix}/images/logo_welcome.svg`}
           alt="Storage app icon"
-          width={100}
-          height={100}
+          height={144}
+          position="absolute"
         />
-        <Text
-          as="h1"
-          fontSize="28px"
-          mt="66px"
-          lineHeight="34px"
-          maxW={680}
-          color="readable.normal"
-          textAlign="center"
-          fontWeight={700}
-        >
-          Start your journey of BNB Greenfield decentralized data network with DCellar Now.🥳
-        </Text>
-        {renderConnectWalletButton()}
+        <Flex flexDirection="column" ml={110}>
+          <Text
+            as="h1"
+            fontSize="56px"
+            lineHeight="68px"
+            color="readable.normal"
+            fontWeight={700}
+            whiteSpace="nowrap"
+            mt={TitleGap}
+          >
+            Welcome to DCellar
+          </Text>
+          <Text
+            fontSize="28px"
+            mt="36px"
+            lineHeight="34px"
+            color="readable.normal"
+            fontWeight={700}
+            whiteSpace="pre-wrap"
+          >
+            {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
+          </Text>
+          {renderConnectWalletButton()}
+        </Flex>
       </Flex>
     </>
   );
 };
-
 export default Welcome;
 
 function getGAOptions(name: string) {
