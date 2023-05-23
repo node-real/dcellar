@@ -48,8 +48,7 @@ function ChainBalanceContextProvider(props: any) {
   const { data: greenfieldBalanceData } = useBalance({
     address: address as any,
     chainId: GREENFIELD_CHAIN_ID,
-    // TODO fix it
-    watch: false,
+    watch: true,
   });
 
   const resetAllStatus = () => {
