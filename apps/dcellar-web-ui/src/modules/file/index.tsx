@@ -201,9 +201,7 @@ export const File = (props: pageProps) => {
         });
         return;
       }
-      console.log('select sp', sps[spIndex]);
       const currentEndpoint = sps[spIndex]?.endpoint;
-      console.log('select sp endpoint', sps[spIndex]?.endpoint);
 
       setEndpoint(currentEndpoint);
       const currentSecondaryAddresses = sps

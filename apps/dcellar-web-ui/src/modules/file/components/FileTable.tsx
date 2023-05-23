@@ -557,14 +557,16 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const create_at = info.getValue();
+          const { object_name, create_at } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) return '';
           return (
             <TableText info={rowData} color={'readable.normal'}>
               {formatTime(getMillisecond(create_at as number)) as ReactNode}
             </TableText>
           );
         },
-        header: () => 'Date Uploaded',
+        header: () => 'Date Created',
         size: 120,
       },
       {
@@ -600,13 +602,6 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
-                // setStatusModalIcon(FILE_DOWNLOAD_URL);
-                // setStatusModalTitle(FILE_TITLE_DOWNLOADING);
-                // setStatusModalErrorText('');
-                // setStatusModalDescription(FILE_STATUS_DOWNLOADING);
-                // setStatusModalButtonText('');
-                // onStatusModalOpen();
-                // await downloadFile({ bucketName, objectName, endpoint });
                 const result = await downloadWithProgress(
                   bucketName,
                   objectName,
@@ -614,7 +609,6 @@ export const FileTable = (props: fileListProps) => {
                   Number(payloadSize),
                 );
                 saveFileByAxiosResponse(result, objectName);
-                // onStatusModalClose();
               }
             } catch (error: any) {
               setStatusModalIcon(FILE_EMPTY_URL);
