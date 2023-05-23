@@ -46,7 +46,6 @@ const Folder = () => {
 
   const renderFolderBreadcrumb = () => {
     if (folderNameArray.length === 0) return;
-    console.log('folderNameArray', folderNameArray);
     return folderNameArray.map((v, i) => {
       const isLastItem = i == folderNameArray.length - 1;
       return renderBreadcrumbItem(

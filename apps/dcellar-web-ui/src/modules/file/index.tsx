@@ -1,4 +1,4 @@
-import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
+import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
   decodeObjectFromHexString,
@@ -47,7 +47,7 @@ interface pageProps {
   folderName: string;
 }
 
-const FILE_NAME_REGEX = /^[\s\S0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
+const MAX_FOLDER_LEVEL = 20;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
@@ -80,6 +80,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
 
 export const File = (props: pageProps) => {
   const { bucketName, folderName } = props;
+  console.log('folderName', folderName);
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -269,31 +270,39 @@ export const File = (props: pageProps) => {
 
   const renderUploadFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
     if (!isCurrentUser) return <></>;
+    const isOver20LevelsDeep = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
     return (
       <GAClick name={gaClickName}>
-        <Flex
-          bgColor="readable.normal"
-          _hover={{ bg: 'readable.tertiary' }}
-          position="relative"
-          paddingX="16px"
-          paddingY="8px"
-          alignItems="center"
-          borderRadius={'8px'}
-          cursor="pointer"
-          onClick={() => {
-            if (!endpoint) {
-              toast.error({
-                description: 'Endpoint is not ready',
-              });
-            } else {
-              onCreateFolderModalOpen();
-            }
-          }}
+        <Tooltip
+          content={'You have reached the maximum supported folder depth (20).'}
+          placement={'bottom-start'}
+          visibility={isOver20LevelsDeep ? 'visible' : 'hidden'}
         >
-          <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
-            Create Folder
-          </Text>
-        </Flex>
+          <Flex
+            bgColor={isOver20LevelsDeep ? 'readable.tertiary' : 'readable.normal'}
+            _hover={{ bg: 'readable.tertiary' }}
+            position="relative"
+            paddingX="16px"
+            paddingY="8px"
+            alignItems="center"
+            borderRadius={'8px'}
+            cursor={isOver20LevelsDeep ? 'default' : 'pointer'}
+            onClick={() => {
+              if (isOver20LevelsDeep) return;
+              if (!endpoint) {
+                toast.error({
+                  description: 'Endpoint is not ready',
+                });
+              } else {
+                onCreateFolderModalOpen();
+              }
+            }}
+          >
+            <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+              Create Folder
+            </Text>
+          </Flex>
+        </Tooltip>
       </GAClick>
     );
   };

@@ -22,6 +22,7 @@ import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getAccount, CreateObjectTx, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import {
+  decodeObjectFromHexString,
   fetchWithTimeout,
   generateGetObjectOptions,
   getCreateObjectApproval,
@@ -51,6 +52,7 @@ import {
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
+  UNKNOWN_ERROR,
 } from '@/modules/file/constant';
 import {
   formatBytes,
@@ -206,13 +208,6 @@ export const CreateFolderModal = (props: modalProps) => {
     setButtonDisabled(true);
   }, [gasFee]);
 
-  // const validateAndSetGasFee = useCallback(
-  //     debounce(async (folderName) => {
-  //       const objectMsg = await fetchCreateFolderApproval(folderName,endpoint);
-  //       await getGasFeeAndSet(objectMsg);
-  //     }, 500)
-  //     ,[endpoint]);
-
   const getApprovalAndGasFee = useCallback(
     async (folderName: string) => {
       setLoading(true);
@@ -293,7 +288,7 @@ export const CreateFolderModal = (props: modalProps) => {
         const fullObjectName = currentObjectSignedMessage.object_name;
         const fullPathArray = fullObjectName.split('/');
         const currentFolderName = fullPathArray[fullPathArray.length - 2];
-        setFormErrors([`"${currentFolderName}" is already existed.`]);
+        setFormErrors([`"${currentFolderName}" is already taken. Please try another one.`]);
       } else {
         if (
           error.message.includes('lack of') ||
@@ -301,7 +296,7 @@ export const CreateFolderModal = (props: modalProps) => {
         ) {
           setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
         } else {
-          setFormErrors([GET_GAS_FEE_DEFAULT_ERROR]);
+          setFormErrors([UNKNOWN_ERROR]);
         }
       }
       // eslint-disable-next-line no-console
@@ -339,14 +334,13 @@ export const CreateFolderModal = (props: modalProps) => {
       if (result.statusCode !== 200) {
         throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
       }
-      let currentObjectSignedMessage = JSON.parse(decodeFromHex(result.body));
-      console.log('object signed message', currentObjectSignedMessage);
+      let currentObjectSignedMessage = decodeObjectFromHexString(result.body);
       setObjectSignedMsg(currentObjectSignedMessage);
       setLoading(false);
       return currentObjectSignedMessage;
     } catch (error: any) {
       setGasFeeLoading(false);
-      setFormErrors([`Sp rejected. Error message: ${error?.message ?? ''}`]);
+      setFormErrors([UNKNOWN_ERROR]);
       // eslint-disable-next-line no-console
       console.error('Sp get object approval error', error);
       return Promise.reject();
@@ -577,7 +571,7 @@ export const CreateFolderModal = (props: modalProps) => {
                         Must be between 1 and 50 characters long.
                       </Box>
                       <Box as="li" marginBottom={'4px'}>
-                        Can't not include "/"
+                        Can't contain slash("/")
                       </Box>
                     </Box>
                   </Box>
@@ -599,7 +593,6 @@ export const CreateFolderModal = (props: modalProps) => {
           {renderFee('Gas fee', gasFee, exchangeRate)}
         </Flex>
         <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
-          {/*todo correct the error showing logics*/}
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
             {renderInsufficientBalance(gasFee, '0', availableBalance || '0', {
               gaShowName: 'dc.file.upload_modal.transferin.show',
@@ -618,7 +611,6 @@ export const CreateFolderModal = (props: modalProps) => {
               w="100%"
               variant={'dcPrimary'}
               onClick={() => {
-                // handleUploadClick()
                 createFolder();
               }}
               isDisabled={
