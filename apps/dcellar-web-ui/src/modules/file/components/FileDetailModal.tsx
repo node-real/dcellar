@@ -11,7 +11,7 @@ import {
   useOutsideClick,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { getAccount, CreateObjectTx, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import {
@@ -209,7 +209,7 @@ export const FileDetailModal = (props: modalProps) => {
       }
     },
   });
-  const provider = useProvider();
+  const { connector } = useAccount();
   const {
     title,
     onClose,
@@ -342,6 +342,7 @@ export const FileDetailModal = (props: modalProps) => {
       }
 
       const { sequence, accountNumber } = await getAccount(GRPC_URL, address!);
+      const walletProvider = await connector?.getProvider();
       const signInfo = await createObjectTx.signTx(
         {
           objectName: finalName,
@@ -361,7 +362,7 @@ export const FileDetailModal = (props: modalProps) => {
           redundancyType: objectSignedMsg.redundancy_type,
           expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
         },
-        provider,
+        walletProvider,
       );
 
       const pk = recoverPk({

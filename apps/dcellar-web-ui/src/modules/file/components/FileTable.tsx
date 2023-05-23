@@ -598,12 +598,17 @@ export const FileTable = (props: fileListProps) => {
                 // onStatusModalClose();
               }
             } catch (error: any) {
-              setStatusModalIcon(FILE_EMPTY_URL);
-              setStatusModalTitle(FILE_TITLE_DOWNLOADING);
-              setStatusModalErrorText('Error message: ' + error?.message ?? '');
-              setStatusModalDescription(FILE_TITLE_DOWNLOAD_FAILED);
-              setStatusModalButtonText('');
-              onStatusModalOpen();
+              if (error?.response?.status === 500) {
+                onStatusModalClose();
+                setOpenAuthModal();
+              } else {
+                setStatusModalIcon(FILE_EMPTY_URL);
+                setStatusModalTitle(FILE_TITLE_DOWNLOADING);
+                setStatusModalErrorText('Error message: ' + error?.message ?? '');
+                setStatusModalDescription(FILE_TITLE_DOWNLOAD_FAILED);
+                setStatusModalButtonText('');
+                onStatusModalOpen();
+              }
             }
           };
 
@@ -978,6 +983,9 @@ export const FileTable = (props: fileListProps) => {
                             );
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {
+                            if (error?.response?.status === 500) {
+                              setOpenAuthModal();
+                            }
                             throw new Error(error);
                           }
                         }

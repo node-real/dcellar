@@ -172,7 +172,9 @@ export const ConfirmViewModal = (props: modalProps) => {
                   );
                   viewFileByAxiosResponse(result);
                 } catch (error: any) {
-                  if (error.statusCode === 500) {
+                  if (error?.response?.statusCode === 500) {
+                    onClose();
+                    onStatusModalClose();
                     setOpenAuthModal();
                   }
                   throw new Error(error);

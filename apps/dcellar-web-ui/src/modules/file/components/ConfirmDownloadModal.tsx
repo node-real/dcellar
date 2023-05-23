@@ -14,7 +14,6 @@ import {
   downloadWithProgress,
   formatBytes,
   saveFileByAxiosResponse,
-  viewFileByAxiosResponse,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -190,7 +189,9 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
-              if (error.statusCode === 500) {
+              if (error?.response?.status === 500) {
+                onClose();
+                onStatusModalClose();
                 setOpenAuthModal()
               }
               setLoading(false);
