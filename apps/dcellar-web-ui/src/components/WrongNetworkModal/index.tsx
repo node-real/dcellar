@@ -79,12 +79,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
         >
           Wrong Network
         </Text>
-        <Text
-          color="#76808F"
-          fontSize={'18px'}
-          fontWeight="400"
-          lineHeight={'22px'}
-        >
+        <Text color="#76808F" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
           You are on the wrong network. Switch your wallet to BNB Greenfield first.
         </Text>
       </ModalBody>

@@ -67,10 +67,10 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
               key={item.label}
               justifyContent={'space-between'}
               color="readable.tertiary"
-              alignItems='center'
+              alignItems="center"
               h={28}
               _notLast={{
-                mb: 3
+                mb: 3,
               }}
             >
               <Label>{item.label}</Label>
@@ -92,11 +92,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                   </Link>
                 )}
                 {item.label !== 'Primary SP address' && (
-                  <Text
-                    fontSize={'14px'}
-                    fontWeight={500}
-                    color="readable.normal"
-                  >
+                  <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
                     {item.display}
                   </Text>
                 )}

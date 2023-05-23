@@ -15,7 +15,13 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { getAccount, CreateObjectTx, ZERO_PUBKEY, makeCosmsPubKey, recoverPk } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  CreateObjectTx,
+  ZERO_PUBKEY,
+  makeCosmsPubKey,
+  recoverPk,
+} from '@bnb-chain/gnfd-js-sdk';
 import {
   decodeObjectFromHexString,
   getCreateObjectApproval,
@@ -172,7 +178,6 @@ export const CreateFolderModal = (props: modalProps) => {
     setStatusModalErrorText,
     secondarySpAddresses,
   } = props;
-
   useEffect(() => {
     if (!gasFee || Number(gasFee) < 0) {
       setButtonDisabled(false);
@@ -185,17 +190,6 @@ export const CreateFolderModal = (props: modalProps) => {
     }
     setButtonDisabled(true);
   }, [gasFee]);
-
-  const getApprovalAndGasFee = useCallback(
-    async (folderName: string) => {
-      setLoading(true);
-      setGasFeeLoading(true);
-      const objectMsg = await fetchCreateFolderApproval(folderName, endpoint);
-      await getGasFeeAndSet(objectMsg);
-    },
-    [endpoint],
-  );
-  const validateAndSetGasFee = debounce(getApprovalAndGasFee, 500);
 
   const validateNameRules = useCallback(
     (value: string) => {
@@ -282,48 +276,62 @@ export const CreateFolderModal = (props: modalProps) => {
       return;
     }
   };
-  const fetchCreateFolderApproval = async (
-    folderName: string,
-    endpoint: string,
-    visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
-  ) => {
-    try {
-      setLoading(true);
-      const finalObjectName =
-        parentFolderName && parentFolderName.length > 0
-          ? `${parentFolderName}${folderName}/`
-          : `${folderName}/`;
-      const file = new File([], finalObjectName, { type: 'text/plain' });
-      if (!endpoint) {
-        toast.error({
-          description: 'endpoint is null',
+  const fetchCreateFolderApproval = useCallback(
+    async (
+      folderName: string,
+      endpoint: string,
+      parentFolderName: string,
+      visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
+    ) => {
+      try {
+        setLoading(true);
+        const finalObjectName =
+          parentFolderName && parentFolderName.length > 0
+            ? `${parentFolderName}${folderName}/`
+            : `${folderName}/`;
+        const file = new File([], finalObjectName, { type: 'text/plain' });
+        if (!endpoint) {
+          toast.error({
+            description: 'endpoint is null',
+          });
+          return Promise.reject();
+        }
+        const result = await getCreateObjectApproval({
+          bucketName,
+          objectName: finalObjectName,
+          creator: address,
+          file: file,
+          endpoint,
+          expectSecondarySpAddresses: secondarySpAddresses,
+          visibility,
         });
+        if (result.statusCode !== 200) {
+          throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
+        }
+        let currentObjectSignedMessage = decodeObjectFromHexString(result.body);
+        setObjectSignedMsg(currentObjectSignedMessage);
+        setLoading(false);
+        return currentObjectSignedMessage;
+      } catch (error: any) {
+        setGasFeeLoading(false);
+        setFormErrors([UNKNOWN_ERROR]);
+        // eslint-disable-next-line no-console
+        console.error('Sp get object approval error', error);
         return Promise.reject();
       }
-      const result = await getCreateObjectApproval({
-        bucketName,
-        objectName: finalObjectName,
-        creator: address,
-        file: file,
-        endpoint,
-        expectSecondarySpAddresses: secondarySpAddresses,
-        visibility,
-      });
-      if (result.statusCode !== 200) {
-        throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
-      }
-      let currentObjectSignedMessage = decodeObjectFromHexString(result.body);
-      setObjectSignedMsg(currentObjectSignedMessage);
-      setLoading(false);
-      return currentObjectSignedMessage;
-    } catch (error: any) {
-      setGasFeeLoading(false);
-      setFormErrors([UNKNOWN_ERROR]);
-      // eslint-disable-next-line no-console
-      console.error('Sp get object approval error', error);
-      return Promise.reject();
-    }
-  };
+    },
+    [parentFolderName],
+  );
+  const getApprovalAndGasFee = useCallback(
+    async (folderName: string, parentFolderName: string) => {
+      setLoading(true);
+      setGasFeeLoading(true);
+      const objectMsg = await fetchCreateFolderApproval(folderName, endpoint, parentFolderName);
+      await getGasFeeAndSet(objectMsg);
+    },
+    [endpoint, fetchCreateFolderApproval, getGasFeeAndSet],
+  );
+  const validateAndSetGasFee = debounce(getApprovalAndGasFee, 500);
 
   const createFolder = async () => {
     try {
@@ -470,19 +478,22 @@ export const CreateFolderModal = (props: modalProps) => {
     }
   };
 
-  const handleInputChange = useCallback((event: any) => {
-    const currentFolderName = event.target.value;
-    setFolderName(currentFolderName);
-    const types = validateNameRules(currentFolderName);
-    if (Object.values(types).length > 0) {
-      setFormErrors(Object.values(types));
-      setGasFee('-1');
-      return;
-    } else {
-      setFormErrors([]);
-    }
-    validateAndSetGasFee(currentFolderName);
-  }, []);
+  const handleInputChange = useCallback(
+    (event: any) => {
+      const currentFolderName = event.target.value;
+      setFolderName(currentFolderName);
+      const types = validateNameRules(currentFolderName);
+      if (Object.values(types).length > 0) {
+        setFormErrors(Object.values(types));
+        setGasFee('-1');
+        return;
+      } else {
+        setFormErrors([]);
+      }
+      validateAndSetGasFee(currentFolderName, parentFolderName);
+    },
+    [parentFolderName, validateAndSetGasFee, validateNameRules],
+  );
   return (
     <DCModal
       isOpen={isOpen}

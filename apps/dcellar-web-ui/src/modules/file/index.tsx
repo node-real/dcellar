@@ -80,7 +80,6 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
 
 export const File = (props: pageProps) => {
   const { bucketName, folderName } = props;
-  console.log('folderName', folderName);
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -138,7 +137,6 @@ export const File = (props: pageProps) => {
         return { code: -1, message: 'List object error.', statusCode: status };
       }
       const { objects, common_prefixes } = await result.json();
-      console.log('result', objects);
       if (objects) {
         let realListObjects = objects
           .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
@@ -155,7 +153,6 @@ export const File = (props: pageProps) => {
           });
           realListObjects = [...folderArray, ...realListObjects];
         }
-        console.log('real list objects', realListObjects);
         setListObjects(realListObjects ?? []);
         if (realListObjects.length === 0) {
           setIsEmptyData(true);
@@ -183,7 +180,6 @@ export const File = (props: pageProps) => {
       setIsInitReady(false);
       const bucketInfo = await getBucketInfo(bucketName);
       const { sps } = await getStorageProviders();
-      console.log('sps', sps);
       setIsCurrentUser(bucketInfo?.owner === address);
 
       const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
@@ -268,7 +264,7 @@ export const File = (props: pageProps) => {
   //   };
   // }, [router.events]);
 
-  const renderUploadFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
+  const renderCreteFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
     if (!isCurrentUser) return <></>;
     const isOver20LevelsDeep = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
     return (
@@ -291,7 +287,7 @@ export const File = (props: pageProps) => {
               if (isOver20LevelsDeep) return;
               if (!endpoint) {
                 toast.error({
-                  description: 'Endpoint is not ready',
+                  description: 'SP Endpoint is not ready',
                 });
               } else {
                 onCreateFolderModalOpen();
@@ -574,7 +570,7 @@ export const File = (props: pageProps) => {
         </Text>
         <Flex>
           {showUploadButtonOnHeader &&
-            renderUploadFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
+            renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
           {showUploadButtonOnHeader &&
             renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
         </Flex>
@@ -622,7 +618,7 @@ export const File = (props: pageProps) => {
           </Text>
           <GAShow name="dc.file.empty.upload.show" />
           <Flex>
-            {renderUploadFolderButton(isCurrentUser, 'dc.file.empty.create_folder.click')}
+            {renderCreteFolderButton(isCurrentUser, 'dc.file.empty.create_folder.click')}
             {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
           </Flex>
         </Flex>

@@ -255,7 +255,7 @@ const Welcome = () => {
           _hover={{ border: '1px solid readable.brand6' }}
           position="relative"
           _notLast={{
-            mb: 16
+            mb: 16,
           }}
           onClick={() => {
             setLoading(true);
