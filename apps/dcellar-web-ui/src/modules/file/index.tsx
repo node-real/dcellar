@@ -573,8 +573,8 @@ export const File = (props: pageProps) => {
           {renderTitle()}
         </Text>
         <Flex>
-          {/*fixme add create folder click event*/}
-          {showUploadButtonOnHeader && renderUploadFolderButton(isCurrentUser)}
+          {showUploadButtonOnHeader &&
+            renderUploadFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
           {showUploadButtonOnHeader &&
             renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
         </Flex>
@@ -622,7 +622,7 @@ export const File = (props: pageProps) => {
           </Text>
           <GAShow name="dc.file.empty.upload.show" />
           <Flex>
-            {renderUploadFolderButton(isCurrentUser)}
+            {renderUploadFolderButton(isCurrentUser, 'dc.file.empty.create_folder.click')}
             {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
           </Flex>
         </Flex>

@@ -512,8 +512,8 @@ export const CreateFolderModal = (props: modalProps) => {
       p={'48px 24px'}
       w="568px"
       overflow="hidden"
-      gaShowName="dc.file.upload_modal.0.show"
-      gaClickCloseName="dc.file.upload_modal.close.click"
+      gaShowName="dc.file.create_folder_m.0.show"
+      gaClickCloseName="dc.file.create_folder_m.close.click"
     >
       <ModalHeader>{title}</ModalHeader>
       <Text
@@ -595,8 +595,8 @@ export const CreateFolderModal = (props: modalProps) => {
         <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
             {renderInsufficientBalance(gasFee, '0', availableBalance || '0', {
-              gaShowName: 'dc.file.upload_modal.transferin.show',
-              gaClickName: 'dc.file.upload_modal.transferin.click',
+              gaShowName: 'dc.file.create_folder_m.transferin.show',
+              gaClickName: 'dc.file.create_folder_m.transferin.click',
             })}
           </Text>
           <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
