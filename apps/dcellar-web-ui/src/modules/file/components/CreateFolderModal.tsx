@@ -60,6 +60,7 @@ import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
+  renderUsd,
   transformVisibility,
 } from '@/modules/file/utils';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
@@ -155,7 +156,7 @@ export const CreateFolderModal = (props: modalProps) => {
   const [visibility, setVisibility] = useState<string>(VisibilityType.VISIBILITY_TYPE_PRIVATE);
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
-  const [gasFeeLoading, setGasFeeLoading] = useState(true);
+  const [gasFeeLoading, setGasFeeLoading] = useState(false);
   const [gasLimit, setGasLimit] = useState(0);
   const [gasPrice, setGasPrice] = useState('0');
 
@@ -591,6 +592,15 @@ export const CreateFolderModal = (props: modalProps) => {
           gap={'4px'}
         >
           {renderFee('Gas fee', gasFee, exchangeRate)}
+          <Text
+            fontSize={'12px'}
+            lineHeight={'16px'}
+            color={'readable.disabled'}
+            alignSelf={'flex-end'}
+          >
+            Available balance: {renderBalanceNumber(availableBalance || '0')} ($
+            {renderUsd(availableBalance || '0', exchangeRate)})
+          </Text>
         </Flex>
         <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
@@ -598,9 +608,6 @@ export const CreateFolderModal = (props: modalProps) => {
               gaShowName: 'dc.file.create_folder_m.transferin.show',
               gaClickName: 'dc.file.create_folder_m.transferin.click',
             })}
-          </Text>
-          <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-            Available balance: {renderBalanceNumber(availableBalance || '0')}
           </Text>
         </Flex>
       </Flex>
