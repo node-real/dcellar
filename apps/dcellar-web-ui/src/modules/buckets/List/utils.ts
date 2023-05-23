@@ -9,6 +9,8 @@ import {
   getAccount,
   makeRpcClient,
   ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
 } from '@bnb-chain/gnfd-js-sdk';
 import Long from 'long';
 import { QueryClientImpl as spQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/query';
@@ -16,8 +18,6 @@ import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield
 
 import { IApprovalCreateBucket } from '@/modules/buckets/type';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { parseError } from '../utils/parseError';
 import { GRPC_URL } from '@/base/env';
 

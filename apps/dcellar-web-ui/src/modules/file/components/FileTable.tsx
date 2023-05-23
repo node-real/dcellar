@@ -36,7 +36,13 @@ import {
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
 import { useNetwork } from 'wagmi';
-import { CancelCreateObjectTx, DelObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  CancelCreateObjectTx,
+  DelObjectTx,
+  getAccount,
+  ZERO_PUBKEY,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -62,7 +68,6 @@ import {
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
 import { GRPC_URL } from '@/base/env';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
