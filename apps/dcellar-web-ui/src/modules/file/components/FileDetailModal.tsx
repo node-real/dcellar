@@ -183,7 +183,6 @@ export const FileDetailModal = (props: modalProps) => {
       }
     },
   });
-  const provider = useProvider();
   const { connector } = useAccount();
   const {
     title,

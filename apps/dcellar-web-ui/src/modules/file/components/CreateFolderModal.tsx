@@ -39,7 +39,9 @@ import {
   FILE_STATUS_UPLOADING,
   FILE_TITLE_UPLOAD_FAILED,
   FILE_UPLOAD_URL,
+  FOLDER_CREATE_FAILED,
   FOLDER_CREATING,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
   FOLDER_STATUS_CREATING,
   GET_GAS_FEE_LACK_BALANCE_ERROR,
   OBJECT_SEALED_STATUS,
@@ -154,7 +156,8 @@ export const CreateFolderModal = (props: modalProps) => {
     },
   });
   const [objectSignedMsg, setObjectSignedMsg] = useState<any>();
-  const provider = useProvider();
+  const nonceRef = useRef(0);
+
   const { connector } = useAccount();
   const {
     title = 'Create a Folder',
@@ -214,7 +217,7 @@ export const CreateFolderModal = (props: modalProps) => {
   const setFailedStatusModal = (description: string, error?: any) => {
     onStatusModalClose();
     setStatusModalIcon(FILE_FAILED_URL);
-    setStatusModalTitle(FILE_TITLE_UPLOAD_FAILED);
+    setStatusModalTitle(FOLDER_CREATE_FAILED);
     setStatusModalDescription(description);
     setStatusModalButtonText(BUTTON_GOT_IT);
     if (error && error.message) {
@@ -322,16 +325,29 @@ export const CreateFolderModal = (props: modalProps) => {
     },
     [parentFolderName],
   );
-  const getApprovalAndGasFee = useCallback(
-    async (folderName: string, parentFolderName: string) => {
+
+  const validateAndSetGasFee = debounce(
+    async (folderName: string, parentFolderName: string, curNonce: any) => {
+      if (curNonce !== nonceRef.current) return;
       setLoading(true);
       setGasFeeLoading(true);
       const objectMsg = await fetchCreateFolderApproval(folderName, endpoint, parentFolderName);
       await getGasFeeAndSet(objectMsg);
     },
-    [endpoint, fetchCreateFolderApproval, getGasFeeAndSet],
+    500,
   );
-  const validateAndSetGasFee = debounce(getApprovalAndGasFee, 500);
+
+  const checkGasFee = useCallback(
+    (value: string) => {
+      setGasFee('-1');
+      setGasFeeLoading(true);
+      validateAndSetGasFee && validateAndSetGasFee.cancel();
+      const curNonce = nonceRef.current + 1;
+      nonceRef.current = curNonce;
+      validateAndSetGasFee(value, parentFolderName, curNonce);
+    },
+    [validateAndSetGasFee, parentFolderName],
+  );
 
   const createFolder = async () => {
     try {
@@ -472,7 +488,7 @@ export const CreateFolderModal = (props: modalProps) => {
         onStatusModalClose();
         return;
       }
-      setFailedStatusModal(FILE_DESCRIPTION_UPLOAD_ERROR, error);
+      setFailedStatusModal(FOLDER_DESCRIPTION_CREATE_ERROR, error);
       // eslint-disable-next-line no-console
       console.error('Create folder error', error);
     }
@@ -490,14 +506,17 @@ export const CreateFolderModal = (props: modalProps) => {
       } else {
         setFormErrors([]);
       }
-      validateAndSetGasFee(currentFolderName, parentFolderName);
+      checkGasFee(currentFolderName);
     },
     [parentFolderName, validateAndSetGasFee, validateNameRules],
   );
   return (
     <DCModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        setFormErrors([]);
+        onClose();
+      }}
       p={'48px 24px'}
       w="568px"
       overflow="hidden"

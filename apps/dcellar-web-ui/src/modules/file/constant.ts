@@ -22,6 +22,8 @@ const FILE_TITLE_CANCELING = 'Canceling Uploading';
 const FOLDER_CREATING = 'Creating Folder';
 // error title
 const FILE_TITLE_UPLOAD_FAILED = 'Upload Failed';
+const FOLDER_CREATE_FAILED = 'Create Failed';
+
 const FILE_TITLE_DOWNLOAD_FAILED = 'Download Failed';
 const FILE_TITLE_DELETE_FAILED = 'Delete Failed';
 const FILE_TITLE_CANCEL_FAILED = 'Cancel Failed';
@@ -43,7 +45,7 @@ const FILE_DESCRIPTION_DOWNLOAD_ERROR = `Sorry, there’s something wrong when d
 const FILE_DESCRIPTION_DELETE_ERROR = `Sorry, there’s something wrong when deleting the file.`;
 const FILE_DESCRIPTION_CANCEL_ERROR = `Sorry, there’s something wrong when canceling the file.`;
 const NOT_ENOUGH_QUOTA_ERROR = `Sorry, you don’t have enough download quota to download this file now.`;
-
+const FOLDER_DESCRIPTION_CREATE_ERROR = `Sorry, there’s something wrong when creating the folder.`;
 const BUTTON_GOT_IT = 'Got It';
 // file status
 const OBJECT_SEALED_STATUS = 1;
@@ -107,4 +109,6 @@ export {
   FETCH_OBJECT_APPROVAL_ERROR,
   FOLDER_STATUS_CREATING,
   UNKNOWN_ERROR,
+  FOLDER_CREATE_FAILED,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
 };

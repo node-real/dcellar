@@ -1,7 +1,6 @@
 import { Box, FormErrorMessage } from '@totejs/uikit';
 
 export const ErrorDisplay = ({ errorMsgs }: { errorMsgs: string[] }) => {
-  console.log('errorMsgs', errorMsgs);
   if (errorMsgs.length === 1) {
     return (
       <FormErrorMessage fontSize={'14px'} color={'#EE3911'} textAlign={'left'} marginTop={'6px'}>
