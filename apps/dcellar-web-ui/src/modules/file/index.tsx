@@ -16,7 +16,7 @@ import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import FileEmptyIcon from '@/public/images/files/file_empty.svg';
 import {
   BUTTON_GOT_IT,
