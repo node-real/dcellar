@@ -374,14 +374,22 @@ export const FileInfoModal = (props: modalProps) => {
                     }
                     directlyDownload(shareLink);
                   } else {
-                    const result = await downloadWithProgress(
-                      bucketName,
-                      name,
-                      primarySpUrl,
-                      Number(size),
-                      loginState.address,
-                    );
-                    saveFileByAxiosResponse(result, name);
+                    try {
+                      const result = await downloadWithProgress(
+                        bucketName,
+                        name,
+                        primarySpUrl,
+                        Number(size),
+                        loginState.address,
+                      );
+                      saveFileByAxiosResponse(result, name);
+                    } catch (e: any) {
+                      if (e?.response?.status=== 500) {
+                        onClose();
+                        setOpenAuthModal();
+                      }
+                      throw e;
+                    }
                   }
                 } else {
                   onClose();

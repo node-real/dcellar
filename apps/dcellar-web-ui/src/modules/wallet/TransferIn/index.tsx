@@ -1,6 +1,6 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNetwork, useProvider, useSigner } from 'wagmi';
+import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
@@ -56,6 +56,7 @@ export const TransferIn = () => {
   });
   const { chain } = useNetwork();
   const provider = useProvider();
+  const {connector} = useAccount();
   const curInfo = WalletOperationInfos[type];
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

@@ -139,14 +139,14 @@ const downloadWithProgress = async (
         'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
       },
       responseType: 'blob',
+    }).catch(e => {
+      toast.close(toastId);
+      throw e;
     });
     toast.close(toastId);
     return result;
   } catch (error: any) {
-    if (error.statusCode === 500) {
-      // setOpenAuthModal();
-    }
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -244,7 +244,6 @@ const getQuota = async (
       userAddress,
       seedString,
     });
-    console.log('statusCode', statusCode, setCloseAllAndShowAuthModal);
     if (statusCode === 500) {
       setCloseAllAndShowAuthModal();
     }

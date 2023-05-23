@@ -11,8 +11,10 @@ import { useSPs } from '@/hooks/useSPs';
 import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
 
+// const EXPIRE_TIME = 5 * 24 * 60 * 60 * 1000;
+// TODO fix me, this is for test
+const EXPIRATION_MS = 1 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
-
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const [isAuthPending, setIsAuthPending] = useState(false);
   const {
@@ -37,8 +39,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         chainId: GREENFIELD_CHAIN_ID,
         sps: pruneSps,
         domain,
-        // 5days
-        expirationMs: 432000000,
+        expirationMs: EXPIRATION_MS,
       };
       const offChainData = await signAndUploadKey(params, provider);
       setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
