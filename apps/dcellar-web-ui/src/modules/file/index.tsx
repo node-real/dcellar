@@ -225,8 +225,9 @@ export const File = (props: pageProps) => {
   };
   // only get list when init
   useEffect(() => {
-    setListObjects([]);
     setListLoading(true);
+    setListObjects([]);
+    setIsEmptyData(false);
     setIsInitReady(false);
     if (bucketName) {
       getGatewayParams();

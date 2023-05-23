@@ -13,7 +13,7 @@ import { getDomain } from '@/utils/getDomain';
 
 // const EXPIRE_TIME = 5 * 24 * 60 * 60 * 1000;
 // TODO fix me, this is for test
-const EXPIRATION_MS = 1 * 60 * 1000;
+const EXPIRATION_MS = 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const [isAuthPending, setIsAuthPending] = useState(false);
