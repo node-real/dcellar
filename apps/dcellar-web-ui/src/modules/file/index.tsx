@@ -369,7 +369,7 @@ export const File = (props: pageProps) => {
         onDuplicateNameModalOpen();
       } else {
         setStatusModalIcon(FILE_FAILED_URL);
-        setStatusModalTitle('Chain Rejected -1111111111');
+        setStatusModalTitle('Chain Rejected');
         if (
           error.message.includes('lack of') ||
           error.message.includes('static balance is not enough')
