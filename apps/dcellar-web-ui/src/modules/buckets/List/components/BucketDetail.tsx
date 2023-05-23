@@ -25,15 +25,6 @@ export const Label = ({ children }: any) => (
 );
 
 export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [detail, setDetail] = useState({});
-  // useEffect(() => {
-  //   getBucketDetail(rowData.bucket_name, rowData.primary_sp_address).then((res) => {
-  //     setDetail(res);
-  //   });
-  // }, [rowData.bucket_name, rowData.primary_sp_address]);
-  // console.log('detail', detail);
-
   const Content = useMemo(() => {
     const create_at = getMillisecond(rowData.create_at);
     const infos = [

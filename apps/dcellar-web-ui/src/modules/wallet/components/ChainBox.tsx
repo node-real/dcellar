@@ -1,7 +1,7 @@
 import { Box, Flex, FormLabel, Text } from '@totejs/uikit';
 import React from 'react';
 
-import BNBIcon from '@/public/images/icons/bnb.svg';
+import BSCIcon from '@/public/images/icons/bsc.svg';
 import { ChainInfos, POPPINS_FONT } from '../constants';
 
 type Props = {
@@ -32,7 +32,7 @@ export const ChainBox = ({ chainId, type }: Props) => {
         h="52px"
         mt={'8px'}
       >
-        <BNBIcon />
+        <BSCIcon />
         <Text ml={'8px'} fontSize={'14px'} fontWeight="600" lineHeight={'28px'}>
           {chain?.name}
         </Text>

@@ -1,6 +1,6 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useState } from 'react';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import {
   getAccount,

@@ -122,18 +122,25 @@ export const getFee = async ({
   chainId,
   primarySpAddress,
   endpoint,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
   chainId: number;
   primarySpAddress: string;
   endpoint: string;
+  seedString: string;
+  domain: string;
 }) => {
   const getApprovalParams = {
     bucketName,
     creator: address,
     primarySpAddress,
     endpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   const res = await getCreateBucketApproval(getApprovalParams);
   const { body: xSPSignedMsg, code } = res;
@@ -199,6 +206,8 @@ export const createBucketTxUtil = async ({
   spAddress,
   spEndpoint,
   provider,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
@@ -206,12 +215,17 @@ export const createBucketTxUtil = async ({
   spAddress: string;
   spEndpoint: string;
   provider: any;
+  seedString: string;
+  domain: string;
 }) => {
   const approvalParams = {
     creator: address,
     bucketName,
     primarySpAddress: spAddress,
     endpoint: spEndpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   //1. Check that the name is not already taken and get the gas limit.
   const res = await getCreateBucketApproval(approvalParams);

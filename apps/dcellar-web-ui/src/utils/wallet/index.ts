@@ -51,6 +51,7 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
     const spRpc = new spQueryClientImpl(rpcClient);
     const storageRpc = new storageQueryClientImpl(rpcClient);
+
     const paymentRpc = new paymentQueryClientImpl(rpcClient);
     const { spStoragePrice } = await spRpc.QueryGetSpStoragePriceByTime({
       spAddr: primarySpAddress,

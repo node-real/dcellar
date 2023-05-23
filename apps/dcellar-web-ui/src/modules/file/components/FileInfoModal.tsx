@@ -32,6 +32,7 @@ import {
 import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
   title?: string;
@@ -220,6 +221,7 @@ export const FileInfoModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { allowDirectDownload } = loginState;
+  const {setOpenAuthModal} = useOffChainAuth();
   const {
     title = 'File Detail',
     onClose,
@@ -372,13 +374,22 @@ export const FileInfoModal = (props: modalProps) => {
                     }
                     directlyDownload(shareLink);
                   } else {
-                    const result = await downloadWithProgress(
-                      bucketName,
-                      name,
-                      primarySpUrl,
-                      Number(size),
-                    );
-                    saveFileByAxiosResponse(result, name);
+                    try {
+                      const result = await downloadWithProgress(
+                        bucketName,
+                        name,
+                        primarySpUrl,
+                        Number(size),
+                        loginState.address,
+                      );
+                      saveFileByAxiosResponse(result, name);
+                    } catch (e: any) {
+                      if (e?.response?.status=== 500) {
+                        onClose();
+                        setOpenAuthModal();
+                      }
+                      throw e;
+                    }
                   }
                 } else {
                   onClose();

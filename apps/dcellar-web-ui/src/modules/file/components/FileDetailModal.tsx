@@ -11,7 +11,7 @@ import {
   useOutsideClick,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { getAccount, CreateObjectTx, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import {
@@ -60,6 +60,8 @@ import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { useRouter } from 'next/router';
+import { getDomain } from '@/utils/getDomain';
+import { getOffChainData } from '@/modules/off-chain-auth/utils';
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -120,10 +122,16 @@ const renderFee = (
 };
 
 // fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string) => {
+const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string, address: string) => {
+  const domain = getDomain();
+  const { seedString } = await getOffChainData(address);
+  // TODO add auth error handling
   const listResult = await listObjectsByBucketName({
     bucketName,
     endpoint,
+    userAddress: address,
+    seedString,
+    domain,
   });
   if (listResult) {
     const listObjects = listResult.body ?? [];
@@ -201,7 +209,6 @@ export const FileDetailModal = (props: modalProps) => {
       }
     },
   });
-  const provider = useProvider();
   const { connector } = useAccount();
   const {
     title,
@@ -335,7 +342,7 @@ export const FileDetailModal = (props: modalProps) => {
       }
 
       const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address!);
-      const provider = await connector?.getProvider();
+      const walletProvider = await connector?.getProvider();
       const signInfo = await createObjectTx.signTx(
         {
           objectName: finalName,
@@ -355,7 +362,7 @@ export const FileDetailModal = (props: modalProps) => {
           redundancyType: objectSignedMsg.redundancy_type,
           expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
         },
-        provider,
+        walletProvider,
       );
 
       const pk = recoverPk({
@@ -439,14 +446,20 @@ export const FileDetailModal = (props: modalProps) => {
 
         // If upload size is small, then put obejct using fetch,
         // no need to show progress bar
+        const domain = getDomain();
+        const { seedString } = await getOffChainData(address);
         const uploadOptions = await generatePutObjectOptions({
           bucketName,
           objectName: finalName,
           body: file,
           endpoint: endpoint,
           txnHash: objectTxnHash,
+          userAddress: address,
+          domain,
+          seedString,
         });
         const { url, headers } = uploadOptions;
+        // No expiration handling is performed at this moment, because the previous step of obtaining quota has handled the situation where the seedString expires.
         await axios.put(url, file, {
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
@@ -464,11 +477,13 @@ export const FileDetailModal = (props: modalProps) => {
           headers: {
             Authorization: headers.get('Authorization'),
             'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-          },
-        });
+            "X-Gnfd-User-Address": headers.get("X-Gnfd-User-Address"),
+            "X-Gnfd-App-Domain": headers.get("X-Gnfd-App-Domain"),
+          }
+        })
         startPolling(async () => {
           // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
-          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
+          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName, loginState.address);
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();
