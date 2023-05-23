@@ -58,7 +58,7 @@ export const TableList = () => {
     consumedQuota: number;
   } | null>(null);
   const router = useRouter();
-  const {setOpenAuthModal}= useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const setCloseAndShowAuthModal = () => {
     onClose();
     setOpenAuthModal();
@@ -224,7 +224,7 @@ export const TableList = () => {
         userAddress: address,
         endpoint: sp?.endpoint,
         domain,
-        seedString
+        seedString,
       });
       const data =
         res.body

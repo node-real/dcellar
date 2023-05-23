@@ -1,11 +1,4 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Text,
-  Flex,
-  Checkbox,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -184,14 +177,20 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size), loginState.address);
+                const result = await downloadWithProgress(
+                  bucketName,
+                  name,
+                  endpoint,
+                  Number(size),
+                  loginState.address,
+                );
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
                 onClose();
                 onStatusModalClose();
-                setOpenAuthModal()
+                setOpenAuthModal();
               }
               setLoading(false);
               onClose();

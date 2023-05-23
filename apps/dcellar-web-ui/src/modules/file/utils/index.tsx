@@ -91,7 +91,7 @@ const downloadWithProgress = async (
 ) => {
   try {
     const domain = getDomain();
-    const {seedString} = await getOffChainData(userAddress);
+    const { seedString } = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -116,34 +116,36 @@ const downloadWithProgress = async (
       },
       duration: -1,
     });
-    const result = await axios.get(url, {
-      onDownloadProgress: (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
-        toast.update(toastId, {
-          description: ``,
-          render: () => {
-            return (
-              <ProgressBarToast
-                progress={progress}
-                fileName={objectName}
-                closeToast={() => {
-                  toast.close(toastId);
-                }}
-              />
-            );
-          },
-        });
-      },
-      headers: {
-        Authorization: headers.get('Authorization'),
-        'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-        'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
-      },
-      responseType: 'blob',
-    }).catch(e => {
-      toast.close(toastId);
-      throw e;
-    });
+    const result = await axios
+      .get(url, {
+        onDownloadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
+          toast.update(toastId, {
+            description: ``,
+            render: () => {
+              return (
+                <ProgressBarToast
+                  progress={progress}
+                  fileName={objectName}
+                  closeToast={() => {
+                    toast.close(toastId);
+                  }}
+                />
+              );
+            },
+          });
+        },
+        headers: {
+          Authorization: headers.get('Authorization'),
+          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+        },
+        responseType: 'blob',
+      })
+      .catch((e) => {
+        toast.close(toastId);
+        throw e;
+      });
     toast.close(toastId);
     return result;
   } catch (error: any) {
@@ -238,7 +240,7 @@ const getQuota = async (
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
     const domain = getDomain();
-    const {seedString} = await getOffChainData(userAddress);
+    const { seedString } = await getOffChainData(userAddress);
     const { code, body, statusCode } = await getBucketReadQuota({
       bucketName,
       endpoint,
@@ -332,12 +334,22 @@ const truncateFileName = (fileName: string) => {
   )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
 };
 
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string) => {
+const getObjectIsSealed = async (
+  bucketName: string,
+  endpoint: string,
+  objectName: string,
+  address: string,
+) => {
   try {
+    const { seedString } = await getOffChainData(address);
+    const domain = getDomain();
     const uploadOptions = await generateGetObjectOptions({
+      userAddress: address,
       bucketName,
       objectName,
       endpoint,
+      seedString,
+      domain,
     });
     const { url } = uploadOptions;
     const objectMetaUrl = url + '?object-meta';

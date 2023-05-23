@@ -227,7 +227,10 @@ export const ConfirmCancelModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
+              const { sequence, accountNumber } = await getAccount(
+                GREENFIELD_CHAIN_RPC_URL!,
+                address!,
+              );
               const provider = await connector?.getProvider();
               const signInfo = await cancelObjectTx.signTx(
                 {

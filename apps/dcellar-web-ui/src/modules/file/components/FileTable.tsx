@@ -247,7 +247,7 @@ export const FileTable = (props: fileListProps) => {
   const [gasPrice, setGasPrice] = useState('0');
   const [shareLink, setShareLink] = useState('');
   const [viewLink, setViewLink] = useState('');
-  const {setOpenAuthModal} = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentVisibility, setCurrentVisibility] = useState(0);
@@ -305,7 +305,15 @@ export const FileTable = (props: fileListProps) => {
     onConfirmCancelModalClose();
     onShareModalClose();
     setOpenAuthModal();
-  }, [onConfirmCancelModalClose, onConfirmDeleteModalClose, onConfirmDownloadModalClose, onConfirmViewModalClose, onInfoModalClose, onShareModalClose, setOpenAuthModal]);
+  }, [
+    onConfirmCancelModalClose,
+    onConfirmDeleteModalClose,
+    onConfirmDownloadModalClose,
+    onConfirmViewModalClose,
+    onInfoModalClose,
+    onShareModalClose,
+    setOpenAuthModal,
+  ]);
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
       const lockFeeInBNB = await getLockFee(size, spAddress);
@@ -627,7 +635,12 @@ export const FileTable = (props: fileListProps) => {
           const downloadWithConfirm = async (url: string) => {
             if (allowDirectDownload) {
               try {
-                const quotaData = await getQuota(bucketName, endpoint, address, setCloseAllAndShowAuthModal);
+                const quotaData = await getQuota(
+                  bucketName,
+                  endpoint,
+                  address,
+                  setCloseAllAndShowAuthModal,
+                );
                 if (quotaData) {
                   const { freeQuota, readQuota, consumedQuota } = quotaData;
                   const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
@@ -656,7 +669,12 @@ export const FileTable = (props: fileListProps) => {
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
-              const quotaData = await getQuota(bucketName, endpoint, address, setCloseAllAndShowAuthModal);
+              const quotaData = await getQuota(
+                bucketName,
+                endpoint,
+                address,
+                setCloseAllAndShowAuthModal,
+              );
               if (quotaData) {
                 const { freeQuota, readQuota, consumedQuota } = quotaData;
                 setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -728,7 +746,12 @@ export const FileTable = (props: fileListProps) => {
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
                             onInfoModalOpen();
-                            const quotaData = await getQuota(bucketName, endpoint, address, setCloseAllAndShowAuthModal);
+                            const quotaData = await getQuota(
+                              bucketName,
+                              endpoint,
+                              address,
+                              setCloseAllAndShowAuthModal,
+                            );
                             if (quotaData) {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -841,7 +864,15 @@ export const FileTable = (props: fileListProps) => {
         },
       },
     ];
-  }, [spAddress, chain, address, endpoint, bucketName, allowDirectDownload, setCloseAllAndShowAuthModal]);
+  }, [
+    spAddress,
+    chain,
+    address,
+    endpoint,
+    bucketName,
+    allowDirectDownload,
+    setCloseAllAndShowAuthModal,
+  ]);
   const loadingColumns = columns.map((column) => ({
     ...column,
     cell: <SkeletonSquare style={{ width: '80%' }} />,
@@ -981,7 +1012,12 @@ export const FileTable = (props: fileListProps) => {
                           setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
-                          const quotaData = await getQuota(bucketName, endpoint, address, setCloseAllAndShowAuthModal);
+                          const quotaData = await getQuota(
+                            bucketName,
+                            endpoint,
+                            address,
+                            setCloseAllAndShowAuthModal,
+                          );
                           if (quotaData) {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -998,7 +1034,7 @@ export const FileTable = (props: fileListProps) => {
                               object_name,
                               endpoint,
                               Number(payload_size),
-                              loginState.address
+                              loginState.address,
                             );
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {

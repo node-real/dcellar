@@ -90,7 +90,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     useState<ValidateNameAndGas>(initValidateNameAndGas);
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
-  const {setOpenAuthModal} = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const {
     handleSubmit,
     register,
@@ -150,7 +150,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const chainId = chain?.id as number;
       const domain = getDomain();
-      const {seedString} = await getOffChainData(address);
+      const { seedString } = await getOffChainData(address);
       const decimalGasFee = await getFee({
         address,
         bucketName: value,
@@ -158,7 +158,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         endpoint: sp.endpoint,
         chainId,
         domain,
-        seedString
+        seedString,
       });
 
       if (curNonce !== nonceRef.current) {
@@ -262,7 +262,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         const provider = await connector?.getProvider();
         const domain = getDomain();
         const chainId = chain?.id as number;
-        const {seedString} = await getOffChainData(address);
+        const { seedString } = await getOffChainData(address);
         const txRes = await createBucketTxUtil({
           address,
           bucketName,

@@ -222,7 +222,7 @@ export const FileInfoModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { allowDirectDownload } = loginState;
-  const {setOpenAuthModal} = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const {
     title = 'File Detail',
     onClose,
@@ -387,7 +387,7 @@ export const FileInfoModal = (props: modalProps) => {
                       );
                       saveFileByAxiosResponse(result, name);
                     } catch (e: any) {
-                      if (e?.response?.status=== 500) {
+                      if (e?.response?.status === 500) {
                         onClose();
                         setOpenAuthModal();
                       }

@@ -56,7 +56,7 @@ export const ConfirmViewModal = (props: modalProps) => {
   const { loginState, loginDispatch } = loginData;
   const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
   const [hasChangedView, setHasChangedView] = useState(false);
-  const {setOpenAuthModal} = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
 
   const [loading, setLoading] = useState(false);
   const {

@@ -56,7 +56,7 @@ export const TransferIn = () => {
   });
   const { chain } = useNetwork();
   const provider = useProvider();
-  const {connector} = useAccount();
+  const { connector } = useAccount();
   const curInfo = WalletOperationInfos[type];
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

@@ -454,12 +454,12 @@ export const FileDetailModal = (props: modalProps) => {
           headers: {
             Authorization: headers.get('Authorization'),
             'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-            "X-Gnfd-User-Address": headers.get("X-Gnfd-User-Address"),
-            "X-Gnfd-App-Domain": headers.get("X-Gnfd-App-Domain"),
-          }
-        })
+            'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+            'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+          },
+        });
         startPolling(async () => {
-          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
+          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName, address);
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();

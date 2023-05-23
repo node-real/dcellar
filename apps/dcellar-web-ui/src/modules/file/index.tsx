@@ -114,9 +114,14 @@ export const File = (props: pageProps) => {
   const { setOpenAuthModal } = useOffChainAuth();
   const getObjectList = async (currentEndpoint: string) => {
     try {
+      const { seedString } = await getOffChainData(address);
+      const domain = getDomain();
       const { url, headers, method } = await generateListObjectsByBucketNameOptions({
+        userAddress: address,
         bucketName,
         endpoint: currentEndpoint,
+        seedString,
+        domain,
       });
       let finalUrl: string;
       const params = new URLSearchParams();

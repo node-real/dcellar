@@ -31,7 +31,7 @@ import {
 import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_EXPLORER_URL, GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_UPLOAD_ERROR,
@@ -67,6 +67,8 @@ import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/green
 import { debounce, isEmpty } from 'lodash-es';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
+import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getDomain } from '@/utils/getDomain';
 
 const renderFee = (
   key: string,
@@ -130,7 +132,7 @@ export const CreateFolderModal = (props: modalProps) => {
   const { chain } = useNetwork();
   const { value: bnbPrice } = useContext(BnbPriceContext);
   const exchangeRate = bnbPrice?.toNumber() ?? 0;
-  const createObjectTx = new CreateObjectTx(GRPC_URL!, String(chain?.id)!);
+  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [gasFee, setGasFee] = useState('-1');
@@ -229,7 +231,7 @@ export const CreateFolderModal = (props: modalProps) => {
   const getGasFeeAndSet = async (currentObjectSignedMessage: any) => {
     try {
       setGasFeeLoading(true);
-      const { sequence } = await getAccount(GRPC_URL!, address!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
       const simulateBytes = createObjectTx.getSimulateBytes({
         objectName: currentObjectSignedMessage.object_name,
         contentType: currentObjectSignedMessage.content_type,
@@ -299,6 +301,8 @@ export const CreateFolderModal = (props: modalProps) => {
           });
           return Promise.reject();
         }
+        const { seedString } = await getOffChainData(address);
+        const domain = getDomain();
         const result = await getCreateObjectApproval({
           bucketName,
           objectName: finalObjectName,
@@ -307,6 +311,8 @@ export const CreateFolderModal = (props: modalProps) => {
           endpoint,
           expectSecondarySpAddresses: secondarySpAddresses,
           visibility,
+          domain,
+          seedString,
         });
         if (result.statusCode !== 200) {
           throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
@@ -371,7 +377,7 @@ export const CreateFolderModal = (props: modalProps) => {
         return;
       }
 
-      const { sequence, accountNumber } = await getAccount(GRPC_URL, address!);
+      const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address!);
       const provider = await connector?.getProvider();
       const signInfo = await createObjectTx.signTx(
         {
