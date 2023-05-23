@@ -326,7 +326,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      py={48}
       gaShowName={gaOptions.showName}
       gaClickCloseName={gaOptions.closeName}
     >
@@ -335,14 +334,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         {status === 'pending' && (
           <form onSubmit={handleSubmit(onSubmit)}>
             <ModalHeader fontFamily="heading">Create a Bucket</ModalHeader>
-            <ModalBody mt={32}>
+            <ModalBody mt={0}>
               <Box
                 textAlign="center"
                 fontSize={18}
                 fontWeight={400}
                 lineHeight="22px"
                 color="readable.tertiary"
-                mb={32}
+                my={32}
               >
                 Buckets are containers for data stored on BNB Greenfield. Bucket name must be
                 globally unique.

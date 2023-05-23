@@ -154,7 +154,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.cancel_modal.0.show"
