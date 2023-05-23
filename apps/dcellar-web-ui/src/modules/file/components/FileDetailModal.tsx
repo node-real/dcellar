@@ -13,7 +13,7 @@ import {
 import { MenuCloseIcon } from '@totejs/icons';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { getAccount, CreateObjectTx } from '@bnb-chain/gnfd-js-sdk';
+import { getAccount, CreateObjectTx, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import {
   generatePutObjectOptions,
   listObjectsByBucketName,
@@ -28,8 +28,6 @@ import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import {
   BUTTON_GOT_IT,
   FETCH_OBJECT_APPROVAL_ERROR,
@@ -425,7 +423,7 @@ export const FileDetailModal = (props: modalProps) => {
                 .
               </>
             ),
-            duration: 5000,
+            duration: 3000,
           });
         } else {
           // eslint-disable-next-line no-console
@@ -489,7 +487,7 @@ export const FileDetailModal = (props: modalProps) => {
                   .
                 </>
               ),
-              duration: 5000,
+              duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
             const newFileObjectStatus = listObjects[0].object_info.object_status;
@@ -537,7 +535,6 @@ export const FileDetailModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.upload_modal.0.show"

@@ -10,12 +10,10 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
-import { DelObjectTx, getAccount } from '@bnb-chain/gnfd-js-sdk';
+import { DelObjectTx, getAccount, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -167,7 +165,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.delete_confirm.modal.show"

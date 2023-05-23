@@ -32,8 +32,8 @@ export const DCModal = (props: DCModalProps) => {
         }}
         w={568}
         px={24}
-        py={24}
-        maxH="auto"
+        py={48}
+        maxH="unset"
         sx={{
           '.ui-modal-close-button': {
             right: 24,

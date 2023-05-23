@@ -7,12 +7,11 @@ import {
   validateObjectName,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
-import { CreateObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import { CreateObjectTx, getAccount, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import { useNetwork } from 'wagmi';
 import moment from 'moment';
 import * as Comlink from 'comlink';
 
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
