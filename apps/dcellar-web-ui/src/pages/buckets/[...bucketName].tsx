@@ -21,7 +21,6 @@ const Folder = () => {
       finalFolderName = folderNameArray.join('/') + '/';
     }
   }
-  console.log('folder name', finalFolderName);
 
   const renderBreadcrumbItem = (isLastItem: boolean, link: string, text: string) => {
     if (isLastItem) {

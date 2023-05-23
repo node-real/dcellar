@@ -505,7 +505,6 @@ export const File = (props: pageProps) => {
       }
       onDetailModalOpen();
       const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile, newFileName);
-      console.log('object signed msg', currentObjectSignedMessage);
       await getGasFeeAndSet(uploadFile, currentObjectSignedMessage);
       await getLockFeeAndSet(uploadFile.size);
     }

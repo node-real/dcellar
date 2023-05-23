@@ -256,19 +256,19 @@ export const FileDetailModal = (props: modalProps) => {
       setLoading(false);
       // fixme temp fix for list seal status display
       // We don't know yet why final name and size is changing if we open the modal again during uploading
-      const finalObjects = listObjects.map((v, i) => {
-        if (i === 0) {
+      // const finalObjects = listObjects.map((v, i) => {
+      //   if (i === 0) {
+      //     v.object_status = 1;
+      //   }
+      //   return v;
+      // });
+      const finalObjects = listObjects.map((v) => {
+        if (v?.object_name === finalName) {
+          v.payload_size = file?.size ?? 0;
           v.object_status = 1;
         }
         return v;
       });
-      // const finalObjects = listObjects.map((v) => {
-      //   if (v?.object_info?.object_name === finalName) {
-      //     v.object_info.payload_size = file?.size ?? 0;
-      //     v.object_info.object_status = 1;
-      //   }
-      //   return v;
-      // });
       setListObjects(finalObjects);
       setIsSealed(false);
     }
@@ -452,7 +452,6 @@ export const FileDetailModal = (props: modalProps) => {
         startPolling(async () => {
           const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName);
           if (sealTxHash && sealTxHash.length > 0) {
-            console.log('seal tx', sealTxHash);
             setIsSealed(true);
             stopPolling();
             toast.success({
