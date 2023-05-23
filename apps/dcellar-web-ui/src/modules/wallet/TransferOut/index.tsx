@@ -24,7 +24,7 @@ import {
   BSC_CHAIN_ID,
   GREENFIELD_CHAIN_ID,
   GREENFIELD_CHAIN_EXPLORER_URL,
-  GRPC_URL,
+  GREENFIELD_CHAIN_RPC_URL,
 } from '@/base/env';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
@@ -61,11 +61,11 @@ export const TransferOut = () => {
   const onSubmit = async (data: any) => {
     setStatus('pending');
 
-    const toutTx = new TransferOutTx(GRPC_URL, String(chain?.id)!);
+    const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
     try {
       onOpen();
       const provider = await connector?.getProvider();
-      const account = await getAccount(GRPC_URL, address);
+      const account = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
       const { accountNumber, sequence } = account;
       const bodyBytes = toutTx.getSimulateBytes({
         from: address,

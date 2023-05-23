@@ -67,7 +67,7 @@ import {
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
@@ -322,8 +322,8 @@ export const FileTable = (props: fileListProps) => {
 
   const getCancelGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const { sequence } = await getAccount(GRPC_URL, address);
-      const cancelCteObjTx = new CancelCreateObjectTx(GRPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
+      const cancelCteObjTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
       const simulateBytes = cancelCteObjTx.getSimulateBytes({
         bucketName,
         objectName,
@@ -369,8 +369,8 @@ export const FileTable = (props: fileListProps) => {
 
   const getDeleteGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const delObjTx = new DelObjectTx(GRPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GRPC_URL!, address!);
+      const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
       const simulateBytes = delObjTx.getSimulateBytes({
         bucketName,
         objectName,

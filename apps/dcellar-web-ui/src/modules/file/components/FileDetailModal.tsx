@@ -27,7 +27,7 @@ import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_EXPLORER_URL, GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import {
   BUTTON_GOT_IT,
   FETCH_OBJECT_APPROVAL_ERROR,
@@ -181,7 +181,7 @@ export const FileDetailModal = (props: modalProps) => {
   const { chain } = useNetwork();
   const { value: bnbPrice } = useContext(BnbPriceContext);
   const exchangeRate = bnbPrice?.toNumber() ?? 0;
-  const createObjectTx = new CreateObjectTx(GRPC_URL!, String(chain?.id)!);
+  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAvailableBalance();
@@ -334,7 +334,7 @@ export const FileDetailModal = (props: modalProps) => {
         return;
       }
 
-      const { sequence, accountNumber } = await getAccount(GRPC_URL, address!);
+      const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address!);
       const provider = await connector?.getProvider();
       const signInfo = await createObjectTx.signTx(
         {

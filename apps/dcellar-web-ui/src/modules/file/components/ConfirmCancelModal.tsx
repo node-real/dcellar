@@ -18,7 +18,7 @@ import {
 } from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -138,7 +138,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
   const { connector } = useAccount();
   const description = `Are you sure you want to cancel uploading the file "${name}"?`;
-  const cancelObjectTx = new CancelCreateObjectTx(GRPC_URL, String(chain?.id)!);
+  const cancelObjectTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -226,7 +226,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
               const provider = await connector?.getProvider();
               const signInfo = await cancelObjectTx.signTx(
                 {

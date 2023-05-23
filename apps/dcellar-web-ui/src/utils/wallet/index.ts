@@ -5,7 +5,7 @@ import { QueryClientImpl as paymentQueryClientImpl } from '@bnb-chain/greenfield
 import Long from 'long';
 import BigNumber from 'bignumber.js';
 
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -48,7 +48,7 @@ const getNumInDigits = (
 
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
-    const rpcClient = await makeRpcClient(GRPC_URL);
+    const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
     const spRpc = new spQueryClientImpl(rpcClient);
     const storageRpc = new storageQueryClientImpl(rpcClient);
     const paymentRpc = new paymentQueryClientImpl(rpcClient);

@@ -16,7 +16,7 @@ import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import FileEmptyIcon from '@/public/images/files/file_empty.svg';
 import {
   BUTTON_GOT_IT,
@@ -79,7 +79,7 @@ export const File = (props: pageProps) => {
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
   const { chain } = useNetwork();
-  const createObjectTx = new CreateObjectTx(GRPC_URL!, String(chain?.id)!);
+  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const { loginState } = loginData;
   const { address } = loginState;
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
@@ -308,7 +308,7 @@ export const File = (props: pageProps) => {
   const getGasFeeAndSet = async (uploadFile: File, currentObjectSignedMessage: any) => {
     try {
       setGasFeeLoading(true);
-      const { sequence } = await getAccount(GRPC_URL!, address!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
       const simulateBytes = createObjectTx.getSimulateBytes({
         objectName: currentObjectSignedMessage.object_name,
         contentType: currentObjectSignedMessage.content_type,

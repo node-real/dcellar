@@ -8,7 +8,7 @@ import Long from 'long';
 import { toast } from '@totejs/uikit';
 import { useBalance, useNetwork } from 'wagmi';
 
-import { GREENFIELD_CHAIN_ID, GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
 
 const MINIUM_ALLOWED_CHANGED_BALANCE = '0.000005';
@@ -72,7 +72,7 @@ function ChainBalanceContextProvider(props: any) {
     try {
       setIsLoading(true);
       setUseMetamaskValue(false);
-      const rpcClient = await makeRpcClient(GRPC_URL);
+      const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
       const bankRpc = new bankQueryClientImpl(rpcClient);
       const paymentRpc = new paymentQueryClientImpl(rpcClient);
 

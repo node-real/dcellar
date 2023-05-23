@@ -13,7 +13,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { DelObjectTx, getAccount, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -149,7 +149,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
 
   const description = `Are you sure you want to delete file "${name}"?`;
-  const delObjTx = new DelObjectTx(GRPC_URL, String(chain?.id)!);
+  const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -249,7 +249,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
               const provider = await connector?.getProvider();
               const signInfo = await delObjTx.signTx(
                 {
