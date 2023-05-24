@@ -47,7 +47,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       setIsAuthPending(false);
       onClose();
 
-      return {code: 0, message: 'success'};
+      return { code: 0, message: 'success' };
     } catch (e: any) {
       console.log('gen offChain data error', e);
       const { message } = e;
@@ -55,7 +55,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       setIsAuthPending(false);
       onClose();
 
-      return {code: -1, error: e};
+      return { code: -1, error: e };
     }
   };
 
@@ -69,8 +69,14 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       }}
     >
       {children}
-      <DCModal isOpen={isOpen} overlayProps={{
-        zIndex: 1}} onClose={() => { }} gaShowName="dc.off_chain_auth.auth_modal.0.show">
+      <DCModal
+        isOpen={isOpen}
+        overlayProps={{
+          zIndex: 1,
+        }}
+        onClose={() => {}}
+        gaShowName="dc.off_chain_auth.auth_modal.0.show"
+      >
         <ModalBody mt={0} textAlign={'center'}>
           <Image
             alt="failed icon"
@@ -91,9 +97,8 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onOffChainAuth(address)
-            }
-            }
+              onOffChainAuth(address);
+            }}
           >
             Authenticate Now
           </DCButton>

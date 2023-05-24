@@ -39,7 +39,7 @@ import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '../off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface pageProps {
@@ -98,6 +98,7 @@ export const File = (props: pageProps) => {
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
   const [endpoint, setEndpoint] = useState('');
+  const [sp, setSp] = useState<any>();
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -111,7 +112,7 @@ export const File = (props: pageProps) => {
     try {
       const domain = getDomain();
       const { seedString } = await getOffChainData(address);
-      // TODO add auth error handling
+      // TODO add auth error handling add off chain auth check
       const listResult = await listObjectsByBucketName({
         userAddress: address,
         bucketName,
@@ -174,6 +175,7 @@ export const File = (props: pageProps) => {
       }
       const currentEndpoint = sps[spIndex]?.endpoint;
       setEndpoint(currentEndpoint);
+      setSp(sps[spIndex]);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
         .map((item: any) => item.operatorAddress);
@@ -262,7 +264,19 @@ export const File = (props: pageProps) => {
   ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-    const { seedString } = await getOffChainData(address);
+    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
+    if (
+      !checkSpOffChainDataAvailable({
+        expirationTimestamp,
+        spAddresses,
+        spAddress: primarySpAddress,
+      })
+    ) {
+      onStatusModalClose();
+      onDetailModalClose();
+      setOpenAuthModal();
+      return Promise.reject();
+    }
     const domain = getDomain();
     try {
       const result = await getCreateObjectApproval({

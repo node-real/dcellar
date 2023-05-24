@@ -1,11 +1,4 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Text,
-  Flex,
-  Checkbox,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -31,6 +24,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface modalProps {
   title?: string;
@@ -42,6 +36,7 @@ interface modalProps {
   bucketName: string;
   fileInfo?: { name: string; size: number };
   endpoint?: string;
+  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -82,6 +77,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
     endpoint = '',
+    spAddress,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -180,18 +176,33 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
+              const { spAddresses, expirationTimestamp } = await getOffChainData(
+                loginState.address,
+              );
+              if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
+                onClose();
+                onStatusModalClose();
+                setOpenAuthModal();
+                return;
+              }
               // only public file can be direct download
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size), loginState.address);
+                const result = await downloadWithProgress(
+                  bucketName,
+                  name,
+                  endpoint,
+                  Number(size),
+                  loginState.address,
+                );
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
                 onClose();
                 onStatusModalClose();
-                setOpenAuthModal()
+                setOpenAuthModal();
               }
               setLoading(false);
               onClose();
