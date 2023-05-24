@@ -52,7 +52,7 @@ interface pageProps {
 
 const MAX_FOLDER_LEVEL = 20;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
-
+const MAX_TITLE_LENGTH_BEFORE_OVERFLOW = 40;
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
 const MAX_SIZE = 268435456;
 const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
@@ -558,6 +558,7 @@ export const File = (props: pageProps) => {
   } = useDisclosure();
   if (!bucketName) return <></>;
   const showUploadButtonOnHeader = !isEmptyData && !listLoading;
+
   const renderTitle = () => {
     if (folderName) {
       const folderNameArray = folderName.split('/');
@@ -568,22 +569,30 @@ export const File = (props: pageProps) => {
     }
     return '';
   };
+  const title = renderTitle();
+  console.log('title length > 40', title.length > 40);
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
-        <Text
-          as={'h1'}
-          flex={1}
-          fontWeight="700"
-          fontSize={'24px'}
-          lineHeight="36px"
-          maxWidth="700px"
-          overflow="hidden"
-          noOfLines={1}
-          textOverflow="ellipsis"
+        <Tooltip
+          content={title}
+          placement={'bottom-start'}
+          visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
-          {renderTitle()}
-        </Text>
+          <Text
+            as={'h1'}
+            flex={1}
+            fontWeight="700"
+            fontSize={'24px'}
+            lineHeight="36px"
+            maxWidth="700px"
+            overflow="hidden"
+            noOfLines={1}
+            textOverflow="ellipsis"
+          >
+            {title}
+          </Text>
+        </Tooltip>
         <Flex>
           {showUploadButtonOnHeader &&
             renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
@@ -618,7 +627,7 @@ export const File = (props: pageProps) => {
             mt={'16px'}
             color={'readable.secondary'}
           >
-            Upload your files to this bucket right now!👏
+            Upload your files to this {folderName ? 'folder' : 'bucket'} right now!👏
           </Text>
           <Text
             fontSize="12px"
