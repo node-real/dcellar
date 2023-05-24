@@ -50,7 +50,8 @@
     "typescript": "5.0.4",
     "wagmi": "^0.12.9",
     "worker-plugin": "^5.0.1",
-    "@faker-js/faker": "~7.6.0"
+    "@faker-js/faker": "~7.6.0",
+    "@sentry/nextjs": "~7.52.1"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",
