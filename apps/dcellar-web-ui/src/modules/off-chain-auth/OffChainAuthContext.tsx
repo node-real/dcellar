@@ -77,7 +77,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         onClose={() => {}}
         gaShowName="dc.off_chain_auth.auth_modal.0.show"
       >
-        <ModalBody marginTop={'24px'} textAlign={'center'}>
+        <ModalBody mt={0} textAlign={'center'}>
           <Image
             alt="failed icon"
             src={`${assetPrefix}/images/icons/failed.svg`}
@@ -92,7 +92,6 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           <DCButton
             width={'100%'}
             marginTop={'24px'}
-            marginBottom={'24px'}
             variant="dcPrimary"
             isLoading={isAuthPending}
             onClick={(e) => {

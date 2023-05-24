@@ -31,7 +31,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ^2.41.5
+      '@totejs/uikit': ~2.41.7
       '@types/crypto-js': ^4.1.1
       '@types/currency-formatter': ^1.5.1
       '@types/lodash-es': ^4.17.6
@@ -81,7 +81,7 @@ importers:
       '@tanstack/react-table': 8.9.1_react-dom@18.2.0+react@18.2.0
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.11.0_a132e2ff0f99f7c5053022fd1ec2237d
-      '@totejs/uikit': 2.41.6_a132e2ff0f99f7c5053022fd1ec2237d
+      '@totejs/uikit': 2.41.7_a132e2ff0f99f7c5053022fd1ec2237d
       axios: 1.4.0
       axios-retry: 3.5.0
       bignumber.js: 9.1.1
@@ -3498,8 +3498,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.41.6_a132e2ff0f99f7c5053022fd1ec2237d:
-    resolution: {integrity: sha512-D37+7zN0uurPuzg6oyDfAfPk2dU8oxGCyCywk2Bhl4dWRBLVO24TkzTHzFGXERosNYg/LTAFZZmviWriIn7b0A==}
+  /@totejs/uikit/2.41.7_a132e2ff0f99f7c5053022fd1ec2237d:
+    resolution: {integrity: sha512-QNftZ3vXTP9cCT4X3Dx+0/dnjk7jZmWSaZojDOLITG3oG312lJ7AlXVUuBcwEK/4jTPJNAHTmauRsU3+08L4GA==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
