@@ -31,7 +31,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ^2.41.5
+      '@totejs/uikit': ~2.41.8
       '@types/crypto-js': ^4.1.1
       '@types/currency-formatter': ^1.5.1
       '@types/lodash-es': ^4.17.6
@@ -81,7 +81,7 @@ importers:
       '@tanstack/react-table': 8.9.1_react-dom@18.2.0+react@18.2.0
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.11.0_a132e2ff0f99f7c5053022fd1ec2237d
-      '@totejs/uikit': 2.41.6_a132e2ff0f99f7c5053022fd1ec2237d
+      '@totejs/uikit': 2.41.8_a132e2ff0f99f7c5053022fd1ec2237d
       axios: 1.4.0
       axios-retry: 3.5.0
       bignumber.js: 9.1.1
@@ -3479,6 +3479,21 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
+  /@totejs/icons/2.12.0_a132e2ff0f99f7c5053022fd1ec2237d:
+    resolution: {integrity: sha512-Ewwu+6rAY0SGAqikVOQ6pJTqYkcC1uZGweXWXcmEKbP3QNwYVSGBoNiJimTBhW01WpJ4dq3CJNEvymXaMfhn3w==}
+    peerDependencies:
+      '@emotion/react': '>=11'
+      '@emotion/styled': '>=11'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+    dependencies:
+      '@emotion/react': 11.11.0_627697682086d325a0e273fee4549116
+      '@emotion/styled': 11.11.0_e26648cc40f2a727295f0806c5bada42
+      '@totejs/styled-system': 2.11.0_react-dom@18.2.0+react@18.2.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /@totejs/prettier-config/0.1.0:
     resolution: {integrity: sha512-N7ayi2uD5BUV44XDNHqHPQ3kWkCa73gTTLRDX0Doz42iSVszTne2ZtFppGIx/FDXwJfehnJiyaM1ZOrUzgn7QQ==}
     dependencies:
@@ -3498,8 +3513,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.41.6_a132e2ff0f99f7c5053022fd1ec2237d:
-    resolution: {integrity: sha512-D37+7zN0uurPuzg6oyDfAfPk2dU8oxGCyCywk2Bhl4dWRBLVO24TkzTHzFGXERosNYg/LTAFZZmviWriIn7b0A==}
+  /@totejs/uikit/2.41.8_a132e2ff0f99f7c5053022fd1ec2237d:
+    resolution: {integrity: sha512-RlPogigKd8/p5nX7N0iEVAj4eb8MRKUPbzGUUqC+XrQ+H9biGgwXG6PnqyUK14w2rVY5dgZh12XGtdLinDobbg==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3509,7 +3524,7 @@ packages:
       '@emotion/react': 11.11.0_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_e26648cc40f2a727295f0806c5bada42
       '@popperjs/core': 2.11.7
-      '@totejs/icons': 2.11.0_a132e2ff0f99f7c5053022fd1ec2237d
+      '@totejs/icons': 2.12.0_a132e2ff0f99f7c5053022fd1ec2237d
       '@totejs/styled-system': 2.11.0_react-dom@18.2.0+react@18.2.0
       '@xobotyi/scrollbar-width': 1.9.5
       react: 18.2.0
