@@ -35,11 +35,10 @@ import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import {
-  checkOffChainDataAvailable,
-  getOffChainData,
-} from '@/modules/off-chain-auth/utils';
+import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { Footer } from '@/components/layout/Footer';
+
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';
 const Welcome = () => {
@@ -280,7 +279,7 @@ const Welcome = () => {
           _hover={{ border: '1px solid readable.brand6' }}
           position="relative"
           _notLast={{
-            mb: 16
+            mb: 16,
           }}
           onClick={() => {
             setLoading(true);
@@ -324,14 +323,15 @@ const Welcome = () => {
       </DCModal>
       <Flex
         w="100%"
-        minH={'calc(100vh - 64px)'}
+        minH={'100vh'}
         overflow="hidden"
+        flexDirection="column"
         bg={
           isLargerThan1463
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 80% top 100px /1215px`
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% top 100px /1215px`
             : isLargerThan1000
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 248px top 100px/1215px`
-            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg.svg) no-repeat left 248px top 100px/972px`
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/1215px`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/972px`
         }
       >
         <Image
@@ -340,7 +340,7 @@ const Welcome = () => {
           height={144}
           position="absolute"
         />
-        <Flex flexDirection="column" ml={110}>
+        <Flex flexDirection="column" ml={110} flex={1}>
           <Text
             as="h1"
             fontSize="56px"
@@ -363,6 +363,9 @@ const Welcome = () => {
             {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
           </Text>
           {renderConnectWalletButton()}
+        </Flex>
+        <Flex alignSelf="flex-end" w="100%" justifyContent="center">
+          <Footer />
         </Flex>
       </Flex>
     </>

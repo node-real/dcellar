@@ -10,7 +10,7 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { SEOHead } from './SEOHead';
 import { InternalRoutePaths } from '@/constants/links';
 
-const IgnoreFooterPaths = ['/buckets'];
+const IgnoreFooterPaths = ['/buckets','/'];
 
 export const LoginLayout = ({
   children,
