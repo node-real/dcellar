@@ -40,7 +40,7 @@ import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useSPs } from '@/hooks/useSPs';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 
@@ -90,7 +90,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     useState<ValidateNameAndGas>(initValidateNameAndGas);
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
-  const {setOpenAuthModal} = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const {
     handleSubmit,
     register,
@@ -150,7 +150,13 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const chainId = chain?.id as number;
       const domain = getDomain();
-      const {seedString} = await getOffChainData(address);
+      const offChainData = await getOffChainData(address);
+      const { seedString } = offChainData;
+      if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+        onClose();
+        setOpenAuthModal();
+        return;
+      }
       const decimalGasFee = await getFee({
         address,
         bucketName: value,
@@ -158,7 +164,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         endpoint: sp.endpoint,
         chainId,
         domain,
-        seedString
+        seedString,
       });
 
       if (curNonce !== nonceRef.current) {
@@ -258,11 +264,17 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
+        const offChainData = await getOffChainData(address);
+        if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+          onClose();
+          setOpenAuthModal();
+          return;
+        }
+        const { seedString } = offChainData;
         const bucketName = data.bucketName;
         const provider = await connector?.getProvider();
         const domain = getDomain();
         const chainId = chain?.id as number;
-        const {seedString} = await getOffChainData(address);
         const txRes = await createBucketTxUtil({
           address,
           bucketName,
@@ -297,7 +309,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, chain?.id, onClose, refetch, sp],
+    [address, chain?.id, connector, onClose, refetch, setOpenAuthModal, sp],
   );
 
   const disableCreateButton = () => {
