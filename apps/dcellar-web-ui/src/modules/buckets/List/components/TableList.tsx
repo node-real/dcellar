@@ -34,14 +34,16 @@ import { Empty } from '@/modules/buckets/List/components/Empty';
 import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucket } from '@/modules/buckets/List/components/DeleteBucket';
 import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
-import { SPContext } from '@/context/GlobalContext/SPProvider';
 import { formatTime, getMillisecond } from '../../utils/formatTime';
 import { getQuota } from '@/modules/file/utils';
-import { getBucketInfo, getStorageProviders } from '@/utils/sp';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { useSPs } from '@/hooks/useSPs';
+import { getDomain } from '@/utils/getDomain';
+import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 export const TableList = () => {
-  const { sp, sps } = useContext(SPContext);
+  const { sp, sps } = useSPs();
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
   const {
@@ -56,7 +58,11 @@ export const TableList = () => {
     consumedQuota: number;
   } | null>(null);
   const router = useRouter();
-
+  const {setOpenAuthModal}= useOffChainAuth();
+  const setCloseAndShowAuthModal = () => {
+    onClose();
+    setOpenAuthModal();
+  };
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
 
@@ -165,6 +171,8 @@ export const TableList = () => {
                             const currentQuotaData = await getQuota(
                               rowData.bucket_name,
                               currentEndpoint,
+                              address,
+                              setCloseAndShowAuthModal,
                             );
                             setQuotaData(currentQuotaData);
                           }}
@@ -200,7 +208,7 @@ export const TableList = () => {
         },
       },
     ],
-    [onOpen, sps],
+    [onOpen, sps, setOpenAuthModal, address],
   );
   const isLoadingColumns = columns.map((column) => ({
     ...column,
@@ -209,9 +217,14 @@ export const TableList = () => {
   let { data, isLoading, refetch } = useQuery<any>(
     ['getBucketList'],
     async () => {
+      // TODO add auth check and error handling
+      const domain = getDomain();
+      const { seedString } = await getOffChainData(address);
       const res: any = await getUserBuckets({
-        address: address,
+        userAddress: address,
         endpoint: sp?.endpoint,
+        domain,
+        seedString
       });
       const data =
         res.body
@@ -290,6 +303,9 @@ export const TableList = () => {
                 textAlign: 'right',
               },
             },
+            'tbody > tr:last-child': {
+              borderBottom: 'none',
+            },
           }}
         >
           <Box
@@ -300,7 +316,7 @@ export const TableList = () => {
             top="0"
             backgroundColor={'#fff'}
           >
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup, index) => (
               <Box as="tr" key={headerGroup.id} borderBottom="1px solid #E6E8EA">
                 {headerGroup.headers.map((header) => {
                   return (

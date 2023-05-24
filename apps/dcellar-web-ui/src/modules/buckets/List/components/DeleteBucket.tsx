@@ -108,7 +108,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const DeleteBucket = () => {
     return (
       <>
-        <ModalHeader lineHeight={'36px'} mt="24px">
+        <ModalHeader lineHeight={'36px'}>
           Confirm Delete
         </ModalHeader>
         <ModalBody marginTop={'8px'} paddingBottom={'32px'}>

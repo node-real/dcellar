@@ -95,6 +95,8 @@ export const Wallet = () => {
                   textAlign="center"
                   fontFamily={POPPINS_FONT}
                   tabKey={EOperation.transfer_in}
+                  borderBottom={'4px solid transparent'}
+                  marginBottom={'-2px'}
                   _hover={{
                     fontWeight: '600',
                     borderBottom: '4px solid readable.brand6',
@@ -113,6 +115,8 @@ export const Wallet = () => {
                   tabKey={EOperation.transfer_out}
                   textAlign="center"
                   width="105px"
+                  marginBottom={'-2px'}
+                  borderBottom={'4px solid transparent'}
                   _hover={{
                     fontWeight: '600',
                     borderBottom: '4px solid readable.brand6',
@@ -131,6 +135,8 @@ export const Wallet = () => {
                   tabKey={EOperation.send}
                   textAlign="center"
                   width="45px"
+                  marginBottom={'-2px'}
+                  borderBottom={'4px solid transparent'}
                   _hover={{
                     fontWeight: '600',
                     borderBottom: '4px solid readable.brand6',

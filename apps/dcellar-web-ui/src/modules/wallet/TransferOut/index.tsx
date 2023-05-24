@@ -1,8 +1,14 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useState } from 'react';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
-import { getAccount, TransferOutTx, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  TransferOutTx,
+  ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 import { isEmpty } from 'lodash-es';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
@@ -18,10 +24,8 @@ import {
   BSC_CHAIN_ID,
   GREENFIELD_CHAIN_ID,
   GREENFIELD_CHAIN_EXPLORER_URL,
-  GRPC_URL,
+  GREENFIELD_CHAIN_RPC_URL,
 } from '@/base/env';
-import { recoverPk } from '../utils/pk/recoverPk';
-import { makeCosmsPubKey } from '../utils/pk/makeCosmsPk';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
 import { Fee } from '../components/Fee';
@@ -57,11 +61,11 @@ export const TransferOut = () => {
   const onSubmit = async (data: any) => {
     setStatus('pending');
 
-    const toutTx = new TransferOutTx(GRPC_URL, String(chain?.id)!);
+    const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
     try {
       onOpen();
       const provider = await connector?.getProvider();
-      const account = await getAccount(GRPC_URL, address);
+      const account = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
       const { accountNumber, sequence } = account;
       const bodyBytes = toutTx.getSimulateBytes({
         from: address,

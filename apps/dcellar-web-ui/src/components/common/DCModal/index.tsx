@@ -27,13 +27,14 @@ export const DCModal = (props: DCModalProps) => {
   return (
     <GAShow isShow={props.isOpen} name={gaShowName} data={gaShowData}>
       <Modal
+        closeOnOverlayClick={false}
         rootProps={{
           backdropFilter: 'blur(12px)',
         }}
         w={568}
         px={24}
-        py={24}
-        maxH="auto"
+        py={48}
+        maxH="unset"
         sx={{
           '.ui-modal-close-button': {
             right: 24,

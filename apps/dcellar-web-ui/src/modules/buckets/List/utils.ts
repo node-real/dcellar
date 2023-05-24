@@ -9,6 +9,8 @@ import {
   getAccount,
   makeRpcClient,
   ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
 } from '@bnb-chain/gnfd-js-sdk';
 import Long from 'long';
 import { QueryClientImpl as spQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/query';
@@ -16,10 +18,8 @@ import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield
 
 import { IApprovalCreateBucket } from '@/modules/buckets/type';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { parseError } from '../utils/parseError';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 
 // TODO temp
 export const pollingCreateAsync =
@@ -91,7 +91,7 @@ export const pollingDeleteAsync =
   };
 
 export const getBucketInfo = async (bucketName: string): Promise<any> => {
-  const rpcClient = await makeRpcClient(GRPC_URL);
+  const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
   const rpc = new storageQueryClientImpl(rpcClient);
   const bucketInfoRes = await rpc.HeadBucket({
     bucketName,
@@ -122,27 +122,34 @@ export const getFee = async ({
   chainId,
   primarySpAddress,
   endpoint,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
   chainId: number;
   primarySpAddress: string;
   endpoint: string;
+  seedString: string;
+  domain: string;
 }) => {
   const getApprovalParams = {
     bucketName,
     creator: address,
     primarySpAddress,
     endpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   const res = await getCreateBucketApproval(getApprovalParams);
   const { body: xSPSignedMsg, code } = res;
   if (code !== 0) {
     throw res;
   }
-  const { sequence } = await getAccount(GRPC_URL, address);
+  const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
   const decodedSPMsg = decodeObjectFromHexString(xSPSignedMsg) as IApprovalCreateBucket;
-  const createBucketTx = new CreateBucketTx(GRPC_URL!, String(chainId)!);
+  const createBucketTx = new CreateBucketTx(GREENFIELD_CHAIN_RPC_URL!, String(chainId)!);
   const simulateBytes = createBucketTx.getSimulateBytes({
     from: decodedSPMsg.creator,
     bucketName: decodedSPMsg.bucket_name,
@@ -170,8 +177,8 @@ export const getFee = async ({
 };
 
 export const getDeleteBucketFee = async ({ bucketName, address, chainId }: any) => {
-  const { sequence } = await getAccount(GRPC_URL!, address!);
-  const delBucketTx = new DelBucketTx(GRPC_URL, String(chainId)!);
+  const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
+  const delBucketTx = new DelBucketTx(GREENFIELD_CHAIN_RPC_URL, String(chainId)!);
   const simulateBytes = delBucketTx.getSimulateBytes({
     bucketName,
     from: address,
@@ -199,6 +206,8 @@ export const createBucketTxUtil = async ({
   spAddress,
   spEndpoint,
   provider,
+  seedString,
+  domain,
 }: {
   address: string;
   bucketName: string;
@@ -206,12 +215,17 @@ export const createBucketTxUtil = async ({
   spAddress: string;
   spEndpoint: string;
   provider: any;
+  seedString: string;
+  domain: string;
 }) => {
   const approvalParams = {
     creator: address,
     bucketName,
     primarySpAddress: spAddress,
     endpoint: spEndpoint,
+    seedString,
+    domain,
+    authorization: '',
   };
   //1. Check that the name is not already taken and get the gas limit.
   const res = await getCreateBucketApproval(approvalParams);
@@ -220,8 +234,8 @@ export const createBucketTxUtil = async ({
     throw res;
   }
   const decodedSPMsg = decodeObjectFromHexString(xSPSignedMsg) as IApprovalCreateBucket;
-  const createBucketTx = new CreateBucketTx(GRPC_URL, String(chainId)!);
-  const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+  const createBucketTx = new CreateBucketTx(GREENFIELD_CHAIN_RPC_URL, String(chainId)!);
+  const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
   const simulateBytes = createBucketTx.getSimulateBytes({
     from: decodedSPMsg.creator,
     bucketName: decodedSPMsg.bucket_name,
@@ -297,7 +311,7 @@ export const createBucketTxUtil = async ({
 };
 
 export const getStorageProviders = async () => {
-  const rpcClient = await makeRpcClient(GRPC_URL);
+  const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
 
   const rpc = new spQueryClientImpl(rpcClient);
   const res = await rpc.StorageProviders({
@@ -321,8 +335,8 @@ export const deleteBucket = async ({
   sp,
   provider,
 }: DeleteBucketProps) => {
-  const delBucketTx = new DelBucketTx(GRPC_URL, String(chain?.id)!);
-  const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+  const delBucketTx = new DelBucketTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+  const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
   // 1. simulate
   const simulateBytes = delBucketTx.getSimulateBytes({
     bucketName,
@@ -381,7 +395,7 @@ export const deleteBucket = async ({
 };
 
 export const getSpStoragePriceByTime = async (spAddress: string) => {
-  const rpcClient = await makeRpcClient(GRPC_URL);
+  const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
 
   const rpc = new spQueryClientImpl(rpcClient);
   const res = await rpc.QueryGetSpStoragePriceByTime({

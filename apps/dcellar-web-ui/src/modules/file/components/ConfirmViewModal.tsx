@@ -14,6 +14,7 @@ import {
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
   title?: string;
@@ -55,6 +56,7 @@ export const ConfirmViewModal = (props: modalProps) => {
   const { loginState, loginDispatch } = loginData;
   const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
   const [hasChangedView, setHasChangedView] = useState(false);
+  const {setOpenAuthModal} = useOffChainAuth();
 
   const [loading, setLoading] = useState(false);
   const {
@@ -93,7 +95,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
   return (
-    <DCModal isOpen={isOpen} onClose={onClose} p={'48px 24px'} w="568px" overflow="hidden">
+    <DCModal isOpen={isOpen} onClose={onClose}  w="568px" overflow="hidden">
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton mt={'4px'} />
       <Text
@@ -166,9 +168,15 @@ export const ConfirmViewModal = (props: modalProps) => {
                     name,
                     endpoint,
                     Number(size),
+                    loginState.address,
                   );
                   viewFileByAxiosResponse(result);
                 } catch (error: any) {
+                  if (error?.response?.statusCode === 500) {
+                    onClose();
+                    onStatusModalClose();
+                    setOpenAuthModal();
+                  }
                   throw new Error(error);
                 }
               }

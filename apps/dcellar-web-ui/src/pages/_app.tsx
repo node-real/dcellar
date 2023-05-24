@@ -18,6 +18,8 @@ import { BnbPriceProvider } from '@/context/GlobalContext/BnbPriceProvider';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
 import { GAPageView } from '@/components/common/GATracker';
 import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
+import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
+import { SPProvider } from '@/context/GlobalContext/SPProvider';
 
 const wagmiClient = createClient({
   autoConnect: true,
@@ -38,11 +40,16 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
       <QueryClientProvider client={queryClient}>
         <WagmiConfig client={wagmiClient}>
           <BnbPriceProvider>
-            <Layout>
+            {/* <OffChainAuthProvider> */}
+          <Layout>
+            <SPProvider>
+              {/* TODO provider should locate up layout */}
+              <OffChainAuthProvider>
               <PageProtect>
                 <Component {...pageProps} />
                 <GAPageView />
-              </PageProtect>
+              </PageProtect></OffChainAuthProvider>
+            </SPProvider>
             </Layout>
           </BnbPriceProvider>
         </WagmiConfig>

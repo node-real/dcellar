@@ -10,12 +10,16 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
-import { CancelCreateObjectTx, getAccount } from '@bnb-chain/gnfd-js-sdk';
+import {
+  CancelCreateObjectTx,
+  getAccount,
+  recoverPk,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GRPC_URL } from '@/base/env';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -135,7 +139,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
   const { connector } = useAccount();
   const description = `Are you sure you want to cancel uploading the file "${name}"?`;
-  const cancelObjectTx = new CancelCreateObjectTx(GRPC_URL, String(chain?.id)!);
+  const cancelObjectTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -151,7 +155,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.cancel_modal.0.show"
@@ -224,7 +227,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
               const provider = await connector?.getProvider();
               const signInfo = await cancelObjectTx.signTx(
                 {
@@ -256,13 +259,8 @@ export const ConfirmCancelModal = (props: modalProps) => {
                 objectName: name,
                 denom: 'BNB',
               };
-              // eslint-disable-next-line no-console
-              // console.log('cancel params in broadcast:', rawInfoParams);
               const rawBytes = await cancelObjectTx.getRawTxInfo(rawInfoParams);
               const txRes = await cancelObjectTx.broadcastTx(rawBytes.bytes);
-
-              // eslint-disable-next-line no-console
-              // console.log('Cancel txRes', txRes);
 
               if (txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
