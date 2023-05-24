@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Flex,
   FormControl,
   FormLabel,
@@ -34,13 +33,16 @@ import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
 import { InternalRoutePaths } from '@/constants/links';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
-import { SPContext } from '@/context/GlobalContext/SPProvider';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
+import { useSPs } from '@/hooks/useSPs';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { getDomain } from '@/utils/getDomain';
 
 type Props = {
   isOpen: boolean;
@@ -76,7 +78,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     loginState: { address },
   } = useLogin();
 
-  const { sp: globalSP } = useContext(SPContext);
+  const { sp: globalSP } = useSPs();
   const [sp, setSP] = useState<StorageProvider>(globalSP);
   const { connector } = useAccount();
   const { availableBalance } = useDefaultChainBalance();
@@ -88,6 +90,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     useState<ValidateNameAndGas>(initValidateNameAndGas);
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
+  const { setOpenAuthModal } = useOffChainAuth();
   const {
     handleSubmit,
     register,
@@ -146,12 +149,22 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     try {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const chainId = chain?.id as number;
+      const domain = getDomain();
+      const offChainData = await getOffChainData(address);
+      const { seedString } = offChainData;
+      if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+        onClose();
+        setOpenAuthModal();
+        return;
+      }
       const decimalGasFee = await getFee({
         address,
         bucketName: value,
         primarySpAddress: sp.operatorAddress,
         endpoint: sp.endpoint,
         chainId,
+        domain,
+        seedString,
       });
 
       if (curNonce !== nonceRef.current) {
@@ -194,6 +207,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             value: BigNumber(0),
           };
           types['validateBalance'] = '';
+        } else if (e.statusCode === 500) {
+          onClose();
+          types['validateOffChainAuth'] = '';
+          setOpenAuthModal();
         } else {
           const { isError, message } = parseError(e.message);
           types['validateBalanceAndName'] =
@@ -247,16 +264,26 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
+        const offChainData = await getOffChainData(address);
+        if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+          onClose();
+          setOpenAuthModal();
+          return;
+        }
+        const { seedString } = offChainData;
         const bucketName = data.bucketName;
         const provider = await connector?.getProvider();
-
+        const domain = getDomain();
+        const chainId = chain?.id as number;
         const txRes = await createBucketTxUtil({
           address,
           bucketName,
-          chainId: chain?.id as number,
+          chainId,
           spAddress: sp.operatorAddress,
           spEndpoint: sp.endpoint,
           provider,
+          domain,
+          seedString,
         });
         if (txRes.code === 0) {
           onClose();
@@ -282,7 +309,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, chain?.id, onClose, refetch, sp],
+    [address, chain?.id, connector, onClose, refetch, setOpenAuthModal, sp],
   );
 
   const disableCreateButton = () => {
@@ -326,7 +353,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      py={48}
       gaShowName={gaOptions.showName}
       gaClickCloseName={gaOptions.closeName}
     >
@@ -335,14 +361,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         {status === 'pending' && (
           <form onSubmit={handleSubmit(onSubmit)}>
             <ModalHeader fontFamily="heading">Create a Bucket</ModalHeader>
-            <ModalBody mt={32}>
+            <ModalBody mt={0}>
               <Box
                 textAlign="center"
                 fontSize={18}
                 fontWeight={400}
                 lineHeight="22px"
                 color="readable.tertiary"
-                mb={32}
+                my={32}
               >
                 Buckets are containers for data stored on BNB Greenfield. Bucket name must be
                 globally unique.

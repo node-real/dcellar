@@ -14,7 +14,7 @@ export const DeleteBucketFailed = ({
 }) => {
   return (
     <>
-      <ModalBody textAlign={'center'}>
+      <ModalBody textAlign={'center'} mt={0}>
         <Flex justifyContent={'center'}>
           <DeleteFailedIcon />
         </Flex>
@@ -40,7 +40,7 @@ export const DeleteBucketFailed = ({
           {errorMsg}
         </Text>
       </ModalBody>
-      <ModalFooter>
+      <ModalFooter mt={24}>
         <DCButton
           variant="dcPrimary"
           width={'100%'}

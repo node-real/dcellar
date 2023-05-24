@@ -1,5 +1,5 @@
 import { Flex } from '@totejs/uikit';
-import React, { useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -10,7 +10,7 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { SEOHead } from './SEOHead';
 import { InternalRoutePaths } from '@/constants/links';
 
-const IgnoreFooterPaths = ['/buckets'];
+const IgnoreFooterPaths = ['/buckets','/'];
 
 export const LoginLayout = ({
   children,

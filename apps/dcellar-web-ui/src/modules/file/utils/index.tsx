@@ -18,6 +18,8 @@ import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { getDomain } from '@/utils/getDomain';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -84,12 +86,18 @@ const downloadWithProgress = async (
   objectName: string,
   endpoint: string,
   payloadSize: number,
+  userAddress: string,
 ) => {
   try {
+    const domain = getDomain();
+    const { seedString, expirationTimestamp, spAddresses } = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
       endpoint,
+      userAddress,
+      domain,
+      seedString,
     });
     const { url, headers } = uploadOptions;
     const toastId = toast.info({
@@ -107,33 +115,40 @@ const downloadWithProgress = async (
       },
       duration: -1,
     });
-    const result = await axios.get(url, {
-      onDownloadProgress: (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
-        toast.update(toastId, {
-          description: ``,
-          render: () => {
-            return (
-              <ProgressBarToast
-                progress={progress}
-                fileName={objectName}
-                closeToast={() => {
-                  toast.close(toastId);
-                }}
-              />
-            );
-          },
-        });
-      },
-      headers: {
-        Authorization: headers.get('Authorization'),
-      },
-      responseType: 'blob',
-    });
+    const result = await axios
+      .get(url, {
+        onDownloadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
+          toast.update(toastId, {
+            description: ``,
+            render: () => {
+              return (
+                <ProgressBarToast
+                  progress={progress}
+                  fileName={objectName}
+                  closeToast={() => {
+                    toast.close(toastId);
+                  }}
+                />
+              );
+            },
+          });
+        },
+        headers: {
+          Authorization: headers.get('Authorization'),
+          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+        },
+        responseType: 'blob',
+      })
+      .catch((e) => {
+        toast.close(toastId);
+        throw e;
+      });
     toast.close(toastId);
     return result;
   } catch (error: any) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -218,12 +233,27 @@ const directlyDownload = (url: string) => {
 const getQuota = async (
   bucketName: string,
   endpoint: string,
+  userAddress: string,
+  spAddress: string,
+  setCloseAllAndShowAuthModal: () => void,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const { code, body } = await getBucketReadQuota({
+    const domain = getDomain();
+    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(userAddress);
+    if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
+      setCloseAllAndShowAuthModal();
+      return null;
+    }
+    const { code, body, statusCode } = await getBucketReadQuota({
       bucketName,
       endpoint,
+      domain,
+      userAddress,
+      seedString,
     });
+    if (statusCode === 500) {
+      setCloseAllAndShowAuthModal();
+    }
     if (code !== 0 || !body) {
       toast.error({
         description: 'Get bucket read quota met error.',

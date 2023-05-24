@@ -32,6 +32,8 @@ import {
 import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface modalProps {
   title?: string;
@@ -51,6 +53,7 @@ interface modalProps {
   shareLink?: string;
   visibility?: number;
   remainingQuota: number | null;
+  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -220,6 +223,7 @@ export const FileInfoModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { allowDirectDownload } = loginState;
+  const { setOpenAuthModal } = useOffChainAuth();
   const {
     title = 'File Detail',
     onClose,
@@ -233,6 +237,7 @@ export const FileInfoModal = (props: modalProps) => {
     shareLink,
     remainingQuota,
     visibility = 0,
+    spAddress,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
     setStatusModalIcon,
@@ -256,8 +261,6 @@ export const FileInfoModal = (props: modalProps) => {
       <DCModal
         isOpen={isOpen}
         onClose={onClose}
-        py={48}
-        px={24}
         w="568px"
         overflow="hidden"
         gaShowName="dc.file.f_detail_pop.0.show"
@@ -374,13 +377,36 @@ export const FileInfoModal = (props: modalProps) => {
                     }
                     directlyDownload(shareLink);
                   } else {
-                    const result = await downloadWithProgress(
-                      bucketName,
-                      name,
-                      primarySpUrl,
-                      Number(size),
-                    );
-                    saveFileByAxiosResponse(result, name);
+                    try {
+                      const { spAddresses, expirationTimestamp } = await getOffChainData(
+                        loginState.address,
+                      );
+                      if (
+                        !checkSpOffChainDataAvailable({
+                          spAddresses,
+                          expirationTimestamp,
+                          spAddress,
+                        })
+                      ) {
+                        onClose();
+                        setOpenAuthModal();
+                        return;
+                      }
+                      const result = await downloadWithProgress(
+                        bucketName,
+                        name,
+                        primarySpUrl,
+                        Number(size),
+                        loginState.address,
+                      );
+                      saveFileByAxiosResponse(result, name);
+                    } catch (e: any) {
+                      if (e?.response?.status === 500) {
+                        onClose();
+                        setOpenAuthModal();
+                      }
+                      throw e;
+                    }
                   }
                 } else {
                   onClose();

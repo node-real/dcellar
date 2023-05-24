@@ -1,14 +1,5 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Button,
-  Text,
-  Flex,
-  Checkbox,
-} from '@totejs/uikit';
-import React, { useEffect, useMemo, useState } from 'react';
-import { downloadFile } from '@bnb-chain/greenfield-storage-js-sdk';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
+import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
 import {
@@ -16,7 +7,6 @@ import {
   downloadWithProgress,
   formatBytes,
   saveFileByAxiosResponse,
-  viewFileByAxiosResponse,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -33,6 +23,8 @@ import {
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface modalProps {
   title?: string;
@@ -44,6 +36,7 @@ interface modalProps {
   bucketName: string;
   fileInfo?: { name: string; size: number };
   endpoint?: string;
+  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -74,7 +67,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
   const { loginState, loginDispatch } = loginData;
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
   const [hasChangedDownload, setHasChangedDownload] = useState(false);
-
+  const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
   const {
     title = 'Confirm Download',
@@ -84,6 +77,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
     endpoint = '',
+    spAddress,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -115,7 +109,6 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
       overflow="hidden"
       gaShowName="dc.file.download_confirm.0.show"
@@ -183,14 +176,34 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
+              const { spAddresses, expirationTimestamp } = await getOffChainData(
+                loginState.address,
+              );
+              if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
+                onClose();
+                onStatusModalClose();
+                setOpenAuthModal();
+                return;
+              }
               // only public file can be direct download
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const result = await downloadWithProgress(bucketName, name, endpoint, Number(size));
+                const result = await downloadWithProgress(
+                  bucketName,
+                  name,
+                  endpoint,
+                  Number(size),
+                  loginState.address,
+                );
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
+              if (error?.response?.status === 500) {
+                onClose();
+                onStatusModalClose();
+                setOpenAuthModal();
+              }
               setLoading(false);
               onClose();
               setFailedStatusModal(FILE_DESCRIPTION_DOWNLOAD_ERROR, error);

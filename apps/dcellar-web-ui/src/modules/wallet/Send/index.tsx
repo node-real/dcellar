@@ -2,7 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
-import { getAccount, TransferTx, TransferOutTx, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  TransferTx,
+  TransferOutTx,
+  ZERO_PUBKEY,
+  recoverPk,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 import { ethers } from 'ethers';
 import { Box, Divider, useDisclosure } from '@totejs/uikit';
 
@@ -11,10 +18,8 @@ import { Head } from '../components/Head';
 import { Address } from '../components/Address';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
-import { GREENFIELD_CHAIN_EXPLORER_URL, GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
-import { recoverPk } from '../utils/pk/recoverPk';
-import { makeCosmsPubKey } from '../utils/pk/makeCosmsPk';
 import { StatusModal } from '../components/StatusModal';
 import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
@@ -47,10 +52,10 @@ export const Send = () => {
     setStatus('pending');
     try {
       onOpen();
-      const tTx = new TransferTx(GRPC_URL, String(chain?.id)!);
-      const toutTx = new TransferOutTx(GRPC_URL, String(chain?.id)!);
+      const tTx = new TransferTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+      const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
       const provider = await connector?.getProvider();
-      const account = await getAccount(GRPC_URL, address);
+      const account = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
       const { accountNumber, sequence } = account;
       const bodyBytes = toutTx.getSimulateBytes({
         from: address,

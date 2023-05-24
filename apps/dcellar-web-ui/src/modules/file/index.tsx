@@ -7,17 +7,16 @@ import {
   validateObjectName,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
-import { CreateObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import { CreateObjectTx, getAccount, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 import { useNetwork } from 'wagmi';
 import moment from 'moment';
 import * as Comlink from 'comlink';
 
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import FileEmptyIcon from '@/public/images/files/file_empty.svg';
 import {
   BUTTON_GOT_IT,
@@ -39,6 +38,9 @@ import { FileTable } from '@/modules/file/components/FileTable';
 import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
+import { getDomain } from '@/utils/getDomain';
+import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface pageProps {
   bucketName: string;
@@ -80,7 +82,7 @@ export const File = (props: pageProps) => {
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
   const { chain } = useNetwork();
-  const createObjectTx = new CreateObjectTx(GRPC_URL!, String(chain?.id)!);
+  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const { loginState } = loginData;
   const { address } = loginState;
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
@@ -96,6 +98,7 @@ export const File = (props: pageProps) => {
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
   const [endpoint, setEndpoint] = useState('');
+  const [sp, setSp] = useState<any>();
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -104,11 +107,18 @@ export const File = (props: pageProps) => {
   const comlinkWorkerRef = useRef<Worker>();
   const comlinkWorkerApiRef = useRef<Comlink.Remote<WorkerApi>>();
   const router = useRouter();
+  const { setOpenAuthModal } = useOffChainAuth();
   const getObjectList = async (currentEndpoint: string) => {
     try {
+      const domain = getDomain();
+      const { seedString } = await getOffChainData(address);
+      // TODO add auth error handling add off chain auth check
       const listResult = await listObjectsByBucketName({
+        userAddress: address,
         bucketName,
         endpoint: currentEndpoint,
+        domain,
+        seedString,
       });
       if (listResult) {
         const tempListObjects = listResult.body ?? [];
@@ -165,6 +175,7 @@ export const File = (props: pageProps) => {
       }
       const currentEndpoint = sps[spIndex]?.endpoint;
       setEndpoint(currentEndpoint);
+      setSp(sps[spIndex]);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
         .map((item: any) => item.operatorAddress);
@@ -253,7 +264,20 @@ export const File = (props: pageProps) => {
   ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-
+    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
+    if (
+      !checkSpOffChainDataAvailable({
+        expirationTimestamp,
+        spAddresses,
+        spAddress: primarySpAddress,
+      })
+    ) {
+      onStatusModalClose();
+      onDetailModalClose();
+      setOpenAuthModal();
+      return Promise.reject();
+    }
+    const domain = getDomain();
     try {
       const result = await getCreateObjectApproval({
         bucketName,
@@ -264,7 +288,12 @@ export const File = (props: pageProps) => {
         expectSecondarySpAddresses: secondarySpAddresses,
         hashResult,
         visibility,
+        domain,
+        seedString,
       });
+      if (result.statusCode === 500) {
+        throw result;
+      }
       if (result.statusCode !== 200) {
         throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
       }
@@ -272,6 +301,12 @@ export const File = (props: pageProps) => {
       setObjectSignedMsg(currentObjectSignedMessage);
       return currentObjectSignedMessage;
     } catch (error: any) {
+      if (error.statusCode === 500) {
+        onStatusModalClose();
+        onDetailModalClose();
+        setOpenAuthModal();
+        return Promise.reject();
+      }
       onDetailModalClose();
       setGasFeeLoading(false);
       setLockFeeLoading(false);
@@ -309,7 +344,7 @@ export const File = (props: pageProps) => {
   const getGasFeeAndSet = async (uploadFile: File, currentObjectSignedMessage: any) => {
     try {
       setGasFeeLoading(true);
-      const { sequence } = await getAccount(GRPC_URL!, address!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
       const simulateBytes = createObjectTx.getSimulateBytes({
         objectName: currentObjectSignedMessage.object_name,
         contentType: currentObjectSignedMessage.content_type,

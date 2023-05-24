@@ -14,6 +14,8 @@ import {
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface modalProps {
   title?: string;
@@ -25,6 +27,7 @@ interface modalProps {
   bucketName: string;
   fileInfo?: { name: string; size: number };
   endpoint?: string;
+  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -55,6 +58,7 @@ export const ConfirmViewModal = (props: modalProps) => {
   const { loginState, loginDispatch } = loginData;
   const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
   const [hasChangedView, setHasChangedView] = useState(false);
+  const { setOpenAuthModal } = useOffChainAuth();
 
   const [loading, setLoading] = useState(false);
   const {
@@ -65,6 +69,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
     endpoint = '',
+    spAddress,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -93,7 +98,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
   return (
-    <DCModal isOpen={isOpen} onClose={onClose} p={'48px 24px'} w="568px" overflow="hidden">
+    <DCModal isOpen={isOpen} onClose={onClose} w="568px" overflow="hidden">
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton mt={'4px'} />
       <Text
@@ -161,14 +166,31 @@ export const ConfirmViewModal = (props: modalProps) => {
                 // viewFile({ bucketName, objectName: object_name, endpoint });
                 // preview file
                 try {
+                  const { spAddresses, expirationTimestamp } = await getOffChainData(
+                    loginState.address,
+                  );
+                  if (
+                    !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                  ) {
+                    onClose();
+                    onStatusModalClose();
+                    setOpenAuthModal();
+                    return;
+                  }
                   const result = await downloadWithProgress(
                     bucketName,
                     name,
                     endpoint,
                     Number(size),
+                    loginState.address,
                   );
                   viewFileByAxiosResponse(result);
                 } catch (error: any) {
+                  if (error?.response?.statusCode === 500) {
+                    onClose();
+                    onStatusModalClose();
+                    setOpenAuthModal();
+                  }
                   throw new Error(error);
                 }
               }

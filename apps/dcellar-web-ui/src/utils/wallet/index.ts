@@ -5,7 +5,7 @@ import { QueryClientImpl as paymentQueryClientImpl } from '@bnb-chain/greenfield
 import Long from 'long';
 import BigNumber from 'bignumber.js';
 
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -48,9 +48,10 @@ const getNumInDigits = (
 
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
-    const rpcClient = await makeRpcClient(GRPC_URL);
+    const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
     const spRpc = new spQueryClientImpl(rpcClient);
     const storageRpc = new storageQueryClientImpl(rpcClient);
+
     const paymentRpc = new paymentQueryClientImpl(rpcClient);
     const { spStoragePrice } = await spRpc.QueryGetSpStoragePriceByTime({
       spAddr: primarySpAddress,
@@ -59,11 +60,15 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     const { secondarySpStorePrice } = await spRpc.QueryGetSecondarySpStorePriceByTime({
       timestamp: Long.fromNumber(Date.now()),
     });
-    const { params = {} } = await storageRpc.Params();
-    const { minChargeSize, redundantDataChunkNum, redundantParityChunkNum } = params as any;
+    const { params } = await storageRpc.Params();
+    const {
+      minChargeSize = new Long(0),
+      redundantDataChunkNum = 0,
+      redundantParityChunkNum = 0,
+    } = params?.versionedParams ?? {};
     const { params: paymentParams = {} } = await paymentRpc.Params();
     const { reserveTime } = paymentParams as any;
-    const chargeSize = size >= minChargeSize ? size : minChargeSize.toString();
+    const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
       .plus(
         BigNumber((secondarySpStorePrice as any).storePrice).times(
@@ -82,4 +87,5 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     throw new Error(error);
   }
 };
+
 export { getShortenWalletAddress, getNumInDigits, getLockFee };

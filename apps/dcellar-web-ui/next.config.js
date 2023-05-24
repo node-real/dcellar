@@ -1,3 +1,5 @@
+const { withSentryConfig } = require('@sentry/nextjs');
+
 let commitHash = 'no-git-commit';
 
 try {
@@ -34,6 +36,13 @@ const _getPublicEnv = (prefix) => {
   return res;
 };
 
+/**
+ * @type {import('@sentry/nextjs').SentryWebpackPluginOptions}
+ */
+const sentryWebpackPluginOptions = {
+  silent: true, // Suppresses all logs
+};
+
 const nextConfig = {
   reactStrictMode: true,
   distDir: '.next',
@@ -49,6 +58,9 @@ const nextConfig = {
   serverRuntimeConfig: {
     ..._getPublicEnv('NEXT_PRIVATE_'),
   },
+  sentry: {
+    hideSourceMaps: true,
+  },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), sentryWebpackPluginOptions);

@@ -8,7 +8,7 @@ import { DCButton } from '@/components/common/DCButton';
 export const BucketNotEmpty = ({ onClose }: { onClose: () => void }) => {
   return (
     <>
-      <ModalBody textAlign={'center'}>
+      <ModalBody textAlign={'center'} mt={0}>
         <Flex justifyContent={'center'}>
           <BucketNotEmptyIcon />
         </Flex>

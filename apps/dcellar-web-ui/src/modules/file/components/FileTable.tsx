@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -26,17 +26,15 @@ import {
   useDisclosure,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import {
-  downloadFile,
-  generateGetObjectOptions,
-  generatePutObjectOptions,
-  getBucketReadQuota,
-  getObject,
-  viewFile,
-} from '@bnb-chain/greenfield-storage-js-sdk';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
 import { useNetwork } from 'wagmi';
-import { CancelCreateObjectTx, DelObjectTx, getAccount, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  CancelCreateObjectTx,
+  DelObjectTx,
+  getAccount,
+  ZERO_PUBKEY,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -61,8 +59,7 @@ import {
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
-import { GRPC_URL } from '@/base/env';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
@@ -83,6 +80,8 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -234,7 +233,10 @@ export const FileTable = (props: fileListProps) => {
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
   const flatData = useMemo(() => {
-    return listObjects.filter((v: any) => !v.removed).map((v: any) => v.object_info);
+    return listObjects
+      .filter((v: any) => !v.removed)
+      .map((v: any) => v.object_info)
+      .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
   }, [listObjects]);
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
@@ -247,7 +249,7 @@ export const FileTable = (props: fileListProps) => {
   const [gasPrice, setGasPrice] = useState('0');
   const [shareLink, setShareLink] = useState('');
   const [viewLink, setViewLink] = useState('');
-
+  const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentVisibility, setCurrentVisibility] = useState(0);
@@ -295,6 +297,24 @@ export const FileTable = (props: fileListProps) => {
     onOpen: onShareModalOpen,
     onClose: onShareModalClose,
   } = useDisclosure();
+
+  const setCloseAllAndShowAuthModal = useCallback(() => {
+    onInfoModalClose();
+    onConfirmDownloadModalClose();
+    onConfirmViewModalClose();
+    onConfirmDeleteModalClose();
+    onConfirmCancelModalClose();
+    onShareModalClose();
+    setOpenAuthModal();
+  }, [
+    onConfirmCancelModalClose,
+    onConfirmDeleteModalClose,
+    onConfirmDownloadModalClose,
+    onConfirmViewModalClose,
+    onInfoModalClose,
+    onShareModalClose,
+    setOpenAuthModal,
+  ]);
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
       const lockFeeInBNB = await getLockFee(size, spAddress);
@@ -317,8 +337,8 @@ export const FileTable = (props: fileListProps) => {
 
   const getCancelGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const { sequence } = await getAccount(GRPC_URL, address);
-      const cancelCteObjTx = new CancelCreateObjectTx(GRPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
+      const cancelCteObjTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
       const simulateBytes = cancelCteObjTx.getSimulateBytes({
         bucketName,
         objectName,
@@ -364,8 +384,8 @@ export const FileTable = (props: fileListProps) => {
 
   const getDeleteGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const delObjTx = new DelObjectTx(GRPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GRPC_URL!, address!);
+      const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
       const simulateBytes = delObjTx.getSimulateBytes({
         bucketName,
         objectName,
@@ -568,6 +588,14 @@ export const FileTable = (props: fileListProps) => {
 
           const onDownload = async (url?: string) => {
             try {
+              const { spAddresses, expirationTimestamp } = await getOffChainData(
+                loginState.address,
+              );
+              if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
+                onStatusModalClose();
+                setOpenAuthModal();
+                return;
+              }
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
               if (url && visibility === 1) {
                 directlyDownload(url);
@@ -584,24 +612,36 @@ export const FileTable = (props: fileListProps) => {
                   objectName,
                   endpoint,
                   Number(payloadSize),
+                  loginState.address,
                 );
                 saveFileByAxiosResponse(result, objectName);
                 // onStatusModalClose();
               }
             } catch (error: any) {
-              setStatusModalIcon(FILE_EMPTY_URL);
-              setStatusModalTitle(FILE_TITLE_DOWNLOADING);
-              setStatusModalErrorText('Error message: ' + error?.message ?? '');
-              setStatusModalDescription(FILE_TITLE_DOWNLOAD_FAILED);
-              setStatusModalButtonText('');
-              onStatusModalOpen();
+              if (error?.response?.status === 500) {
+                onStatusModalClose();
+                setOpenAuthModal();
+              } else {
+                setStatusModalIcon(FILE_EMPTY_URL);
+                setStatusModalTitle(FILE_TITLE_DOWNLOADING);
+                setStatusModalErrorText('Error message: ' + error?.message ?? '');
+                setStatusModalDescription(FILE_TITLE_DOWNLOAD_FAILED);
+                setStatusModalButtonText('');
+                onStatusModalOpen();
+              }
             }
           };
 
           const downloadWithConfirm = async (url: string) => {
             if (allowDirectDownload) {
               try {
-                const quotaData = await getQuota(bucketName, endpoint);
+                const quotaData = await getQuota(
+                  bucketName,
+                  endpoint,
+                  address,
+                  spAddress,
+                  setCloseAllAndShowAuthModal,
+                );
                 if (quotaData) {
                   const { freeQuota, readQuota, consumedQuota } = quotaData;
                   const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
@@ -630,7 +670,13 @@ export const FileTable = (props: fileListProps) => {
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
-              const quotaData = await getQuota(bucketName, endpoint);
+              const quotaData = await getQuota(
+                bucketName,
+                endpoint,
+                address,
+                spAddress,
+                setCloseAllAndShowAuthModal,
+              );
               if (quotaData) {
                 const { freeQuota, readQuota, consumedQuota } = quotaData;
                 setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -701,7 +747,13 @@ export const FileTable = (props: fileListProps) => {
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
                             onInfoModalOpen();
-                            const quotaData = await getQuota(bucketName, endpoint);
+                            const quotaData = await getQuota(
+                              bucketName,
+                              endpoint,
+                              address,
+                              spAddress,
+                              setCloseAllAndShowAuthModal,
+                            );
                             if (quotaData) {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -814,7 +866,15 @@ export const FileTable = (props: fileListProps) => {
         },
       },
     ];
-  }, [spAddress, chain, address, endpoint, bucketName, allowDirectDownload]);
+  }, [
+    spAddress,
+    chain,
+    address,
+    endpoint,
+    bucketName,
+    allowDirectDownload,
+    setCloseAllAndShowAuthModal,
+  ]);
   const loadingColumns = columns.map((column) => ({
     ...column,
     cell: <SkeletonSquare style={{ width: '80%' }} />,
@@ -872,6 +932,9 @@ export const FileTable = (props: fileListProps) => {
                 _last: {
                   textAlign: 'right',
                 },
+              },
+              'tbody > tr:last-child': {
+                borderBottom: 'none',
               },
             }}
           >
@@ -945,7 +1008,13 @@ export const FileTable = (props: fileListProps) => {
                           setViewLink(previewLink);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
-                          const quotaData = await getQuota(bucketName, endpoint);
+                          const quotaData = await getQuota(
+                            bucketName,
+                            endpoint,
+                            address,
+                            spAddress,
+                            setCloseAllAndShowAuthModal,
+                          );
                           if (quotaData) {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -957,14 +1026,31 @@ export const FileTable = (props: fileListProps) => {
                         } else {
                           // preview file
                           try {
+                            const { spAddresses, expirationTimestamp } = await getOffChainData(
+                              loginState.address,
+                            );
+                            if (
+                              !checkSpOffChainDataAvailable({
+                                spAddresses,
+                                expirationTimestamp,
+                                spAddress,
+                              })
+                            ) {
+                              setOpenAuthModal();
+                              return;
+                            }
                             const result = await downloadWithProgress(
                               bucketName,
                               object_name,
                               endpoint,
                               Number(payload_size),
+                              loginState.address,
                             );
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {
+                            if (error?.response?.status === 500) {
+                              setOpenAuthModal();
+                            }
                             throw new Error(error);
                           }
                         }
@@ -1000,6 +1086,7 @@ export const FileTable = (props: fileListProps) => {
         createdDate={createdDate}
         primarySpUrl={endpoint}
         visibility={currentVisibility}
+        spAddress={spAddress}
         primarySpAddress={spAddress}
         primarySpSealAddress={primarySpSealAddress}
         onShareModalOpen={onShareModalOpen}
@@ -1019,6 +1106,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName={bucketName}
         fileInfo={fileInfo}
         endpoint={endpoint}
+        spAddress={spAddress}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
@@ -1036,6 +1124,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName={bucketName}
         fileInfo={fileInfo}
         endpoint={endpoint}
+        spAddress={spAddress}
         viewLink={viewLink}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
