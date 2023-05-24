@@ -35,10 +35,7 @@ import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import {
-  checkOffChainDataAvailable,
-  getOffChainData,
-} from '@/modules/off-chain-auth/utils';
+import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';
@@ -280,7 +277,7 @@ const Welcome = () => {
           _hover={{ border: '1px solid readable.brand6' }}
           position="relative"
           _notLast={{
-            mb: 16
+            mb: 16,
           }}
           onClick={() => {
             setLoading(true);

@@ -1,30 +1,72 @@
-import { GREENFIELD_CHAIN_ID } from "@/base/env"
-import { getUtcZeroTimestamp } from "@bnb-chain/greenfield-storage-js-sdk"
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-storage-js-sdk';
 
-export const setOffChainData = ({ address, chainId, offChainData }: { address: string, chainId: number, offChainData: any }) => {
-  const key = `${address}-${chainId}`
-  localStorage.setItem(key, JSON.stringify(offChainData))
-}
+export const setOffChainData = ({
+  address,
+  chainId,
+  offChainData,
+}: {
+  address: string;
+  chainId: number;
+  offChainData: any;
+}) => {
+  const key = `${address}-${chainId}`;
+  localStorage.setItem(key, JSON.stringify(offChainData));
+};
 
-export const getOffChainData = (address: string, chainId = GREENFIELD_CHAIN_ID) => {
-  const key = `${address}-${chainId}`
-  const offChainData = localStorage.getItem(key)
+export const getOffChainData = (
+  address: string,
+  chainId = GREENFIELD_CHAIN_ID,
+): {
+  expirationTimestamp: number;
+  spAddresses: string[];
+  seedString: string;
+} => {
+  const key = `${address}-${chainId}`;
+  const offChainData = localStorage.getItem(key);
 
-  return offChainData ? JSON.parse(offChainData) : {}
-}
+  return offChainData ? JSON.parse(offChainData) : {};
+};
 
 export const removeOffChainData = (address: string, chainId: number) => {
-  const key = `${address}-${chainId}`
-  localStorage.removeItem(key)
-}
+  const key = `${address}-${chainId}`;
+  localStorage.removeItem(key);
+};
 
-export const checkOffChainDataAvailable = (offChainData: any) => {
-  const { expirationTimestamp = 0 } = offChainData || {};
+export const checkOffChainDataAvailable = ({
+  expirationTimestamp = 0,
+  spAddresses = [],
+}: {
+  expirationTimestamp: number;
+  spAddresses: string[];
+}) => {
   const utcZeroTimestamp = getUtcZeroTimestamp();
 
-  return expirationTimestamp > utcZeroTimestamp
-}
+  return expirationTimestamp > utcZeroTimestamp && spAddresses?.length > 0;
+};
 
+export const checkHaveSp = (spAddress: string, spAddresses: string[]) => {
+  return spAddresses.includes(spAddress);
+};
+
+export const checkSpOffChainDataAvailable = ({
+  expirationTimestamp,
+  spAddresses,
+  spAddress,
+}: {
+  expirationTimestamp: number;
+  spAddresses: string[];
+  spAddress: string;
+}) => {
+  if (!spAddress) {
+    throw new Error('spAddress is required');
+  }
+  if (!spAddresses.includes(spAddress)) {
+    return false;
+  }
+
+  return checkOffChainDataAvailable({ expirationTimestamp, spAddresses });
+};
 
 export const getGAOptions = (name: string) => {
   const options: Record<string, string> = {
@@ -33,8 +75,8 @@ export const getGAOptions = (name: string) => {
   };
 
   return options[name];
-}
+};
 
 export const getGNFDChainId = () => {
   return GREENFIELD_CHAIN_ID;
-}
+};

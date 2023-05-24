@@ -122,7 +122,12 @@ const renderFee = (
 };
 
 // fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (bucketName: string, endpoint: string, objectName: string, address: string) => {
+const getObjectIsSealed = async (
+  bucketName: string,
+  endpoint: string,
+  objectName: string,
+  address: string,
+) => {
   const domain = getDomain();
   const { seedString } = await getOffChainData(address);
   // TODO add auth error handling
@@ -477,13 +482,18 @@ export const FileDetailModal = (props: modalProps) => {
           headers: {
             Authorization: headers.get('Authorization'),
             'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-            "X-Gnfd-User-Address": headers.get("X-Gnfd-User-Address"),
-            "X-Gnfd-App-Domain": headers.get("X-Gnfd-App-Domain"),
-          }
-        })
+            'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+            'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+          },
+        });
         startPolling(async () => {
           // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
-          const sealTxHash = await getObjectIsSealed(bucketName, endpoint, finalName, loginState.address);
+          const sealTxHash = await getObjectIsSealed(
+            bucketName,
+            endpoint,
+            finalName,
+            loginState.address,
+          );
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();
