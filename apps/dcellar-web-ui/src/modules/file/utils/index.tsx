@@ -11,7 +11,7 @@ import {
 import { InternalRoutePaths } from '@/constants/links';
 import {
   generateGetObjectOptions,
-  getBucketReadQuota,
+  getBucketReadQuotaByV2,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import axios, { AxiosResponse } from 'axios';
@@ -233,27 +233,12 @@ const directlyDownload = (url: string) => {
 const getQuota = async (
   bucketName: string,
   endpoint: string,
-  userAddress: string,
-  spAddress: string,
-  setCloseAllAndShowAuthModal: () => void,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const domain = getDomain();
-    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(userAddress);
-    if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
-      setCloseAllAndShowAuthModal();
-      return null;
-    }
-    const { code, body, statusCode } = await getBucketReadQuota({
+    const { code, body, statusCode } = await getBucketReadQuotaByV2({
       bucketName,
       endpoint,
-      domain,
-      userAddress,
-      seedString,
     });
-    if (statusCode === 500) {
-      setCloseAllAndShowAuthModal();
-    }
     if (code !== 0 || !body) {
       toast.error({
         description: 'Get bucket read quota met error.',

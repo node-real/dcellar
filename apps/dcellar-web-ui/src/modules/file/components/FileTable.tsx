@@ -588,18 +588,20 @@ export const FileTable = (props: fileListProps) => {
 
           const onDownload = async (url?: string) => {
             try {
-              const { spAddresses, expirationTimestamp } = await getOffChainData(
-                loginState.address,
-              );
-              if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
-                onStatusModalClose();
-                setOpenAuthModal();
-                return;
-              }
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
+                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                  loginState.address,
+                );
+                if (
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                ) {
+                  onStatusModalClose();
+                  setOpenAuthModal();
+                  return;
+                }
                 // setStatusModalIcon(FILE_DOWNLOAD_URL);
                 // setStatusModalTitle(FILE_TITLE_DOWNLOADING);
                 // setStatusModalErrorText('');
@@ -635,13 +637,7 @@ export const FileTable = (props: fileListProps) => {
           const downloadWithConfirm = async (url: string) => {
             if (allowDirectDownload) {
               try {
-                const quotaData = await getQuota(
-                  bucketName,
-                  endpoint,
-                  address,
-                  spAddress,
-                  setCloseAllAndShowAuthModal,
-                );
+                const quotaData = await getQuota(bucketName, endpoint);
                 if (quotaData) {
                   const { freeQuota, readQuota, consumedQuota } = quotaData;
                   const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
@@ -670,13 +666,7 @@ export const FileTable = (props: fileListProps) => {
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
-              const quotaData = await getQuota(
-                bucketName,
-                endpoint,
-                address,
-                spAddress,
-                setCloseAllAndShowAuthModal,
-              );
+              const quotaData = await getQuota(bucketName, endpoint);
               if (quotaData) {
                 const { freeQuota, readQuota, consumedQuota } = quotaData;
                 setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -747,13 +737,7 @@ export const FileTable = (props: fileListProps) => {
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
                             onInfoModalOpen();
-                            const quotaData = await getQuota(
-                              bucketName,
-                              endpoint,
-                              address,
-                              spAddress,
-                              setCloseAllAndShowAuthModal,
-                            );
+                            const quotaData = await getQuota(bucketName, endpoint);
                             if (quotaData) {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -922,7 +906,7 @@ export const FileTable = (props: fileListProps) => {
               width: '100%',
               th: {
                 h: 44,
-                fontWeight: 500,
+                fontWeight: 600,
                 fontSize: 12,
                 lineHeight: '18px',
                 color: 'readable.tertiary',
@@ -1008,13 +992,7 @@ export const FileTable = (props: fileListProps) => {
                           setViewLink(previewLink);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
-                          const quotaData = await getQuota(
-                            bucketName,
-                            endpoint,
-                            address,
-                            spAddress,
-                            setCloseAllAndShowAuthModal,
-                          );
+                          const quotaData = await getQuota(bucketName, endpoint);
                           if (quotaData) {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);

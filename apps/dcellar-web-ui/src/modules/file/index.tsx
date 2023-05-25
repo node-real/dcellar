@@ -186,6 +186,19 @@ export const File = (props: pageProps) => {
       setIsCurrentUser(false);
     }
   };
+
+  const createCheckSumWebWorker = () => {
+    comlinkWorkerRef.current = new Worker(
+      new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url),
+      { type: 'module' },
+    );
+    comlinkWorkerApiRef.current = Comlink.wrap<WorkerApi>(comlinkWorkerRef.current);
+
+    return () => {
+      comlinkWorkerRef.current?.terminate();
+    };
+  };
+
   // only get list when init
   useEffect(() => {
     if (bucketName) {
@@ -205,13 +218,6 @@ export const File = (props: pageProps) => {
   }, [listObjects.length]);
 
   useEffect(() => {
-    // Comlink worker
-    comlinkWorkerRef.current = new Worker(
-      new URL('../checksum/checksumWorkerV2.ts', import.meta.url),
-      { type: 'module' },
-    );
-    comlinkWorkerApiRef.current = Comlink.wrap<WorkerApi>(comlinkWorkerRef.current);
-
     return () => {
       comlinkWorkerRef.current?.terminate();
     };
@@ -263,7 +269,9 @@ export const File = (props: pageProps) => {
     visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
   ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
+    const terminate = createCheckSumWebWorker();
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
+    terminate();
     const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
     if (
       !checkSpOffChainDataAvailable({
