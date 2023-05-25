@@ -51,7 +51,6 @@ export const FileStatusModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName={gaOptions.showName}
       gaClickCloseName={gaOptions.closeName}
     >

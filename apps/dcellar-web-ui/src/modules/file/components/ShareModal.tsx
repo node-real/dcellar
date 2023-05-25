@@ -50,7 +50,6 @@ export const ShareModal = (props: modalProps) => {
         isOpen={isOpen}
         onClose={onClose}
         w="568px"
-        overflow="hidden"
         gaShowName="dc.file.share_modal.0.show"
         gaClickCloseName="dc.file.share_modal.close.click"
       >

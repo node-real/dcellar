@@ -561,7 +561,6 @@ export const FileDetailModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.upload_modal.0.show"
       gaClickCloseName="dc.file.upload_modal.close.click"
     >

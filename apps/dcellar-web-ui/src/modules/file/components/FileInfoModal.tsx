@@ -262,7 +262,6 @@ export const FileInfoModal = (props: modalProps) => {
         isOpen={isOpen}
         onClose={onClose}
         w="568px"
-        overflow="hidden"
         gaShowName="dc.file.f_detail_pop.0.show"
         gaClickCloseName="dc.file.f_detail_pop.close.click"
       >

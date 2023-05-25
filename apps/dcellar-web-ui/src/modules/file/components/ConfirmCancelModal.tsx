@@ -156,7 +156,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.cancel_modal.0.show"
       gaClickCloseName="dc.file.cancel_modal.close.click"
     >

@@ -31,7 +31,6 @@ export const DuplicateNameModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.duplicate_name_modal.0.show"
       gaClickCloseName="dc.file.duplicate_name_modal.close.click"
     >
