@@ -19,6 +19,11 @@ const Container = styled.main`
 const Content = styled.div`
   margin: auto;
   text-align: center;
+  img {
+    aspect-ratio: 275/ 240;
+    width: 275px;
+    margin: auto;
+  }
 `;
 
 const Logo = styled.img`
