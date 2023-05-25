@@ -1,5 +1,5 @@
 import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
 import { downloadWithProgress, formatBytes, viewFileByAxiosResponse } from '@/modules/file/utils';
