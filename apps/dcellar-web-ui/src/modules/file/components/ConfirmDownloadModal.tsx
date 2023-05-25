@@ -176,19 +176,21 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
-              const { spAddresses, expirationTimestamp } = await getOffChainData(
-                loginState.address,
-              );
-              if (!checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })) {
-                onClose();
-                onStatusModalClose();
-                setOpenAuthModal();
-                return;
-              }
               // only public file can be direct download
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
+                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                  loginState.address,
+                );
+                if (
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                ) {
+                  onClose();
+                  onStatusModalClose();
+                  setOpenAuthModal();
+                  return;
+                }
                 const result = await downloadWithProgress(
                   bucketName,
                   name,

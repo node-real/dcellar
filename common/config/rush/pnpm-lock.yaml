@@ -12,7 +12,7 @@ importers:
       '@babel/plugin-transform-react-jsx': ^7.14.9
       '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.25
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
-      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.23
+      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.24
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -69,7 +69,7 @@ importers:
       '@babel/core': 7.21.8
       '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.25
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
-      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.23
+      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.24
       '@emotion/react': 11.11.0_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_e26648cc40f2a727295f0806c5bada42
       '@ethereumjs/util': 8.0.6
@@ -1484,8 +1484,8 @@ packages:
       protobufjs: 6.11.3
     dev: false
 
-  /@bnb-chain/greenfield-storage-js-sdk/1.2.0-alpha.23:
-    resolution: {integrity: sha512-0fIw8roWKzDfaqCrybqeEh7JBBfwEDEq6hDytTGrhkcroF54+qb0fkd7GvGKGLxhy7Egz+EPZUXUhZZeTe9T5w==}
+  /@bnb-chain/greenfield-storage-js-sdk/1.2.0-alpha.24:
+    resolution: {integrity: sha512-xXRob6JqyjjnCbd8jgoXrluW4C1f0EWIh83IMVhwhOhYxqyPGgF7jceV3oTwiYgu2gjerYsGFymyPSr90zmyQA==}
     engines: {pnpm: '>=7'}
     dependencies:
       '@bnb-chain/zkbas-js-sdk': 3.0.0
