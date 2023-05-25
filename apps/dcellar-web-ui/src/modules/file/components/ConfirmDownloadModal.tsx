@@ -110,7 +110,6 @@ export const ConfirmDownloadModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.download_confirm.0.show"
       gaClickCloseName="dc.file.download_confirm.close.click"
     >

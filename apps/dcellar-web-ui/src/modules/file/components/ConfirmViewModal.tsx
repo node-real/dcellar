@@ -98,7 +98,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
   return (
-    <DCModal isOpen={isOpen} onClose={onClose} w="568px" overflow="hidden">
+    <DCModal isOpen={isOpen} onClose={onClose} w="568px">
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton mt={'4px'} />
       <Text
