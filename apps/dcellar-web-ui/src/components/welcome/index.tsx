@@ -326,6 +326,9 @@ const Welcome = () => {
         minH={'100vh'}
         overflow="hidden"
         flexDirection="column"
+        alignItems={'center'}
+        position="relative"
+        pl={110}
         bg={
           isLargerThan1463
             ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% top 100px /1215px`
@@ -339,8 +342,9 @@ const Welcome = () => {
           alt="Storage app icon"
           height={144}
           position="absolute"
+          left={0}
         />
-        <Flex flexDirection="column" ml={110} flex={1}>
+        <Flex flexDirection="column" flex={1} maxW={1200} w='100%'>
           <Text
             as="h1"
             fontSize="56px"
