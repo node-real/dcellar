@@ -168,14 +168,10 @@ export const TableList = () => {
                               });
                               return;
                             }
-                            const { operatorAddress: spAddress, endpoint: spEndpoint } =
-                              sps[spIndex];
+                            const { endpoint: spEndpoint } = sps[spIndex];
                             const currentQuotaData = await getQuota(
                               rowData.bucket_name,
                               spEndpoint,
-                              address,
-                              spAddress,
-                              setCloseAndShowAuthModal,
                             );
                             setQuotaData(currentQuotaData);
                           }}
@@ -296,7 +292,7 @@ export const TableList = () => {
             width: '100%',
             th: {
               h: 44,
-              fontWeight: 500,
+              fontWeight: 600,
               fontSize: 12,
               lineHeight: '18px',
               color: 'readable.tertiary',

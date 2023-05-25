@@ -1,5 +1,6 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-storage-js-sdk';
+import { isEmpty } from 'lodash-es';
 
 export const setOffChainData = ({
   address,
@@ -58,10 +59,13 @@ export const checkSpOffChainDataAvailable = ({
   spAddresses: string[];
   spAddress: string;
 }) => {
-  if (!spAddress) {
-    throw new Error('spAddress is required');
-  }
-  if (!spAddresses.includes(spAddress)) {
+  if (
+    !spAddress ||
+    !spAddresses ||
+    isEmpty(spAddresses) ||
+    expirationTimestamp === 0 ||
+    !spAddresses.includes(spAddress)
+  ) {
     return false;
   }
 
