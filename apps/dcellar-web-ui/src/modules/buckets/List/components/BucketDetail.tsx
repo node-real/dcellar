@@ -25,21 +25,12 @@ export const Label = ({ children }: any) => (
 );
 
 export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [detail, setDetail] = useState({});
-  // useEffect(() => {
-  //   getBucketDetail(rowData.bucket_name, rowData.primary_sp_address).then((res) => {
-  //     setDetail(res);
-  //   });
-  // }, [rowData.bucket_name, rowData.primary_sp_address]);
-  // console.log('detail', detail);
-
   const Content = useMemo(() => {
     const create_at = getMillisecond(rowData.create_at);
     const infos = [
       {
         canCopy: false,
-        label: 'Data created',
+        label: 'Date created',
         value: rowData.create_time || new Date(),
         display: formatFullTime(create_at),
       },
@@ -67,7 +58,11 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
               key={item.label}
               justifyContent={'space-between'}
               color="readable.tertiary"
-              marginBottom={'12px'}
+              alignItems="center"
+              h={28}
+              _notLast={{
+                mb: 3,
+              }}
             >
               <Label>{item.label}</Label>
               <Flex>
@@ -83,18 +78,12 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                     href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.value}`}
                     fontSize={'14px'}
                     fontWeight={500}
-                    marginRight="4px"
                   >
                     {item.display}
                   </Link>
                 )}
                 {item.label !== 'Primary SP address' && (
-                  <Text
-                    fontSize={'14px'}
-                    fontWeight={500}
-                    marginRight="4px"
-                    color="readable.normal"
-                  >
+                  <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
                     {item.display}
                   </Text>
                 )}
@@ -122,9 +111,9 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
     >
       <ModalCloseButton />
 
-      <ModalHeader mt={'24px'}>Bucket Detail</ModalHeader>
-      <ModalBody mt={'32px'}>
-        <Flex marginBottom={'24px'}>
+      <ModalHeader>Bucket Detail</ModalHeader>
+      <ModalBody mt={0}>
+        <Flex my={32}>
           <BucketIcon />
           <Box marginLeft={'24px'} flex={1}>
             <Text color="readable.tertiary" fontSize={'12px'} marginBottom="4px">
@@ -141,7 +130,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
             </Text>
           </Box>
         </Flex>
-        <Divider marginBottom={'16px'} />
+        <Divider marginBottom={16} />
         {Content}
       </ModalBody>
     </DCModal>

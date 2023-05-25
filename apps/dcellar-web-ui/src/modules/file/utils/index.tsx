@@ -11,13 +11,15 @@ import {
 import { InternalRoutePaths } from '@/constants/links';
 import {
   generateGetObjectOptions,
-  getBucketReadQuota,
+  getBucketReadQuotaByV2,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { getDomain } from '@/utils/getDomain';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -84,12 +86,18 @@ const downloadWithProgress = async (
   objectName: string,
   endpoint: string,
   payloadSize: number,
+  userAddress: string,
 ) => {
   try {
+    const domain = getDomain();
+    const { seedString, expirationTimestamp, spAddresses } = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
       endpoint,
+      userAddress,
+      domain,
+      seedString,
     });
     const { url, headers } = uploadOptions;
     const toastId = toast.info({
@@ -107,33 +115,40 @@ const downloadWithProgress = async (
       },
       duration: -1,
     });
-    const result = await axios.get(url, {
-      onDownloadProgress: (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
-        toast.update(toastId, {
-          description: ``,
-          render: () => {
-            return (
-              <ProgressBarToast
-                progress={progress}
-                fileName={objectName}
-                closeToast={() => {
-                  toast.close(toastId);
-                }}
-              />
-            );
-          },
-        });
-      },
-      headers: {
-        Authorization: headers.get('Authorization'),
-      },
-      responseType: 'blob',
-    });
+    const result = await axios
+      .get(url, {
+        onDownloadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
+          toast.update(toastId, {
+            description: ``,
+            render: () => {
+              return (
+                <ProgressBarToast
+                  progress={progress}
+                  fileName={objectName}
+                  closeToast={() => {
+                    toast.close(toastId);
+                  }}
+                />
+              );
+            },
+          });
+        },
+        headers: {
+          Authorization: headers.get('Authorization'),
+          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+        },
+        responseType: 'blob',
+      })
+      .catch((e) => {
+        toast.close(toastId);
+        throw e;
+      });
     toast.close(toastId);
     return result;
   } catch (error: any) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -220,7 +235,7 @@ const getQuota = async (
   endpoint: string,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const { code, body } = await getBucketReadQuota({
+    const { code, body, statusCode } = await getBucketReadQuotaByV2({
       bucketName,
       endpoint,
     });

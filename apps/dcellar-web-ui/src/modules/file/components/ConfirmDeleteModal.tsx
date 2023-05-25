@@ -10,12 +10,11 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
-import { DelObjectTx, getAccount } from '@bnb-chain/gnfd-js-sdk';
+import { DelObjectTx, getAccount, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GRPC_URL } from '@/base/env';
-import { recoverPk } from '@/modules/wallet/utils/pk/recoverPk';
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -151,7 +150,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
 
   const description = `Are you sure you want to delete file "${name}"?`;
-  const delObjTx = new DelObjectTx(GRPC_URL, String(chain?.id)!);
+  const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -167,9 +166,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      p={'48px 24px'}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.delete_confirm.modal.show"
       gaClickCloseName="dc.file.delete_confirm.close.click"
     >
@@ -252,7 +249,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GRPC_URL!, address!);
+              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
               const provider = await connector?.getProvider();
               const signInfo = await delObjTx.signTx(
                 {
@@ -268,8 +265,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
                 provider,
               );
 
-              // eslint-disable-next-line no-console
-              // console.log('delete object 712 sign', signInfo);
               const pk = recoverPk({
                 signature: signInfo.signature,
                 messageHash: signInfo.messageHash,
@@ -287,13 +282,8 @@ export const ConfirmDeleteModal = (props: modalProps) => {
                 objectName: name,
                 denom: 'BNB',
               };
-              // eslint-disable-next-line no-console
-              // console.log('delete params in broadcast:', rawInfoParams);
               const rawBytes = await delObjTx.getRawTxInfo(rawInfoParams);
               const txRes = await delObjTx.broadcastTx(rawBytes.bytes);
-
-              // eslint-disable-next-line no-console
-              // console.log('delete txRes', txRes);
 
               if (txRes.code === 0) {
                 toast.success({ description: 'File deleted successfully.' });

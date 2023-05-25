@@ -6,7 +6,7 @@ import { publicProvider } from 'wagmi/providers/public';
 import {
   BSC_CHAIN_ID,
   BSC_RPC_URL,
-  GREENFIELD_RPC_URL,
+  GREENFIELD_CHAIN_RPC_URL,
   GREENFIELD_CHAIN_ID,
   runtimeEnv,
 } from '@/base/env';
@@ -16,10 +16,10 @@ const greenFieldChain: Chain = {
   network: 'greenfield',
   rpcUrls: {
     default: {
-      http: [GREENFIELD_RPC_URL],
+      http: [GREENFIELD_CHAIN_RPC_URL],
     },
     public: {
-      http: [GREENFIELD_RPC_URL],
+      http: [GREENFIELD_CHAIN_RPC_URL],
     },
   },
   name: runtimeEnv === 'prod' ? 'greenfield testnet' : `${runtimeEnv} - greenfield`,

@@ -20,6 +20,7 @@ import {
   useDisclosure,
   toast,
   Box,
+  useMediaQuery,
 } from '@totejs/uikit';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 import { useRouter } from 'next/router';
@@ -34,6 +35,9 @@ import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
+import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { Footer } from '@/components/layout/Footer';
 
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';
@@ -51,6 +55,15 @@ const Welcome = () => {
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
   const router = useRouter();
+  const [isLargerThan1000, isLargerThan1463] = useMediaQuery([
+    '(min-width: 1001px) and (max-width: 1464px)',
+    '(min-width: 1463px)',
+  ]);
+
+  const [isHigherThan800] = useMediaQuery('(min-height: 801px)');
+  const TitleGap = isHigherThan800 ? 246 : 206;
+
+  const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const network = useSwitchNetwork({
     throwForSwitchChainNotSupported: true,
     onSuccess() {
@@ -113,14 +126,12 @@ const Welcome = () => {
     },
     onError(data) {
       setLoading(false);
-      // todo send the error to Sentry
       // console.error('use connect error', data.cause);
       if (data instanceof ConnectorNotFoundError) {
-        // todo support more wallet, now only support metamask and trust wallet
         if (currentConnector instanceof MetaMaskConnector) {
           toast.warning({
             description: `Metamask not installed. Please install and reconnect.`,
-            duration: 5000,
+            duration: 3000,
           });
           window.open(METAMASK_DOWNLOAD_URL, '_blank');
           return;
@@ -129,7 +140,7 @@ const Welcome = () => {
           if (currentConnector.name === 'Trust Wallet') {
             toast.warning({
               description: `Trust wallet not installed. Please install and reconnect.`,
-              duration: 5000,
+              duration: 3000,
             });
             window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
             return;
@@ -137,7 +148,7 @@ const Welcome = () => {
         }
         toast.warning({
           description: `Wallet not installed. Please install and reconnect.`,
-          duration: 5000,
+          duration: 3000,
         });
       } else {
         const { code = '', message = '' } = data?.cause as any;
@@ -180,13 +191,27 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          loginDispatch({
-            type: 'LOGIN',
-            payload: {
-              address: currentAddress,
-            },
-          });
-          // router.push('/wallet');
+          const offChainData = getOffChainData(currentAddress);
+          const isAvailable = checkOffChainDataAvailable(offChainData);
+          if (!isAvailable) {
+            onOffChainAuth(currentAddress).then((res: any) => {
+              if (res.code === 0) {
+                loginDispatch({
+                  type: 'LOGIN',
+                  payload: {
+                    address: currentAddress,
+                  },
+                });
+              }
+            });
+          } else {
+            loginDispatch({
+              type: 'LOGIN',
+              payload: {
+                address: currentAddress,
+              },
+            });
+          }
         }
       }
     } else {
@@ -195,21 +220,20 @@ const Welcome = () => {
       }
     }
   }, [isConnected, chain, currentAddress, switchNetworkDone]);
-
   const renderConnectWalletButton = () => {
     if (isConnected)
       return (
         <DCButton
           variant="dcPrimary"
-          mt="128px"
-          minH="48px"
-          minW={229}
+          mt={48}
+          h={54}
+          w={229}
           fontSize={18}
           onClick={() => {
             disconnect();
             onToggle();
           }}
-          isLoading={loading}
+          isLoading={loading || isAuthPending}
         >
           Connect Wallet
         </DCButton>
@@ -217,9 +241,9 @@ const Welcome = () => {
     return (
       <DCButton
         variant="dcPrimary"
-        mt="128px"
-        minW={229}
-        minH="48px"
+        mt={48}
+        w={229}
+        h={54}
         fontSize={18}
         onClick={onToggle}
         isLoading={loading}
@@ -247,7 +271,6 @@ const Welcome = () => {
       return (
         <DCButton
           variant="second"
-          mb="16px"
           height="68px"
           w="100%"
           key={`${name}-${index}`}
@@ -255,6 +278,9 @@ const Welcome = () => {
           border="1px solid transparent"
           _hover={{ border: '1px solid readable.brand6' }}
           position="relative"
+          _notLast={{
+            mb: 16,
+          }}
           onClick={() => {
             setLoading(true);
             setCurrentConnector(connector);
@@ -288,7 +314,7 @@ const Welcome = () => {
         gaClickCloseName="dc.walletconnect.modal.close.click"
       >
         <ModalCloseButton />
-        <ModalHeader marginTop={'16px'}>Connect a Wallet</ModalHeader>
+        <ModalHeader>Connect a Wallet</ModalHeader>
         <ModalBody marginTop={'32px'}>
           <Flex w="100%" flexDirection="column" alignItems="center">
             {renderWalletButtons(connectors)}
@@ -296,35 +322,55 @@ const Welcome = () => {
         </ModalBody>
       </DCModal>
       <Flex
-        minH={'calc(100vh - 64px)'}
-        alignItems="center"
-        justifyContent="center"
+        w="100%"
+        minH={'100vh'}
+        overflow="hidden"
         flexDirection="column"
+        bg={
+          isLargerThan1463
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% top 100px /1215px`
+            : isLargerThan1000
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/1215px`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/972px`
+        }
       >
         <Image
-          src={`${assetPrefix}/images/icons/storage_icon.svg`}
+          src={`${assetPrefix}/images/logo_welcome.svg`}
           alt="Storage app icon"
-          width={100}
-          height={100}
+          height={144}
+          position="absolute"
         />
-        <Text
-          as="h1"
-          fontSize="28px"
-          mt="66px"
-          lineHeight="34px"
-          maxW={680}
-          color="readable.normal"
-          textAlign="center"
-          fontWeight={700}
-        >
-          Start your journey of BNB Greenfield decentralized data network with DCellar Now.🥳
-        </Text>
-        {renderConnectWalletButton()}
+        <Flex flexDirection="column" ml={110} flex={1}>
+          <Text
+            as="h1"
+            fontSize="56px"
+            lineHeight="68px"
+            color="readable.normal"
+            fontWeight={700}
+            whiteSpace="nowrap"
+            mt={TitleGap}
+          >
+            Welcome to DCellar
+          </Text>
+          <Text
+            fontSize="28px"
+            mt="36px"
+            lineHeight="34px"
+            color="readable.normal"
+            fontWeight={700}
+            whiteSpace="pre-wrap"
+          >
+            {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
+          </Text>
+          {renderConnectWalletButton()}
+        </Flex>
+        <Flex alignSelf="flex-end" w="100%" justifyContent="center">
+          <Footer />
+        </Flex>
       </Flex>
     </>
   );
 };
-
 export default Welcome;
 
 function getGAOptions(name: string) {

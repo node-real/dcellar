@@ -6,7 +6,7 @@ import { DELETE_ICON_URL } from '@/modules/file/constant';
 
 export const DeletingBucket = () => {
   return (
-    <ModalBody textAlign={'center'}>
+    <ModalBody textAlign={'center'} mt={0}>
       <Flex justifyContent={'center'}>
         <Image src={DELETE_ICON_URL} w={'120px'} h={'120px'} alt={'deleting'} />
       </Flex>

@@ -50,17 +50,15 @@ export const ShareModal = (props: modalProps) => {
         isOpen={isOpen}
         onClose={onClose}
         w="568px"
-        overflow="hidden"
         gaShowName="dc.file.share_modal.0.show"
         gaClickCloseName="dc.file.share_modal.close.click"
       >
         <ModalCloseButton color="readable.tertiary" />
-        <ModalBody fontWeight={600} fontSize={24} lineHeight="32px">
+        <ModalBody fontWeight={600} fontSize={24} lineHeight="32px" mt={0}>
           <Text
             fontSize="24px"
             lineHeight={'36px'}
             fontWeight={600}
-            marginTop={'8px'}
             align={'center'}
             color={'readable.normal'}
           >
@@ -80,7 +78,7 @@ export const ShareModal = (props: modalProps) => {
             w={'100%'}
             h={'52px'}
             bg={'bg.bottom'}
-            marginY={'24px'}
+            mt={'24px'}
             borderRadius={'8px'}
             overflow={'hidden'}
             borderWidth={'1px'}
@@ -133,7 +131,7 @@ export const ShareModal = (props: modalProps) => {
           </Flex>
         </ModalBody>
         {buttonText && (
-          <ModalFooter mb="24px">
+          <ModalFooter>
             (
             <DCButton variant={'dcPrimary'} w="100%" onClick={buttonOnClick}>
               {buttonText}

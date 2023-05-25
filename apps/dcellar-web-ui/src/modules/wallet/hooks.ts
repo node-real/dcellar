@@ -1,11 +1,16 @@
 import { ethers } from 'ethers';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork } from 'wagmi';
-import { getAccount, TransferOutTx, TransferTx, ZERO_PUBKEY } from '@bnb-chain/gnfd-js-sdk';
+import {
+  getAccount,
+  TransferOutTx,
+  TransferTx,
+  ZERO_PUBKEY,
+  makeCosmsPubKey,
+} from '@bnb-chain/gnfd-js-sdk';
 import BigNumber from 'bignumber.js';
 
-import { makeCosmsPubKey } from '@/modules/wallet/utils/pk/makeCosmsPk';
-import { GRPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
 import { useLogin } from '@/hooks/useLogin';
@@ -41,8 +46,8 @@ export const useTransferOutFee = () => {
   const getFee = useCallback(async () => {
     setIsLoading(true);
     try {
-      const toutTx = new TransferOutTx(GRPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GRPC_URL, address);
+      const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
       const bodyBytes = toutTx.getSimulateBytes({
         from: address,
         to: address,
@@ -94,8 +99,8 @@ export const useSendFee = () => {
   const getFee = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { sequence } = await getAccount(GRPC_URL, address);
-      const tTx = new TransferTx(GRPC_URL, String(chain?.id)!);
+      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
+      const tTx = new TransferTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
       const bodyBytes = tTx.getSimulateBytes({
         from: address,
         to: address,
