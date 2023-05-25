@@ -990,6 +990,7 @@ export const FileTable = (props: fileListProps) => {
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
                           setViewLink(previewLink);
+                          setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
                           const quotaData = await getQuota(bucketName, endpoint);

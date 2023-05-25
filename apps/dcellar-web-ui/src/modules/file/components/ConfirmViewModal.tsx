@@ -160,6 +160,7 @@ export const ConfirmViewModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
+              console.log('visibility', visibility);
               if (visibility === 1) {
                 window.open(viewLink, '_blank');
               } else {
