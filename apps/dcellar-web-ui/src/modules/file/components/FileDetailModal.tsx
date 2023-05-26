@@ -185,6 +185,7 @@ interface modalProps {
   fetchCreateObjectApproval: any;
   getLockFeeAndSet: any;
   getGasFeeAndSet: any;
+  freeze: boolean;
 }
 
 export const FileDetailModal = (props: modalProps) => {
@@ -244,6 +245,7 @@ export const FileDetailModal = (props: modalProps) => {
     fetchCreateObjectApproval,
     getLockFeeAndSet,
     getGasFeeAndSet,
+    freeze,
   } = props;
   const router = useRouter();
 
@@ -277,7 +279,7 @@ export const FileDetailModal = (props: modalProps) => {
       return;
     }
     setButtonDisabled(true);
-  }, [simulateGasFee, lockFee]);
+  }, [simulateGasFee, lockFee, availableBalance]);
 
   useEffect(() => {
     if (isSealed) {
@@ -304,7 +306,7 @@ export const FileDetailModal = (props: modalProps) => {
     return () => {
       stopPolling();
     };
-  }, [isSealed]);
+  }, [isSealed, listObjects, setListObjects]);
   // todo consider optimise modal without file info
   if (!file) return <></>;
 
@@ -593,20 +595,22 @@ export const FileDetailModal = (props: modalProps) => {
             >
               {formatBytes(size)}
             </Text>
+            {/* TODO use dropdown component to replace it */}
             <Flex position={'relative'} cursor={'pointer'}>
               <Text
                 fontSize={'14px'}
                 fontWeight={400}
                 lineHeight={'24px'}
-                color={'primary'}
-                _hover={{ bg: 'rgba(0,186,52,0.1)' }}
-                border={'1px solid #00ba34'}
+                color={freeze ? '#AEB4BC' : 'primary'}
+                _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)'}}
+                border={freeze ? '1px solid #AEB4BC' : '1px solid #00ba34'}
                 borderRadius={'18px'}
                 paddingLeft={'12px'}
                 paddingRight={'4px'}
                 wordBreak={'break-all'}
+                backgroundColor={freeze ? '' : ''}
                 onClick={() => {
-                  setShowPanel(true);
+                  !freeze && setShowPanel(true);
                 }}
               >
                 {transformVisibility(visibility)}
