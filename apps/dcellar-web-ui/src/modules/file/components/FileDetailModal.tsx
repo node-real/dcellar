@@ -122,37 +122,6 @@ const renderFee = (
   );
 };
 
-// fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (
-  bucketName: string,
-  endpoint: string,
-  objectName: string,
-  address: string,
-) => {
-  const domain = getDomain();
-  const { seedString } = await getOffChainData(address);
-  // TODO add auth error handling
-  const listResult = await listObjectsByBucketName({
-    bucketName,
-    endpoint,
-    userAddress: address,
-    seedString,
-    domain,
-  });
-  if (listResult) {
-    const listObjects = listResult.body ?? [];
-    const sealObjectIndex = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
-      .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
-    if (sealObjectIndex >= 0) {
-      return listObjects[sealObjectIndex].seal_tx_hash;
-    }
-    return '';
-  }
-  return false;
-};
-
 const INITIAL_DELAY = 500; // ms
 const POLLING_INTERVAL = 2000; // ms
 
