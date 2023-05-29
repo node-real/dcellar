@@ -42,7 +42,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '../off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface pageProps {
@@ -103,6 +103,7 @@ export const File = (props: pageProps) => {
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>(['']);
   const [endpoint, setEndpoint] = useState('');
+  const [sp, setSp] = useState<any>();
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -213,6 +214,7 @@ export const File = (props: pageProps) => {
       const currentEndpoint = sps[spIndex]?.endpoint;
 
       setEndpoint(currentEndpoint);
+      setSp(sps[spIndex]);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
         .map((item: any) => item.operatorAddress);
@@ -223,6 +225,19 @@ export const File = (props: pageProps) => {
       setIsCurrentUser(false);
     }
   };
+
+  const createCheckSumWebWorker = () => {
+    comlinkWorkerRef.current = new Worker(
+      new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url),
+      { type: 'module' },
+    );
+    comlinkWorkerApiRef.current = Comlink.wrap<WorkerApi>(comlinkWorkerRef.current);
+
+    return () => {
+      comlinkWorkerRef.current?.terminate();
+    };
+  };
+
   // only get list when init
   useEffect(() => {
     setListLoading(true);
@@ -243,13 +258,6 @@ export const File = (props: pageProps) => {
   }, [listObjects.length]);
 
   useEffect(() => {
-    // Comlink worker
-    comlinkWorkerRef.current = new Worker(
-      new URL('../checksum/checksumWorkerV2.ts', import.meta.url),
-      { type: 'module' },
-    );
-    comlinkWorkerApiRef.current = Comlink.wrap<WorkerApi>(comlinkWorkerRef.current);
-
     return () => {
       comlinkWorkerRef.current?.terminate();
     };
@@ -339,9 +347,23 @@ export const File = (props: pageProps) => {
     newFileName?: string,
     visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
   ) => {
+    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
+    if (
+      !checkSpOffChainDataAvailable({
+        expirationTimestamp,
+        spAddresses,
+        spAddress: primarySpAddress,
+      })
+    ) {
+      onStatusModalClose();
+      onDetailModalClose();
+      setOpenAuthModal();
+      return Promise.reject();
+    }
     const objectName = newFileName ? newFileName : uploadFile.name;
+    const terminate = createCheckSumWebWorker();
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-    const { seedString } = await getOffChainData(address);
+    terminate();
     const domain = getDomain();
     try {
       const result = await getCreateObjectApproval({

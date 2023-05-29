@@ -15,6 +15,7 @@ export const Footer = (props: any) => {
 
   const { pathname } = useRouter();
   const gaClickName = getGAOptions(pathname);
+  const isWelcomePage = pathname === '/';
 
   return (
     <Flex
@@ -22,10 +23,10 @@ export const Footer = (props: any) => {
       justifyContent={'center'}
       height={'48px'}
       gridArea={'footer'}
-      bgColor="bg.middle"
+      bgColor={isWelcomePage ? 'transparent' : 'bg.middle'}
       {...styleProps}
     >
-      <Text color={'readable.secondary'}>
+      <Text color={isWelcomePage ? '#76808F' : 'readable.secondary'}>
         © {utcYear}&nbsp;
         <GAClick name={gaClickName}>
           <Link

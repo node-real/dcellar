@@ -69,77 +69,85 @@ const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) 
 
 export const generateCheckSumV2 = async (file: File) => {
   if (!file) return;
-
-  const primaryWorkerConsumers: { [k: number]: any } = {};
-  const primaryWorkers = _initPrimaryWorkers({
-    consumers: primaryWorkerConsumers,
-  });
-
-  const secondWorkerConsumers: { [k: number]: any } = {};
-  const secondWorkers = _initSecondWorkers({
-    consumers: secondWorkerConsumers,
-  });
-
-  const fileChunks = _createFileChunks(file);
-  const secondResults: any[] = [];
-  const primaryResults: any[] = [];
-
-  const segments = fileChunks.map((fileItem, id) => {
-    return (async (chunkId) => {
-      const buffer = await fileItem.file.arrayBuffer();
-
-      const primaryPromise = new Promise((resolve) => {
-        primaryWorkerConsumers[chunkId] = {
-          resolve,
-          data: primaryResults,
-        };
-
-        const workerIdx = chunkId % WORKER_POOL_SIZE;
-        primaryWorkers[workerIdx].postMessage({ chunkId, buffer });
-      });
-
-      // shards
-      const shardsPromise = new Promise((resolve) => {
-        secondWorkerConsumers[chunkId] = {
-          resolve,
-          data: secondResults,
-        };
-
-        const workerIdx = chunkId % WORKER_POOL_SIZE;
-        secondWorkers[workerIdx].postMessage({ chunkId, buffer, dataBlocks, parityBlocks });
-      });
-
-      return Promise.all([shardsPromise, primaryPromise]);
-    })(id);
-  });
-
-  await Promise.all(segments);
-
-  const combinedShards: any[] = [];
-  secondResults.forEach((items, idx) => {
-    items.forEach((child: never, childIdx: number) => {
-      if (!combinedShards[childIdx]) {
-        combinedShards[childIdx] = [];
-      } else if (!combinedShards[childIdx][idx]) {
-        combinedShards[childIdx][idx] = [];
-      }
-      combinedShards[childIdx][idx] = child[0];
+  let primaryWorkers: any[] = [];
+  let secondWorkers: any[] = [];
+  let checkSumRes = {};
+  try {
+    const primaryWorkerConsumers: { [k: number]: any } = {};
+    primaryWorkers = _initPrimaryWorkers({
+      consumers: primaryWorkerConsumers,
     });
-  });
 
-  const primaryCheckSum = _generateIntegrityHash(primaryResults as any);
-  const secondsCheckSum = combinedShards.map((it: any) => _generateIntegrityHash(it));
-  const value = [primaryCheckSum].concat(secondsCheckSum);
-  const res = {
-    fileChunks: fileChunks.length,
-    contentLength: file.size,
-    expectCheckSums: value,
-  };
+    const secondWorkerConsumers: { [k: number]: any } = {};
+    secondWorkers = _initSecondWorkers({
+      consumers: secondWorkerConsumers,
+    });
 
-  secondWorkers.forEach((it) => it.terminate());
-  primaryWorkers.forEach((it) => it.terminate());
+    const fileChunks = _createFileChunks(file);
+    const secondResults: any[] = [];
+    const primaryResults: any[] = [];
 
-  return res;
+    const segments = fileChunks.map((fileItem, id) => {
+      return (async (chunkId) => {
+        const buffer = await fileItem.file.arrayBuffer();
+
+        const primaryPromise = new Promise((resolve) => {
+          primaryWorkerConsumers[chunkId] = {
+            resolve,
+            data: primaryResults,
+          };
+
+          const workerIdx = chunkId % WORKER_POOL_SIZE;
+          primaryWorkers[workerIdx].postMessage({ chunkId, buffer });
+        });
+
+        // shards
+        const shardsPromise = new Promise((resolve) => {
+          secondWorkerConsumers[chunkId] = {
+            resolve,
+            data: secondResults,
+          };
+
+          const workerIdx = chunkId % WORKER_POOL_SIZE;
+          secondWorkers[workerIdx].postMessage({ chunkId, buffer, dataBlocks, parityBlocks });
+        });
+
+        return Promise.all([shardsPromise, primaryPromise]);
+      })(id);
+    });
+
+    await Promise.all(segments);
+
+    const combinedShards: any[] = [];
+    secondResults.forEach((items, idx) => {
+      items.forEach((child: never, childIdx: number) => {
+        if (!combinedShards[childIdx]) {
+          combinedShards[childIdx] = [];
+        } else if (!combinedShards[childIdx][idx]) {
+          combinedShards[childIdx][idx] = [];
+        }
+        combinedShards[childIdx][idx] = child[0];
+      });
+    });
+
+    const primaryCheckSum = _generateIntegrityHash(primaryResults as any);
+    const secondsCheckSum = combinedShards.map((it: any) => _generateIntegrityHash(it));
+    const value = [primaryCheckSum].concat(secondsCheckSum);
+    checkSumRes = {
+      fileChunks: fileChunks.length,
+      contentLength: file.size,
+      expectCheckSums: value,
+    };
+
+    secondWorkers.forEach((it) => it.terminate());
+    primaryWorkers.forEach((it) => it.terminate());
+  } catch (e) {
+    console.log('check sum error', e);
+    secondWorkers.forEach((it) => it?.terminate());
+    primaryWorkers.forEach((it) => it?.terminate());
+  }
+
+  return checkSumRes;
 };
 
 Comlink.expose({

@@ -83,6 +83,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import FolderIcon from '@/public/images/files/folder.svg';
 import { useRouter } from 'next/router';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -235,7 +236,12 @@ export const FileTable = (props: fileListProps) => {
   const { loginState } = loginData;
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
-  const flatData = listObjects;
+  const flatData = useMemo(() => {
+    return listObjects
+      .filter((v: any) => !v.removed)
+      .map((v: any) => v.object_info)
+      .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
+  }, [listObjects]);
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
   const [hash, setHash] = useState('');
@@ -608,6 +614,23 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
+                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                  loginState.address,
+                );
+                if (
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                ) {
+                  onStatusModalClose();
+                  setOpenAuthModal();
+                  return;
+                }
+                // setStatusModalIcon(FILE_DOWNLOAD_URL);
+                // setStatusModalTitle(FILE_TITLE_DOWNLOADING);
+                // setStatusModalErrorText('');
+                // setStatusModalDescription(FILE_STATUS_DOWNLOADING);
+                // setStatusModalButtonText('');
+                // onStatusModalOpen();
+                // await downloadFile({ bucketName, objectName, endpoint });
                 const result = await downloadWithProgress(
                   bucketName,
                   objectName,
@@ -920,7 +943,7 @@ export const FileTable = (props: fileListProps) => {
               width: '100%',
               th: {
                 h: 44,
-                fontWeight: 500,
+                fontWeight: 600,
                 fontSize: 12,
                 lineHeight: '18px',
                 color: 'readable.tertiary',
@@ -1029,6 +1052,19 @@ export const FileTable = (props: fileListProps) => {
                         } else {
                           // preview file
                           try {
+                            const { spAddresses, expirationTimestamp } = await getOffChainData(
+                              loginState.address,
+                            );
+                            if (
+                              !checkSpOffChainDataAvailable({
+                                spAddresses,
+                                expirationTimestamp,
+                                spAddress,
+                              })
+                            ) {
+                              setOpenAuthModal();
+                              return;
+                            }
                             const result = await downloadWithProgress(
                               bucketName,
                               object_name,
@@ -1077,6 +1113,7 @@ export const FileTable = (props: fileListProps) => {
         createdDate={createdDate}
         primarySpUrl={endpoint}
         visibility={currentVisibility}
+        spAddress={spAddress}
         primarySpAddress={spAddress}
         primarySpSealAddress={primarySpSealAddress}
         onShareModalOpen={onShareModalOpen}
@@ -1096,6 +1133,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName={bucketName}
         fileInfo={fileInfo}
         endpoint={endpoint}
+        spAddress={spAddress}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
@@ -1113,6 +1151,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName={bucketName}
         fileInfo={fileInfo}
         endpoint={endpoint}
+        spAddress={spAddress}
         viewLink={viewLink}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}

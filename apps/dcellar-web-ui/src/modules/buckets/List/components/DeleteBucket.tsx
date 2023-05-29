@@ -108,7 +108,9 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const DeleteBucket = () => {
     return (
       <>
-        <ModalHeader lineHeight={'36px'}>Confirm Delete</ModalHeader>
+        <ModalHeader lineHeight={'36px'}>
+          Confirm Delete
+        </ModalHeader>
         <ModalBody marginTop={'8px'} paddingBottom={'32px'}>
           <Box textAlign={'center'} color={'#474D57'} fontSize={'18px'}>
             {`Are you sure to delete this bucket "${bucketName}"?`}

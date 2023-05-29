@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -59,10 +59,11 @@ export const TableList = () => {
   } | null>(null);
   const router = useRouter();
   const { setOpenAuthModal } = useOffChainAuth();
-  const setCloseAndShowAuthModal = () => {
+  const setCloseAndShowAuthModal = useCallback(() => {
     onClose();
     setOpenAuthModal();
-  };
+  }, [onClose, setOpenAuthModal]);
+
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
 
@@ -167,10 +168,10 @@ export const TableList = () => {
                               });
                               return;
                             }
-                            const currentEndpoint = sps[spIndex]?.endpoint;
+                            const { endpoint: spEndpoint } = sps[spIndex];
                             const currentQuotaData = await getQuota(
                               rowData.bucket_name,
-                              currentEndpoint,
+                              spEndpoint,
                               address,
                               setCloseAndShowAuthModal,
                             );
@@ -208,7 +209,7 @@ export const TableList = () => {
         },
       },
     ],
-    [onOpen, sps, setOpenAuthModal, address],
+    [onOpen, sps, address, setCloseAndShowAuthModal],
   );
   const isLoadingColumns = columns.map((column) => ({
     ...column,
@@ -231,7 +232,8 @@ export const TableList = () => {
           .filter((item: any) => !item.removed)
           .map((item: any) => {
             return item.bucket_info;
-          }) ?? [];
+          })
+          .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at)) ?? [];
 
       return data;
     },
@@ -292,7 +294,7 @@ export const TableList = () => {
             width: '100%',
             th: {
               h: 44,
-              fontWeight: 500,
+              fontWeight: 600,
               fontSize: 12,
               lineHeight: '18px',
               color: 'readable.tertiary',

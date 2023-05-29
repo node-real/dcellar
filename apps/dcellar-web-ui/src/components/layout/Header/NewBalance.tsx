@@ -21,7 +21,9 @@ const NewBalance = (props: any) => {
 
   const renderFeeNumber = () => {
     if (Number(lockFee) < 0) return 'Fetching lock fee...';
-    return `${getNumInDigits(lockFee, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
+    const fee = getNumInDigits(lockFee, CRYPTOCURRENCY_DISPLAY_PRECISION);
+
+    return Number(fee) === 0 && Number(lockFee) > 0 ? `≈${fee} BNB` : `${fee} BNB`;
   };
 
   const renderUsd = () => {

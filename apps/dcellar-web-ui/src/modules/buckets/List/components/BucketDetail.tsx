@@ -30,7 +30,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
     const infos = [
       {
         canCopy: false,
-        label: 'Data created',
+        label: 'Date created',
         value: rowData.create_time || new Date(),
         display: formatFullTime(create_at),
       },

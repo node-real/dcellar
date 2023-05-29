@@ -24,6 +24,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 interface modalProps {
   title?: string;
@@ -35,6 +36,7 @@ interface modalProps {
   bucketName: string;
   fileInfo?: { name: string; size: number };
   endpoint?: string;
+  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -75,6 +77,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
     endpoint = '',
+    spAddress,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -107,7 +110,6 @@ export const ConfirmDownloadModal = (props: modalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       w="568px"
-      overflow="hidden"
       gaShowName="dc.file.download_confirm.0.show"
       gaClickCloseName="dc.file.download_confirm.close.click"
     >
@@ -177,6 +179,17 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
+                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                  loginState.address,
+                );
+                if (
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                ) {
+                  onClose();
+                  onStatusModalClose();
+                  setOpenAuthModal();
+                  return;
+                }
                 const result = await downloadWithProgress(
                   bucketName,
                   name,

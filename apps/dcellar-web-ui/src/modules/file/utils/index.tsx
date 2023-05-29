@@ -12,7 +12,7 @@ import { InternalRoutePaths } from '@/constants/links';
 import {
   fetchWithTimeout,
   generateGetObjectOptions,
-  getBucketReadQuota,
+  getBucketReadQuotaByV2,
   VisibilityType,
 } from '@bnb-chain/greenfield-storage-js-sdk';
 import axios, { AxiosResponse } from 'axios';
@@ -20,7 +20,7 @@ import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -91,7 +91,7 @@ const downloadWithProgress = async (
 ) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getOffChainData(userAddress);
+    const { seedString, expirationTimestamp, spAddresses } = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -239,14 +239,9 @@ const getQuota = async (
   setCloseAllAndShowAuthModal: () => void,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const domain = getDomain();
-    const { seedString } = await getOffChainData(userAddress);
-    const { code, body, statusCode } = await getBucketReadQuota({
+    const { code, body, statusCode } = await getBucketReadQuotaByV2({
       bucketName,
       endpoint,
-      domain,
-      userAddress,
-      seedString,
     });
     if (statusCode === 500) {
       setCloseAllAndShowAuthModal();
