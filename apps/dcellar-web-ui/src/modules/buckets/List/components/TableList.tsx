@@ -109,7 +109,6 @@ export const TableList = () => {
           domain,
           seedString,
         });
-        console.log('res.body', res.body);
         const data: ITableItem[] = res.body
           .filter((item: any) => !item.removed)
           .map((item: IBucketItem) => ({

@@ -26,9 +26,9 @@ export const DiscontinueNotice = ({
                 textDecoration={'underline'}
                 color={'#1184EE'}
                 _hover={{ color: '#1184EE' }}
-                marginTop={'4px'}
                 marginRight={0}
                 href={learnMore}
+                fontSize={'14px'}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

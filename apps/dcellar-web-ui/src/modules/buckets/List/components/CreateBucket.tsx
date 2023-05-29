@@ -156,7 +156,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         spAddress: sp.operatorAddress,
         ...offChainData,
       });
-      console.log('isAvailable', isAvailable);
       if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
         onClose();
         setOpenAuthModal();
