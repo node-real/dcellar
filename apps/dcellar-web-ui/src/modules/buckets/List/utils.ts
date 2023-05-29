@@ -305,7 +305,7 @@ export const createBucketTxUtil = async ({
   const txRes = await createBucketTx.broadcastTx(rawBytes.bytes);
   // await pollingGetBucket(bucketName);
   // @ts-ignore TODO temp
-  await pollingGetBucket({ address, endpoint: spEndpoint, bucketName });
+  await pollingGetBucket({ userAddress: address, endpoint: spEndpoint, bucketName });
 
   return txRes;
 };

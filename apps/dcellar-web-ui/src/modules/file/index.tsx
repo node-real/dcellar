@@ -90,6 +90,7 @@ export const File = (props: pageProps) => {
   const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const { loginState } = loginData;
   const { address } = loginState;
+  const [freeze, setFreeze] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
   const [gasFee, setGasFee] = useState('-1');
@@ -347,6 +348,7 @@ export const File = (props: pageProps) => {
     newFileName?: string,
     visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
   ) => {
+    setFreeze(true);
     const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
     if (
       !checkSpOffChainDataAvailable({
@@ -364,6 +366,7 @@ export const File = (props: pageProps) => {
     const terminate = createCheckSumWebWorker();
     const hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
     terminate();
+    setFreeze(false);
     const domain = getDomain();
     try {
       const result = await getCreateObjectApproval({
@@ -704,6 +707,7 @@ export const File = (props: pageProps) => {
           onDetailModalClose();
           greenfieldRef.current?.terminate();
         }}
+        freeze={freeze}
         file={file}
         fileName={fileName}
         folderName={folderName}
