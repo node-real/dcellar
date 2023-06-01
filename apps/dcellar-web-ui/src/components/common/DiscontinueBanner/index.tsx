@@ -20,7 +20,7 @@ export const DiscontinueBanner = ({
       alignItems={'center'}
       borderRadius={'8px'}
       background={'rgba(238, 57, 17, 0.1)'}
-      color="#EE3911"
+      color="#CA300E"
     >
       <WaringTriangleIcon />
       <Text
