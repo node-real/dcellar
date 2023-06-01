@@ -41,6 +41,9 @@ const _getPublicEnv = (prefix) => {
  */
 const sentryWebpackPluginOptions = {
   silent: true, // Suppresses all logs
+  org: 'nodereal-sentry',
+  project: 'dcellar-ui',
+  authToken: '9e42bc70fd9f45e7a3aaac568e0204a60e734f6ce56d4384af57bedf72e0fcc8',
 };
 
 const nextConfig = {
