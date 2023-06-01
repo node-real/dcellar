@@ -20,6 +20,22 @@ import { GAPageView } from '@/components/common/GATracker';
 import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
 import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { SPProvider } from '@/context/GlobalContext/SPProvider';
+import { usePreloadImages } from '@/hooks/usePreloadImages';
+import {
+  COPY_SUCCESS_ICON,
+  DELETE_ICON_URL,
+  FILE_BOX_IMAGE_URL,
+  FILE_DELETE_GIF,
+  FILE_DOWNLOAD_URL,
+  FILE_EMPTY_URL,
+  FILE_FAILED_URL,
+  FILE_INFO_IMAGE_URL,
+  FILE_TOO_LARGE_URL,
+  FILE_UPLOAD_URL,
+  NOT_ENOUGH_QUOTA_URL,
+  PENDING_ICON_URL,
+  UPLOAD_IMAGE_URL,
+} from '@/modules/file/constant';
 
 const wagmiClient = createClient({
   autoConnect: true,
@@ -35,21 +51,38 @@ interface NextAppProps extends AppProps {
 function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
 
+  usePreloadImages([
+    FILE_BOX_IMAGE_URL,
+    FILE_TOO_LARGE_URL,
+    FILE_FAILED_URL,
+    FILE_EMPTY_URL,
+    FILE_DELETE_GIF,
+    PENDING_ICON_URL,
+    COPY_SUCCESS_ICON,
+    FILE_UPLOAD_URL,
+    FILE_DOWNLOAD_URL,
+    NOT_ENOUGH_QUOTA_URL,
+    DELETE_ICON_URL,
+    UPLOAD_IMAGE_URL,
+    FILE_INFO_IMAGE_URL,
+  ]);
+
   return (
     <StatusCodeContext.Provider value={statusCode}>
       <QueryClientProvider client={queryClient}>
         <WagmiConfig client={wagmiClient}>
           <BnbPriceProvider>
             {/* <OffChainAuthProvider> */}
-          <Layout>
-            <SPProvider>
-              {/* TODO provider should locate up layout */}
-              <OffChainAuthProvider>
-              <PageProtect>
-                <Component {...pageProps} />
-                <GAPageView />
-              </PageProtect></OffChainAuthProvider>
-            </SPProvider>
+            <Layout>
+              <SPProvider>
+                {/* TODO provider should locate up layout */}
+                <OffChainAuthProvider>
+                  <PageProtect>
+                    <Component {...pageProps} />
+                    <GAPageView />
+                  </PageProtect>
+                </OffChainAuthProvider>
+              </SPProvider>
             </Layout>
           </BnbPriceProvider>
         </WagmiConfig>
