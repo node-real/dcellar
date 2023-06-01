@@ -63,7 +63,7 @@ const renderUploadButton = (
     return (
       <Tooltip
         placement="bottom-end"
-        content="Bucket in the discontinue status cannot create folders or upload files."
+        content="Bucket in the discontinue status cannot upload files."
       >
         <Flex
           bgColor="#AEB4BC"
