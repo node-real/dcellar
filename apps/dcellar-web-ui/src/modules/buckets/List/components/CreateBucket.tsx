@@ -483,7 +483,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                 width={'100%'}
                 gaClickName="dc.bucket.create_modal.createbtn.click"
               >
-                <Text marginLeft={'4px'}>Create</Text>
+                Create
               </DCButton>
             </ModalFooter>
           </form>
