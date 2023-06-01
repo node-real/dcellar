@@ -27,6 +27,7 @@ export const DiscontinueNotice = ({
                 color={'#1184EE'}
                 _hover={{ color: '#1184EE' }}
                 marginRight={0}
+                fontWeight={500}
                 href={learnMore}
                 fontSize={'14px'}
                 onClick={(e) => {
