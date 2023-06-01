@@ -25,12 +25,13 @@ export const formatTime = (utcZeroTimestamp = 0) => {
   return '--';
 };
 
-export const formatFullTime = (utcZeroTimestamp = 0) => {
+export const formatFullTime = (utcZeroTimestamp = 0, format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss') => {
+  const formatStyle = format || 'MMM D, YYYY HH:mm A';
   dayjs.extend(utc);
   dayjs.extend(timezone);
   const curTimezone = dayjs.tz.guess();
 
-  return `${dayjs(utcZeroTimestamp).tz(curTimezone).format('MMM D, YYYY HH:mm A')} (UTC${dayjs(
+  return `${dayjs(utcZeroTimestamp).tz(curTimezone).format(formatStyle)} (UTC${dayjs(
     utcZeroTimestamp,
   )
     .tz(curTimezone)
