@@ -300,7 +300,8 @@ export const TableList = () => {
           isOpen={isOpen}
           onClose={onClose}
           bucketName={rowData.bucket_name}
-          sp={{ address: rowData.primary_sp_address, endpoint: rowData.spEndpoint }}
+          // Request for deletion on the sp where the bucket is located
+          sp={{ address: rowData.originalData.bucket_info.primary_sp_address, endpoint: rowData.spEndpoint }}
         />
       )}
     </Box>
