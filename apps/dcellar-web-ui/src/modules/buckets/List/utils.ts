@@ -389,7 +389,7 @@ export const deleteBucket = async ({
 
   const txRes = await delBucketTx.broadcastTx(rawBytes.bytes);
   // @ts-ignore
-  await pollingDeleteBucket({ bucketName, address, endpoint: sp.endpoint });
+  await pollingDeleteBucket({ bucketName, userAddress: address, endpoint: sp.endpoint });
 
   return txRes;
 };
