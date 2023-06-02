@@ -14,18 +14,17 @@ import {
   Text,
   toast,
 } from '@totejs/uikit';
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { StorageProvider } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { debounce, isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import NextLink from 'next/link';
 
-import { TCreateBucketFromValues } from '../../type';
+import { IRawSPInfo, TCreateBucketFromValues } from '../../type';
 import { GasFee } from './GasFee';
 import { useLogin } from '@/hooks/useLogin';
-import { createBucketTxUtil, getFee } from '@/modules/buckets/List/utils';
+import { genCreateBucketTx, pollingGetBucket } from '@/modules/buckets/List/utils';
 import { CreateBucketFailed } from '@/modules/buckets/List/components/CreateBucketFailed';
 import { CreatingBucket } from './CreatingBucket';
 import { parseError } from '../../utils/parseError';
@@ -43,6 +42,8 @@ import { useSPs } from '@/hooks/useSPs';
 import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
+import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 type Props = {
   isOpen: boolean;
@@ -78,16 +79,16 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     loginState: { address },
   } = useLogin();
 
-  const { sp: globalSP } = useSPs();
-  const [sp, setSP] = useState<StorageProvider>(globalSP);
+  const { sp: globalSP, sps: globalSps } = useSPs();
+  const [sp, setSP] = useState<IRawSPInfo>(globalSP);
   const { connector } = useAccount();
   const { availableBalance } = useDefaultChainBalance();
   const balance = BigNumber(availableBalance || 0);
-  const { chain } = useNetwork();
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
+
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
   const { setOpenAuthModal } = useOffChainAuth();
@@ -146,9 +147,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const debounceValidate = debounce(async (value, curNonce) => {
     if (curNonce !== nonceRef.current) return;
     const types: { [key: string]: string } = {};
+    const bucketName = value;
     try {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
-      const chainId = chain?.id as number;
       const domain = getDomain();
       const offChainData = await getOffChainData(address);
       const { seedString } = offChainData;
@@ -157,16 +158,29 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      const decimalGasFee = await getFee({
-        address,
-        bucketName: value,
-        primarySpAddress: sp.operatorAddress,
-        endpoint: sp.endpoint,
-        chainId,
+      const secondarySpAddresses = globalSps.filter((item: any) => item.operatorAddress !== sp.operatorAddress).map((item: any) => item.operatorAddress);
+      const createBucketParams: TCreateBucket = {
+        creator: address,
+        bucketName,
+        spInfo: {
+          endpoint: sp.endpoint,
+          primarySpAddress: sp.operatorAddress,
+          sealAddress: sp.sealAddress,
+          secondarySpAddresses,
+        } ,
+        signType: 'offChainAuth',
         domain,
         seedString,
-      });
+        // TODO check up update visibility component
+        visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
+        chargedReadQuota: '0',
+      }
+      const createBucketTx = await genCreateBucketTx(createBucketParams);
 
+      const simulateInfo = await createBucketTx.simulate({
+        denom: 'BNB',
+      });
+      const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {
         setValidateNameAndGas(validateNameAndGas);
         return;
@@ -215,7 +229,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           const { isError, message } = parseError(e.message);
           types['validateBalanceAndName'] =
             !isError && message !== 'rpc error'
-              ? message
+              ? message || e.message
               : 'Unknown error, please try again later.';
         }
       } else {
@@ -272,19 +286,48 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         }
         const { seedString } = offChainData;
         const bucketName = data.bucketName;
-        const provider = await connector?.getProvider();
         const domain = getDomain();
-        const chainId = chain?.id as number;
-        const txRes = await createBucketTxUtil({
-          address,
+        // NOTICE: Avoid the user skip got get gas fee step
+        const secondarySpAddresses = globalSps.filter((item: any) => item.operatorAddress !== sp.operatorAddress).map((item: any) => item.operatorAddress);
+        const spInfo = {
+          endpoint: sp.endpoint,
+          primarySpAddress: sp.operatorAddress,
+          sealAddress: sp.sealAddress,
+          secondarySpAddresses,
+        };
+        const createBucketParams: TCreateBucket = {
+          creator: address,
           bucketName,
-          chainId,
-          spAddress: sp.operatorAddress,
-          spEndpoint: sp.endpoint,
-          provider,
+          spInfo,
+          signType: 'offChainAuth',
           domain,
           seedString,
+          visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
+          chargedReadQuota: '0',
+        }
+        const createBucketTx = await genCreateBucketTx(createBucketParams);
+        const simulateInfo = await createBucketTx.simulate({
+          denom: 'BNB',
         });
+        const txRes = await createBucketTx.broadcast({
+          denom: 'BNB',
+          gasLimit: Number(simulateInfo?.gasLimit),
+          gasPrice: simulateInfo?.gasPrice || '5000000000',
+          payer: createBucketParams.creator,
+          granter: '',
+          signTypedDataCallback: async (addr: string, message: string) => {
+            const provider = await connector?.getProvider();
+            return await signTypedDataV4(provider, addr, message);
+          },
+        });
+
+        await pollingGetBucket({
+          address: createBucketParams.creator,
+          endpoint: createBucketParams.spInfo.endpoint,
+          // @ts-ignore This is a temp solution for check bucket has been recorded in metaservice
+          bucketName: createBucketParams.bucketName,
+        });
+
         if (txRes.code === 0) {
           onClose();
           typeof refetch === 'function' && refetch();
@@ -309,7 +352,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, chain?.id, connector, onClose, refetch, setOpenAuthModal, sp],
+    [address, connector, globalSps, onClose, refetch, setOpenAuthModal, sp],
   );
 
   const disableCreateButton = () => {
@@ -336,7 +379,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   }, [balance, validateNameAndGas.gas.value]);
 
   const onChangeSP = useCallback(
-    (sp: StorageProvider) => {
+    (sp: IRawSPInfo) => {
       setSP(sp);
 
       const { value, available } = validateNameAndGas.name;

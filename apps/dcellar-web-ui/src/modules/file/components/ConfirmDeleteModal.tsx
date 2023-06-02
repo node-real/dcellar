@@ -2,7 +2,6 @@ import {
   ModalCloseButton,
   ModalHeader,
   ModalFooter,
-  Button,
   Text,
   Flex,
   toast,
@@ -10,10 +9,8 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
-import { DelObjectTx, getAccount, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 
 import {
   renderBalanceNumber,
@@ -24,7 +21,6 @@ import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
   FILE_DESCRIPTION_DELETE_ERROR,
-  FILE_EMPTY_URL,
   FILE_FAILED_URL,
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
@@ -37,6 +33,8 @@ import { Tips } from '@/components/common/Tips';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
+import { client } from '@/base/client';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 interface modalProps {
   title?: string;
@@ -49,8 +47,6 @@ interface modalProps {
   endpoint?: string;
   gasFeeLoading?: boolean;
   simulateGasFee: string;
-  gasLimit: number;
-  gasPrice: string;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   listObjects: Array<any>;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
@@ -119,8 +115,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     bucketName,
     fileInfo = { name: '', size: 0 },
     endpoint = '',
-    gasLimit = 0,
-    gasPrice = '0',
     lockFee,
     outsideLoading,
     simulateGasFee,
@@ -150,7 +144,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
 
   const description = `Are you sure you want to delete file "${name}"?`;
-  const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -249,41 +242,25 @@ export const ConfirmDeleteModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-              const provider = await connector?.getProvider();
-              const signInfo = await delObjTx.signTx(
-                {
-                  accountNumber: accountNumber + '',
-                  bucketName,
-                  from: address,
-                  sequence: sequence + '',
-                  gasLimit,
-                  gasPrice,
-                  objectName: name,
-                  denom: 'BNB',
-                },
-                provider,
-              );
-
-              const pk = recoverPk({
-                signature: signInfo.signature,
-                messageHash: signInfo.messageHash,
-              });
-              const pubKey = makeCosmsPubKey(pk);
-              const rawInfoParams = {
-                accountNumber: accountNumber + '',
+              const delObjTx = await client.object.deleteObject({
                 bucketName,
-                from: address,
-                sequence: sequence + '',
-                gasLimit,
-                gasPrice,
-                pubKey,
-                sign: signInfo.signature,
                 objectName: name,
+                operator: address,
+              });
+              const simulateInfo = await delObjTx.simulate({
                 denom: 'BNB',
-              };
-              const rawBytes = await delObjTx.getRawTxInfo(rawInfoParams);
-              const txRes = await delObjTx.broadcastTx(rawBytes.bytes);
+              });
+              const txRes = await delObjTx.broadcast({
+                denom: 'BNB',
+                gasLimit: Number(simulateInfo?.gasLimit),
+                gasPrice: simulateInfo?.gasPrice || '5000000000',
+                payer: address,
+                granter: '',
+                signTypedDataCallback: async (addr: string, message: string) => {
+                  const provider = await connector?.getProvider();
+                  return await signTypedDataV4(provider, addr, message);
+                },
+              });
 
               if (txRes.code === 0) {
                 toast.success({ description: 'File deleted successfully.' });

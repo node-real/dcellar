@@ -15,3 +15,21 @@ export interface IApprovalCreateBucket {
   charged_read_quota: number;
   redundancy_type: string;
 }
+
+export interface IRawSPInfo {
+  approvalAddress: string;
+  endpoint: string;
+  fundingAddress: string;
+  gcAddress: string;
+  operatorAddress: string;
+  sealAddress: string;
+  status: number;
+  totalDeposit: string;
+  description: {
+    details: string;
+    identity: string;
+    moniker: string;
+    securityContact: string;
+    website: string;
+  }
+}

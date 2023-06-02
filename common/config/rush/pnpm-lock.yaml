@@ -10,9 +10,7 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.25
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
-      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.24
+      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.4
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -67,9 +65,7 @@ importers:
       worker-plugin: ^5.0.1
     dependencies:
       '@babel/core': 7.21.8
-      '@bnb-chain/gnfd-js-sdk': 1.5.0-alpha.25
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
-      '@bnb-chain/greenfield-storage-js-sdk': 1.2.0-alpha.24
+      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.4
       '@emotion/react': 11.11.0_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_e26648cc40f2a727295f0806c5bada42
       '@ethereumjs/util': 8.0.6
@@ -1460,42 +1456,43 @@ packages:
       '@babel/helper-validator-identifier': 7.19.1
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/gnfd-js-sdk/1.5.0-alpha.25:
-    resolution: {integrity: sha512-sYz4Cw2C7vw4qz30u2EJns9NGf1H232KWZ1FzVI6TeMj8JNSPgqSGOneCW0K5s55iOhzCA5ew85Q1BCfayW3/Q==}
+  /@bnb-chain/greenfield-chain-sdk/0.2.1-alpha.4:
+    resolution: {integrity: sha512-5d8UIkTM8P1orW3UaDp9n1ON84hdeIGcfv9XPHsiR99pE8o7rCwaQdVS6tccOqpqK4VirxdirQ5xZslaYUL0Ag==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.9
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.10
+      '@bnb-chain/greenfiled-file-handle': 0.2.0
+      '@bnb-chain/zkbas-js-sdk': 3.0.0
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
       '@ethereumjs/util': 8.0.6
+      '@ethersproject/bytes': 5.7.0
       '@ethersproject/signing-key': 5.7.0
+      '@ethersproject/strings': 5.7.0
+      '@ethersproject/units': 5.7.0
       '@metamask/eth-sig-util': 5.1.0
+      dayjs: 1.11.7
+      ethereum-cryptography: 2.0.0
+      long: 5.2.3
+      reflect-metadata: 0.1.13
+      tsyringe: 4.7.0
     transitivePeerDependencies:
       - bufferutil
       - debug
       - utf-8-validate
     dev: false
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.9:
-    resolution: {integrity: sha512-SHkCoA/71pmEiwo4hw5z3GK0SOLYFPilcYCv/QpGFY0nhM4E0F9Qih+kIAZRmk4zPe50+6zF+NE9V46UjsS4WQ==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.10:
+    resolution: {integrity: sha512-JTZjKAQfo2e9d0PUXy9umqNNnpEOv2rvUsfAyJFijG8rnHAR1SUJchh0su344b6u0t+bhvUu/fixA3VVqaNvQw==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.3
     dev: false
 
-  /@bnb-chain/greenfield-storage-js-sdk/1.2.0-alpha.24:
-    resolution: {integrity: sha512-xXRob6JqyjjnCbd8jgoXrluW4C1f0EWIh83IMVhwhOhYxqyPGgF7jceV3oTwiYgu2gjerYsGFymyPSr90zmyQA==}
-    engines: {pnpm: '>=7'}
-    dependencies:
-      '@bnb-chain/zkbas-js-sdk': 3.0.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      dayjs: 1.11.7
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - debug
+  /@bnb-chain/greenfiled-file-handle/0.2.0:
+    resolution: {integrity: sha512-UER3459jjNouGEr5lMb1zFT9yPqOthLdspl3RTfP5HDgM2P2Y+13PlXSi4DY1PNL8pjah7iZbfmxdJH7V+y9wg==}
+    engines: {npm: please use pnpm, yarn: please use pnpm}
     dev: false
 
   /@bnb-chain/zkbas-js-sdk/3.0.0:
@@ -8087,6 +8084,10 @@ packages:
       strip-indent: 3.0.0
     dev: true
 
+  /reflect-metadata/0.1.13:
+    resolution: {integrity: sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==}
+    dev: false
+
   /regenerate-unicode-properties/10.1.0:
     resolution: {integrity: sha512-d1VudCLoIGitcU/hEg2QqvyGZQmdC0Lf8BqdOMXGFSvJP4bNV1+XqbPQeHHLD51Jh4QJJ225dlIFvY4Ly6MXmQ==}
     engines: {node: '>=4'}
@@ -8913,6 +8914,13 @@ packages:
     dependencies:
       tslib: 1.14.1
       typescript: 5.0.4
+
+  /tsyringe/4.7.0:
+    resolution: {integrity: sha512-ncFDM1jTLsok4ejMvSW5jN1VGPQD48y2tfAR0pdptWRKYX4bkbqPt92k7KJ5RFJ1KV36JEs/+TMh7I6OUgj74g==}
+    engines: {node: '>= 6.0.0'}
+    dependencies:
+      tslib: 1.14.1
+    dev: false
 
   /tweetnacl-util/0.15.1:
     resolution: {integrity: sha512-RKJBIj8lySrShN4w6i/BonWp2Z/uxwC3h4y7xsRrpP59ZboCd0GpEVsOnMDYLMmKBpYhb5TgHzZXy7wTfYFBRw==}

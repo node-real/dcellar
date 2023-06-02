@@ -1,5 +1,5 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-storage-js-sdk';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
 
 export const setOffChainData = ({
@@ -19,7 +19,7 @@ export const getOffChainData = (
   address: string,
   chainId = GREENFIELD_CHAIN_ID,
 ): {
-  expirationTimestamp: number;
+  expirationTime: number;
   spAddresses: string[];
   seedString: string;
 } => {
@@ -35,15 +35,15 @@ export const removeOffChainData = (address: string, chainId: number) => {
 };
 
 export const checkOffChainDataAvailable = ({
-  expirationTimestamp = 0,
+  expirationTime = 0,
   spAddresses = [],
 }: {
-  expirationTimestamp: number;
+  expirationTime: number;
   spAddresses: string[];
 }) => {
   const utcZeroTimestamp = getUtcZeroTimestamp();
 
-  return expirationTimestamp > utcZeroTimestamp && spAddresses?.length > 0;
+  return expirationTime > utcZeroTimestamp && spAddresses?.length > 0;
 };
 
 export const checkHaveSp = (spAddress: string, spAddresses: string[]) => {
@@ -51,11 +51,11 @@ export const checkHaveSp = (spAddress: string, spAddresses: string[]) => {
 };
 
 export const checkSpOffChainDataAvailable = ({
-  expirationTimestamp,
+  expirationTime,
   spAddresses,
   spAddress,
 }: {
-  expirationTimestamp: number;
+  expirationTime: number;
   spAddresses: string[];
   spAddress: string;
 }) => {
@@ -63,13 +63,13 @@ export const checkSpOffChainDataAvailable = ({
     !spAddress ||
     !spAddresses ||
     isEmpty(spAddresses) ||
-    expirationTimestamp === 0 ||
+    expirationTime === 0 ||
     !spAddresses.includes(spAddress)
   ) {
     return false;
   }
 
-  return checkOffChainDataAvailable({ expirationTimestamp, spAddresses });
+  return checkOffChainDataAvailable({ expirationTime, spAddresses });
 };
 
 export const getGAOptions = (name: string) => {

@@ -1,25 +1,20 @@
-import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { makeRpcClient } from '@bnb-chain/gnfd-js-sdk';
 import Link from 'next/link';
 import { toast } from '@totejs/uikit';
-
 import { getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/links';
-import {
-  generateGetObjectOptions,
-  getBucketReadQuotaByV2,
-  VisibilityType,
-} from '@bnb-chain/greenfield-storage-js-sdk';
 import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { client } from '@/base/client';
+import { generateGetObjectOptions } from './generateGetObjectOptions';
+import { VisibilityType } from '../constant';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -38,20 +33,9 @@ const formatBytes = (bytes: number | string, isFloor = false) => {
   }
 };
 
-const getObjectInfo = async (rpcUrl: string, bucketName: string, objectName: string) => {
-  const rpcClient = await makeRpcClient(rpcUrl);
-  const rpc = new storageQueryClientImpl(rpcClient);
-  const objInfoRes = await rpc.HeadObject({
-    bucketName,
-    objectName,
-  });
+const getObjectInfo = async (bucketName: string, objectName: string) => {
 
-  const objectId = objInfoRes?.objectInfo?.id;
-  if (!objectId) throw new Error('no such object');
-
-  return await rpc.HeadObjectById({
-    objectId,
-  });
+  return await client.object.headObject(bucketName, objectName);
 };
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
@@ -90,7 +74,7 @@ const downloadWithProgress = async (
 ) => {
   try {
     const domain = getDomain();
-    const { seedString, expirationTimestamp, spAddresses } = await getOffChainData(userAddress);
+    const { seedString, expirationTime, spAddresses } = await getOffChainData(userAddress);
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -235,7 +219,7 @@ const getQuota = async (
   endpoint: string,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const { code, body, statusCode } = await getBucketReadQuotaByV2({
+    const { code, body } = await client.bucket.getBucketReadQuota({
       bucketName,
       endpoint,
     });

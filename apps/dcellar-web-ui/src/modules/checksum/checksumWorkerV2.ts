@@ -6,6 +6,7 @@ import { SHA256, enc, lib } from 'crypto-js';
 export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;
 }
+export type THashResult = { contentLength: number, expectCheckSums: string[], fileChunks: number } | undefined;
 
 const segmentSize = 16 * 1024 * 1024;
 const dataBlocks = 4;
@@ -67,11 +68,11 @@ const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) 
   return workers;
 };
 
-export const generateCheckSumV2 = async (file: File) => {
+export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
   if (!file) return;
   let primaryWorkers: any[] = [];
   let secondWorkers: any[] = [];
-  let checkSumRes = {};
+  let checkSumRes: THashResult;
   try {
     const primaryWorkerConsumers: { [k: number]: any } = {};
     primaryWorkers = _initPrimaryWorkers({

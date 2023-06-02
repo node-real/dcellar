@@ -1,15 +1,13 @@
-import React, { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useEffect, useRef, useState } from 'react';
 import BigNumber from 'bignumber.js';
-import { makeRpcClient } from '@bnb-chain/gnfd-js-sdk';
-import { QueryClientImpl as bankQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/cosmos/bank/v1beta1/query';
-import { QueryClientImpl as paymentQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import moment from 'moment/moment';
 import Long from 'long';
 import { toast } from '@totejs/uikit';
 import { useBalance, useNetwork } from 'wagmi';
 
-import { GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
+import { client } from '@/base/client';
 
 const MINIUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
@@ -48,7 +46,8 @@ function ChainBalanceContextProvider(props: any) {
   const { data: greenfieldBalanceData } = useBalance({
     address: address as any,
     chainId: GREENFIELD_CHAIN_ID,
-    watch: true,
+    // TODO
+    watch: false,
   });
 
   const resetAllStatus = () => {
@@ -72,19 +71,13 @@ function ChainBalanceContextProvider(props: any) {
     try {
       setIsLoading(true);
       setUseMetamaskValue(false);
-      const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
-      const bankRpc = new bankQueryClientImpl(rpcClient);
-      const paymentRpc = new paymentQueryClientImpl(rpcClient);
-
-      const { balance } = await bankRpc.Balance({
+      const { balance } = await client.account.getAccountBalance({
         address,
         denom: 'BNB',
-      });
+      })
       const { amount = '0' } = balance ?? {};
       try {
-        const { streamRecord } = await paymentRpc.StreamRecord({
-          account: address,
-        });
+        const { streamRecord } = await client.payment.getStreamRecord(address);
         const { netflowRate, staticBalance, crudTimestamp, bufferBalance, lockBalance } =
           streamRecord ?? {};
         setCurrentNetflowRate(BigNumber(netflowRate ?? '0').dividedBy(Math.pow(10, 18)));

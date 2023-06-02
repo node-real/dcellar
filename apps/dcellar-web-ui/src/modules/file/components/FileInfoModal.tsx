@@ -377,13 +377,13 @@ export const FileInfoModal = (props: modalProps) => {
                     directlyDownload(shareLink);
                   } else {
                     try {
-                      const { spAddresses, expirationTimestamp } = await getOffChainData(
+                      const { spAddresses, expirationTime } = await getOffChainData(
                         loginState.address,
                       );
                       if (
                         !checkSpOffChainDataAvailable({
                           spAddresses,
-                          expirationTimestamp,
+                          expirationTime,
                           spAddress,
                         })
                       ) {
