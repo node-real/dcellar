@@ -848,7 +848,6 @@ export const FileTable = (props: fileListProps) => {
     getSortedRowModel: getSortedRowModel(),
     debugTable: false,
   });
-  console.log('finalData', finalData)
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtual({
     parentRef: tableContainerRef,

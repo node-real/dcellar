@@ -45,12 +45,11 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
     const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
     const secondarySpStorePrice = await client.sp.getSecondarySpStorePrice();
-    const { params } = await client.sp.params();
+    const { params } = await client.storage.params();
     const {
       minChargeSize = new Long(0),
       redundantDataChunkNum = 0,
       redundantParityChunkNum = 0,
-      // @ts-ignore TODO temp ignore
     } = params && params.versionedParams || {};
     const { params: paymentParams = {} } = await client.payment.params();
     const { reserveTime } = paymentParams as any;
