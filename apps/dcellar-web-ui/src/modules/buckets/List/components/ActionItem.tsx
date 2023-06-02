@@ -58,8 +58,8 @@ export const ActionItem = ({
                     onOpen();
                     setRowData(rowData);
                     setQuotaData(null);
-                    const spIndex = sps.findIndex(function (item: any) {
-                      return item.operatorAddress === rowData?.primary_sp_address;
+                    const spIndex = sps?.findIndex(function (item: any) {
+                      return item.operatorAddress === rowData?.originalData.bucket_info.primary_sp_address;
                     });
                     if (spIndex < 0) {
                       toast.error({
@@ -85,8 +85,9 @@ export const ActionItem = ({
                     e.stopPropagation();
                     setShowDetail(false);
                     onOpen();
+                    // TODO Do not mix information from rowData and sp
                     const curSp = sps.find(
-                      (item: any) => item.operatorAddress === rowData.primary_sp_address,
+                      (item: any) => item.operatorAddress === rowData.originalData.bucket_info.primary_sp_address,
                     );
                     setRowData({ ...rowData, spEndpoint: curSp?.endpoint });
                   }}
