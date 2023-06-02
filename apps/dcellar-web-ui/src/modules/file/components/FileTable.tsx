@@ -20,7 +20,6 @@ import {
   MenuList,
   SkeletonSquare,
   Text,
-  Image,
   Tooltip,
   toast,
   useDisclosure,
@@ -28,13 +27,6 @@ import {
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
 import { useNetwork } from 'wagmi';
-import {
-  CancelCreateObjectTx,
-  DelObjectTx,
-  getAccount,
-  ZERO_PUBKEY,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -43,9 +35,7 @@ import { useLogin } from '@/hooks/useLogin';
 import { getLockFee } from '@/utils/wallet';
 import {
   BUTTON_GOT_IT,
-  FILE_DOWNLOAD_URL,
   FILE_EMPTY_URL,
-  FILE_STATUS_DOWNLOADING,
   FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_DOWNLOADING,
   GET_GAS_FEE_DEFAULT_ERROR,
@@ -59,8 +49,6 @@ import {
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
 import { ConfirmViewModal } from '@/modules/file/components/ConfirmViewModal';
@@ -83,12 +71,12 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
+import { client } from '@/base/client';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
-const PUBLIC_FILE_ICON_PATH = '/images/icons/public_file.svg';
 const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
   const { children, onClick, gaClickName, ...rest } = props;
 
@@ -248,8 +236,6 @@ export const FileTable = (props: fileListProps) => {
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
-  const [gasLimit, setGasLimit] = useState(0);
-  const [gasPrice, setGasPrice] = useState('0');
   const [shareLink, setShareLink] = useState('');
   const [viewLink, setViewLink] = useState('');
   const { setOpenAuthModal } = useOffChainAuth();
@@ -345,26 +331,16 @@ export const FileTable = (props: fileListProps) => {
 
   const getCancelGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const cancelCteObjTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const simulateBytes = cancelCteObjTx.getSimulateBytes({
+      const cancelCteObjTx = await client.object.cancelCreateObject({
         bucketName,
         objectName,
-        from: address,
-      });
-      const authInfoBytes = cancelCteObjTx.getAuthInfoBytes({
-        sequence: sequence.toString(),
+        operator: address,
+      })
+      const simulateGas = await cancelCteObjTx.simulate({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
       });
-
-      const simulateGas = await cancelCteObjTx.simulateTx(simulateBytes, authInfoBytes);
       setGasFeeLoading(false);
-      setGasFee(getGasFeeBySimulate(simulateGas));
-      setGasLimit(simulateGas.gasInfo?.gasUsed.toNumber() || 0);
-      setGasPrice(simulateGas.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0');
+      setGasFee(simulateGas.gasFee);
     } catch (error: any) {
       if (
         error.message.includes('lack of') ||
@@ -392,25 +368,16 @@ export const FileTable = (props: fileListProps) => {
 
   const getDeleteGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-      const simulateBytes = delObjTx.getSimulateBytes({
+      const delObjTx = await client.object.deleteObject({
         bucketName,
         objectName,
-        from: address,
+        operator: address,
       });
-      const authInfoBytes = delObjTx.getAuthInfoBytes({
-        sequence: sequence.toString(),
+      const simulateGas = await delObjTx.simulate({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
       });
-      const simulateGas = await delObjTx.simulateTx(simulateBytes, authInfoBytes);
       setGasFeeLoading(false);
-      setGasFee(getGasFeeBySimulate(simulateGas));
-      setGasLimit(simulateGas.gasInfo?.gasUsed.toNumber() || 0);
-      setGasPrice(simulateGas.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0');
+      setGasFee(simulateGas.gasFee);
     } catch (error: any) {
       if (
         error.message.includes('lack of') ||
@@ -600,11 +567,11 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
-                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                const { spAddresses, expirationTime } = await getOffChainData(
                   loginState.address,
                 );
                 if (
-                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })
                 ) {
                   onStatusModalClose();
                   setOpenAuthModal();
@@ -881,7 +848,6 @@ export const FileTable = (props: fileListProps) => {
     getSortedRowModel: getSortedRowModel(),
     debugTable: false,
   });
-
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtual({
     parentRef: tableContainerRef,
@@ -1013,13 +979,13 @@ export const FileTable = (props: fileListProps) => {
                         } else {
                           // preview file
                           try {
-                            const { spAddresses, expirationTimestamp } = await getOffChainData(
+                            const { spAddresses, expirationTime } = await getOffChainData(
                               loginState.address,
                             );
                             if (
                               !checkSpOffChainDataAvailable({
                                 spAddresses,
-                                expirationTimestamp,
+                                expirationTime,
                                 spAddress,
                               })
                             ) {
@@ -1130,8 +1096,6 @@ export const FileTable = (props: fileListProps) => {
         fileInfo={fileInfo}
         endpoint={endpoint}
         simulateGasFee={gasFee}
-        gasLimit={gasLimit}
-        gasPrice={gasPrice}
         listObjects={listObjects}
         setListObjects={setListObjects}
         outsideLoading={gasFeeLoading || lockFeeLoading}
@@ -1151,9 +1115,7 @@ export const FileTable = (props: fileListProps) => {
         fileInfo={fileInfo}
         endpoint={endpoint}
         simulateGasFee={gasFee}
-        gasLimit={gasLimit}
         lockFee={lockFee}
-        gasPrice={gasPrice}
         outsideLoading={gasFeeLoading}
         listObjects={listObjects}
         setListObjects={setListObjects}

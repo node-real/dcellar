@@ -11,7 +11,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useVirtual } from '@tanstack/react-virtual';
 import { Box, Flex, SkeletonSquare, Text, toast, useDisclosure } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import { getUserBuckets } from '@bnb-chain/greenfield-storage-js-sdk';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 
@@ -30,6 +29,8 @@ import { BucketNameItem } from './BucketNameItem';
 import { IBucketItem, ITableItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { client } from '@/base/client';
 
 export const TableList = () => {
   const { sp, sps } = useSPs();
@@ -98,18 +99,19 @@ export const TableList = () => {
     cell: <SkeletonSquare style={{ width: '80%' }} />,
   }));
   let { data, isLoading, refetch } = useQuery<any>(
-    ['getBucketList'],
+    ['getUserBuckets'],
     async () => {
       try {
+        // TODO add auth check and error handling
         const domain = getDomain();
         const { seedString } = await getOffChainData(address);
-        const res: any = await getUserBuckets({
-          userAddress: address,
+        const res: any = await client.bucket.getUserBuckets({
+          address,
           endpoint: sp?.endpoint,
           domain,
           seedString,
         });
-        const data: ITableItem[] = res.body
+        const data = res.body
           .filter((item: any) => !item.removed)
           .map((item: IBucketItem) => ({
             id: item.bucket_info.id,
@@ -266,11 +268,7 @@ export const TableList = () => {
                     backgroundColor: isLoading ? 'transparent' : 'rgba(0, 186, 52, 0.1)',
                     color: 'readable.brand7',
                   }}
-                  onClick={() =>
-                    router.push(
-                      `/buckets/${row.original.bucket_name}`,
-                    )
-                  }
+                  onClick={() => router.push(`/buckets/${row.original.bucket_name}`)}
                   borderBottom="1px solid #E6E8EA"
                 >
                   {row.getVisibleCells().map((cell) => {

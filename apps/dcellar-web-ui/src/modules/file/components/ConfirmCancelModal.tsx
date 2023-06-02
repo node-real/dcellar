@@ -2,7 +2,6 @@ import {
   ModalCloseButton,
   ModalHeader,
   ModalFooter,
-  Button,
   Text,
   Flex,
   toast,
@@ -10,16 +9,7 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
-import {
-  CancelCreateObjectTx,
-  getAccount,
-  recoverPk,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
-
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -40,6 +30,8 @@ import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
+import { client } from '@/base/client';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 interface modalProps {
   title?: string;
@@ -51,8 +43,6 @@ interface modalProps {
   fileInfo?: { name: string; size: number };
   endpoint?: string;
   simulateGasFee: string;
-  gasLimit: number;
-  gasPrice: string;
   lockFee: string;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   listObjects: Array<any>;
@@ -110,8 +100,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
     lockFee,
     fileInfo = { name: '', size: 0 },
     endpoint = '',
-    gasLimit = 0,
-    gasPrice = '0',
     simulateGasFee,
     listObjects,
     setListObjects,
@@ -139,7 +127,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
   const { name = '', size = 0 } = fileInfo;
   const { connector } = useAccount();
   const description = `Are you sure you want to cancel uploading the file "${name}"?`;
-  const cancelObjectTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -226,41 +213,25 @@ export const ConfirmCancelModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-              const provider = await connector?.getProvider();
-              const signInfo = await cancelObjectTx.signTx(
-                {
-                  accountNumber: accountNumber + '',
-                  bucketName,
-                  from: address,
-                  sequence: sequence + '',
-                  gasLimit,
-                  gasPrice,
-                  objectName: name,
-                  denom: 'BNB',
-                },
-                provider,
-              );
-              const pk = recoverPk({
-                signature: signInfo.signature,
-                messageHash: signInfo.messageHash,
-              });
-              const pubKey = makeCosmsPubKey(pk);
-              const rawInfoParams = {
-                accountNumber: accountNumber + '',
+              const cancelObjectTx = await client.object.cancelCreateObject({
                 bucketName,
-                from: address,
-                sequence: sequence + '',
-                gasLimit,
-                gasPrice,
-                pubKey,
-                sign: signInfo.signature,
                 objectName: name,
+                operator: address
+              });
+              const simulateInfo = await cancelObjectTx.simulate({
+                denom: 'BNB'
+              })
+              const txRes = await cancelObjectTx.broadcast({
                 denom: 'BNB',
-              };
-              const rawBytes = await cancelObjectTx.getRawTxInfo(rawInfoParams);
-              const txRes = await cancelObjectTx.broadcastTx(rawBytes.bytes);
-
+                gasLimit: Number(simulateInfo?.gasLimit),
+                gasPrice: simulateInfo?.gasPrice || '5000000000',
+                payer: address,
+                granter: '',
+                signTypedDataCallback: async (addr: string, message: string) => {
+                  const provider = await connector?.getProvider();
+                  return await signTypedDataV4(provider, addr, message);
+                },
+              })
               if (txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
               } else {

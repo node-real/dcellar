@@ -166,11 +166,11 @@ export const ConfirmViewModal = (props: modalProps) => {
                 // viewFile({ bucketName, objectName: object_name, endpoint });
                 // preview file
                 try {
-                  const { spAddresses, expirationTimestamp } = await getOffChainData(
+                  const { spAddresses, expirationTime } = await getOffChainData(
                     loginState.address,
                   );
                   if (
-                    !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                    !checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })
                   ) {
                     onClose();
                     onStatusModalClose();

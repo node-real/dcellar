@@ -1,39 +1,24 @@
-import { StorageProvider } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
-import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Text } from '@totejs/uikit';
 
-import { TIME } from '@/constants/common';
-import { getStorageProviders } from '@/utils/sp';
 import { IDCSelectOption, Select } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-
-function useFetchSPList() {
-  return useQuery<any>(
-    ['sp/list'],
-    async () => {
-      return await getStorageProviders();
-    },
-    {
-      keepPreviousData: true,
-      staleTime: 10 * TIME.MINUTE,
-    },
-  );
-}
+import { useSPs } from '@/hooks/useSPs';
+import { IRawSPInfo } from '../../type';
 
 interface SPSelector {
-  onChange: (value: StorageProvider) => void;
+  onChange: (value: IRawSPInfo) => void;
 }
 
 export function SPSelector(props: SPSelector) {
   const { onChange } = props;
 
-  const { data } = useFetchSPList();
+  const { sps: globalSps } = useSPs();
 
-  const finalSPs = useMemo<StorageProvider[]>(() => {
-    const sps: StorageProvider[] =
-      data?.sps?.filter((v: StorageProvider) => v?.description?.moniker !== 'QATest') ?? [];
+  const finalSPs = useMemo<IRawSPInfo[]>(() => {
+    const sps: IRawSPInfo[] =
+      globalSps.filter((v: IRawSPInfo) => v?.description?.moniker !== 'QATest') ?? [];
 
     return sps.sort((a, b) => {
       const nameA = a.description?.moniker;
@@ -50,9 +35,9 @@ export function SPSelector(props: SPSelector) {
 
       return 0;
     });
-  }, [data?.sps]);
+  }, [globalSps]);
 
-  const [sp, setSP] = useState<StorageProvider>();
+  const [sp, setSP] = useState<IRawSPInfo>();
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
@@ -65,12 +50,12 @@ export function SPSelector(props: SPSelector) {
 
   const saveOnChangeRef = useSaveFuncRef(onChange);
   useEffect(() => {
-    saveOnChangeRef.current?.(sp as StorageProvider);
+    saveOnChangeRef.current?.(sp as IRawSPInfo);
   }, [saveOnChangeRef, sp]);
 
   const onChangeSP = useCallback(
     (value: string) => {
-      const target = finalSPs.find((item: StorageProvider) => item.operatorAddress === value);
+      const target = finalSPs.find((item: IRawSPInfo) => item.operatorAddress === value);
       if (target) {
         setSP(target);
       }

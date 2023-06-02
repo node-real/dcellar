@@ -11,11 +11,8 @@ import {
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_DOWNLOAD_ERROR,
-  FILE_DOWNLOAD_URL,
   FILE_FAILED_URL,
-  FILE_STATUS_DOWNLOADING,
   FILE_TITLE_DOWNLOAD_FAILED,
-  FILE_TITLE_DOWNLOADING,
   NOT_ENOUGH_QUOTA,
   NOT_ENOUGH_QUOTA_ERROR,
   NOT_ENOUGH_QUOTA_URL,
@@ -179,11 +176,11 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const { spAddresses, expirationTimestamp } = await getOffChainData(
+                const { spAddresses, expirationTime } = await getOffChainData(
                   loginState.address,
                 );
                 if (
-                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
+                  !checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })
                 ) {
                   onClose();
                   onStatusModalClose();

@@ -11,15 +11,8 @@ import {
   useOutsideClick,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { getAccount, CreateObjectTx, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
-import {
-  generatePutObjectOptions,
-  listObjectsByBucketName,
-  VisibilityType,
-} from '@bnb-chain/greenfield-storage-js-sdk';
-import axios from 'axios';
 import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
 
@@ -40,6 +33,7 @@ import {
   OBJECT_CREATE_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
+  VisibilityType,
 } from '@/modules/file/constant';
 import {
   formatBytes,
@@ -58,10 +52,14 @@ import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
-import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { client } from '@/base/client';
+import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import axios from 'axios';
+import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -130,11 +128,10 @@ const getObjectIsSealed = async (
 ) => {
   const domain = getDomain();
   const { seedString } = await getOffChainData(address);
-  // TODO add auth error handling
-  const listResult = await listObjectsByBucketName({
+  const listResult = await client.object.listObjects({
     bucketName,
     endpoint,
-    userAddress: address,
+    address,
     seedString,
     domain,
   });
@@ -168,10 +165,7 @@ interface modalProps {
   file?: File;
   fileName?: string;
   simulateGasFee: string;
-  objectSignedMsg: any;
-  gasLimit: number;
   lockFee: string;
-  gasPrice: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -183,19 +177,19 @@ interface modalProps {
   listObjects: Array<any>;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
   fetchCreateObjectApproval: any;
-  getLockFeeAndSet: any;
-  getGasFeeAndSet: any;
   freeze: boolean;
+  createObjectData: {
+    CreateObjectTx: any;
+    configParam: TCreateObject;
+  };
 }
 
 export const FileDetailModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { address } = loginState;
-  const { chain } = useNetwork();
   const { value: bnbPrice } = useContext(BnbPriceContext);
   const exchangeRate = bnbPrice?.toNumber() ?? 0;
-  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAvailableBalance();
@@ -227,9 +221,6 @@ export const FileDetailModal = (props: modalProps) => {
     fileName,
     bucketName,
     simulateGasFee,
-    objectSignedMsg,
-    gasLimit,
-    gasPrice = '0',
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -243,9 +234,8 @@ export const FileDetailModal = (props: modalProps) => {
     listObjects,
     setStatusModalErrorText,
     fetchCreateObjectApproval,
-    getLockFeeAndSet,
-    getGasFeeAndSet,
     freeze,
+    createObjectData,
   } = props;
   const router = useRouter();
 
@@ -338,65 +328,16 @@ export const FileDetailModal = (props: modalProps) => {
       setStatusModalButtonText('');
       // setIsSealed(false);
       onStatusModalOpen();
+      const { configParam, CreateObjectTx } = createObjectData;
       // 1. execute create object on chain
-      if (!objectSignedMsg) {
+      if (!configParam) {
         setFailedStatusModal('Get Object Approval failed, please check.');
         return;
       }
-      if (address !== objectSignedMsg.creator) {
+      if (address !== configParam.creator) {
         setFailedStatusModal('Account address is not available');
         return;
       }
-
-      const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address!);
-      const walletProvider = await connector?.getProvider();
-      const signInfo = await createObjectTx.signTx(
-        {
-          objectName: finalName,
-          contentType: objectSignedMsg.content_type,
-          from: objectSignedMsg.creator,
-          bucketName,
-          sequence: sequence + '',
-          accountNumber: accountNumber + '',
-          denom: 'BNB',
-          gasLimit,
-          gasPrice,
-          expiredHeight: objectSignedMsg.primary_sp_approval.expired_height,
-          sig: objectSignedMsg.primary_sp_approval.sig,
-          visibility: objectSignedMsg.visibility,
-          payloadSize: objectSignedMsg.payload_size,
-          expectChecksums: objectSignedMsg.expect_checksums,
-          redundancyType: objectSignedMsg.redundancy_type,
-          expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
-        },
-        walletProvider,
-      );
-
-      const pk = recoverPk({
-        signature: signInfo.signature,
-        messageHash: signInfo.messageHash,
-      });
-      const pubKey = makeCosmsPubKey(pk);
-      const rawBytes = await createObjectTx.getRawTxInfo({
-        bucketName,
-        denom: 'BNB',
-        from: address,
-        gasLimit,
-        gasPrice,
-        pubKey,
-        sequence: sequence + '',
-        accountNumber: accountNumber + '',
-        sign: signInfo.signature,
-        expiredHeight: objectSignedMsg.primary_sp_approval.expired_height,
-        sig: objectSignedMsg.primary_sp_approval.sig,
-        visibility: objectSignedMsg.visibility,
-        contentType: objectSignedMsg.content_type,
-        expectChecksums: objectSignedMsg.expect_checksums,
-        objectName: finalName,
-        payloadSize: objectSignedMsg.payload_size,
-        redundancyType: objectSignedMsg.redundancy_type,
-        expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
-      });
       let newFileInfo = {
         object_info: {
           bucket_name: bucketName,
@@ -405,9 +346,9 @@ export const FileDetailModal = (props: modalProps) => {
           content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
           payload_size: '0',
           object_status: OBJECT_STATUS_UPLOADING,
-          checksums: objectSignedMsg.expect_checksums,
+          checksums: configParam.expectCheckSums,
           create_at: moment().unix(),
-          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
+          visibility: configParam.visibility,
         },
         removed: false,
         lock_balance: 0,
@@ -416,7 +357,19 @@ export const FileDetailModal = (props: modalProps) => {
       setListObjects(fileUploadingLists);
       onStatusModalClose();
       try {
-        const txRes = await createObjectTx.broadcastTx(rawBytes.bytes);
+        const simulateInfo = await CreateObjectTx.simulate({
+          denom: 'BNB',
+        });
+        const txRes = await CreateObjectTx.broadcast({
+          denom: 'BNB',
+          gasLimit: Number(simulateInfo?.gasLimit),
+          gasPrice: simulateInfo?.gasPrice || '5000000000',
+          payer: configParam.creator,
+          signTypedDataCallback: async (addr: string, message: string) => {
+            const provider = await connector?.getProvider();
+            return await signTypedDataV4(provider, addr, message);
+          },
+        });
         let objectTxnHash = '';
         if (txRes.code === 0) {
           objectTxnHash = txRes.transactionHash;
@@ -466,7 +419,18 @@ export const FileDetailModal = (props: modalProps) => {
           seedString,
         });
         const { url, headers } = uploadOptions;
-        // No expiration handling is performed at this moment, because the previous step of obtaining quota has handled the situation where the seedString expires.
+        // const configParamForUpload = {
+        //   bucketName,
+        //   objectName: finalName,
+        //   body: file,
+        //   endpoint,
+        //   txnHash: objectTxnHash,
+        //   address,
+        //   domain,
+        //   seedString,
+        //   signType: 'offChainAuth' as any,
+        // }
+        // await client.object.uploadObject(configParamForUpload)
         await axios.put(url, file, {
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
@@ -531,6 +495,7 @@ export const FileDetailModal = (props: modalProps) => {
           }
         });
       } catch (error: any) {
+        console.log('error', error);
         const errorListObjects = fileUploadingLists.map((v: any) => {
           if (v?.object_info?.object_name === finalName) {
             v.object_info.object_status = OBJECT_STATUS_FAILED;
@@ -666,8 +631,6 @@ export const FileDetailModal = (props: modalProps) => {
                       toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
                       console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
                     }
-                    // await getGasFeeAndSet(file, currentObjectSignedMessage);
-                    // await getLockFeeAndSet(file.size);
                   }}
                 >
                   <PrivateFileIcon style={{ marginRight: '6px' }} />
@@ -702,8 +665,6 @@ export const FileDetailModal = (props: modalProps) => {
                         VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
                       );
                       setLoading(false);
-                      // await getGasFeeAndSet(file, currentObjectSignedMessage);
-                      // await getLockFeeAndSet(file.size);
                     } catch (error) {
                       toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
                       console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
