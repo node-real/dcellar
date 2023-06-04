@@ -131,7 +131,7 @@ export const deleteBucket = async ({
   });
 
   // @ts-ignore
-  await pollingDeleteBucket({ bucketName, address, endpoint: sp.endpoint });
+  await pollingDeleteBucket({ bucketName, userAddress: address, endpoint: sp.endpoint });
 
   return txRes;
 };
