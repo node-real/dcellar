@@ -138,7 +138,19 @@ export function Select(props: DCSelectProps) {
           </Box>
         )}
 
-        <Box maxH={220} overflowY="auto">
+        <Box
+          maxH={220}
+          overflowY="scroll"
+          sx={{
+            '&::-webkit-scrollbar': {
+              width: '4px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'readable.disabled',
+              borderRadius: '4px',
+            },
+          }}
+        >
           {resultOptions?.map((item) => {
             const isSelected = value === item.value;
             const { gaClickName, ...restItemProps } = itemProps ?? {};

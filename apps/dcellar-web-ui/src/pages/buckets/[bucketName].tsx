@@ -15,11 +15,13 @@ const Post = () => {
   const [bucketInfo, setBucketInfo] = useState<any>({});
 
   useEffect(() => {
-    getBucketInfo(bucketName as string).then((bucketInfo) => {
-      setBucketInfo(bucketInfo)
-    }).catch((err) => {
-      console.log('err', err);
-    })
+    getBucketInfo(bucketName as string)
+      .then((bucketInfo) => {
+        setBucketInfo(bucketInfo);
+      })
+      .catch((err) => {
+        console.log('err', err);
+      });
   }, [bucketName]);
   const isDiscontinued = bucketInfo.bucketStatus === 1;
 
@@ -31,20 +33,18 @@ const Post = () => {
       <Flex flexDirection={'column'} w={'100%'} height="100%">
         <Breadcrumb marginX="16px" marginTop="16px">
           <BreadcrumbItem>
-            <BreadcrumbLink>
-              <GAClick name="dc.file.list.breadcrumbs.click">
-                <Link href="/buckets">Bucket</Link>
-              </GAClick>
-            </BreadcrumbLink>
+            <GAClick name="dc.file.list.breadcrumbs.click">
+              <BreadcrumbLink href="/buckets">Bucket</BreadcrumbLink>
+            </GAClick>
           </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage fontWeight={'900'}>
-            <BreadcrumbLink href="#" color={'readable.normal'} fontWeight={600}>
-              <Flex alignItems={'center'}>
-                {isDiscontinued && <WaringTriangleIcon />}
-                <Text fontWeight={900} marginLeft={'4px'}>
-                  {bucketName}
-                </Text>
-              </Flex>
+            <BreadcrumbLink color={'readable.normal'} fontWeight={600} as="div">
+              {/* <Flex alignItems={'center'}> */}
+              {isDiscontinued && <WaringTriangleIcon />}
+              <Text fontWeight={900} marginLeft={'4px'} href="#" as="a">
+                {bucketName}
+              </Text>
+              {/* </Flex> */}
             </BreadcrumbLink>
           </BreadcrumbItem>
         </Breadcrumb>

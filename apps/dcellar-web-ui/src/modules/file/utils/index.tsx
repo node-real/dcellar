@@ -34,7 +34,6 @@ const formatBytes = (bytes: number | string, isFloor = false) => {
 };
 
 const getObjectInfo = async (bucketName: string, objectName: string) => {
-
   return await client.object.headObject(bucketName, objectName);
 };
 
@@ -46,7 +45,20 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
   }
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
+const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number) => {
+  // loading status
+  // todo add error status maybe?
+  if (!bnbValue || Number(bnbValue) < 0) {
+    return '--';
+  }
+  const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
+  const renderUsdValue =
+    getNumInDigits(numberInUsd, 8, true) === 0
+      ? `≈${renderUsd(bnbValue, exchangeRate)}`
+      : renderUsd(bnbValue, exchangeRate);
 
+  return `${renderBnb(bnbValue)} BNB (${renderUsdValue})`;
+};
 const renderUsd = (bnbValue: string, exchangeRate: number) => {
   const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
   return `$${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
@@ -322,4 +334,5 @@ export {
   viewFileByAxiosResponse,
   saveFileByAxiosResponse,
   truncateFileName,
+  renderPrelockedFeeValue,
 };

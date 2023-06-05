@@ -158,7 +158,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      const secondarySpAddresses = globalSps.filter((item: any) => item.operatorAddress !== sp.operatorAddress).map((item: any) => item.operatorAddress);
+      const secondarySpAddresses = globalSps
+        .filter((item: any) => item.operatorAddress !== sp.operatorAddress)
+        .map((item: any) => item.operatorAddress);
       const createBucketParams: TCreateBucket = {
         creator: address,
         bucketName,
@@ -167,14 +169,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           primarySpAddress: sp.operatorAddress,
           sealAddress: sp.sealAddress,
           secondarySpAddresses,
-        } ,
+        },
         signType: 'offChainAuth',
         domain,
         seedString,
         // TODO check up update visibility component
         visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
         chargedReadQuota: '0',
-      }
+      };
       const createBucketTx = await genCreateBucketTx(createBucketParams);
 
       const simulateInfo = await createBucketTx.simulate({
@@ -288,7 +290,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         const bucketName = data.bucketName;
         const domain = getDomain();
         // NOTICE: Avoid the user skip got get gas fee step
-        const secondarySpAddresses = globalSps.filter((item: any) => item.operatorAddress !== sp.operatorAddress).map((item: any) => item.operatorAddress);
+        const secondarySpAddresses = globalSps
+          .filter((item: any) => item.operatorAddress !== sp.operatorAddress)
+          .map((item: any) => item.operatorAddress);
         const spInfo = {
           endpoint: sp.endpoint,
           primarySpAddress: sp.operatorAddress,
@@ -304,7 +308,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           seedString,
           visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
           chargedReadQuota: '0',
-        }
+        };
         const createBucketTx = await genCreateBucketTx(createBucketParams);
         const simulateInfo = await createBucketTx.simulate({
           denom: 'BNB',

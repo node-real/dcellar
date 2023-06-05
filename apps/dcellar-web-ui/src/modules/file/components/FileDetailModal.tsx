@@ -39,6 +39,7 @@ import {
   formatBytes,
   renderBalanceNumber,
   renderFeeValue,
+  renderPrelockedFeeValue,
   renderInsufficientBalance,
   transformVisibility,
 } from '@/modules/file/utils';
@@ -113,7 +114,7 @@ const renderFee = (
         )}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
+         {key === 'Prelocked storage fee'? renderPrelockedFeeValue(bnbValue, exchangeRate) : renderFeeValue(bnbValue, exchangeRate)}
       </Text>
     </Flex>
   );
