@@ -12,7 +12,7 @@ const FILE_DOWNLOAD_URL = `${assetPrefix}/images/files/file_download.gif`;
 const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
 const DELETE_ICON_URL = `${assetPrefix}/images/icons/delete.gif`;
 const UPLOAD_IMAGE_URL = `${assetPrefix}/images/files/upload.svg`;
-const FILE_INFO_IMAGE_URL = `/images/files/upload_file.svg`;
+const FILE_INFO_IMAGE_URL = `${assetPrefix}/images/files/upload_file.svg`;
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
