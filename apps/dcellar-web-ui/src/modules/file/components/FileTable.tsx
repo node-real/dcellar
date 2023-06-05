@@ -82,6 +82,7 @@ import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -116,6 +117,7 @@ interface fileListProps {
   spAddress: string;
   primarySpSealAddress: string;
   isLoading: boolean;
+  bucketIsDiscontinued: boolean;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
@@ -217,6 +219,7 @@ export const FileTable = (props: fileListProps) => {
     bucketName,
     endpoint,
     spAddress,
+    bucketIsDiscontinued,
     primarySpSealAddress,
     isLoading = false,
     setListObjects,
@@ -260,8 +263,13 @@ export const FileTable = (props: fileListProps) => {
   }, [width]);
 
   const tableFullHeight = useMemo(() => {
+    if (bucketIsDiscontinued) {
+      return (
+        height - 65 - 48 - 24 - 60 - DISCONTINUED_BANNER_HEIGHT - DISCONTINUED_BANNER_MARGIN_BOTTOM
+      );
+    }
     return height - 65 - 48 - 24 - 60;
-  }, [height]);
+  }, [bucketIsDiscontinued, height]);
 
   const skeletonData = useMemo(() => {
     return makeData(Math.floor(tableFullHeight / 56) - 1);

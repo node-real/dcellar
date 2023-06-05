@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -9,25 +9,12 @@ import {
 } from '@tanstack/react-table';
 import { useQuery } from '@tanstack/react-query';
 import { useVirtual } from '@tanstack/react-virtual';
-import {
-  Box,
-  Flex,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  SkeletonSquare,
-  Text,
-  toast,
-  useDisclosure,
-} from '@totejs/uikit';
+import { Box, Flex, SkeletonSquare, Text, toast, useDisclosure } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { getUserBuckets } from '@bnb-chain/greenfield-storage-js-sdk';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 
-import FileIcon from '@/public/images/icons/file.svg';
-import MenuIcon from '@/public/images/icons/menu.svg';
 import { makeData } from './makeData';
 import { NewBucket } from './NewBucket';
 import { Empty } from '@/modules/buckets/List/components/Empty';
@@ -35,12 +22,14 @@ import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucket } from '@/modules/buckets/List/components/DeleteBucket';
 import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
 import { formatTime, getMillisecond } from '../../utils/formatTime';
-import { getQuota } from '@/modules/file/utils';
-import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useSPs } from '@/hooks/useSPs';
 import { getDomain } from '@/utils/getDomain';
 import { getOffChainData } from '@/modules/off-chain-auth/utils';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { ActionItem } from './ActionItem';
+import { BucketNameItem } from './BucketNameItem';
+import { IBucketItem, ITableItem } from '../type';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 
 export const TableList = () => {
   const { sp, sps } = useSPs();
@@ -58,11 +47,6 @@ export const TableList = () => {
     consumedQuota: number;
   } | null>(null);
   const router = useRouter();
-  const { setOpenAuthModal } = useOffChainAuth();
-  const setCloseAndShowAuthModal = useCallback(() => {
-    onClose();
-    setOpenAuthModal();
-  }, [onClose, setOpenAuthModal]);
 
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
@@ -70,35 +54,13 @@ export const TableList = () => {
     return newWidth - 269 - 24 - 24;
   }, [width]);
 
-  const tableFullHeight = useMemo(() => {
-    return height - 65 - 48 - 24 - 48;
-  }, [height]);
-
-  const skeletonData = makeData(Math.floor(tableFullHeight / 56) - 1);
-
   const columns = React.useMemo<ColumnDef<any>[]>(
     () => [
       {
         accessorKey: 'bucket_name',
         header: 'Name',
         size: 360,
-        cell: (info: any) => (
-          <Flex alignItems={'center'} mr={'8px'}>
-            <Box width={'24px'}>
-              <FileIcon color="inherit" />
-            </Box>
-            <Text
-              marginX={'4px'}
-              overflow={'hidden'}
-              textOverflow={'ellipsis'}
-              whiteSpace={'nowrap'}
-              color="inherit"
-              fontWeight={500}
-            >
-              {info.getValue()}
-            </Text>
-          </Flex>
-        ),
+        cell: (info: any) => <BucketNameItem info={info} />,
       },
       {
         accessorKey: 'create_at',
@@ -115,99 +77,21 @@ export const TableList = () => {
         header: () => 'Action',
         size: 60,
         cell: (info) => {
-          const {
-            row: { original: rowData },
-          } = info;
           return (
-            <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
-              <Menu offset={[-12, 0]} placement="bottom-start" trigger="hover" strategy="fixed">
-                {({ isOpen }) => (
-                  <>
-                    <MenuButton
-                      // avoid the menu button to affect other layers
-                      position={'static'}
-                      boxSize={24}
-                      display={'flex'}
-                      justifyContent={'center'}
-                      alignItems={'center'}
-                      onClick={(e) => e.stopPropagation()}
-                      as={'div'}
-                      cursor="pointer"
-                      bgColor={isOpen ? 'rgba(0, 186, 52, 0.1)' : 'transparent'}
-                      color={isOpen ? 'readable.brand6' : 'readable.normal'}
-                      borderRadius={18}
-                      transitionProperty="colors"
-                      transitionDuration="normal"
-                      _hover={{
-                        bgColor: 'rgba(0, 186, 52, 0.2)',
-                        color: 'readable.brand6',
-                      }}
-                    >
-                      <MenuIcon />
-                    </MenuButton>
-                    <MenuList w={'120px'}>
-                      <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
-                      <GAClick name="dc.bucket.list_menu.detail.click">
-                        <MenuItem
-                          _hover={{
-                            color: 'readable.brand7',
-                            backgroundColor: 'rgba(0, 186, 52, 0.1)',
-                          }}
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            setShowDetail(true);
-                            onOpen();
-                            setRowData(rowData);
-                            setQuotaData(null);
-                            const spIndex = sps.findIndex(function (item: any) {
-                              return item.operatorAddress === rowData?.primary_sp_address;
-                            });
-                            if (spIndex < 0) {
-                              toast.error({
-                                description: `Sp address info is mismatched, please retry.`,
-                              });
-                              return;
-                            }
-                            const { endpoint: spEndpoint } = sps[spIndex];
-                            const currentQuotaData = await getQuota(
-                              rowData.bucket_name,
-                              spEndpoint,
-                            );
-                            setQuotaData(currentQuotaData);
-                          }}
-                        >
-                          <Text fontWeight={500}>View Details</Text>
-                        </MenuItem>
-                      </GAClick>
-                      <GAClick name="dc.bucket.list_menu.delete.click">
-                        <MenuItem
-                          _hover={{
-                            color: 'readable.brand7',
-                            backgroundColor: 'rgba(0, 186, 52, 0.1)',
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDetail(false);
-                            onOpen();
-                            const curSp = sps.find(
-                              (item: any) => item.operatorAddress === rowData.primary_sp_address,
-                            );
-                            setRowData({ ...rowData, spEndpoint: curSp?.endpoint });
-                          }}
-                        >
-                          <Text fontWeight={500}>Delete</Text>
-                        </MenuItem>
-                      </GAClick>
-                    </MenuList>
-                  </>
-                )}
-              </Menu>
-            </Flex>
+            <ActionItem
+              sps={sps}
+              info={info}
+              rowData={rowData}
+              setShowDetail={setShowDetail}
+              setRowData={setRowData}
+              setQuotaData={setQuotaData}
+              onOpen={onOpen}
+            />
           );
         },
       },
     ],
-    [onOpen, sps, address, setCloseAndShowAuthModal],
+    [onOpen, rowData, sps],
   );
   const isLoadingColumns = columns.map((column) => ({
     ...column,
@@ -216,27 +100,49 @@ export const TableList = () => {
   let { data, isLoading, refetch } = useQuery<any>(
     ['getBucketList'],
     async () => {
-      // TODO add auth check and error handling
-      const domain = getDomain();
-      const { seedString } = await getOffChainData(address);
-      const res: any = await getUserBuckets({
-        userAddress: address,
-        endpoint: sp?.endpoint,
-        domain,
-        seedString,
-      });
-      const data =
-        res.body
+      try {
+        const domain = getDomain();
+        const { seedString } = await getOffChainData(address);
+        const res: any = await getUserBuckets({
+          userAddress: address,
+          endpoint: sp?.endpoint,
+          domain,
+          seedString,
+        });
+        const data: ITableItem[] = res.body
           .filter((item: any) => !item.removed)
-          .map((item: any) => {
-            return item.bucket_info;
-          })
-          .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at)) ?? [];
+          .map((item: IBucketItem) => ({
+            id: item.bucket_info.id,
+            bucket_name: item.bucket_info.bucket_name,
+            create_at: item.bucket_info.create_at,
+            originalData: item,
+          }))
+          .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
 
-      return data;
+        return data;
+      } catch (e) {
+        toast.error({
+          description: `Failed to get bucket list, please retry.`,
+        });
+        return [];
+      }
     },
     { enabled: !isEmpty(sp) },
   );
+  const hasContinuedBucket = useMemo(() => {
+    return data?.some((item: any) => item.originalData.bucket_info.bucket_status === 1);
+  }, [data]);
+
+  const tableFullHeight = useMemo(() => {
+    if (hasContinuedBucket) {
+      return (
+        height - 65 - 48 - 24 - 48 - DISCONTINUED_BANNER_HEIGHT - DISCONTINUED_BANNER_MARGIN_BOTTOM
+      );
+    }
+    return height - 65 - 48 - 24 - 48;
+  }, [hasContinuedBucket, height]);
+
+  const skeletonData = makeData(Math.floor(tableFullHeight / 56) - 1);
 
   const totalDBRowCount = 0;
   const table = useReactTable({
@@ -276,6 +182,13 @@ export const TableList = () => {
           gaClickName="dc.bucket.list.newbucket.click"
         />
       </Flex>
+      {hasContinuedBucket && (
+        <DiscontinueBanner
+          content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
+          height={DISCONTINUED_BANNER_HEIGHT}
+          marginBottom={DISCONTINUED_BANNER_MARGIN_BOTTOM}
+        />
+      )}
       <Box
         className="container"
         borderRadius={'16px'}
@@ -353,7 +266,11 @@ export const TableList = () => {
                     backgroundColor: isLoading ? 'transparent' : 'rgba(0, 186, 52, 0.1)',
                     color: 'readable.brand7',
                   }}
-                  onClick={() => router.push(`/buckets/${row.original.bucket_name}`)}
+                  onClick={() =>
+                    router.push(
+                      `/buckets/${row.original.bucket_name}`,
+                    )
+                  }
                   borderBottom="1px solid #E6E8EA"
                 >
                   {row.getVisibleCells().map((cell) => {
@@ -383,7 +300,8 @@ export const TableList = () => {
           isOpen={isOpen}
           onClose={onClose}
           bucketName={rowData.bucket_name}
-          sp={{ address: rowData.primary_sp_address, endpoint: rowData.spEndpoint }}
+          // Request for deletion on the sp where the bucket is located
+          sp={{ address: rowData.originalData.bucket_info.primary_sp_address, endpoint: rowData.spEndpoint }}
         />
       )}
     </Box>

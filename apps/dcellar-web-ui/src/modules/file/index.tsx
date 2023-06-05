@@ -1,4 +1,4 @@
-import { Flex, Text, Image, useDisclosure, toast, Link } from '@totejs/uikit';
+import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
   decodeObjectFromHexString,
@@ -17,7 +17,6 @@ import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
 import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import FileEmptyIcon from '@/public/images/files/file_empty.svg';
 import {
   BUTTON_GOT_IT,
   FILE_FAILED_URL,
@@ -41,18 +40,51 @@ import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-
+import { FileListEmpty } from './components/FileListEmpty';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
+import UploadIcon from '@/public/images/files/upload_transparency.svg';
 interface pageProps {
   bucketName: string;
+  bucketInfo: any;
 }
 
-const FILE_NAME_REGEX = /^[\s\S0-9\s!@$^&*()_+\-={}[\]|\\<\>\/;:'",./`~()]+(\.[a-zA-Z]+)?$/;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
 const MAX_SIZE = 268435456;
-const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
+const renderUploadButton = (
+  isCurrentUser: boolean,
+  isDiscontinued: boolean,
+  gaClickName?: string,
+) => {
   if (!isCurrentUser) return <></>;
+  if (isDiscontinued) {
+    return (
+      <Tooltip
+        placement="bottom-end"
+        content="Bucket in the discontinue status cannot upload files."
+      >
+        <Flex
+          bgColor="#AEB4BC"
+          _hover={{ bg: '#AEB4BC' }}
+          position="relative"
+          paddingX="16px"
+          paddingY="8px"
+          alignItems="center"
+          borderRadius={'8px'}
+          cursor="pointer"
+          color="#76808F"
+        >
+          <UploadIcon w="24px" h="24px" alt="" />
+          <Text fontWeight={500} fontSize="16px" lineHeight="20px">
+            Upload
+          </Text>
+        </Flex>
+      </Tooltip>
+    );
+  }
+
   return (
     <GAClick name={gaClickName}>
       <label htmlFor="file-upload" className="custom-file-upload">
@@ -76,8 +108,7 @@ const renderUploadButton = (isCurrentUser: boolean, gaClickName?: string) => {
   );
 };
 
-export const File = (props: pageProps) => {
-  const { bucketName } = props;
+export const File = ({ bucketName, bucketInfo }: pageProps) => {
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -109,6 +140,8 @@ export const File = (props: pageProps) => {
   const comlinkWorkerApiRef = useRef<Comlink.Remote<WorkerApi>>();
   const router = useRouter();
   const { setOpenAuthModal } = useOffChainAuth();
+  const isDiscontinued = bucketInfo.bucketStatus === 1;
+
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
@@ -499,6 +532,7 @@ export const File = (props: pageProps) => {
   } = useDisclosure();
   if (!bucketName) return <></>;
 
+
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
@@ -514,7 +548,8 @@ export const File = (props: pageProps) => {
         >
           {bucketName}
         </Text>
-        {renderUploadButton(isCurrentUser, 'dc.file.list.upload.click')}
+        {!isEmptyData &&
+          renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
         <input
           type="file"
           id="file-upload"
@@ -529,6 +564,13 @@ export const File = (props: pageProps) => {
           }}
         />
       </Flex>
+      {isDiscontinued && (
+        <DiscontinueBanner
+          content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
+          height={DISCONTINUED_BANNER_HEIGHT}
+          marginBottom={DISCONTINUED_BANNER_MARGIN_BOTTOM}
+        />
+      )}
       {isEmptyData && isCurrentUser ? (
         <Flex
           flex={1}
@@ -537,30 +579,10 @@ export const File = (props: pageProps) => {
           justifyContent={'center'}
           marginBottom={'104px'}
         >
-          <FileEmptyIcon w="120px" h="120px" />
-          <Text
-            fontSize="18px"
-            lineHeight="22px"
-            fontWeight={500}
-            mt={'16px'}
-            color={'readable.secondary'}
-          >
-            Upload your files to this bucket right now!👏
-          </Text>
-          <Text
-            fontSize="12px"
-            lineHeight="16px"
-            fontWeight={400}
-            mt={'4px'}
-            mb={'24px'}
-            color={'readable.tertiary'}
-            textAlign={'center'}
-          >
-            (Please make sure your file is smaller than 256MB during testnet phase. <br />
-            Please be aware that data loss might occur during testnet phase.)
-          </Text>
+          <FileListEmpty bucketStatus={bucketInfo.bucketStatus} />
           <GAShow name="dc.file.empty.upload.show" />
-          {renderUploadButton(isCurrentUser, 'dc.file.empty.upload.click')}
+          {bucketInfo.bucketStatus === 0 &&
+            renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
         </Flex>
       ) : (
         <FileTable
@@ -569,6 +591,7 @@ export const File = (props: pageProps) => {
           endpoint={endpoint}
           spAddress={primarySpAddress}
           primarySpSealAddress={primarySpSealAddress}
+          bucketIsDiscontinued={isDiscontinued}
           isLoading={listLoading}
           setListObjects={setListObjects}
           setStatusModalIcon={setStatusModalIcon}

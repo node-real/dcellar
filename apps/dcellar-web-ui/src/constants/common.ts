@@ -4,3 +4,6 @@ export const TIME = {
   HOUR: 60 * 60 * 1000,
   DAY: 24 * 60 * 60 * 1000,
 };
+
+export const DISCONTINUED_BANNER_HEIGHT = 44;
+export const DISCONTINUED_BANNER_MARGIN_BOTTOM = 16;
