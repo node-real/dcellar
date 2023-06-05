@@ -21,12 +21,14 @@ declare module '@totejs/uikit' {
   }
 }
 
-interface Window {
-  web3: any;
-  ethereum: any;
-  ga: any;
-  clipboardData: any;
-  trustwallet: any;
+declare global {
+  interface Window {
+    web3: any;
+    ethereum: any;
+    ga: any;
+    clipboardData: any;
+    trustwallet: any;
+  }
 }
 
 declare module '*.svg' {
