@@ -118,7 +118,7 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
           <GAClick name="dc.main.account.transferout.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               _hover={{ bg: 'readable.secondary' }}
               borderRadius="4px"
@@ -138,7 +138,7 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
           <GAClick name="dc.main.account.send.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               w={'91px'}
               padding={0}

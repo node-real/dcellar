@@ -1,12 +1,4 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Text,
-  Flex,
-  toast,
-  Box,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import React, { useContext, useEffect, useState } from 'react';
 import { useLogin } from '@/hooks/useLogin';
@@ -215,11 +207,11 @@ export const ConfirmCancelModal = (props: modalProps) => {
               const cancelObjectTx = await client.object.cancelCreateObject({
                 bucketName,
                 objectName: name,
-                operator: address
+                operator: address,
               });
               const simulateInfo = await cancelObjectTx.simulate({
-                denom: 'BNB'
-              })
+                denom: 'BNB',
+              });
               const txRes = await cancelObjectTx.broadcast({
                 denom: 'BNB',
                 gasLimit: Number(simulateInfo?.gasLimit),
@@ -230,7 +222,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
                   const provider = await connector?.getProvider();
                   return await signTypedDataV4(provider, addr, message);
                 },
-              })
+              });
               if (txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
               } else {

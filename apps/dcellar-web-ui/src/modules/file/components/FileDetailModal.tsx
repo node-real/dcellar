@@ -582,7 +582,7 @@ export const FileDetailModal = (props: modalProps) => {
                 fontSize={'14px'}
                 fontWeight={400}
                 lineHeight={'24px'}
-                color={freeze ? '#AEB4BC' : 'primary'}
+                color={freeze ? '#AEB4BC' : 'readable.primary'}
                 cursor={freeze ? 'not-allowed' : 'pointer'}
                 _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)' }}
                 border={freeze ? '1px solid #AEB4BC' : '1px solid #00ba34'}
