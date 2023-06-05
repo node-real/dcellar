@@ -22,7 +22,7 @@ export default function Document() {
         <script defer src={`${assetPrefix}/zk-wasm/init.js`}></script>
         <Ga4 id={GA_ID} />
       </Head>
-      <body style={{ background: 'transparent' }}>
+      <body>
         <Main />
         <NextScript />
       </body>
