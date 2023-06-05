@@ -78,11 +78,12 @@ export function SPSelector(props: SPSelector) {
 
   const options = useMemo(() => {
     return finalSPs.map((item) => {
-      const { operatorAddress, name } = getNameAndAddress(item);
+      const { operatorAddress, name, endpoint } = getNameAndAddress(item);
       return {
-        label: <OptionItem address={operatorAddress} name={name} />,
+        label: <OptionItem address={operatorAddress} name={name}  endpoint={endpoint} />,
         value: operatorAddress,
         name,
+        endpoint: item.endpoint,
       };
     });
   }, [finalSPs]);
@@ -107,6 +108,7 @@ function getNameAndAddress(item: any = {}) {
   return {
     operatorAddress: item?.operatorAddress ?? '',
     name: item?.description?.moniker ?? '',
+    endpoint: item?.endpoint ?? '',
   };
 }
 
@@ -135,7 +137,8 @@ function useTextAndValue(item: any) {
 }
 
 function OptionItem(props: any) {
-  const { address, name } = props;
+  const { address, name, endpoint } = props;
+  const renderAddress = trimLongStr(address, 10, 6, 4);
 
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
@@ -144,21 +147,23 @@ function OptionItem(props: any) {
         lineHeight="19px"
         fontWeight={400}
         w="100%"
-        color="readable.secondary"
+        color="readable.top.secondary"
         noOfLines={1}
       >
-        {name || address}
+        {`${name} | ${renderAddress}`}
       </Text>
       {name && (
         <Text
           mt={2}
-          fontSize={10}
+          fontSize={12}
+          transformOrigin='0 50%'
+          transform={'scale(0.85)'}
           lineHeight="18px"
           fontWeight={400}
           color="readable.secondary"
           noOfLines={1}
         >
-          {address}
+          {endpoint}
         </Text>
       )}
     </Box>
