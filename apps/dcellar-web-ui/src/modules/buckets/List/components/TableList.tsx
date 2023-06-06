@@ -20,7 +20,7 @@ import { Empty } from '@/modules/buckets/List/components/Empty';
 import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucket } from '@/modules/buckets/List/components/DeleteBucket';
 import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
-import { formatTime, getMillisecond } from '../../../../utils/time';
+import { formatTime, getMillisecond } from '@/utils/time';
 import { useSPs } from '@/hooks/useSPs';
 import { getDomain } from '@/utils/getDomain';
 import { getOffChainData } from '@/modules/off-chain-auth/utils';
@@ -197,7 +197,7 @@ export const TableList = () => {
         paddingX="16px"
         border="none"
         backgroundColor={'#fff'}
-        // ref={tableContainerRef}
+        ref={tableContainerRef}
       >
         <Box
           as="table"
@@ -250,11 +250,11 @@ export const TableList = () => {
             ))}
           </Box>
           <Box as="tbody">
-            {/* {paddingTop > 0 && (
+            {paddingTop > 0 && (
               <Box as="tr">
                 <td style={{ height: `${paddingTop}px` }} />
               </Box>
-            )} */}
+            )}
             {rows.map((virtualRow) => {
               const row = rows[virtualRow.index] as Row<any>;
               return (
@@ -280,11 +280,11 @@ export const TableList = () => {
                 </Box>
               );
             })}
-            {/* {paddingBottom > 0 && (
+            {paddingBottom > 0 && (
               <Box as="tr">
                 <td style={{ height: `${paddingBottom}px` }} />
               </Box>
-            )} */}
+            )}
           </Box>
         </Box>
       </Box>
