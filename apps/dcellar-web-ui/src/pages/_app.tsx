@@ -50,21 +50,21 @@ interface NextAppProps extends AppProps {
 
 function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
-  usePreloadImages([
-    FILE_BOX_IMAGE_URL,
-    FILE_TOO_LARGE_URL,
-    FILE_FAILED_URL,
-    FILE_EMPTY_URL,
-    FILE_DELETE_GIF,
-    PENDING_ICON_URL,
-    COPY_SUCCESS_ICON,
-    FILE_UPLOAD_URL,
-    FILE_DOWNLOAD_URL,
-    NOT_ENOUGH_QUOTA_URL,
-    DELETE_ICON_URL,
-    UPLOAD_IMAGE_URL,
-    FILE_INFO_IMAGE_URL,
-  ]);
+  // usePreloadImages([
+  //   FILE_BOX_IMAGE_URL,
+  //   FILE_TOO_LARGE_URL,
+  //   FILE_FAILED_URL,
+  //   FILE_EMPTY_URL,
+  //   FILE_DELETE_GIF,
+  //   PENDING_ICON_URL,
+  //   COPY_SUCCESS_ICON,
+  //   FILE_UPLOAD_URL,
+  //   FILE_DOWNLOAD_URL,
+  //   NOT_ENOUGH_QUOTA_URL,
+  //   DELETE_ICON_URL,
+  //   UPLOAD_IMAGE_URL,
+  //   FILE_INFO_IMAGE_URL,
+  // ]);
 
   return (
     <StatusCodeContext.Provider value={statusCode}>

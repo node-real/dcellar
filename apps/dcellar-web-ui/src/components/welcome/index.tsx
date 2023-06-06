@@ -167,13 +167,13 @@ const Welcome = () => {
       }
     },
   });
-  useEffect(() => {
-    Array.from(
-      new Set(Object.values(InternalRoutePaths).map((relativePath) => relativePath.split('?')[0])),
-    ).forEach((path: string) => {
-      router.prefetch(path);
-    });
-  }, [router]);
+  // useEffect(() => {
+  //   Array.from(
+  //     new Set(Object.values(InternalRoutePaths).map((relativePath) => relativePath.split('?')[0])),
+  //   ).forEach((path: string) => {
+  //     router.prefetch(path);
+  //   });
+  // }, [router]);
 
   useEffect(() => {
     if (isConnected) {
