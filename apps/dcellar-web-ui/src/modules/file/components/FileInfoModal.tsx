@@ -16,7 +16,6 @@ import {
   formatBytes,
   saveFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { formatDateUTC } from '@/utils/time';
 import { CopyText } from '@/components/common/CopyText';
 import { formatAddress, trimAddress } from '@/utils/string';
 import { DCModal } from '@/components/common/DCModal';
@@ -34,6 +33,7 @@ import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { formatFullTime } from '@/utils/time';
 
 interface modalProps {
   title?: string;
@@ -311,7 +311,7 @@ export const FileInfoModal = (props: modalProps) => {
         </Flex>
         <Divider />
         <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-          {renderPropRow('Date uploaded', formatDateUTC(createdDate * 1000))}
+          {renderPropRow('Date uploaded', formatFullTime(createdDate * 1000))}
           {renderAddressLink(
             'Primary SP address',
             primarySpAddress,

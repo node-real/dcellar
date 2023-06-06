@@ -19,7 +19,6 @@ export const SPProvider: React.FC<any> = ({ children }) => {
   });
   const finalSps = (data ?? []).filter((v: any) => v?.description?.moniker !== 'QATest');
   const randomIndex = Math.floor(Math.random() * finalSps.length);
-
   const DefaultSp = {
     isLoading: isLoading,
     isError: isError,

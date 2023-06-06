@@ -10,14 +10,13 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.5
+      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.8
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
       '@emotion/react': ^11.10.5
       '@emotion/styled': ^11.10.5
       '@ethereumjs/util': ^8.0.5
-      '@faker-js/faker': ~7.6.0
       '@next/bundle-analyzer': ^13.1.6
       '@next/eslint-plugin-next': ^13.1.6
       '@sentry/nextjs': ~7.52.1
@@ -52,7 +51,6 @@ importers:
       lint-staged: ^13.1.1
       lodash-es: ^4.17.21
       long: ^5.2.1
-      moment: ^2.29.4
       next: 13.3.1
       prettier: ^2.8.4
       query-string: ^8.1.0
@@ -65,11 +63,10 @@ importers:
       worker-plugin: ^5.0.1
     dependencies:
       '@babel/core': 7.21.8
-      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.5
+      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.8
       '@emotion/react': 11.11.0_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_e26648cc40f2a727295f0806c5bada42
       '@ethereumjs/util': 8.0.6
-      '@faker-js/faker': 7.6.0
       '@next/bundle-analyzer': 13.4.3
       '@sentry/nextjs': 7.52.1_next@13.3.1+react@18.2.0
       '@tanstack/react-query': 4.24.6_react-dom@18.2.0+react@18.2.0
@@ -91,7 +88,6 @@ importers:
       google-protobuf: 3.21.2
       lodash-es: 4.17.21
       long: 5.2.3
-      moment: 2.29.4
       next: 13.3.1_da7e70ebcfb199e93c37711334dfd748
       query-string: 8.1.0
       react: 18.2.0
@@ -1456,13 +1452,12 @@ packages:
       '@babel/helper-validator-identifier': 7.19.1
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.2.1-alpha.5:
-    resolution: {integrity: sha512-kv5HIdxkI3TeaGXevJlT074k+RdxX6q4Su9qDKaOndt1SB2RC51i8lNZk8dlVhWbJ11he0CTwxL9RYlxaznfSQ==}
+  /@bnb-chain/greenfield-chain-sdk/0.2.1-alpha.8:
+    resolution: {integrity: sha512-uEeUzw3/3uW/c/SRU/+UgEUYdPooQdrXh3Pi7tlikgjDwFDtQrL3pKBqlehikrLcI59mpgv5fsM3Du80e8Wl0Q==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.10
       '@bnb-chain/greenfiled-file-handle': 0.2.0
-      '@bnb-chain/zkbas-js-sdk': 3.0.0
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
@@ -1493,15 +1488,6 @@ packages:
   /@bnb-chain/greenfiled-file-handle/0.2.0:
     resolution: {integrity: sha512-UER3459jjNouGEr5lMb1zFT9yPqOthLdspl3RTfP5HDgM2P2Y+13PlXSi4DY1PNL8pjah7iZbfmxdJH7V+y9wg==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
-    dev: false
-
-  /@bnb-chain/zkbas-js-sdk/3.0.0:
-    resolution: {integrity: sha512-nicD/tvQmhELV/e6us5dI67kqI8Q/NISKdM/9SV2vryPfDpTaHeufEM3eOVE/f4CDjsn99x82N4A4ZeoW9pHww==}
-    dependencies:
-      axios: 0.27.2
-      shelljs: 0.8.5
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /@builder.io/partytown/0.7.6:
@@ -2347,11 +2333,6 @@ packages:
       '@ethersproject/logger': 5.7.0
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
-    dev: false
-
-  /@faker-js/faker/7.6.0:
-    resolution: {integrity: sha512-XK6BTq1NDMo9Xqw/YkYyGjSsg44fbNwYRx7QK2CuoQgyy+f1rrTDHoExVM5PsyXCtfl2vs2vVJ0MN0yN6LppRw==}
-    engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: false
 
   /@humanwhocodes/config-array/0.11.8:
@@ -4571,15 +4552,6 @@ packages:
       - debug
     dev: false
 
-  /axios/0.27.2:
-    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
-    dependencies:
-      follow-redirects: 1.15.2
-      form-data: 4.0.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /axios/1.4.0:
     resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
     dependencies:
@@ -6317,6 +6289,7 @@ packages:
       minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
+    dev: true
 
   /glob/8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
@@ -6572,11 +6545,6 @@ packages:
       get-intrinsic: 1.2.1
       has: 1.0.3
       side-channel: 1.0.4
-
-  /interpret/1.4.0:
-    resolution: {integrity: sha512-agE4QfB2Lkp9uICn7BAqoscw4SZP9kTE2hxiFI3jBPmXJfdqiahTbUuKGsMoN2GtqL9AxhYioAcVvgsb1HvRbA==}
-    engines: {node: '>= 0.10'}
-    dev: false
 
   /is-arguments/1.1.1:
     resolution: {integrity: sha512-8Q7EARjzEnKpt/PCD7e1cgUS0a6X8u5tdSiMqXhojOdoV9TsMsiO+9VLC5vAmO8N7/GmXn7yjR8qnA6bVAEzfA==}
@@ -7333,10 +7301,6 @@ packages:
       minimist: 1.2.8
     dev: false
 
-  /moment/2.29.4:
-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
-    dev: false
-
   /moo/0.5.2:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
     dev: true
@@ -8069,13 +8033,6 @@ packages:
     engines: {node: '>= 12.13.0'}
     dev: false
 
-  /rechoir/0.6.2:
-    resolution: {integrity: sha512-HFM8rkZ+i3zrV+4LQjwQ0W+ez98pApMGM3HUrN04j3CqzPOzl9nmP15Y8YXNm8QHGv/eacOVEjqhmWpkRV0NAw==}
-    engines: {node: '>= 0.10'}
-    dependencies:
-      resolve: 1.22.2
-    dev: false
-
   /redent/3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
@@ -8352,16 +8309,6 @@ packages:
   /shebang-regex/3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
-
-  /shelljs/0.8.5:
-    resolution: {integrity: sha512-TiwcRcrkhHvbrZbnRcFYMLl30Dfov3HKqzp5tO5b4pt6G/SezKcYhmDg15zXVBswHmctSAQKznqNW2LO5tTDow==}
-    engines: {node: '>=4'}
-    hasBin: true
-    dependencies:
-      glob: 7.2.3
-      interpret: 1.4.0
-      rechoir: 0.6.2
-    dev: false
 
   /side-channel/1.0.4:
     resolution: {integrity: sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==}

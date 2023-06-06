@@ -1,6 +1,5 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import BigNumber from 'bignumber.js';
-import moment from 'moment/moment';
 import Long from 'long';
 import { toast } from '@totejs/uikit';
 import { useBalance, useNetwork } from 'wagmi';
@@ -8,6 +7,7 @@ import { useBalance, useNetwork } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
 import { client } from '@/base/client';
+import { getUtcZeroTimestamp } from '@/utils/time';
 
 const MINIUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
@@ -84,7 +84,7 @@ function ChainBalanceContextProvider(props: any) {
         const latestStaticBalance = BigNumber(staticBalance as string)
           .plus(
             BigNumber(netflowRate as string).times(
-              moment().unix() - (crudTimestamp as Long).toNumber(),
+              Math.floor(getUtcZeroTimestamp()/1000) - (crudTimestamp as Long).toNumber(),
             ),
           )
           .dividedBy(Math.pow(10, 18));

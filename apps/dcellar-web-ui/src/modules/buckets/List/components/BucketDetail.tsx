@@ -13,7 +13,7 @@ import React, { useMemo } from 'react';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
 import { formatAddress } from '../../utils/formatAddress';
 import { CopyText } from '@/components/common/CopyText';
-import { formatFullTime, getMillisecond } from '../../utils/formatTime';
+import { formatFullTime, getMillisecond } from '../../../../utils/time';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { formatBytes } from '@/modules/file/utils';

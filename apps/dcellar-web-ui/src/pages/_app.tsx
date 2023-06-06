@@ -50,7 +50,6 @@ interface NextAppProps extends AppProps {
 
 function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
-
   usePreloadImages([
     FILE_BOX_IMAGE_URL,
     FILE_TOO_LARGE_URL,

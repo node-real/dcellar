@@ -1,6 +1,5 @@
 import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import moment from 'moment';
 import * as Comlink from 'comlink';
 
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
@@ -42,6 +41,7 @@ import { isEmpty } from 'lodash-es';
 import { validateObjectName } from './utils/validateObjectName';
 import { genCreateObjectTx } from './utils/genCreateObjectTx';
 import { TCreateObjectData } from './type';
+import dayjs from 'dayjs';
 
 interface pageProps {
   bucketName: string;
@@ -636,7 +636,7 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         description={duplicateNameModalDescription}
         buttonOnClick={async () => {
           if (!file) return;
-          const insertedString = `-${moment().format('YYYY-MM-DD HH:mm:ss')}`;
+          const insertedString = `-${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
           const fileWithExtensionNameRegex = /^[^.\n]+\.[a-zA-Z]+$/;
           const newFilename = fileWithExtensionNameRegex.test(fileName as string)
             ? (fileName as string).replace(/(\.[\w\d]+)$/, insertedString + '$1')
