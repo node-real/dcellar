@@ -255,7 +255,7 @@ export const TableList = () => {
                 <td style={{ height: `${paddingTop}px` }} />
               </Box>
             )}
-            {rows.map((virtualRow) => {
+            {virtualRows.map((virtualRow) => {
               const row = rows[virtualRow.index] as Row<any>;
               return (
                 <Box
