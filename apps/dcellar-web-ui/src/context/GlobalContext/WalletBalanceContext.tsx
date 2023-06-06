@@ -31,8 +31,7 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
     data: bscBalance,
   } = useBalance({
     address,
-    // TODO
-    watch: false,
+    watch: true,
     chainId: BSC_CHAIN_ID,
   });
   const {

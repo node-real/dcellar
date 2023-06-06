@@ -16,9 +16,6 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
 
-// TODO replace moment with dayjs
-import moment from 'moment';
-
 import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import {
@@ -61,6 +58,7 @@ import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { getUtcZeroTimestamp } from '@/utils/time';
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -137,7 +135,8 @@ const getObjectIsSealed = async (
     domain,
   });
   if (listResult) {
-    const listObjects = listResult.body ?? [];
+    //  @ts-ignore TODO temp
+    const listObjects = listResult.body.objects ?? [];
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
       .map((v: any) => v.object_info)
@@ -348,7 +347,7 @@ export const FileDetailModal = (props: modalProps) => {
           payload_size: '0',
           object_status: OBJECT_STATUS_UPLOADING,
           checksums: configParam.expectCheckSums,
-          create_at: moment().unix(),
+          create_at: getUtcZeroTimestamp(),
           visibility: configParam.visibility,
         },
         removed: false,

@@ -1,7 +1,6 @@
 import { parseError } from '../utils/parseError';
 import { client } from '@/base/client';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
-import { memorize } from '@/base/http/utils/memorize';
 import { GET_APPROVAL_INTERVAL } from '@/constants/common';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
@@ -88,14 +87,11 @@ export const getDeleteBucketFee = async ({ bucketName, address}: any) => {
 };
 
 
-export const genCreateBucketTx = memorize({
-  fn: async (configParam: TCreateBucket) => {
-    const createBucketTx = await client.bucket.createBucket(configParam);
+export const genCreateBucketTx = async (configParam: TCreateBucket) => {
+  const createBucketTx = await client.bucket.createBucket(configParam);
 
-    return createBucketTx;
-  },
-  expirationMs: GET_APPROVAL_INTERVAL
-})
+  return createBucketTx;
+};
 
 
 type DeleteBucketProps = {

@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.20.12",
-    "@bnb-chain/greenfield-chain-sdk": "0.2.1-alpha.5",
+    "@bnb-chain/greenfield-chain-sdk": "0.0.0-snapshot-20230606104458",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@ethereumjs/util": "^8.0.5",
@@ -38,7 +38,6 @@
     "google-protobuf": "^3.21.2",
     "lodash-es": "^4.17.21",
     "long": "^5.2.1",
-    "moment": "^2.29.4",
     "next": "13.3.1",
     "query-string": "^8.1.0",
     "react": "18.2.0",
@@ -48,7 +47,6 @@
     "typescript": "5.0.4",
     "wagmi": "^0.12.9",
     "worker-plugin": "^5.0.1",
-    "@faker-js/faker": "~7.6.0",
     "@sentry/nextjs": "~7.52.1"
   },
   "devDependencies": {

@@ -63,7 +63,7 @@ import {
   viewFileByAxiosResponse,
   saveFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { formatTime, getMillisecond } from '@/modules/buckets/utils/formatTime';
+import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';

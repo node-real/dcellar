@@ -1,6 +1,6 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
+import { getUtcZeroTimestamp } from '../../utils/time';
 
 export const setOffChainData = ({
   address,

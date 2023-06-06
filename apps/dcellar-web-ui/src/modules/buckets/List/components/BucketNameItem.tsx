@@ -1,7 +1,7 @@
 import { Box, Flex, Text } from '@totejs/uikit'
 import React from 'react'
 import FileIcon from '@/public/images/icons/file.svg';
-import { formatFullTime } from '@/modules/buckets/utils/formatTime';
+import { formatFullTime } from '@/utils/time';
 import { DiscontinueNotice } from './DiscontinueNotice';
 
 
