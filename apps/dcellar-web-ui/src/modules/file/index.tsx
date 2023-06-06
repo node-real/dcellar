@@ -150,8 +150,10 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         seedString,
       });
       if (listResult) {
-        const tempListObjects = listResult.body ?? [];
-        setListObjects(listResult.body ?? []);
+        //  @ts-ignore TODO temp
+        const tempListObjects = listResult?.body?.objects ?? [];
+        //  @ts-ignore TODO temp
+        setListObjects(listResult.body?.objects ?? []);
         const realListObjects = tempListObjects
           .filter((v: any) => !v.removed)
           .map((v: any) => v.object_info);

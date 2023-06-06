@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import BigNumber from 'bignumber.js';
 import Long from 'long';
 import { toast } from '@totejs/uikit';
@@ -46,8 +46,7 @@ function ChainBalanceContextProvider(props: any) {
   const { data: greenfieldBalanceData } = useBalance({
     address: address as any,
     chainId: GREENFIELD_CHAIN_ID,
-    // TODO
-    watch: false,
+    watch: true,
   });
 
   const resetAllStatus = () => {
@@ -67,7 +66,7 @@ function ChainBalanceContextProvider(props: any) {
     }
   };
 
-  const getGnfdBalance = async (address: string) => {
+  const getGnfdBalance = useCallback(async (address: string) => {
     try {
       setIsLoading(true);
       setUseMetamaskValue(false);
@@ -128,7 +127,7 @@ function ChainBalanceContextProvider(props: any) {
       // eslint-disable-next-line no-console
       console.error('Get balance and lock fee error', error);
     }
-  };
+  }, []);
 
   // get greenfield chain balance
   useEffect(() => {

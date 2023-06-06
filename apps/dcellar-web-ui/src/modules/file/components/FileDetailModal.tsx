@@ -135,7 +135,8 @@ const getObjectIsSealed = async (
     domain,
   });
   if (listResult) {
-    const listObjects = listResult.body ?? [];
+    //  @ts-ignore TODO temp
+    const listObjects = listResult.body.objects ?? [];
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
       .map((v: any) => v.object_info)
