@@ -35,7 +35,7 @@ import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkOffChainDataAvailable, getOffChainList } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { Footer } from '@/components/layout/Footer';
 
@@ -184,8 +184,8 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          const offChainData = getOffChainData(currentAddress);
-          const isAvailable = checkOffChainDataAvailable(offChainData);
+          const offChainList = getOffChainList({ address: currentAddress});
+          const isAvailable = checkOffChainDataAvailable(offChainList);
           if (!isAvailable) {
             onOffChainAuth(currentAddress).then((res: any) => {
               if (res.code === 0) {

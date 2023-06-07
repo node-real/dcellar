@@ -28,7 +28,7 @@ import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { FileListEmpty } from './components/FileListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
@@ -43,6 +43,7 @@ import { genCreateObjectTx } from './utils/genCreateObjectTx';
 import { TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
+import { IRawSPInfo } from '../buckets/type';
 
 interface pageProps {
   bucketName: string;
@@ -129,8 +130,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
-  const [endpoint, setEndpoint] = useState('');
-  const [sp, setSp] = useState<any>();
+  const [primarySp, setPrimarySp] = useState<IRawSPInfo>({} as IRawSPInfo);
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -146,7 +146,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
-      const { seedString } = await getOffChainData(address);
+      const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
       const query = new URLSearchParams();
       query.append('delimiter', '/');
       query.append('max-keys', '100');
@@ -217,8 +217,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         return;
       }
       const currentEndpoint = sps[spIndex]?.endpoint;
-      setEndpoint(currentEndpoint);
-      setSp(sps[spIndex]);
+      setPrimarySp(sps[spIndex]);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
         .map((item: any) => item.operatorAddress);
@@ -302,7 +301,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
             cursor={isOver10LevelsDeep ? 'default' : 'pointer'}
             onClick={() => {
               if (isOver10LevelsDeep) return;
-              if (!endpoint) {
+              if (!primarySp.endpoint) {
                 toast.error({
                   description: 'SP Endpoint is not ready',
                 });
@@ -332,14 +331,11 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
     terminate();
     setFreeze(false);
-    const { seedString, spAddresses, expirationTime } = await getOffChainData(address);
-    if (
-      !checkSpOffChainDataAvailable({
-        expirationTime,
-        spAddresses,
-        spAddress: primarySpAddress,
-      })
-    ) {
+    const spOffChainData = await getSpOffChainData({
+      address,
+      spAddress: primarySpAddress,
+    });
+    if (!checkSpOffChainDataAvailable(spOffChainData)) {
       onStatusModalClose();
       onDetailModalClose();
       setOpenAuthModal();
@@ -348,9 +344,9 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     const domain = getDomain();
     try {
       const spInfo = {
-        endpoint: sp.endpoint,
-        primarySpAddress: sp.operatorAddress,
-        sealAddress: sp.sealAddress,
+        endpoint: primarySp.endpoint,
+        primarySpAddress: primarySp.operatorAddress,
+        sealAddress: primarySp.sealAddress,
         secondarySpAddresses,
       } as ISpInfo;
       if (!hashResult?.expectCheckSums?.length) {
@@ -368,7 +364,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         spInfo,
         signType: 'offChainAuth',
         domain,
-        seedString,
+        seedString: spOffChainData.seedString,
       };
       const CreateObjectTx = await genCreateObjectTx(configParam);
 
@@ -551,7 +547,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     onClose: onCreateFolderModalClose,
   } = useDisclosure();
   if (!bucketName) return <></>;
-
   const showUploadButtonOnHeader = !isEmptyData && !listLoading;
 
   const renderTitle = () => {
@@ -632,9 +627,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
           bucketName={bucketName}
           folderName={folderName}
           listObjects={listObjects}
-          endpoint={endpoint}
-          spAddress={primarySpAddress}
-          primarySpSealAddress={primarySpSealAddress}
+          primarySp={primarySp}
           bucketIsDiscontinued={isDiscontinued}
           isLoading={listLoading}
           setListObjects={setListObjects}
@@ -679,7 +672,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         onStatusModalClose={onStatusModalClose}
         setListObjects={setListObjects}
         setStatusModalErrorText={setStatusModalErrorText}
-        endpoint={endpoint}
+        primarySp={primarySp}
         listObjects={listObjects}
         setStatusModalButtonText={setStatusModalButtonText}
         fetchCreateObjectApproval={fetchCreateObjectApproval}
@@ -709,9 +702,9 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
           await getLockFeeAndSet(file.size);
         }}
       />
-      {endpoint && (
+      {primarySp.endpoint && (
         <CreateFolderModal
-          endpoint={endpoint}
+          endpoint={primarySp.endpoint}
           onClose={onCreateFolderModalClose}
           isOpen={isCreateFolderModalOpen}
           bucketName={bucketName}

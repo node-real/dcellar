@@ -23,7 +23,7 @@ import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { useSPs } from '@/hooks/useSPs';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { ActionItem } from './ActionItem';
 import { BucketNameItem } from './BucketNameItem';
 import { IBucketItem, ITableItem } from '../type';
@@ -103,7 +103,7 @@ export const TableList = () => {
       try {
         // TODO add auth check and error handling
         const domain = getDomain();
-        const { seedString } = await getOffChainData(address);
+        const { seedString } = await getSpOffChainData({address, spAddress: sp?.operatorAddress});
         const res: any = await client.bucket.getUserBuckets({
           address,
           endpoint: sp?.endpoint,

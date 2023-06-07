@@ -11,10 +11,11 @@ import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { client } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { VisibilityType } from '../constant';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -75,21 +76,28 @@ const getFileExtension = (filename: string): string | undefined => {
   }
 };
 
-const downloadWithProgress = async (
-  bucketName: string,
-  objectName: string,
-  endpoint: string,
-  payloadSize: number,
-  userAddress: string,
+const downloadWithProgress = async ({
+  bucketName,
+  objectName,
+  primarySp,
+  payloadSize,
+  address,
+}: {
+  bucketName: string;
+  objectName: string;
+  primarySp: IRawSPInfo;
+  payloadSize: number;
+  address: string;
+}
 ) => {
   try {
     const domain = getDomain();
-    const { seedString, expirationTime, spAddresses } = await getOffChainData(userAddress);
+    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
-      endpoint,
-      userAddress,
+      endpoint: primarySp.endpoint,
+      userAddress: address,
       domain,
       seedString,
     });
