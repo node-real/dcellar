@@ -60,8 +60,11 @@ const Welcome = () => {
     '(min-width: 1463px)',
   ]);
 
-  const [isHigherThan800] = useMediaQuery('(min-height: 801px)');
-  const TitleGap = isHigherThan800 ? 246 : 206;
+  const [isHigherThan704] = useMediaQuery('(min-height: 704px)');
+  const [isHigherThan600] = useMediaQuery('(min-height: 601px)');
+
+  const TitleGap = isHigherThan600 ? 48 : 206;
+  const bgHeight = isHigherThan704 ? '704px' : '100%';
 
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const network = useSwitchNetwork({
@@ -324,10 +327,10 @@ const Welcome = () => {
         pl={110}
         bg={
           isLargerThan1463
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% top 100px /1215px`
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% bottom /auto ${bgHeight}`
             : isLargerThan1000
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/1215px`
-            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/972px`
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px  bottom /auto ${bgHeight}`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px bottom/auto ${bgHeight}`
         }
       >
         <Image
@@ -337,7 +340,13 @@ const Welcome = () => {
           position="absolute"
           left={0}
         />
-        <Flex flexDirection="column" flex={1} maxW={1200} w='100%'>
+        <Flex
+          flexDirection="column"
+          flex={1}
+          maxW={1200}
+          w="100%"
+          justifyContent={isHigherThan600 ? 'center' : 'flex-start'}
+        >
           <Text
             as="h1"
             fontSize="56px"
