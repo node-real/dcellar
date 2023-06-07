@@ -20,8 +20,8 @@ import {
   MenuList,
   SkeletonSquare,
   Text,
-  Tooltip,
   toast,
+  Tooltip,
   useDisclosure,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
@@ -57,21 +57,23 @@ import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal
 import {
   contentTypeToExtension,
   directlyDownload,
-  formatBytes,
   downloadWithProgress,
+  formatBytes,
   getQuota,
-  viewFileByAxiosResponse,
   saveFileByAxiosResponse,
+  viewFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { client } from '@/base/client';
+import { useRouter } from 'next/router';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -101,6 +103,7 @@ const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
 interface fileListProps {
   listObjects: any;
   bucketName: string;
+  folderName: string;
   endpoint: string;
   spAddress: string;
   primarySpSealAddress: string;
@@ -205,6 +208,7 @@ export const FileTable = (props: fileListProps) => {
   const {
     listObjects,
     bucketName,
+    folderName,
     endpoint,
     spAddress,
     bucketIsDiscontinued,
@@ -226,7 +230,7 @@ export const FileTable = (props: fileListProps) => {
   const flatData = useMemo(() => {
     return listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
+      .map((v: any) => (v.object_info ? v.object_info : v))
       .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
   }, [listObjects]);
   const [fileInfo, setFileInfo] = useState<any>();
@@ -243,6 +247,7 @@ export const FileTable = (props: fileListProps) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentVisibility, setCurrentVisibility] = useState(0);
   const { width, height } = useWindowSize();
+  const router = useRouter();
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
     return newWidth - 269 - 24 - 24;
@@ -335,7 +340,7 @@ export const FileTable = (props: fileListProps) => {
         bucketName,
         objectName,
         operator: address,
-      })
+      });
       const simulateGas = await cancelCteObjTx.simulate({
         denom: 'BNB',
       });
@@ -447,6 +452,16 @@ export const FileTable = (props: fileListProps) => {
           const canView = object_status === OBJECT_SEALED_STATUS;
           const showFileIcon = visibility === 1;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
+          const isFolder = info.getValue().endsWith('/');
+          const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue() || '';
+          const path = name.split('/');
+          const nameWithoutFolderPrefix =
+            isFolder && path.includes('/') ? path[path.length - 2] : path[path.length - 1];
+          const icon = isFolder ? (
+            <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
+          ) : (
+            <FileIcon size="md" color={iconColor} />
+          );
           return (
             <Flex
               className="object-name"
@@ -456,11 +471,9 @@ export const FileTable = (props: fileListProps) => {
               position={'relative'}
               overflow={'hidden'}
             >
-              <Flex mr={4}>
-                <FileIcon size="md" color={iconColor} />
-              </Flex>
+              <Flex mr={4}>{icon}</Flex>
               <TableText info={rowData} fontWeight={500}>
-                {info.getValue()}
+                {nameWithoutFolderPrefix}
               </TableText>
               {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
@@ -489,7 +502,15 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const { payload_size, object_status, progress } = rowData;
+          const { payload_size, object_status, progress, object_name } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) {
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
+          }
           if (object_status === OBJECT_STATUS_FAILED || object_status === OBJECT_CREATE_STATUS) {
             return (
               <Flex
@@ -525,7 +546,14 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const create_at = info.getValue();
+          const { object_name, create_at } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder)
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
           return (
             <TableText info={rowData} color={'readable.normal'}>
               {formatTime(getMillisecond(create_at as number)) as ReactNode}
@@ -559,6 +587,7 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === 1;
           const isCurrentUser = rowData.owner === address;
+          const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
@@ -567,12 +596,8 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
-                const { spAddresses, expirationTime } = await getOffChainData(
-                  loginState.address,
-                );
-                if (
-                  !checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })
-                ) {
+                const { spAddresses, expirationTime } = await getOffChainData(loginState.address);
+                if (!checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -655,6 +680,7 @@ export const FileTable = (props: fileListProps) => {
           };
 
           const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
+          if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
               {isSealed && isCurrentUser && showFileIcon && (
@@ -833,6 +859,7 @@ export const FileTable = (props: fileListProps) => {
     bucketName,
     allowDirectDownload,
     setCloseAllAndShowAuthModal,
+    folderName,
   ]);
   const loadingColumns = columns.map((column) => ({
     ...column,
@@ -934,6 +961,7 @@ export const FileTable = (props: fileListProps) => {
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
                 const canView = object_status === OBJECT_SEALED_STATUS;
+                const isFolder = object_name?.endsWith('/') ?? false;
 
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
@@ -958,6 +986,11 @@ export const FileTable = (props: fileListProps) => {
                       borderBottom="1px solid #E6E8EA"
                       onClick={async () => {
                         if (!canView) return;
+                        if (isFolder) {
+                          // toast.info({ description: 'Click here to view folder files.' });
+                          router.push(`/buckets/${bucketName}/${object_name}`);
+                          return;
+                        }
                         const previewLink = encodeURI(
                           `${endpoint}/view/${bucketName}/${object_name}`,
                         );
@@ -1034,6 +1067,7 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isInfoModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
+        folderName={folderName}
         hash={hash}
         shareLink={shareLink}
         createdDate={createdDate}

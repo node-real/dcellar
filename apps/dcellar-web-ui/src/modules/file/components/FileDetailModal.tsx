@@ -112,7 +112,9 @@ const renderFee = (
         )}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-         {key === 'Prelocked storage fee'? renderPrelockedFeeValue(bnbValue, exchangeRate) : renderFeeValue(bnbValue, exchangeRate)}
+        {key === 'Prelocked storage fee'
+          ? renderPrelockedFeeValue(bnbValue, exchangeRate)
+          : renderFeeValue(bnbValue, exchangeRate)}
       </Text>
     </Flex>
   );
@@ -277,12 +279,12 @@ export const FileDetailModal = (props: modalProps) => {
       setLoading(false);
       // fixme temp fix for list seal status display
       // We don't know yet why final name and size is changing if we open the modal again during uploading
-      const finalObjects = listObjects.map((v, i) => {
-        if (i === 0) {
-          v.object_info.object_status = 1;
-        }
-        return v;
-      });
+      // const finalObjects = listObjects.map((v, i) => {
+      //   if (i === 0) {
+      //     v.object_info.object_status = 1;
+      //   }
+      //   return v;
+      // });
       // const finalObjects = listObjects.map((v) => {
       //   if (v?.object_info?.object_name === finalName) {
       //     v.object_info.payload_size = file?.size ?? 0;
@@ -290,6 +292,13 @@ export const FileDetailModal = (props: modalProps) => {
       //   }
       //   return v;
       // });
+      const finalObjects = listObjects.map((v) => {
+        if (v?.object_name === finalName) {
+          v.payload_size = file?.size ?? 0;
+          v.object_status = 1;
+        }
+        return v;
+      });
       setListObjects(finalObjects);
       setIsSealed(false);
     }
@@ -481,15 +490,15 @@ export const FileDetailModal = (props: modalProps) => {
               duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
-            const newFileObjectStatus = listObjects[0].object_info.object_status;
-            const isNewestList = listObjects[0].object_info.object_name === finalName;
-            if (
-              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
-              newFileObjectStatus === OBJECT_CREATE_STATUS ||
-              !isNewestList
-            ) {
-              router.reload();
-            }
+            // const newFileObjectStatus = listObjects[0].object_info.object_status;
+            // const isNewestList = listObjects[0].object_info.object_name === finalName;
+            // if (
+            //   newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
+            //   newFileObjectStatus === OBJECT_CREATE_STATUS ||
+            //   !isNewestList
+            // ) {
+            //   router.reload();
+            // }
           } else {
             setIsSealed(false);
           }
@@ -497,8 +506,8 @@ export const FileDetailModal = (props: modalProps) => {
       } catch (error: any) {
         console.log('error', error);
         const errorListObjects = fileUploadingLists.map((v: any) => {
-          if (v?.object_info?.object_name === finalName) {
-            v.object_info.object_status = OBJECT_STATUS_FAILED;
+          if (v?.object_name === finalName) {
+            v.object_status = OBJECT_STATUS_FAILED;
           }
           return v;
         });
@@ -568,7 +577,7 @@ export const FileDetailModal = (props: modalProps) => {
                 lineHeight={'24px'}
                 color={freeze ? '#AEB4BC' : 'primary'}
                 cursor={freeze ? 'not-allowed' : 'pointer'}
-                _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)'}}
+                _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)' }}
                 border={freeze ? '1px solid #AEB4BC' : '1px solid #00ba34'}
                 borderRadius={'18px'}
                 paddingLeft={'12px'}

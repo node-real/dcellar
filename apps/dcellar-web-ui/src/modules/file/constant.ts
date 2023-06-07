@@ -18,12 +18,14 @@ const FILE_TITLE_UPLOADING = 'Uploading File';
 const FILE_TITLE_DOWNLOADING = 'Downloading File';
 const FILE_TITLE_DELETING = 'Deleting File';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
+const FOLDER_CREATING = 'Creating Folder';
 // error title
 const FILE_TITLE_UPLOAD_FAILED = 'Upload Failed';
 const FILE_TITLE_DOWNLOAD_FAILED = 'Download Failed';
 const FILE_TITLE_DELETE_FAILED = 'Delete Failed';
 const FILE_TITLE_CANCEL_FAILED = 'Cancel Failed';
 const NOT_ENOUGH_QUOTA = 'Not Enough Quota';
+const FOLDER_CREATE_FAILED = 'Create Failed';
 
 const FILE_TITLE_FILE_TOO_LARGE = 'File is too large';
 const FILE_TITLE_FILE_EMPTY = 'File is empty';
@@ -41,13 +43,14 @@ const FILE_DESCRIPTION_DOWNLOAD_ERROR = `Sorry, there’s something wrong when d
 const FILE_DESCRIPTION_DELETE_ERROR = `Sorry, there’s something wrong when deleting the file.`;
 const FILE_DESCRIPTION_CANCEL_ERROR = `Sorry, there’s something wrong when canceling the file.`;
 const NOT_ENOUGH_QUOTA_ERROR = `Sorry, you don’t have enough download quota to download this file now.`;
-
+const FOLDER_DESCRIPTION_CREATE_ERROR = `Sorry, there’s something wrong when creating the folder.`;
 const BUTTON_GOT_IT = 'Got It';
 // file status
 const OBJECT_SEALED_STATUS = 1;
 const OBJECT_CREATE_STATUS = 0;
 const OBJECT_STATUS_UPLOADING = 'OBJECT_STATUS_UPLOADING';
 const OBJECT_STATUS_FAILED = 'OBJECT_STATUS_FAILED';
+const FOLDER_STATUS_CREATING = 'FOLDER_STATUS_CREATING';
 
 const GET_LOCK_FEE_ERROR = `Get lock fee error, please retry`;
 const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
@@ -56,12 +59,12 @@ const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimatin
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 
 const VisibilityType = {
-  VISIBILITY_TYPE_UNSPECIFIED: "VISIBILITY_TYPE_UNSPECIFIED",
-  VISIBILITY_TYPE_PUBLIC_READ: "VISIBILITY_TYPE_PUBLIC_READ",
-  VISIBILITY_TYPE_PRIVATE: "VISIBILITY_TYPE_PRIVATE",
-  VISIBILITY_TYPE_INHERIT: "VISIBILITY_TYPE_INHERIT",
-  UNRECOGNIZED: "UNRECOGNIZED"
-}
+  VISIBILITY_TYPE_UNSPECIFIED: 'VISIBILITY_TYPE_UNSPECIFIED',
+  VISIBILITY_TYPE_PUBLIC_READ: 'VISIBILITY_TYPE_PUBLIC_READ',
+  VISIBILITY_TYPE_PRIVATE: 'VISIBILITY_TYPE_PRIVATE',
+  VISIBILITY_TYPE_INHERIT: 'VISIBILITY_TYPE_INHERIT',
+  UNRECOGNIZED: 'UNRECOGNIZED',
+};
 
 export {
   VisibilityType,
@@ -110,4 +113,8 @@ export {
   UPLOAD_IMAGE_URL,
   FILE_INFO_IMAGE_URL,
   FETCH_OBJECT_APPROVAL_ERROR,
+  FOLDER_CREATING,
+  FOLDER_STATUS_CREATING,
+  FOLDER_CREATE_FAILED,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
 };
