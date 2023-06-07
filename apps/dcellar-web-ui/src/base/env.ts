@@ -27,7 +27,7 @@ export const TOKEN_HUB_CONTRACT_ADDRESS = NEXT_PUBLIC_TOKEN_HUB_CONTRACT_ADDRESS
 export const GREENFIELD_CHAIN_ID = +NEXT_PUBLIC_GREENFIELD_CHAIN_ID || 5600;
 export const BSC_CHAIN_ID = +NEXT_PUBLIC_BSC_CHAIN_ID || 97;
 export const GREENFIELD_CHAIN_RPC_URL =
-  NEXT_PUBLIC_GREENFIELD_CHAIN_RPC_URL || 'https://gnfd.qa.bnbchain.world';
+  NEXT_PUBLIC_GREENFIELD_CHAIN_RPC_URL || 'https://gnfd-testnet-ethapi-us.bnbchain.org';
 export const BSC_RPC_URL =
   NEXT_PUBLIC_BSC_RPC_URL || 'https://gnfd-bsc-testnet-dataseed1.bnbchain.org';
 export const CROSS_CHAIN_CONTRACT_ADDRESS = NEXT_PUBLIC_CROSS_CHAIN_CONTRACT_ADDRESS;
