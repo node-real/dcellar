@@ -6,7 +6,9 @@ import { SHA256, enc, lib } from 'crypto-js';
 export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;
 }
-export type THashResult = { contentLength: number, expectCheckSums: string[], fileChunks: number } | undefined;
+export type THashResult =
+  | { contentLength: number; expectCheckSums: string[]; fileChunks: number }
+  | undefined;
 
 const segmentSize = 16 * 1024 * 1024;
 const dataBlocks = 4;
@@ -16,6 +18,7 @@ const WORKER_POOL_SIZE = 6;
 const { Base64 } = enc;
 
 const _createFileChunks = (file: File) => {
+  if (!file.size) return [{ file }];
   const SIZE = segmentSize;
   const fileChunkList = [];
   let cur = 0;

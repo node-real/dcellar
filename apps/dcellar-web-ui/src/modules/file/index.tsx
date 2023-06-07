@@ -36,18 +36,21 @@ import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import { client } from '@/base/client';
 import { useSPs } from '@/hooks/useSPs';
-import { ISpInfo, TCreateObject} from '@bnb-chain/greenfield-chain-sdk';
+import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
 import { validateObjectName } from './utils/validateObjectName';
 import { genCreateObjectTx } from './utils/genCreateObjectTx';
 import { TCreateObjectData } from './type';
 import dayjs from 'dayjs';
+import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 
 interface pageProps {
   bucketName: string;
+  folderName: string;
   bucketInfo: any;
 }
 
+const MAX_FOLDER_LEVEL = 10;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
@@ -107,7 +110,7 @@ const renderUploadButton = (
   );
 };
 
-export const File = ({ bucketName, bucketInfo }: pageProps) => {
+export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -119,7 +122,9 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
   const [statusModalButtonText, setStatusModalButtonText] = useState(BUTTON_GOT_IT);
-  const [createObjectData, setCreateObjectData] = useState<TCreateObjectData>({} as TCreateObjectData);
+  const [createObjectData, setCreateObjectData] = useState<TCreateObjectData>(
+    {} as TCreateObjectData,
+  );
   const [listObjects, setListObjects] = useState<Array<any>>([]);
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
@@ -142,29 +147,36 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     try {
       const domain = getDomain();
       const { seedString } = await getOffChainData(address);
+      const query = new URLSearchParams();
+      query.append('delimiter', '/');
+      query.append('max-keys', '100');
+      if (folderName) {
+        query.append('prefix', folderName);
+      }
       const listResult = await client.object.listObjects({
         address,
         bucketName,
         endpoint: currentEndpoint,
         domain,
         seedString,
+        query,
       });
-      if (listResult) {
-        //  @ts-ignore TODO temp
-        const tempListObjects = listResult?.body?.objects ?? [];
-        //  @ts-ignore TODO temp
-        setListObjects(listResult.body?.objects ?? []);
-        const realListObjects = tempListObjects
-          .filter((v: any) => !v.removed)
-          .map((v: any) => v.object_info);
-        if (realListObjects.length === 0) {
-          setIsEmptyData(true);
-        } else {
-          setIsEmptyData(false);
-        }
-      } else {
-        setIsEmptyData(true);
-      }
+      const { objects = [], common_prefixes = [] } = listResult.body ?? ({} as any);
+      const files = objects
+        .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+        .map((v: any) => v.object_info)
+        .sort(function (a: any, b: any) {
+          return Number(b.create_at) - Number(a.create_at);
+        });
+      const folders = common_prefixes
+        .sort((a: string, b: string) => a.localeCompare(b))
+        .map((folder: string) => ({
+          object_name: folder,
+          object_status: 1,
+        }));
+      const items = folders.concat(files);
+      setListObjects(items);
+      setIsEmptyData(!items.length);
       setListLoading(false);
       setIsInitReady(true);
     } catch (error) {
@@ -235,13 +247,13 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     if (bucketName && !isEmpty(sps)) {
       getGatewayParams();
     }
-  }, [sps]);
+  }, [sps, folderName]);
 
   useEffect(() => {
     if (!isInitReady) return;
     const realListObjects = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info);
+      .map((v: any) => (v.object_info ? v.object_info : v));
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
     } else {
@@ -255,44 +267,57 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     };
   }, []);
   // monitor route change to get new list info
-  useEffect(() => {
-    function handleRouteChange() {
-      router.events.on('routeChangeComplete', () => {
-        if (bucketName) {
-          getGatewayParams();
-        }
-      });
-    }
-    handleRouteChange();
-    return () => {
-      router.events.off('routeChangeComplete', () => {});
-    };
-  }, [router.events]);
+  // useEffect(() => {
+  //   function handleRouteChange() {
+  //     router.events.on('routeChangeComplete', () => {
+  //       if (bucketName) {
+  //         getGatewayParams();
+  //       }
+  //     });
+  //   }
+  //   handleRouteChange();
+  //   return () => {
+  //     router.events.off('routeChangeComplete', () => {});
+  //   };
+  // }, [router.events]);
 
-  const generateWorker = () => {
-    greenfieldRef.current = new Worker(new URL('./greenfield.ts', import.meta.url));
-  };
-
-  const runCalcHashTask = (bytes: Uint8Array) => {
-    return new Promise((resolve, reject) => {
-      greenfieldRef.current?.terminate();
-      generateWorker();
-      setTimeout(() => {
-        greenfieldRef.current?.postMessage(bytes);
-      }, 100);
-      // @ts-ignore
-      greenfieldRef.current.onmessage = (event) => {
-        if (event.data) {
-          resolve(event.data);
-          greenfieldRef.current?.terminate();
-        }
-      };
-      // @ts-ignore
-      greenfieldRef.current.onerror = (error) => {
-        reject(error);
-        greenfieldRef.current?.terminate();
-      };
-    });
+  const renderCreteFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
+    if (!isCurrentUser) return <></>;
+    const isOver10LevelsDeep = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
+    return (
+      <GAClick name={gaClickName}>
+        <Tooltip
+          content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
+          placement={'bottom-start'}
+          visibility={isOver10LevelsDeep ? 'visible' : 'hidden'}
+        >
+          <Flex
+            bgColor={isOver10LevelsDeep ? 'readable.tertiary' : 'readable.normal'}
+            _hover={{ bg: 'readable.tertiary' }}
+            position="relative"
+            paddingX="16px"
+            paddingY="8px"
+            alignItems="center"
+            borderRadius={'8px'}
+            cursor={isOver10LevelsDeep ? 'default' : 'pointer'}
+            onClick={() => {
+              if (isOver10LevelsDeep) return;
+              if (!endpoint) {
+                toast.error({
+                  description: 'SP Endpoint is not ready',
+                });
+              } else {
+                onCreateFolderModalOpen();
+              }
+            }}
+          >
+            <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+              Create Folder
+            </Text>
+          </Flex>
+        </Tooltip>
+      </GAClick>
+    );
   };
 
   const fetchCreateObjectApproval = async (
@@ -322,13 +347,13 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     }
     const domain = getDomain();
     try {
-      const spInfo= {
+      const spInfo = {
         endpoint: sp.endpoint,
         primarySpAddress: sp.operatorAddress,
         sealAddress: sp.sealAddress,
         secondarySpAddresses,
       } as ISpInfo;
-      if (!hashResult?.contentLength) {
+      if (!hashResult?.expectCheckSums?.length) {
         throw new Error('Error occurred when calculating file hash.');
       }
       const { contentLength, expectCheckSums } = hashResult;
@@ -344,16 +369,16 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         signType: 'offChainAuth',
         domain,
         seedString,
-      }
+      };
       const CreateObjectTx = await genCreateObjectTx(configParam);
 
       const createObjectData = {
         configParam,
-        CreateObjectTx
+        CreateObjectTx,
       };
       setCreateObjectData(createObjectData);
 
-      return CreateObjectTx
+      return CreateObjectTx;
     } catch (error: any) {
       if (error.statusCode === 500) {
         onStatusModalClose();
@@ -480,7 +505,8 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         return;
       }
       setFile(uploadFile);
-      setFileName(uploadFile.name);
+      const fileName = `${folderName}${uploadFile.name}`;
+      setFileName(fileName);
       setLockFee('-1');
       setGasFeeLoading(true);
       setLockFeeLoading(true);
@@ -491,7 +517,7 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         return;
       }
       onDetailModalOpen();
-      const createObjectTx = await fetchCreateObjectApproval(uploadFile);
+      const createObjectTx = await fetchCreateObjectApproval(uploadFile, fileName);
       await getGasFeeAndSet(uploadFile, createObjectTx);
       await getLockFeeAndSet(uploadFile.size);
     }
@@ -519,26 +545,51 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     onOpen: onDetailModalOpen,
     onClose: onDetailModalClose,
   } = useDisclosure();
+  const {
+    isOpen: isCreateFolderModalOpen,
+    onOpen: onCreateFolderModalOpen,
+    onClose: onCreateFolderModalClose,
+  } = useDisclosure();
   if (!bucketName) return <></>;
 
+  const showUploadButtonOnHeader = !isEmptyData && !listLoading;
 
+  const renderTitle = () => {
+    if (folderName) {
+      const folderNameArray = folderName.split('/');
+      return folderNameArray[folderNameArray.length - 2];
+    }
+    return bucketName;
+  };
+  const title = renderTitle();
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
-        <Text
-          as={'h1'}
-          fontWeight="700"
-          fontSize={'24px'}
-          lineHeight="36px"
-          maxWidth="400px"
-          whiteSpace="nowrap"
-          overflow="hidden"
-          textOverflow="ellipsis"
+        <Tooltip
+          content={title}
+          placement={'bottom-start'}
+          visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
-          {bucketName}
-        </Text>
-        {!isEmptyData &&
-          renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
+          <Text
+            as={'h1'}
+            flex={1}
+            fontWeight="700"
+            fontSize={'24px'}
+            lineHeight="36px"
+            maxWidth="700px"
+            overflow="hidden"
+            noOfLines={1}
+            textOverflow="ellipsis"
+          >
+            {title}
+          </Text>
+        </Tooltip>
+        <Flex gap={12}>
+          {showUploadButtonOnHeader &&
+            renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
+          {showUploadButtonOnHeader &&
+            renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
+        </Flex>
         <input
           type="file"
           id="file-upload"
@@ -568,14 +619,18 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
           justifyContent={'center'}
           marginBottom={'104px'}
         >
-          <FileListEmpty bucketStatus={bucketInfo.bucketStatus} />
+          <FileListEmpty bucketStatus={bucketInfo.bucketStatus} folderName={folderName} />
           <GAShow name="dc.file.empty.upload.show" />
-          {bucketInfo.bucketStatus === 0 &&
-            renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
+          {bucketInfo.bucketStatus === 0 && <Flex gap={12}></Flex>}
+          <Flex gap={12}>
+            {renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
+            {renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
+          </Flex>
         </Flex>
       ) : (
         <FileTable
           bucketName={bucketName}
+          folderName={folderName}
           listObjects={listObjects}
           endpoint={endpoint}
           spAddress={primarySpAddress}
@@ -654,6 +709,26 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
           await getLockFeeAndSet(file.size);
         }}
       />
+      {endpoint && (
+        <CreateFolderModal
+          endpoint={endpoint}
+          onClose={onCreateFolderModalClose}
+          isOpen={isCreateFolderModalOpen}
+          bucketName={bucketName}
+          folderName={folderName}
+          setStatusModalIcon={setStatusModalIcon}
+          setStatusModalTitle={setStatusModalTitle}
+          setStatusModalDescription={setStatusModalDescription}
+          onStatusModalOpen={onStatusModalOpen}
+          onStatusModalClose={onStatusModalClose}
+          setStatusModalButtonText={setStatusModalButtonText}
+          setListObjects={setListObjects}
+          listObjects={listObjects}
+          setStatusModalErrorText={setStatusModalErrorText}
+          fetchCreateObjectApproval={fetchCreateObjectApproval}
+          createObjectData={createObjectData}
+        />
+      )}
     </Flex>
   );
 };

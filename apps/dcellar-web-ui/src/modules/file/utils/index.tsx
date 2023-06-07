@@ -147,6 +147,7 @@ const downloadWithProgress = async (
 };
 
 const contentTypeToExtension = (contentType = '', fileName?: string) => {
+  if (fileName?.endsWith('/')) return 'FOLDER';
   switch (contentType) {
     case 'image/jpeg':
       return 'JPG';

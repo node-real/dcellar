@@ -36,8 +36,9 @@ const encodeRawSegment = async (
   const result = greenfieldSdk.encodeRawSegment(bytes, dataBlocks, parityBlocks);
   const shards = JSON.parse(result.result);
 
+  // Empty chunks should also return digest arrays of the corresponding length.
   shards.forEach((shard: never, idx: number) => {
-    const words = Base64.parse(shard);
+    const words = Base64.parse(shard || '');
     if (!results[idx]) {
       results[idx] = [];
     }
