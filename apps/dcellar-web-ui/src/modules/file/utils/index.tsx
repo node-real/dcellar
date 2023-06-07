@@ -51,13 +51,11 @@ const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number) => {
   if (!bnbValue || Number(bnbValue) < 0) {
     return '--';
   }
-  const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
-  const renderUsdValue =
-    getNumInDigits(numberInUsd, 8, true) === 0
-      ? `≈${renderUsd(bnbValue, exchangeRate)}`
-      : renderUsd(bnbValue, exchangeRate);
+  const bnbNum = renderBnb(bnbValue);
+  const renderBnbvalue =
+    Number(getNumInDigits(bnbNum, 8, true)) === 0 ? `≈${getNumInDigits(0, 8, true)}` : bnbNum;
 
-  return `${renderBnb(bnbValue)} BNB (${renderUsdValue})`;
+  return `${renderBnbvalue} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
 const renderUsd = (bnbValue: string, exchangeRate: number) => {
   const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
