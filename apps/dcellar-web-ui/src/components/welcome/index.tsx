@@ -55,16 +55,13 @@ const Welcome = () => {
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
   const router = useRouter();
-  const [isLargerThan1000, isLargerThan1463] = useMediaQuery([
-    '(min-width: 1001px) and (max-width: 1464px)',
-    '(min-width: 1463px)',
-  ]);
+  const [isLargerThan1000] = useMediaQuery(['(min-width: 1001px)']);
 
   const [isHigherThan704] = useMediaQuery('(min-height: 704px)');
   const [isHigherThan600] = useMediaQuery('(min-height: 601px)');
 
   const TitleGap = isHigherThan600 ? 48 : 206;
-  const bgHeight = isHigherThan704 ? '704px' : '100%';
+  const bgHeight = isHigherThan704 ? '560px' : '80%';
 
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const network = useSwitchNetwork({
@@ -326,11 +323,9 @@ const Welcome = () => {
         position="relative"
         pl={110}
         bg={
-          isLargerThan1463
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% bottom /auto ${bgHeight}`
-            : isLargerThan1000
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px  bottom /auto ${bgHeight}`
-            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px bottom/auto ${bgHeight}`
+          isLargerThan1000
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left calc(50% + 150px) top calc(50% + 48px) /auto ${bgHeight}`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover`
         }
       >
         <Image
