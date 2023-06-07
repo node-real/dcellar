@@ -20,7 +20,6 @@ export const setOffChainData = ({
   // Compatible the previous version data
   const parseOldData = oldData && JSON.parse(oldData) || [];
   const compatibleOldData = Array.isArray(parseOldData) ? parseOldData : [parseOldData];
-  debugger;
 
   // Removing old data containing input sp data
   const pruneOldData = compatibleOldData.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
