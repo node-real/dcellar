@@ -199,8 +199,10 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     const objectName = getPath(inputFolderName);
     setLoading(true);
     const CreateObjectTx = await fetchCreateFolderApproval(inputFolderName);
-    setLoading(false);
-    if (!CreateObjectTx) return;
+    if (!CreateObjectTx) {
+      setLoading(false);
+      return;
+    }
 
     setCreatingModalStatus();
     const createFolderPayload = getCreateFolderPayload(objectName);
@@ -267,6 +269,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
 
   useEffect(() => {
     if (isOpen) {
+      setGasFeeLoading(true);
       fetchCreateFolderApproval('Untitled folder' + Date.now());
       return;
     }
@@ -326,7 +329,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
               justifyContent="center"
               gaClickName="dc.file.upload_modal.confirm.click"
             >
-              {loading || gasFeeLoading ? (
+              {loading ? (
                 <>
                   Loading
                   <DotLoading />
