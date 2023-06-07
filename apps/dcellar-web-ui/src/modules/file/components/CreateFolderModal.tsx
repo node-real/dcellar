@@ -69,27 +69,27 @@ interface modalProps {
 export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(props) {
   const {
     title = 'Create a Folder',
-    onClose,
-    isOpen,
     buttonText = 'Create',
     folderName: parentFolderName,
     bucketName,
+    isOpen,
+    createObjectData,
+    listObjects,
+    onClose,
+    setListObjects,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
     onStatusModalOpen,
     onStatusModalClose,
     setStatusModalButtonText,
-    setListObjects,
-    listObjects,
     setStatusModalErrorText,
     fetchCreateObjectApproval,
-    createObjectData,
   } = props;
 
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
+  const {
+    loginState: { address },
+  } = useLogin();
   const { connector } = useAccount();
   const [loading, setLoading] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(false);
