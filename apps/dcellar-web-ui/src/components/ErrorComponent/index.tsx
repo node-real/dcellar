@@ -8,7 +8,7 @@ import { useColorMode, Text, Heading } from '@totejs/uikit';
 import { errorCodes, TErrorCodeKey } from '@/base/http/utils/errorCodes';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);

@@ -7,7 +7,7 @@ import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import { assetPrefix } from '@/base/env';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 

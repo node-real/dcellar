@@ -30,7 +30,7 @@ import { CreatingBucket } from './CreatingBucket';
 import { parseError } from '../../utils/parseError';
 import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
@@ -281,7 +281,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({address, spAddress: selectedSpRef.current.operatorAddress});
+        const spOffChainData = await getSpOffChainData({
+          address,
+          spAddress: selectedSpRef.current.operatorAddress,
+        });
         if (!checkSpOffChainDataAvailable(spOffChainData)) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
@@ -296,7 +299,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           .map((item: any) => item.operatorAddress);
         const spInfo = {
           endpoint: selectedSpRef.current.endpoint,
-          primarySpAddress:selectedSpRef.current.operatorAddress,
+          primarySpAddress: selectedSpRef.current.operatorAddress,
           sealAddress: selectedSpRef.current.sealAddress,
           secondarySpAddresses,
         };
