@@ -1,7 +1,7 @@
 import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
@@ -22,13 +22,14 @@ const renderAvatar = (size?: 'sm' | 'md') => {
     </Circle>
   );
 };
-export const Header = ({ disconnect }: { disconnect: any }) => {
+export const Header = () => {
   const loginData = useLogin();
   const { loginState, loginDispatch } = loginData;
   const { address } = loginState;
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
   const { address: walletAddress } = useAccount();
+  const { disconnect } = useDisconnect();
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
@@ -47,10 +48,10 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
     loginDispatch({
       type: 'LOGOUT',
     });
-    removeOffChainData(address, GREENFIELD_CHAIN_ID);
     router.push('/');
     disconnect();
   };
+
   useEffect(() => {
     if (!walletAddress || walletAddress !== address) {
       logout();

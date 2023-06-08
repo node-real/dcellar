@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useCallback, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
@@ -23,7 +23,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
     loginState: { address },
   } = useLogin();
   const { sps } = useSPs();
-  const [ authSps, setAuthSps ] = useState<IRawSPInfo[]>(sps);
+  const [authSps, setAuthSps] = useState<IRawSPInfo[]>(sps);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
 
@@ -33,45 +33,51 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       setAuthSps(filterSps);
     }
     onOpen();
-  }
-
-  const onOffChainAuth = async (address: string) => {
-    setIsAuthPending(true);
-    try {
-      const provider = await connector?.getProvider();
-      const domain = getDomain();
-      const pruneSps = authSps.map((item: any) => ({
-        address: item.operatorAddress,
-        name: item.description.moniker,
-        endpoint: item.endpoint,
-      }));
-      const configParam: IGenOffChainAuthKeyPairAndUpload = {
-        address,
-        chainId: GREENFIELD_CHAIN_ID,
-        sps: pruneSps,
-        domain,
-        expirationMs: EXPIRATION_MS,
-      };
-      const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(configParam, provider);
-      const { code, body: offChainData } = res;
-      if (code !== 0 || isEmpty(offChainData)) {
-        throw res;
-      }
-      setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
-      setIsAuthPending(false);
-      onClose();
-
-      return { code: 0, message: 'success' };
-    } catch (e: any) {
-      console.log('gen offChain data error', e);
-      const { message } = e;
-      message && toast.error({ description: `${message}`, duration: 3000 });
-      setIsAuthPending(false);
-      onClose();
-
-      return { code: -1, error: e };
-    }
   };
+
+  const onOffChainAuth = useCallback(
+    async (address: string) => {
+      setIsAuthPending(true);
+      try {
+        const provider = await connector?.getProvider();
+        const domain = getDomain();
+        const pruneSps = authSps.map((item: any) => ({
+          address: item.operatorAddress,
+          name: item.description.moniker,
+          endpoint: item.endpoint,
+        }));
+        const configParam: IGenOffChainAuthKeyPairAndUpload = {
+          address,
+          chainId: GREENFIELD_CHAIN_ID,
+          sps: pruneSps,
+          domain,
+          expirationMs: EXPIRATION_MS,
+        };
+        const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(
+          configParam,
+          provider,
+        );
+        const { code, body: offChainData } = res;
+        if (code !== 0 || isEmpty(offChainData)) {
+          throw res;
+        }
+        setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
+        setIsAuthPending(false);
+        onClose();
+
+        return { code: 0, message: 'success' };
+      } catch (e: any) {
+        console.log('gen offChain data error', e);
+        const { message } = e;
+        message && toast.error({ description: `${message}`, duration: 3000 });
+        setIsAuthPending(false);
+        onClose();
+
+        return { code: -1, error: e };
+      }
+    },
+    [authSps, connector, onClose],
+  );
 
   return (
     <OffChainAuthContext.Provider

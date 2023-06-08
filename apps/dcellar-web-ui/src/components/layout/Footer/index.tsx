@@ -1,4 +1,4 @@
-import { Flex, Link, Text } from '@totejs/uikit';
+import { Flex, FlexProps, Link, Text } from '@totejs/uikit';
 import React from 'react';
 
 import { getUtcYear } from '@/utils/getUtcYear';
@@ -6,7 +6,7 @@ import { noderealUrl } from '@/constants/links';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 
-export const Footer = (props: any) => {
+export const Footer = (props: FlexProps) => {
   const utcYear = getUtcYear();
   const { ...styleProps } = props;
   // const fixAtBottomStyle = fixAtBottom

@@ -1,5 +1,5 @@
 import { Flex } from '@totejs/uikit';
-import React, { useContext, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -10,21 +10,18 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { SEOHead } from './SEOHead';
 import { InternalRoutePaths } from '@/constants/links';
 
-const IgnoreFooterPaths = ['/buckets','/'];
+const IgnoreFooterPaths = ['/buckets', '/'];
 
-export const LoginLayout = ({
-  children,
-  disconnect,
-}: {
-  children: React.ReactNode;
-  disconnect: any;
-}) => {
+export const LoginLayout = ({ children }: { children: React.ReactNode }) => {
   const isMounted = useIsMounted();
+
   const loginData = useLogin();
   const { loginState } = loginData;
+
   const router = useRouter();
   const address = loginState?.address;
   const { pathname, asPath } = router;
+
   const isShowFooter = useMemo(
     () => !IgnoreFooterPaths.some((item) => router.pathname.includes(item)),
     [router.pathname],
@@ -80,7 +77,7 @@ export const LoginLayout = ({
                 {children}
                 {isShowFooter && <Footer />}
               </Flex>
-              <Header disconnect={disconnect} />
+              <Header />
             </Flex>
             <Nav />
           </Flex>

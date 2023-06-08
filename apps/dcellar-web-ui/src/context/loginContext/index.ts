@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { getLoginLocalStorageKey } from '../../utils/constant';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 
 export const LOGIN_STORAGE_KEY = getLoginLocalStorageKey();
 export const initialState = {
@@ -29,10 +31,10 @@ export interface LoginState {
     allowDirectView: boolean;
   };
   loginDispatch: React.Dispatch<any>;
+  logout: () => void;
 }
 
 export const LoginContext = React.createContext<LoginState>(null as any);
-LoginContext.displayName = 'LoginContext';
 
 export const LoginReducer = (state: any, action: any) => {
   switch (action.type) {
@@ -46,6 +48,8 @@ export const LoginReducer = (state: any, action: any) => {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(initialState));
       }
+      removeOffChainData(state?.address, GREENFIELD_CHAIN_ID);
+
       return {
         ...initialState,
       };

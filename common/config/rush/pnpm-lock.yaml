@@ -3325,20 +3325,20 @@ packages:
     resolution: {integrity: sha512-Tfru6YTDTCpX7dKVwHp/sosw/dNjEdzrncduUjIkQxn7n7u+74HT2ZrGtwwrU6Orws4x7zp3FKRqBPWVVhpx9w==}
     dev: false
 
-  /@tanstack/query-core/4.29.7:
-    resolution: {integrity: sha512-GXG4b5hV2Loir+h2G+RXhJdoZhJLnrBWsuLB2r0qBRyhWuXq9w/dWxzvpP89H0UARlH6Mr9DiVj4SMtpkF/aUA==}
+  /@tanstack/query-core/4.29.11:
+    resolution: {integrity: sha512-8C+hF6SFAb/TlFZyS9FItgNwrw4PMa7YeX+KQYe2ZAiEz6uzg6yIr+QBzPkUwZ/L0bXvGd1sufTm3wotoz+GwQ==}
     dev: false
 
-  /@tanstack/query-persist-client-core/4.29.7:
-    resolution: {integrity: sha512-/QahvSq9/f8hetCsCd9MaOy6fAoPn0YDGDcl6TTobqdr9kHMgrM9laP9yKJFg2hm5/jIsrCMDO/iCnxBiUhrqw==}
+  /@tanstack/query-persist-client-core/4.29.11:
+    resolution: {integrity: sha512-CSmMZchr+446r79NJ/pjD2yfjqNqFV7k8BnqOq4yTZvXsaQLEIn3tsaU45IsPgs4N7g9OBfPUPDdapSQvck2WQ==}
     dependencies:
-      '@tanstack/query-core': 4.29.7
+      '@tanstack/query-core': 4.29.11
     dev: false
 
-  /@tanstack/query-sync-storage-persister/4.29.7:
-    resolution: {integrity: sha512-XWys8hez8eFIb9+oYNs0Jumfjz8afEwN52VSrHJEWg7gZO/Y/8ziI80cNlaDNB+60t7s3TaspKXT5z8DNFsCkQ==}
+  /@tanstack/query-sync-storage-persister/4.29.11:
+    resolution: {integrity: sha512-JP9U3m9YPkUelcE9+7D6fAEsNEp2ysKsH6qrd0WJtqsuhe5Zwr407NxaQ5uB2ow/MmhPOm8bxzMZw00Y7RagoQ==}
     dependencies:
-      '@tanstack/query-persist-client-core': 4.29.7
+      '@tanstack/query-persist-client-core': 4.29.11
     dev: false
 
   /@tanstack/react-query-devtools/4.24.6_8ef591dc81fa28136e055618599224b1:
@@ -3356,13 +3356,13 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
-  /@tanstack/react-query-persist-client/4.29.7_@tanstack+react-query@4.29.7:
-    resolution: {integrity: sha512-KYUeESnthjjcfakpAei9Cz5gsIm1uDAVHrKcIAoARQwksk4j0KAo9ieExoIhL9v4mpTOlE9GsuZ/y06ANmaVaQ==}
+  /@tanstack/react-query-persist-client/4.29.12_@tanstack+react-query@4.29.12:
+    resolution: {integrity: sha512-rh6zZJB+3j8lr+YsEkVadnqmUELmqNFZQzGGsHS5col/YOjYsMe9ppqaUjIMJ2aXnFXye50sbe4KxHhSGoaNVw==}
     peerDependencies:
-      '@tanstack/react-query': 4.29.7
+      '@tanstack/react-query': 4.29.12
     dependencies:
-      '@tanstack/query-persist-client-core': 4.29.7
-      '@tanstack/react-query': 4.29.7_react-dom@18.2.0+react@18.2.0
+      '@tanstack/query-persist-client-core': 4.29.11
+      '@tanstack/react-query': 4.29.12_react-dom@18.2.0+react@18.2.0
     dev: false
 
   /@tanstack/react-query/4.24.6_react-dom@18.2.0+react@18.2.0:
@@ -3383,8 +3383,8 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
-  /@tanstack/react-query/4.29.7_react-dom@18.2.0+react@18.2.0:
-    resolution: {integrity: sha512-ijBWEzAIo09fB1yd22slRZzprrZ5zMdWYzBnCg5qiXuFbH78uGN1qtGz8+Ed4MuhaPaYSD+hykn+QEKtQviEtg==}
+  /@tanstack/react-query/4.29.12_react-dom@18.2.0+react@18.2.0:
+    resolution: {integrity: sha512-zhcN6+zF6cxprxhTHQajHGlvxgK8npnp9uLe9yaWhGc6sYcPWXzyO4raL4HomUzQOPzu3jLvkriJQ7BOrDM8vA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -3395,7 +3395,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@tanstack/query-core': 4.29.7
+      '@tanstack/query-core': 4.29.11
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
@@ -3865,9 +3865,9 @@ packages:
       '@safe-global/safe-apps-provider': 0.15.2
       '@safe-global/safe-apps-sdk': 7.11.0
       '@wagmi/core': 0.10.11_ffa9e4b7c978105c4cdc523f3dd0562c
-      '@walletconnect/ethereum-provider': 2.7.2_@web3modal+standalone@2.4.1
+      '@walletconnect/ethereum-provider': 2.7.2_@web3modal+standalone@2.4.2
       '@walletconnect/legacy-provider': 2.0.0
-      '@web3modal/standalone': 2.4.1_react@18.2.0
+      '@web3modal/standalone': 2.4.2_react@18.2.0
       abitype: 0.3.0_typescript@5.0.4
       ethers: 5.7.2
       eventemitter3: 4.0.7
@@ -3963,7 +3963,7 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /@walletconnect/ethereum-provider/2.7.2_@web3modal+standalone@2.4.1:
+  /@walletconnect/ethereum-provider/2.7.2_@web3modal+standalone@2.4.2:
     resolution: {integrity: sha512-bvmutLrKKLlQ1WxKCvvX5p5YVox1D1f3Enp6hzAiZf4taN+n/M5rmwfAcLgLhp4cTAUDhl3zgtZErzDyJnvGvQ==}
     peerDependencies:
       '@web3modal/standalone': '>=2'
@@ -3979,7 +3979,7 @@ packages:
       '@walletconnect/types': 2.7.2
       '@walletconnect/universal-provider': 2.7.2
       '@walletconnect/utils': 2.7.2
-      '@web3modal/standalone': 2.4.1_react@18.2.0
+      '@web3modal/standalone': 2.4.2_react@18.2.0
       events: 3.3.0
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
@@ -4261,8 +4261,8 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /@web3modal/core/2.4.1_react@18.2.0:
-    resolution: {integrity: sha512-v6Y/eQJSI2YfUTv8rGqjFabqdk3ZPjx6Fe7j5Q8fw0ZWF1YRGM3mySG457qtKQ7D7E1kNKA3BHbaOZ3pgQoG6A==}
+  /@web3modal/core/2.4.2_react@18.2.0:
+    resolution: {integrity: sha512-/pQjARcyaGsGuYWDa+1Pygk0T52mweyrmkL9WAbBtB9eY40sYg5Xg46dn77Nvr8lf+dwJyDrv5hKMe7Ya6mu0g==}
     dependencies:
       buffer: 6.0.3
       valtio: 1.10.5_react@18.2.0
@@ -4270,21 +4270,21 @@ packages:
       - react
     dev: false
 
-  /@web3modal/standalone/2.4.1_react@18.2.0:
-    resolution: {integrity: sha512-ZrI5LwWeT9sd8A3FdIX/gBp3ZrzrX882Ln1vJN0LTCmeP2OUsYcW5bPxjv1PcJ1YUBY7Tg4aTgMUnAVTTuqb+w==}
+  /@web3modal/standalone/2.4.2_react@18.2.0:
+    resolution: {integrity: sha512-0j6MfI4jHdJ7w3WrwVJLPuFH9sIwFg+Qwj6GYtU8xdL/IyHxlkkzYzTbZTneuk3XIK1ZZFkMxx5pa947Arm+PQ==}
     dependencies:
-      '@web3modal/core': 2.4.1_react@18.2.0
-      '@web3modal/ui': 2.4.1_react@18.2.0
+      '@web3modal/core': 2.4.2_react@18.2.0
+      '@web3modal/ui': 2.4.2_react@18.2.0
     transitivePeerDependencies:
       - react
     dev: false
 
-  /@web3modal/ui/2.4.1_react@18.2.0:
-    resolution: {integrity: sha512-x1ceyd3mMJsIHs5UUTLvE+6qyCjhyjL6gB/wVmTDbwASHSQIVyshQJ+s7BwIEMP/pbAsYDg+/M8EiUuE+/E/kg==}
+  /@web3modal/ui/2.4.2_react@18.2.0:
+    resolution: {integrity: sha512-35USuKCSXVIdQqn83/MBq8cpcjD3kCxPUOeQmX9MVDJUCbz3l3AX+Iimf2hBe5comoxkVUjlKT1cx4y184/aOA==}
     dependencies:
-      '@web3modal/core': 2.4.1_react@18.2.0
+      '@web3modal/core': 2.4.2_react@18.2.0
       lit: 2.7.4
-      motion: 10.15.5
+      motion: 10.16.2
       qrcode: 1.5.3
     transitivePeerDependencies:
       - react
@@ -7315,8 +7315,8 @@ packages:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
     dev: true
 
-  /motion/10.15.5:
-    resolution: {integrity: sha512-ejP6KioN4pigTGxL93APzOnvtLklParL59UQB2T3HWXQBxFcIp5/7YXFmkgiA6pNKKzjvnLhnonRBN5iSFMnNw==}
+  /motion/10.16.2:
+    resolution: {integrity: sha512-p+PurYqfUdcJZvtnmAqu5fJgV2kR0uLFQuBKtLeFVTrYEVllI99tiOTSefVNYuip9ELTEkepIIDftNdze76NAQ==}
     dependencies:
       '@motionone/animation': 10.15.1
       '@motionone/dom': 10.16.2
@@ -9104,9 +9104,9 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@tanstack/query-sync-storage-persister': 4.29.7
-      '@tanstack/react-query': 4.29.7_react-dom@18.2.0+react@18.2.0
-      '@tanstack/react-query-persist-client': 4.29.7_@tanstack+react-query@4.29.7
+      '@tanstack/query-sync-storage-persister': 4.29.11
+      '@tanstack/react-query': 4.29.12_react-dom@18.2.0+react@18.2.0
+      '@tanstack/react-query-persist-client': 4.29.12_@tanstack+react-query@4.29.12
       '@wagmi/core': 0.10.11_ffa9e4b7c978105c4cdc523f3dd0562c
       abitype: 0.3.0_typescript@5.0.4
       ethers: 5.7.2

@@ -22,7 +22,7 @@ export const dark = {
 
     bg: {
       bottom: '#14151a',
-      secondary: '#474D57',
+      secondary: '#FAFAFA',
       middle: '#1E2026',
       codebox: '#262d37',
       top: {

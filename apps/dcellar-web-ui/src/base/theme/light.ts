@@ -22,7 +22,7 @@ export const light = {
 
     bg: {
       bottom: '#f5f5f5',
-      secondary: '#fafafa',
+      secondary: '#FAFAFA',
       middle: '#FFFFFF',
       codebox: '#f0f4f9',
       top: {
