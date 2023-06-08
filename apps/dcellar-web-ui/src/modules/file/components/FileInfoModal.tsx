@@ -32,8 +32,9 @@ import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { formatFullTime } from '@/utils/time';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 interface modalProps {
   title?: string;
@@ -45,16 +46,13 @@ interface modalProps {
   folderName: string;
   fileInfo?: { name: string; size: number };
   createdDate?: number;
-  primarySpUrl?: string;
-  primarySpAddress?: string;
-  primarySpSealAddress?: string;
+  primarySp: IRawSPInfo;
   hash?: string;
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;
   shareLink?: string;
   visibility?: number;
   remainingQuota: number | null;
-  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -232,14 +230,11 @@ export const FileInfoModal = (props: modalProps) => {
     bucketName,
     fileInfo = { name: '', size: '' },
     createdDate = 0,
-    primarySpUrl = '',
-    primarySpAddress = '',
-    primarySpSealAddress = '',
+    primarySp,
     shareLink,
     remainingQuota,
     folderName = '',
     visibility = 0,
-    spAddress,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
     setStatusModalIcon,
@@ -316,12 +311,12 @@ export const FileInfoModal = (props: modalProps) => {
           {renderPropRow('Date uploaded', formatFullTime(createdDate * 1000))}
           {renderAddressLink(
             'Primary SP address',
-            primarySpAddress,
+            primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_spadd.click',
           )}
           {renderAddressLink(
             'Primary SP seal address',
-            primarySpSealAddress,
+            primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_seal.click',
           )}
           {renderPropRow(
@@ -332,7 +327,7 @@ export const FileInfoModal = (props: modalProps) => {
             renderPropRow(
               'Universal link',
               renderUrlWithLink(
-                `${primarySpUrl}/view/${bucketName}/${name}`,
+                `${primarySp.endpoint}/view/${bucketName}/${name}`,
                 true,
                 32,
                 'dc.file.f_detail_pop.copy_universal.click',
@@ -379,27 +374,22 @@ export const FileInfoModal = (props: modalProps) => {
                     directlyDownload(shareLink);
                   } else {
                     try {
-                      const { spAddresses, expirationTime } = await getOffChainData(
-                        loginState.address,
-                      );
-                      if (
-                        !checkSpOffChainDataAvailable({
-                          spAddresses,
-                          expirationTime,
-                          spAddress,
-                        })
-                      ) {
+                      const spOffChainData = await getSpOffChainData({
+                        spAddress: primarySp.operatorAddress,
+                        address: loginState.address,
+                      });
+                      if (!checkSpOffChainDataAvailable(spOffChainData)) {
                         onClose();
                         setOpenAuthModal();
                         return;
                       }
-                      const result = await downloadWithProgress(
+                      const result = await downloadWithProgress({
                         bucketName,
-                        name,
-                        primarySpUrl,
-                        Number(size),
-                        loginState.address,
-                      );
+                        objectName: name,
+                        primarySp,
+                        payloadSize: Number(size),
+                        address: loginState.address,
+                      });
                       saveFileByAxiosResponse(result, name);
                     } catch (e: any) {
                       if (e?.response?.status === 500) {

@@ -39,7 +39,7 @@ import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useSPs } from '@/hooks/useSPs';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
@@ -80,7 +80,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   } = useLogin();
 
   const { sp: globalSP, sps: globalSps } = useSPs();
-  const [sp, setSP] = useState<IRawSPInfo>(globalSP);
+  // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
+  const selectedSpRef = useRef<IRawSPInfo>(globalSP);
   const { connector } = useAccount();
   const { availableBalance } = useDefaultChainBalance();
   const balance = BigNumber(availableBalance || 0);
@@ -143,7 +144,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     },
     [balance],
   );
-
   const debounceValidate = debounce(async (value, curNonce) => {
     if (curNonce !== nonceRef.current) return;
     const types: { [key: string]: string } = {};
@@ -151,11 +151,12 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     try {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const domain = getDomain();
-      const offChainData = await getOffChainData(address);
-      const { seedString } = offChainData;
-      if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+      const sp = selectedSpRef.current;
+      const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
+      const { seedString } = spOffChainData;
+      if (!checkSpOffChainDataAvailable(spOffChainData)) {
         onClose();
-        setOpenAuthModal();
+        setOpenAuthModal([sp.operatorAddress]);
         return;
       }
       const secondarySpAddresses = globalSps
@@ -226,7 +227,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         } else if (e.statusCode === 500) {
           onClose();
           types['validateOffChainAuth'] = '';
-          setOpenAuthModal();
+          setOpenAuthModal([selectedSpRef.current.operatorAddress]);
         } else {
           const { isError, message } = parseError(e.message);
           types['validateBalanceAndName'] =
@@ -280,23 +281,23 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const offChainData = await getOffChainData(address);
-        if (!checkSpOffChainDataAvailable({ spAddress: sp.operatorAddress, ...offChainData })) {
+        const spOffChainData = await getSpOffChainData({address, spAddress: selectedSpRef.current.operatorAddress});
+        if (!checkSpOffChainDataAvailable(spOffChainData)) {
           onClose();
-          setOpenAuthModal();
+          setOpenAuthModal([selectedSpRef.current.operatorAddress]);
           return;
         }
-        const { seedString } = offChainData;
+        const { seedString } = spOffChainData;
         const bucketName = data.bucketName;
         const domain = getDomain();
         // NOTICE: Avoid the user skip got get gas fee step
         const secondarySpAddresses = globalSps
-          .filter((item: any) => item.operatorAddress !== sp.operatorAddress)
+          .filter((item: any) => item.operatorAddress !== selectedSpRef.current.operatorAddress)
           .map((item: any) => item.operatorAddress);
         const spInfo = {
-          endpoint: sp.endpoint,
-          primarySpAddress: sp.operatorAddress,
-          sealAddress: sp.sealAddress,
+          endpoint: selectedSpRef.current.endpoint,
+          primarySpAddress:selectedSpRef.current.operatorAddress,
+          sealAddress: selectedSpRef.current.sealAddress,
           secondarySpAddresses,
         };
         const createBucketParams: TCreateBucket = {
@@ -356,7 +357,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, connector, globalSps, onClose, refetch, setOpenAuthModal, sp],
+    [address, connector, globalSps, onClose, refetch, setOpenAuthModal],
   );
 
   const disableCreateButton = () => {
@@ -384,7 +385,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
 
   const onChangeSP = useCallback(
     (sp: IRawSPInfo) => {
-      setSP(sp);
+      selectedSpRef.current = sp;
 
       const { value, available } = validateNameAndGas.name;
       if (available && value) {

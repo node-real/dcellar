@@ -70,10 +70,11 @@ import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { client } from '@/base/client';
 import { useRouter } from 'next/router';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -104,9 +105,7 @@ interface fileListProps {
   listObjects: any;
   bucketName: string;
   folderName: string;
-  endpoint: string;
-  spAddress: string;
-  primarySpSealAddress: string;
+  primarySp: IRawSPInfo;
   isLoading: boolean;
   bucketIsDiscontinued: boolean;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -209,10 +208,8 @@ export const FileTable = (props: fileListProps) => {
     listObjects,
     bucketName,
     folderName,
-    endpoint,
-    spAddress,
+    primarySp,
     bucketIsDiscontinued,
-    primarySpSealAddress,
     isLoading = false,
     setListObjects,
     setStatusModalIcon,
@@ -316,7 +313,7 @@ export const FileTable = (props: fileListProps) => {
   ]);
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
-      const lockFeeInBNB = await getLockFee(size, spAddress);
+      const lockFeeInBNB = await getLockFee(size, primarySp.operatorAddress);
       setLockFee(lockFeeInBNB.toString());
       setLockFeeLoading(false);
     } catch (error) {
@@ -596,8 +593,13 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === 1) {
                 directlyDownload(url);
               } else {
-                const { spAddresses, expirationTime } = await getOffChainData(loginState.address);
-                if (!checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })) {
+                const spOffChainData = await getSpOffChainData({
+                  address: loginState.address,
+                  spAddress: primarySp.operatorAddress
+                });
+                if (
+                  !checkSpOffChainDataAvailable(spOffChainData)
+                ) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -609,13 +611,13 @@ export const FileTable = (props: fileListProps) => {
                 // setStatusModalButtonText('');
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
-                const result = await downloadWithProgress(
+                const result = await downloadWithProgress({
                   bucketName,
                   objectName,
-                  endpoint,
-                  Number(payloadSize),
-                  loginState.address,
-                );
+                  primarySp,
+                  payloadSize: Number(payloadSize),
+                  address: loginState.address,
+                });
                 saveFileByAxiosResponse(result, objectName);
                 // onStatusModalClose();
               }
@@ -637,7 +639,7 @@ export const FileTable = (props: fileListProps) => {
           const downloadWithConfirm = async (url: string) => {
             if (allowDirectDownload) {
               try {
-                const quotaData = await getQuota(bucketName, endpoint);
+                const quotaData = await getQuota(bucketName, primarySp.endpoint);
                 if (quotaData) {
                   const { freeQuota, readQuota, consumedQuota } = quotaData;
                   const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
@@ -666,7 +668,7 @@ export const FileTable = (props: fileListProps) => {
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
-              const quotaData = await getQuota(bucketName, endpoint);
+              const quotaData = await getQuota(bucketName, primarySp.endpoint);
               if (quotaData) {
                 const { freeQuota, readQuota, consumedQuota } = quotaData;
                 setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -678,8 +680,7 @@ export const FileTable = (props: fileListProps) => {
             setShareLink(directDownloadLink);
             onShareModalOpen();
           };
-
-          const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
+          const directDownloadLink = encodeURI(`${primarySp.endpoint}/download/${bucketName}/${objectName}`);
           if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
@@ -738,7 +739,7 @@ export const FileTable = (props: fileListProps) => {
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
                             onInfoModalOpen();
-                            const quotaData = await getQuota(bucketName, endpoint);
+                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
                             if (quotaData) {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -852,10 +853,9 @@ export const FileTable = (props: fileListProps) => {
       },
     ];
   }, [
-    spAddress,
     chain,
     address,
-    endpoint,
+    primarySp,
     bucketName,
     allowDirectDownload,
     setCloseAllAndShowAuthModal,
@@ -992,7 +992,7 @@ export const FileTable = (props: fileListProps) => {
                           return;
                         }
                         const previewLink = encodeURI(
-                          `${endpoint}/view/${bucketName}/${object_name}`,
+                          `${primarySp.endpoint}/view/${bucketName}/${object_name}`,
                         );
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
@@ -1000,7 +1000,7 @@ export const FileTable = (props: fileListProps) => {
                           setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
-                          const quotaData = await getQuota(bucketName, endpoint);
+                          const quotaData = await getQuota(bucketName, primarySp.endpoint);
                           if (quotaData) {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -1012,26 +1012,23 @@ export const FileTable = (props: fileListProps) => {
                         } else {
                           // preview file
                           try {
-                            const { spAddresses, expirationTime } = await getOffChainData(
-                              loginState.address,
-                            );
+                            const spOffChainData = await getSpOffChainData({
+                              address: loginState.address,
+                              spAddress: primarySp.operatorAddress,
+                            });
                             if (
-                              !checkSpOffChainDataAvailable({
-                                spAddresses,
-                                expirationTime,
-                                spAddress,
-                              })
+                              !checkSpOffChainDataAvailable(spOffChainData)
                             ) {
                               setOpenAuthModal();
                               return;
                             }
-                            const result = await downloadWithProgress(
+                            const result = await downloadWithProgress({
                               bucketName,
-                              object_name,
-                              endpoint,
-                              Number(payload_size),
-                              loginState.address,
-                            );
+                              objectName: object_name,
+                              primarySp,
+                              payloadSize: Number(payload_size),
+                              address: loginState.address,
+                            });
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {
                             if (error?.response?.status === 500) {
@@ -1071,11 +1068,8 @@ export const FileTable = (props: fileListProps) => {
         hash={hash}
         shareLink={shareLink}
         createdDate={createdDate}
-        primarySpUrl={endpoint}
+        primarySp={primarySp}
         visibility={currentVisibility}
-        spAddress={spAddress}
-        primarySpAddress={spAddress}
-        primarySpSealAddress={primarySpSealAddress}
         onShareModalOpen={onShareModalOpen}
         remainingQuota={remainingQuota}
         setStatusModalIcon={setStatusModalIcon}
@@ -1092,8 +1086,9 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmDownloadModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
-        spAddress={spAddress}
+        // endpoint={endpoint}
+        // spAddress={spAddress}
+        primarySp={primarySp}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
@@ -1110,8 +1105,9 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmViewModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
-        spAddress={spAddress}
+        // endpoint={endpoint}
+        // spAddress={spAddress}
+        primarySp={primarySp}
         viewLink={viewLink}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
@@ -1128,7 +1124,6 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmDeleteModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
         simulateGasFee={gasFee}
         listObjects={listObjects}
         setListObjects={setListObjects}
@@ -1147,7 +1142,6 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmCancelModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
         simulateGasFee={gasFee}
         lockFee={lockFee}
         outsideLoading={gasFeeLoading}
