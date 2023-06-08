@@ -1,7 +1,7 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkOffChainDataAvailable, getOffChainList } from '@/modules/off-chain-auth/utils';
 import { useEffect } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 
@@ -13,8 +13,8 @@ export function useAppLogin() {
 
   useEffect(() => {
     if (isConnected && address && chain?.id === GREENFIELD_CHAIN_ID) {
-      const offChainData = getOffChainData(address);
-      const isAvailable = checkOffChainDataAvailable(offChainData);
+      const offChainList = getOffChainList({ address });
+      const isAvailable = checkOffChainDataAvailable(offChainList);
 
       if (!isAvailable) {
         onOffChainAuth(address).then((res: any) => {
