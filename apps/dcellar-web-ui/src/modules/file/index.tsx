@@ -281,27 +281,32 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   //   };
   // }, [router.events]);
 
-  const renderCreteFolderButton = (isCurrentUser: boolean, gaClickName?: string) => {
+  const renderCreteFolderButton = (
+    isCurrentUser: boolean,
+    isDiscontinued: boolean,
+    gaClickName?: string,
+  ) => {
     if (!isCurrentUser) return <></>;
-    const isOver10LevelsDeep = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
+    const maxFolderDepth = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
+    const disabled = maxFolderDepth || isDiscontinued;
     return (
       <GAClick name={gaClickName}>
         <Tooltip
           content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
           placement={'bottom-start'}
-          visibility={isOver10LevelsDeep ? 'visible' : 'hidden'}
+          visibility={maxFolderDepth ? 'visible' : 'hidden'}
         >
           <Flex
-            bgColor={isOver10LevelsDeep ? 'readable.tertiary' : 'readable.normal'}
+            bgColor={disabled ? 'readable.tertiary' : 'readable.normal'}
             _hover={{ bg: 'readable.tertiary' }}
             position="relative"
             paddingX="16px"
             paddingY="8px"
             alignItems="center"
             borderRadius={'8px'}
-            cursor={isOver10LevelsDeep ? 'default' : 'pointer'}
+            cursor={disabled ? 'default' : 'pointer'}
             onClick={() => {
-              if (isOver10LevelsDeep) return;
+              if (disabled) return;
               if (!endpoint) {
                 toast.error({
                   description: 'SP Endpoint is not ready',
@@ -586,7 +591,11 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         </Tooltip>
         <Flex gap={12}>
           {showUploadButtonOnHeader &&
-            renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
+            renderCreteFolderButton(
+              isCurrentUser,
+              isDiscontinued,
+              'dc.file.list.create_folder.click',
+            )}
           {showUploadButtonOnHeader &&
             renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
         </Flex>
@@ -621,11 +630,16 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         >
           <FileListEmpty bucketStatus={bucketInfo.bucketStatus} folderName={folderName} />
           <GAShow name="dc.file.empty.upload.show" />
-          {bucketInfo.bucketStatus === 0 && <Flex gap={12}></Flex>}
-          <Flex gap={12}>
-            {renderCreteFolderButton(isCurrentUser, 'dc.file.list.create_folder.click')}
-            {renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
-          </Flex>
+          {bucketInfo.bucketStatus === 0 && (
+            <Flex gap={12}>
+              {renderCreteFolderButton(
+                isCurrentUser,
+                isDiscontinued,
+                'dc.file.empty.create_folder.click',
+              )}
+              {renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
+            </Flex>
+          )}
         </Flex>
       ) : (
         <FileTable

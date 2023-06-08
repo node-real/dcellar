@@ -490,15 +490,15 @@ export const FileDetailModal = (props: modalProps) => {
               duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
-            // const newFileObjectStatus = listObjects[0].object_info.object_status;
-            // const isNewestList = listObjects[0].object_info.object_name === finalName;
-            // if (
-            //   newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
-            //   newFileObjectStatus === OBJECT_CREATE_STATUS ||
-            //   !isNewestList
-            // ) {
-            //   router.reload();
-            // }
+            const newFileObjectStatus = listObjects[0].object_status;
+            const isNewestList = listObjects[0].object_name === finalName;
+            if (
+              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
+              newFileObjectStatus === OBJECT_CREATE_STATUS ||
+              !isNewestList
+            ) {
+              router.reload();
+            }
           } else {
             setIsSealed(false);
           }
