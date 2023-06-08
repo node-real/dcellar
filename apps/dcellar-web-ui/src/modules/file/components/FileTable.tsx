@@ -595,11 +595,9 @@ export const FileTable = (props: fileListProps) => {
               } else {
                 const spOffChainData = await getSpOffChainData({
                   address: loginState.address,
-                  spAddress: primarySp.operatorAddress
+                  spAddress: primarySp.operatorAddress,
                 });
-                if (
-                  !checkSpOffChainDataAvailable(spOffChainData)
-                ) {
+                if (!checkSpOffChainDataAvailable(spOffChainData)) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -680,7 +678,9 @@ export const FileTable = (props: fileListProps) => {
             setShareLink(directDownloadLink);
             onShareModalOpen();
           };
-          const directDownloadLink = encodeURI(`${primarySp.endpoint}/download/${bucketName}/${objectName}`);
+          const directDownloadLink = encodeURI(
+            `${primarySp.endpoint}/download/${bucketName}/${objectName}`,
+          );
           if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
@@ -1016,9 +1016,7 @@ export const FileTable = (props: fileListProps) => {
                               address: loginState.address,
                               spAddress: primarySp.operatorAddress,
                             });
-                            if (
-                              !checkSpOffChainDataAvailable(spOffChainData)
-                            ) {
+                            if (!checkSpOffChainDataAvailable(spOffChainData)) {
                               setOpenAuthModal();
                               return;
                             }
