@@ -249,6 +249,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
 
     const createObjectTx = await fetchCreateObjectApproval(file, fullPath, visibility).catch(
       (error: any) => {
+        setLoading(false);
         console.error('fetchCreateObjectApproval', error);
       },
     );
@@ -327,7 +328,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
               onClick={onCreateFolder}
               isDisabled={loading || gasFeeLoading || !!formErrors.length}
               justifyContent="center"
-              gaClickName="dc.file.upload_modal.confirm.click"
+              gaClickName="dc.file.create_folder_m.create.click"
             >
               {loading ? (
                 <>
