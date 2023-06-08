@@ -1,6 +1,5 @@
 import React from 'react';
 import { Flex, ModalBody, ModalFooter, Text } from '@totejs/uikit';
-import { useDisconnect } from 'wagmi';
 
 import CreateFailedIcon from '@/public/images/common/wrong-network.svg';
 import { POPPINS_FONT } from '@/modules/wallet/constants';
@@ -8,13 +7,11 @@ import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '../common/DCModal';
 import { DCButton } from '../common/DCButton';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
+import { useLogin } from '@/hooks/useLogin';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
-  const { disconnect } = useDisconnect({
-    onSuccess() {
-      onClose();
-    },
-  });
+  const { logout } = useLogin();
+
   const { switchNetwork } = useWalletSwitchNetWork({
     onSuccess() {
       onClose();
@@ -57,7 +54,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
           width={'100%'}
           height="48px"
           onClick={() => {
-            disconnect();
+            logout();
             onClose();
           }}
         >
