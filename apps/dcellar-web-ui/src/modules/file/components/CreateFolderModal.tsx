@@ -26,7 +26,6 @@ import {
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   PENDING_ICON_URL,
-  VisibilityType,
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -37,6 +36,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -242,7 +242,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
 
   const fetchCreateFolderApproval = async (
     folderName: string,
-    visibility = VisibilityType.VISIBILITY_TYPE_INHERIT,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_INHERIT,
   ) => {
     const fullPath = getPath(folderName);
     const file = new File([], fullPath, { type: 'text/plain' });

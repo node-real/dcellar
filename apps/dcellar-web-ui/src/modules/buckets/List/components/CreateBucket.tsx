@@ -44,6 +44,7 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { ChainVisibilityEnum } from '@/modules/file/type';
 
 type Props = {
   isOpen: boolean;
@@ -174,8 +175,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         signType: 'offChainAuth',
         domain,
         seedString,
-        // TODO check up update visibility component
-        visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
+        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
         chargedReadQuota: '0',
       };
       const createBucketTx = await genCreateBucketTx(createBucketParams);
@@ -307,7 +307,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           signType: 'offChainAuth',
           domain,
           seedString,
-          visibility: 'VISIBILITY_TYPE_PUBLIC_READ',
+          visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
           chargedReadQuota: '0',
         };
         const createBucketTx = await genCreateBucketTx(createBucketParams);

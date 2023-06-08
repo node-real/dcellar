@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   useAccount,
   useConnect,
@@ -23,13 +23,11 @@ import {
   useMediaQuery,
 } from '@totejs/uikit';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { useRouter } from 'next/router';
 
 import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { assetPrefix, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { REQUEST_PENDING_NUM, USER_REJECT_STATUS_NUM } from '@/utils/constant';
-import { InternalRoutePaths } from '@/constants/links';
 import { DCButton } from '../common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
@@ -54,11 +52,11 @@ const Welcome = () => {
   const [loading, setLoading] = useState(false);
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
-  const router = useRouter();
   const [isLargerThan1000] = useMediaQuery(['(min-width: 1001px)']);
 
   const [isHigherThan704] = useMediaQuery('(min-height: 704px)');
   const [isHigherThan600] = useMediaQuery('(min-height: 601px)');
+  const hasOffChainAuth = useRef(false);
 
   const TitleGap = isHigherThan600 ? 48 : 206;
   const bgHeight = isHigherThan704 ? '560px' : '80%';
@@ -187,6 +185,7 @@ const Welcome = () => {
           const offChainList = getOffChainList({ address: currentAddress});
           const isAvailable = checkOffChainDataAvailable(offChainList);
           if (!isAvailable) {
+            hasOffChainAuth.current = true;
             onOffChainAuth(currentAddress).then((res: any) => {
               if (res.code === 0) {
                 loginDispatch({
@@ -196,6 +195,8 @@ const Welcome = () => {
                   },
                 });
               }
+            }).finally(() => {
+              hasOffChainAuth.current = false;
             });
           } else {
             loginDispatch({
@@ -206,6 +207,7 @@ const Welcome = () => {
             });
           }
         }
+        //
       }
     } else {
       if (switchNetworkDone) {
