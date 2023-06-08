@@ -230,7 +230,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       setFormErrors(errors);
       return false;
     }
-    if (!/^.{1,75}$/.test(value)) {
+    if (new Blob([value]).size > 75) {
       errors.push('Must be between 1 to 75 characters long.');
     }
     if (value.includes('/')) {

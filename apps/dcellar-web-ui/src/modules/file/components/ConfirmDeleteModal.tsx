@@ -132,8 +132,9 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const { name = '', size = 0 } = fileInfo;
-
-  const description = `Are you sure you want to delete file "${name}"?`;
+  const filePath = name.split('/');
+  const showName = filePath[filePath.length - 1];
+  const description = `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();

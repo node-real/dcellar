@@ -571,6 +571,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
           visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
           <Text
+            wordBreak="break-all"
             as={'h1'}
             flex={1}
             fontWeight="700"

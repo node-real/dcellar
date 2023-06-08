@@ -8,6 +8,7 @@ import { File } from '@/modules/file';
 import { GAClick } from '@/components/common/GATracker';
 import { useEffect, useState } from 'react';
 import { getBucketInfo } from '@/utils/sp';
+import { encodeObjectName, trimLongStr } from '@/utils/string';
 
 const Folder = () => {
   const router = useRouter();
@@ -36,16 +37,12 @@ const Folder = () => {
   ) => {
     if (isLastItem) {
       return (
-        <BreadcrumbItem isCurrentPage key="last">
-          <BreadcrumbLink color={'readable.normal'} as="div">
-            <Flex alignItems={'center'} gap={4} fontWeight={600} as="span">
-              {isDiscontinued && bucket && <WaringTriangleIcon />}
-              <Text fontWeight={900} as="span">
-                {text}
-              </Text>
-            </Flex>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
+        <Flex alignItems={'center'} gap={4} fontWeight={600} as="li" flex={1} minW={0}>
+          {isDiscontinued && bucket && <WaringTriangleIcon />}
+          <Text fontWeight={900} as="span" overflow="hidden" textOverflow="ellipsis">
+            {text}
+          </Text>
+        </Flex>
       );
     }
     return (
@@ -54,7 +51,7 @@ const Folder = () => {
           <Flex alignItems={'center'} gap={4} as="span">
             {isDiscontinued && bucket && <WaringTriangleIcon />}
             <GAClick name="dc.file.list.breadcrumbs.click">
-              <Link href={link}>{text}</Link>
+              <Link href={link}>{trimLongStr(text, 16, 16, 0)}</Link>
             </GAClick>
           </Flex>
         </BreadcrumbLink>
@@ -68,7 +65,7 @@ const Folder = () => {
       const isLastItem = i == folders.length - 1;
       return renderBreadcrumbItem(
         isLastItem,
-        `/buckets/${bucketName}/${folders.slice(0, i + 1).join('/')}`,
+        `/buckets/${bucketName}/${encodeObjectName(folders.slice(0, i + 1).join('/'))}`,
         v,
         i,
       );
@@ -81,7 +78,7 @@ const Folder = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <Flex flexDirection={'column'} w={'100%'} height="100%">
-        <Breadcrumb marginX="16px" marginTop="16px">
+        <Breadcrumb marginX="16px" marginTop="16px" maxItems={5} maxW={700} whiteSpace="nowrap">
           <BreadcrumbItem>
             <BreadcrumbLink as="div">
               <GAClick name="dc.file.list.breadcrumbs.click">

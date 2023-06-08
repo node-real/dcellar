@@ -32,3 +32,7 @@ export const formatAddress = (address = '') => {
 export const isAddress = (address = '') => {
   return address.startsWith('0x');
 };
+
+export const encodeObjectName = (obj: string) => {
+  return obj.split('/').map(encodeURIComponent).join('/');
+};
