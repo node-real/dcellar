@@ -75,6 +75,7 @@ import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@
 import { client } from '@/base/client';
 import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { encodeObjectName } from '@/utils/string';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -679,7 +680,7 @@ export const FileTable = (props: fileListProps) => {
             onShareModalOpen();
           };
           const directDownloadLink = encodeURI(
-            `${primarySp.endpoint}/download/${bucketName}/${objectName}`,
+            `${primarySp.endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
           );
           if (isFolder) return <></>;
           return (
@@ -960,6 +961,7 @@ export const FileTable = (props: fileListProps) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
+                const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
                 const isFolder = object_name?.endsWith('/') ?? false;
 
@@ -988,11 +990,11 @@ export const FileTable = (props: fileListProps) => {
                         if (!canView) return;
                         if (isFolder) {
                           // toast.info({ description: 'Click here to view folder files.' });
-                          router.push(`/buckets/${bucketName}/${object_name}`);
+                          router.push(`/buckets/${bucketName}/${encodedObjectName}`);
                           return;
                         }
                         const previewLink = encodeURI(
-                          `${primarySp.endpoint}/view/${bucketName}/${object_name}`,
+                          `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });

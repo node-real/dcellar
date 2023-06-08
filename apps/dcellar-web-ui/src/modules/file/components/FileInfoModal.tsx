@@ -17,7 +17,7 @@ import {
   saveFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { CopyText } from '@/components/common/CopyText';
-import { formatAddress, trimAddress } from '@/utils/string';
+import { encodeObjectName, formatAddress, trimAddress } from '@/utils/string';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useMemo, useState } from 'react';
@@ -328,7 +328,7 @@ export const FileInfoModal = (props: modalProps) => {
             renderPropRow(
               'Universal link',
               renderUrlWithLink(
-                `${primarySp.endpoint}/view/${bucketName}/${name}`,
+                `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(name)}`,
                 true,
                 32,
                 'dc.file.f_detail_pop.copy_universal.click',

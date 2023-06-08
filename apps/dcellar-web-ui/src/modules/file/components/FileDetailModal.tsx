@@ -547,6 +547,10 @@ export const FileDetailModal = (props: modalProps) => {
       console.error('Upload file error', error);
     }
   };
+
+  const filePath = finalName.split('/');
+  const showName = filePath[filePath.length - 1];
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -572,7 +576,7 @@ export const FileDetailModal = (props: modalProps) => {
               color={'readable.normal'}
               mb="8px"
             >
-              {finalName}
+              {showName}
             </Text>
             <Text
               fontSize={'12px'}
