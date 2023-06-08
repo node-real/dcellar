@@ -148,9 +148,10 @@ const renderUrlWithLink = (
   reservedNumber = 32,
   gaClickName?: string,
 ) => {
-  const finalText = needSlim ? text.substring(0, reservedNumber) + '...' : text;
+  const encodedText = encodeURI(text);
+  const finalText = needSlim ? encodedText.substring(0, reservedNumber) + '...' : encodedText;
   return (
-    <CopyText value={text} justifyContent="flex-end" gaClickName={gaClickName}>
+    <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaClickName}>
       <Link
         target="_blank"
         color="#1184EE"
@@ -159,7 +160,7 @@ const renderUrlWithLink = (
         _hover={{
           color: '#1184EE',
         }}
-        href={text}
+        href={encodedText}
         fontSize={'14px'}
         lineHeight={'17px'}
         fontWeight={500}

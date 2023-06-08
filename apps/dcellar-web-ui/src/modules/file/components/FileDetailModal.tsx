@@ -28,6 +28,7 @@ import {
   FILE_TITLE_UPLOADING,
   FILE_UPLOAD_URL,
   OBJECT_CREATE_STATUS,
+  OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
   VisibilityType,
@@ -127,14 +128,14 @@ const getObjectIsSealed = async ({
   primarySp,
   objectName,
   address,
-}:{
-  bucketName: string,
-  primarySp: IRawSPInfo,
-  objectName: string,
-  address: string,
+}: {
+  bucketName: string;
+  primarySp: IRawSPInfo;
+  objectName: string;
+  address: string;
 }) => {
   const domain = getDomain();
-  const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
+  const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
   const listResult = await client.object.listObjects({
     bucketName,
     endpoint: primarySp.endpoint,
@@ -147,7 +148,7 @@ const getObjectIsSealed = async ({
     const listObjects = listResult.body.objects ?? [];
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
+      .map((v: any) => (v.object_info ? v.object_info : v))
       .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
     if (sealObjectIndex >= 0) {
       return listObjects[sealObjectIndex].seal_tx_hash;
@@ -246,6 +247,11 @@ export const FileDetailModal = (props: modalProps) => {
     createObjectData,
   } = props;
   const router = useRouter();
+  const listObjectsRef = useRef<any[]>([]);
+  // todo fixit
+  listObjectsRef.current = listObjects
+    .filter((v: any) => !v.removed)
+    .map((v: any) => (v.object_info ? v.object_info : v));
 
   const startPolling = (makeRequest: any) => {
     timeoutRef.current = setTimeout(() => {
@@ -298,7 +304,7 @@ export const FileDetailModal = (props: modalProps) => {
       //   }
       //   return v;
       // });
-      const finalObjects = listObjects.map((v) => {
+      const finalObjects = listObjectsRef.current.map((v) => {
         if (v?.object_name === finalName) {
           v.payload_size = file?.size ?? 0;
           v.object_status = 1;
@@ -353,6 +359,7 @@ export const FileDetailModal = (props: modalProps) => {
         setFailedStatusModal('Account address is not available');
         return;
       }
+      // todo fix object struct
       let newFileInfo = {
         object_info: {
           bucket_name: bucketName,
@@ -422,7 +429,10 @@ export const FileDetailModal = (props: modalProps) => {
         // If upload size is small, then put obejct using fetch,
         // no need to show progress bar
         const domain = getDomain();
-        const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
+        const { seedString } = await getSpOffChainData({
+          address,
+          spAddress: primarySp.operatorAddress,
+        });
         const uploadOptions = await generatePutObjectOptions({
           bucketName,
           objectName: finalName,
@@ -474,8 +484,7 @@ export const FileDetailModal = (props: modalProps) => {
             objectName: finalName,
             primarySp: primarySp,
             address: loginState.address,
-          }
-          );
+          });
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();
@@ -497,22 +506,21 @@ export const FileDetailModal = (props: modalProps) => {
               duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
-            const newFileObjectStatus = listObjects[0].object_status;
-            const isNewestList = listObjects[0].object_name === finalName;
-            if (
-              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
-              newFileObjectStatus === OBJECT_CREATE_STATUS ||
-              !isNewestList
-            ) {
-              router.reload();
-            }
+            listObjectsRef.current.forEach((v: any) => {
+              if (
+                v?.object_name === finalName &&
+                [OBJECT_STATUS_UPLOADING, OBJECT_STATUS_UPLOADING].includes(v?.object_status)
+              ) {
+                router.reload();
+              }
+            });
           } else {
             setIsSealed(false);
           }
         });
       } catch (error: any) {
         console.log('error', error);
-        const errorListObjects = fileUploadingLists.map((v: any) => {
+        const errorListObjects = listObjectsRef.current.map((v: any) => {
           if (v?.object_name === finalName) {
             v.object_status = OBJECT_STATUS_FAILED;
           }
