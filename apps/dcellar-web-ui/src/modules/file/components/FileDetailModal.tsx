@@ -324,7 +324,6 @@ export const FileDetailModal = (props: modalProps) => {
       // setIsSealed(false);
       onStatusModalOpen();
       const { configParam, CreateObjectTx } = createObjectData;
-      console.log('configParam', configParam);
       // 1. execute create object on chain
       if (!configParam) {
         setFailedStatusModal('Get Object Approval failed, please check.');
