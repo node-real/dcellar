@@ -5,14 +5,15 @@ import { checkOffChainDataAvailable, getOffChainList } from '@/modules/off-chain
 import { useEffect } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 
-export function useAppLogin() {
-  const { address, isConnected } = useAccount();
+export function useAppLogin(address?: string) {
   const { chain } = useNetwork();
-  const { isAuthPending, onOffChainAuth } = useOffChainAuth();
+  const { isConnected } = useAccount();
+
   const { loginDispatch } = useLogin();
+  const { isAuthPending, onOffChainAuth } = useOffChainAuth();
 
   useEffect(() => {
-    if (isConnected && address && chain?.id === GREENFIELD_CHAIN_ID) {
+    if (isConnected && chain?.id === GREENFIELD_CHAIN_ID && address) {
       const offChainList = getOffChainList({ address });
       const isAvailable = checkOffChainDataAvailable(offChainList);
 

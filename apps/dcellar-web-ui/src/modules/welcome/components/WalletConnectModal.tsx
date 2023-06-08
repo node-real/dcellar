@@ -9,12 +9,16 @@ import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useEffect } from 'react';
 
-export function WalletConnectModal(props: DCModalProps) {
-  const { isOpen, onClose } = props;
+export interface WalletConnectModalProps extends DCModalProps {
+  onSuccess: (address?: string) => void;
+}
+
+export function WalletConnectModal(props: WalletConnectModalProps) {
+  const { isOpen, onClose, onSuccess } = props;
 
   const { isLoading, connectors, connector, onChangeConnector, disconnect } = useWallet({
     chainId: GREENFIELD_CHAIN_ID,
-    onSuccess: onClose,
+    onSuccess,
   });
 
   useEffect(() => {
