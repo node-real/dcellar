@@ -1018,6 +1018,23 @@ export const FileTable = (props: fileListProps) => {
                         } else {
                           // preview file
                           try {
+                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
+                            if (quotaData) {
+                              const { freeQuota, readQuota, consumedQuota } = quotaData;
+                              const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
+                              const isAbleDownload = !(
+                                currentRemainingQuota && currentRemainingQuota - Number(payload_size) < 0
+                              );
+                              if (!isAbleDownload) {
+                                setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
+                                setStatusModalTitle(NOT_ENOUGH_QUOTA);
+                                setStatusModalErrorText('');
+                                setStatusModalDescription(NOT_ENOUGH_QUOTA_ERROR);
+                                setStatusModalButtonText(BUTTON_GOT_IT);
+                                onStatusModalOpen();
+                                return;
+                              }
+                            }
                             const spOffChainData = await getSpOffChainData({
                               address: loginState.address,
                               spAddress: primarySp.operatorAddress,
