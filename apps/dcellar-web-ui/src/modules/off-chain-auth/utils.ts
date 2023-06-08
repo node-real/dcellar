@@ -62,11 +62,14 @@ export const getSpOffChainData = ({
   spAddress: string;
 }): IReturnOffChainAuthKeyPairAndUpload => {
   const key = `${address}-${chainId}`;
-  const offChainData = localStorage.getItem(key);
-  const offChainDataList = offChainData ? JSON.parse(offChainData) : [];
+  const localData = localStorage.getItem(key);
   const curTime = getUtcZeroTimestamp();
 
-  const offChainDataItem = offChainDataList.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
+  // Compatible the previous version data
+  const parseLocalData = localData && JSON.parse(localData) || [];
+  const compatibleOldData = Array.isArray(parseLocalData) ? parseLocalData : [parseLocalData];
+
+  const offChainDataItem = compatibleOldData.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
     return item.expirationTime > curTime;
   }).find((item: IReturnOffChainAuthKeyPairAndUpload) => {
     return item.spAddresses.includes(spAddress);
