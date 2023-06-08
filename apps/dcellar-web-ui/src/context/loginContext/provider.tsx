@@ -2,7 +2,7 @@ import React, { ReactNode, useReducer, useEffect, useMemo, useCallback } from 'r
 
 import { LoginReducer, LoginContext, initializer, initialState, LOGIN_STORAGE_KEY } from './index';
 import { useRouter } from 'next/router';
-import { useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
@@ -35,7 +35,11 @@ export function LoginContextProvider(props: LoginContextProviderProps) {
     disconnect();
 
     router.replace('/');
-  }, [disconnect, loginState?.address, router]);
+
+    // don't remove the eslint comment
+    // It seems router's reference sometime will be change, it shouldn't be in the deps, or will lead to loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disconnect, loginState?.address]);
 
   const value = useMemo(() => {
     return {
@@ -49,9 +53,18 @@ export function LoginContextProvider(props: LoginContextProviderProps) {
     logout();
   });
 
-  const { isReady } = useLoginGuard(loginState);
+  const { address: walletAccount } = useAccount();
+  useEffect(() => {
+    if (!walletAccount || loginState.address !== walletAccount) {
+      logout();
+    }
+    // don't remove the eslint comment
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (!isReady) {
+  const { pass } = useLoginGuard(loginState);
+
+  if (!pass) {
     return null;
   }
 

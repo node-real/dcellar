@@ -3,11 +3,12 @@ import { DCButton } from '@/components/common/DCButton';
 import { Footer } from '@/components/layout/Footer';
 import { useLogin } from '@/hooks/useLogin';
 import { WalletConnectModal } from '@/modules/welcome/components/WalletConnectModal';
-import { BG_SIZE_STYLES, WELCOME_BG } from '@/modules/welcome/constants';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { usePreloadPages } from '@/modules/welcome/hooks/usePreloadPages';
 import { Image, Flex, Text, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useState } from 'react';
+
+const MIN_WIDTH_1440 = '@media screen and (min-width: 1440px)';
 
 export function Welcome() {
   usePreloadPages();
@@ -40,8 +41,13 @@ export function Welcome() {
         px={110}
         bgRepeat="no-repeat"
         bgPos="calc(50% + 250px) center"
-        bgImg={`url(${WELCOME_BG})`}
-        sx={BG_SIZE_STYLES}
+        bgImg={`url(${assetPrefix}/images/welcome_bg.svg)`}
+        sx={{
+          bgSize: `1727px auto`,
+          [MIN_WIDTH_1440]: {
+            bgSize: `2154px auto`,
+          },
+        }}
       >
         <Image
           src={`${assetPrefix}/images/logo_welcome.svg`}
