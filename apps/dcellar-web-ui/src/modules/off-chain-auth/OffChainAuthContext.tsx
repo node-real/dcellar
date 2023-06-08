@@ -1,4 +1,4 @@
-import { createContext, useRef, useState } from 'react';
+import { createContext, useCallback, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 

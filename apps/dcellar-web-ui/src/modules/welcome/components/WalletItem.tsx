@@ -27,6 +27,9 @@ export function WalletItem(props: WalletItemProps) {
       borderWidth={2}
       borderColor={isActive ? 'readable.brand6' : 'transparent'}
       cursor={isDisabled ? 'not-allowed' : 'pointer'}
+      _hover={{
+        borderColor: isDisabled && !isActive ? 'transparent' : 'readable.brand6',
+      }}
       bg="bg.bottom"
       position="relative"
       fontSize={18}
@@ -35,9 +38,6 @@ export function WalletItem(props: WalletItemProps) {
       transitionDuration="normal"
       transitionProperty="colors"
       onClick={onBeforeClick}
-      _hover={{
-        borderColor: isDisabled && !isActive ? 'transparent' : 'readable.brand6',
-      }}
       _notLast={{
         mb: 16,
       }}
