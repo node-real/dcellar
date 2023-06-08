@@ -1,14 +1,14 @@
 import React, { useContext } from 'react';
 
-import { LoginLayout } from '@/components/layout/LoginLayout';
 import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
 import ErrorComponent from '@/components/ErrorComponent';
+import { Page } from '@/components/layout/Page';
 
 const Layout = ({ children }: React.PropsWithChildren) => {
   const statusCode = useContext(StatusCodeContext);
 
   if (statusCode === 200) {
-    return <LoginLayout>{children}</LoginLayout>;
+    return <Page>{children}</Page>;
   }
 
   return <ErrorComponent statusCode={statusCode} />;

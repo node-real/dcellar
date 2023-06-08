@@ -5,16 +5,23 @@ import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@to
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { GAClick } from '@/components/common/GATracker';
-import { useWallet } from '@/modules/wallet-connect/hooks/useWallet';
+import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useEffect } from 'react';
 
 export function WalletConnectModal(props: DCModalProps) {
   const { isOpen, onClose } = props;
 
-  const { isLoading, connectors, connector, onChangeConnector } = useWallet({
+  const { isLoading, connectors, connector, onChangeConnector, disconnect } = useWallet({
     chainId: GREENFIELD_CHAIN_ID,
     onSuccess: onClose,
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      disconnect();
+    }
+  }, [disconnect, isOpen]);
 
   return (
     <DCModal

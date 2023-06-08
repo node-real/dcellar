@@ -1,4 +1,4 @@
-import { chains } from '@/modules/wallet-connect/config/chains';
+import { chains } from '@/context/WalletConnectContext/config/chains';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 

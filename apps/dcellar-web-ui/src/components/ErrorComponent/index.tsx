@@ -1,5 +1,5 @@
 import { useLogin } from '@/hooks/useLogin';
-import { SEOHead } from '@/components/layout/SEOHead';
+import { SEOHead } from '@/components/common/SEOHead';
 import React from 'react';
 import { Footer } from '@/components/layout/Footer';
 import styled from '@emotion/styled';

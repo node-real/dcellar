@@ -1,17 +1,15 @@
 import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount, useDisconnect } from 'wagmi';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
+import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/links';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -23,13 +21,11 @@ const renderAvatar = (size?: 'sm' | 'md') => {
   );
 };
 export const Header = () => {
-  const loginData = useLogin();
-  const { loginState, loginDispatch } = loginData;
+  const { loginState, logout } = useLogin();
   const { address } = loginState;
+
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
-  const { address: walletAddress } = useAccount();
-  const { disconnect } = useDisconnect();
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
@@ -44,19 +40,6 @@ export const Header = () => {
     },
   });
 
-  const logout = () => {
-    loginDispatch({
-      type: 'LOGOUT',
-    });
-    router.push('/');
-    disconnect();
-  };
-
-  useEffect(() => {
-    if (!walletAddress || walletAddress !== address) {
-      logout();
-    }
-  }, [walletAddress]);
   return (
     <>
       <Flex

@@ -1,5 +1,5 @@
-import { useWalletSwitchNetWork } from '@/modules/wallet-connect/hooks/useWalletSwitchNetwork';
-import { connectErrorHandler } from '@/modules/wallet-connect/error/connectErrorHandler';
+import { connectErrorHandler } from '@/context/WalletConnectContext/error/connectErrorHandler';
+import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useState } from 'react';
 import { Connector, useAccount, useConnect, useDisconnect, useNetwork } from 'wagmi';
 
@@ -47,5 +47,6 @@ export function useWallet(props: UseWalletProps) {
     connector,
     connectors,
     onChangeConnector,
+    disconnect,
   };
 }

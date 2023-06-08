@@ -7,7 +7,7 @@ import { WalletOperationInfos } from '../constants';
 import { OperationTypeContext } from '..';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
-import { useWalletSwitchNetWork } from '@/modules/wallet-connect/hooks/useWalletSwitchNetwork';
+import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 
 type Props = {
   isSubmitting: boolean;

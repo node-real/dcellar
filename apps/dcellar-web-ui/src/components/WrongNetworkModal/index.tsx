@@ -7,7 +7,7 @@ import { POPPINS_FONT } from '@/modules/wallet/constants';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '../common/DCModal';
 import { DCButton } from '../common/DCButton';
-import { useWalletSwitchNetWork } from '@/modules/wallet-connect/hooks/useWalletSwitchNetwork';
+import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { disconnect } = useDisconnect({

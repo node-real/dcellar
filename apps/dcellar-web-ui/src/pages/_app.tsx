@@ -12,11 +12,12 @@ import { GAPageView } from '@/components/common/GATracker';
 import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
 import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { SPProvider } from '@/context/GlobalContext/SPProvider';
-import { WalletConnectProvider } from '@/modules/wallet-connect/components/WalletConnectProvider';
+import { WalletConnectProvider } from '@/context/WalletConnectContext';
 import { ThemeProvider } from '@totejs/uikit';
 import { theme } from '@/base/theme';
-import { LoginContextProvider } from '@/context/loginContext/provider';
+import { LoginContextProvider } from '@/context/LoginContext/provider';
 import ChainBalanceContextProvider from '@/context/GlobalContext/BalanceContext';
+import { SEOHead } from '@/components/common/SEOHead';
 
 interface NextAppProps extends AppProps {
   statusCode: number;
@@ -26,32 +27,35 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <StatusCodeContext.Provider value={statusCode}>
-      <QueryClientProvider client={queryClient}>
-        <WalletConnectProvider>
-          <LoginContextProvider>
-            <BnbPriceProvider>
-              <ChainBalanceContextProvider>
-                <ThemeProvider theme={theme}>
-                  <Layout>
-                    <SPProvider>
-                      {/* TODO provider should locate up layout */}
-                      <OffChainAuthProvider>
-                        <PageProtect>
-                          <Component {...pageProps} />
-                          <GAPageView />
-                        </PageProtect>
-                      </OffChainAuthProvider>
-                    </SPProvider>
-                  </Layout>
-                </ThemeProvider>
-              </ChainBalanceContextProvider>
-            </BnbPriceProvider>
-          </LoginContextProvider>
-        </WalletConnectProvider>
-        <ReactQueryDevtools initialIsOpen={runtimeEnv === 'development'} />
-      </QueryClientProvider>
-    </StatusCodeContext.Provider>
+    <>
+      <SEOHead />
+      <StatusCodeContext.Provider value={statusCode}>
+        <QueryClientProvider client={queryClient}>
+          <WalletConnectProvider>
+            <LoginContextProvider>
+              <BnbPriceProvider>
+                <ChainBalanceContextProvider>
+                  <ThemeProvider theme={theme}>
+                    <Layout>
+                      <SPProvider>
+                        {/* TODO provider should locate up layout */}
+                        <OffChainAuthProvider>
+                          <PageProtect>
+                            <Component {...pageProps} />
+                            <GAPageView />
+                          </PageProtect>
+                        </OffChainAuthProvider>
+                      </SPProvider>
+                    </Layout>
+                  </ThemeProvider>
+                </ChainBalanceContextProvider>
+              </BnbPriceProvider>
+            </LoginContextProvider>
+          </WalletConnectProvider>
+          <ReactQueryDevtools initialIsOpen={runtimeEnv === 'development'} />
+        </QueryClientProvider>
+      </StatusCodeContext.Provider>
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { switchNetworkErrorHandler } from '@/modules/wallet-connect/error/switchNetworkErrorHandler';
+import { switchNetworkErrorHandler } from '@/context/WalletConnectContext/error/switchNetworkErrorHandler';
 import { useSwitchNetwork } from 'wagmi';
 
 export type UseWalletSwitchNetworkParams = Parameters<typeof useSwitchNetwork>[0];

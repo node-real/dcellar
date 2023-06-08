@@ -77,7 +77,7 @@ export function Welcome() {
           </DCButton>
         </Flex>
 
-        <Footer />
+        <Footer bgColor="transparent" color="#76808F" />
       </Flex>
 
       <WalletConnectModal isOpen={isOpen} onClose={onClose} />

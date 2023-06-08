@@ -1,17 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
+import { useEffect } from 'react';
 import { ConnectorData, useAccount } from 'wagmi';
 
 export type WalletSwitchAccountHandler = (data: ConnectorData) => void;
 
 export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
-  const { connector, address } = useAccount();
+  const { connector } = useAccount();
 
-  const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+  const handlerRef = useSaveFuncRef(handler);
 
   useEffect(() => {
     const handler = (data: ConnectorData) => {
-      if (address && data.account && address !== data.account) {
+      if (data.account) {
         handlerRef.current?.(data);
       }
     };
@@ -20,5 +20,5 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
     return () => {
       connector?.off('change', handler);
     };
-  }, [connector, address]);
+  }, [connector, handlerRef]);
 }

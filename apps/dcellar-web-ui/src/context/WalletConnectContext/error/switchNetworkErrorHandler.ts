@@ -1,5 +1,5 @@
-import { handleCommonError } from '@/modules/wallet-connect/error/handleCommonError';
-import { SwitchNetworkErrorCodeMsgMap } from '@/modules/wallet-connect/error/error';
+import { SwitchNetworkErrorCodeMsgMap } from '@/context/WalletConnectContext/error/error';
+import { handleCommonError } from '@/context/WalletConnectContext/error/handleCommonError';
 
 export interface SwitchNetworkArgs {
   [x: string]: any;
@@ -11,13 +11,7 @@ export type CustomSwitchNetworkErrorHandler = (
   context?: unknown,
 ) => unknown;
 
-export interface SwitchNetworkErrorHandlerParams {
-  fn?: CustomSwitchNetworkErrorHandler;
-}
-
-export function switchNetworkErrorHandler(params: SwitchNetworkErrorHandlerParams = {}) {
-  const { fn } = params;
-
+export function switchNetworkErrorHandler(fn?: CustomSwitchNetworkErrorHandler) {
   const handleError = (err: any, variables: SwitchNetworkArgs, context: unknown) => {
     switch (true) {
       default:

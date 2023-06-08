@@ -3,6 +3,10 @@ import React, { ReactNode, useReducer, useEffect, useMemo, useCallback } from 'r
 import { LoginReducer, LoginContext, initializer, initialState, LOGIN_STORAGE_KEY } from './index';
 import { useRouter } from 'next/router';
 import { useDisconnect } from 'wagmi';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { removeOffChainData } from '@/modules/off-chain-auth/utils';
+import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
+import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 
 export interface LoginContextProviderProps {
   children: ReactNode;
@@ -22,22 +26,34 @@ export function LoginContextProvider(props: LoginContextProviderProps) {
   const router = useRouter();
   const { disconnect } = useDisconnect();
 
+  const logout = useCallback(() => {
+    loginDispatch({
+      type: 'LOGOUT',
+    });
+
+    removeOffChainData(loginState?.address, GREENFIELD_CHAIN_ID);
+    disconnect();
+
+    router.replace('/');
+  }, [disconnect, loginState?.address, router]);
+
   const value = useMemo(() => {
-    const logout = () => {
-      loginDispatch({
-        type: 'LOGOUT',
-      });
-
-      disconnect();
-      router.push('/');
-    };
-
     return {
       loginState,
       loginDispatch,
       logout,
     };
-  }, [disconnect, loginState, router]);
+  }, [loginState, logout]);
+
+  useWalletSwitchAccount(() => {
+    logout();
+  });
+
+  const { isReady } = useLoginGuard(loginState);
+
+  if (!isReady) {
+    return null;
+  }
 
   return <LoginContext.Provider value={value}>{children}</LoginContext.Provider>;
 }

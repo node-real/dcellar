@@ -1,6 +1,6 @@
 import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/constants/links';
-import { ConnectErrorCodeMsgMap } from '@/modules/wallet-connect/error/error';
-import { handleCommonError } from '@/modules/wallet-connect/error/handleCommonError';
+import { ConnectErrorCodeMsgMap } from '@/context/WalletConnectContext/error/error';
+import { handleCommonError } from '@/context/WalletConnectContext/error/handleCommonError';
 import { toast } from '@totejs/uikit';
 import { Connector, ConnectorNotFoundError } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
@@ -17,13 +17,7 @@ export type CustomConnectErrorHandler = (
   context?: unknown,
 ) => unknown;
 
-export interface ConnectErrorHandlerParams {
-  fn?: CustomConnectErrorHandler;
-}
-
-export function connectErrorHandler(params: ConnectErrorHandlerParams = {}) {
-  const { fn } = params;
-
+export function connectErrorHandler(fn?: CustomConnectErrorHandler) {
   const handleError = (err: any, variables: ConnectorArgs, context: unknown) => {
     const { connector } = variables;
 
