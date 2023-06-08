@@ -32,6 +32,7 @@ import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { client } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 interface modalProps {
   title?: string;
@@ -41,7 +42,6 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  endpoint?: string;
   simulateGasFee: string;
   lockFee: string;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -99,7 +99,6 @@ export const ConfirmCancelModal = (props: modalProps) => {
     bucketName,
     lockFee,
     fileInfo = { name: '', size: 0 },
-    endpoint = '',
     simulateGasFee,
     listObjects,
     setListObjects,

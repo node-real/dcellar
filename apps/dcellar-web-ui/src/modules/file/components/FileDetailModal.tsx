@@ -52,13 +52,14 @@ import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { client } from '@/base/client';
 import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { getUtcZeroTimestamp } from '@/utils/time';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 const renderFileInfo = (key: string, value: string) => {
   return (
@@ -121,17 +122,22 @@ const renderFee = (
 };
 
 // fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (
+const getObjectIsSealed = async ({
+  bucketName,
+  primarySp,
+  objectName,
+  address,
+}:{
   bucketName: string,
-  endpoint: string,
+  primarySp: IRawSPInfo,
   objectName: string,
   address: string,
-) => {
+}) => {
   const domain = getDomain();
-  const { seedString } = await getOffChainData(address);
+  const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
   const listResult = await client.object.listObjects({
     bucketName,
-    endpoint,
+    endpoint: primarySp.endpoint,
     address,
     seedString,
     domain,
@@ -156,7 +162,7 @@ const POLLING_INTERVAL = 3000; // ms
 
 interface modalProps {
   title?: string;
-  endpoint: string;
+  primarySp: IRawSPInfo;
   onClose: () => void;
   isOpen: boolean;
   description?: string;
@@ -231,7 +237,7 @@ export const FileDetailModal = (props: modalProps) => {
     setStatusModalButtonText,
     outsideLoading,
     lockFee,
-    endpoint,
+    primarySp,
     setListObjects,
     listObjects,
     setStatusModalErrorText,
@@ -416,12 +422,12 @@ export const FileDetailModal = (props: modalProps) => {
         // If upload size is small, then put obejct using fetch,
         // no need to show progress bar
         const domain = getDomain();
-        const { seedString } = await getOffChainData(address);
+        const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
         const uploadOptions = await generatePutObjectOptions({
           bucketName,
           objectName: finalName,
           body: file,
-          endpoint: endpoint,
+          endpoint: primarySp.endpoint,
           txnHash: objectTxnHash,
           userAddress: address,
           domain,
@@ -463,11 +469,12 @@ export const FileDetailModal = (props: modalProps) => {
         });
         startPolling(async () => {
           // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
-          const sealTxHash = await getObjectIsSealed(
+          const sealTxHash = await getObjectIsSealed({
             bucketName,
-            endpoint,
-            finalName,
-            loginState.address,
+            objectName: finalName,
+            primarySp: primarySp,
+            address: loginState.address,
+          }
           );
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);

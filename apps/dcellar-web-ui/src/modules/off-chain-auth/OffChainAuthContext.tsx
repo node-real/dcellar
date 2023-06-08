@@ -11,24 +11,36 @@ import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
 import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
 import { client } from '@/base/client';
+import { isEmpty } from 'lodash-es';
+import { IRawSPInfo } from '../buckets/type';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
+
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const [isAuthPending, setIsAuthPending] = useState(false);
   const {
     loginState: { address },
   } = useLogin();
   const { sps } = useSPs();
+  const [ authSps, setAuthSps ] = useState<IRawSPInfo[]>(sps);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
+
+  const setOpenAuthModal = (spAddress?: string[]) => {
+    if (spAddress) {
+      const filterSps = sps.filter((item: any) => spAddress.includes(item.operatorAddress));
+      setAuthSps(filterSps);
+    }
+    onOpen();
+  }
 
   const onOffChainAuth = async (address: string) => {
     setIsAuthPending(true);
     try {
       const provider = await connector?.getProvider();
       const domain = getDomain();
-      const pruneSps = sps.map((item: any) => ({
+      const pruneSps = authSps.map((item: any) => ({
         address: item.operatorAddress,
         name: item.description.moniker,
         endpoint: item.endpoint,
@@ -42,7 +54,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       };
       const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(configParam, provider);
       const { code, body: offChainData } = res;
-      if (code !== 0) {
+      if (code !== 0 || isEmpty(offChainData)) {
         throw res;
       }
       setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
@@ -67,7 +79,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         isAuthPending,
         onOffChainAuth,
         closeAuthModal: onClose,
-        setOpenAuthModal: onOpen,
+        setOpenAuthModal,
       }}
     >
       {children}

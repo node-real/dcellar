@@ -44,7 +44,6 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  endpoint?: string;
   gasFeeLoading?: boolean;
   simulateGasFee: string;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -114,7 +113,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     isOpen,
     bucketName,
     fileInfo = { name: '', size: 0 },
-    endpoint = '',
     lockFee,
     outsideLoading,
     simulateGasFee,

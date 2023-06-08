@@ -21,7 +21,8 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { IRawSPInfo } from '@/modules/buckets/type';
 
 interface modalProps {
   title?: string;
@@ -32,8 +33,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  endpoint?: string;
-  spAddress: string;
+  primarySp: IRawSPInfo;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -73,8 +73,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     bucketName,
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
-    endpoint = '',
-    spAddress,
+    primarySp,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -176,24 +175,23 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === 1) {
                 directlyDownload(shareLink);
               } else {
-                const { spAddresses, expirationTime } = await getOffChainData(
-                  loginState.address,
-                );
-                if (
-                  !checkSpOffChainDataAvailable({ spAddresses, expirationTime, spAddress })
-                ) {
+                const spOffChainData = await getSpOffChainData({
+                  address: loginState.address,
+                  spAddress: primarySp.operatorAddress,
+                });
+                if (!checkSpOffChainDataAvailable(spOffChainData)) {
                   onClose();
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
                 }
-                const result = await downloadWithProgress(
+                const result = await downloadWithProgress({
                   bucketName,
-                  name,
-                  endpoint,
-                  Number(size),
-                  loginState.address,
-                );
+                  objectName: name,
+                  primarySp,
+                  payloadSize: Number(size),
+                  address: loginState.address,
+                });
                 saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
