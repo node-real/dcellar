@@ -1,4 +1,4 @@
-import { createContext, useCallback, useState } from 'react';
+import { createContext, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
@@ -23,14 +23,15 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
     loginState: { address },
   } = useLogin();
   const { sps } = useSPs();
-  const [authSps, setAuthSps] = useState<IRawSPInfo[]>(sps);
+  const authSps = useRef<IRawSPInfo[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
 
+  // For selected sps auth
   const setOpenAuthModal = (spAddress?: string[]) => {
     if (spAddress) {
       const filterSps = sps.filter((item: any) => spAddress.includes(item.operatorAddress));
-      setAuthSps(filterSps);
+      authSps.current = filterSps;
     }
     onOpen();
   };
@@ -41,11 +42,14 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       try {
         const provider = await connector?.getProvider();
         const domain = getDomain();
-        const pruneSps = authSps.map((item: any) => ({
+
+        // If no sps selected, use all sps for welcome auth
+        const pruneSps = (isEmpty(authSps.current) ? sps : authSps.current).map((item: any) => ({
           address: item.operatorAddress,
           name: item.description.moniker,
           endpoint: item.endpoint,
         }));
+
         const configParam: IGenOffChainAuthKeyPairAndUpload = {
           address,
           chainId: GREENFIELD_CHAIN_ID,
@@ -53,6 +57,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           domain,
           expirationMs: EXPIRATION_MS,
         };
+
         const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(
           configParam,
           provider,
@@ -76,7 +81,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         return { code: -1, error: e };
       }
     },
-    [authSps, connector, onClose],
+    [connector, onClose, sps],
   );
 
   return (
