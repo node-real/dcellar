@@ -23,6 +23,7 @@ import { GAClick } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -43,7 +44,7 @@ interface modalProps {
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
   shareLink?: string;
   remainingQuota: number | null;
-  visibility?: number;
+  visibility?: ChainVisibilityEnum;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -83,7 +84,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     setStatusModalErrorText,
     shareLink,
     remainingQuota,
-    visibility = 0,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -172,7 +173,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               }
               setLoading(false);
               // only public file can be direct download
-              if (shareLink && visibility === 1) {
+              if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(shareLink);
               } else {
                 const spOffChainData = await getSpOffChainData({

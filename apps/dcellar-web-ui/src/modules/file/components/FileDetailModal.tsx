@@ -31,7 +31,6 @@ import {
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
-  VisibilityType,
 } from '@/modules/file/constant';
 import {
   formatBytes,
@@ -59,35 +58,10 @@ import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { getUtcZeroTimestamp } from '@/utils/time';
+import { convertToSecond, getUtcZeroTimestamp } from '@/utils/time';
 import { IRawSPInfo } from '@/modules/buckets/type';
-
-const renderFileInfo = (key: string, value: string) => {
-  return (
-    <Flex w={'100%'} flexDirection={'column'}>
-      <Text
-        fontSize={'12px'}
-        lineHeight={'16px'}
-        fontWeight={400}
-        wordBreak={'break-all'}
-        color={'readable.tertiary'}
-        mb="4px"
-      >
-        {key}
-      </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight={'18px'}
-        fontWeight={500}
-        wordBreak={'break-all'}
-        color={'readable.normal'}
-        mb="8px"
-      >
-        {value}
-      </Text>
-    </Flex>
-  );
-};
+import { ChainVisibilityEnum } from '../type';
+import { convertObjectInfo } from '../utils/convertObjectInfo';
 
 const renderFee = (
   key: string,
@@ -148,7 +122,7 @@ const getObjectIsSealed = async ({
     const listObjects = listResult.body.objects ?? [];
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => (v.object_info ? v.object_info : v))
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
       .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
     if (sealObjectIndex >= 0) {
       return listObjects[sealObjectIndex].seal_tx_hash;
@@ -205,7 +179,7 @@ export const FileDetailModal = (props: modalProps) => {
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
-  const [visibility, setVisibility] = useState<string>(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
   useOutsideClick({
@@ -350,6 +324,7 @@ export const FileDetailModal = (props: modalProps) => {
       // setIsSealed(false);
       onStatusModalOpen();
       const { configParam, CreateObjectTx } = createObjectData;
+      console.log('configParam', configParam);
       // 1. execute create object on chain
       if (!configParam) {
         setFailedStatusModal('Get Object Approval failed, please check.');
@@ -369,7 +344,7 @@ export const FileDetailModal = (props: modalProps) => {
           payload_size: '0',
           object_status: OBJECT_STATUS_UPLOADING,
           checksums: configParam.expectCheckSums,
-          create_at: getUtcZeroTimestamp(),
+          create_at: convertToSecond(getUtcZeroTimestamp()),
           visibility: configParam.visibility,
         },
         removed: false,
@@ -519,16 +494,12 @@ export const FileDetailModal = (props: modalProps) => {
           }
         });
       } catch (error: any) {
-        console.log('error', error);
-        const errorListObjects = listObjectsRef.current.map((v: any) => {
-          if (v?.object_name === finalName) {
-            v.object_status = OBJECT_STATUS_FAILED;
-          }
-          return v;
+        const errorListObjects = fileUploadingLists.filter((v: any) => {
+          return v?.object_name !== finalName
+
         });
         setListObjects(errorListObjects);
         setLoading(false);
-        // setIsSealed(false);
         // eslint-disable-next-line no-console
         console.error('file upload error', error);
         // It's said by UI designer to avoid popup warning modal if upload was failed
@@ -565,9 +536,6 @@ export const FileDetailModal = (props: modalProps) => {
         <Flex w="100%">
           <Image src={FILE_INFO_IMAGE_URL} w="120px" h="120px" mr={'24px'} alt="" />
           <Flex flex={1} flexDirection={'column'}>
-            {/*{renderFileInfo('Name', finalName)}*/}
-
-            {/*{renderFileInfo('Size', `${(size / 1024 / 1024).toFixed(2)} MB`)}*/}
             <Text
               fontSize={'14px'}
               lineHeight={'17px'}
@@ -633,26 +601,26 @@ export const FileDetailModal = (props: modalProps) => {
                   paddingLeft={'16px'}
                   _hover={{
                     bg:
-                      visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                      visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE
                         ? 'rgba(0,186,52,0.1)'
                         : 'bg.bottom',
                   }}
                   cursor={'pointer'}
                   bg={
-                    visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                    visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE
                       ? 'rgba(0,186,52,0.1)'
                       : 'bg.middle'
                   }
                   onClick={async () => {
                     try {
                       setLoading(true);
-                      if (visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE) return;
-                      setVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+                      if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE) return;
+                      setVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
                       setShowPanel(false);
                       await fetchCreateObjectApproval(
                         file,
                         finalName,
-                        VisibilityType.VISIBILITY_TYPE_PRIVATE,
+                        ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
                       );
                       setLoading(false);
                     } catch (error) {
@@ -662,7 +630,7 @@ export const FileDetailModal = (props: modalProps) => {
                   }}
                 >
                   <PrivateFileIcon style={{ marginRight: '6px' }} />
-                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE)}
+                  {transformVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE)}
                 </Flex>
                 <Flex
                   w={'100%'}
@@ -671,26 +639,26 @@ export const FileDetailModal = (props: modalProps) => {
                   paddingLeft={'16px'}
                   _hover={{
                     bg:
-                      visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                      visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
                         ? 'rgba(0,186,52,0.1)'
                         : 'bg.bottom',
                   }}
                   cursor={'pointer'}
                   bg={
-                    visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                    visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
                       ? 'rgba(0,186,52,0.1)'
                       : 'bg.middle'
                   }
                   onClick={async () => {
                     try {
                       setLoading(true);
-                      if (visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ) return;
-                      setVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ);
+                      if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) return;
+                      setVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ);
                       setShowPanel(false);
                       await fetchCreateObjectApproval(
                         file,
                         finalName,
-                        VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+                        ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
                       );
                       setLoading(false);
                     } catch (error) {
@@ -700,7 +668,7 @@ export const FileDetailModal = (props: modalProps) => {
                   }}
                 >
                   <PublicFileIcon style={{ marginRight: '6px' }} />
-                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ)}
+                  {transformVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ)}
                 </Flex>
               </Flex>
             </Flex>

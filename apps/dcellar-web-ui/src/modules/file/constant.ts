@@ -58,16 +58,7 @@ const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough 
 const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimating gas fee, please check.`;
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 
-const VisibilityType = {
-  VISIBILITY_TYPE_UNSPECIFIED: 'VISIBILITY_TYPE_UNSPECIFIED',
-  VISIBILITY_TYPE_PUBLIC_READ: 'VISIBILITY_TYPE_PUBLIC_READ',
-  VISIBILITY_TYPE_PRIVATE: 'VISIBILITY_TYPE_PRIVATE',
-  VISIBILITY_TYPE_INHERIT: 'VISIBILITY_TYPE_INHERIT',
-  UNRECOGNIZED: 'UNRECOGNIZED',
-};
-
 export {
-  VisibilityType,
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,
   FILE_FAILED_URL,
