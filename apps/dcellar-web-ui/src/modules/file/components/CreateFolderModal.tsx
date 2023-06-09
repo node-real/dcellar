@@ -23,9 +23,11 @@ import {
   FOLDER_CREATING,
   FOLDER_DESCRIPTION_CREATE_ERROR,
   FOLDER_STATUS_CREATING,
+  GET_GAS_FEE_LACK_BALANCE_ERROR,
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   PENDING_ICON_URL,
+  UNKNOWN_ERROR,
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -37,6 +39,8 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
+import { GAClick, GAShow } from '@/components/common/GATracker';
+import { InternalRoutePaths } from '@/constants/links';
 
 interface modalProps {
   title?: string;
@@ -256,8 +260,21 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     if (!createObjectTx) return;
 
     setGasFeeLoading(true);
-    const simulateInfo = await createObjectTx.simulate({ denom: 'BNB' });
+    const simulateInfo = await createObjectTx.simulate({ denom: 'BNB' }).catch((error: any) => {
+      setLoading(false);
+      console.log('error simulate', error);
+      if (
+        error?.message.includes('lack of') ||
+        error?.message.includes('static balance is not enough')
+      ) {
+        setGasFee('-1');
+        setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+      } else {
+        setFormErrors([UNKNOWN_ERROR]);
+      }
+    });
     setGasFeeLoading(false);
+    if (!simulateInfo) return;
     setGasFee(simulateInfo.gasFee);
     return createObjectTx;
   };
@@ -274,6 +291,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       fetchCreateFolderApproval('Untitled folder' + Date.now());
       return;
     }
+    setFormErrors([]);
     setInputFolderName('');
     setLoading(false);
     // eslint-disable-next-line
@@ -313,13 +331,26 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
           />
           {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
         </FormControl>
-        <GasFeeItem
-          gasFee={gasFee}
-          gaOptions={{
-            gaShowName: 'dc.file.create_folder_m.transferin.show',
-            gaClickName: 'dc.file.create_folder_m.transferin.click',
-          }}
-        />
+        <GasFeeItem gasFee={gasFee} />
+        {formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR) && (
+          <Flex w="100%" justifyContent="space-between" mt={8}>
+            <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
+              <GAShow name={'dc.file.create_folder_m.transferin.show'}>
+                Insufficient balance.&nbsp;
+                <GAClick name={'dc.file.create_folder_m.transferin.click'}>
+                  <Link
+                    href={InternalRoutePaths.transfer_in}
+                    style={{ textDecoration: 'underline' }}
+                    color="#EE3911"
+                  >
+                    Transfer in
+                  </Link>
+                </GAClick>
+              </GAShow>
+            </Text>
+          </Flex>
+        )}
+
         <ModalFooter w="100%">
           <Flex w="100%" flexDirection="column">
             <DCButton

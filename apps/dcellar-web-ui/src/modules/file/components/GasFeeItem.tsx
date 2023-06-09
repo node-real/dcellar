@@ -1,25 +1,19 @@
 import { memo, useContext } from 'react';
 import { Flex, Text } from '@totejs/uikit';
-import {
-  renderBalanceNumber,
-  renderFeeValue,
-  renderInsufficientBalance,
-  renderUsd,
-} from '@/modules/file/utils';
+import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 
 interface GasFeeItemProps {
   label?: string;
   gasFee: string;
-  gaOptions?: { gaClickName: string; gaShowName: string };
 }
 
 export const GasFeeItem = memo<GasFeeItemProps>(function GasFeeItem(props) {
   const { value: bnbPrice } = useContext(BnbPriceContext);
   const { availableBalance } = useAvailableBalance();
   const exchangeRate = bnbPrice?.toNumber() ?? 0;
-  const { label = 'Gas Fee', gasFee, gaOptions } = props;
+  const { label = 'Gas Fee', gasFee } = props;
 
   return (
     <>
@@ -45,11 +39,6 @@ export const GasFeeItem = memo<GasFeeItemProps>(function GasFeeItem(props) {
         <Text fontSize={12} lineHeight="16px" color="readable.disabled" alignSelf="flex-end">
           Available balance: {renderBalanceNumber(availableBalance || '0')} (
           {renderUsd(availableBalance || '0', exchangeRate)})
-        </Text>
-      </Flex>
-      <Flex w="100%" justifyContent="space-between" mt={8}>
-        <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
-          {renderInsufficientBalance(gasFee, '0', availableBalance || '0', gaOptions)}
         </Text>
       </Flex>
     </>

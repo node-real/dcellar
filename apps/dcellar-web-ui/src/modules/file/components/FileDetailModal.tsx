@@ -99,16 +99,24 @@ const renderFee = (
 // fixme There will be a fix to query only one uploaded object, but not the whole object list
 const getObjectIsSealed = async ({
   bucketName,
+  folderName,
   primarySp,
   objectName,
   address,
 }: {
   bucketName: string;
+  folderName: string;
   primarySp: IRawSPInfo;
   objectName: string;
   address: string;
 }) => {
   const domain = getDomain();
+  const query = new URLSearchParams();
+  query.append('delimiter', '/');
+  query.append('max-keys', '1000');
+  if (folderName) {
+    query.append('prefix', folderName);
+  }
   const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
   const listResult = await client.object.listObjects({
     bucketName,
@@ -116,6 +124,7 @@ const getObjectIsSealed = async ({
     address,
     seedString,
     domain,
+    query,
   });
   if (listResult) {
     //  @ts-ignore TODO temp
@@ -147,6 +156,7 @@ interface modalProps {
   bucketName: string;
   file?: File;
   fileName?: string;
+  folderName: string;
   simulateGasFee: string;
   lockFee: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
@@ -202,6 +212,7 @@ export const FileDetailModal = (props: modalProps) => {
     buttonOnClick,
     errorText,
     fileName,
+    folderName,
     bucketName,
     simulateGasFee,
     setStatusModalIcon,
@@ -458,6 +469,7 @@ export const FileDetailModal = (props: modalProps) => {
             objectName: finalName,
             primarySp: primarySp,
             address: loginState.address,
+            folderName,
           });
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
