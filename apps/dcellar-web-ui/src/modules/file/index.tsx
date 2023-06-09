@@ -149,7 +149,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
       const query = new URLSearchParams();
       query.append('delimiter', '/');
-      query.append('max-keys', '100');
+      query.append('max-keys', '1000');
       if (folderName) {
         query.append('prefix', folderName);
       }
@@ -289,12 +289,12 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     const maxFolderDepth = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
     const disabled = maxFolderDepth || isDiscontinued;
     return (
-      <GAClick name={gaClickName}>
-        <Tooltip
-          content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
-          placement={'bottom-start'}
-          visibility={maxFolderDepth ? 'visible' : 'hidden'}
-        >
+      <Tooltip
+        content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
+        placement={'bottom-start'}
+        visibility={maxFolderDepth ? 'visible' : 'hidden'}
+      >
+        <GAClick name={gaClickName}>
           <Flex
             bgColor={disabled ? 'readable.tertiary' : 'readable.normal'}
             _hover={{ bg: 'readable.tertiary' }}
@@ -319,8 +319,8 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
               Create Folder
             </Text>
           </Flex>
-        </Tooltip>
-      </GAClick>
+        </GAClick>
+      </Tooltip>
     );
   };
 
@@ -674,6 +674,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         freeze={freeze}
         file={file}
         fileName={fileName}
+        folderName={folderName}
         title={detailModalTitle}
         bucketName={bucketName}
         simulateGasFee={gasFee}

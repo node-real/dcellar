@@ -6,7 +6,7 @@ import WaringTriangleIcon from '@/public/images/icons/warning-triangle.svg';
 
 import { File } from '@/modules/file';
 import { GAClick } from '@/components/common/GATracker';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { getBucketInfo } from '@/utils/sp';
 import { encodeObjectName, trimLongStr } from '@/utils/string';
 
@@ -37,12 +37,14 @@ const Folder = () => {
   ) => {
     if (isLastItem) {
       return (
-        <Flex alignItems={'center'} gap={4} fontWeight={600} as="li" flex={1} minW={0}>
-          {isDiscontinued && bucket && <WaringTriangleIcon />}
-          <Text fontWeight={900} as="span" overflow="hidden" textOverflow="ellipsis">
-            {text}
-          </Text>
-        </Flex>
+        <Fragment key="last">
+          <Flex alignItems={'center'} gap={4} fontWeight={600} as="li" flex={1} minW={0}>
+            {isDiscontinued && bucket && <WaringTriangleIcon />}
+            <Text fontWeight={900} as="span" overflow="hidden" textOverflow="ellipsis">
+              {text}
+            </Text>
+          </Flex>
+        </Fragment>
       );
     }
     return (
