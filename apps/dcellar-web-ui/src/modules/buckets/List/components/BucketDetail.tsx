@@ -31,20 +31,20 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
       {
         canCopy: false,
         label: 'Date created',
-        value: rowData.create_time || new Date(),
+        value:  formatFullTime(create_at) || new Date(),
         display: formatFullTime(create_at),
       },
       {
         canCopy: true,
         label: 'Primary SP address',
-        value: rowData.primary_sp_address || '',
+        value: rowData.originalData.bucket_info.primary_sp_address || '',
         display: formatAddress(rowData.originalData.bucket_info.primary_sp_address || ''),
         gaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
       },
       {
         canCopy: true,
         label: 'Payment account',
-        value: rowData.payment_address || '',
+        value: rowData.originalData.bucket_info.payment_address || '',
         display: formatAddress(rowData.originalData.bucket_info.payment_address || ''),
         gaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
       },

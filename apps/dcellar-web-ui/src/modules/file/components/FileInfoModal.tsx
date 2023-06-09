@@ -35,6 +35,7 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { formatFullTime } from '@/utils/time';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -51,7 +52,7 @@ interface modalProps {
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;
   shareLink?: string;
-  visibility?: number;
+  visibility?: ChainVisibilityEnum;
   remainingQuota: number | null;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
@@ -181,9 +182,9 @@ const renderCopyAddress = (address: string, gaClickName?: string) => {
   );
 };
 
-const renderVisibilityTag = (visibility: number) => {
+const renderVisibilityTag = (visibility: ChainVisibilityEnum) => {
   // public File
-  if (visibility === 1) {
+  if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
     return (
       <Flex h={'24px'} alignItems={'center'}>
         <PublicFileIcon fillColor={'#009E2C'} w={14} h={14} />
@@ -200,7 +201,7 @@ const renderVisibilityTag = (visibility: number) => {
     );
   }
   // private file
-  if (visibility === 2) {
+  if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE) {
     return (
       <Flex h={'24px'} alignItems={'center'}>
         <PrivateFileIcon fillColor={'#009E2C'} w={14} h={14} />
@@ -235,7 +236,7 @@ export const FileInfoModal = (props: modalProps) => {
     shareLink,
     remainingQuota,
     folderName = '',
-    visibility = 0,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
     setStatusModalIcon,
@@ -324,7 +325,7 @@ export const FileInfoModal = (props: modalProps) => {
             'Object hash',
             renderCopyAddress(hash, 'dc.file.f_detail_pop.copy_hash.click'),
           )}
-          {visibility === 1 &&
+          {visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ &&
             renderPropRow(
               'Universal link',
               renderUrlWithLink(
@@ -338,7 +339,7 @@ export const FileInfoModal = (props: modalProps) => {
 
         <ModalFooter flexDirection={'column'}>
           <Flex w={'100%'}>
-            {visibility === 1 && (
+            {visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ && (
               <DCButton
                 variant={'dcGhost'}
                 flex={1}
@@ -361,7 +362,7 @@ export const FileInfoModal = (props: modalProps) => {
               onClick={async () => {
                 if (allowDirectDownload) {
                   onClose();
-                  if (shareLink && visibility === 1) {
+                  if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                     if (!isAbleDownload) {
                       setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
                       setStatusModalTitle(NOT_ENOUGH_QUOTA);

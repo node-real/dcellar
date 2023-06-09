@@ -59,16 +59,7 @@ const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimatin
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 
-const VisibilityType = {
-  VISIBILITY_TYPE_UNSPECIFIED: 'VISIBILITY_TYPE_UNSPECIFIED',
-  VISIBILITY_TYPE_PUBLIC_READ: 'VISIBILITY_TYPE_PUBLIC_READ',
-  VISIBILITY_TYPE_PRIVATE: 'VISIBILITY_TYPE_PRIVATE',
-  VISIBILITY_TYPE_INHERIT: 'VISIBILITY_TYPE_INHERIT',
-  UNRECOGNIZED: 'UNRECOGNIZED',
-};
-
 export {
-  VisibilityType,
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,
   FILE_FAILED_URL,

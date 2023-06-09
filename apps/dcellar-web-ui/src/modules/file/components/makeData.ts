@@ -1,3 +1,5 @@
+import { ChainVisibilityEnum } from "../type";
+
 const range = (len: number) => {
   const arr = [];
   for (let i = 0; i < len; i++) {
@@ -14,7 +16,7 @@ const generateNewFile = (index: number): any => {
     object_name: 'fake.png',
     id: '794',
     payload_size: '997',
-    visibility: 1,
+    visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
     content_type: 'image/png',
     create_at: '1681290627',
     object_status: 1,

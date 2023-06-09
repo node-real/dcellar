@@ -17,6 +17,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -37,7 +38,7 @@ interface modalProps {
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
   viewLink?: string;
   remainingQuota: number | null;
-  visibility?: number;
+  visibility?: ChainVisibilityEnum;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -78,7 +79,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     setStatusModalErrorText,
     viewLink,
     remainingQuota,
-    visibility = 0,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -159,7 +160,7 @@ export const ConfirmViewModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
-              if (visibility === 1) {
+              if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 window.open(viewLink, '_blank');
               } else {
                 // viewFile({ bucketName, objectName: object_name, endpoint });
