@@ -26,7 +26,7 @@ export default function Document() {
           rel="stylesheet preload"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap"
         />
-        <Script src={`${assetPrefix}/zk-wasm/wasm_exec.js`} strategy="afterInteractive"></Script>
+        <script src={`${assetPrefix}/zk-wasm/wasm_exec.js`} defer></script>
         <Script src={`${assetPrefix}/zk-wasm/init.js`} strategy="afterInteractive"></Script>
         <Ga4 id={GA_ID} />
       </Head>
