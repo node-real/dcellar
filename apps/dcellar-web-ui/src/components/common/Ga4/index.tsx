@@ -1,3 +1,4 @@
+import Script from 'next/script';
 import React from 'react';
 
 interface IGtag {
@@ -10,18 +11,19 @@ export const Ga4 = ({ id, disabled }: IGtag) => {
 
   return (
     <>
-      <script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} async />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${id}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){window.dataLayer.push(arguments);}
           gtag('js', new Date());
 
           gtag('config', '${id}');
-        `,
-        }}
-      />
+        `}
+      </Script>
     </>
   );
 };

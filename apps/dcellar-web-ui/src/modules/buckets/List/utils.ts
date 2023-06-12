@@ -1,7 +1,6 @@
 import { parseError } from '../utils/parseError';
 import { client } from '@/base/client';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
-import { GET_APPROVAL_INTERVAL } from '@/constants/common';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const pollingCreateAsync =
