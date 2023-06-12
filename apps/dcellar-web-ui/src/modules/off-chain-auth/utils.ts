@@ -47,10 +47,11 @@ export const getOffChainList = ({
   chainId?: number | string;
 }) => {
   const key = `${address}-${chainId}`;
-  const offChainData = localStorage.getItem(key);
-  const offChainDataList = offChainData ? JSON.parse(offChainData) : [];
+  const localData = localStorage.getItem(key);
+  const parseLocalData = localData && JSON.parse(localData) || [];
+  const compatibleLocalData = Array.isArray(parseLocalData) ? parseLocalData : [parseLocalData];
 
-  return offChainDataList as IReturnOffChainAuthKeyPairAndUpload[];
+  return compatibleLocalData as IReturnOffChainAuthKeyPairAndUpload[];
 }
 export const getSpOffChainData = ({
   address,
@@ -90,6 +91,7 @@ export const checkSpOffChainDataAvailable = (spOffChainData: IReturnOffChainAuth
 };
 
 export const checkOffChainDataAvailable = (offChainList: IReturnOffChainAuthKeyPairAndUpload[]) => {
+  if (isEmpty(offChainList)) return false;
   const curTime = getUtcZeroTimestamp();
   const checkedOffChainData = offChainList.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
     return item.expirationTime > curTime;

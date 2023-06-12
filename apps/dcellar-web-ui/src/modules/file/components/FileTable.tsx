@@ -75,6 +75,10 @@ import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@
 import { client } from '@/base/client';
 import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { encodeObjectName } from '@/utils/string';
+import { ChainVisibilityEnum } from '../type';
+import { VisibilityToChain } from '../utils/visibility';
+import { convertObjectInfo } from '../utils/convertObjectInfo';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -227,9 +231,10 @@ export const FileTable = (props: fileListProps) => {
   const flatData = useMemo(() => {
     return listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => (v.object_info ? v.object_info : v))
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
       .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
   }, [listObjects]);
+
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
   const [hash, setHash] = useState('');
@@ -242,7 +247,7 @@ export const FileTable = (props: fileListProps) => {
   const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [currentVisibility, setCurrentVisibility] = useState(0);
+  const [currentVisibility, setCurrentVisibility] = useState(ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED);
   const { width, height } = useWindowSize();
   const router = useRouter();
   const containerWidth = useMemo(() => {
@@ -447,7 +452,7 @@ export const FileTable = (props: fileListProps) => {
           const isNormal = isSealed(rowData);
           const { visibility, object_status } = rowData;
           const canView = object_status === OBJECT_SEALED_STATUS;
-          const showFileIcon = visibility === 1;
+          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
           const isFolder = info.getValue().endsWith('/');
           const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue() || '';
@@ -582,7 +587,7 @@ export const FileTable = (props: fileListProps) => {
           const isUploadFailed = objectStatus === OBJECT_STATUS_FAILED;
           const downloadText = 'Download';
           const deleteText = isSealed ? 'Delete' : 'Cancel';
-          const showFileIcon = visibility === 1;
+          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
@@ -590,16 +595,14 @@ export const FileTable = (props: fileListProps) => {
           const onDownload = async (url?: string) => {
             try {
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
-              if (url && visibility === 1) {
+              if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(url);
               } else {
                 const spOffChainData = await getSpOffChainData({
                   address: loginState.address,
-                  spAddress: primarySp.operatorAddress
+                  spAddress: primarySp.operatorAddress,
                 });
-                if (
-                  !checkSpOffChainDataAvailable(spOffChainData)
-                ) {
+                if (!checkSpOffChainDataAvailable(spOffChainData)) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -680,7 +683,9 @@ export const FileTable = (props: fileListProps) => {
             setShareLink(directDownloadLink);
             onShareModalOpen();
           };
-          const directDownloadLink = encodeURI(`${primarySp.endpoint}/download/${bucketName}/${objectName}`);
+          const directDownloadLink = encodeURI(
+            `${primarySp.endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
+          );
           if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
@@ -960,6 +965,7 @@ export const FileTable = (props: fileListProps) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
+                const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
                 const isFolder = object_name?.endsWith('/') ?? false;
 
@@ -988,11 +994,11 @@ export const FileTable = (props: fileListProps) => {
                         if (!canView) return;
                         if (isFolder) {
                           // toast.info({ description: 'Click here to view folder files.' });
-                          router.push(`/buckets/${bucketName}/${object_name}`);
+                          router.push(`/buckets/${bucketName}/${encodedObjectName}`);
                           return;
                         }
                         const previewLink = encodeURI(
-                          `${primarySp.endpoint}/view/${bucketName}/${object_name}`,
+                          `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
@@ -1007,18 +1013,33 @@ export const FileTable = (props: fileListProps) => {
                           }
                           return;
                         }
-                        if (visibility === 1) {
+                        if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                           window.open(previewLink, '_blank');
                         } else {
                           // preview file
                           try {
+                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
+                            if (quotaData) {
+                              const { freeQuota, readQuota, consumedQuota } = quotaData;
+                              const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
+                              const isAbleDownload = !(
+                                currentRemainingQuota && currentRemainingQuota - Number(payload_size) < 0
+                              );
+                              if (!isAbleDownload) {
+                                setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
+                                setStatusModalTitle(NOT_ENOUGH_QUOTA);
+                                setStatusModalErrorText('');
+                                setStatusModalDescription(NOT_ENOUGH_QUOTA_ERROR);
+                                setStatusModalButtonText(BUTTON_GOT_IT);
+                                onStatusModalOpen();
+                                return;
+                              }
+                            }
                             const spOffChainData = await getSpOffChainData({
                               address: loginState.address,
                               spAddress: primarySp.operatorAddress,
                             });
-                            if (
-                              !checkSpOffChainDataAvailable(spOffChainData)
-                            ) {
+                            if (!checkSpOffChainDataAvailable(spOffChainData)) {
                               setOpenAuthModal();
                               return;
                             }

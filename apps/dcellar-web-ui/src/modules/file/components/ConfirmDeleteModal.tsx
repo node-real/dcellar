@@ -1,14 +1,6 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Text,
-  Flex,
-  toast,
-  Box,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
 
@@ -140,8 +132,9 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const { name = '', size = 0 } = fileInfo;
-
-  const description = `Are you sure you want to delete file "${name}"?`;
+  const filePath = name.split('/');
+  const showName = filePath[filePath.length - 1];
+  const description = `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -269,7 +262,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
                 toast.error({ description: 'Delete file error.' });
               }
               const newListObject = listObjects.filter((v, i) => {
-                return v?.object_info?.object_name !== name;
+                return v?.object_name !== name;
               });
               setListObjects(newListObject);
               onStatusModalClose();

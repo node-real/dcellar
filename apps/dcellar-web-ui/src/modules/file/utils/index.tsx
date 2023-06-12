@@ -14,8 +14,8 @@ import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { client } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
-import { VisibilityType } from '../constant';
 import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -267,21 +267,21 @@ const getQuota = async (
   }
 };
 
-const transformVisibility = (visibility: string) => {
+const transformVisibility = (visibility: ChainVisibilityEnum) => {
   switch (visibility) {
-    case VisibilityType.VISIBILITY_TYPE_UNSPECIFIED:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED:
       return 'Unspecified';
 
-    case VisibilityType.VISIBILITY_TYPE_PUBLIC_READ:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ:
       return 'Everyone can access';
 
-    case VisibilityType.VISIBILITY_TYPE_PRIVATE:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE:
       return 'Private';
 
-    case VisibilityType.VISIBILITY_TYPE_INHERIT:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_INHERIT:
       return 'Inherit';
 
-    case VisibilityType.UNRECOGNIZED:
+    case ChainVisibilityEnum.UNRECOGNIZED:
     default:
       return 'Unrecognized';
   }

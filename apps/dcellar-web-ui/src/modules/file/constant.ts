@@ -57,17 +57,9 @@ const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
 const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
 const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimating gas fee, please check.`;
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
-
-const VisibilityType = {
-  VISIBILITY_TYPE_UNSPECIFIED: 'VISIBILITY_TYPE_UNSPECIFIED',
-  VISIBILITY_TYPE_PUBLIC_READ: 'VISIBILITY_TYPE_PUBLIC_READ',
-  VISIBILITY_TYPE_PRIVATE: 'VISIBILITY_TYPE_PRIVATE',
-  VISIBILITY_TYPE_INHERIT: 'VISIBILITY_TYPE_INHERIT',
-  UNRECOGNIZED: 'UNRECOGNIZED',
-};
+const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 
 export {
-  VisibilityType,
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,
   FILE_FAILED_URL,
@@ -117,4 +109,5 @@ export {
   FOLDER_STATUS_CREATING,
   FOLDER_CREATE_FAILED,
   FOLDER_DESCRIPTION_CREATE_ERROR,
+  UNKNOWN_ERROR,
 };

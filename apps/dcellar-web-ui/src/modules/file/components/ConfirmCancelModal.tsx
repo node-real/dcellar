@@ -117,7 +117,10 @@ export const ConfirmCancelModal = (props: modalProps) => {
   }, [simulateGasFee, availableBalance, lockFee]);
   const { name = '', size = 0 } = fileInfo;
   const { connector } = useAccount();
-  const description = `Are you sure you want to cancel uploading the file "${name}"?`;
+
+  const filePath = name.split('/');
+  const showName = filePath[filePath.length - 1];
+  const description = `Are you sure you want to cancel uploading the file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -230,7 +233,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
               }
 
               const newListObject = listObjects.filter((v, i) => {
-                return v?.object_info?.object_name !== name;
+                return v?.object_name !== name;
               });
               setListObjects(newListObject);
               onStatusModalClose();

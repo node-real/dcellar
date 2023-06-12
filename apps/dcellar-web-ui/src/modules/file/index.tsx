@@ -18,7 +18,6 @@ import {
   GET_GAS_FEE_LACK_BALANCE_ERROR,
   GET_LOCK_FEE_ERROR,
   UPLOAD_IMAGE_URL,
-  VisibilityType,
 } from '@/modules/file/constant';
 import { getBucketInfo, getSpInfo } from '@/utils/sp';
 import { DuplicateNameModal } from '@/modules/file/components/DuplicateNameModal';
@@ -40,10 +39,11 @@ import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
 import { validateObjectName } from './utils/validateObjectName';
 import { genCreateObjectTx } from './utils/genCreateObjectTx';
-import { TCreateObjectData } from './type';
+import { ChainVisibilityEnum, TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { IRawSPInfo } from '../buckets/type';
+import { convertObjectInfo } from './utils/convertObjectInfo';
 
 interface pageProps {
   bucketName: string;
@@ -149,7 +149,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
       const query = new URLSearchParams();
       query.append('delimiter', '/');
-      query.append('max-keys', '100');
+      query.append('max-keys', '1000');
       if (folderName) {
         query.append('prefix', folderName);
       }
@@ -252,7 +252,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     if (!isInitReady) return;
     const realListObjects = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => (v.object_info ? v.object_info : v));
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
     } else {
@@ -289,12 +289,12 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     const maxFolderDepth = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
     const disabled = maxFolderDepth || isDiscontinued;
     return (
-      <GAClick name={gaClickName}>
-        <Tooltip
-          content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
-          placement={'bottom-start'}
-          visibility={maxFolderDepth ? 'visible' : 'hidden'}
-        >
+      <Tooltip
+        content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
+        placement={'bottom-start'}
+        visibility={maxFolderDepth ? 'visible' : 'hidden'}
+      >
+        <GAClick name={gaClickName}>
           <Flex
             bgColor={disabled ? 'readable.tertiary' : 'readable.normal'}
             _hover={{ bg: 'readable.tertiary' }}
@@ -319,15 +319,15 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
               Create Folder
             </Text>
           </Flex>
-        </Tooltip>
-      </GAClick>
+        </GAClick>
+      </Tooltip>
     );
   };
 
   const fetchCreateObjectApproval = async (
     uploadFile: File,
     newFileName?: string,
-    visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
   ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     let hashResult;
@@ -362,8 +362,8 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         bucketName,
         objectName,
         creator: address,
-        visibility: visibility as any,
-        fileType: uploadFile.type,
+        visibility,
+        fileType: uploadFile.type || 'application/octet-stream',
         contentLength,
         expectCheckSums,
         spInfo,
@@ -462,6 +462,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     }
   };
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    console.log('asdsadsadsadsadsadsadsa')
     if (e.target.files) {
       setGasFee('-1');
       const uploadFile = e.target.files[0];
@@ -571,6 +572,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
           visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
           <Text
+            wordBreak="break-all"
             as={'h1'}
             flex={1}
             fontWeight="700"
@@ -673,6 +675,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         freeze={freeze}
         file={file}
         fileName={fileName}
+        folderName={folderName}
         title={detailModalTitle}
         bucketName={bucketName}
         simulateGasFee={gasFee}

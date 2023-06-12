@@ -6,6 +6,10 @@ export const getMillisecond = (second: number) => {
   return second * 1000;
 };
 
+export const convertToSecond = (millisecond: number) => {
+  return Math.floor(millisecond / 1000);
+};
+
 export const getUtcZeroTimestamp = () => {
   dayjs.extend(utc);
 
