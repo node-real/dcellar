@@ -27,7 +27,7 @@ export default function Document() {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap"
         />
         <script src={`${assetPrefix}/zk-wasm/wasm_exec.js`} defer></script>
-        <Script src={`${assetPrefix}/zk-wasm/init.js`} strategy="afterInteractive"></Script>
+        <script src={`${assetPrefix}/zk-wasm/init.js`} defer></script>
         <Ga4 id={GA_ID} />
       </Head>
       <body style={{ background: 'transparent' }}>
