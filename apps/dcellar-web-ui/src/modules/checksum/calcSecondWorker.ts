@@ -1,7 +1,6 @@
-import { SHA256, enc } from 'crypto-js';
+import { sha256 } from 'hash-wasm';
+import { decodeBase64 } from '@/utils/base64';
 globalThis.importScripts('/wasm/wasm_exec.js');
-
-const { Base64 } = enc;
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -37,13 +36,15 @@ const encodeRawSegment = async (
   const shards = JSON.parse(result.result);
 
   // Empty chunks should also return digest arrays of the corresponding length.
-  shards.forEach((shard: never, idx: number) => {
-    const words = Base64.parse(shard || '');
-    if (!results[idx]) {
-      results[idx] = [];
-    }
-    results[idx].unshift(SHA256(words).toString());
-  });
+  await Promise.all(
+    shards.map(async (shard: never, idx: number) => {
+      if (!results[idx]) {
+        results[idx] = [];
+      }
+      const hex = await sha256(decodeBase64(shard || ''));
+      results[idx].unshift(hex);
+    }),
+  );
 
   return [chunkId, results];
 };

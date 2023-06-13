@@ -1,4 +1,5 @@
 import { ChangeEvent, memo, useEffect, useState } from 'react';
+import BigNumber from 'bignumber.js';
 import {
   Flex,
   FormControl,
@@ -41,6 +42,7 @@ import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/links';
+import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 
 interface modalProps {
   title?: string;
@@ -95,6 +97,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     loginState: { address },
   } = useLogin();
   const { connector } = useAccount();
+  const { availableBalance } = useAvailableBalance();
   const [loading, setLoading] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
@@ -234,8 +237,8 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       setFormErrors(errors);
       return false;
     }
-    if (new Blob([value]).size > 75) {
-      errors.push('Must be between 1 to 75 characters long.');
+    if (new Blob([value]).size > 70) {
+      errors.push('Must be between 1 to 70 characters long.');
     }
     if (value.includes('/')) {
       errors.push(`Folder name can\'t contain "/"`);
@@ -286,6 +289,15 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   };
 
   useEffect(() => {
+    const fee = BigNumber(gasFee);
+    const balance = BigNumber(availableBalance || 0);
+
+    if (fee.gte(0) && fee.gt(balance)) {
+      setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+    }
+  }, [gasFee, availableBalance]);
+
+  useEffect(() => {
     if (isOpen) {
       setGasFeeLoading(true);
       fetchCreateFolderApproval('Untitled folder' + Date.now());
@@ -294,6 +306,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setFormErrors([]);
     setInputFolderName('');
     setLoading(false);
+    setGasFee('-1');
     // eslint-disable-next-line
   }, [isOpen]);
 

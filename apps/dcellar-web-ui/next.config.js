@@ -47,7 +47,9 @@ const sentryWebpackPluginOptions = {
 };
 
 const nextConfig = {
-  reactStrictMode: true,
+  // https://github.com/vercel/next.js/issues/35822
+  // render twice & the memory usage of the wasm instance will also be impacted.
+  reactStrictMode: false,
   distDir: '.next',
   webpack,
   assetPrefix: process.env.NEXT_PUBLIC_STATIC_HOST,
