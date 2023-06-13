@@ -10,7 +10,7 @@ import { useSPs } from '@/hooks/useSPs';
 import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
 import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { isEmpty } from 'lodash-es';
 import { IRawSPInfo } from '../buckets/type';
 
@@ -57,6 +57,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         expirationMs: EXPIRATION_MS,
       };
 
+      const client = await getClient();
       const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(configParam, provider);
       const { code, body: offChainData } = res;
       if (code !== 0 || isEmpty(offChainData)) {

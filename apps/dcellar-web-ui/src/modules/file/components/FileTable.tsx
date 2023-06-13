@@ -72,7 +72,7 @@ import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
@@ -338,6 +338,7 @@ export const FileTable = (props: fileListProps) => {
 
   const getCancelGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
+      const client = await getClient();
       const cancelCteObjTx = await client.object.cancelCreateObject({
         bucketName,
         objectName,
@@ -375,6 +376,7 @@ export const FileTable = (props: fileListProps) => {
 
   const getDeleteGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
+      const client = await getClient();
       const delObjTx = await client.object.deleteObject({
         bucketName,
         objectName,

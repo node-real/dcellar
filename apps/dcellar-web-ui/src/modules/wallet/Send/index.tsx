@@ -17,7 +17,7 @@ import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
 import { TWalletFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const Send = () => {
@@ -46,6 +46,7 @@ export const Send = () => {
     setStatus('pending');
     try {
       onOpen();
+      const client = await getClient();
       const transferTx = await client.account.transfer({
         fromAddress: address,
         toAddress: data.address,

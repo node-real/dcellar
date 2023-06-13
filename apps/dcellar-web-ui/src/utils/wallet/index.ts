@@ -1,6 +1,6 @@
 import Long from 'long';
 import BigNumber from 'bignumber.js';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -43,6 +43,7 @@ const getNumInDigits = (
 
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
+    const client = await getClient();
     const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
     const secondarySpStorePrice = await client.sp.getSecondarySpStorePrice();
     const { params } = await client.storage.params();
