@@ -11,7 +11,7 @@ import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
 import { genSendTx } from './utils/genSendTx';
 import { genTransferOutTx } from './utils/genTransferOutTx';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 
 export const useGetFeeBasic = () => {
   const { type } = React.useContext(OperationTypeContext);
@@ -52,6 +52,7 @@ export const useTransferOutFee = () => {
       const simulateInfo = await transferOutTx.simulate({
         denom: 'BNB',
       });
+      const client = await getClient();
       const relayFeeInfo = await client.crosschain.getParams();
       const relayFee = relayFeeInfo.params
         ? getRelayFeeBySimulate(

@@ -6,7 +6,7 @@ import {
   validateBucketName,
   validateObjectName,
 } from './file';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { encodeObjectName } from '@/utils/string';
 
 // Function to download object
@@ -24,6 +24,7 @@ export const generatePutObjectOptions = async (
     throw new Error('Transaction hash is empty, please check.');
   }
   const url = generateUrlByBucketName(endpoint, bucketName) + '/' + encodeObjectName(objectName);
+  const client = await getClient();
   const { code, body } = await client.offchainauth.sign(seedString);
   if (code !== 0) {
     throw new Error('Failed to sign');

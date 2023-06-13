@@ -25,7 +25,7 @@ import { Tips } from '@/components/common/Tips';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 interface modalProps {
@@ -233,6 +233,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
+              const client = await getClient();
               const delObjTx = await client.object.deleteObject({
                 bucketName,
                 objectName: name,
