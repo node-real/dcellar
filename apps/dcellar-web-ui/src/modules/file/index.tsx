@@ -33,7 +33,7 @@ import { FileListEmpty } from './components/FileListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { useSPs } from '@/hooks/useSPs';
 import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
@@ -154,6 +154,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       if (folderName) {
         query.append('prefix', folderName);
       }
+      const client = await getClient();
       const listResult = await client.object.listObjects({
         address,
         bucketName,

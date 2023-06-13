@@ -53,7 +53,6 @@ import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { client } from '@/base/client';
 import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
@@ -62,6 +61,7 @@ import { convertToSecond, getUtcZeroTimestamp } from '@/utils/time';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
+import { getClient } from '@/base/client';
 
 const renderFee = (
   key: string,
@@ -118,6 +118,7 @@ const getObjectIsSealed = async ({
     query.append('prefix', folderName);
   }
   const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
+  const client = await getClient();
   const listResult = await client.object.listObjects({
     bucketName,
     endpoint: primarySp.endpoint,
@@ -573,7 +574,7 @@ export const FileDetailModal = (props: modalProps) => {
                 fontSize={'14px'}
                 fontWeight={400}
                 lineHeight={'24px'}
-                color={freeze ? '#AEB4BC' : 'readable.primary'}
+                color={freeze ? '#AEB4BC' : 'primary'}
                 cursor={freeze ? 'not-allowed' : 'pointer'}
                 _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)' }}
                 border={freeze ? '1px solid #AEB4BC' : '1px solid #00ba34'}

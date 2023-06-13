@@ -1,7 +1,6 @@
 import { parseError } from '../utils/parseError';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
-import { GET_APPROVAL_INTERVAL } from '@/constants/common';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const pollingCreateAsync =
@@ -67,14 +66,21 @@ export const pollingDeleteAsync =
     };
 
 export const getBucketInfo = async (bucketName: string): Promise<any> => {
+  const client = await getClient();
   return await client.bucket.headBucket(bucketName);
 };
 
-// TODO This is a temp solution
-export const pollingGetBucket = pollingCreateAsync(client.bucket.getUserBuckets, 500);
-export const pollingDeleteBucket = pollingDeleteAsync(client.bucket.getUserBuckets, 500);
+export const getUserBuckets = async (params: { bucketName: string, address: string, endpoint: string}) =>  {
+  const client = await getClient();
+  return client.bucket.getUserBuckets(params);
+}
 
-export const getDeleteBucketFee = async ({ bucketName, address}: any) => {
+// TODO This is a temp solution
+export const pollingGetBucket = pollingCreateAsync(getUserBuckets, 500);
+export const pollingDeleteBucket = pollingDeleteAsync(getUserBuckets, 500);
+
+export const getDeleteBucketFee = async ({ bucketName, address }: any) => {
+  const client = await getClient();
   const deleteBucketTx = await client.bucket.deleteBucket({
     bucketName: bucketName,
     operator: address,
@@ -88,6 +94,7 @@ export const getDeleteBucketFee = async ({ bucketName, address}: any) => {
 
 
 export const genCreateBucketTx = async (configParam: TCreateBucket) => {
+  const client = await getClient();
   const createBucketTx = await client.bucket.createBucket(configParam);
 
   return createBucketTx;
@@ -107,6 +114,7 @@ export const deleteBucket = async ({
   sp,
   provider,
 }: DeleteBucketProps) => {
+  const client = await getClient();
   const deleteBucketTx = await client.bucket.deleteBucket({
     bucketName: bucketName,
     operator: address,
@@ -127,12 +135,13 @@ export const deleteBucket = async ({
   });
 
   // @ts-ignore
-  await pollingDeleteBucket({ bucketName, address: address, endpoint: sp.endpoint });
+  await pollingDeleteBucket({ bucketName, address, endpoint: sp.endpoint });
 
   return txRes;
 };
 
 export const getSpStoragePriceByTime = async (spAddress: string) => {
+  const client = await getClient();
   const res = await client.sp.getStoragePriceByTime(spAddress);
 
   return res;

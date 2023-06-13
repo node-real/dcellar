@@ -29,7 +29,7 @@ import { BucketNameItem } from './BucketNameItem';
 import { IBucketItem, ITableItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 
 export const TableList = () => {
   const { sp, sps } = useSPs();
@@ -104,6 +104,7 @@ export const TableList = () => {
         // TODO add auth check and error handling
         const domain = getDomain();
         const { seedString } = await getSpOffChainData({address, spAddress: sp?.operatorAddress});
+        const client = await getClient();
         const res: any = await client.bucket.getUserBuckets({
           address,
           endpoint: sp?.endpoint,

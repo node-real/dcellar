@@ -13,15 +13,19 @@ import { TransferIcon } from '../components/TransferIcon';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
 import { useLogin } from '@/hooks/useLogin';
-import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import {
+  BSC_CHAIN_ID,
+  GREENFIELD_CHAIN_ID,
+  GREENFIELD_CHAIN_EXPLORER_URL,
+} from '@/base/env';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
 import { Fee } from '../components/Fee';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 import { TTransferOutFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const TransferOut = () => {
@@ -52,14 +56,15 @@ export const TransferOut = () => {
     setStatus('pending');
     try {
       onOpen();
+      const client = await getClient();
       const transferOutTx = await client.crosschain.transferOut({
         from: address,
         to: address,
         amount: {
           denom: 'BNB',
           amount: ethers.utils.parseEther(data.amount).toString(),
-        },
-      });
+        }
+      })
       const simulateInfo = await transferOutTx.simulate({
         denom: 'BNB',
       });

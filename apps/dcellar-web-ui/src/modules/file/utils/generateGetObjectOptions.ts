@@ -5,7 +5,7 @@ import {
   validateBucketName,
   validateObjectName,
 } from './file';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { encodeObjectName } from '@/utils/string';
 
 export const generateGetObjectOptions = async (
@@ -18,6 +18,7 @@ export const generateGetObjectOptions = async (
   validateBucketName(bucketName);
   validateObjectName(objectName);
   const url = generateUrlByBucketName(endpoint, bucketName) + '/' + encodeObjectName(objectName);
+  const client = await getClient();
   const { code, body } = await client.offchainauth.sign(seedString);
   if (code !== 0) {
     throw new Error('Failed to sign');

@@ -72,7 +72,7 @@ export const Fee = ({
     <>
       <Flex justifyContent={'space-between'} mb="8px" alignItems={'center'}>
         <Flex>
-          <Text color="readable.tertiary">Fee</Text>
+          <Text color={'text.masked'}>Fee</Text>
           {type !== 'send' && (
             <Tips
               containerWidth={'308px'}
@@ -95,7 +95,7 @@ export const Fee = ({
         </Text>
       </Flex>
       <Flex mb={'40px'} justifyContent={'space-between'} alignItems="flex-start" gap={'24px'}>
-        <Text color="readable.tertiary">Total amount</Text>
+        <Text color={'text.masked'}>Total amount</Text>
         <Text
           color={'readable.normal'}
           textAlign="right"

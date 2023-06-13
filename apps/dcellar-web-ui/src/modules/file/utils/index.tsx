@@ -5,14 +5,14 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
@@ -35,6 +35,7 @@ const formatBytes = (bytes: number | string, isFloor = false) => {
 };
 
 const getObjectInfo = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
   return await client.object.headObject(bucketName, objectName);
 };
 
@@ -88,13 +89,11 @@ const downloadWithProgress = async ({
   primarySp: IRawSPInfo;
   payloadSize: number;
   address: string;
-}) => {
+}
+) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getSpOffChainData({
-      address,
-      spAddress: primarySp.operatorAddress,
-    });
+    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -240,6 +239,7 @@ const getQuota = async (
   endpoint: string,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
+    const client = await getClient();
     const { code, body } = await client.bucket.getBucketReadQuota({
       bucketName,
       endpoint,
