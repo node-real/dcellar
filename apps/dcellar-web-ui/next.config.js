@@ -36,6 +36,8 @@ const _getPublicEnv = (prefix) => {
   return res;
 };
 
+const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
+
 /**
  * @type {import('@sentry/nextjs').SentryWebpackPluginOptions}
  */
@@ -47,12 +49,25 @@ const sentryWebpackPluginOptions = {
 };
 
 const nextConfig = {
+  headers: async () => [
+    {
+      // cache public folder assets (default max-age: 0).
+      source: `${assetPrefix}/:public(fonts|images|wasm|zk-wasm)/:path*`,
+      locale: false,
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=31536000',
+        },
+      ],
+    },
+  ],
   // https://github.com/vercel/next.js/issues/35822
   // render twice & the memory usage of the wasm instance will also be impacted.
   reactStrictMode: false,
   distDir: '.next',
   webpack,
-  assetPrefix: process.env.NEXT_PUBLIC_STATIC_HOST,
+  assetPrefix,
   pageExtensions: ['mdx', 'jsx', 'js', 'ts', 'tsx'],
   generateBuildId: async () => {
     return commitHash;
