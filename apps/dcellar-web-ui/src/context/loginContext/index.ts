@@ -35,9 +35,10 @@ export interface LoginContextType {
 
 export type LoginState = LoginContextType['loginState'];
 
-export const LoginContext = React.createContext<LoginContextType>({} as LoginContextType);
+export const LoginContext = React.createContext<LoginContextType>(null as any);
+LoginContext.displayName = 'LoginContext';
 
-export const LoginReducer = (state: LoginState, action: any) => {
+export const LoginReducer = (state: any, action: any) => {
   switch (action.type) {
     case 'LOGIN':
       return {
