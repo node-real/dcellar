@@ -13,6 +13,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "hash-wasm": "4.9.0",
     "@babel/core": "^7.20.12",
     "@bnb-chain/greenfield-chain-sdk": "0.0.0-snapshot-20230607090144",
     "@emotion/react": "^11.10.5",
@@ -29,7 +30,6 @@
     "axios-retry": "^3.4.0",
     "bignumber.js": "^9.1.1",
     "comlink": "^4.4.1",
-    "crypto-js": "^4.1.1",
     "currency-formatter": "^1.5.9",
     "dayjs": "^1.11.7",
     "eslint-config-next": "13.3.1",
@@ -59,7 +59,6 @@
     "@svgr/webpack": "^6.5.1",
     "@totejs/eslint-config": "^1.5.2",
     "@totejs/prettier-config": "^0.1.0",
-    "@types/crypto-js": "^4.1.1",
     "@types/currency-formatter": "^1.5.1",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "18.16.0",
