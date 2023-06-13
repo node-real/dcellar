@@ -7,11 +7,11 @@ import { Page } from '@/components/layout/Page';
 const Layout = ({ children }: React.PropsWithChildren) => {
   const statusCode = useContext(StatusCodeContext);
 
-  if (statusCode === 200) {
-    return <Page>{children}</Page>;
+  if (statusCode !== 200) {
+    return <ErrorComponent statusCode={statusCode} />;
   }
 
-  return <ErrorComponent statusCode={statusCode} />;
+  return <Page>{children}</Page>;
 };
 
 export default Layout;
