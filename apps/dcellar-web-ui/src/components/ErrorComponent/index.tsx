@@ -1,5 +1,5 @@
 import { useLogin } from '@/hooks/useLogin';
-import { SEOHead } from '@/components/common/SEOHead';
+import { SEOHead } from '@/components/layout/SEOHead';
 import React from 'react';
 import { Footer } from '@/components/layout/Footer';
 import styled from '@emotion/styled';
@@ -8,7 +8,7 @@ import { useColorMode, Text, Heading } from '@totejs/uikit';
 import { errorCodes, TErrorCodeKey } from '@/base/http/utils/errorCodes';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);

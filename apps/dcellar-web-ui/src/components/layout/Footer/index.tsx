@@ -1,4 +1,4 @@
-import { Flex, FlexProps, Link, Text } from '@totejs/uikit';
+import { Flex, Link, Text } from '@totejs/uikit';
 import React from 'react';
 
 import { getUtcYear } from '@/utils/getUtcYear';
@@ -6,15 +6,16 @@ import { noderealUrl } from '@/constants/links';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 
-export const Footer = (props: FlexProps) => {
+export const Footer = (props: any) => {
   const utcYear = getUtcYear();
-  const { ...restProps } = props;
+  const { ...styleProps } = props;
   // const fixAtBottomStyle = fixAtBottom
   //   ? { position: 'fixed', bottom: 0, left: 0, right: 0 }
   //   : { position: 'absolute', bottom: 0, left: '269px', right: 0 };
 
   const { pathname } = useRouter();
   const gaClickName = getGAOptions(pathname);
+  const isWelcomePage = pathname === '/';
 
   return (
     <Flex
@@ -22,11 +23,10 @@ export const Footer = (props: FlexProps) => {
       justifyContent={'center'}
       height={'48px'}
       gridArea={'footer'}
-      bgColor="bg.middle"
-      color="readable.secondary"
-      {...restProps}
+      bgColor={isWelcomePage ? 'transparent' : 'bg.middle'}
+      {...styleProps}
     >
-      <Text color="inherit">
+      <Text color={isWelcomePage ? '#76808F' : 'readable.secondary'}>
         © {utcYear}&nbsp;
         <GAClick name={gaClickName}>
           <Link

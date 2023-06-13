@@ -27,7 +27,7 @@ import { EOperation, TCalculateGas, TTransferInFromValues, TFeeData } from '../t
 import { CROSS_CHAIN_ABI, INIT_FEE_DATA, TOKENHUB_ABI, WalletOperationInfos } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
 import { OperationTypeContext } from '..';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 
@@ -56,7 +56,7 @@ export const TransferIn = () => {
   });
   const { chain } = useNetwork();
   const provider = useProvider();
-  const { connector } = useAccount();
+  const {connector} = useAccount();
   const curInfo = WalletOperationInfos[type];
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

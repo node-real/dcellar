@@ -22,7 +22,7 @@ import { DeleteBucketFailed } from './DeleteFailed';
 import { BucketNotEmpty } from '@/modules/buckets/List/components/BucketNotEmpty';
 import { DeletingBucket } from '@/modules/buckets/List/components/DeletingBucket';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
@@ -108,7 +108,9 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const DeleteBucket = () => {
     return (
       <>
-        <ModalHeader lineHeight={'36px'}>Confirm Delete</ModalHeader>
+        <ModalHeader lineHeight={'36px'}>
+          Confirm Delete
+        </ModalHeader>
         <ModalBody marginTop={'8px'} paddingBottom={'32px'}>
           <Box textAlign={'center'} color={'#474D57'} fontSize={'18px'}>
             {`Are you sure to delete this bucket "${bucketName}"?`}

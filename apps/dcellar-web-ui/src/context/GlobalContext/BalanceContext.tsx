@@ -73,7 +73,7 @@ function ChainBalanceContextProvider(props: any) {
       const { balance } = await client.account.getAccountBalance({
         address,
         denom: 'BNB',
-      });
+      })
       const { amount = '0' } = balance ?? {};
       try {
         const { streamRecord } = await client.payment.getStreamRecord(address);

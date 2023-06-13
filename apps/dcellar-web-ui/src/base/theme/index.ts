@@ -17,11 +17,12 @@ export const theme = {
   styles: {
     global: {
       body: {
-        bg: 'transparent',
-
         '.ui-toast-manager': {
-          top: 65,
+          pt: ['66px', '65px'],
           maxW: '500px',
+        },
+        '.ui-toast-description': {
+          wordBreak: 'break-word',
         },
       },
     },

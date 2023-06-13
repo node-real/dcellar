@@ -41,7 +41,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/constants/links';
 import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 
 interface modalProps {
