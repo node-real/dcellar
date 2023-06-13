@@ -1,9 +1,7 @@
-import { SHA256, lib } from 'crypto-js';
+import { sha256 } from 'hash-wasm';
 
 const encodePrimary = async (chunkId: number, buffer: ArrayBuffer) => {
-  const wordArray = lib.WordArray.create(buffer as never);
-  const primary = SHA256(wordArray).toString();
-
+  const primary = await sha256(new Uint8Array(buffer));
   return [chunkId, primary];
 };
 

@@ -44,6 +44,7 @@ import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { IRawSPInfo } from '../buckets/type';
 import { convertObjectInfo } from './utils/convertObjectInfo';
+import { sha256 } from 'hash-wasm';
 
 interface pageProps {
   bucketName: string;
@@ -252,7 +253,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     if (!isInitReady) return;
     const realListObjects = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)));
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
     } else {
@@ -333,7 +334,9 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     let hashResult;
     setFreeze(true);
     const terminate = createCheckSumWebWorker();
+    const start = performance.now();
     hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
+    console.info('HASH: ', performance.now() - start);
     terminate();
     setFreeze(false);
     const spOffChainData = await getSpOffChainData({
@@ -462,7 +465,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     }
   };
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    console.log('asdsadsadsadsadsadsadsa')
     if (e.target.files) {
       setGasFee('-1');
       const uploadFile = e.target.files[0];

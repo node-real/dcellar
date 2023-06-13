@@ -28,8 +28,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.44.5
-      '@types/crypto-js': ^4.1.1
+      '@totejs/uikit': ~2.41.9
       '@types/currency-formatter': ^1.5.1
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
@@ -39,7 +38,6 @@ importers:
       axios-retry: ^3.4.0
       bignumber.js: ^9.1.1
       comlink: ^4.4.1
-      crypto-js: ^4.1.1
       currency-formatter: ^1.5.9
       dayjs: ^1.11.7
       eslint: 8.39.0
@@ -47,6 +45,7 @@ importers:
       ethers: ^5.7.2
       framer-motion: ^9.0.7
       google-protobuf: ^3.21.2
+      hash-wasm: 4.9.0
       husky: ^8.0.3
       lint-staged: ^13.1.1
       lodash-es: ^4.17.21
@@ -79,13 +78,13 @@ importers:
       axios-retry: 3.5.0
       bignumber.js: 9.1.1
       comlink: 4.4.1
-      crypto-js: 4.1.1
       currency-formatter: 1.5.9
       dayjs: 1.11.7
       eslint-config-next: 13.3.1_eslint@8.39.0+typescript@5.0.4
       ethers: 5.7.2
       framer-motion: 9.1.7_react-dom@18.2.0+react@18.2.0
       google-protobuf: 3.21.2
+      hash-wasm: 4.9.0
       lodash-es: 4.17.21
       long: 5.2.3
       next: 13.3.1_da7e70ebcfb199e93c37711334dfd748
@@ -107,7 +106,6 @@ importers:
       '@svgr/webpack': 6.5.1
       '@totejs/eslint-config': 1.5.2_11991031bed2a850aeceb9f1e0dd3c67
       '@totejs/prettier-config': 0.1.0
-      '@types/crypto-js': 4.1.1
       '@types/currency-formatter': 1.5.1
       '@types/lodash-es': 4.17.7
       '@types/node': 18.16.0
@@ -3547,10 +3545,6 @@ packages:
       '@types/node': 18.16.0
     dev: false
 
-  /@types/crypto-js/4.1.1:
-    resolution: {integrity: sha512-BG7fQKZ689HIoc5h+6D2Dgq1fABRa0RbBWKBd9SP/MVRVXROflpm5fhwyATX5duFmbStzyzyycPB8qUYKDH3NA==}
-    dev: true
-
   /@types/currency-formatter/1.5.1:
     resolution: {integrity: sha512-dJb8hPNOQizmJnqWucEXKd+vnQVpedwY5tB8ADrC9/EVSaglgKeRHCkZKii6QJH+6mjiWObeb3n6wsmoQ7Ycrg==}
     dev: true
@@ -5129,10 +5123,6 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  /crypto-js/4.1.1:
-    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
-    dev: false
-
   /css-in-js-utils/3.1.0:
     resolution: {integrity: sha512-fJAcud6B3rRu+KHYk+Bwf+WFL2MDCJJ1XG9x137tJQ0xYxor7XziQtuGFbWNdqrvF4Tk26O3H73nfVqXt/fW1A==}
     dependencies:
@@ -6428,6 +6418,10 @@ packages:
     engines: {node: '>= 0.4.0'}
     dependencies:
       function-bind: 1.1.1
+
+  /hash-wasm/4.9.0:
+    resolution: {integrity: sha512-7SW7ejyfnRxuOc7ptQHSf4LDoZaWOivfzqw+5rpcQku0nHfmicPKE51ra9BiRLAmT8+gGLestr1XroUkqdjL6w==}
+    dev: false
 
   /hash.js/1.1.7:
     resolution: {integrity: sha512-taOaskGt4z4SOANNseOviYDvjEJinIkRgmp7LbKP2YTTmVxWBl87s/uzK9r+44BclBSp2X7K1hqeNfz9JbBeXA==}
