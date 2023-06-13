@@ -6,7 +6,7 @@ import { useBalance, useNetwork } from 'wagmi';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { getUtcZeroTimestamp } from '@/utils/time';
 
 const MINIUM_ALLOWED_CHANGED_BALANCE = '0.000005';
@@ -70,6 +70,7 @@ function ChainBalanceContextProvider(props: any) {
     try {
       setIsLoading(true);
       setUseMetamaskValue(false);
+      const client = await getClient();
       const { balance } = await client.account.getAccountBalance({
         address,
         denom: 'BNB',

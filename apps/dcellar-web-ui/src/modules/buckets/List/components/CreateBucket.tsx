@@ -328,7 +328,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             return await signTypedDataV4(provider, addr, message);
           },
         });
-
         await pollingGetBucket({
           address: createBucketParams.creator,
           endpoint: createBucketParams.spInfo.endpoint,

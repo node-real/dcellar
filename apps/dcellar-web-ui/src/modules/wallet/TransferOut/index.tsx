@@ -21,7 +21,7 @@ import { InternalRoutePaths } from '@/constants/paths';
 import { TTransferOutFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const TransferOut = () => {
@@ -52,6 +52,7 @@ export const TransferOut = () => {
     setStatus('pending');
     try {
       onOpen();
+      const client = await getClient();
       const transferOutTx = await client.crosschain.transferOut({
         from: address,
         to: address,

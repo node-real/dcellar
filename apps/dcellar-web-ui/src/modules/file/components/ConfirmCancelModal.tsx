@@ -22,7 +22,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { IRawSPInfo } from '@/modules/buckets/type';
 
@@ -207,6 +207,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
+              const client = await getClient();
               const cancelObjectTx = await client.object.cancelCreateObject({
                 bucketName,
                 objectName: name,

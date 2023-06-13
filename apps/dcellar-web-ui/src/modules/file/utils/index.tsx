@@ -12,7 +12,7 @@ import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { client } from '@/base/client';
+import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
@@ -35,6 +35,7 @@ const formatBytes = (bytes: number | string, isFloor = false) => {
 };
 
 const getObjectInfo = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
   return await client.object.headObject(bucketName, objectName);
 };
 
@@ -240,6 +241,7 @@ const getQuota = async (
   endpoint: string,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
+    const client = await getClient();
     const { code, body } = await client.bucket.getBucketReadQuota({
       bucketName,
       endpoint,

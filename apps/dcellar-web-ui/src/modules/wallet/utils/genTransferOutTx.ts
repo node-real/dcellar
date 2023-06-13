@@ -1,4 +1,4 @@
-import { client } from "@/base/client";
+import { getClient } from "@/base/client";
 
 export const genTransferOutTx = async (configParam: {
   from: string;
@@ -8,6 +8,7 @@ export const genTransferOutTx = async (configParam: {
     amount: string;
   }
 }) => {
+  const client = await getClient();
   const sendTx = await client.crosschain.transferOut(configParam);
 
   return sendTx;

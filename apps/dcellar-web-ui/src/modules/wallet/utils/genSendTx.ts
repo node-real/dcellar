@@ -1,4 +1,4 @@
-import { client } from "@/base/client";
+import { getClient } from "@/base/client";
 
 export const genSendTx = async (configParam: {
     fromAddress: string;
@@ -8,6 +8,7 @@ export const genSendTx = async (configParam: {
       amount: string;
     }]
   }) => {
+    const client = await getClient();
     const sendTx = await client.account.transfer(configParam);
 
     return sendTx;
