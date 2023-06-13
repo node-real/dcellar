@@ -38,7 +38,7 @@ interface ErrorComponentProps {
 }
 
 function ErrorComponent({ statusCode }: ErrorComponentProps) {
-  const { loginState } = useLogin() as any;
+  const { loginState } = useLogin();
   const { colorMode } = useColorMode();
   const address = loginState?.address;
   const text = statusCode === 404 ? 'Page Not Found' : 'Oops!';
