@@ -5,7 +5,7 @@ import { LoginReducer, LoginContext, initializer, initialState, LOGIN_STORAGE_KE
 import { useAccount, useDisconnect } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { removeOffChainData } from '@/modules/off-chain-auth/utils';
-import { useLoginGuard } from '@/context/loginContext/useLoginGuard';
+import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
 import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { useRouter } from 'next/router';
 

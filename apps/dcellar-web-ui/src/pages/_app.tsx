@@ -15,7 +15,7 @@ import { SPProvider } from '@/context/GlobalContext/SPProvider';
 import { WalletConnectProvider } from '@/context/WalletConnectContext';
 import { ThemeProvider } from '@totejs/uikit';
 import { theme } from '@/base/theme';
-import { LoginContextProvider } from '@/context/loginContext/provider';
+import { LoginContextProvider } from '@/context/LoginContext/provider';
 import ChainBalanceContextProvider from '@/context/GlobalContext/BalanceContext';
 import { SEOHead } from '@/components/common/SEOHead';
 
