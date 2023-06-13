@@ -1,15 +1,17 @@
-import { connectErrorHandler } from '@/context/WalletConnectContext/error/connectErrorHandler';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useState } from 'react';
 import { Connector, useAccount, useConnect, useDisconnect } from 'wagmi';
+import { handleWalletError } from '@/context/WalletConnectContext/error/handleWalletError';
 
 export interface UseWalletProps {
   chainId?: number;
   onSuccess?: (address?: string) => void;
+  onConnectError?: (err: Error, args: any, context: unknown) => void;
+  onSwitchNetworkError?: (err: Error, args: any, context: unknown) => void;
 }
 
 export function useWallet(props: UseWalletProps) {
-  const { onSuccess, chainId } = props;
+  const { onSuccess, onConnectError, onSwitchNetworkError, chainId } = props;
 
   const { disconnect } = useDisconnect();
   const { isConnecting } = useAccount();
@@ -18,7 +20,10 @@ export function useWallet(props: UseWalletProps) {
   const [address, setAddress] = useState<string>();
 
   const { connect, connectors } = useConnect({
-    onError: connectErrorHandler(),
+    onError: (...params) => {
+      handleWalletError(...params);
+      onConnectError?.(...params);
+    },
     onSuccess: (data) => {
       setAddress(data.account);
 
@@ -31,6 +36,10 @@ export function useWallet(props: UseWalletProps) {
   });
 
   const { switchNetwork, isLoading } = useWalletSwitchNetWork({
+    onError: (...params) => {
+      handleWalletError(...params);
+      onSwitchNetworkError?.(...params);
+    },
     onSuccess: () => {
       onSuccess?.(address);
     },

@@ -21,10 +21,10 @@ const greenFieldChain: Chain = {
     decimals: 18,
   },
   rpcUrls: {
-    public: {
+    default: {
       http: [GREENFIELD_CHAIN_RPC_URL],
     },
-    default: {
+    public: {
       http: [GREENFIELD_CHAIN_RPC_URL],
     },
   },

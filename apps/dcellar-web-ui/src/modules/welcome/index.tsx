@@ -1,12 +1,10 @@
 import { assetPrefix } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
 import { Footer } from '@/components/layout/Footer';
-import { useLogin } from '@/hooks/useLogin';
 import { WalletConnectModal } from '@/modules/welcome/components/WalletConnectModal';
-import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { usePreloadPages } from '@/modules/welcome/hooks/usePreloadPages';
 import { Image, Flex, Text, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 
 const MIN_WIDTH_1440 = '@media screen and (min-width: 1440px)';
 
@@ -14,19 +12,6 @@ export function Welcome() {
   usePreloadPages();
 
   const { isOpen, onClose, onOpen } = useDisclosure();
-
-  const { loginState } = useLogin();
-  const [currentAddress, setCurrentAddress] = useState<string | undefined>(loginState.address);
-
-  const { isAuthPending } = useAppLogin(currentAddress);
-
-  const onSuccess = useCallback(
-    (address?: string) => {
-      setCurrentAddress(address);
-      onClose();
-    },
-    [onClose],
-  );
 
   return (
     <>
@@ -73,7 +58,6 @@ export function Welcome() {
             lineHeight="22px"
             fontWeight={600}
             onClick={onOpen}
-            isLoading={isAuthPending}
           >
             Connect Wallet
           </DCButton>
@@ -90,7 +74,7 @@ export function Welcome() {
         />
       </Flex>
 
-      <WalletConnectModal isOpen={isOpen} onClose={onClose} onSuccess={onSuccess} />
+      <WalletConnectModal isOpen={isOpen} onClose={onClose} />
     </>
   );
 }

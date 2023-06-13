@@ -1,28 +1,10 @@
-export const WalletErrorCode = {
-  USER_REJECT: 4001,
-  REQUEST_PENDING: -32002,
+export const ErrorMsgMap: Record<string, string> = {
+  '4001': 'User rejected the request.',
+  '4100': 'The requested account and/or method has not been authorized by the user.',
+  '4200': 'The requested method is not supported by this Network provider.',
+  '4900': 'Your wallet is disconnected. Please check your network connectivity status.',
+  '4901':
+    'You are not connected to the correct chain for this transaction. Switch your network and retry.',
+  '-32700':
+    'Your request object is incomplete. Please make sure the object sent to the contract does contain all the data that it requires.',
 };
-
-export const ConnectErrorCodeMsgMap = {
-  [WalletErrorCode.USER_REJECT]: '',
-  [WalletErrorCode.REQUEST_PENDING]: `Oops, connect wallet action is pending, please confirm it in wallet extension that you are using.`,
-};
-
-export const SwitchNetworkErrorCodeMsgMap = {
-  [WalletErrorCode.USER_REJECT]: '',
-  [WalletErrorCode.REQUEST_PENDING]: `Oops, switch network action is pending, please confirm it in wallet extension that you are using.`,
-};
-
-// TODO record
-// export const ErrorMsgMap = {
-//   META_MASK_NOT_INSTALL: `Metamask not installed. Please install and reconnect.`,
-//   TRUST_WALLET_NOT_INSTALL: `Trust wallet not installed. Please install and reconnect.`,
-//   ANY_WALLET_NOT_INSTALL: `Wallet not installed. Please install and reconnect.`,
-//   CONNECT_PENDING: `Oops, connect wallet action is pending, please confirm it in wallet extension that you are using.`,
-//   CONNECT_COMMON_ERROR: `Oops, connect wallet met error, please try again.`,
-
-//   ADD_CHAIN_ERROR: `Oops, add network met error, please check it in wallet extension.`,
-//   SWITCH_CHAIN_ERROR: `Oops, switch network met error, please check it in wallet extension.`,
-//   SWITCH_PENDING: `Oops, switch network action is pending, please confirm it in wallet extension that you are using.`,
-//   SWITCH_COMMON_ERROR: `Oops, switch network met error, please try again.`,
-// };

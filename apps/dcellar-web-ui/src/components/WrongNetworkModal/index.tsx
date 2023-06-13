@@ -43,7 +43,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
           variant="dcPrimary"
           width={'100%'}
           onClick={() => {
-            switchNetwork && switchNetwork(GREENFIELD_CHAIN_ID);
+            switchNetwork?.(GREENFIELD_CHAIN_ID);
           }}
         >
           Switch to BNB Greenfield

@@ -5,6 +5,7 @@ import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 const trustWalletConnector = new InjectedConnector({
   chains,
   options: {
+    name: 'Trust Wallet',
     shimDisconnect: true,
     getProvider: () => (typeof window !== 'undefined' ? window.trustwallet : undefined),
   },

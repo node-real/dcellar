@@ -1,5 +1,5 @@
 import { DCModal, DCModalProps } from '@/components/common/DCModal';
-import { TRUST_WALLET_DOWNLOAD_URL } from '@/constants/links';
+import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/constants/links';
 import { WalletItem } from '@/modules/welcome/components/WalletItem';
 import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
@@ -7,19 +7,52 @@ import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { GAClick } from '@/components/common/GATracker';
 import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { ConnectorNotFoundError } from 'wagmi';
+import { InjectedConnector } from 'wagmi/connectors/injected';
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
+import { useLogin } from '@/hooks/useLogin';
+import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 
-export interface WalletConnectModalProps extends DCModalProps {
-  onSuccess: (address?: string) => void;
-}
+export interface WalletConnectModalProps extends DCModalProps {}
 
 export function WalletConnectModal(props: WalletConnectModalProps) {
-  const { isOpen, onClose, onSuccess } = props;
+  const { isOpen, onClose } = props;
 
-  const { isLoading, connectors, connector, onChangeConnector, disconnect } = useWallet({
+  const { loginState } = useLogin();
+  const [currentAddress, setCurrentAddress] = useState<string | undefined>(loginState.address);
+
+  const { isAuthPending } = useAppLogin(currentAddress);
+
+  const onSuccess = useCallback((address?: string) => {
+    setCurrentAddress(address);
+  }, []);
+
+  const onConnectError = useCallback((err: Error, args: any) => {
+    if (err instanceof ConnectorNotFoundError) {
+      const { connector } = args;
+
+      if (connector instanceof MetaMaskConnector) {
+        window.open(METAMASK_DOWNLOAD_URL, '_blank');
+      } else if (connector instanceof InjectedConnector && connector.name === 'Trust Wallet') {
+        window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
+      }
+    }
+  }, []);
+
+  const {
+    isLoading: isWalletConnecting,
+    connectors,
+    connector,
+    onChangeConnector,
+    disconnect,
+  } = useWallet({
     chainId: GREENFIELD_CHAIN_ID,
     onSuccess,
+    onConnectError,
   });
+
+  const isLoading = isWalletConnecting || isAuthPending;
 
   useEffect(() => {
     if (isOpen) {
