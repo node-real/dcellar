@@ -1,5 +1,5 @@
 import { InternalRoutePaths } from '@/constants/paths';
-import { LoginState } from '@/context/LoginContext';
+import { LoginState } from '@/context/loginContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
