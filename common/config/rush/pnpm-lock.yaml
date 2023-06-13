@@ -28,7 +28,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.41.9
+      '@totejs/uikit': ~2.44.5
       '@types/currency-formatter': ^1.5.1
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
