@@ -1,10 +1,5 @@
-import Welcome from '../components/welcome';
-import { SPProvider } from '@/context/GlobalContext/SPProvider';
+import { Welcome } from '@/modules/welcome';
 
 export default function Home() {
-  return (
-    <SPProvider>
-      <Welcome />
-    </SPProvider>
-  );
+  return <Welcome />;
 }
