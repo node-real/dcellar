@@ -573,7 +573,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
         <Tooltip
           content={title}
-          placement={'bottom-start'}
+          placement={'bottom-end'}
           visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
           <Text

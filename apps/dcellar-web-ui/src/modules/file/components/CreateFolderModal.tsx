@@ -233,7 +233,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
-      errors.push('Folder name is required');
+      errors.push('Please enter the folder name.');
       setFormErrors(errors);
       return false;
     }
@@ -241,7 +241,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       errors.push('Must be between 1 to 70 characters long.');
     }
     if (value.includes('/')) {
-      errors.push(`Folder name can\'t contain "/"`);
+      errors.push('Cannot consist of slash(/).');
     }
     setFormErrors(errors);
     return !errors.length;
@@ -341,7 +341,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
             onChange={onFolderNameChange}
             tips={{
               title: 'Naming Rules',
-              rules: ['Must be between 1 and 75 characters long.', 'Can\'t contain slash("/")'],
+              rules: ['Must be between 1 and 70 characters long.', 'Cannot consist of slash(/).'],
             }}
           />
           {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
