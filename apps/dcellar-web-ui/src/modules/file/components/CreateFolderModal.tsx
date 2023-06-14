@@ -282,10 +282,12 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     return createObjectTx;
   };
 
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
+
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
-    validateFolderName(folderName);
+    if (!lackGasFee) validateFolderName(folderName);
   };
 
   useEffect(() => {
@@ -345,7 +347,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
           {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
         </FormControl>
         <GasFeeItem gasFee={gasFee} />
-        {formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR) && (
+        {lackGasFee && (
           <Flex w="100%" justifyContent="space-between" mt={8}>
             <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
               <GAShow name={'dc.file.create_folder_m.transferin.show'}>
