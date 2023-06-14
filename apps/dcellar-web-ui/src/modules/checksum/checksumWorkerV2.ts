@@ -68,22 +68,25 @@ const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) 
   return workers;
 };
 
+// js vm instance memory will not release immediately. try reuse worker thread.
+let primaryWorkers: any[] = [];
+let secondWorkers: any[] = [];
+
+const primaryWorkerConsumers: { [k: number]: any } = {};
+primaryWorkers = _initPrimaryWorkers({
+  consumers: primaryWorkerConsumers,
+});
+
+const secondWorkerConsumers: { [k: number]: any } = {};
+secondWorkers = _initSecondWorkers({
+  consumers: secondWorkerConsumers,
+});
+
 export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
   if (!file) return;
-  let primaryWorkers: any[] = [];
-  let secondWorkers: any[] = [];
+
   let checkSumRes: THashResult;
   try {
-    const primaryWorkerConsumers: { [k: number]: any } = {};
-    primaryWorkers = _initPrimaryWorkers({
-      consumers: primaryWorkerConsumers,
-    });
-
-    const secondWorkerConsumers: { [k: number]: any } = {};
-    secondWorkers = _initSecondWorkers({
-      consumers: secondWorkerConsumers,
-    });
-
     const fileChunks = _createFileChunks(file);
     const secondResults: any[] = [];
     const primaryResults: any[] = [];
@@ -139,13 +142,8 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
       contentLength: file.size,
       expectCheckSums: value,
     };
-
-    secondWorkers.forEach((it) => it.terminate());
-    primaryWorkers.forEach((it) => it.terminate());
   } catch (e) {
     console.log('check sum error', e);
-    secondWorkers.forEach((it) => it?.terminate());
-    primaryWorkers.forEach((it) => it?.terminate());
   }
 
   return checkSumRes;
