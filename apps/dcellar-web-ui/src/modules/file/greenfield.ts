@@ -1,5 +1,6 @@
+const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
 // @ts-ignore
-globalThis.importScripts('/wasm/wasm_exec.js');
+globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
 
 type GlobalScope = typeof globalThis & {
   Go: any;
@@ -10,12 +11,13 @@ const globalScope = globalThis as GlobalScope;
 
 const go = new globalScope.Go();
 let isReady = false;
-WebAssembly.instantiateStreaming(globalScope.fetch('/wasm/main.wasm'), go.importObject).then(
-  async (result) => {
-    go.run(result.instance);
-    isReady = true;
-  },
-);
+WebAssembly.instantiateStreaming(
+  globalScope.fetch(`${assetPrefix}/wasm/main.wasm`),
+  go.importObject,
+).then(async (result) => {
+  go.run(result.instance);
+  isReady = true;
+});
 
 // eslint-disable-next-line no-restricted-globals
 globalScope.addEventListener('message', (e) => {

@@ -1,6 +1,8 @@
 import { sha256 } from 'hash-wasm';
 import { decodeBase64 } from '@/utils/base64';
-globalThis.importScripts('/wasm/wasm_exec.js');
+
+const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
+globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -12,7 +14,10 @@ declare global {
 
 const init = async () => {
   const go = new Go();
-  const result = await WebAssembly.instantiateStreaming(fetch('/wasm/main.wasm'), go.importObject);
+  const result = await WebAssembly.instantiateStreaming(
+    fetch(`${assetPrefix}/wasm/main.wasm`),
+    go.importObject,
+  );
   if (result) {
     go.run(result.instance);
   }
