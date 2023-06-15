@@ -151,7 +151,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
 
   const broadcastCreateTx = async (createTx: any) => {
     const simulateInfo = await createTx.simulate({ denom: 'BNB' });
-    const signTypeDataCallback = async (addr: string, message: string) => {
+    const signTypedDataCallback = async (addr: string, message: string) => {
       const provider = await connector?.getProvider();
       return signTypedDataV4(provider, addr, message);
     };
@@ -161,7 +161,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
         gasLimit: Number(simulateInfo?.gasLimit),
         gasPrice: simulateInfo?.gasPrice || '5000000000',
         payer: address,
-        signTypeDataCallback,
+        signTypedDataCallback,
       })
       .catch((error: any) => {
         const { code = '' } = error;
