@@ -232,6 +232,8 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   };
 
   const createCheckSumWebWorker = () => {
+    if (comlinkWorkerRef.current) return;
+
     comlinkWorkerRef.current = new Worker(
       new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url),
       { type: 'module' },
@@ -334,12 +336,12 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     let hashResult;
     setFreeze(true);
-    const terminate = createCheckSumWebWorker();
+    createCheckSumWebWorker();
     const start = performance.now();
-    hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-    console.info('HASH: ', performance.now() - start);
-    terminate();
-    setFreeze(false);
+    hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
+      console.info('HASH: ', performance.now() - start);
+      setFreeze(false);
+    });
     const spOffChainData = await getSpOffChainData({
       address,
       spAddress: primarySpAddress,
@@ -571,7 +573,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
         <Tooltip
           content={title}
-          placement={'bottom-start'}
+          placement={'bottom-end'}
           visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
           <Text

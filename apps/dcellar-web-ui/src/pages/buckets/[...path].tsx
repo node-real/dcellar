@@ -40,7 +40,7 @@ const Folder = () => {
         <Fragment key="last">
           <Flex alignItems={'center'} gap={4} fontWeight={600} as="li" flex={1} minW={0}>
             {isDiscontinued && bucket && <WaringTriangleIcon />}
-            <Text fontWeight={900} as="span" overflow="hidden" textOverflow="ellipsis">
+            <Text fontWeight={600} as="span" overflow="hidden" textOverflow="ellipsis">
               {text}
             </Text>
           </Flex>

@@ -233,7 +233,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
-      errors.push('Folder name is required');
+      errors.push('Please enter the folder name.');
       setFormErrors(errors);
       return false;
     }
@@ -241,7 +241,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       errors.push('Must be between 1 to 70 characters long.');
     }
     if (value.includes('/')) {
-      errors.push(`Folder name can\'t contain "/"`);
+      errors.push('Cannot consist of slash(/).');
     }
     setFormErrors(errors);
     return !errors.length;
@@ -282,10 +282,12 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     return createObjectTx;
   };
 
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
+
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
-    validateFolderName(folderName);
+    if (!lackGasFee) validateFolderName(folderName);
   };
 
   useEffect(() => {
@@ -339,13 +341,13 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
             onChange={onFolderNameChange}
             tips={{
               title: 'Naming Rules',
-              rules: ['Must be between 1 and 75 characters long.', 'Can\'t contain slash("/")'],
+              rules: ['Must be between 1 and 70 characters long.', 'Cannot consist of slash(/).'],
             }}
           />
           {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
         </FormControl>
         <GasFeeItem gasFee={gasFee} />
-        {formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR) && (
+        {lackGasFee && (
           <Flex w="100%" justifyContent="space-between" mt={8}>
             <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
               <GAShow name={'dc.file.create_folder_m.transferin.show'}>
