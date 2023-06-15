@@ -10,6 +10,7 @@ import {
   GREENFIELD_CHAIN_ID,
   runtimeEnv,
 } from '@/base/env';
+import { CHAIN_NAMES } from '../constant';
 
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
@@ -22,7 +23,7 @@ const greenFieldChain: Chain = {
       http: [GREENFIELD_CHAIN_RPC_URL],
     },
   },
-  name: runtimeEnv === 'prod' ? 'greenfield testnet' : `${runtimeEnv} - greenfield`,
+  name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
     name: 'BNB',
     symbol: 'BNB',
@@ -32,7 +33,7 @@ const greenFieldChain: Chain = {
 
 const bscChain: Chain = {
   id: BSC_CHAIN_ID,
-  network: 'greenfield bsc',
+  network: 'BNB Smart Chain Testnet',
   rpcUrls: {
     default: {
       http: [BSC_RPC_URL],
@@ -41,7 +42,7 @@ const bscChain: Chain = {
       http: [BSC_RPC_URL],
     },
   },
-  name: runtimeEnv === 'prod' ? 'greenfield bsc testnet' : `${runtimeEnv} - greenfield bsc`,
+  name: CHAIN_NAMES[BSC_CHAIN_ID],
   nativeCurrency: {
     name: 'BNB',
     symbol: 'BNB',
