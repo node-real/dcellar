@@ -56,7 +56,7 @@ const MAX_FOLDER_LEVEL = 10;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
-const MAX_SIZE = 111268435456;
+const MAX_SIZE = 268435456;
 const renderUploadButton = (
   isCurrentUser: boolean,
   isDiscontinued: boolean,
