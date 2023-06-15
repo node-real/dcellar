@@ -57,6 +57,7 @@ const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
 const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
 const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimating gas fee, please check.`;
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
+const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 
 export {
@@ -110,4 +111,5 @@ export {
   FOLDER_CREATE_FAILED,
   FOLDER_DESCRIPTION_CREATE_ERROR,
   UNKNOWN_ERROR,
+  DUPLICATE_OBJECT_NAME,
 };

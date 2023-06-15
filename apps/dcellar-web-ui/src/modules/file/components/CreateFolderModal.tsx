@@ -18,6 +18,7 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { useLogin } from '@/hooks/useLogin';
 import {
   BUTTON_GOT_IT,
+  DUPLICATE_OBJECT_NAME,
   FILE_FAILED_URL,
   FILE_STATUS_UPLOADING,
   FOLDER_CREATE_FAILED,
@@ -103,6 +104,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const [inputFolderName, setInputFolderName] = useState('');
   const [gasFee, setGasFee] = useState('-1');
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [usedNames, setUsedNames] = useState<string[]>([]);
 
   const getPath = (name: string) => {
     return parentFolderName && parentFolderName.length > 0
@@ -272,6 +274,9 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       ) {
         setGasFee('-1');
         setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+      } else if (error?.message.includes('Object already exists')) {
+        setFormErrors([DUPLICATE_OBJECT_NAME]);
+        setUsedNames((names) => [...names, folderName]);
       } else {
         setFormErrors([UNKNOWN_ERROR]);
       }
@@ -287,6 +292,10 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
+    if (usedNames.includes(folderName)) {
+      setFormErrors([DUPLICATE_OBJECT_NAME]);
+      return;
+    }
     if (!lackGasFee) validateFolderName(folderName);
   };
 
@@ -309,6 +318,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setInputFolderName('');
     setLoading(false);
     setGasFee('-1');
+    setUsedNames([]);
     // eslint-disable-next-line
   }, [isOpen]);
 
