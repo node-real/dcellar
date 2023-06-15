@@ -16,18 +16,21 @@ export const SPProvider: React.FC<any> = ({ children }) => {
   const { isLoading, isError, data } = useQuery<any>({
     queryKey: ['getStorageProviders'],
     queryFn: getStorageProviders,
+    cacheTime: 5 * 60 * 1000
   });
-  const finalSps = (data ?? []).filter((v: any) => v?.description?.moniker !== 'QATest');
-  const randomIndex = Math.floor(Math.random() * finalSps.length);
-  const DefaultSp = useMemo(
-    () => ({
+
+  const DefaultSp = useMemo(() => {
+    const finalSps = (data ?? []).filter((v: any) => v?.description?.moniker !== 'QATest');
+    const randomIndex = Math.floor(Math.random() * finalSps.length);
+    return {
       isLoading: isLoading,
       isError: isError,
       sp: finalSps[randomIndex],
       sps: finalSps,
-    }),
-    [isLoading, isError, finalSps, randomIndex],
-  );
+    };
+
+  }, [data, isLoading, isError]);
+
 
   return <SPContext.Provider value={DefaultSp}>{children}</SPContext.Provider>;
 };

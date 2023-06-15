@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { ReactNode, memo, useMemo, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -26,12 +26,12 @@ import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { ActionItem } from './ActionItem';
 import { BucketNameItem } from './BucketNameItem';
-import { IBucketItem, ITableItem } from '../type';
+import { IBucketItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { getClient } from '@/base/client';
 
-export const TableList = () => {
+export const TableList = memo(() => {
   const { sp, sps } = useSPs();
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
@@ -93,17 +93,21 @@ export const TableList = () => {
     ],
     [onOpen, rowData, sps],
   );
-  const isLoadingColumns = columns.map((column) => ({
-    ...column,
-    cell: <SkeletonSquare style={{ width: '80%' }} />,
-  }));
+  const isLoadingColumns = useMemo(
+    () =>
+      columns.map((column) => ({
+        ...column,
+        cell: <SkeletonSquare style={{ width: '80%' }} />,
+      })),
+    [columns],
+  );
   let { data, isLoading, refetch } = useQuery<any>(
     ['getUserBuckets'],
     async () => {
       try {
         // TODO add auth check and error handling
         const domain = getDomain();
-        const { seedString } = await getSpOffChainData({address, spAddress: sp?.operatorAddress});
+        const { seedString } = await getSpOffChainData({ address, spAddress: sp?.operatorAddress });
         const client = await getClient();
         const res: any = await client.bucket.getUserBuckets({
           address,
@@ -120,7 +124,6 @@ export const TableList = () => {
             originalData: item,
           }))
           .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
-
         return data;
       } catch (e) {
         toast.error({
@@ -131,6 +134,7 @@ export const TableList = () => {
     },
     { enabled: !isEmpty(sp) },
   );
+
   const hasContinuedBucket = useMemo(() => {
     return data?.some((item: any) => item.originalData.bucket_info.bucket_status === 1);
   }, [data]);
@@ -144,7 +148,11 @@ export const TableList = () => {
     return height - 65 - 48 - 24 - 48;
   }, [hasContinuedBucket, height]);
 
-  const skeletonData = makeData(Math.floor(tableFullHeight / 56) - 1);
+  const tableNotFullHeight = useMemo(() => (data?.length * 56 + 45), [data?.length]);
+
+  const skeletonData = useMemo(() => {
+    return makeData(Math.floor(tableFullHeight / 56) - 1);
+  }, [tableFullHeight]);
 
   const totalDBRowCount = 0;
   const table = useReactTable({
@@ -172,9 +180,6 @@ export const TableList = () => {
     return <Empty refetch={() => refetch()} />;
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const tableNotFullHeight = data?.length * 56 + 45;
-
   return (
     <Box width={containerWidth} minW="">
       <Flex justifyContent={'flex-end'}>
@@ -198,7 +203,7 @@ export const TableList = () => {
         paddingX="16px"
         border="none"
         backgroundColor={'#fff'}
-        ref={tableContainerRef}
+        // ref={tableContainerRef}
       >
         <Box
           as="table"
@@ -298,10 +303,12 @@ export const TableList = () => {
           isOpen={isOpen}
           onClose={onClose}
           bucketName={rowData.bucket_name}
-          // Request for deletion on the sp where the bucket is located
-          sp={{ address: rowData.originalData.bucket_info.primary_sp_address, endpoint: rowData.spEndpoint }}
+          sp={{
+            address: rowData.originalData.bucket_info.primary_sp_address,
+            endpoint: rowData.spEndpoint,
+          }}
         />
       )}
     </Box>
   );
-};
+});
