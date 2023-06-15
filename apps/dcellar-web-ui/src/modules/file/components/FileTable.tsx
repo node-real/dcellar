@@ -20,21 +20,13 @@ import {
   MenuList,
   SkeletonSquare,
   Text,
-  Image,
-  Tooltip,
   toast,
+  Tooltip,
   useDisclosure,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
 import { useNetwork } from 'wagmi';
-import {
-  CancelCreateObjectTx,
-  DelObjectTx,
-  getAccount,
-  ZERO_PUBKEY,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -43,9 +35,7 @@ import { useLogin } from '@/hooks/useLogin';
 import { getLockFee } from '@/utils/wallet';
 import {
   BUTTON_GOT_IT,
-  FILE_DOWNLOAD_URL,
   FILE_EMPTY_URL,
-  FILE_STATUS_DOWNLOADING,
   FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_DOWNLOADING,
   GET_GAS_FEE_DEFAULT_ERROR,
@@ -59,8 +49,6 @@ import {
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
 import { ConfirmViewModal } from '@/modules/file/components/ConfirmViewModal';
@@ -69,26 +57,32 @@ import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal
 import {
   contentTypeToExtension,
   directlyDownload,
-  formatBytes,
   downloadWithProgress,
+  formatBytes,
   getQuota,
-  viewFileByAxiosResponse,
   saveFileByAxiosResponse,
+  viewFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { formatTime, getMillisecond } from '@/modules/buckets/utils/formatTime';
+import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
+import { getClient } from '@/base/client';
+import { useRouter } from 'next/router';
+import { IRawSPInfo } from '@/modules/buckets/type';
+import { encodeObjectName } from '@/utils/string';
+import { ChainVisibilityEnum } from '../type';
+import { convertObjectInfo } from '../utils/convertObjectInfo';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
-const PUBLIC_FILE_ICON_PATH = '/images/icons/public_file.svg';
 const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
   const { children, onClick, gaClickName, ...rest } = props;
 
@@ -113,9 +107,8 @@ const GreenfieldMenuItem = (props: GreenfieldMenuItemProps) => {
 interface fileListProps {
   listObjects: any;
   bucketName: string;
-  endpoint: string;
-  spAddress: string;
-  primarySpSealAddress: string;
+  folderName: string;
+  primarySp: IRawSPInfo;
   isLoading: boolean;
   bucketIsDiscontinued: boolean;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -217,10 +210,9 @@ export const FileTable = (props: fileListProps) => {
   const {
     listObjects,
     bucketName,
-    endpoint,
-    spAddress,
+    folderName,
+    primarySp,
     bucketIsDiscontinued,
-    primarySpSealAddress,
     isLoading = false,
     setListObjects,
     setStatusModalIcon,
@@ -238,9 +230,10 @@ export const FileTable = (props: fileListProps) => {
   const flatData = useMemo(() => {
     return listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
       .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
   }, [listObjects]);
+
   const [fileInfo, setFileInfo] = useState<any>();
   const [createdDate, setCreatedDate] = useState(0);
   const [hash, setHash] = useState('');
@@ -248,15 +241,14 @@ export const FileTable = (props: fileListProps) => {
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
-  const [gasLimit, setGasLimit] = useState(0);
-  const [gasPrice, setGasPrice] = useState('0');
   const [shareLink, setShareLink] = useState('');
   const [viewLink, setViewLink] = useState('');
   const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [currentVisibility, setCurrentVisibility] = useState(0);
+  const [currentVisibility, setCurrentVisibility] = useState(ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED);
   const { width, height } = useWindowSize();
+  const router = useRouter();
   const containerWidth = useMemo(() => {
     const newWidth = width > 1000 ? width : 1000;
     return newWidth - 269 - 24 - 24;
@@ -325,7 +317,7 @@ export const FileTable = (props: fileListProps) => {
   ]);
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
-      const lockFeeInBNB = await getLockFee(size, spAddress);
+      const lockFeeInBNB = await getLockFee(size, primarySp.operatorAddress);
       setLockFee(lockFeeInBNB.toString());
       setLockFeeLoading(false);
     } catch (error) {
@@ -345,26 +337,17 @@ export const FileTable = (props: fileListProps) => {
 
   const getCancelGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const cancelCteObjTx = new CancelCreateObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const simulateBytes = cancelCteObjTx.getSimulateBytes({
+      const client = await getClient();
+      const cancelCteObjTx = await client.object.cancelCreateObject({
         bucketName,
         objectName,
-        from: address,
+        operator: address,
       });
-      const authInfoBytes = cancelCteObjTx.getAuthInfoBytes({
-        sequence: sequence.toString(),
+      const simulateGas = await cancelCteObjTx.simulate({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
       });
-
-      const simulateGas = await cancelCteObjTx.simulateTx(simulateBytes, authInfoBytes);
       setGasFeeLoading(false);
-      setGasFee(getGasFeeBySimulate(simulateGas));
-      setGasLimit(simulateGas.gasInfo?.gasUsed.toNumber() || 0);
-      setGasPrice(simulateGas.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0');
+      setGasFee(simulateGas.gasFee);
     } catch (error: any) {
       if (
         error.message.includes('lack of') ||
@@ -392,25 +375,17 @@ export const FileTable = (props: fileListProps) => {
 
   const getDeleteGasFeeAndSet = async (objectName: string, onModalClose: () => void) => {
     try {
-      const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-      const simulateBytes = delObjTx.getSimulateBytes({
+      const client = await getClient();
+      const delObjTx = await client.object.deleteObject({
         bucketName,
         objectName,
-        from: address,
+        operator: address,
       });
-      const authInfoBytes = delObjTx.getAuthInfoBytes({
-        sequence: sequence.toString(),
+      const simulateGas = await delObjTx.simulate({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
       });
-      const simulateGas = await delObjTx.simulateTx(simulateBytes, authInfoBytes);
       setGasFeeLoading(false);
-      setGasFee(getGasFeeBySimulate(simulateGas));
-      setGasLimit(simulateGas.gasInfo?.gasUsed.toNumber() || 0);
-      setGasPrice(simulateGas.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0');
+      setGasFee(simulateGas.gasFee);
     } catch (error: any) {
       if (
         error.message.includes('lack of') ||
@@ -478,8 +453,18 @@ export const FileTable = (props: fileListProps) => {
           const isNormal = isSealed(rowData);
           const { visibility, object_status } = rowData;
           const canView = object_status === OBJECT_SEALED_STATUS;
-          const showFileIcon = visibility === 1;
+          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const iconColor = isNormal ? 'inherit' : 'readable.disabled';
+          const isFolder = info.getValue().endsWith('/');
+          const name = isFolder ? info.getValue().replace(/\/$/, '') : info.getValue() || '';
+          const path = name.split('/');
+          const nameWithoutFolderPrefix =
+            isFolder && path.includes('/') ? path[path.length - 2] : path[path.length - 1];
+          const icon = isFolder ? (
+            <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
+          ) : (
+            <FileIcon size="md" color={iconColor} />
+          );
           return (
             <Flex
               className="object-name"
@@ -489,11 +474,9 @@ export const FileTable = (props: fileListProps) => {
               position={'relative'}
               overflow={'hidden'}
             >
-              <Flex mr={4}>
-                <FileIcon size="md" color={iconColor} />
-              </Flex>
+              <Flex mr={4}>{icon}</Flex>
               <TableText info={rowData} fontWeight={500}>
-                {info.getValue()}
+                {nameWithoutFolderPrefix}
               </TableText>
               {renderVisibilityIcon(showFileIcon, canView)}
             </Flex>
@@ -522,7 +505,15 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const { payload_size, object_status, progress } = rowData;
+          const { payload_size, object_status, progress, object_name } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder) {
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
+          }
           if (object_status === OBJECT_STATUS_FAILED || object_status === OBJECT_CREATE_STATUS) {
             return (
               <Flex
@@ -558,7 +549,14 @@ export const FileTable = (props: fileListProps) => {
           const {
             row: { original: rowData },
           } = info;
-          const create_at = info.getValue();
+          const { object_name, create_at } = rowData;
+          const isFolder = object_name.endsWith('/');
+          if (isFolder)
+            return (
+              <TableText info={rowData} color={'readable.normal'}>
+                --
+              </TableText>
+            );
           return (
             <TableText info={rowData} color={'readable.normal'}>
               {formatTime(getMillisecond(create_at as number)) as ReactNode}
@@ -590,22 +588,22 @@ export const FileTable = (props: fileListProps) => {
           const isUploadFailed = objectStatus === OBJECT_STATUS_FAILED;
           const downloadText = 'Download';
           const deleteText = isSealed ? 'Delete' : 'Cancel';
-          const showFileIcon = visibility === 1;
+          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
+          const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
             try {
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
-              if (url && visibility === 1) {
+              if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(url);
               } else {
-                const { spAddresses, expirationTimestamp } = await getOffChainData(
-                  loginState.address,
-                );
-                if (
-                  !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
-                ) {
+                const spOffChainData = await getSpOffChainData({
+                  address: loginState.address,
+                  spAddress: primarySp.operatorAddress,
+                });
+                if (!checkSpOffChainDataAvailable(spOffChainData)) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -617,13 +615,13 @@ export const FileTable = (props: fileListProps) => {
                 // setStatusModalButtonText('');
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
-                const result = await downloadWithProgress(
+                const result = await downloadWithProgress({
                   bucketName,
                   objectName,
-                  endpoint,
-                  Number(payloadSize),
-                  loginState.address,
-                );
+                  primarySp,
+                  payloadSize: Number(payloadSize),
+                  address: loginState.address,
+                });
                 saveFileByAxiosResponse(result, objectName);
                 // onStatusModalClose();
               }
@@ -645,7 +643,7 @@ export const FileTable = (props: fileListProps) => {
           const downloadWithConfirm = async (url: string) => {
             if (allowDirectDownload) {
               try {
-                const quotaData = await getQuota(bucketName, endpoint);
+                const quotaData = await getQuota(bucketName, primarySp.endpoint);
                 if (quotaData) {
                   const { freeQuota, readQuota, consumedQuota } = quotaData;
                   const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
@@ -674,7 +672,7 @@ export const FileTable = (props: fileListProps) => {
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
-              const quotaData = await getQuota(bucketName, endpoint);
+              const quotaData = await getQuota(bucketName, primarySp.endpoint);
               if (quotaData) {
                 const { freeQuota, readQuota, consumedQuota } = quotaData;
                 setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -686,8 +684,10 @@ export const FileTable = (props: fileListProps) => {
             setShareLink(directDownloadLink);
             onShareModalOpen();
           };
-
-          const directDownloadLink = encodeURI(`${endpoint}/download/${bucketName}/${objectName}`);
+          const directDownloadLink = encodeURI(
+            `${primarySp.endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
+          );
+          if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
               {isSealed && isCurrentUser && showFileIcon && (
@@ -745,7 +745,7 @@ export const FileTable = (props: fileListProps) => {
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
                             onInfoModalOpen();
-                            const quotaData = await getQuota(bucketName, endpoint);
+                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
                             if (quotaData) {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               setRemainingQuota(readQuota + freeQuota - consumedQuota);
@@ -859,13 +859,13 @@ export const FileTable = (props: fileListProps) => {
       },
     ];
   }, [
-    spAddress,
     chain,
     address,
-    endpoint,
+    primarySp,
     bucketName,
     allowDirectDownload,
     setCloseAllAndShowAuthModal,
+    folderName,
   ]);
   const loadingColumns = columns.map((column) => ({
     ...column,
@@ -881,7 +881,6 @@ export const FileTable = (props: fileListProps) => {
     getSortedRowModel: getSortedRowModel(),
     debugTable: false,
   });
-
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtual({
     parentRef: tableContainerRef,
@@ -967,7 +966,9 @@ export const FileTable = (props: fileListProps) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
                 const { object_status, visibility, object_name, payload_size } = row.original;
+                const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
+                const isFolder = object_name?.endsWith('/') ?? false;
 
                 return (
                   <GAClick key={row.id} name="dc.file.list.file_item.click">
@@ -992,8 +993,13 @@ export const FileTable = (props: fileListProps) => {
                       borderBottom="1px solid #E6E8EA"
                       onClick={async () => {
                         if (!canView) return;
+                        if (isFolder) {
+                          // toast.info({ description: 'Click here to view folder files.' });
+                          router.push(`/buckets/${bucketName}/${encodedObjectName}`);
+                          return;
+                        }
                         const previewLink = encodeURI(
-                          `${endpoint}/view/${bucketName}/${object_name}`,
+                          `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size });
@@ -1001,38 +1007,50 @@ export const FileTable = (props: fileListProps) => {
                           setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
-                          const quotaData = await getQuota(bucketName, endpoint);
+                          const quotaData = await getQuota(bucketName, primarySp.endpoint);
                           if (quotaData) {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
                           }
                           return;
                         }
-                        if (visibility === 1) {
+                        if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                           window.open(previewLink, '_blank');
                         } else {
                           // preview file
                           try {
-                            const { spAddresses, expirationTimestamp } = await getOffChainData(
-                              loginState.address,
-                            );
-                            if (
-                              !checkSpOffChainDataAvailable({
-                                spAddresses,
-                                expirationTimestamp,
-                                spAddress,
-                              })
-                            ) {
+                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
+                            if (quotaData) {
+                              const { freeQuota, readQuota, consumedQuota } = quotaData;
+                              const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
+                              const isAbleDownload = !(
+                                currentRemainingQuota && currentRemainingQuota - Number(payload_size) < 0
+                              );
+                              if (!isAbleDownload) {
+                                setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
+                                setStatusModalTitle(NOT_ENOUGH_QUOTA);
+                                setStatusModalErrorText('');
+                                setStatusModalDescription(NOT_ENOUGH_QUOTA_ERROR);
+                                setStatusModalButtonText(BUTTON_GOT_IT);
+                                onStatusModalOpen();
+                                return;
+                              }
+                            }
+                            const spOffChainData = await getSpOffChainData({
+                              address: loginState.address,
+                              spAddress: primarySp.operatorAddress,
+                            });
+                            if (!checkSpOffChainDataAvailable(spOffChainData)) {
                               setOpenAuthModal();
                               return;
                             }
-                            const result = await downloadWithProgress(
+                            const result = await downloadWithProgress({
                               bucketName,
-                              object_name,
-                              endpoint,
-                              Number(payload_size),
-                              loginState.address,
-                            );
+                              objectName: object_name,
+                              primarySp,
+                              payloadSize: Number(payload_size),
+                              address: loginState.address,
+                            });
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {
                             if (error?.response?.status === 500) {
@@ -1068,14 +1086,12 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isInfoModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
+        folderName={folderName}
         hash={hash}
         shareLink={shareLink}
         createdDate={createdDate}
-        primarySpUrl={endpoint}
+        primarySp={primarySp}
         visibility={currentVisibility}
-        spAddress={spAddress}
-        primarySpAddress={spAddress}
-        primarySpSealAddress={primarySpSealAddress}
         onShareModalOpen={onShareModalOpen}
         remainingQuota={remainingQuota}
         setStatusModalIcon={setStatusModalIcon}
@@ -1092,8 +1108,9 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmDownloadModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
-        spAddress={spAddress}
+        // endpoint={endpoint}
+        // spAddress={spAddress}
+        primarySp={primarySp}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
@@ -1110,8 +1127,9 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmViewModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
-        spAddress={spAddress}
+        // endpoint={endpoint}
+        // spAddress={spAddress}
+        primarySp={primarySp}
         viewLink={viewLink}
         visibility={currentVisibility}
         setStatusModalIcon={setStatusModalIcon}
@@ -1128,10 +1146,7 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmDeleteModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
         simulateGasFee={gasFee}
-        gasLimit={gasLimit}
-        gasPrice={gasPrice}
         listObjects={listObjects}
         setListObjects={setListObjects}
         outsideLoading={gasFeeLoading || lockFeeLoading}
@@ -1149,11 +1164,8 @@ export const FileTable = (props: fileListProps) => {
         isOpen={isConfirmCancelModalOpen}
         bucketName={bucketName}
         fileInfo={fileInfo}
-        endpoint={endpoint}
         simulateGasFee={gasFee}
-        gasLimit={gasLimit}
         lockFee={lockFee}
-        gasPrice={gasPrice}
         outsideLoading={gasFeeLoading}
         listObjects={listObjects}
         setListObjects={setListObjects}

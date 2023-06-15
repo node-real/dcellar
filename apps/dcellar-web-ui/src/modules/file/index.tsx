@@ -1,22 +1,11 @@
 import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import {
-  decodeObjectFromHexString,
-  getCreateObjectApproval,
-  listObjectsByBucketName,
-  validateObjectName,
-  VisibilityType,
-} from '@bnb-chain/greenfield-storage-js-sdk';
-import { CreateObjectTx, getAccount, ZERO_PUBKEY, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
-import { useNetwork } from 'wagmi';
-import moment from 'moment';
 import * as Comlink from 'comlink';
 
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
-import { getGasFeeBySimulate } from '@/modules/wallet/utils/simulate';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+
 import {
   BUTTON_GOT_IT,
   FILE_FAILED_URL,
@@ -30,7 +19,7 @@ import {
   GET_LOCK_FEE_ERROR,
   UPLOAD_IMAGE_URL,
 } from '@/modules/file/constant';
-import { getBucketInfo, getSpInfo, getStorageProviders } from '@/utils/sp';
+import { getBucketInfo, getSpInfo } from '@/utils/sp';
 import { DuplicateNameModal } from '@/modules/file/components/DuplicateNameModal';
 import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
@@ -38,17 +27,32 @@ import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getOffChainData } from '../off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { FileListEmpty } from './components/FileListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
+import { getClient } from '@/base/client';
+import { useSPs } from '@/hooks/useSPs';
+import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { isEmpty } from 'lodash-es';
+import { validateObjectName } from './utils/validateObjectName';
+import { genCreateObjectTx } from './utils/genCreateObjectTx';
+import { ChainVisibilityEnum, TCreateObjectData } from './type';
+import dayjs from 'dayjs';
+import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
+import { IRawSPInfo } from '../buckets/type';
+import { convertObjectInfo } from './utils/convertObjectInfo';
+import { sha256 } from 'hash-wasm';
+
 interface pageProps {
   bucketName: string;
+  folderName: string;
   bucketInfo: any;
 }
 
+const MAX_FOLDER_LEVEL = 10;
 const FILE_NAME_RULES_DOC = `https://docs.nodereal.io/docs/faq-1#question-what-is-the-naming-rules-for-files`;
 
 // max file upload size is 256MB, which is 1024*1024*256=MAX_SIZE byte
@@ -108,12 +112,10 @@ const renderUploadButton = (
   );
 };
 
-export const File = ({ bucketName, bucketInfo }: pageProps) => {
+export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
-  const { chain } = useNetwork();
-  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const { loginState } = loginData;
   const { address } = loginState;
   const [freeze, setFreeze] = useState(false);
@@ -121,16 +123,15 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
-  const [gasLimit, setGasLimit] = useState(0);
-  const [gasPrice, setGasPrice] = useState('0');
   const [statusModalButtonText, setStatusModalButtonText] = useState(BUTTON_GOT_IT);
-  const [objectSignedMsg, setObjectSignedMsg] = useState<any>();
+  const [createObjectData, setCreateObjectData] = useState<TCreateObjectData>(
+    {} as TCreateObjectData,
+  );
   const [listObjects, setListObjects] = useState<Array<any>>([]);
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
-  const [endpoint, setEndpoint] = useState('');
-  const [sp, setSp] = useState<any>();
+  const [primarySp, setPrimarySp] = useState<IRawSPInfo>({} as IRawSPInfo);
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -139,35 +140,45 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
   const comlinkWorkerRef = useRef<Worker>();
   const comlinkWorkerApiRef = useRef<Comlink.Remote<WorkerApi>>();
   const router = useRouter();
+  const { sps } = useSPs();
   const { setOpenAuthModal } = useOffChainAuth();
   const isDiscontinued = bucketInfo.bucketStatus === 1;
 
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
-      const { seedString } = await getOffChainData(address);
-      // TODO add auth error handling add off chain auth check
-      const listResult = await listObjectsByBucketName({
-        userAddress: address,
+      const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
+      const query = new URLSearchParams();
+      query.append('delimiter', '/');
+      query.append('max-keys', '1000');
+      if (folderName) {
+        query.append('prefix', folderName);
+      }
+      const client = await getClient();
+      const listResult = await client.object.listObjects({
+        address,
         bucketName,
         endpoint: currentEndpoint,
         domain,
         seedString,
+        query,
       });
-      if (listResult) {
-        const tempListObjects = listResult.body ?? [];
-        setListObjects(listResult.body ?? []);
-        const realListObjects = tempListObjects
-          .filter((v: any) => !v.removed)
-          .map((v: any) => v.object_info);
-        if (realListObjects.length === 0) {
-          setIsEmptyData(true);
-        } else {
-          setIsEmptyData(false);
-        }
-      } else {
-        setIsEmptyData(true);
-      }
+      const { objects = [], common_prefixes = [] } = listResult.body ?? ({} as any);
+      const files = objects
+        .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+        .map((v: any) => v.object_info)
+        .sort(function (a: any, b: any) {
+          return Number(b.create_at) - Number(a.create_at);
+        });
+      const folders = common_prefixes
+        .sort((a: string, b: string) => a.localeCompare(b))
+        .map((folder: string) => ({
+          object_name: folder,
+          object_status: 1,
+        }));
+      const items = folders.concat(files);
+      setListObjects(items);
+      setIsEmptyData(!items.length);
       setListLoading(false);
       setIsInitReady(true);
     } catch (error) {
@@ -183,9 +194,9 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
   };
   const getGatewayParams = async () => {
     try {
+      if (isEmpty(sps)) return;
       setIsInitReady(false);
       const bucketInfo = await getBucketInfo(bucketName);
-      const { sps } = await getStorageProviders();
       setIsCurrentUser(bucketInfo?.owner === address);
 
       const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
@@ -208,8 +219,7 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         return;
       }
       const currentEndpoint = sps[spIndex]?.endpoint;
-      setEndpoint(currentEndpoint);
-      setSp(sps[spIndex]);
+      setPrimarySp(sps[spIndex]);
       const currentSecondaryAddresses = sps
         .filter((v: any, i: number) => i !== spIndex)
         .map((item: any) => item.operatorAddress);
@@ -222,6 +232,8 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
   };
 
   const createCheckSumWebWorker = () => {
+    if (comlinkWorkerRef.current) return;
+
     comlinkWorkerRef.current = new Worker(
       new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url),
       { type: 'module' },
@@ -235,15 +247,16 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
 
   // only get list when init
   useEffect(() => {
-    if (bucketName) {
+    if (bucketName && !isEmpty(sps)) {
       getGatewayParams();
     }
-  }, []);
+  }, [sps, folderName]);
+
   useEffect(() => {
     if (!isInitReady) return;
     const realListObjects = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info);
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)));
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
     } else {
@@ -257,66 +270,83 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     };
   }, []);
   // monitor route change to get new list info
-  useEffect(() => {
-    function handleRouteChange() {
-      router.events.on('routeChangeComplete', () => {
-        if (bucketName) {
-          getGatewayParams();
-        }
-      });
-    }
-    handleRouteChange();
-    return () => {
-      router.events.off('routeChangeComplete', () => {});
-    };
-  }, [router.events]);
+  // useEffect(() => {
+  //   function handleRouteChange() {
+  //     router.events.on('routeChangeComplete', () => {
+  //       if (bucketName) {
+  //         getGatewayParams();
+  //       }
+  //     });
+  //   }
+  //   handleRouteChange();
+  //   return () => {
+  //     router.events.off('routeChangeComplete', () => {});
+  //   };
+  // }, [router.events]);
 
-  const generateWorker = () => {
-    greenfieldRef.current = new Worker(new URL('./greenfield.ts', import.meta.url));
-  };
-
-  const runCalcHashTask = (bytes: Uint8Array) => {
-    return new Promise((resolve, reject) => {
-      greenfieldRef.current?.terminate();
-      generateWorker();
-      setTimeout(() => {
-        greenfieldRef.current?.postMessage(bytes);
-      }, 100);
-      // @ts-ignore
-      greenfieldRef.current.onmessage = (event) => {
-        if (event.data) {
-          resolve(event.data);
-          greenfieldRef.current?.terminate();
-        }
-      };
-      // @ts-ignore
-      greenfieldRef.current.onerror = (error) => {
-        reject(error);
-        greenfieldRef.current?.terminate();
-      };
-    });
+  const renderCreteFolderButton = (
+    isCurrentUser: boolean,
+    isDiscontinued: boolean,
+    gaClickName?: string,
+  ) => {
+    if (!isCurrentUser) return <></>;
+    const maxFolderDepth = folderName && folderName.split('/').length - 1 >= MAX_FOLDER_LEVEL;
+    const disabled = maxFolderDepth || isDiscontinued;
+    return (
+      <Tooltip
+        content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
+        placement={'bottom-start'}
+        visibility={maxFolderDepth ? 'visible' : 'hidden'}
+      >
+        <GAClick name={gaClickName}>
+          <Flex
+            bgColor={disabled ? 'readable.tertiary' : 'readable.normal'}
+            _hover={{ bg: 'readable.tertiary' }}
+            position="relative"
+            paddingX="16px"
+            paddingY="8px"
+            alignItems="center"
+            borderRadius={'8px'}
+            cursor={disabled ? 'default' : 'pointer'}
+            onClick={() => {
+              if (disabled) return;
+              if (!primarySp.endpoint) {
+                toast.error({
+                  description: 'SP Endpoint is not ready',
+                });
+              } else {
+                onCreateFolderModalOpen();
+              }
+            }}
+          >
+            <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+              Create Folder
+            </Text>
+          </Flex>
+        </GAClick>
+      </Tooltip>
+    );
   };
 
   const fetchCreateObjectApproval = async (
     uploadFile: File,
     newFileName?: string,
-    visibility = VisibilityType.VISIBILITY_TYPE_PRIVATE,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
   ) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     let hashResult;
     setFreeze(true);
-    const terminate = createCheckSumWebWorker();
-    hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-    terminate();
-    setFreeze(false);
-    const { seedString, spAddresses, expirationTimestamp } = await getOffChainData(address);
-    if (
-      !checkSpOffChainDataAvailable({
-        expirationTimestamp,
-        spAddresses,
-        spAddress: primarySpAddress,
-      })
-    ) {
+    createCheckSumWebWorker();
+    const start = performance.now();
+    hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
+      console.info('HASH: ', performance.now() - start);
+      setFreeze(false);
+    });
+    const spOffChainData = await getSpOffChainData({
+      address,
+      spAddress: primarySpAddress,
+    });
+    if (!checkSpOffChainDataAvailable(spOffChainData)) {
       onStatusModalClose();
       onDetailModalClose();
       setOpenAuthModal();
@@ -324,27 +354,38 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     }
     const domain = getDomain();
     try {
-      const result = await getCreateObjectApproval({
+      const spInfo = {
+        endpoint: primarySp.endpoint,
+        primarySpAddress: primarySp.operatorAddress,
+        sealAddress: primarySp.sealAddress,
+        secondarySpAddresses,
+      } as ISpInfo;
+      if (!hashResult?.expectCheckSums?.length) {
+        throw new Error('Error occurred when calculating file hash.');
+      }
+      const { contentLength, expectCheckSums } = hashResult;
+      const configParam: TCreateObject = {
         bucketName,
         objectName,
         creator: address,
-        file: uploadFile,
-        endpoint,
-        expectSecondarySpAddresses: secondarySpAddresses,
-        hashResult,
         visibility,
+        fileType: uploadFile.type || 'application/octet-stream',
+        contentLength,
+        expectCheckSums,
+        spInfo,
+        signType: 'offChainAuth',
         domain,
-        seedString,
-      });
-      if (result.statusCode === 500) {
-        throw result;
-      }
-      if (result.statusCode !== 200) {
-        throw new Error(`Error code: ${result.statusCode}, message: ${result.message}`);
-      }
-      let currentObjectSignedMessage = decodeObjectFromHexString(result.body);
-      setObjectSignedMsg(currentObjectSignedMessage);
-      return currentObjectSignedMessage;
+        seedString: spOffChainData.seedString,
+      };
+      const CreateObjectTx = await genCreateObjectTx(configParam);
+
+      const createObjectData = {
+        configParam,
+        CreateObjectTx,
+      };
+      setCreateObjectData(createObjectData);
+
+      return CreateObjectTx;
     } catch (error: any) {
       if (error.statusCode === 500) {
         onStatusModalClose();
@@ -365,6 +406,7 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
       return Promise.reject();
     }
   };
+
   const getLockFeeAndSet = async (size = 0) => {
     try {
       setLockFeeLoading(true);
@@ -386,34 +428,13 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     }
   };
 
-  const getGasFeeAndSet = async (uploadFile: File, currentObjectSignedMessage: any) => {
+  const getGasFeeAndSet = async (uploadFile: File, createObjectTx: any) => {
     try {
       setGasFeeLoading(true);
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-      const simulateBytes = createObjectTx.getSimulateBytes({
-        objectName: currentObjectSignedMessage.object_name,
-        contentType: currentObjectSignedMessage.content_type,
-        from: currentObjectSignedMessage.creator,
-        bucketName: currentObjectSignedMessage.bucket_name,
-        expiredHeight: currentObjectSignedMessage.primary_sp_approval.expired_height,
-        sig: currentObjectSignedMessage.primary_sp_approval.sig,
-        visibility: currentObjectSignedMessage.visibility,
-        payloadSize: currentObjectSignedMessage.payload_size,
-        expectChecksums: currentObjectSignedMessage.expect_checksums,
-        redundancyType: currentObjectSignedMessage.redundancy_type,
-        expectSecondarySpAddresses: currentObjectSignedMessage.expect_secondary_sp_addresses,
-      });
-      const authInfoBytes = createObjectTx.getAuthInfoBytes({
-        sequence: sequence.toString(),
+      const simulateInfo = await createObjectTx.simulate({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
       });
-      const simulateGas = await createObjectTx.simulateTx(simulateBytes, authInfoBytes);
-      setGasFee(getGasFeeBySimulate(simulateGas));
-      setGasLimit(simulateGas.gasInfo?.gasUsed.toNumber() || 0);
-      setGasPrice(simulateGas.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0');
+      setGasFee(simulateInfo.gasFee);
       setGasFeeLoading(false);
     } catch (error: any) {
       onDetailModalClose();
@@ -491,7 +512,8 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         return;
       }
       setFile(uploadFile);
-      setFileName(uploadFile.name);
+      const fileName = `${folderName}${uploadFile.name}`;
+      setFileName(fileName);
       setLockFee('-1');
       setGasFeeLoading(true);
       setLockFeeLoading(true);
@@ -502,8 +524,8 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         return;
       }
       onDetailModalOpen();
-      const currentObjectSignedMessage = await fetchCreateObjectApproval(uploadFile);
-      await getGasFeeAndSet(uploadFile, currentObjectSignedMessage);
+      const createObjectTx = await fetchCreateObjectApproval(uploadFile, fileName);
+      await getGasFeeAndSet(uploadFile, createObjectTx);
       await getLockFeeAndSet(uploadFile.size);
     }
   };
@@ -530,26 +552,55 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
     onOpen: onDetailModalOpen,
     onClose: onDetailModalClose,
   } = useDisclosure();
+  const {
+    isOpen: isCreateFolderModalOpen,
+    onOpen: onCreateFolderModalOpen,
+    onClose: onCreateFolderModalClose,
+  } = useDisclosure();
   if (!bucketName) return <></>;
+  const showUploadButtonOnHeader = !isEmptyData && !listLoading;
 
-
+  const renderTitle = () => {
+    if (folderName) {
+      const folderNameArray = folderName.split('/');
+      return folderNameArray[folderNameArray.length - 2];
+    }
+    return bucketName;
+  };
+  const title = renderTitle();
   return (
     <Flex p={'24px'} flexDirection="column" flex="1" height={'100%'}>
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
-        <Text
-          as={'h1'}
-          fontWeight="700"
-          fontSize={'24px'}
-          lineHeight="36px"
-          maxWidth="400px"
-          whiteSpace="nowrap"
-          overflow="hidden"
-          textOverflow="ellipsis"
+        <Tooltip
+          content={title}
+          placement={'bottom-end'}
+          visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
-          {bucketName}
-        </Text>
-        {!isEmptyData &&
-          renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
+          <Text
+            wordBreak="break-all"
+            as={'h1'}
+            flex={1}
+            fontWeight="700"
+            fontSize={'24px'}
+            lineHeight="36px"
+            maxWidth="700px"
+            overflow="hidden"
+            noOfLines={1}
+            textOverflow="ellipsis"
+          >
+            {title}
+          </Text>
+        </Tooltip>
+        <Flex gap={12}>
+          {showUploadButtonOnHeader &&
+            renderCreteFolderButton(
+              isCurrentUser,
+              isDiscontinued,
+              'dc.file.list.create_folder.click',
+            )}
+          {showUploadButtonOnHeader &&
+            renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.list.upload.click')}
+        </Flex>
         <input
           type="file"
           id="file-upload"
@@ -579,18 +630,25 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
           justifyContent={'center'}
           marginBottom={'104px'}
         >
-          <FileListEmpty bucketStatus={bucketInfo.bucketStatus} />
+          <FileListEmpty bucketStatus={bucketInfo.bucketStatus} folderName={folderName} />
           <GAShow name="dc.file.empty.upload.show" />
-          {bucketInfo.bucketStatus === 0 &&
-            renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
+          {bucketInfo.bucketStatus === 0 && (
+            <Flex gap={12}>
+              {renderCreteFolderButton(
+                isCurrentUser,
+                isDiscontinued,
+                'dc.file.empty.create_folder.click',
+              )}
+              {renderUploadButton(isCurrentUser, isDiscontinued, 'dc.file.empty.upload.click')}
+            </Flex>
+          )}
         </Flex>
       ) : (
         <FileTable
           bucketName={bucketName}
+          folderName={folderName}
           listObjects={listObjects}
-          endpoint={endpoint}
-          spAddress={primarySpAddress}
-          primarySpSealAddress={primarySpSealAddress}
+          primarySp={primarySp}
           bucketIsDiscontinued={isDiscontinued}
           isLoading={listLoading}
           setListObjects={setListObjects}
@@ -622,14 +680,13 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         freeze={freeze}
         file={file}
         fileName={fileName}
+        folderName={folderName}
         title={detailModalTitle}
         bucketName={bucketName}
         simulateGasFee={gasFee}
         lockFee={lockFee}
         outsideLoading={gasFeeLoading || lockFeeLoading}
-        objectSignedMsg={objectSignedMsg}
-        gasLimit={gasLimit}
-        gasPrice={gasPrice}
+        createObjectData={createObjectData}
         setStatusModalIcon={setStatusModalIcon}
         setStatusModalTitle={setStatusModalTitle}
         setStatusModalDescription={setStatusModalDescription}
@@ -637,12 +694,10 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         onStatusModalClose={onStatusModalClose}
         setListObjects={setListObjects}
         setStatusModalErrorText={setStatusModalErrorText}
-        endpoint={endpoint}
+        primarySp={primarySp}
         listObjects={listObjects}
         setStatusModalButtonText={setStatusModalButtonText}
         fetchCreateObjectApproval={fetchCreateObjectApproval}
-        getGasFeeAndSet={getGasFeeAndSet}
-        getLockFeeAndSet={getLockFeeAndSet}
       />
       <DuplicateNameModal
         isOpen={isDuplicateNameModalOpen}
@@ -653,7 +708,7 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
         description={duplicateNameModalDescription}
         buttonOnClick={async () => {
           if (!file) return;
-          const insertedString = `-${moment().format('YYYY-MM-DD HH:mm:ss')}`;
+          const insertedString = `-${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
           const fileWithExtensionNameRegex = /^[^.\n]+\.[a-zA-Z]+$/;
           const newFilename = fileWithExtensionNameRegex.test(fileName as string)
             ? (fileName as string).replace(/(\.[\w\d]+)$/, insertedString + '$1')
@@ -669,6 +724,26 @@ export const File = ({ bucketName, bucketInfo }: pageProps) => {
           await getLockFeeAndSet(file.size);
         }}
       />
+      {primarySp.endpoint && (
+        <CreateFolderModal
+          endpoint={primarySp.endpoint}
+          onClose={onCreateFolderModalClose}
+          isOpen={isCreateFolderModalOpen}
+          bucketName={bucketName}
+          folderName={folderName}
+          setStatusModalIcon={setStatusModalIcon}
+          setStatusModalTitle={setStatusModalTitle}
+          setStatusModalDescription={setStatusModalDescription}
+          onStatusModalOpen={onStatusModalOpen}
+          onStatusModalClose={onStatusModalClose}
+          setStatusModalButtonText={setStatusModalButtonText}
+          setListObjects={setListObjects}
+          listObjects={listObjects}
+          setStatusModalErrorText={setStatusModalErrorText}
+          fetchCreateObjectApproval={fetchCreateObjectApproval}
+          createObjectData={createObjectData}
+        />
+      )}
     </Flex>
   );
 };

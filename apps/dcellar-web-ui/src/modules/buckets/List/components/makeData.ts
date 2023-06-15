@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker';
-import { ColumnSort, SortingState } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 
 export type Bucket = {
@@ -24,60 +22,18 @@ const range = (len: number) => {
 };
 
 const newPerson = (index: number): Bucket => {
+  const time = dayjs().valueOf() - index * 1000 * 60 * 60 * 1;
   return {
     id: index + 1,
-    name: faker.random.alpha(Math.ceil(Math.random() * 10 * 2)),
-    // TODO according to utc-0 to calculate and compare
-    created_time: dayjs(
-      faker.date.between('2020-01-01T00:00:00.000Z', '2023-01-01T00:00:00.000Z'),
-    ).format('MMM DD, YYYY'),
+    name: 'fakeName',
+    created_time: dayjs(time).format('MMM DD, YYYY'),
   };
 };
 
-export function makeData(...lens: number[]) {
-  const makeDataLevel = (depth = 0): Bucket[] => {
-    const len = lens[depth]!;
-    return range(len).map((d): Bucket => {
-      return {
-        ...newPerson(d),
-      };
-    });
-  };
-
-  return makeDataLevel();
-}
-
-const data = makeData(20000);
-
-export const fetchData = async (start: number, size: number, sorting: SortingState) => {
-  const dbData = [...data];
-  if (sorting.length) {
-    const sort = sorting[0] as ColumnSort;
-    const { id, desc } = sort as { id: keyof Bucket; desc: boolean };
-    dbData.sort((a, b) => {
-      if (desc) {
-        return a[id] < b[id] ? 1 : -1;
-      }
-      return a[id] > b[id] ? 1 : -1;
-    });
-  }
-  await new Promise((rs) => {
-    setTimeout(() => {
-      rs(1);
-    }, 1000);
+export function makeData(len: number) {
+  return range(len).map((d): Bucket => {
+    return {
+      ...newPerson(d),
+    };
   });
-
-  // return {
-  //   data: dbData.slice(start, start + size),
-  //   meta: {
-  //     totalRowCount: dbData.length,
-  //   },
-  // };
-
-  return {
-    data: [],
-    meta: {
-      totalRowCount: 0,
-    },
-  };
-};
+}

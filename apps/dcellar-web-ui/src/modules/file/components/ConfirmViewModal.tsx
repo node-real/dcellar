@@ -15,7 +15,9 @@ import {
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -26,8 +28,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  endpoint?: string;
-  spAddress: string;
+  primarySp: IRawSPInfo;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -37,7 +38,7 @@ interface modalProps {
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
   viewLink?: string;
   remainingQuota: number | null;
-  visibility?: number;
+  visibility?: ChainVisibilityEnum;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -68,8 +69,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     bucketName,
     description = 'You are going to cost download quota. Download process cannot be interrupted.',
     fileInfo = { name: '', size: '' },
-    endpoint = '',
-    spAddress,
+    primarySp,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -79,7 +79,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     setStatusModalErrorText,
     viewLink,
     remainingQuota,
-    visibility = 0,
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -160,30 +160,29 @@ export const ConfirmViewModal = (props: modalProps) => {
                 });
               }
               setLoading(false);
-              if (visibility === 1) {
+              if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 window.open(viewLink, '_blank');
               } else {
                 // viewFile({ bucketName, objectName: object_name, endpoint });
                 // preview file
                 try {
-                  const { spAddresses, expirationTimestamp } = await getOffChainData(
-                    loginState.address,
-                  );
-                  if (
-                    !checkSpOffChainDataAvailable({ spAddresses, expirationTimestamp, spAddress })
-                  ) {
+                  const spOffChainData = await getSpOffChainData({
+                    address: loginState.address,
+                    spAddress: primarySp.operatorAddress,
+                  });
+                  if (!checkSpOffChainDataAvailable(spOffChainData)) {
                     onClose();
                     onStatusModalClose();
                     setOpenAuthModal();
                     return;
                   }
-                  const result = await downloadWithProgress(
+                  const result = await downloadWithProgress({
                     bucketName,
-                    name,
-                    endpoint,
-                    Number(size),
-                    loginState.address,
-                  );
+                    objectName: name,
+                    primarySp,
+                    payloadSize: Number(size),
+                    address: loginState.address,
+                  });
                   viewFileByAxiosResponse(result);
                 } catch (error: any) {
                   if (error?.response?.statusCode === 500) {

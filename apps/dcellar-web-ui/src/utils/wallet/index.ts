@@ -1,11 +1,6 @@
-import { makeRpcClient } from '@bnb-chain/gnfd-js-sdk';
-import { QueryClientImpl as spQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/query';
-import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { QueryClientImpl as paymentQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import Long from 'long';
 import BigNumber from 'bignumber.js';
-
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { getClient } from '@/base/client';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -48,25 +43,16 @@ const getNumInDigits = (
 
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
-    const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
-    const spRpc = new spQueryClientImpl(rpcClient);
-    const storageRpc = new storageQueryClientImpl(rpcClient);
-
-    const paymentRpc = new paymentQueryClientImpl(rpcClient);
-    const { spStoragePrice } = await spRpc.QueryGetSpStoragePriceByTime({
-      spAddr: primarySpAddress,
-      timestamp: Long.fromNumber(Date.now()),
-    });
-    const { secondarySpStorePrice } = await spRpc.QueryGetSecondarySpStorePriceByTime({
-      timestamp: Long.fromNumber(Date.now()),
-    });
-    const { params } = await storageRpc.Params();
+    const client = await getClient();
+    const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
+    const secondarySpStorePrice = await client.sp.getSecondarySpStorePrice();
+    const { params } = await client.storage.params();
     const {
       minChargeSize = new Long(0),
       redundantDataChunkNum = 0,
       redundantParityChunkNum = 0,
-    } = params?.versionedParams ?? {};
-    const { params: paymentParams = {} } = await paymentRpc.Params();
+    } = params && params.versionedParams || {};
+    const { params: paymentParams = {} } = await client.payment.params();
     const { reserveTime } = paymentParams as any;
     const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)

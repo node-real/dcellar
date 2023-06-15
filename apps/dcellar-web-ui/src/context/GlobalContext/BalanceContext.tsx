@@ -1,15 +1,13 @@
-import React, { createContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import BigNumber from 'bignumber.js';
-import { makeRpcClient } from '@bnb-chain/gnfd-js-sdk';
-import { QueryClientImpl as bankQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/cosmos/bank/v1beta1/query';
-import { QueryClientImpl as paymentQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
-import moment from 'moment/moment';
 import Long from 'long';
 import { toast } from '@totejs/uikit';
 import { useBalance, useNetwork } from 'wagmi';
 
-import { GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
+import { getClient } from '@/base/client';
+import { getUtcZeroTimestamp } from '@/utils/time';
 
 const MINIUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
@@ -68,30 +66,25 @@ function ChainBalanceContextProvider(props: any) {
     }
   };
 
-  const getGnfdBalance = async (address: string) => {
+  const getGnfdBalance = useCallback(async (address: string) => {
     try {
       setIsLoading(true);
       setUseMetamaskValue(false);
-      const rpcClient = await makeRpcClient(GREENFIELD_CHAIN_RPC_URL);
-      const bankRpc = new bankQueryClientImpl(rpcClient);
-      const paymentRpc = new paymentQueryClientImpl(rpcClient);
-
-      const { balance } = await bankRpc.Balance({
+      const client = await getClient();
+      const { balance } = await client.account.getAccountBalance({
         address,
         denom: 'BNB',
-      });
+      })
       const { amount = '0' } = balance ?? {};
       try {
-        const { streamRecord } = await paymentRpc.StreamRecord({
-          account: address,
-        });
+        const { streamRecord } = await client.payment.getStreamRecord(address);
         const { netflowRate, staticBalance, crudTimestamp, bufferBalance, lockBalance } =
           streamRecord ?? {};
         setCurrentNetflowRate(BigNumber(netflowRate ?? '0').dividedBy(Math.pow(10, 18)));
         const latestStaticBalance = BigNumber(staticBalance as string)
           .plus(
             BigNumber(netflowRate as string).times(
-              moment().unix() - (crudTimestamp as Long).toNumber(),
+              Math.floor(getUtcZeroTimestamp()/1000) - (crudTimestamp as Long).toNumber(),
             ),
           )
           .dividedBy(Math.pow(10, 18));
@@ -135,7 +128,7 @@ function ChainBalanceContextProvider(props: any) {
       // eslint-disable-next-line no-console
       console.error('Get balance and lock fee error', error);
     }
-  };
+  }, []);
 
   // get greenfield chain balance
   useEffect(() => {

@@ -1,25 +1,21 @@
-import { QueryClientImpl as storageQueryClientImpl } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { makeRpcClient } from '@bnb-chain/gnfd-js-sdk';
 import Link from 'next/link';
 import { toast } from '@totejs/uikit';
-
 import { getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/links';
-import {
-  generateGetObjectOptions,
-  getBucketReadQuotaByV2,
-  VisibilityType,
-} from '@bnb-chain/greenfield-storage-js-sdk';
 import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { getClient } from '@/base/client';
+import { generateGetObjectOptions } from './generateGetObjectOptions';
+import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -38,20 +34,9 @@ const formatBytes = (bytes: number | string, isFloor = false) => {
   }
 };
 
-const getObjectInfo = async (rpcUrl: string, bucketName: string, objectName: string) => {
-  const rpcClient = await makeRpcClient(rpcUrl);
-  const rpc = new storageQueryClientImpl(rpcClient);
-  const objInfoRes = await rpc.HeadObject({
-    bucketName,
-    objectName,
-  });
-
-  const objectId = objInfoRes?.objectInfo?.id;
-  if (!objectId) throw new Error('no such object');
-
-  return await rpc.HeadObjectById({
-    objectId,
-  });
+const getObjectInfo = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
+  return await client.object.headObject(bucketName, objectName);
 };
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
@@ -62,7 +47,18 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
   }
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
+const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number) => {
+  // loading status
+  // todo add error status maybe?
+  if (!bnbValue || Number(bnbValue) < 0) {
+    return '--';
+  }
+  const bnbNum = renderBnb(bnbValue);
+  const renderBnbvalue =
+    Number(getNumInDigits(bnbNum, 8, true)) === 0 ? `≈${getNumInDigits(0, 8, true)}` : bnbNum;
 
+  return `${renderBnbvalue} BNB (${renderUsd(bnbValue, exchangeRate)})`;
+};
 const renderUsd = (bnbValue: string, exchangeRate: number) => {
   const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
   return `$${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
@@ -81,21 +77,28 @@ const getFileExtension = (filename: string): string | undefined => {
   }
 };
 
-const downloadWithProgress = async (
-  bucketName: string,
-  objectName: string,
-  endpoint: string,
-  payloadSize: number,
-  userAddress: string,
+const downloadWithProgress = async ({
+  bucketName,
+  objectName,
+  primarySp,
+  payloadSize,
+  address,
+}: {
+  bucketName: string;
+  objectName: string;
+  primarySp: IRawSPInfo;
+  payloadSize: number;
+  address: string;
+}
 ) => {
   try {
     const domain = getDomain();
-    const { seedString, expirationTimestamp, spAddresses } = await getOffChainData(userAddress);
+    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
-      endpoint,
-      userAddress,
+      endpoint: primarySp.endpoint,
+      userAddress: address,
       domain,
       seedString,
     });
@@ -153,6 +156,7 @@ const downloadWithProgress = async (
 };
 
 const contentTypeToExtension = (contentType = '', fileName?: string) => {
+  if (fileName?.endsWith('/')) return 'FOLDER';
   switch (contentType) {
     case 'image/jpeg':
       return 'JPG';
@@ -235,7 +239,8 @@ const getQuota = async (
   endpoint: string,
 ): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
   try {
-    const { code, body, statusCode } = await getBucketReadQuotaByV2({
+    const client = await getClient();
+    const { code, body } = await client.bucket.getBucketReadQuota({
       bucketName,
       endpoint,
     });
@@ -262,21 +267,21 @@ const getQuota = async (
   }
 };
 
-const transformVisibility = (visibility: string) => {
+const transformVisibility = (visibility: ChainVisibilityEnum) => {
   switch (visibility) {
-    case VisibilityType.VISIBILITY_TYPE_UNSPECIFIED:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED:
       return 'Unspecified';
 
-    case VisibilityType.VISIBILITY_TYPE_PUBLIC_READ:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ:
       return 'Everyone can access';
 
-    case VisibilityType.VISIBILITY_TYPE_PRIVATE:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE:
       return 'Private';
 
-    case VisibilityType.VISIBILITY_TYPE_INHERIT:
+    case ChainVisibilityEnum.VISIBILITY_TYPE_INHERIT:
       return 'Inherit';
 
-    case VisibilityType.UNRECOGNIZED:
+    case ChainVisibilityEnum.UNRECOGNIZED:
     default:
       return 'Unrecognized';
   }
@@ -338,4 +343,5 @@ export {
   viewFileByAxiosResponse,
   saveFileByAxiosResponse,
   truncateFileName,
+  renderPrelockedFeeValue,
 };

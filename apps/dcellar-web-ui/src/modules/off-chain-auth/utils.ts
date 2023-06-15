@@ -1,6 +1,7 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-storage-js-sdk';
 import { isEmpty } from 'lodash-es';
+import { getUtcZeroTimestamp } from '@/utils/time';
+import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
 
 export const setOffChainData = ({
   address,
@@ -9,24 +10,73 @@ export const setOffChainData = ({
 }: {
   address: string;
   chainId: number;
-  offChainData: any;
+  offChainData: IReturnOffChainAuthKeyPairAndUpload;
 }) => {
   const key = `${address}-${chainId}`;
-  localStorage.setItem(key, JSON.stringify(offChainData));
+  const oldData = localStorage.getItem(key);
+
+  const newSpAddresses = offChainData.spAddresses;
+
+  // Compatible the previous version data
+  const parseOldData = oldData && JSON.parse(oldData) || [];
+  const compatibleOldData = Array.isArray(parseOldData) ? parseOldData : [parseOldData];
+  // Removing old data containing input sp data
+  const pruneOldData = compatibleOldData.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    const oldSpAddresses = item.spAddresses;
+    const prune = oldSpAddresses.filter((x: string) => newSpAddresses.includes(x));
+
+    return prune.length === 0;
+  }).map((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    const oldSpAddresses = item.spAddresses;
+    const prune = oldSpAddresses.filter((x: string) => !newSpAddresses.includes(x));
+
+    return {
+      ...item,
+      spAddresses: prune,
+    }
+  }) || [];
+
+  localStorage.setItem(key, JSON.stringify([...pruneOldData, offChainData]));
 };
 
-export const getOffChainData = (
-  address: string,
+export const getOffChainList = ({
+  address,
   chainId = GREENFIELD_CHAIN_ID,
-): {
-  expirationTimestamp: number;
-  spAddresses: string[];
-  seedString: string;
-} => {
+}: {
+  address: string;
+  chainId?: number | string;
+}) => {
   const key = `${address}-${chainId}`;
-  const offChainData = localStorage.getItem(key);
+  const localData = localStorage.getItem(key);
+  const parseLocalData = localData && JSON.parse(localData) || [];
+  const compatibleLocalData = Array.isArray(parseLocalData) ? parseLocalData : [parseLocalData];
 
-  return offChainData ? JSON.parse(offChainData) : {};
+  return compatibleLocalData as IReturnOffChainAuthKeyPairAndUpload[];
+}
+export const getSpOffChainData = ({
+  address,
+  chainId = GREENFIELD_CHAIN_ID,
+  spAddress
+}: {
+  address: string;
+  chainId?: number | string;
+  spAddress: string;
+}): IReturnOffChainAuthKeyPairAndUpload => {
+  const key = `${address}-${chainId}`;
+  const localData = localStorage.getItem(key);
+  const curTime = getUtcZeroTimestamp();
+
+  // Compatible the previous version data
+  const parseLocalData = localData && JSON.parse(localData) || [];
+  const compatibleOldData = Array.isArray(parseLocalData) ? parseLocalData : [parseLocalData];
+
+  const offChainDataItem = compatibleOldData.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    return item.expirationTime > curTime;
+  }).find((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    return item.spAddresses.includes(spAddress);
+  });
+
+  return isEmpty(offChainDataItem) ? {} : offChainDataItem;
 };
 
 export const removeOffChainData = (address: string, chainId: number) => {
@@ -34,42 +84,24 @@ export const removeOffChainData = (address: string, chainId: number) => {
   localStorage.removeItem(key);
 };
 
-export const checkOffChainDataAvailable = ({
-  expirationTimestamp = 0,
-  spAddresses = [],
-}: {
-  expirationTimestamp: number;
-  spAddresses: string[];
-}) => {
-  const utcZeroTimestamp = getUtcZeroTimestamp();
+export const checkSpOffChainDataAvailable = (spOffChainData: IReturnOffChainAuthKeyPairAndUpload) => {
+  const curTime = getUtcZeroTimestamp();
 
-  return expirationTimestamp > utcZeroTimestamp && spAddresses?.length > 0;
+  return !isEmpty(spOffChainData) && spOffChainData.expirationTime > curTime;
+};
+
+export const checkOffChainDataAvailable = (offChainList: IReturnOffChainAuthKeyPairAndUpload[]) => {
+  if (isEmpty(offChainList)) return false;
+  const curTime = getUtcZeroTimestamp();
+  const checkedOffChainData = offChainList.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    return item.expirationTime > curTime;
+  });
+
+  return !isEmpty(checkedOffChainData);
 };
 
 export const checkHaveSp = (spAddress: string, spAddresses: string[]) => {
   return spAddresses.includes(spAddress);
-};
-
-export const checkSpOffChainDataAvailable = ({
-  expirationTimestamp,
-  spAddresses,
-  spAddress,
-}: {
-  expirationTimestamp: number;
-  spAddresses: string[];
-  spAddress: string;
-}) => {
-  if (
-    !spAddress ||
-    !spAddresses ||
-    isEmpty(spAddresses) ||
-    expirationTimestamp === 0 ||
-    !spAddresses.includes(spAddress)
-  ) {
-    return false;
-  }
-
-  return checkOffChainDataAvailable({ expirationTimestamp, spAddresses });
 };
 
 export const getGAOptions = (name: string) => {

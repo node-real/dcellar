@@ -1,22 +1,17 @@
 import { ethers } from 'ethers';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork } from 'wagmi';
-import {
-  getAccount,
-  TransferOutTx,
-  TransferTx,
-  ZERO_PUBKEY,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
 import BigNumber from 'bignumber.js';
 
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
 import { useLogin } from '@/hooks/useLogin';
 import { OperationTypeContext } from '.';
-import { getGasFeeBySimulate, getRelayFeeBySimulate } from './utils/simulate';
+import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
+import { genSendTx } from './utils/genSendTx';
+import { genTransferOutTx } from './utils/genTransferOutTx';
+import { getClient } from '@/base/client';
 
 export const useGetFeeBasic = () => {
   const { type } = React.useContext(OperationTypeContext);
@@ -38,7 +33,7 @@ export const useGetFeeBasic = () => {
 };
 
 export const useTransferOutFee = () => {
-  const { type, isRight, chain, address } = useGetFeeBasic();
+  const { type, isRight, address } = useGetFeeBasic();
   const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,29 +41,29 @@ export const useTransferOutFee = () => {
   const getFee = useCallback(async () => {
     setIsLoading(true);
     try {
-      const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const bodyBytes = toutTx.getSimulateBytes({
+      const transferOutTx = await genTransferOutTx({
         from: address,
         to: address,
-        amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
+        amount: {
+          denom: 'BNB',
+          amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
+        }
+      })
+      const simulateInfo = await transferOutTx.simulate({
         denom: 'BNB',
       });
-      const authInfoBytes = toutTx.getAuthInfoBytes({
-        // @ts-ignore
-        sequence,
-        denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
-      });
-      const simulateTxInfo = await toutTx.simulateTx(bodyBytes, authInfoBytes);
-
-      const relayFeeInfo = await toutTx.simulateRelayFee();
+      const client = await getClient();
+      const relayFeeInfo = await client.crosschain.getParams();
+      const relayFee = relayFeeInfo.params
+        ? getRelayFeeBySimulate(
+          relayFeeInfo.params.transferOutAckRelayerFee,
+          relayFeeInfo.params.transferOutRelayerFee,
+        )
+        : '0';
 
       const newData = {
-        gasFee: BigNumber(getGasFeeBySimulate(simulateTxInfo)),
-        relayerFee: BigNumber(getRelayFeeBySimulate(relayFeeInfo)),
+        gasFee: BigNumber(BigNumber(simulateInfo.gasFee)),
+        relayerFee: BigNumber(relayFee),
       };
 
       setFeeData(newData);
@@ -79,7 +74,7 @@ export const useTransferOutFee = () => {
       setError(e);
       setIsLoading(false);
     }
-  }, [address, chain?.id]);
+  }, [address]);
 
   useEffect(() => {
     if (type === EOperation.transfer_out && isRight) {
@@ -91,7 +86,7 @@ export const useTransferOutFee = () => {
 };
 
 export const useSendFee = () => {
-  const { type, address, chain, isRight } = useGetFeeBasic();
+  const { type, address, isRight } = useGetFeeBasic();
   const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -99,28 +94,22 @@ export const useSendFee = () => {
   const getFee = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { sequence } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const tTx = new TransferTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const bodyBytes = tTx.getSimulateBytes({
-        from: address,
-        to: address,
-        amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
+      const sendTx = await genSendTx({
+        fromAddress: address,
+        toAddress: address,
+        amount: [
+          {
+            denom: 'BNB',
+            amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
+          },
+        ],
+      })
+      const simulateTxInfo = await sendTx.simulate({
         denom: 'BNB',
       });
-      const authInfoBytes = tTx.getAuthInfoBytes({
-        // @ts-ignore
-        sequence,
-        denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
-      });
-      const simulateTxInfo = await tTx.simulateTx(bodyBytes, authInfoBytes);
-
-      const gasFee = getGasFeeBySimulate(simulateTxInfo);
       setFeeData({
         ...INIT_FEE_DATA,
-        gasFee: BigNumber(gasFee),
+        gasFee: BigNumber(simulateTxInfo.gasFee),
       });
       setIsLoading(false);
     } catch (e: any) {
@@ -129,7 +118,7 @@ export const useSendFee = () => {
       setIsLoading(false);
       setError(e);
     }
-  }, [address, chain?.id]);
+  }, [address]);
 
   useEffect(() => {
     if (type === EOperation.send && isRight) {

@@ -16,9 +16,8 @@ import {
   formatBytes,
   saveFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { formatDateUTC } from '@/utils/time';
 import { CopyText } from '@/components/common/CopyText';
-import { formatAddress, trimAddress } from '@/utils/string';
+import { encodeObjectName, formatAddress, trimAddress } from '@/utils/string';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useMemo, useState } from 'react';
@@ -33,7 +32,10 @@ import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { formatFullTime } from '@/utils/time';
+import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
 
 interface modalProps {
   title?: string;
@@ -42,18 +44,16 @@ interface modalProps {
   buttonText?: string;
   buttonOnClick?: () => void;
   bucketName: string;
+  folderName: string;
   fileInfo?: { name: string; size: number };
   createdDate?: number;
-  primarySpUrl?: string;
-  primarySpAddress?: string;
-  primarySpSealAddress?: string;
+  primarySp: IRawSPInfo;
   hash?: string;
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;
   shareLink?: string;
-  visibility?: number;
+  visibility?: ChainVisibilityEnum;
   remainingQuota: number | null;
-  spAddress: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -149,9 +149,10 @@ const renderUrlWithLink = (
   reservedNumber = 32,
   gaClickName?: string,
 ) => {
-  const finalText = needSlim ? text.substring(0, reservedNumber) + '...' : text;
+  const encodedText = encodeURI(text);
+  const finalText = needSlim ? encodedText.substring(0, reservedNumber) + '...' : encodedText;
   return (
-    <CopyText value={text} justifyContent="flex-end" gaClickName={gaClickName}>
+    <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaClickName}>
       <Link
         target="_blank"
         color="#1184EE"
@@ -160,7 +161,7 @@ const renderUrlWithLink = (
         _hover={{
           color: '#1184EE',
         }}
-        href={text}
+        href={encodedText}
         fontSize={'14px'}
         lineHeight={'17px'}
         fontWeight={500}
@@ -181,9 +182,9 @@ const renderCopyAddress = (address: string, gaClickName?: string) => {
   );
 };
 
-const renderVisibilityTag = (visibility: number) => {
+const renderVisibilityTag = (visibility: ChainVisibilityEnum) => {
   // public File
-  if (visibility === 1) {
+  if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
     return (
       <Flex h={'24px'} alignItems={'center'}>
         <PublicFileIcon fillColor={'#009E2C'} w={14} h={14} />
@@ -200,7 +201,7 @@ const renderVisibilityTag = (visibility: number) => {
     );
   }
   // private file
-  if (visibility === 2) {
+  if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE) {
     return (
       <Flex h={'24px'} alignItems={'center'}>
         <PrivateFileIcon fillColor={'#009E2C'} w={14} h={14} />
@@ -231,20 +232,17 @@ export const FileInfoModal = (props: modalProps) => {
     bucketName,
     fileInfo = { name: '', size: '' },
     createdDate = 0,
-    primarySpUrl = '',
-    primarySpAddress = '',
-    primarySpSealAddress = '',
+    primarySp,
     shareLink,
     remainingQuota,
-    visibility = 0,
-    spAddress,
+    folderName = '',
+    visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
     onConfirmDownloadModalOpen,
     onShareModalOpen,
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
     onStatusModalOpen,
-    onStatusModalClose,
     setStatusModalButtonText,
     setStatusModalErrorText,
     hash = '',
@@ -255,6 +253,7 @@ export const FileInfoModal = (props: modalProps) => {
   const isAbleDownload = useMemo(() => {
     return !(remainingQuota && remainingQuota - Number(size) < 0);
   }, [size, remainingQuota]);
+  const nameWithoutFolderPrefix = name.replace(folderName, '');
 
   return (
     <>
@@ -283,7 +282,7 @@ export const FileInfoModal = (props: modalProps) => {
                 mb="8px"
                 w={'100%'}
               >
-                {name}
+                {nameWithoutFolderPrefix}
               </Text>
               <Text
                 fontSize={'12px'}
@@ -311,26 +310,26 @@ export const FileInfoModal = (props: modalProps) => {
         </Flex>
         <Divider />
         <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-          {renderPropRow('Date uploaded', formatDateUTC(createdDate * 1000))}
+          {renderPropRow('Date uploaded', formatFullTime(createdDate * 1000))}
           {renderAddressLink(
             'Primary SP address',
-            primarySpAddress,
+            primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_spadd.click',
           )}
           {renderAddressLink(
             'Primary SP seal address',
-            primarySpSealAddress,
+            primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_seal.click',
           )}
           {renderPropRow(
             'Object hash',
             renderCopyAddress(hash, 'dc.file.f_detail_pop.copy_hash.click'),
           )}
-          {visibility === 1 &&
+          {visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ &&
             renderPropRow(
               'Universal link',
               renderUrlWithLink(
-                `${primarySpUrl}/view/${bucketName}/${name}`,
+                `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(name)}`,
                 true,
                 32,
                 'dc.file.f_detail_pop.copy_universal.click',
@@ -340,7 +339,7 @@ export const FileInfoModal = (props: modalProps) => {
 
         <ModalFooter flexDirection={'column'}>
           <Flex w={'100%'}>
-            {visibility === 1 && (
+            {visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ && (
               <DCButton
                 variant={'dcGhost'}
                 flex={1}
@@ -363,7 +362,7 @@ export const FileInfoModal = (props: modalProps) => {
               onClick={async () => {
                 if (allowDirectDownload) {
                   onClose();
-                  if (shareLink && visibility === 1) {
+                  if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                     if (!isAbleDownload) {
                       setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
                       setStatusModalTitle(NOT_ENOUGH_QUOTA);
@@ -377,27 +376,22 @@ export const FileInfoModal = (props: modalProps) => {
                     directlyDownload(shareLink);
                   } else {
                     try {
-                      const { spAddresses, expirationTimestamp } = await getOffChainData(
-                        loginState.address,
-                      );
-                      if (
-                        !checkSpOffChainDataAvailable({
-                          spAddresses,
-                          expirationTimestamp,
-                          spAddress,
-                        })
-                      ) {
+                      const spOffChainData = await getSpOffChainData({
+                        spAddress: primarySp.operatorAddress,
+                        address: loginState.address,
+                      });
+                      if (!checkSpOffChainDataAvailable(spOffChainData)) {
                         onClose();
                         setOpenAuthModal();
                         return;
                       }
-                      const result = await downloadWithProgress(
+                      const result = await downloadWithProgress({
                         bucketName,
-                        name,
-                        primarySpUrl,
-                        Number(size),
-                        loginState.address,
-                      );
+                        objectName: name,
+                        primarySp,
+                        payloadSize: Number(size),
+                        address: loginState.address,
+                      });
                       saveFileByAxiosResponse(result, name);
                     } catch (e: any) {
                       if (e?.response?.status === 500) {

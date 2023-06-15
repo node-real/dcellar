@@ -23,6 +23,9 @@ const ProgressBarToast = ({
         circleTwoStroke="#00BA34"
       />
       <Text
+        flex={1}
+        minW={0}
+        whiteSpace="nowrap"
         ml={'10px'}
         fontSize={'14px'}
         lineHeight={'17px'}

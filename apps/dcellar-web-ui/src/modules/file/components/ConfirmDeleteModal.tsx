@@ -1,19 +1,8 @@
-import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Button,
-  Text,
-  Flex,
-  toast,
-  Box,
-} from '@totejs/uikit';
+import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
-import React, { useContext, useEffect, useState } from 'react';
-import { DelObjectTx, getAccount, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
 
 import {
   renderBalanceNumber,
@@ -24,7 +13,6 @@ import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
   FILE_DESCRIPTION_DELETE_ERROR,
-  FILE_EMPTY_URL,
   FILE_FAILED_URL,
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
@@ -37,6 +25,8 @@ import { Tips } from '@/components/common/Tips';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
+import { getClient } from '@/base/client';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 interface modalProps {
   title?: string;
@@ -46,11 +36,8 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  endpoint?: string;
   gasFeeLoading?: boolean;
   simulateGasFee: string;
-  gasLimit: number;
-  gasPrice: string;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
   listObjects: Array<any>;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
@@ -118,9 +105,6 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     isOpen,
     bucketName,
     fileInfo = { name: '', size: 0 },
-    endpoint = '',
-    gasLimit = 0,
-    gasPrice = '0',
     lockFee,
     outsideLoading,
     simulateGasFee,
@@ -148,9 +132,9 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const { name = '', size = 0 } = fileInfo;
-
-  const description = `Are you sure you want to delete file "${name}"?`;
-  const delObjTx = new DelObjectTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
+  const filePath = name.split('/');
+  const showName = filePath[filePath.length - 1];
+  const description = `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     onStatusModalClose();
@@ -249,41 +233,26 @@ export const ConfirmDeleteModal = (props: modalProps) => {
               setStatusModalErrorText('');
               setStatusModalButtonText('');
               onStatusModalOpen();
-              const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL!, address!);
-              const provider = await connector?.getProvider();
-              const signInfo = await delObjTx.signTx(
-                {
-                  accountNumber: accountNumber + '',
-                  bucketName,
-                  from: address,
-                  sequence: sequence + '',
-                  gasLimit,
-                  gasPrice,
-                  objectName: name,
-                  denom: 'BNB',
-                },
-                provider,
-              );
-
-              const pk = recoverPk({
-                signature: signInfo.signature,
-                messageHash: signInfo.messageHash,
-              });
-              const pubKey = makeCosmsPubKey(pk);
-              const rawInfoParams = {
-                accountNumber: accountNumber + '',
+              const client = await getClient();
+              const delObjTx = await client.object.deleteObject({
                 bucketName,
-                from: address,
-                sequence: sequence + '',
-                gasLimit,
-                gasPrice,
-                pubKey,
-                sign: signInfo.signature,
                 objectName: name,
+                operator: address,
+              });
+              const simulateInfo = await delObjTx.simulate({
                 denom: 'BNB',
-              };
-              const rawBytes = await delObjTx.getRawTxInfo(rawInfoParams);
-              const txRes = await delObjTx.broadcastTx(rawBytes.bytes);
+              });
+              const txRes = await delObjTx.broadcast({
+                denom: 'BNB',
+                gasLimit: Number(simulateInfo?.gasLimit),
+                gasPrice: simulateInfo?.gasPrice || '5000000000',
+                payer: address,
+                granter: '',
+                signTypedDataCallback: async (addr: string, message: string) => {
+                  const provider = await connector?.getProvider();
+                  return await signTypedDataV4(provider, addr, message);
+                },
+              });
 
               if (txRes.code === 0) {
                 toast.success({ description: 'File deleted successfully.' });
@@ -294,7 +263,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
                 toast.error({ description: 'Delete file error.' });
               }
               const newListObject = listObjects.filter((v, i) => {
-                return v?.object_info?.object_name !== name;
+                return v?.object_name !== name;
               });
               setListObjects(newListObject);
               onStatusModalClose();

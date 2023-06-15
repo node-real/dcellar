@@ -11,20 +11,10 @@ import {
   useOutsideClick,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { getAccount, CreateObjectTx, recoverPk, makeCosmsPubKey } from '@bnb-chain/gnfd-js-sdk';
-import {
-  generatePutObjectOptions,
-  listObjectsByBucketName,
-  VisibilityType,
-} from '@bnb-chain/greenfield-storage-js-sdk';
-import axios from 'axios';
 import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
-
-// TODO replace moment with dayjs
-import moment from 'moment';
 
 import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
@@ -38,6 +28,7 @@ import {
   FILE_TITLE_UPLOADING,
   FILE_UPLOAD_URL,
   OBJECT_CREATE_STATUS,
+  OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
@@ -45,6 +36,7 @@ import {
   formatBytes,
   renderBalanceNumber,
   renderFeeValue,
+  renderPrelockedFeeValue,
   renderInsufficientBalance,
   transformVisibility,
 } from '@/modules/file/utils';
@@ -58,37 +50,18 @@ import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
-import { visibilityTypeFromJSON } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { getOffChainData } from '@/modules/off-chain-auth/utils';
-
-const renderFileInfo = (key: string, value: string) => {
-  return (
-    <Flex w={'100%'} flexDirection={'column'}>
-      <Text
-        fontSize={'12px'}
-        lineHeight={'16px'}
-        fontWeight={400}
-        wordBreak={'break-all'}
-        color={'readable.tertiary'}
-        mb="4px"
-      >
-        {key}
-      </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight={'18px'}
-        fontWeight={500}
-        wordBreak={'break-all'}
-        color={'readable.normal'}
-        mb="8px"
-      >
-        {value}
-      </Text>
-    </Flex>
-  );
-};
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import axios from 'axios';
+import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { convertToSecond, getUtcZeroTimestamp } from '@/utils/time';
+import { IRawSPInfo } from '@/modules/buckets/type';
+import { ChainVisibilityEnum } from '../type';
+import { convertObjectInfo } from '../utils/convertObjectInfo';
+import { getClient } from '@/base/client';
 
 const renderFee = (
   key: string,
@@ -115,34 +88,51 @@ const renderFee = (
         )}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
+        {key === 'Prelocked storage fee'
+          ? renderPrelockedFeeValue(bnbValue, exchangeRate)
+          : renderFeeValue(bnbValue, exchangeRate)}
       </Text>
     </Flex>
   );
 };
 
 // fixme There will be a fix to query only one uploaded object, but not the whole object list
-const getObjectIsSealed = async (
-  bucketName: string,
-  endpoint: string,
-  objectName: string,
-  address: string,
-) => {
+const getObjectIsSealed = async ({
+  bucketName,
+  folderName,
+  primarySp,
+  objectName,
+  address,
+}: {
+  bucketName: string;
+  folderName: string;
+  primarySp: IRawSPInfo;
+  objectName: string;
+  address: string;
+}) => {
   const domain = getDomain();
-  const { seedString } = await getOffChainData(address);
-  // TODO add auth error handling
-  const listResult = await listObjectsByBucketName({
+  const query = new URLSearchParams();
+  query.append('delimiter', '/');
+  query.append('max-keys', '1000');
+  if (folderName) {
+    query.append('prefix', folderName);
+  }
+  const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
+  const client = await getClient();
+  const listResult = await client.object.listObjects({
     bucketName,
-    endpoint,
-    userAddress: address,
+    endpoint: primarySp.endpoint,
+    address,
     seedString,
     domain,
+    query,
   });
   if (listResult) {
-    const listObjects = listResult.body ?? [];
+    //  @ts-ignore TODO temp
+    const listObjects = listResult.body.objects ?? [];
     const sealObjectIndex = listObjects
       .filter((v: any) => !v.removed)
-      .map((v: any) => v.object_info)
+      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
       .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
     if (sealObjectIndex >= 0) {
       return listObjects[sealObjectIndex].seal_tx_hash;
@@ -157,7 +147,7 @@ const POLLING_INTERVAL = 3000; // ms
 
 interface modalProps {
   title?: string;
-  endpoint: string;
+  primarySp: IRawSPInfo;
   onClose: () => void;
   isOpen: boolean;
   description?: string;
@@ -167,11 +157,9 @@ interface modalProps {
   bucketName: string;
   file?: File;
   fileName?: string;
+  folderName: string;
   simulateGasFee: string;
-  objectSignedMsg: any;
-  gasLimit: number;
   lockFee: string;
-  gasPrice: string;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -183,26 +171,26 @@ interface modalProps {
   listObjects: Array<any>;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
   fetchCreateObjectApproval: any;
-  getLockFeeAndSet: any;
-  getGasFeeAndSet: any;
   freeze: boolean;
+  createObjectData: {
+    CreateObjectTx: any;
+    configParam: TCreateObject;
+  };
 }
 
 export const FileDetailModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { address } = loginState;
-  const { chain } = useNetwork();
   const { value: bnbPrice } = useContext(BnbPriceContext);
   const exchangeRate = bnbPrice?.toNumber() ?? 0;
-  const createObjectTx = new CreateObjectTx(GREENFIELD_CHAIN_RPC_URL!, String(chain?.id)!);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAvailableBalance();
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
-  const [visibility, setVisibility] = useState<string>(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
   useOutsideClick({
@@ -225,11 +213,9 @@ export const FileDetailModal = (props: modalProps) => {
     buttonOnClick,
     errorText,
     fileName,
+    folderName,
     bucketName,
     simulateGasFee,
-    objectSignedMsg,
-    gasLimit,
-    gasPrice = '0',
     setStatusModalIcon,
     setStatusModalTitle,
     setStatusModalDescription,
@@ -238,16 +224,20 @@ export const FileDetailModal = (props: modalProps) => {
     setStatusModalButtonText,
     outsideLoading,
     lockFee,
-    endpoint,
+    primarySp,
     setListObjects,
     listObjects,
     setStatusModalErrorText,
     fetchCreateObjectApproval,
-    getLockFeeAndSet,
-    getGasFeeAndSet,
     freeze,
+    createObjectData,
   } = props;
   const router = useRouter();
+  const listObjectsRef = useRef<any[]>([]);
+  // todo fixit
+  listObjectsRef.current = listObjects
+    .filter((v: any) => !v.removed)
+    .map((v: any) => (v.object_info ? v.object_info : v));
 
   const startPolling = (makeRequest: any) => {
     timeoutRef.current = setTimeout(() => {
@@ -287,12 +277,12 @@ export const FileDetailModal = (props: modalProps) => {
       setLoading(false);
       // fixme temp fix for list seal status display
       // We don't know yet why final name and size is changing if we open the modal again during uploading
-      const finalObjects = listObjects.map((v, i) => {
-        if (i === 0) {
-          v.object_info.object_status = 1;
-        }
-        return v;
-      });
+      // const finalObjects = listObjects.map((v, i) => {
+      //   if (i === 0) {
+      //     v.object_info.object_status = 1;
+      //   }
+      //   return v;
+      // });
       // const finalObjects = listObjects.map((v) => {
       //   if (v?.object_info?.object_name === finalName) {
       //     v.object_info.payload_size = file?.size ?? 0;
@@ -300,6 +290,13 @@ export const FileDetailModal = (props: modalProps) => {
       //   }
       //   return v;
       // });
+      const finalObjects = listObjectsRef.current.map((v) => {
+        if (v?.object_name === finalName) {
+          v.payload_size = file?.size ?? 0;
+          v.object_status = 1;
+        }
+        return v;
+      });
       setListObjects(finalObjects);
       setIsSealed(false);
     }
@@ -338,65 +335,17 @@ export const FileDetailModal = (props: modalProps) => {
       setStatusModalButtonText('');
       // setIsSealed(false);
       onStatusModalOpen();
+      const { configParam, CreateObjectTx } = createObjectData;
       // 1. execute create object on chain
-      if (!objectSignedMsg) {
+      if (!configParam) {
         setFailedStatusModal('Get Object Approval failed, please check.');
         return;
       }
-      if (address !== objectSignedMsg.creator) {
+      if (address !== configParam.creator) {
         setFailedStatusModal('Account address is not available');
         return;
       }
-
-      const { sequence, accountNumber } = await getAccount(GREENFIELD_CHAIN_RPC_URL, address!);
-      const walletProvider = await connector?.getProvider();
-      const signInfo = await createObjectTx.signTx(
-        {
-          objectName: finalName,
-          contentType: objectSignedMsg.content_type,
-          from: objectSignedMsg.creator,
-          bucketName,
-          sequence: sequence + '',
-          accountNumber: accountNumber + '',
-          denom: 'BNB',
-          gasLimit,
-          gasPrice,
-          expiredHeight: objectSignedMsg.primary_sp_approval.expired_height,
-          sig: objectSignedMsg.primary_sp_approval.sig,
-          visibility: objectSignedMsg.visibility,
-          payloadSize: objectSignedMsg.payload_size,
-          expectChecksums: objectSignedMsg.expect_checksums,
-          redundancyType: objectSignedMsg.redundancy_type,
-          expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
-        },
-        walletProvider,
-      );
-
-      const pk = recoverPk({
-        signature: signInfo.signature,
-        messageHash: signInfo.messageHash,
-      });
-      const pubKey = makeCosmsPubKey(pk);
-      const rawBytes = await createObjectTx.getRawTxInfo({
-        bucketName,
-        denom: 'BNB',
-        from: address,
-        gasLimit,
-        gasPrice,
-        pubKey,
-        sequence: sequence + '',
-        accountNumber: accountNumber + '',
-        sign: signInfo.signature,
-        expiredHeight: objectSignedMsg.primary_sp_approval.expired_height,
-        sig: objectSignedMsg.primary_sp_approval.sig,
-        visibility: objectSignedMsg.visibility,
-        contentType: objectSignedMsg.content_type,
-        expectChecksums: objectSignedMsg.expect_checksums,
-        objectName: finalName,
-        payloadSize: objectSignedMsg.payload_size,
-        redundancyType: objectSignedMsg.redundancy_type,
-        expectSecondarySpAddresses: objectSignedMsg.expect_secondary_sp_addresses,
-      });
+      // todo fix object struct
       let newFileInfo = {
         object_info: {
           bucket_name: bucketName,
@@ -405,9 +354,9 @@ export const FileDetailModal = (props: modalProps) => {
           content_type: file.type && file.type.length > 0 ? file.type : 'application/octet-stream',
           payload_size: '0',
           object_status: OBJECT_STATUS_UPLOADING,
-          checksums: objectSignedMsg.expect_checksums,
-          create_at: moment().unix(),
-          visibility: visibilityTypeFromJSON(objectSignedMsg.visibility),
+          checksums: configParam.expectCheckSums,
+          create_at: convertToSecond(getUtcZeroTimestamp()),
+          visibility: configParam.visibility,
         },
         removed: false,
         lock_balance: 0,
@@ -416,7 +365,19 @@ export const FileDetailModal = (props: modalProps) => {
       setListObjects(fileUploadingLists);
       onStatusModalClose();
       try {
-        const txRes = await createObjectTx.broadcastTx(rawBytes.bytes);
+        const simulateInfo = await CreateObjectTx.simulate({
+          denom: 'BNB',
+        });
+        const txRes = await CreateObjectTx.broadcast({
+          denom: 'BNB',
+          gasLimit: Number(simulateInfo?.gasLimit),
+          gasPrice: simulateInfo?.gasPrice || '5000000000',
+          payer: configParam.creator,
+          signTypedDataCallback: async (addr: string, message: string) => {
+            const provider = await connector?.getProvider();
+            return await signTypedDataV4(provider, addr, message);
+          },
+        });
         let objectTxnHash = '';
         if (txRes.code === 0) {
           objectTxnHash = txRes.transactionHash;
@@ -454,19 +415,33 @@ export const FileDetailModal = (props: modalProps) => {
         // If upload size is small, then put obejct using fetch,
         // no need to show progress bar
         const domain = getDomain();
-        const { seedString } = await getOffChainData(address);
+        const { seedString } = await getSpOffChainData({
+          address,
+          spAddress: primarySp.operatorAddress,
+        });
         const uploadOptions = await generatePutObjectOptions({
           bucketName,
           objectName: finalName,
           body: file,
-          endpoint: endpoint,
+          endpoint: primarySp.endpoint,
           txnHash: objectTxnHash,
           userAddress: address,
           domain,
           seedString,
         });
         const { url, headers } = uploadOptions;
-        // No expiration handling is performed at this moment, because the previous step of obtaining quota has handled the situation where the seedString expires.
+        // const configParamForUpload = {
+        //   bucketName,
+        //   objectName: finalName,
+        //   body: file,
+        //   endpoint,
+        //   txnHash: objectTxnHash,
+        //   address,
+        //   domain,
+        //   seedString,
+        //   signType: 'offChainAuth' as any,
+        // }
+        // await client.object.uploadObject(configParamForUpload)
         await axios.put(url, file, {
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
@@ -490,12 +465,13 @@ export const FileDetailModal = (props: modalProps) => {
         });
         startPolling(async () => {
           // todo use "getObjectMeta" to fetch object info, rather than fetch whole list
-          const sealTxHash = await getObjectIsSealed(
+          const sealTxHash = await getObjectIsSealed({
             bucketName,
-            endpoint,
-            finalName,
-            loginState.address,
-          );
+            objectName: finalName,
+            primarySp: primarySp,
+            address: loginState.address,
+            folderName,
+          });
           if (sealTxHash && sealTxHash.length > 0) {
             setIsSealed(true);
             stopPolling();
@@ -517,29 +493,25 @@ export const FileDetailModal = (props: modalProps) => {
               duration: 3000,
             });
             // fixme This is a workaround to fix the issue that setIsSealed to true can't be monitored by useEffect Hook
-            const newFileObjectStatus = listObjects[0].object_info.object_status;
-            const isNewestList = listObjects[0].object_info.object_name === finalName;
-            if (
-              newFileObjectStatus === OBJECT_STATUS_UPLOADING ||
-              newFileObjectStatus === OBJECT_CREATE_STATUS ||
-              !isNewestList
-            ) {
-              router.reload();
-            }
+            listObjectsRef.current.forEach((v: any) => {
+              if (
+                v?.object_name === finalName &&
+                [OBJECT_STATUS_UPLOADING, OBJECT_STATUS_UPLOADING].includes(v?.object_status)
+              ) {
+                router.reload();
+              }
+            });
           } else {
             setIsSealed(false);
           }
         });
       } catch (error: any) {
-        const errorListObjects = fileUploadingLists.map((v: any) => {
-          if (v?.object_info?.object_name === finalName) {
-            v.object_info.object_status = OBJECT_STATUS_FAILED;
-          }
-          return v;
+        const errorListObjects = fileUploadingLists.filter((v: any) => {
+          return v?.object_name !== finalName
+
         });
         setListObjects(errorListObjects);
         setLoading(false);
-        // setIsSealed(false);
         // eslint-disable-next-line no-console
         console.error('file upload error', error);
         // It's said by UI designer to avoid popup warning modal if upload was failed
@@ -558,6 +530,10 @@ export const FileDetailModal = (props: modalProps) => {
       console.error('Upload file error', error);
     }
   };
+
+  const filePath = finalName.split('/');
+  const showName = filePath[filePath.length - 1];
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -572,9 +548,6 @@ export const FileDetailModal = (props: modalProps) => {
         <Flex w="100%">
           <Image src={FILE_INFO_IMAGE_URL} w="120px" h="120px" mr={'24px'} alt="" />
           <Flex flex={1} flexDirection={'column'}>
-            {/*{renderFileInfo('Name', finalName)}*/}
-
-            {/*{renderFileInfo('Size', `${(size / 1024 / 1024).toFixed(2)} MB`)}*/}
             <Text
               fontSize={'14px'}
               lineHeight={'17px'}
@@ -583,7 +556,7 @@ export const FileDetailModal = (props: modalProps) => {
               color={'readable.normal'}
               mb="8px"
             >
-              {finalName}
+              {showName}
             </Text>
             <Text
               fontSize={'12px'}
@@ -603,7 +576,7 @@ export const FileDetailModal = (props: modalProps) => {
                 lineHeight={'24px'}
                 color={freeze ? '#AEB4BC' : 'primary'}
                 cursor={freeze ? 'not-allowed' : 'pointer'}
-                _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)'}}
+                _hover={{ bg: freeze ? 'transparent' : 'rgba(0,186,52,0.1)' }}
                 border={freeze ? '1px solid #AEB4BC' : '1px solid #00ba34'}
                 borderRadius={'18px'}
                 paddingLeft={'12px'}
@@ -640,38 +613,36 @@ export const FileDetailModal = (props: modalProps) => {
                   paddingLeft={'16px'}
                   _hover={{
                     bg:
-                      visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                      visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE
                         ? 'rgba(0,186,52,0.1)'
                         : 'bg.bottom',
                   }}
                   cursor={'pointer'}
                   bg={
-                    visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE
+                    visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE
                       ? 'rgba(0,186,52,0.1)'
                       : 'bg.middle'
                   }
                   onClick={async () => {
                     try {
                       setLoading(true);
-                      if (visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE) return;
-                      setVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE);
+                      if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE) return;
+                      setVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
                       setShowPanel(false);
                       await fetchCreateObjectApproval(
                         file,
                         finalName,
-                        VisibilityType.VISIBILITY_TYPE_PRIVATE,
+                        ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
                       );
                       setLoading(false);
                     } catch (error) {
                       toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
                       console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
                     }
-                    // await getGasFeeAndSet(file, currentObjectSignedMessage);
-                    // await getLockFeeAndSet(file.size);
                   }}
                 >
                   <PrivateFileIcon style={{ marginRight: '6px' }} />
-                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PRIVATE)}
+                  {transformVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE)}
                 </Flex>
                 <Flex
                   w={'100%'}
@@ -680,30 +651,28 @@ export const FileDetailModal = (props: modalProps) => {
                   paddingLeft={'16px'}
                   _hover={{
                     bg:
-                      visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                      visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
                         ? 'rgba(0,186,52,0.1)'
                         : 'bg.bottom',
                   }}
                   cursor={'pointer'}
                   bg={
-                    visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                    visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
                       ? 'rgba(0,186,52,0.1)'
                       : 'bg.middle'
                   }
                   onClick={async () => {
                     try {
                       setLoading(true);
-                      if (visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ) return;
-                      setVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ);
+                      if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) return;
+                      setVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ);
                       setShowPanel(false);
                       await fetchCreateObjectApproval(
                         file,
                         finalName,
-                        VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+                        ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
                       );
                       setLoading(false);
-                      // await getGasFeeAndSet(file, currentObjectSignedMessage);
-                      // await getLockFeeAndSet(file.size);
                     } catch (error) {
                       toast.error({ description: FETCH_OBJECT_APPROVAL_ERROR });
                       console.error(FETCH_OBJECT_APPROVAL_ERROR, error);
@@ -711,7 +680,7 @@ export const FileDetailModal = (props: modalProps) => {
                   }}
                 >
                   <PublicFileIcon style={{ marginRight: '6px' }} />
-                  {transformVisibility(VisibilityType.VISIBILITY_TYPE_PUBLIC_READ)}
+                  {transformVisibility(ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ)}
                 </Flex>
               </Flex>
             </Flex>

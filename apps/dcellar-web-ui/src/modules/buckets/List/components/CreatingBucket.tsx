@@ -1,14 +1,14 @@
 import React from 'react';
-import { Flex, ModalBody, Text } from '@totejs/uikit';
+import { Flex, Image, ModalBody, Text } from '@totejs/uikit';
 
-import CreatingBucketIcon from '@/public/images/buckets/creating-bucket.svg';
 import { POPPINS_FONT } from '@/modules/wallet/constants';
+import { PENDING_ICON_URL } from '@/modules/file/constant';
 
 export const CreatingBucket = () => {
   return (
     <ModalBody textAlign={'center'}>
       <Flex justifyContent={'center'}>
-        <CreatingBucketIcon />
+        <Image src={PENDING_ICON_URL} w={'120px'} h={'120px'} alt={'pending'} />
       </Flex>
       <Text
         fontSize={'24px'}

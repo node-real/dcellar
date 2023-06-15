@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   useAccount,
   useConnect,
@@ -23,19 +23,17 @@ import {
   useMediaQuery,
 } from '@totejs/uikit';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { useRouter } from 'next/router';
 
 import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { assetPrefix, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { REQUEST_PENDING_NUM, USER_REJECT_STATUS_NUM } from '@/utils/constant';
-import { InternalRoutePaths } from '@/constants/links';
 import { DCButton } from '../common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import { checkOffChainDataAvailable, getOffChainData } from '@/modules/off-chain-auth/utils';
+import { checkOffChainDataAvailable, getOffChainList } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { Footer } from '@/components/layout/Footer';
 
@@ -54,14 +52,14 @@ const Welcome = () => {
   const [loading, setLoading] = useState(false);
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
-  const router = useRouter();
-  const [isLargerThan1000, isLargerThan1463] = useMediaQuery([
-    '(min-width: 1001px) and (max-width: 1464px)',
-    '(min-width: 1463px)',
-  ]);
+  const [isLargerThan1000] = useMediaQuery(['(min-width: 1001px)']);
 
-  const [isHigherThan800] = useMediaQuery('(min-height: 801px)');
-  const TitleGap = isHigherThan800 ? 246 : 206;
+  const [isHigherThan704] = useMediaQuery('(min-height: 704px)');
+  const [isHigherThan600] = useMediaQuery('(min-height: 601px)');
+  const hasOffChainAuth = useRef(false);
+
+  const TitleGap = isHigherThan600 ? 48 : 206;
+  const bgHeight = isHigherThan704 ? '560px' : '80%';
 
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const network = useSwitchNetwork({
@@ -167,13 +165,6 @@ const Welcome = () => {
       }
     },
   });
-  useEffect(() => {
-    Array.from(
-      new Set(Object.values(InternalRoutePaths).map((relativePath) => relativePath.split('?')[0])),
-    ).forEach((path: string) => {
-      router.prefetch(path);
-    });
-  }, [router]);
 
   useEffect(() => {
     if (isConnected) {
@@ -191,9 +182,10 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          const offChainData = getOffChainData(currentAddress);
-          const isAvailable = checkOffChainDataAvailable(offChainData);
+          const offChainList = getOffChainList({ address: currentAddress});
+          const isAvailable = checkOffChainDataAvailable(offChainList);
           if (!isAvailable) {
+            hasOffChainAuth.current = true;
             onOffChainAuth(currentAddress).then((res: any) => {
               if (res.code === 0) {
                 loginDispatch({
@@ -203,6 +195,8 @@ const Welcome = () => {
                   },
                 });
               }
+            }).finally(() => {
+              hasOffChainAuth.current = false;
             });
           } else {
             loginDispatch({
@@ -213,6 +207,7 @@ const Welcome = () => {
             });
           }
         }
+        //
       }
     } else {
       if (switchNetworkDone) {
@@ -330,11 +325,9 @@ const Welcome = () => {
         position="relative"
         pl={110}
         bg={
-          isLargerThan1463
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 80% top 100px /1215px`
-            : isLargerThan1000
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/1215px`
-            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left 248px top 100px/972px`
+          isLargerThan1000
+            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left calc(50% + 150px) top calc(50% + 48px) /auto ${bgHeight}`
+            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover`
         }
       >
         <Image
@@ -344,7 +337,13 @@ const Welcome = () => {
           position="absolute"
           left={0}
         />
-        <Flex flexDirection="column" flex={1} maxW={1200} w='100%'>
+        <Flex
+          flexDirection="column"
+          flex={1}
+          maxW={1200}
+          w="100%"
+          justifyContent={isHigherThan600 ? 'center' : 'flex-start'}
+        >
           <Text
             as="h1"
             fontSize="56px"

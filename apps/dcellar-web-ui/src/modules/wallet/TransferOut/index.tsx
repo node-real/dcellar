@@ -2,13 +2,6 @@ import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useState } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
-import {
-  getAccount,
-  TransferOutTx,
-  ZERO_PUBKEY,
-  recoverPk,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
 import { isEmpty } from 'lodash-es';
 import { ethers } from 'ethers';
 import { useRouter } from 'next/router';
@@ -24,7 +17,6 @@ import {
   BSC_CHAIN_ID,
   GREENFIELD_CHAIN_ID,
   GREENFIELD_CHAIN_EXPLORER_URL,
-  GREENFIELD_CHAIN_RPC_URL,
 } from '@/base/env';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
@@ -32,7 +24,9 @@ import { Fee } from '../components/Fee';
 import { InternalRoutePaths } from '@/constants/links';
 import { TTransferOutFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
-import { GAClick, GAShow } from '@/components/common/GATracker';
+import { GAClick } from '@/components/common/GATracker';
+import { getClient } from '@/base/client';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const TransferOut = () => {
   const { chain } = useNetwork();
@@ -60,65 +54,31 @@ export const TransferOut = () => {
 
   const onSubmit = async (data: any) => {
     setStatus('pending');
-
-    const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
     try {
       onOpen();
-      const provider = await connector?.getProvider();
-      const account = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const { accountNumber, sequence } = account;
-      const bodyBytes = toutTx.getSimulateBytes({
+      const client = await getClient();
+      const transferOutTx = await client.crosschain.transferOut({
         from: address,
         to: address,
-        amount: ethers.utils.parseEther(data.amount).toString(),
-        denom: 'BNB',
-      });
-      const authInfoBytes = toutTx.getAuthInfoBytes({
-        // @ts-ignore
-        sequence,
-        denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
-      });
-      const simulateTxInfo = await toutTx.simulateTx(bodyBytes, authInfoBytes);
-      // const gasLimit = simulateTxInfo.gasInfo?.gasUsed.toNumber() as number;
-      const gasLimit = simulateTxInfo.gasInfo?.gasUsed.toNumber() as number;
-      const gasPrice = simulateTxInfo.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0';
-      const transferOutSignInfo = await toutTx.signTx(
-        {
-          from: address,
-          to: address,
-          gasLimit,
-          gasPrice,
-          amount: ethers.utils.parseEther(data.amount).toString(),
-          sequence: sequence + '',
-          accountNumber: accountNumber + '',
+        amount: {
           denom: 'BNB',
-        },
-        provider,
-      );
-
-      const pk = recoverPk({
-        signature: transferOutSignInfo.signature,
-        messageHash: transferOutSignInfo.messageHash,
-      });
-
-      const pubKey = makeCosmsPubKey(pk);
-
-      const transferOutInfo = {
-        sign: transferOutSignInfo.signature,
-        pubKey,
-        sequence: String(sequence),
-        from: address,
-        to: address,
-        gasLimit: gasLimit,
-        gasPrice,
-        amount: ethers.utils.parseEther(data.amount).toString(),
+          amount: ethers.utils.parseEther(data.amount).toString(),
+        }
+      })
+      const simulateInfo = await transferOutTx.simulate({
         denom: 'BNB',
-      };
-      const rawTxInfo = await toutTx.getRawTxInfo(transferOutInfo);
-      const toutTxRes = await toutTx.broadcastTx(rawTxInfo.bytes);
+      });
+      const toutTxRes = await transferOutTx.broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo.gasLimit),
+        gasPrice: simulateInfo.gasPrice,
+        payer: address,
+        granter: '',
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
+        },
+      });
       const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
         toutTxRes.transactionHash
       }`;

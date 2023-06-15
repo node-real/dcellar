@@ -1,7 +1,8 @@
-import { SHA256, enc } from 'crypto-js';
-globalThis.importScripts('/wasm/wasm_exec.js');
+import { sha256 } from 'hash-wasm';
+import { decodeBase64 } from '@/utils/base64';
 
-const { Base64 } = enc;
+const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
+globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -13,7 +14,10 @@ declare global {
 
 const init = async () => {
   const go = new Go();
-  const result = await WebAssembly.instantiateStreaming(fetch('/wasm/main.wasm'), go.importObject);
+  const result = await WebAssembly.instantiateStreaming(
+    fetch(`${assetPrefix}/wasm/main.wasm`),
+    go.importObject,
+  );
   if (result) {
     go.run(result.instance);
   }
@@ -36,13 +40,16 @@ const encodeRawSegment = async (
   const result = greenfieldSdk.encodeRawSegment(bytes, dataBlocks, parityBlocks);
   const shards = JSON.parse(result.result);
 
-  shards.forEach((shard: never, idx: number) => {
-    const words = Base64.parse(shard);
-    if (!results[idx]) {
-      results[idx] = [];
-    }
-    results[idx].unshift(SHA256(words).toString());
-  });
+  // Empty chunks should also return digest arrays of the corresponding length.
+  await Promise.all(
+    shards.map(async (shard: never, idx: number) => {
+      if (!results[idx]) {
+        results[idx] = [];
+      }
+      const hex = await sha256(decodeBase64(shard || ''));
+      results[idx].unshift(hex);
+    }),
+  );
 
   return [chunkId, results];
 };

@@ -1,47 +1,69 @@
-import { createContext, useState } from 'react';
+import { createContext, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
 import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { TSignAndUploadKeyOption, signAndUploadKey } from '@bnb-chain/greenfield-storage-js-sdk';
 import { setOffChainData } from '@/modules/off-chain-auth/utils';
 import { useSPs } from '@/hooks/useSPs';
 import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
+import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
+import { getClient } from '@/base/client';
+import { isEmpty } from 'lodash-es';
+import { IRawSPInfo } from '../buckets/type';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
+
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const [isAuthPending, setIsAuthPending] = useState(false);
   const {
     loginState: { address },
   } = useLogin();
   const { sps } = useSPs();
+  const authSps = useRef<IRawSPInfo[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
+
+  // For selected sps auth
+  const setOpenAuthModal = (spAddress?: string[]) => {
+    if (spAddress) {
+      const filterSps = sps.filter((item: any) => spAddress.includes(item.operatorAddress));
+      authSps.current = filterSps;
+    }
+    onOpen();
+  }
 
   const onOffChainAuth = async (address: string) => {
     setIsAuthPending(true);
     try {
       const provider = await connector?.getProvider();
       const domain = getDomain();
-      const pruneSps = sps.map((item: any) => ({
+
+      // If no sps selected, use all sps for welcome auth
+      const pruneSps = (isEmpty(authSps.current) ? sps : authSps.current).map((item: any) => ({
         address: item.operatorAddress,
         name: item.description.moniker,
         endpoint: item.endpoint,
       }));
-      const params: TSignAndUploadKeyOption = {
+
+      const configParam: IGenOffChainAuthKeyPairAndUpload = {
         address,
         chainId: GREENFIELD_CHAIN_ID,
         sps: pruneSps,
         domain,
         expirationMs: EXPIRATION_MS,
       };
-      const offChainData = await signAndUploadKey(params, provider);
-      setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
 
+      const client = await getClient();
+      const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(configParam, provider);
+      const { code, body: offChainData } = res;
+      if (code !== 0 || isEmpty(offChainData)) {
+        throw res;
+      }
+      setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
       setIsAuthPending(false);
       onClose();
 
@@ -63,7 +85,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         isAuthPending,
         onOffChainAuth,
         closeAuthModal: onClose,
-        setOpenAuthModal: onOpen,
+        setOpenAuthModal,
       }}
     >
       {children}

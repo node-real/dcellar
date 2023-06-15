@@ -41,15 +41,16 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
         <WagmiConfig client={wagmiClient}>
           <BnbPriceProvider>
             {/* <OffChainAuthProvider> */}
-          <Layout>
-            <SPProvider>
-              {/* TODO provider should locate up layout */}
-              <OffChainAuthProvider>
-              <PageProtect>
-                <Component {...pageProps} />
-                <GAPageView />
-              </PageProtect></OffChainAuthProvider>
-            </SPProvider>
+            <Layout>
+              <SPProvider>
+                {/* TODO provider should locate up layout */}
+                <OffChainAuthProvider>
+                  <PageProtect>
+                    <Component {...pageProps} />
+                    <GAPageView />
+                  </PageProtect>
+                </OffChainAuthProvider>
+              </SPProvider>
             </Layout>
           </BnbPriceProvider>
         </WagmiConfig>

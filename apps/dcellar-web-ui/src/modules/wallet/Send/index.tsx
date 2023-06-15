@@ -2,14 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
-import {
-  getAccount,
-  TransferTx,
-  TransferOutTx,
-  ZERO_PUBKEY,
-  recoverPk,
-  makeCosmsPubKey,
-} from '@bnb-chain/gnfd-js-sdk';
 import { ethers } from 'ethers';
 import { Box, Divider, useDisclosure } from '@totejs/uikit';
 
@@ -18,13 +10,15 @@ import { Head } from '../components/Head';
 import { Address } from '../components/Address';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
-import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useLogin } from '@/hooks/useLogin';
 import { StatusModal } from '../components/StatusModal';
 import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
 import { TWalletFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
+import { getClient } from '@/base/client';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export const Send = () => {
   const { chain } = useNetwork();
@@ -52,60 +46,32 @@ export const Send = () => {
     setStatus('pending');
     try {
       onOpen();
-      const tTx = new TransferTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const toutTx = new TransferOutTx(GREENFIELD_CHAIN_RPC_URL, String(chain?.id)!);
-      const provider = await connector?.getProvider();
-      const account = await getAccount(GREENFIELD_CHAIN_RPC_URL, address);
-      const { accountNumber, sequence } = account;
-      const bodyBytes = toutTx.getSimulateBytes({
-        from: address,
-        to: address,
-        amount: ethers.utils.parseEther(data.amount).toString(),
+      const client = await getClient();
+      const transferTx = await client.account.transfer({
+        fromAddress: address,
+        toAddress: data.address,
+        amount: [
+          {
+            denom: 'BNB',
+            amount: ethers.utils.parseEther(data.amount).toString(),
+          },
+        ],
+      });
+      const simulateInfo = await transferTx.simulate({
         denom: 'BNB',
       });
-      const authInfoBytes = toutTx.getAuthInfoBytes({
-        // @ts-ignore
-        sequence,
+      const toutTxRes = await transferTx.broadcast({
         denom: 'BNB',
-        gasLimit: 0,
-        gasPrice: '0',
-        pubKey: makeCosmsPubKey(ZERO_PUBKEY),
-      });
-      const simulateTxInfo = await toutTx.simulateTx(bodyBytes, authInfoBytes);
-      const gasLimit = simulateTxInfo.gasInfo?.gasUsed.toNumber() as number;
-      const gasPrice = simulateTxInfo.gasInfo?.minGasPrice.replaceAll('BNB', '') || '0';
-      const transferSignInfo = await tTx.signTx(
-        {
-          from: address,
-          to: data.address,
-          gasLimit,
-          gasPrice,
-          amount: ethers.utils.parseEther(data.amount).toString(),
-          sequence: sequence + '',
-          accountNumber: accountNumber + '',
-          denom: 'BNB',
+        gasLimit: Number(simulateInfo.gasLimit),
+        gasPrice: simulateInfo.gasPrice,
+        payer: address,
+        granter: '',
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
         },
-        provider,
-      );
-      const pk = recoverPk({
-        signature: transferSignInfo.signature,
-        messageHash: transferSignInfo.messageHash,
-      });
-      const pubKey = makeCosmsPubKey(pk);
-
-      const rawTxInfo = await tTx.getRawTxInfo({
-        sign: transferSignInfo.signature,
-        pubKey,
-        sequence: String(sequence),
-        from: address,
-        to: data.address,
-        gasLimit,
-        gasPrice,
-        amount: ethers.utils.parseEther(data.amount).toString(),
-        denom: 'BNB',
       });
 
-      const toutTxRes = await tTx.broadcastTx(rawTxInfo.bytes);
       if (toutTxRes.code !== 0) {
         throw toutTxRes;
       }
