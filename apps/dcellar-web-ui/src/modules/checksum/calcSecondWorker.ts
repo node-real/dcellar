@@ -60,10 +60,12 @@ const encodeRawSegment = async (
 };
 
 onmessage = async (e) => {
-  const { chunkId, buffer, dataBlocks, parityBlocks } = e.data;
+  const { chunkId, buffer, dataBlocks, parityBlocks, taskId } = e.data;
 
   const result = await encodeRawSegment(chunkId, buffer, dataBlocks, parityBlocks);
+
   postMessage({
     result,
+    taskId,
   });
 };
