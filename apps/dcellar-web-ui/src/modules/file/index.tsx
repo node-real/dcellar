@@ -109,6 +109,8 @@ const renderUploadButton = (
   );
 };
 
+let preSelectTime = Date.now();
+
 export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
@@ -298,10 +300,13 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     let hashResult;
     setFreeze(true);
     const start = performance.now();
+    let selectTime = (preSelectTime = Date.now());
     hashResult = await checksumWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
       console.info('HASH: ', performance.now() - start);
-      setFreeze(false);
     });
+    if (preSelectTime > selectTime) return;
+    setFreeze(false);
+
     const spOffChainData = await getSpOffChainData({
       address,
       spAddress: primarySpAddress,
@@ -485,6 +490,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       }
       onDetailModalOpen();
       const createObjectTx = await fetchCreateObjectApproval(uploadFile, fileName);
+      if (!createObjectTx) return;
       await getGasFeeAndSet(uploadFile, createObjectTx);
       await getLockFeeAndSet(uploadFile.size);
     }
