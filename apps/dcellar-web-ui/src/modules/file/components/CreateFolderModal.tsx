@@ -205,6 +205,8 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   };
 
   const onCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+
     const objectName = getPath(inputFolderName);
     setLoading(true);
     const CreateObjectTx = await fetchCreateFolderApproval(inputFolderName);
