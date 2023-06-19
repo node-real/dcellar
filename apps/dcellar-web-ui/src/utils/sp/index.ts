@@ -3,8 +3,7 @@ import { getClient } from '@/base/client';
 const getStorageProviders = async () => {
   const client = await getClient();
   const sps = await client.sp.getStorageProviders();
-
-  return sps;
+  return sps.filter((sp) => sp.endpoint.startsWith('https'));
 };
 
 const getBucketInfo = async (bucketName: string): Promise<any> => {
