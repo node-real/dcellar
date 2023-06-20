@@ -281,7 +281,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({address, spAddress: selectedSpRef.current.operatorAddress});
+        const spOffChainData = await getSpOffChainData({
+          address,
+          spAddress: selectedSpRef.current.operatorAddress,
+        });
         if (!checkSpOffChainDataAvailable(spOffChainData)) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
@@ -296,7 +299,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           .map((item: any) => item.operatorAddress);
         const spInfo = {
           endpoint: selectedSpRef.current.endpoint,
-          primarySpAddress:selectedSpRef.current.operatorAddress,
+          primarySpAddress: selectedSpRef.current.operatorAddress,
           sealAddress: selectedSpRef.current.sealAddress,
           secondarySpAddresses,
         };
@@ -322,6 +325,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           granter: '',
           signTypedDataCallback: async (addr: string, message: string) => {
             const provider = await connector?.getProvider();
+            console.log(message);
             return await signTypedDataV4(provider, addr, message);
           },
         });

@@ -89,11 +89,13 @@ const downloadWithProgress = async ({
   primarySp: IRawSPInfo;
   payloadSize: number;
   address: string;
-}
-) => {
+}) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
+    const { seedString } = await getSpOffChainData({
+      address,
+      spAddress: primarySp.operatorAddress,
+    });
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -292,7 +294,7 @@ const viewFileByAxiosResponse = (result: AxiosResponse) => {
     const { data, headers: resultHeaders } = result;
     const blob = new Blob([data], { type: resultHeaders['content-type'] });
     const fileURL = URL.createObjectURL(blob);
-    window.open(fileURL);
+    window.open(fileURL, '_blank');
   } catch (error) {
     console.error('view file error', error);
   }

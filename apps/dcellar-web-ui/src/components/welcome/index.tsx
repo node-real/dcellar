@@ -39,7 +39,15 @@ import { Footer } from '@/components/layout/Footer';
 
 const METAMASK_DOWNLOAD_URL = 'https://metamask.io/download/';
 const TRUST_WALLET_DOWNLOAD_URL = 'https://trustwallet.com/browser-extension';
-const Welcome = () => {
+
+// todo buttonOnly
+const Welcome = ({
+  buttonOnly = false,
+  ga = 'dc.welcome.main.connect_wa.click',
+}: {
+  buttonOnly?: boolean;
+  ga?: string;
+}) => {
   const isMounted = useIsMounted();
   const loginData = useLogin();
   const { loginState, loginDispatch } = loginData;
@@ -182,22 +190,24 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          const offChainList = getOffChainList({ address: currentAddress});
+          const offChainList = getOffChainList({ address: currentAddress });
           const isAvailable = checkOffChainDataAvailable(offChainList);
           if (!isAvailable) {
             hasOffChainAuth.current = true;
-            onOffChainAuth(currentAddress).then((res: any) => {
-              if (res.code === 0) {
-                loginDispatch({
-                  type: 'LOGIN',
-                  payload: {
-                    address: currentAddress,
-                  },
-                });
-              }
-            }).finally(() => {
-              hasOffChainAuth.current = false;
-            });
+            onOffChainAuth(currentAddress)
+              .then((res: any) => {
+                if (res.code === 0) {
+                  loginDispatch({
+                    type: 'LOGIN',
+                    payload: {
+                      address: currentAddress,
+                    },
+                  });
+                }
+              })
+              .finally(() => {
+                hasOffChainAuth.current = false;
+              });
           } else {
             loginDispatch({
               type: 'LOGIN',
@@ -242,7 +252,7 @@ const Welcome = () => {
         fontSize={18}
         onClick={onToggle}
         isLoading={loading}
-        gaClickName="dc.welcome.main.connect_wa.click"
+        gaClickName={ga}
       >
         Connect Wallet
       </DCButton>
@@ -316,61 +326,65 @@ const Welcome = () => {
           </Flex>
         </ModalBody>
       </DCModal>
-      <Flex
-        w="100%"
-        minH={'100vh'}
-        overflow="hidden"
-        flexDirection="column"
-        alignItems={'center'}
-        position="relative"
-        pl={110}
-        bg={
-          isLargerThan1000
-            ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left calc(50% + 150px) top calc(50% + 48px) /auto ${bgHeight}`
-            : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover`
-        }
-      >
-        <Image
-          src={`${assetPrefix}/images/logo_welcome.svg`}
-          alt="Storage app icon"
-          height={144}
-          position="absolute"
-          left={0}
-        />
+      {buttonOnly ? (
+        renderConnectWalletButton()
+      ) : (
         <Flex
-          flexDirection="column"
-          flex={1}
-          maxW={1200}
           w="100%"
-          justifyContent={isHigherThan600 ? 'center' : 'flex-start'}
+          minH={'100vh'}
+          overflow="hidden"
+          flexDirection="column"
+          alignItems={'center'}
+          position="relative"
+          pl={110}
+          bg={
+            isLargerThan1000
+              ? `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover, url(${assetPrefix}/images/welcome_bg_1.svg) no-repeat left calc(50% + 150px) top calc(50% + 48px) /auto ${bgHeight}`
+              : `url(${assetPrefix}/images/welcome_bg_gradient.svg) no-repeat right center/cover`
+          }
         >
-          <Text
-            as="h1"
-            fontSize="56px"
-            lineHeight="68px"
-            color="readable.normal"
-            fontWeight={700}
-            whiteSpace="nowrap"
-            mt={TitleGap}
+          <Image
+            src={`${assetPrefix}/images/logo_welcome.svg`}
+            alt="Storage app icon"
+            height={144}
+            position="absolute"
+            left={0}
+          />
+          <Flex
+            flexDirection="column"
+            flex={1}
+            maxW={1200}
+            w="100%"
+            justifyContent={isHigherThan600 ? 'center' : 'flex-start'}
           >
-            Welcome to DCellar
-          </Text>
-          <Text
-            fontSize="28px"
-            mt="36px"
-            lineHeight="34px"
-            color="readable.normal"
-            fontWeight={700}
-            whiteSpace="pre-wrap"
-          >
-            {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
-          </Text>
-          {renderConnectWalletButton()}
+            <Text
+              as="h1"
+              fontSize="56px"
+              lineHeight="68px"
+              color="readable.normal"
+              fontWeight={700}
+              whiteSpace="nowrap"
+              mt={TitleGap}
+            >
+              Welcome to DCellar
+            </Text>
+            <Text
+              fontSize="28px"
+              mt="36px"
+              lineHeight="34px"
+              color="readable.normal"
+              fontWeight={700}
+              whiteSpace="pre-wrap"
+            >
+              {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
+            </Text>
+            {renderConnectWalletButton()}
+          </Flex>
+          <Flex alignSelf="flex-end" w="100%" justifyContent="center">
+            <Footer />
+          </Flex>
         </Flex>
-        <Flex alignSelf="flex-end" w="100%" justifyContent="center">
-          <Footer />
-        </Flex>
-      </Flex>
+      )}
     </>
   );
 };

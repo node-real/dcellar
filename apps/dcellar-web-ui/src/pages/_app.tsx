@@ -21,6 +21,8 @@ import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
 import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { SPProvider } from '@/context/GlobalContext/SPProvider';
 import { ChecksumWorkerProvider } from '@/context/GlobalContext/ChecksumWorkerContext';
+import { useRouter } from 'next/router';
+import StandaloneLayout from '@/components/layout/StandaloneLayout';
 
 const wagmiClient = createClient({
   autoConnect: true,
@@ -33,8 +35,27 @@ interface NextAppProps extends AppProps {
   statusCode: number;
 }
 
+const STANDALONE_PAGES = ['/share'];
+
 function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
+  const { pathname } = useRouter();
+
+  if (STANDALONE_PAGES.includes(pathname))
+    return (
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig client={wagmiClient}>
+          <SPProvider>
+            <StandaloneLayout>
+              <OffChainAuthProvider>
+                <Component {...pageProps} />
+                <GAPageView />
+              </OffChainAuthProvider>
+            </StandaloneLayout>
+          </SPProvider>
+        </WagmiConfig>
+      </QueryClientProvider>
+    );
 
   return (
     <StatusCodeContext.Provider value={statusCode}>

@@ -19,9 +19,8 @@ export const OffChainAuthContext = createContext<any>({});
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const [isAuthPending, setIsAuthPending] = useState(false);
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginState } = useLogin();
+  const address = loginState?.address;
   const { sps } = useSPs();
   const authSps = useRef<IRawSPInfo[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -34,7 +33,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       authSps.current = filterSps;
     }
     onOpen();
-  }
+  };
 
   const onOffChainAuth = async (address: string) => {
     setIsAuthPending(true);

@@ -18,7 +18,7 @@ const Layout = ({ children, ...restProps }: ThemeProviderProps) => {
       <LoginContextProvider>
         <ChainBalanceContextProvider>
           {statusCode === 200 ? (
-            /* @ts-ignore */
+            /*@ts-ignore*/
             <LoginLayout disconnect={disconnect}>{children}</LoginLayout>
           ) : (
             <ErrorComponent statusCode={statusCode} />
