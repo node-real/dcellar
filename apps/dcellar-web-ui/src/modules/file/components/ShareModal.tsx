@@ -1,48 +1,40 @@
 import {
+  Heading,
+  Image,
+  ModalBody,
   ModalCloseButton,
   ModalFooter,
-  Button,
   Text,
-  Flex,
-  ModalBody,
-  Center,
   useClipboard,
-  Image,
 } from '@totejs/uikit';
 import React, { useEffect } from 'react';
-import { ColoredSuccessIcon, CopyIcon } from '@totejs/icons';
+import { last } from 'lodash-es';
 
 import { COPY_SUCCESS_ICON } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
+import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { AccessItem } from '@/modules/file/components/AccessItem';
+import { encodeObjectName } from '@/utils/string';
 
 interface modalProps {
-  title?: string;
   onClose: () => void;
   isOpen: boolean;
-  buttonText?: string;
-  description?: string;
-  buttonOnClick?: () => void;
-  shareLink?: string;
+  shareObject: IObjectProps['object_info'];
+  onAccessChange: (shareObject: IObjectProps['object_info'], access: string) => void;
 }
 
 export const ShareModal = (props: modalProps) => {
-  const {
-    title = 'Share File',
-    description = 'Share the link with your friends and start downloading directly.',
-    onClose,
-    isOpen,
-    buttonText,
-    buttonOnClick,
-    shareLink = '',
-  } = props;
-  const currentShareLink = shareLink.replaceAll('/download/', '/view/');
-  const { hasCopied, onCopy, setValue } = useClipboard(currentShareLink);
+  const { shareObject, onAccessChange, onClose, isOpen } = props;
+  const objectName = shareObject.object_name || '';
+  const title = last(objectName.split('/'));
+  const params = [shareObject.bucket_name, encodeObjectName(objectName)].join('/');
+  const { hasCopied, onCopy, setValue } = useClipboard('');
 
   useEffect(() => {
-    setValue(currentShareLink);
-  }, [setValue, currentShareLink]);
+    setValue(`${location.origin}/share?file=${encodeURIComponent(params)}`);
+  }, [setValue, params]);
 
   return (
     <>
@@ -50,95 +42,59 @@ export const ShareModal = (props: modalProps) => {
         isOpen={isOpen}
         onClose={onClose}
         w="568px"
-        gaShowName="dc.file.share_modal.0.show"
+        gaShowName="dc.file.share_m.0.show"
         gaClickCloseName="dc.file.share_modal.close.click"
       >
         <ModalCloseButton color="readable.tertiary" />
         <ModalBody fontWeight={600} fontSize={24} lineHeight="32px" mt={0}>
-          <Text
-            fontSize="24px"
+          <Heading
+            as="div"
+            fontSize={26}
             lineHeight={'36px'}
             fontWeight={600}
             align={'center'}
             color={'readable.normal'}
+            display="flex"
+            justifyContent="center"
+            mb={32}
           >
-            {title}
-          </Text>
-          <Text
-            fontSize="16px"
-            lineHeight={'20px'}
-            fontWeight={400}
-            marginTop="16px"
-            align={'center'}
-            color={'readable.secondary'}
-          >
-            {description}
-          </Text>
-          <Flex
-            w={'100%'}
-            h={'52px'}
-            bg={'bg.bottom'}
-            mt={'24px'}
-            borderRadius={'8px'}
-            overflow={'hidden'}
-            borderWidth={'1px'}
-            borderColor={'readable.border'}
-          >
-            <Flex flex={1} h={'52px'} overflowX={'auto'} alignItems={'center'} paddingX={'16px'}>
+            Share “
+            {
               <Text
-                fontSize={'16px'}
-                fontWeight={400}
-                overflowX={'auto'}
-                wordBreak={'break-all'}
-                whiteSpace={'nowrap'}
-                sx={{
-                  '::-webkit-scrollbar': {
-                    display: 'none',
-                  },
-                }}
+                fontWeight={600}
+                as="div"
+                flex={1}
+                maxW="max-Content"
+                whiteSpace="nowrap"
+                overflow="hidden"
+                textOverflow="ellipsis"
               >
-                {currentShareLink}
+                {title}
               </Text>
-            </Flex>
-            <GAClick name="dc.file.share_modal.copy_btn.click">
-              <Flex
-                bgColor="readable.brand6"
-                _hover={{ bg: '#2EC659' }}
-                h={'52px'}
-                w={'90px'}
-                alignItems="center"
-                justifyContent={'center'}
-                cursor="pointer"
-                onClick={() => {
-                  onCopy();
-                }}
-                fontSize={'14px'}
-                color={'readable.white'}
-              >
-                {hasCopied ? (
-                  <>
-                    <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />
-                    <Text fontWeight={500}>Copied</Text>
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon w="20px" mr={4} />
-                    <Text fontWeight={500}>Copy</Text>
-                  </>
-                )}
-              </Flex>
-            </GAClick>
-          </Flex>
+            }
+            ”
+          </Heading>
+          <AccessItem
+            value={shareObject.visibility as any}
+            onChange={(e) => onAccessChange(shareObject, e)}
+          />
         </ModalBody>
-        {buttonText && (
-          <ModalFooter>
-            (
-            <DCButton variant={'dcPrimary'} w="100%" onClick={buttonOnClick}>
-              {buttonText}
+        <ModalFooter>
+          <GAClick name="dc.file.share_m.copy_link.click">
+            <DCButton variant={'dcPrimary'} w="100%" onClick={onCopy}>
+              {hasCopied ? (
+                <>
+                  <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />
+                  <Text fontWeight={500}>Copied</Text>
+                </>
+              ) : (
+                <>
+                  <Text fontWeight={500}>Copy Link</Text>
+                </>
+              )}
             </DCButton>
-            )
-          </ModalFooter>
-        )}
+          </GAClick>
+        </ModalFooter>
       </DCModal>
     </>
   );

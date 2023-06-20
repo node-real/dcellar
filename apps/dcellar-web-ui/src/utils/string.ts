@@ -36,3 +36,7 @@ export const isAddress = (address = '') => {
 export const encodeObjectName = (obj: string) => {
   return obj.split('/').map(encodeURIComponent).join('/');
 };
+
+export const decodeObjectName = (obj: string) => {
+  return obj.split('/').map(decodeURIComponent).join('/');
+};

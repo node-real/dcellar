@@ -22,11 +22,12 @@ const renderAvatar = (size?: 'sm' | 'md') => {
     </Circle>
   );
 };
-export const Header = ({ disconnect }: { disconnect: any }) => {
+export const Header = ({ disconnect, logoutRedir }: { disconnect: any; logoutRedir?: string }) => {
   const loginData = useLogin();
   const { loginState, loginDispatch } = loginData;
   const { address } = loginState;
   const router = useRouter();
+
   const shortAddress = getShortenWalletAddress(address);
   const { address: walletAddress } = useAccount();
 
@@ -48,7 +49,7 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
       type: 'LOGOUT',
     });
     removeOffChainData(address, GREENFIELD_CHAIN_ID);
-    router.push('/');
+    router.push(logoutRedir ?? '/');
     disconnect();
   };
   useEffect(() => {
