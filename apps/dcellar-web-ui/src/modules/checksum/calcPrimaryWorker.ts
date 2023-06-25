@@ -6,10 +6,12 @@ const encodePrimary = async (chunkId: number, buffer: ArrayBuffer) => {
 };
 
 onmessage = async (e) => {
-  const { chunkId, buffer } = e.data;
+  const { chunkId, buffer, taskId } = e.data;
 
   const result = await encodePrimary(chunkId, buffer);
+
   postMessage({
     result,
+    taskId,
   });
 };

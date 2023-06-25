@@ -20,6 +20,11 @@ const init = async () => {
   );
   if (result) {
     go.run(result.instance);
+    // Ensure hash-wasm initial success,
+    // Otherwise, after the browser finishes loading the page,
+    // the user immediately uploads a large file,
+    // and hash-wasm has a certain probability of initialization failure due to memory problems in chrome.
+    await sha256('');
   }
 };
 
@@ -55,10 +60,12 @@ const encodeRawSegment = async (
 };
 
 onmessage = async (e) => {
-  const { chunkId, buffer, dataBlocks, parityBlocks } = e.data;
+  const { chunkId, buffer, dataBlocks, parityBlocks, taskId } = e.data;
 
   const result = await encodeRawSegment(chunkId, buffer, dataBlocks, parityBlocks);
+
   postMessage({
     result,
+    taskId,
   });
 };
