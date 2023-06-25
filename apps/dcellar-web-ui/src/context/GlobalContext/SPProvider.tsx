@@ -20,7 +20,7 @@ export const SPProvider: React.FC<any> = ({ children }) => {
   });
 
   const DefaultSp = useMemo(() => {
-    const finalSps = (data ?? []).filter((v: any) => v?.description?.moniker !== 'QATest');
+    const finalSps = (data ?? []).filter((v: any) => v?.description?.moniker !== 'QATest' && v?.description?.moniker !== 'sp8');
     const randomIndex = Math.floor(Math.random() * finalSps.length);
     return {
       isLoading: isLoading,
