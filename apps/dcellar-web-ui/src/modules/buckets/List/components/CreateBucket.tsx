@@ -242,7 +242,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       Object.values(types).length > 0 ? setError('bucketName', { types }) : clearErrors();
       setValidateNameAndGas(result);
     }
-  }, 500);
+  }, 1000);
 
   const checkGasFee = useCallback(
     (value: string) => {
