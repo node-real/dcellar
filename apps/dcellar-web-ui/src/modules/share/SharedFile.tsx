@@ -138,7 +138,13 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           </DCButton>
           <DCButton
             iconSpacing={6}
-            leftIcon={action === 'download' ? <Loading iconSize={24} stroke="#fff" /> : <></>}
+            leftIcon={
+              action === 'download' ? (
+                <Loading iconSize={24} strokeWidth={2} stroke="#fff" />
+              ) : (
+                <></>
+              )
+            }
             w={188}
             h={48}
             variant="dcPrimary"
