@@ -30,7 +30,7 @@ import { CreatingBucket } from './CreatingBucket';
 import { parseError } from '../../utils/parseError';
 import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';

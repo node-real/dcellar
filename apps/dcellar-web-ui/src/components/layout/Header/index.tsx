@@ -1,17 +1,15 @@
 import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount } from 'wagmi';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
-import { InternalRoutePaths } from '@/constants/links';
+import { assetPrefix } from '@/base/env';
+import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -22,14 +20,13 @@ const renderAvatar = (size?: 'sm' | 'md') => {
     </Circle>
   );
 };
-export const Header = ({ disconnect, logoutRedir }: { disconnect: any; logoutRedir?: string }) => {
-  const loginData = useLogin();
-  const { loginState, loginDispatch } = loginData;
-  const { address } = loginState;
-  const router = useRouter();
 
+export const Header = () => {
+  const { loginState, logout } = useLogin();
+  const { address } = loginState;
+
+  const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
-  const { address: walletAddress } = useAccount();
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
@@ -44,19 +41,6 @@ export const Header = ({ disconnect, logoutRedir }: { disconnect: any; logoutRed
     },
   });
 
-  const logout = () => {
-    loginDispatch({
-      type: 'LOGOUT',
-    });
-    removeOffChainData(address, GREENFIELD_CHAIN_ID);
-    router.push(logoutRedir ?? '/');
-    disconnect();
-  };
-  useEffect(() => {
-    if (!walletAddress || walletAddress !== address) {
-      logout();
-    }
-  }, [walletAddress]);
   return (
     <>
       <Flex
@@ -119,7 +103,7 @@ export const Header = ({ disconnect, logoutRedir }: { disconnect: any; logoutRed
           <GAClick name="dc.main.account.transferout.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               _hover={{ bg: 'readable.secondary' }}
               borderRadius="4px"
@@ -139,7 +123,7 @@ export const Header = ({ disconnect, logoutRedir }: { disconnect: any; logoutRed
           <GAClick name="dc.main.account.send.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               w={'91px'}
               padding={0}
