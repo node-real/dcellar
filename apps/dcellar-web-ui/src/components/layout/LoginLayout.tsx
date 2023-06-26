@@ -10,7 +10,7 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { SEOHead } from './SEOHead';
 import { InternalRoutePaths } from '@/constants/links';
 
-const IgnoreFooterPaths = ['/buckets','/'];
+const IgnoreFooterPaths = ['/buckets', '/'];
 
 export const LoginLayout = ({
   children,
@@ -29,6 +29,7 @@ export const LoginLayout = ({
     () => !IgnoreFooterPaths.some((item) => router.pathname.includes(item)),
     [router.pathname],
   );
+
   if (!isMounted) return <></>;
   // If user hasn't logged in, no need to render the sidebar layout.
   if (!address) {

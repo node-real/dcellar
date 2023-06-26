@@ -17,7 +17,7 @@ import {
   saveFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { CopyText } from '@/components/common/CopyText';
-import { encodeObjectName, formatAddress, trimAddress } from '@/utils/string';
+import { encodeObjectName, formatAddress, trimAddress, formatId } from '@/utils/string';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useMemo, useState } from 'react';
@@ -45,7 +45,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   folderName: string;
-  fileInfo?: { name: string; size: number };
+  fileInfo?: { name: string; size: number; id: string };
   createdDate?: number;
   primarySp: IRawSPInfo;
   hash?: string;
@@ -92,7 +92,7 @@ const renderPropRow = (key: string, value: React.ReactNode) => {
   );
 };
 
-const renderAddressLink = (key: string, value: string, gaClickName?: string) => {
+const renderAddressLink = (key: string, value: string, gaClickName?: string, type = 'account') => {
   return (
     <Flex alignItems="center" justifyContent="space-between" h={25}>
       <Text
@@ -115,13 +115,13 @@ const renderAddressLink = (key: string, value: string, gaClickName?: string) => 
         color={'readable.normal'}
         textAlign={'right'}
       >
-        {renderAddressWithLink(value, gaClickName)}
+        {renderAddressWithLink(value, type, gaClickName)}
       </Text>
     </Flex>
   );
 };
 
-const renderAddressWithLink = (address: string, gaClickName?: string) => {
+const renderAddressWithLink = (address: string, type: string, gaClickName?: string) => {
   return (
     <CopyText value={formatAddress(address)} justifyContent="flex-end" gaClickName={gaClickName}>
       <Link
@@ -132,7 +132,7 @@ const renderAddressWithLink = (address: string, gaClickName?: string) => {
         _hover={{
           color: '#1184EE',
         }}
-        href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`}
+        href={`${GREENFIELD_CHAIN_EXPLORER_URL}/${type}/${address}`}
         fontSize={'14px'}
         lineHeight={'17px'}
         fontWeight={500}
@@ -230,7 +230,7 @@ export const FileInfoModal = (props: modalProps) => {
     onClose,
     isOpen,
     bucketName,
-    fileInfo = { name: '', size: '' },
+    fileInfo = { name: '', size: '', id: '' },
     createdDate = 0,
     primarySp,
     shareLink,
@@ -292,6 +292,7 @@ export const FileInfoModal = (props: modalProps) => {
                 color={'readable.tertiary'}
                 mb="12px"
                 w={'100%'}
+                as="div"
               >
                 {formatBytes(size)}
               </Text>
@@ -312,6 +313,12 @@ export const FileInfoModal = (props: modalProps) => {
         <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
           {renderPropRow('Date uploaded', formatFullTime(createdDate * 1000))}
           {renderAddressLink(
+            'Object ID',
+            formatId(Number(fileInfo.id)),
+            'dc.file.f_detail_pop.file',
+            'object',
+          )}
+          {renderAddressLink(
             'Primary SP address',
             primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_spadd.click',
@@ -321,10 +328,10 @@ export const FileInfoModal = (props: modalProps) => {
             primarySp.operatorAddress,
             'dc.file.f_detail_pop.copy_seal.click',
           )}
-          {renderPropRow(
+          {/* {renderPropRow(
             'Object hash',
             renderCopyAddress(hash, 'dc.file.f_detail_pop.copy_hash.click'),
-          )}
+          )} */}
           {visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ &&
             renderPropRow(
               'Universal link',

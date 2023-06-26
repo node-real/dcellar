@@ -36,3 +36,9 @@ export const isAddress = (address = '') => {
 export const encodeObjectName = (obj: string) => {
   return obj.split('/').map(encodeURIComponent).join('/');
 };
+
+export const formatId = (id: number) => {
+  const hex = id.toString(16).replace('0x', '');
+  const value = `0x${hex.padStart(64, '0')}`;
+  return value;
+};

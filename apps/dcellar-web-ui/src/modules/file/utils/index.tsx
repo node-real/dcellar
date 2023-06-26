@@ -89,11 +89,13 @@ const downloadWithProgress = async ({
   primarySp: IRawSPInfo;
   payloadSize: number;
   address: string;
-}
-) => {
+}) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
+    const { seedString } = await getSpOffChainData({
+      address,
+      spAddress: primarySp.operatorAddress,
+    });
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
@@ -186,6 +188,68 @@ const contentTypeToExtension = (contentType = '', fileName?: string) => {
         return fileExtension ? fileExtension : contentType;
       }
       return contentType;
+  }
+};
+const contentIconTypeToExtension = (fileName: string) => {
+  if (fileName?.endsWith('/')) return 'FOLDER';
+  const type = getFileExtension(fileName)?.toLocaleLowerCase();
+
+  switch (type) {
+    case 'doc':
+    case 'docx':
+    case 'odt':
+      return 'DOC';
+    case 'xls':
+    case 'xlsx':
+    case 'csv':
+    case 'gsheet':
+    case 'numbers':
+    case 'ods':
+      return 'SHEET';
+    case 'pptx':
+    case 'ppsx':
+    case 'odp':
+      return 'SLIDE';
+    case 'pdf':
+      return 'PDF';
+    case 'jpeg':
+    case 'jpg':
+    case 'png':
+    case 'gif':
+    case 'bmp':
+    case 'tiff':
+      return 'IMAGE';
+    case 'mp3':
+    case 'wav':
+    case 'aac':
+    case 'flac':
+    case 'wma':
+    case 'alac':
+    case 'aiff':
+      return 'MUSIC';
+    case 'avi':
+    case 'mp4':
+    case 'mov':
+    case 'mkv':
+    case 'wmv':
+    case 'webm':
+      return 'VIDEO';
+    case 'c':
+    case 'cpp':
+    case 'py':
+    case 'java':
+    case 'js':
+    case 'html':
+    case 'css':
+    case 'php':
+    case 'rb':
+      return 'CODE';
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return 'ZIP';
+    default:
+      return 'OTHERS';
   }
 };
 
@@ -334,6 +398,7 @@ export {
   renderUsd,
   renderBnb,
   contentTypeToExtension,
+  contentIconTypeToExtension,
   renderBalanceNumber,
   renderInsufficientBalance,
   directlyDownload,

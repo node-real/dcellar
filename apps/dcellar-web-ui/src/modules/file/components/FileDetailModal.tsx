@@ -327,7 +327,7 @@ export const FileDetailModal = (props: modalProps) => {
       setLoading(true);
       // close the file detail modal
       onClose();
-      // set file status modal and open it
+      // set file status modal and open itx
       setStatusModalIcon(FILE_UPLOAD_URL);
       setStatusModalTitle(FILE_TITLE_UPLOADING);
       setStatusModalErrorText('');

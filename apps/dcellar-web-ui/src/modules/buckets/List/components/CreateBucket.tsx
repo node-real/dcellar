@@ -155,6 +155,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const sp = selectedSpRef.current;
       const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
       const { seedString } = spOffChainData;
+
       if (!checkSpOffChainDataAvailable(spOffChainData)) {
         onClose();
         setOpenAuthModal([sp.operatorAddress]);
@@ -183,6 +184,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
       });
+      console.log(simulateInfo, 'simulateInfo');
+
       const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {
         setValidateNameAndGas(validateNameAndGas);
@@ -281,7 +284,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({address, spAddress: selectedSpRef.current.operatorAddress});
+        const spOffChainData = await getSpOffChainData({
+          address,
+          spAddress: selectedSpRef.current.operatorAddress,
+        });
         if (!checkSpOffChainDataAvailable(spOffChainData)) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
@@ -296,7 +302,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           .map((item: any) => item.operatorAddress);
         const spInfo = {
           endpoint: selectedSpRef.current.endpoint,
-          primarySpAddress:selectedSpRef.current.operatorAddress,
+          primarySpAddress: selectedSpRef.current.operatorAddress,
           sealAddress: selectedSpRef.current.sealAddress,
           secondarySpAddresses,
         };

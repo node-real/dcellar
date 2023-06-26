@@ -17,6 +17,7 @@ import { formatFullTime, getMillisecond } from '@/utils/time';
 import { DCModal } from '@/components/common/DCModal';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { formatBytes } from '@/modules/file/utils';
+import { formatId } from '@/utils/string';
 
 export const Label = ({ children }: any) => (
   <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -31,8 +32,17 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
       {
         canCopy: false,
         label: 'Date created',
-        value:  formatFullTime(create_at) || new Date(),
+        value: formatFullTime(create_at) || new Date(),
         display: formatFullTime(create_at),
+        href: '',
+      },
+      {
+        canCopy: true,
+        label: 'Bucket ID',
+        value: formatId(rowData.originalData.bucket_info.id || ''),
+        display: formatAddress(formatId(rowData.originalData.bucket_info.id || '')),
+        gaClickName: 'dc.bucket.b_detail_pop.copy_bkid.click',
+        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/bucket`,
       },
       {
         canCopy: true,
@@ -40,13 +50,15 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
         value: rowData.originalData.bucket_info.primary_sp_address || '',
         display: formatAddress(rowData.originalData.bucket_info.primary_sp_address || ''),
         gaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
+        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
       },
       {
         canCopy: true,
-        label: 'Payment account',
+        label: 'Payment address',
         value: rowData.originalData.bucket_info.payment_address || '',
         display: formatAddress(rowData.originalData.bucket_info.payment_address || ''),
         gaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
+        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
       },
     ];
 
@@ -66,7 +78,12 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
             >
               <Label>{item.label}</Label>
               <Flex>
-                {item.label === 'Primary SP address' && (
+                {item.label === 'Date created' && (
+                  <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
+                    {item.display}
+                  </Text>
+                )}
+                {item.label !== 'Date created' && (
                   <Link
                     target="_blank"
                     color="#1184EE"
@@ -75,18 +92,14 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                     _hover={{
                       color: '#1184EE',
                     }}
-                    href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.value}`}
+                    href={`${item.href}/${item.value}`}
                     fontSize={'14px'}
                     fontWeight={500}
                   >
                     {item.display}
                   </Link>
                 )}
-                {item.label !== 'Primary SP address' && (
-                  <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
-                    {item.display}
-                  </Text>
-                )}
+
                 {item.canCopy && <CopyText value={item.value} gaClickName={item.gaClickName} />}
               </Flex>
             </Flex>

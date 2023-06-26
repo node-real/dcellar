@@ -10,6 +10,8 @@ import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
 import { Logo } from '../Logo';
 import { isActiveUrl } from '@/utils/isActiveUrl';
 import { GAClick } from '@/components/common/GATracker';
+import { DcellarDoc, FAQ } from '@/constants/links';
+import { DocIcon, HelpIcon } from '@totejs/icons';
 
 const MENU_LIST = [
   {
@@ -41,7 +43,8 @@ export const Nav = () => {
   };
 
   return (
-    <Box
+    <Flex
+      direction="column"
       w="269px"
       borderRight={'1px solid #E6E8EA;'}
       backgroundColor="bg.middle"
@@ -115,6 +118,24 @@ export const Nav = () => {
             </GAClick>
           ))}
       </Box>
-    </Box>
+      <Box m={'24px'} borderTop="1px solid #E6E8EA" mt="auto">
+        <GAClick name="dc.main.nav.doc.click">
+          <Link href={DcellarDoc}>
+            <Flex fontWeight={500} fontSize={16} padding={8} mt={16}>
+              <DocIcon mr={12} />
+              Document
+            </Flex>
+          </Link>
+        </GAClick>
+        <GAClick name="dc.main.nav.faq.click">
+          <Link href={FAQ}>
+            <Flex fontWeight={500} fontSize={16} padding={8} mt={16}>
+              <HelpIcon mr={12} />
+              FAQ
+            </Flex>
+          </Link>
+        </GAClick>
+      </Box>
+    </Flex>
   );
 };
