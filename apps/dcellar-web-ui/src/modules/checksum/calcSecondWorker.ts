@@ -1,6 +1,8 @@
 import { sha256 } from 'hash-wasm';
 import { decodeBase64 } from '@/utils/base64';
-globalThis.importScripts('/wasm/wasm_exec.js');
+
+const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
+globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -12,9 +14,17 @@ declare global {
 
 const init = async () => {
   const go = new Go();
-  const result = await WebAssembly.instantiateStreaming(fetch('/wasm/main.wasm'), go.importObject);
+  const result = await WebAssembly.instantiateStreaming(
+    fetch(`${assetPrefix}/wasm/main.wasm`),
+    go.importObject,
+  );
   if (result) {
     go.run(result.instance);
+    // Ensure hash-wasm initial success,
+    // Otherwise, after the browser finishes loading the page,
+    // the user immediately uploads a large file,
+    // and hash-wasm has a certain probability of initialization failure due to memory problems in chrome.
+    await sha256('');
   }
 };
 
@@ -50,10 +60,12 @@ const encodeRawSegment = async (
 };
 
 onmessage = async (e) => {
-  const { chunkId, buffer, dataBlocks, parityBlocks } = e.data;
+  const { chunkId, buffer, dataBlocks, parityBlocks, taskId } = e.data;
 
   const result = await encodeRawSegment(chunkId, buffer, dataBlocks, parityBlocks);
+
   postMessage({
     result,
+    taskId,
   });
 };

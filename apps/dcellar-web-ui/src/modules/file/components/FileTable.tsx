@@ -77,7 +77,6 @@ import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
 import { ChainVisibilityEnum } from '../type';
-import { VisibilityToChain } from '../utils/visibility';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {

@@ -1,7 +1,5 @@
 import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import * as Comlink from 'comlink';
-
+import React, { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
@@ -23,7 +21,6 @@ import { getBucketInfo, getSpInfo } from '@/utils/sp';
 import { DuplicateNameModal } from '@/modules/file/components/DuplicateNameModal';
 import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
-import { WorkerApi } from '../checksum/checksumWorkerV2';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
@@ -44,7 +41,7 @@ import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { IRawSPInfo } from '../buckets/type';
 import { convertObjectInfo } from './utils/convertObjectInfo';
-import { sha256 } from 'hash-wasm';
+import { ChecksumWorkerContext } from '@/context/GlobalContext/ChecksumWorkerContext';
 
 interface pageProps {
   bucketName: string;
@@ -112,6 +109,8 @@ const renderUploadButton = (
   );
 };
 
+let preSelectTime = Date.now();
+
 export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
@@ -137,8 +136,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [isInitReady, setIsInitReady] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const greenfieldRef = useRef<Worker>();
-  const comlinkWorkerRef = useRef<Worker>();
-  const comlinkWorkerApiRef = useRef<Comlink.Remote<WorkerApi>>();
+  const checksumWorkerApiRef = useContext(ChecksumWorkerContext);
   const router = useRouter();
   const { sps } = useSPs();
   const { setOpenAuthModal } = useOffChainAuth();
@@ -230,19 +228,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       setIsCurrentUser(false);
     }
   };
-
-  const createCheckSumWebWorker = () => {
-    comlinkWorkerRef.current = new Worker(
-      new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url),
-      { type: 'module' },
-    );
-    comlinkWorkerApiRef.current = Comlink.wrap<WorkerApi>(comlinkWorkerRef.current);
-
-    return () => {
-      comlinkWorkerRef.current?.terminate();
-    };
-  };
-
   // only get list when init
   useEffect(() => {
     if (bucketName && !isEmpty(sps)) {
@@ -261,26 +246,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       setIsEmptyData(false);
     }
   }, [listObjects.length]);
-
-  useEffect(() => {
-    return () => {
-      comlinkWorkerRef.current?.terminate();
-    };
-  }, []);
-  // monitor route change to get new list info
-  // useEffect(() => {
-  //   function handleRouteChange() {
-  //     router.events.on('routeChangeComplete', () => {
-  //       if (bucketName) {
-  //         getGatewayParams();
-  //       }
-  //     });
-  //   }
-  //   handleRouteChange();
-  //   return () => {
-  //     router.events.off('routeChangeComplete', () => {});
-  //   };
-  // }, [router.events]);
 
   const renderCreteFolderButton = (
     isCurrentUser: boolean,
@@ -334,12 +299,14 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     const objectName = newFileName ? newFileName : uploadFile.name;
     let hashResult;
     setFreeze(true);
-    const terminate = createCheckSumWebWorker();
     const start = performance.now();
-    hashResult = await comlinkWorkerApiRef.current?.generateCheckSumV2(uploadFile);
-    console.info('HASH: ', performance.now() - start);
-    terminate();
+    let selectTime = (preSelectTime = Date.now());
+    hashResult = await checksumWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
+      console.info('HASH: ', performance.now() - start);
+    });
+    if (preSelectTime > selectTime) return;
     setFreeze(false);
+
     const spOffChainData = await getSpOffChainData({
       address,
       spAddress: primarySpAddress,
@@ -523,6 +490,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       }
       onDetailModalOpen();
       const createObjectTx = await fetchCreateObjectApproval(uploadFile, fileName);
+      if (!createObjectTx) return;
       await getGasFeeAndSet(uploadFile, createObjectTx);
       await getLockFeeAndSet(uploadFile.size);
     }
@@ -571,7 +539,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       <Flex alignItems="center" w="100%" justifyContent="space-between" mb={'12px'}>
         <Tooltip
           content={title}
-          placement={'bottom-start'}
+          placement={'bottom-end'}
           visibility={title.length > 40 ? 'visible' : 'hidden'}
         >
           <Text

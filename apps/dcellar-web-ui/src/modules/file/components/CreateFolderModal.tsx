@@ -18,6 +18,7 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { useLogin } from '@/hooks/useLogin';
 import {
   BUTTON_GOT_IT,
+  DUPLICATE_OBJECT_NAME,
   FILE_FAILED_URL,
   FILE_STATUS_UPLOADING,
   FOLDER_CREATE_FAILED,
@@ -103,6 +104,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const [inputFolderName, setInputFolderName] = useState('');
   const [gasFee, setGasFee] = useState('-1');
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [usedNames, setUsedNames] = useState<string[]>([]);
 
   const getPath = (name: string) => {
     return parentFolderName && parentFolderName.length > 0
@@ -149,7 +151,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
 
   const broadcastCreateTx = async (createTx: any) => {
     const simulateInfo = await createTx.simulate({ denom: 'BNB' });
-    const signTypeDataCallback = async (addr: string, message: string) => {
+    const signTypedDataCallback = async (addr: string, message: string) => {
       const provider = await connector?.getProvider();
       return signTypedDataV4(provider, addr, message);
     };
@@ -159,7 +161,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
         gasLimit: Number(simulateInfo?.gasLimit),
         gasPrice: simulateInfo?.gasPrice || '5000000000',
         payer: address,
-        signTypeDataCallback,
+        signTypedDataCallback,
       })
       .catch((error: any) => {
         const { code = '' } = error;
@@ -203,6 +205,8 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   };
 
   const onCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+
     const objectName = getPath(inputFolderName);
     setLoading(true);
     const CreateObjectTx = await fetchCreateFolderApproval(inputFolderName);
@@ -233,7 +237,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
-      errors.push('Folder name is required');
+      errors.push('Please enter the folder name.');
       setFormErrors(errors);
       return false;
     }
@@ -241,7 +245,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       errors.push('Must be between 1 to 70 characters long.');
     }
     if (value.includes('/')) {
-      errors.push(`Folder name can\'t contain "/"`);
+      errors.push('Cannot consist of slash(/).');
     }
     setFormErrors(errors);
     return !errors.length;
@@ -272,6 +276,9 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
       ) {
         setGasFee('-1');
         setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+      } else if (error?.message.includes('Object already exists')) {
+        setFormErrors([DUPLICATE_OBJECT_NAME]);
+        setUsedNames((names) => [...names, folderName]);
       } else {
         setFormErrors([UNKNOWN_ERROR]);
       }
@@ -282,10 +289,16 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     return createObjectTx;
   };
 
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
+
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
-    validateFolderName(folderName);
+    if (usedNames.includes(folderName)) {
+      setFormErrors([DUPLICATE_OBJECT_NAME]);
+      return;
+    }
+    if (!lackGasFee) validateFolderName(folderName);
   };
 
   useEffect(() => {
@@ -307,6 +320,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setInputFolderName('');
     setLoading(false);
     setGasFee('-1');
+    setUsedNames([]);
     // eslint-disable-next-line
   }, [isOpen]);
 
@@ -339,13 +353,13 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
             onChange={onFolderNameChange}
             tips={{
               title: 'Naming Rules',
-              rules: ['Must be between 1 and 75 characters long.', 'Can\'t contain slash("/")'],
+              rules: ['Must be between 1 and 70 characters long.', 'Cannot consist of slash(/).'],
             }}
           />
           {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
         </FormControl>
         <GasFeeItem gasFee={gasFee} />
-        {formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR) && (
+        {lackGasFee && (
           <Flex w="100%" justifyContent="space-between" mt={8}>
             <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
               <GAShow name={'dc.file.create_folder_m.transferin.show'}>

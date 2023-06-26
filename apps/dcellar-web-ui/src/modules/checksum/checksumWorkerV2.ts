@@ -2,6 +2,7 @@ import { Buffer } from 'buffer';
 import * as Comlink from 'comlink';
 import { sha256 } from 'hash-wasm';
 import { encodeBase64 } from '@/utils/base64';
+import { values } from 'lodash-es';
 
 export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;
@@ -39,11 +40,12 @@ const _initPrimaryWorkers = ({ consumers }: { consumers: { [k: number]: any } })
   });
   workers.forEach((it) => {
     it.onmessage = (e: MessageEvent) => {
-      const { result } = e.data;
+      const { result, taskId } = e.data;
       const id = result[0];
-      const { resolve, data } = consumers[id];
+      if (!consumers[id]) return;
+      const { resolve, data, taskId: _taskId } = consumers[id];
+      if (taskId !== _taskId) return;
       data[result[0]] = result[1];
-
       resolve();
     };
   });
@@ -56,11 +58,12 @@ const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) 
   });
   workers.forEach((it) => {
     it.onmessage = (e: MessageEvent) => {
-      const { result } = e.data;
+      const { result, taskId } = e.data;
       const id = result[0];
-      const { resolve, data } = consumers[id];
+      if (!consumers[id]) return;
+      const { resolve, data, taskId: _taskId } = consumers[id];
+      if (taskId !== _taskId) return;
       data[result[0]] = result[1];
-
       resolve();
     };
   });
@@ -68,22 +71,30 @@ const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) 
   return workers;
 };
 
+// js vm instance memory will not release immediately. try reuse worker thread.
+let primaryWorkers: any[] = [];
+let secondWorkers: any[] = [];
+
+const primaryWorkerConsumers: { [k: number]: any } = {};
+primaryWorkers = _initPrimaryWorkers({
+  consumers: primaryWorkerConsumers,
+});
+
+const secondWorkerConsumers: { [k: number]: any } = {};
+secondWorkers = _initSecondWorkers({
+  consumers: secondWorkerConsumers,
+});
+
 export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
   if (!file) return;
-  let primaryWorkers: any[] = [];
-  let secondWorkers: any[] = [];
+
+  const taskId = Date.now();
   let checkSumRes: THashResult;
+
+  values(primaryWorkerConsumers).forEach((r: any) => r.resolve());
+  values(secondWorkerConsumers).forEach((r: any) => r.resolve());
+
   try {
-    const primaryWorkerConsumers: { [k: number]: any } = {};
-    primaryWorkers = _initPrimaryWorkers({
-      consumers: primaryWorkerConsumers,
-    });
-
-    const secondWorkerConsumers: { [k: number]: any } = {};
-    secondWorkers = _initSecondWorkers({
-      consumers: secondWorkerConsumers,
-    });
-
     const fileChunks = _createFileChunks(file);
     const secondResults: any[] = [];
     const primaryResults: any[] = [];
@@ -95,10 +106,11 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
         primaryWorkerConsumers[chunkId] = {
           resolve,
           data: primaryResults,
+          taskId,
         };
 
         const workerIdx = chunkId % WORKER_POOL_SIZE;
-        primaryWorkers[workerIdx].postMessage({ chunkId, buffer });
+        primaryWorkers[workerIdx].postMessage({ chunkId, buffer, taskId });
       });
 
       // shards
@@ -106,10 +118,11 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
         secondWorkerConsumers[chunkId] = {
           resolve,
           data: secondResults,
+          taskId,
         };
 
         const workerIdx = chunkId % WORKER_POOL_SIZE;
-        secondWorkers[workerIdx].postMessage({ chunkId, buffer, dataBlocks, parityBlocks });
+        secondWorkers[workerIdx].postMessage({ chunkId, buffer, dataBlocks, parityBlocks, taskId });
       });
 
       return Promise.all([shardsPromise, primaryPromise]);
@@ -139,13 +152,8 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
       contentLength: file.size,
       expectCheckSums: value,
     };
-
-    secondWorkers.forEach((it) => it.terminate());
-    primaryWorkers.forEach((it) => it.terminate());
   } catch (e) {
     console.log('check sum error', e);
-    secondWorkers.forEach((it) => it?.terminate());
-    primaryWorkers.forEach((it) => it?.terminate());
   }
 
   return checkSumRes;

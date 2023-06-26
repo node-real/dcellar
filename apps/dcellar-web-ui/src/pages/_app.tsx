@@ -18,6 +18,7 @@ import { theme } from '@/base/theme';
 import { LoginContextProvider } from '@/context/LoginContext/provider';
 import ChainBalanceContextProvider from '@/context/GlobalContext/BalanceContext';
 import { SEOHead } from '@/components/common/SEOHead';
+import { ChecksumWorkerProvider } from '@/context/GlobalContext/ChecksumWorkerContext';
 
 interface NextAppProps extends AppProps {
   statusCode: number;
@@ -37,7 +38,8 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
                 <ChainBalanceContextProvider>
                   <ThemeProvider theme={theme}>
                     <Layout>
-                      <SPProvider>
+                    <SPProvider>
+                      <ChecksumWorkerProvider>
                         {/* TODO provider should locate up layout */}
                         <OffChainAuthProvider>
                           <PageProtect>
@@ -45,7 +47,8 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
                             <GAPageView />
                           </PageProtect>
                         </OffChainAuthProvider>
-                      </SPProvider>
+                      </ChecksumWorkerProvider>
+                    </SPProvider>
                     </Layout>
                   </ThemeProvider>
                 </ChainBalanceContextProvider>
