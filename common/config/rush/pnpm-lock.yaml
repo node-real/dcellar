@@ -27,7 +27,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.41.9
+      '@totejs/uikit': ~2.44.5
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -66,7 +66,7 @@ importers:
       '@tanstack/react-table': 8.9.2_react-dom@18.2.0+react@18.2.0
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.13.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.41.9_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.44.5_aa3274991927adc2766d9259998fdd18
       axios: 1.4.0
       axios-retry: 3.5.0
       bignumber.js: 9.1.1
@@ -3543,21 +3543,6 @@ packages:
       - typescript
     dev: true
 
-  /@totejs/icons/2.12.0_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-Ewwu+6rAY0SGAqikVOQ6pJTqYkcC1uZGweXWXcmEKbP3QNwYVSGBoNiJimTBhW01WpJ4dq3CJNEvymXaMfhn3w==}
-    peerDependencies:
-      '@emotion/react': '>=11'
-      '@emotion/styled': '>=11'
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-    dependencies:
-      '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
-      '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
-      '@totejs/styled-system': 2.11.0_react-dom@18.2.0+react@18.2.0
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
   /@totejs/icons/2.13.0_aa3274991927adc2766d9259998fdd18:
     resolution: {integrity: sha512-sqLSQMEexuCfjOvHoCeKHbNfDvXs27/dYmYGSAlux09xSdlvhGNFeHzLO21Mg01U0IAO2yOr28y/bBFiB2h2gg==}
     peerDependencies:
@@ -3592,8 +3577,18 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.41.9_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-m/y9Yjsb/pZkTUGknvqJNiGSMyFF/O1Qo9i6zTPIp709L24QtXb+yRyROb8rZy0C0znMf4c7VZgq7mVhOv6k5g==}
+  /@totejs/styled-system/2.12.0_react-dom@18.2.0+react@18.2.0:
+    resolution: {integrity: sha512-3DyXFIrGSMDM43RdVc8arBam7Fhh4Lz+CYpHtfVPog+yBOd1uh6P+tz/KIqjDvmGFq7ISlj8LAyBWpUO6LHeiA==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
+  /@totejs/uikit/2.44.5_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-C3kNFdGBv62ghsmy+14SqjUACFylvSJY1AKEocbI5uylBZUJTO0xnIGHudXHyBUmlyvdkdxqjMrWSAYqiKZo/w==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3603,8 +3598,8 @@ packages:
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@popperjs/core': 2.11.8
-      '@totejs/icons': 2.12.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/styled-system': 2.11.0_react-dom@18.2.0+react@18.2.0
+      '@totejs/icons': 2.13.0_aa3274991927adc2766d9259998fdd18
+      '@totejs/styled-system': 2.12.0_react-dom@18.2.0+react@18.2.0
       '@xobotyi/scrollbar-width': 1.9.5
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0

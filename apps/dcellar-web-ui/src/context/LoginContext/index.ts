@@ -17,9 +17,10 @@ export const initializer = (initialValue = initialState) => {
     const loginStorage = window.localStorage.getItem(LOGIN_STORAGE_KEY);
     return JSON.parse(loginStorage as string) || initialValue;
   }
+  return initialState;
 };
 
-export interface LoginState {
+export interface LoginContextType {
   loginState: {
     address: `0x${string}`;
     seedString: any;
@@ -29,12 +30,14 @@ export interface LoginState {
     allowDirectView: boolean;
   };
   loginDispatch: React.Dispatch<any>;
+  logout: () => void;
 }
 
-export const LoginContext = React.createContext<LoginState>(null as any);
-LoginContext.displayName = 'LoginContext';
+export type LoginState = LoginContextType['loginState'];
 
-export const LoginReducer = (state: any, action: any) => {
+export const LoginContext = React.createContext<LoginContextType>({} as LoginContextType);
+
+export const LoginReducer = (state: LoginState, action: any) => {
   switch (action.type) {
     case 'LOGIN':
       return {
@@ -46,6 +49,7 @@ export const LoginReducer = (state: any, action: any) => {
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(initialState));
       }
+
       return {
         ...initialState,
       };

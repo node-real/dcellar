@@ -25,7 +25,7 @@ export default function Document() {
           })}
         </>
       </Head>
-      <body style={{ background: 'transparent' }}>
+      <body>
         <Main />
         <NextScript />
         <script

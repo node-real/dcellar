@@ -5,7 +5,7 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import axios, { AxiosResponse } from 'axios';
 import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
@@ -89,11 +89,13 @@ const downloadWithProgress = async ({
   primarySp: IRawSPInfo;
   payloadSize: number;
   address: string;
-}
-) => {
+}) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getSpOffChainData({address, spAddress: primarySp.operatorAddress});
+    const { seedString } = await getSpOffChainData({
+      address,
+      spAddress: primarySp.operatorAddress,
+    });
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,
