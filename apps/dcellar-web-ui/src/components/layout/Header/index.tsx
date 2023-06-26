@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
 import { useEffect, useRef, useState } from 'react';
-=======
-import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
-import { useRef, useState } from 'react';
->>>>>>> release_0629
 import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
@@ -15,11 +10,8 @@ import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-<<<<<<< HEAD
 import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { Tips } from '@/components/common/Tips';
-=======
->>>>>>> release_0629
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
