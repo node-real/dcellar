@@ -9,7 +9,6 @@ import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex } from '@totejs/uikit';
 import { Logo } from '@/components/layout/Logo';
-import { Loading } from '@/components/Loading';
 import { ShareError } from '@/modules/share/ShareError';
 import { SharedFile } from '@/modules/share/SharedFile';
 import { Footer } from '@/components/layout/Footer';
@@ -17,12 +16,12 @@ import { ShareCTA } from '@/modules/share/ShareCTA';
 import styled from '@emotion/styled';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { useDisconnect } from 'wagmi';
 import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import { ShareLogin } from '@/modules/share/ShareLogin';
 import { Header } from '@/components/layout/Header';
 import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
+import { Loading } from '@/components/common/Loading';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -40,7 +39,6 @@ const SharePage = (props: SharePageProps) => {
   const isMounted = useIsMounted();
   const { sp } = useSPs();
   const loginData = useLogin();
-  const { disconnect } = useDisconnect();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
   const { objectName, fileName, bucketName } = props;
@@ -87,9 +85,7 @@ const SharePage = (props: SharePageProps) => {
               <ShareLogin />
             ) : (
               <>
-                {walletConnected && (
-                  <Header disconnect={disconnect} logoutRedir={window.location.href} />
-                )}
+                {walletConnected && <Header />}
                 {isPrivate && !isOwner ? (
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (

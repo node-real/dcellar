@@ -1,10 +1,10 @@
 import styled from '@emotion/styled';
 import { Image, Text } from '@totejs/uikit';
-import Welcome from '@/components/welcome';
 import { assetPrefix } from '@/base/env';
 import { css } from '@emotion/react';
 import { useMount } from 'ahooks';
 import { reportEvent } from '@/utils/reportEvent';
+import { ConnectWallet } from '@/components/ConnectWallet';
 
 export const ShareLogin = () => {
   useMount(() => {
@@ -21,7 +21,7 @@ export const ShareLogin = () => {
       <Text mt={48} mb={4} fontSize={24} fontWeight={600}>
         Connect wallet to view files in DCellar.
       </Text>
-      <Welcome buttonOnly ga="dc.shared_ui.login.connect_wa.click" />
+      <ConnectWallet mt={53} />
     </Content>
   );
 };

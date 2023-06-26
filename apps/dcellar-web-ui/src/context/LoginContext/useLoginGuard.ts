@@ -3,7 +3,7 @@ import { LoginState } from '@/context/LoginContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-export function useLoginGuard(loginState: LoginState) {
+export function useLoginGuard(loginState: LoginState, inline: boolean) {
   const { address } = loginState;
 
   const router = useRouter();
@@ -13,7 +13,9 @@ export function useLoginGuard(loginState: LoginState) {
 
   useEffect(() => {
     if (!address) {
-      if (pathname.length > 0 && pathname !== '/') {
+      if (inline) {
+        setPass(true);
+      } else if (pathname.length > 0 && pathname !== '/') {
         let finalQuery = {} as any;
         finalQuery['originAsPath'] = encodeURIComponent(asPath);
         router.replace({ pathname: '/', query: finalQuery }, undefined, { shallow: true });
@@ -30,7 +32,7 @@ export function useLoginGuard(loginState: LoginState) {
         setPass(true);
       }
     }
-  }, [address, asPath, pathname, router]);
+  }, [address, asPath, pathname, router, inline]);
 
   return {
     pass,

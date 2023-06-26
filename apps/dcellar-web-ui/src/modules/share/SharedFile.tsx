@@ -7,7 +7,6 @@ import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
-import { Loading } from '@/components/Loading';
 import { useSPs } from '@/hooks/useSPs';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
@@ -15,6 +14,7 @@ import { headObject, quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { find } from 'lodash-es';
 import { reportEvent } from '@/utils/reportEvent';
+import { Loading } from '@/components/common/Loading';
 
 interface SharedFileProps {
   fileName: string;
@@ -128,7 +128,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
         <Flex gap={16}>
           <DCButton
             iconSpacing={6}
-            leftIcon={action === 'view' ? <Loading size={24} /> : <></>}
+            leftIcon={action === 'view' ? <Loading iconSize={24} strokeWidth={2} /> : <></>}
             w={188}
             h={48}
             variant="dcGhost"
@@ -138,7 +138,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           </DCButton>
           <DCButton
             iconSpacing={6}
-            leftIcon={action === 'download' ? <Loading size={24} fill="#fff" /> : <></>}
+            leftIcon={action === 'download' ? <Loading iconSize={24} stroke="#fff" /> : <></>}
             w={188}
             h={48}
             variant="dcPrimary"

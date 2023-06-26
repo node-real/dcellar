@@ -1,19 +1,23 @@
 import { Icon, IconProps } from '@totejs/icons';
 
-export const LoadingIcon = (props: IconProps) => (
+export const LoadingIcon = ({
+  strokeWidth = 4,
+  stroke = '#00BA34',
+  ...props
+}: IconProps & { strokeWidth?: number; stroke?: string }) => (
   <Icon width="26" height="26" viewBox="0 0 26 26" fill="none" {...props}>
     <path
       d="M23.5 13C23.5 14.3789 23.2284 15.7443 22.7007 17.0182C22.1731 18.2921 21.3996 19.4496 20.4246 20.4246C19.4496 21.3996 18.2921 22.1731 17.0182 22.7007C15.7443 23.2284 14.3789 23.5 13 23.5C11.6211 23.5 10.2557 23.2284 8.98182 22.7007C7.7079 22.1731 6.55039 21.3996 5.57538 20.4246C4.60036 19.4496 3.82694 18.2921 3.29926 17.0182C2.77159 15.7443 2.5 14.3789 2.5 13C2.5 11.6211 2.77159 10.2557 3.29927 8.98182C3.82694 7.7079 4.60037 6.55039 5.57538 5.57538C6.5504 4.60036 7.70791 3.82694 8.98183 3.29926C10.2557 2.77159 11.6211 2.5 13 2.5C14.3789 2.5 15.7443 2.77159 17.0182 3.29927C18.2921 3.82694 19.4496 4.60037 20.4246 5.57538C21.3996 6.5504 22.1731 7.70791 22.7007 8.98183C23.2284 10.2557 23.5 11.6211 23.5 13L23.5 13Z"
-      stroke="#00BA34"
+      stroke={stroke}
       strokeOpacity="0.1"
-      strokeWidth="4"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M13 2.5C14.3789 2.5 15.7443 2.77159 17.0182 3.29927C18.2921 3.82694 19.4496 4.60036 20.4246 5.57538C21.3996 6.55039 22.1731 7.70791 22.7007 8.98183C23.2284 10.2557 23.5 11.6211 23.5 13"
-      stroke="#00BA34"
-      strokeWidth="4"
+      stroke={stroke}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
     />

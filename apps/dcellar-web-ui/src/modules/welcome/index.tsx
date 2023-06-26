@@ -1,17 +1,14 @@
 import { assetPrefix } from '@/base/env';
-import { DCButton } from '@/components/common/DCButton';
 import { Footer } from '@/components/layout/Footer';
-import { WalletConnectModal } from '@/modules/welcome/components/WalletConnectModal';
 import { usePreloadPages } from '@/modules/welcome/hooks/usePreloadPages';
-import { Image, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { Flex, Image, Text } from '@totejs/uikit';
 import React from 'react';
+import { ConnectWallet } from '@/components/ConnectWallet';
 
 const MIN_WIDTH_1440 = '@media screen and (min-width: 1440px)';
 
 export function Welcome() {
   usePreloadPages();
-
-  const { isOpen, onClose, onOpen } = useDisclosure();
 
   return (
     <>
@@ -50,17 +47,7 @@ export function Welcome() {
           <Text mt={36} mb={48} fontSize={28} lineHeight="34px" whiteSpace="pre-wrap">
             {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
           </Text>
-          <DCButton
-            variant="dcPrimary"
-            px={48}
-            h={54}
-            fontSize={18}
-            lineHeight="22px"
-            fontWeight={600}
-            onClick={onOpen}
-          >
-            Connect Wallet
-          </DCButton>
+          <ConnectWallet />
         </Flex>
 
         <Footer
@@ -73,8 +60,6 @@ export function Welcome() {
           transform="translateX(-50%)"
         />
       </Flex>
-
-      <WalletConnectModal isOpen={isOpen} onClose={onClose} />
     </>
   );
 }
