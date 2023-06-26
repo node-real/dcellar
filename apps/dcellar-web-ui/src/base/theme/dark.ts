@@ -1,15 +1,13 @@
 export const dark = {
   colors: {
-    primary: '#5ECA62',
-    primary_opacity: 'rgba(94, 202, 98, 0.1)',
     readable: {
       normal: '#E6E8EA',
-      primary: '#5ECA62',
       secondary: '#929AA5',
-      tertiary: '#76808F',
       disabled: '#5E6673',
       border: '#2E323A',
       white: '#FFFFFF',
+      primary: '#5ECA62',
+      tertiary: '#76808F',
       placeholder: '#5E6673',
       neutral1: '#171924',
       neutral2: '#222531',
@@ -24,46 +22,18 @@ export const dark = {
 
     bg: {
       bottom: '#14151a',
-      secondary: '#474D57',
+      secondary: '#FAFAFA',
       middle: '#1E2026',
-      masked: '#14151A',
       codebox: '#262d37',
-      sidebar: '#171924',
       top: {
         normal: '#2b2f36',
         active: '#2E323A',
       },
-      tooltip: {
-        normal: '#1E2026',
-        accent: '#2B2F36',
-        outer: '#0B0E11',
-      },
-      input: {
-        normal: '#2B2F36',
-      },
-      warning: {
-        normal: 'rgba(240, 185, 11, 0.1)',
-      },
-    },
-
-    text: {
-      normal: '#FFFFFF',
-      primary: '#5ECA62',
-      masked: '#76808F',
-      disabled: '#5E6673',
-      placeholder: '#5E6673',
     },
 
     scene: {
-      border: '#2E323A',
-
       primary: {
         normal: '#5ECA62',
-        active: '#5ECA62',
-      },
-
-      secondary: {
-        normal: '#2B2F36',
         active: '#5ECA62',
       },
 
@@ -81,16 +51,10 @@ export const dark = {
         normal: '#F0B90B',
         active: '#F8D12F',
       },
-
-      purple: {
-        normal: '#9B00FB',
-        active: '#B845FF',
-      },
     },
 
     shadows: {
       normal: '0px 2px 8px rgba(11, 14, 17, 1)',
     },
-    mode: 'dark',
   },
 };

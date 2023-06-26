@@ -42,7 +42,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 
 interface modalProps {
@@ -205,6 +205,8 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
   };
 
   const onCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+
     const objectName = getPath(inputFolderName);
     setLoading(true);
     const CreateObjectTx = await fetchCreateFolderApproval(inputFolderName);

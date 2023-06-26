@@ -16,7 +16,7 @@ export interface DCButtonProps extends Omit<ButtonProps, 'variant'> {
 export const DCButton = (props: DCButtonProps) => {
   const { children, variant, gaClickName, gaClickData, gaShowName, gaShowData, ...restProps } =
     props;
-  // TODO type protect
+
   const styles = ButtonConfig.variants[variant as TDCVariant] || {};
   const originalVariant = DCVariants.some((item) => item === variant)
     ? 'scene'
@@ -25,7 +25,7 @@ export const DCButton = (props: DCButtonProps) => {
   return (
     <GAShow name={gaShowName} data={gaShowData}>
       <GAClick name={gaClickName} data={gaClickData}>
-        <Button h="48px" fontWeight="500" variant={originalVariant} {...styles} {...restProps}>
+        <Button h={48} fontWeight={500} variant={originalVariant} {...styles} {...restProps}>
           {children}
         </Button>
       </GAClick>

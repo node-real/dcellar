@@ -1,4 +1,4 @@
-import { assetPrefix } from "@/base/env";
+import { assetPrefix } from '@/base/env';
 
 export const DISCONTINUED_BANNER_HEIGHT = 44;
 export const DISCONTINUED_BANNER_MARGIN_BOTTOM = 16;
@@ -14,4 +14,4 @@ export const LCP_IMAGES = [
   `${assetPrefix}/images/welcome_bg_1.svg`,
   `${assetPrefix}/images/logo_welcome.svg`,
   `${assetPrefix}/images/welcome_bg_gradient.svg`,
-]
+];
