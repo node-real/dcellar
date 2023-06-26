@@ -1,6 +1,9 @@
 name: dcellar-web-ui qa CICD
 
 on:
+  pull_request:
+    branches:
+      - main
   workflow_call:
     inputs:
       app_name:
