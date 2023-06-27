@@ -57,6 +57,8 @@ export const ShareModal = (props: modalProps) => {
             display="flex"
             justifyContent="center"
             mb={32}
+            ml={40}
+            mr={40}
           >
             Share “
             {
