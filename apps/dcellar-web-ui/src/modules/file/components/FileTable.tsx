@@ -23,6 +23,7 @@ import {
   toast,
   Tooltip,
   useDisclosure,
+  Image,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
@@ -59,6 +60,7 @@ import { ConfirmDeleteModal } from '@/modules/file/components/ConfirmDeleteModal
 import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal';
 import {
   contentTypeToExtension,
+  contentIconTypeToExtension,
   directlyDownload,
   downloadWithProgress,
   formatBytes,
@@ -508,6 +510,19 @@ export const FileTable = (props: fileListProps) => {
       </Tooltip>
     );
   };
+  const renderFileTypeIcon = (rowData: any) => {
+    const fileType = contentIconTypeToExtension(rowData.object_name);
+    return (
+      <Flex className="fileTypeIcon" mr={'4px'}>
+        <Image
+          src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
+          alt={fileType}
+          width={24}
+          height={24}
+        />
+      </Flex>
+    );
+  };
   const columns = useMemo<ColumnDef<any>[]>(() => {
     return [
       {
@@ -528,11 +543,12 @@ export const FileTable = (props: fileListProps) => {
           const path = name.split('/');
           const nameWithoutFolderPrefix =
             isFolder && path.includes('/') ? path[path.length - 2] : path[path.length - 1];
-          const icon = isFolder ? (
-            <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
-          ) : (
-            <FileIcon size="md" color={iconColor} />
-          );
+          // const icon = isFolder ? (
+          //   <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
+          // ) : (
+          //   <FileIcon size="md" color={iconColor} />
+          // );
+          const icon = renderFileTypeIcon(rowData);
           return (
             <Flex
               className="object-name"
@@ -644,6 +660,7 @@ export const FileTable = (props: fileListProps) => {
           } = info;
           // Get column property and values
           const objectName = (rowData.object_name as string) ?? '';
+          const objectId = (rowData.id as string) ?? '';
           const {
             payload_size: payloadSize,
             checksums,
@@ -734,7 +751,7 @@ export const FileTable = (props: fileListProps) => {
                 await onDownload(url);
               }
             } else {
-              setFileInfo({ name: objectName, size: payloadSize });
+              setFileInfo({ name: objectName, size: payloadSize, id: objectId });
               setShareLink(url);
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
@@ -807,7 +824,7 @@ export const FileTable = (props: fileListProps) => {
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
                             setRemainingQuota(null);
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             setHash(checksums?.[0] ?? '');
                             setCreatedDate(create_at);
                             setShareLink(directDownloadLink);
@@ -848,7 +865,7 @@ export const FileTable = (props: fileListProps) => {
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
 
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             // calculate gas fee
                             try {
                               setGasFeeLoading(true);
@@ -881,7 +898,7 @@ export const FileTable = (props: fileListProps) => {
                           }
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             // calculate gas fee
                             try {
                               setGasFeeLoading(true);
@@ -1034,7 +1051,13 @@ export const FileTable = (props: fileListProps) => {
               {virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
-                const { object_status, visibility, object_name, payload_size } = row.original;
+                const {
+                  object_status,
+                  visibility,
+                  object_name,
+                  payload_size,
+                  id: object_id,
+                } = row.original;
                 const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
                 const isFolder = object_name?.endsWith('/') ?? false;
@@ -1071,7 +1094,7 @@ export const FileTable = (props: fileListProps) => {
                           `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
                         if (!allowDirectView) {
-                          setFileInfo({ name: object_name, size: payload_size });
+                          setFileInfo({ name: object_name, size: payload_size, id: object_id });
                           setViewLink(previewLink);
                           setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();

@@ -1,5 +1,5 @@
-import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
-import { useRef, useState } from 'react';
+import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
@@ -10,6 +10,8 @@ import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
+import { removeOffChainData } from '@/modules/off-chain-auth/utils';
+import { Tips } from '@/components/common/Tips';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -69,15 +71,31 @@ export const Header = () => {
             </Text>
           </CopyText>
         </Flex>
-        <Text
-          color="readable.disabled"
-          fontWeight="400"
-          mt="16px"
-          fontSize="12px"
-          lineHeight="20px"
-        >
-          Greenfield Available Balance
-        </Text>
+        <Flex alignItems="center" mt="16px">
+          <Text color="readable.disabled" fontWeight="400" fontSize="12px" lineHeight="20px">
+            Available Balance
+          </Text>
+          <Tips
+            iconSize={'16px'}
+            containerWidth={'200px'}
+            tips={
+              <Box fontSize={'12px'} lineHeight="14px" width={'200px'}>
+                <Box>
+                  Please notice that due to the locked fee, Greenfield available balance is not
+                  equal to your account overall balance, which is shown at your wallet.
+                </Box>
+                <Link
+                  href="https://docs.nodereal.io/docs/faq-1#question-what-is-greenfield-available-balance"
+                  target="_blank"
+                  color="readable.primary"
+                  textDecoration="underline"
+                >
+                  Learn more
+                </Link>
+              </Box>
+            }
+          />
+        </Flex>
         <NewBalance />
         <Flex alignItems="center" mt="16px" width="100%" justifyContent="space-between" h="24px">
           <GAClick name="dc.main.account.transferin.click">

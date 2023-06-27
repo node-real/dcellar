@@ -105,8 +105,8 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       >
         <ModalBody mt={0} textAlign={'center'}>
           <Image
-            alt="failed icon"
-            src={`${assetPrefix}/images/icons/failed.svg`}
+            alt="auth failed icon"
+            src={`${assetPrefix}/images/icons/error_auth.svg`}
             margin={'0 auto 16px'}
           />
           <Text fontSize={'24px'} lineHeight={'150%'} fontWeight={600} marginBottom={'16px'}>

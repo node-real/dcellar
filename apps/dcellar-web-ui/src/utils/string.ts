@@ -40,3 +40,9 @@ export const encodeObjectName = (obj: string) => {
 export const decodeObjectName = (obj: string) => {
   return obj.split('/').map(decodeURIComponent).join('/');
 };
+
+export const formatId = (id: number) => {
+  const hex = id.toString(16).replace('0x', '');
+  const value = `0x${hex.padStart(64, '0')}`;
+  return value;
+};

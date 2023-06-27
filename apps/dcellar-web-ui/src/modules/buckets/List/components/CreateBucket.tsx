@@ -155,6 +155,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const sp = selectedSpRef.current;
       const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
       const { seedString } = spOffChainData;
+
       if (!checkSpOffChainDataAvailable(spOffChainData)) {
         onClose();
         setOpenAuthModal([sp.operatorAddress]);
@@ -183,6 +184,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
       });
+      console.log(simulateInfo, 'simulateInfo');
+
       const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {
         setValidateNameAndGas(validateNameAndGas);
