@@ -294,7 +294,7 @@ const viewFileByAxiosResponse = (result: AxiosResponse) => {
     const { data, headers: resultHeaders } = result;
     const blob = new Blob([data], { type: resultHeaders['content-type'] });
     const fileURL = URL.createObjectURL(blob);
-    window.open(fileURL);
+    window.open(fileURL, '_blank');
   } catch (error) {
     console.error('view file error', error);
   }

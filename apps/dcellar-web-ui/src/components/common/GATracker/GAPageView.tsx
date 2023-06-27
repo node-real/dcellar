@@ -10,6 +10,9 @@ export function GAPageView() {
       let name = '';
 
       switch (true) {
+        case pathname === '/share':
+          name = 'dc.shared_ui.preview.all.pv';
+          break;
         case pathname === '/':
           name = 'dc.welcome.main.all.pv';
           break;
@@ -37,5 +40,5 @@ export function GAPageView() {
     }
   }, [asPath, isReady, pathname]);
 
-  return null;
+  return <></>;
 }

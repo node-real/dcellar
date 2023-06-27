@@ -1,6 +1,12 @@
-import { ReactNode, useReducer, useEffect, useMemo, useCallback } from 'react';
+import { ReactNode, useReducer, useEffect, useMemo, useCallback, PropsWithChildren } from 'react';
 
-import { LoginReducer, LoginContext, initializer, initialState, LOGIN_STORAGE_KEY } from './index';
+import {
+  LoginReducer,
+  LoginContext,
+  initializer,
+  initialState,
+  LOGIN_STORAGE_KEY,
+} from '@/context/LoginContext/index';
 
 import { useAccount, useDisconnect } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -10,11 +16,11 @@ import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { useRouter } from 'next/router';
 
 export interface LoginContextProviderProps {
-  children: ReactNode;
+  inline?: boolean; // for in page connect button
 }
 
-export function LoginContextProvider(props: LoginContextProviderProps) {
-  const { children } = props;
+export function LoginContextProvider(props: PropsWithChildren<LoginContextProviderProps>) {
+  const { children, inline = false } = props;
 
   const [loginState, loginDispatch] = useReducer(LoginReducer, initialState, initializer);
 
@@ -60,7 +66,7 @@ export function LoginContextProvider(props: LoginContextProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletAddress, pathname]);
 
-  const { pass } = useLoginGuard(loginState);
+  const { pass } = useLoginGuard(loginState, inline);
 
   if (!pass) {
     return null;

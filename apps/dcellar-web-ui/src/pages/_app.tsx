@@ -19,13 +19,35 @@ import { LoginContextProvider } from '@/context/LoginContext/provider';
 import ChainBalanceContextProvider from '@/context/GlobalContext/BalanceContext';
 import { SEOHead } from '@/components/common/SEOHead';
 import { ChecksumWorkerProvider } from '@/context/GlobalContext/ChecksumWorkerContext';
+import { useRouter } from 'next/router';
 
 interface NextAppProps extends AppProps {
   statusCode: number;
 }
 
+const STANDALONE_PAGES = ['/share'];
+
 function App({ Component, pageProps, statusCode }: NextAppProps) {
   const [queryClient] = useState(() => new QueryClient());
+  const { pathname } = useRouter();
+
+  if (STANDALONE_PAGES.includes(pathname))
+    return (
+      <QueryClientProvider client={queryClient}>
+        <WalletConnectProvider>
+          <LoginContextProvider inline>
+            <ThemeProvider theme={theme}>
+              <SPProvider>
+                <OffChainAuthProvider>
+                  <Component {...pageProps} />
+                  <GAPageView />
+                </OffChainAuthProvider>
+              </SPProvider>
+            </ThemeProvider>
+          </LoginContextProvider>
+        </WalletConnectProvider>
+      </QueryClientProvider>
+    );
 
   return (
     <>
@@ -38,17 +60,17 @@ function App({ Component, pageProps, statusCode }: NextAppProps) {
                 <ChainBalanceContextProvider>
                   <ThemeProvider theme={theme}>
                     <Layout>
-                    <SPProvider>
-                      <ChecksumWorkerProvider>
-                        {/* TODO provider should locate up layout */}
-                        <OffChainAuthProvider>
-                          <PageProtect>
-                            <Component {...pageProps} />
-                            <GAPageView />
-                          </PageProtect>
-                        </OffChainAuthProvider>
-                      </ChecksumWorkerProvider>
-                    </SPProvider>
+                      <SPProvider>
+                        <ChecksumWorkerProvider>
+                          {/* TODO provider should locate up layout */}
+                          <OffChainAuthProvider>
+                            <PageProtect>
+                              <Component {...pageProps} />
+                              <GAPageView />
+                            </PageProtect>
+                          </OffChainAuthProvider>
+                        </ChecksumWorkerProvider>
+                      </SPProvider>
                     </Layout>
                   </ThemeProvider>
                 </ChainBalanceContextProvider>
