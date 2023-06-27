@@ -192,8 +192,7 @@ const contentTypeToExtension = (contentType = '', fileName?: string) => {
 };
 const contentIconTypeToExtension = (fileName: string) => {
   if (fileName?.endsWith('/')) return 'FOLDER';
-  const type = getFileExtension(fileName)?.toLocaleLowerCase();
-
+  const type = getFileExtension(fileName)?.split('-')[0].toLocaleLowerCase();
   switch (type) {
     case 'doc':
     case 'docx':
