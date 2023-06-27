@@ -8,6 +8,7 @@ import {
   Link,
   Divider,
 } from '@totejs/uikit';
+import { GAClick } from '@/components/common/GATracker';
 
 import { useLogin } from '@/hooks/useLogin';
 import {
@@ -92,7 +93,13 @@ const renderPropRow = (key: string, value: React.ReactNode) => {
   );
 };
 
-const renderAddressLink = (key: string, value: string, gaClickName?: string,gaCopyClickName?: string,  type = 'account') => {
+const renderAddressLink = (
+  key: string,
+  value: string,
+  gaClickName?: string,
+  gaCopyClickName?: string,
+  type = 'account',
+) => {
   return (
     <Flex alignItems="center" justifyContent="space-between" h={25}>
       <Text
@@ -115,30 +122,41 @@ const renderAddressLink = (key: string, value: string, gaClickName?: string,gaCo
         color={'readable.normal'}
         textAlign={'right'}
       >
-        {renderAddressWithLink(value, type, gaClickName,gaCopyClickName)}
+        {renderAddressWithLink(value, type, gaClickName, gaCopyClickName)}
       </Text>
     </Flex>
   );
 };
 
-const renderAddressWithLink = (address: string, type: string, gaClickName?: string,gaCopyClickName?: string) => {
+const renderAddressWithLink = (
+  address: string,
+  type: string,
+  gaClickName?: string,
+  gaCopyClickName?: string,
+) => {
   return (
-    <CopyText value={formatAddress(address)} justifyContent="flex-end" gaClickName={gaClickName}>
-      <Link
-        target="_blank"
-        color="#1184EE"
-        cursor={'pointer'}
-        textDecoration={'underline'}
-        _hover={{
-          color: '#1184EE',
-        }}
-        href={`${GREENFIELD_CHAIN_EXPLORER_URL}/${type}/${address}`}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        fontWeight={500}
-      >
-        {trimAddress(address, 28, 15, 13)}
-      </Link>
+    <CopyText
+      value={formatAddress(address)}
+      justifyContent="flex-end"
+      gaClickName={gaCopyClickName}
+    >
+      <GAClick name={gaClickName}>
+        <Link
+          target="_blank"
+          color="#1184EE"
+          cursor={'pointer'}
+          textDecoration={'underline'}
+          _hover={{
+            color: '#1184EE',
+          }}
+          href={`${GREENFIELD_CHAIN_EXPLORER_URL}/${type}/${address}`}
+          fontSize={'14px'}
+          lineHeight={'17px'}
+          fontWeight={500}
+        >
+          {trimAddress(address, 28, 15, 13)}
+        </Link>
+      </GAClick>
     </CopyText>
   );
 };
@@ -148,26 +166,29 @@ const renderUrlWithLink = (
   needSlim = true,
   reservedNumber = 32,
   gaClickName?: string,
+  gaCopyClickName?: string,
 ) => {
   const encodedText = encodeURI(text);
   const finalText = needSlim ? encodedText.substring(0, reservedNumber) + '...' : encodedText;
   return (
-    <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaClickName}>
-      <Link
-        target="_blank"
-        color="#1184EE"
-        cursor={'pointer'}
-        textDecoration={'underline'}
-        _hover={{
-          color: '#1184EE',
-        }}
-        href={encodedText}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        fontWeight={500}
-      >
-        {finalText}
-      </Link>
+    <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaCopyClickName}>
+      <GAClick name={gaClickName}>
+        <Link
+          target="_blank"
+          color="#1184EE"
+          cursor={'pointer'}
+          textDecoration={'underline'}
+          _hover={{
+            color: '#1184EE',
+          }}
+          href={encodedText}
+          fontSize={'14px'}
+          lineHeight={'17px'}
+          fontWeight={500}
+        >
+          {finalText}
+        </Link>
+      </GAClick>
     </CopyText>
   );
 };
@@ -316,16 +337,19 @@ export const FileInfoModal = (props: modalProps) => {
             'Object ID',
             formatId(Number(fileInfo.id)),
             'dc.file.f_detail_pop.id.click',
+            'dc.file.f_detail_pop.copy_id.click',
             'object',
           )}
           {renderAddressLink(
             'Primary SP address',
             primarySp.operatorAddress,
+            'dc.file.f_detail_pop.spadd.click',
             'dc.file.f_detail_pop.copy_spadd.click',
           )}
           {renderAddressLink(
             'Primary SP seal address',
             primarySp.operatorAddress,
+            'dc.file.f_detail_pop.seal.click',
             'dc.file.f_detail_pop.copy_seal.click',
           )}
           {/* {renderPropRow(
@@ -339,6 +363,7 @@ export const FileInfoModal = (props: modalProps) => {
                 `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(name)}`,
                 true,
                 32,
+                'dc.file.f_detail_pop.universal.click',
                 'dc.file.f_detail_pop.copy_universal.click',
               ),
             )}
