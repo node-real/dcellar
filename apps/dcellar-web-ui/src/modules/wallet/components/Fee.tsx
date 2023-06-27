@@ -78,8 +78,6 @@ export const Fee = ({
     if (type === EOperation.send) {
       return null;
     }
-    const defaultFee = DefaultFee[type];
-
     return (
       <Box>
         <Text>
