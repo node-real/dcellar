@@ -5,13 +5,21 @@ import { LoadingIcon } from '../SvgIcon/LoadingIcon';
 
 export interface LoadingProps extends CenterProps {
   iconSize?: IconProps['boxSize'];
+  strokeWidth?: number;
+  stroke?: string;
 }
 
 export function Loading(props: LoadingProps) {
-  const { iconSize, ...restProps } = props;
+  const { iconSize, stroke = '#00BA34', strokeWidth = 4, ...restProps } = props;
+
   return (
     <Center boxSize={'100%'} alignSelf="center" flex={1} {...restProps}>
-      <LoadingIcon animation={`${rotate} 1s linear infinite`} boxSize={iconSize} />
+      <LoadingIcon
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+        animation={`${rotate} 1s linear infinite`}
+        boxSize={iconSize}
+      />
     </Center>
   );
 }

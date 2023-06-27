@@ -92,7 +92,7 @@ const renderPropRow = (key: string, value: React.ReactNode) => {
   );
 };
 
-const renderAddressLink = (key: string, value: string, gaClickName?: string, type = 'account') => {
+const renderAddressLink = (key: string, value: string, gaClickName?: string,gaCopyClickName?: string,  type = 'account') => {
   return (
     <Flex alignItems="center" justifyContent="space-between" h={25}>
       <Text
@@ -115,13 +115,13 @@ const renderAddressLink = (key: string, value: string, gaClickName?: string, typ
         color={'readable.normal'}
         textAlign={'right'}
       >
-        {renderAddressWithLink(value, type, gaClickName)}
+        {renderAddressWithLink(value, type, gaClickName,gaCopyClickName)}
       </Text>
     </Flex>
   );
 };
 
-const renderAddressWithLink = (address: string, type: string, gaClickName?: string) => {
+const renderAddressWithLink = (address: string, type: string, gaClickName?: string,gaCopyClickName?: string) => {
   return (
     <CopyText value={formatAddress(address)} justifyContent="flex-end" gaClickName={gaClickName}>
       <Link
@@ -315,7 +315,7 @@ export const FileInfoModal = (props: modalProps) => {
           {renderAddressLink(
             'Object ID',
             formatId(Number(fileInfo.id)),
-            'dc.file.f_detail_pop.file',
+            'dc.file.f_detail_pop.id.click',
             'object',
           )}
           {renderAddressLink(

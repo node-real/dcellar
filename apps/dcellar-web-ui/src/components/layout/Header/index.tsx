@@ -22,6 +22,7 @@ const renderAvatar = (size?: 'sm' | 'md') => {
     </Circle>
   );
 };
+
 export const Header = () => {
   const { loginState, logout } = useLogin();
   const { address } = loginState;

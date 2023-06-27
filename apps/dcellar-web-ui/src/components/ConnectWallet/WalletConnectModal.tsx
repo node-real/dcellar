@@ -1,6 +1,6 @@
 import { DCModal, DCModalProps } from '@/components/common/DCModal';
 import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/constants/links';
-import { WalletItem } from '@/modules/welcome/components/WalletItem';
+import { WalletItem } from '@/components/ConnectWallet/WalletItem';
 import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
 import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';

@@ -9,6 +9,7 @@ import {
   Text,
 } from '@totejs/uikit';
 import React, { useMemo } from 'react';
+import { GAClick } from '@/components/common/GATracker';
 
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
 import { formatAddress } from '../../utils/formatAddress';
@@ -41,7 +42,8 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
         label: 'Bucket ID',
         value: formatId(rowData.originalData.bucket_info.id || ''),
         display: formatAddress(formatId(rowData.originalData.bucket_info.id || '')),
-        gaClickName: 'dc.bucket.b_detail_pop.copy_bkid.click',
+        copyGaClickName: 'dc.bucket.b_detail_pop.id_copy.click',
+        gaClickName: 'dc.bucket.b_detail_pop.id.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/bucket`,
       },
       {
@@ -49,7 +51,8 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
         label: 'Primary SP address',
         value: rowData.originalData.bucket_info.primary_sp_address || '',
         display: formatAddress(rowData.originalData.bucket_info.primary_sp_address || ''),
-        gaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
+        copyGaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
+        gaClickName: 'dc.bucket.b_detail_pop.spadd.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
       },
       {
@@ -57,7 +60,8 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
         label: 'Payment address',
         value: rowData.originalData.bucket_info.payment_address || '',
         display: formatAddress(rowData.originalData.bucket_info.payment_address || ''),
-        gaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
+        copyGaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
+        gaClickName: 'dc.bucket.b_detail_pop.payment.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
       },
     ];
@@ -83,24 +87,41 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                     {item.display}
                   </Text>
                 )}
-                {item.label !== 'Date created' && (
-                  <Link
-                    target="_blank"
-                    color="#1184EE"
-                    cursor={'pointer'}
-                    textDecoration={'underline'}
-                    _hover={{
-                      color: '#1184EE',
-                    }}
-                    href={`${item.href}/${item.value}`}
-                    fontSize={'14px'}
-                    fontWeight={500}
-                  >
-                    {item.display}
-                  </Link>
-                )}
-
-                {item.canCopy && <CopyText value={item.value} gaClickName={item.gaClickName} />}
+                {item.label !== 'Date created' &&
+                  (item.canCopy ? (
+                    <GAClick name={item.gaClickName}>
+                      <Link
+                        target="_blank"
+                        color="#1184EE"
+                        cursor={'pointer'}
+                        textDecoration={'underline'}
+                        _hover={{
+                          color: '#1184EE',
+                        }}
+                        href={`${item.href}/${item.value}`}
+                        fontSize={'14px'}
+                        fontWeight={500}
+                      >
+                        {item.display}
+                      </Link>
+                    </GAClick>
+                  ) : (
+                    <Link
+                      target="_blank"
+                      color="#1184EE"
+                      cursor={'pointer'}
+                      textDecoration={'underline'}
+                      _hover={{
+                        color: '#1184EE',
+                      }}
+                      href={`${item.href}/${item.value}`}
+                      fontSize={'14px'}
+                      fontWeight={500}
+                    >
+                      {item.display}
+                    </Link>
+                  ))}
+                {item.canCopy && <CopyText value={item.value} gaClickName={item.copyGaClickName} />}
               </Flex>
             </Flex>
           ))}

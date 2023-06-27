@@ -27,7 +27,7 @@ import {
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
-import { useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -35,8 +35,10 @@ import { makeData } from './makeData';
 import { useLogin } from '@/hooks/useLogin';
 import { getLockFee } from '@/utils/wallet';
 import {
+  AUTH_EXPIRED,
   BUTTON_GOT_IT,
   FILE_EMPTY_URL,
+  FILE_FAILED_URL,
   FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_DOWNLOADING,
   GET_GAS_FEE_DEFAULT_ERROR,
@@ -49,6 +51,7 @@ import {
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
+  PENDING_ICON_URL,
 } from '@/modules/file/constant';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
@@ -78,8 +81,13 @@ import { getClient } from '@/base/client';
 import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
-import { ChainVisibilityEnum } from '../type';
+import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
+import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
+import { updateObjectInfo } from '@/facade/object';
+import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -226,6 +234,7 @@ export const FileTable = (props: fileListProps) => {
     setStatusModalErrorText,
   } = props;
   const loginData = useLogin();
+  const { connector } = useAccount();
   const { loginState } = loginData;
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
@@ -244,6 +253,9 @@ export const FileTable = (props: fileListProps) => {
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
   const [shareLink, setShareLink] = useState('');
+  const [shareObject, setShareObject] = useState<IObjectProps['object_info']>(
+    {} as IObjectProps['object_info'],
+  );
   const [viewLink, setViewLink] = useState('');
   const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
@@ -319,6 +331,60 @@ export const FileTable = (props: fileListProps) => {
     onShareModalClose,
     setOpenAuthModal,
   ]);
+
+  const openPendingModal = () => {
+    setStatusModalIcon(PENDING_ICON_URL);
+    setStatusModalTitle('Updating Access');
+    setStatusModalDescription('Confirm this transaction in your wallet.');
+    setStatusModalButtonText('');
+    onStatusModalOpen();
+    return () => {
+      onStatusModalClose();
+    };
+  };
+
+  const handleError = (msg: ErrorMsg) => {
+    setStatusModalIcon(FILE_FAILED_URL);
+    switch (msg) {
+      case AUTH_EXPIRED:
+        setOpenAuthModal();
+        return;
+      case E_USER_REJECT_STATUS_NUM:
+        return;
+      default:
+        setStatusModalDescription(msg as string);
+        onStatusModalOpen();
+        return;
+    }
+  };
+
+  const onAccessChange = async (target: IObjectProps['object_info'], access: string) => {
+    onShareModalClose();
+    const onClose = openPendingModal();
+
+    const visibility = VisibilityType[access as any] as any;
+    const payload = {
+      operator: address,
+      bucketName: bucketName,
+      objectName: shareObject.object_name,
+      visibility,
+    };
+
+    const [_, error] = await updateObjectInfo(payload, connector!);
+    onClose();
+
+    if (error) {
+      return handleError(error);
+    }
+
+    toast.success({ description: 'Access updated!' });
+    const newList = flatData.map((d: any) => ({
+      ...d,
+      visibility: d.object_name === target.object_name ? visibility : d.visibility,
+    }));
+    setListObjects(newList);
+  };
+
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
       const lockFeeInBNB = await getLockFee(size, primarySp.operatorAddress);
@@ -607,7 +673,6 @@ export const FileTable = (props: fileListProps) => {
           const isUploadFailed = objectStatus === OBJECT_STATUS_FAILED;
           const downloadText = 'Download';
           const deleteText = isSealed ? 'Delete' : 'Cancel';
-          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
@@ -701,6 +766,7 @@ export const FileTable = (props: fileListProps) => {
 
           const onShare = () => {
             setShareLink(directDownloadLink);
+            setShareObject(rowData as IObjectProps['object_info']);
             onShareModalOpen();
           };
           const directDownloadLink = encodeURI(
@@ -709,7 +775,7 @@ export const FileTable = (props: fileListProps) => {
           if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
-              {isSealed && isCurrentUser && showFileIcon && (
+              {isSealed && isCurrentUser && (
                 <ActionButton gaClickName="dc.file.share_btn.0.click" onClick={onShare}>
                   <ShareIcon />
                 </ActionButton>
@@ -763,6 +829,7 @@ export const FileTable = (props: fileListProps) => {
                             setCreatedDate(create_at);
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
+                            setShareObject(rowData as IObjectProps['object_info']);
                             onInfoModalOpen();
                             const quotaData = await getQuota(bucketName, primarySp.endpoint);
                             if (quotaData) {
@@ -784,7 +851,7 @@ export const FileTable = (props: fileListProps) => {
                           {downloadText}
                         </GreenfieldMenuItem>
                       )}
-                      {isSealed && isCurrentUser && showFileIcon && (
+                      {isSealed && isCurrentUser && (
                         <GreenfieldMenuItem
                           gaClickName="dc.file.list_menu.share.click"
                           onClick={onShare}
@@ -1203,7 +1270,12 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
       />
-      <ShareModal isOpen={isShareModalOpen} onClose={onShareModalClose} shareLink={shareLink} />
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={onShareModalClose}
+        shareObject={shareObject}
+        onAccessChange={onAccessChange}
+      />
     </>
   );
 };
