@@ -378,7 +378,8 @@ export const FileTable = (props: fileListProps) => {
     toast.success({ description: 'Access updated!' });
     const newList = flatData.map((d: any) => ({
       ...d,
-      visibility: d.object_name === target.object_name ? visibility : d.visibility,
+      // .........
+      visibility: d.object_name === target.object_name ? visibility : VisibilityType[d.visibility],
     }));
     setListObjects(newList);
   };
