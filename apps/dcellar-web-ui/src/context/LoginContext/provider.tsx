@@ -57,7 +57,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const { address: walletAddress } = useAccount();
 
   useEffect(() => {
-    if (pathname === '/') return;
+    if (pathname === '/' || inline) return;
 
     if (!walletAddress || loginState.address !== walletAddress) {
       logout();
