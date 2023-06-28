@@ -12,6 +12,7 @@ import { isActiveUrl } from '@/utils/isActiveUrl';
 import { GAClick } from '@/components/common/GATracker';
 import { DcellarDoc, FAQ } from '@/constants/links';
 import { DocIcon, HelpIcon } from '@totejs/icons';
+import styled from '@emotion/styled';
 
 const MENU_LIST = [
   {
@@ -120,22 +121,34 @@ export const Nav = () => {
       </Box>
       <Box m={'24px'} borderTop="1px solid #E6E8EA" mt="auto">
         <GAClick name="dc.main.nav.doc.click">
-          <Link href={DcellarDoc}>
-            <Flex fontWeight={500} fontSize={16} padding={8} mt={16}>
+          <Link href={DcellarDoc} target="_blank">
+            <NavItem>
               <DocIcon mr={12} />
               Document
-            </Flex>
+            </NavItem>
           </Link>
         </GAClick>
         <GAClick name="dc.main.nav.faq.click">
-          <Link href={FAQ}>
-            <Flex fontWeight={500} fontSize={16} padding={8} mt={16}>
+          <Link href={FAQ} target="_blank">
+            <NavItem>
               <HelpIcon mr={12} />
               FAQ
-            </Flex>
+            </NavItem>
           </Link>
         </GAClick>
       </Box>
     </Flex>
   );
 };
+
+const NavItem = styled(Flex)`
+  padding: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 16px;
+  border-radius: 8px;
+  :hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+  }
+`;
