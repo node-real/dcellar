@@ -15,7 +15,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
-import { AccessItem } from '@/modules/file/components/AccessItem';
+// import { AccessItem } from '@/modules/file/components/AccessItem';
 import { encodeObjectName } from '@/utils/string';
 
 interface modalProps {
@@ -76,10 +76,20 @@ export const ShareModal = (props: modalProps) => {
             }
             ”
           </Heading>
-          <AccessItem
-            value={shareObject.visibility as any}
-            onChange={(e) => onAccessChange(shareObject, e)}
-          />
+          <Text
+            fontSize="16px"
+            lineHeight={'20px'}
+            fontWeight={400}
+            marginTop="16px"
+            align={'center'}
+            color={'readable.secondary'}
+          >
+            Share the link with your friends and start downloading directly.
+          </Text>
+          {/*<AccessItem*/}
+          {/*  value={shareObject.visibility as any}*/}
+          {/*  onChange={(e) => onAccessChange(shareObject, e)}*/}
+          {/*/>*/}
         </ModalBody>
         <ModalFooter>
           <GAClick name="dc.file.share_m.copy_link.click">
