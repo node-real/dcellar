@@ -128,6 +128,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   );
   const [listObjects, setListObjects] = useState<Array<any>>([]);
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
+  // 去除，目前没有用到
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
   const [primarySp, setPrimarySp] = useState<IRawSPInfo>({} as IRawSPInfo);
@@ -142,6 +143,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const { setOpenAuthModal } = useOffChainAuth();
   const isDiscontinued = bucketInfo.bucketStatus === 1;
 
+  // 采用facade重构掉
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
@@ -194,9 +196,11 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     try {
       if (isEmpty(sps)) return;
       setIsInitReady(false);
+      // refactor: bucketInfo从redux中获取
       const bucketInfo = await getBucketInfo(bucketName);
+      // 判断当前bucket是否属于当前用户
       setIsCurrentUser(bucketInfo?.owner === address);
-
+      // 判断当前bucket的 primary sp是否存在，并存储到status中
       const currentPrimarySpAddress = bucketInfo?.primarySpAddress;
       if (!currentPrimarySpAddress) {
         toast.error({
@@ -205,6 +209,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         return;
       }
       setPrimarySpAddress(currentPrimarySpAddress);
+      // getSpInfo 统一从全局获取，优化到从全局获取
       const primarySpInfo = await getSpInfo(currentPrimarySpAddress);
       setPrimarySpSealAddress(primarySpInfo.sealAddress);
       const spIndex = sps.findIndex(function (item: any) {
@@ -231,14 +236,17 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   // only get list when init
   useEffect(() => {
     if (bucketName && !isEmpty(sps)) {
+      // 梳理数据并发起请求
       getGatewayParams();
     }
   }, [sps, folderName]);
 
   useEffect(() => {
     if (!isInitReady) return;
+    // 这么处理是为了让新增的时候可以前端手动设置，然后刷新列表，这种方式将会被废弃掉
     const realListObjects = listObjects
       .filter((v: any) => !v.removed)
+      //convertObjectInfo 是为了转换visibility而坐的
       .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)));
     if (realListObjects.length === 0) {
       setIsEmptyData(true);
@@ -291,6 +299,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     );
   };
 
+  // facade化
   const fetchCreateObjectApproval = async (
     uploadFile: File,
     newFileName?: string,
@@ -372,6 +381,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     }
   };
 
+  // 应该是没有这个了，直接从simulate中获取
   const getLockFeeAndSet = async (size = 0) => {
     try {
       setLockFeeLoading(true);
@@ -393,6 +403,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     }
   };
 
+  // 在simulate的时候获取
   const getGasFeeAndSet = async (uploadFile: File, createObjectTx: any) => {
     try {
       setGasFeeLoading(true);
@@ -432,6 +443,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       return;
     }
   };
+  // 上传文件功能最好是抽离到一个组件中，不要写在这里面，方便复用
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setGasFee('-1');
@@ -495,6 +507,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       await getLockFeeAndSet(uploadFile.size);
     }
   };
+  // 统一收敛一下modal，
   const {
     isOpen: isStatusModalOpen,
     onOpen: onStatusModalOpen,

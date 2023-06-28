@@ -1,6 +1,7 @@
 import { TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
+  commonFault,
   downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
@@ -28,6 +29,8 @@ import {
   viewFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { AxiosResponse } from 'axios';
+import { getDomain } from '@/utils/getDomain';
+import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -81,11 +84,63 @@ export type DownloadPreviewParams = {
   address: string;
 };
 
+export type GetObjectListParams = {
+  bucketName: string;
+  usedSpEndpoint: string;
+  spEndpoint: string;
+  address: string;
+  primarySpAddress: string;
+  folderName?: string;
+}
+
+export const getObjectList = async (params: GetObjectListParams) => {
+  const { address, primarySpAddress, folderName, usedSpEndpoint, bucketName } = params;
+  const [domain, domainError] = getDomain();
+  if (!domain) return [null, domainError];
+  const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
+  const query = new URLSearchParams();
+  query.append('delimiter', '/');
+  query.append('max-keys', '1000');
+  if (folderName) {
+    query.append('prefix', folderName);
+  }
+  const client = await getClient();
+
+  const [result, error] = await client.object.listObjects({
+    address,
+    bucketName,
+    endpoint: usedSpEndpoint,
+    domain,
+    seedString,
+    query,
+  }).then(resolve, commonFault);
+  if (!result) return [null, error];
+
+  const { objects = [], common_prefixes = [] } = result.body ?? ({} as any);
+  const files = objects
+    .filter((v: any) => !(v.removed || v.object_info.object_name === folderName))
+    .map((v: any) => v.object_info)
+    .sort(function (a: any, b: any) {
+      return Number(b.create_at) - Number(a.create_at);
+    });
+  const folders = common_prefixes
+    .sort((a: string, b: string) => a.localeCompare(b))
+    .map((folder: string) => ({
+      object_name: folder,
+      object_status: 1,
+    }));
+  const items = folders.concat(files);
+
+  return [items];
+}
+
+
 const getObjectBytes = async (
   params: DownloadPreviewParams,
 ): Promise<[AxiosResponse | null, ErrorMsg?]> => {
   const { address, primarySp, objectInfo } = params;
   const { bucketName, objectName, payloadSize } = objectInfo;
+  // 下载之前做off chain auth 数据校验
   const valid = await authDataValid(address, primarySp.operatorAddress);
   if (!valid) return [null, E_OFF_CHAIN_AUTH];
 

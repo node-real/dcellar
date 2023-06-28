@@ -9,6 +9,7 @@ export const E_NO_QUOTA = 'NO_QUOTA';
 export const E_UNKNOWN = 'UNKNOWN';
 export const E_OFF_CHAIN_AUTH = 'OFF_CHAIN_AUTH';
 export const E_SP_NOT_FOUND = 'SP_NOT_FOUND';
+export const E_NOT_BROWSER = 'NOT_BROWSER';
 
 export declare class BroadcastTxError extends Error {
   readonly code: number;
