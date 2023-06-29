@@ -10,7 +10,7 @@ import {
   GREENFIELD_CHAIN_EXPLORER_URL,
   BSC_EXPLORER_URL,
 } from '@/base/env';
-import { CHAIN_NAMES } from '../constant';
+import { CHAIN_NAMES } from '@/utils/constant';
 
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
