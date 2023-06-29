@@ -20,10 +20,12 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
       ...child.props,
       ref,
       onClick: (event: React.MouseEvent) => {
-        const originClick = child.props.onClick;
+        const { isDisabled, onClick: originClick } = child.props;
         originClick?.call(child, event);
 
-        reportFuncRef.current?.();
+        if (!isDisabled) {
+          reportFuncRef.current?.();
+        }
       },
     });
 

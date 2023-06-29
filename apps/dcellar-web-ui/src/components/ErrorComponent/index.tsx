@@ -1,5 +1,5 @@
 import { useLogin } from '@/hooks/useLogin';
-import { SEOHead } from '@/components/layout/SEOHead';
+import { SEOHead } from '@/components/common/SEOHead';
 import React from 'react';
 import { Footer } from '@/components/layout/Footer';
 import styled from '@emotion/styled';
@@ -8,7 +8,9 @@ import { useColorMode, Text, Heading } from '@totejs/uikit';
 import { errorCodes, TErrorCodeKey } from '@/base/http/utils/errorCodes';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
-import { InternalRoutePaths } from '@/constants/links';
+import { Image } from '@totejs/uikit';
+import { useRouter } from 'next/router';
+import { InternalRoutePaths } from '@/constants/paths';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -40,12 +42,20 @@ interface ErrorComponentProps {
 function ErrorComponent({ statusCode }: ErrorComponentProps) {
   const { loginState } = useLogin();
   const { colorMode } = useColorMode();
+  const router = useRouter();
+  const { err } = router.query;
+  const isNoBucket = err === 'noBucket';
   const address = loginState?.address;
-  const text = statusCode === 404 ? 'Page Not Found' : 'Oops!';
-  const desc =
-    statusCode === 404
-      ? `The page you're looking for does not seem to exit.`
-      : errorCodes[statusCode as TErrorCodeKey];
+  const text = isNoBucket
+    ? 'Bucket Not Exist or Deleted'
+    : statusCode === 404
+    ? 'Page Not Found'
+    : 'Oops!';
+  const desc = isNoBucket
+    ? `This bucket might not exist or is no longer available.\r\nContact the owner of this bucket for more information.`
+    : statusCode === 404
+    ? `The page you're looking for does not seem to exit.`
+    : errorCodes[statusCode as TErrorCodeKey];
 
   return (
     <>
@@ -60,10 +70,18 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
           }
         />
         <Content>
-          <img
-            alt="Oops, something went wrong"
-            src={`${assetPrefix}/images/${statusCode === 404 ? '404' : 'error'}.png`}
-          />
+          {isNoBucket ? (
+            <Image
+              alt="Oops, something went wrong"
+              src={`${assetPrefix}/images/common/no_bucket.png`}
+            />
+          ) : (
+            <Image
+              alt="Oops, something went wrong"
+              src={`${assetPrefix}/images/${statusCode === 404 ? '404' : 'error'}.png`}
+            />
+          )}
+
           <Heading as="h1" fontSize={'24px'} fontWeight={600} lineHeight={'36px'} mt={16} mb={8}>
             {text}
           </Heading>
@@ -74,6 +92,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
             lineHeight={'24px'}
             color="#76808F"
             mb={26}
+            whiteSpace={'pre-line'}
           >
             {desc}
           </Text>
@@ -87,7 +106,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
               fontSize={12}
               borderRadius={4}
             >
-              Go to Home
+              {isNoBucket ? 'Back to Home' : 'Go to Home'}
             </DCButton>
           </Link>
         </Content>

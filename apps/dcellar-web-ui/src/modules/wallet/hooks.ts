@@ -47,8 +47,8 @@ export const useTransferOutFee = () => {
         amount: {
           denom: 'BNB',
           amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
-        }
-      })
+        },
+      });
       const simulateInfo = await transferOutTx.simulate({
         denom: 'BNB',
       });
@@ -56,9 +56,9 @@ export const useTransferOutFee = () => {
       const relayFeeInfo = await client.crosschain.getParams();
       const relayFee = relayFeeInfo.params
         ? getRelayFeeBySimulate(
-          relayFeeInfo.params.transferOutAckRelayerFee,
-          relayFeeInfo.params.transferOutRelayerFee,
-        )
+            relayFeeInfo.params.transferOutAckRelayerFee,
+            relayFeeInfo.params.transferOutRelayerFee,
+          )
         : '0';
 
       const newData = {
@@ -94,6 +94,9 @@ export const useSendFee = () => {
   const getFee = useCallback(async () => {
     try {
       setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 3000);
       const sendTx = await genSendTx({
         fromAddress: address,
         toAddress: address,
@@ -103,7 +106,7 @@ export const useSendFee = () => {
             amount: ethers.utils.parseEther(MIN_AMOUNT).toString(),
           },
         ],
-      })
+      });
       const simulateTxInfo = await sendTx.simulate({
         denom: 'BNB',
       });
@@ -111,6 +114,7 @@ export const useSendFee = () => {
         ...INIT_FEE_DATA,
         gasFee: BigNumber(simulateTxInfo.gasFee),
       });
+
       setIsLoading(false);
     } catch (e: any) {
       // eslint-disable-next-line no-console

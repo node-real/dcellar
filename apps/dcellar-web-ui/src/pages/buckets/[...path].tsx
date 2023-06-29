@@ -24,8 +24,9 @@ const Folder = () => {
       })
       .catch((err) => {
         console.log('err', err);
+        router.push(`/no-bucket?err=noBucket`);
       });
-  }, [bucketName]);
+  }, [bucketName, router]);
   const isDiscontinued = bucketInfo.bucketStatus === 1;
 
   const renderBreadcrumbItem = (

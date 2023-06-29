@@ -44,7 +44,10 @@ export const formatTime = (utcZeroTimestamp = 0) => {
   return '--';
 };
 
-export const formatFullTime = (utcZeroTimestamp = 0, format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss') => {
+export const formatFullTime = (
+  utcZeroTimestamp = 0,
+  format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
+) => {
   const formatStyle = format || 'MMM D, YYYY HH:mm A';
   dayjs.extend(utc);
   dayjs.extend(timezone);
@@ -56,4 +59,3 @@ export const formatFullTime = (utcZeroTimestamp = 0, format?: 'MMM D, YYYY HH:mm
     .tz(curTimezone)
     .format('Z')})`;
 };
-

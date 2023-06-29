@@ -23,10 +23,11 @@ import {
   toast,
   Tooltip,
   useDisclosure,
+  Image,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
-import { useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
@@ -34,8 +35,10 @@ import { makeData } from './makeData';
 import { useLogin } from '@/hooks/useLogin';
 import { getLockFee } from '@/utils/wallet';
 import {
+  AUTH_EXPIRED,
   BUTTON_GOT_IT,
   FILE_EMPTY_URL,
+  FILE_FAILED_URL,
   FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_DOWNLOADING,
   GET_GAS_FEE_DEFAULT_ERROR,
@@ -48,6 +51,7 @@ import {
   OBJECT_SEALED_STATUS,
   OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
+  PENDING_ICON_URL,
 } from '@/modules/file/constant';
 import { FileInfoModal } from '@/modules/file/components/FileInfoModal';
 import { ConfirmDownloadModal } from '@/modules/file/components/ConfirmDownloadModal';
@@ -56,6 +60,7 @@ import { ConfirmDeleteModal } from '@/modules/file/components/ConfirmDeleteModal
 import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal';
 import {
   contentTypeToExtension,
+  contentIconTypeToExtension,
   directlyDownload,
   downloadWithProgress,
   formatBytes,
@@ -76,8 +81,13 @@ import { getClient } from '@/base/client';
 import { useRouter } from 'next/router';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
-import { ChainVisibilityEnum } from '../type';
+import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
+import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
+import { updateObjectInfo } from '@/facade/object';
+import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -224,6 +234,7 @@ export const FileTable = (props: fileListProps) => {
     setStatusModalErrorText,
   } = props;
   const loginData = useLogin();
+  const { connector } = useAccount();
   const { loginState } = loginData;
   const { allowDirectDownload, address, allowDirectView } = loginState;
   const { chain } = useNetwork();
@@ -242,11 +253,16 @@ export const FileTable = (props: fileListProps) => {
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
   const [shareLink, setShareLink] = useState('');
+  const [shareObject, setShareObject] = useState<IObjectProps['object_info']>(
+    {} as IObjectProps['object_info'],
+  );
   const [viewLink, setViewLink] = useState('');
   const { setOpenAuthModal } = useOffChainAuth();
   const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const [currentVisibility, setCurrentVisibility] = useState(ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED);
+  const [currentVisibility, setCurrentVisibility] = useState(
+    ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
+  );
   const { width, height } = useWindowSize();
   const router = useRouter();
   const containerWidth = useMemo(() => {
@@ -315,6 +331,61 @@ export const FileTable = (props: fileListProps) => {
     onShareModalClose,
     setOpenAuthModal,
   ]);
+
+  const openPendingModal = () => {
+    setStatusModalIcon(PENDING_ICON_URL);
+    setStatusModalTitle('Updating Access');
+    setStatusModalDescription('Confirm this transaction in your wallet.');
+    setStatusModalButtonText('');
+    onStatusModalOpen();
+    return () => {
+      onStatusModalClose();
+    };
+  };
+
+  const handleError = (msg: ErrorMsg) => {
+    setStatusModalIcon(FILE_FAILED_URL);
+    switch (msg) {
+      case AUTH_EXPIRED:
+        setOpenAuthModal();
+        return;
+      case E_USER_REJECT_STATUS_NUM:
+        return;
+      default:
+        setStatusModalDescription(msg as string);
+        onStatusModalOpen();
+        return;
+    }
+  };
+
+  const onAccessChange = async (target: IObjectProps['object_info'], access: string) => {
+    onShareModalClose();
+    const onClose = openPendingModal();
+
+    const visibility = VisibilityType[access as any] as any;
+    const payload = {
+      operator: address,
+      bucketName: bucketName,
+      objectName: shareObject.object_name,
+      visibility,
+    };
+
+    const [_, error] = await updateObjectInfo(payload, connector!);
+    onClose();
+
+    if (error) {
+      return handleError(error);
+    }
+
+    toast.success({ description: 'Access updated!' });
+    const newList = flatData.map((d: any) => ({
+      ...d,
+      // .........
+      visibility: d.object_name === target.object_name ? visibility : VisibilityType[d.visibility],
+    }));
+    setListObjects(newList);
+  };
+
   const getLockFeeAndSet = async (size = 0, onModalClose: () => void) => {
     try {
       const lockFeeInBNB = await getLockFee(size, primarySp.operatorAddress);
@@ -440,6 +511,19 @@ export const FileTable = (props: fileListProps) => {
       </Tooltip>
     );
   };
+  const renderFileTypeIcon = (rowData: any) => {
+    const fileType = contentIconTypeToExtension(rowData.object_name);
+    return (
+      <Flex className="fileTypeIcon" mr={'4px'}>
+        <Image
+          src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
+          alt={fileType}
+          width={24}
+          height={24}
+        />
+      </Flex>
+    );
+  };
   const columns = useMemo<ColumnDef<any>[]>(() => {
     return [
       {
@@ -460,11 +544,12 @@ export const FileTable = (props: fileListProps) => {
           const path = name.split('/');
           const nameWithoutFolderPrefix =
             isFolder && path.includes('/') ? path[path.length - 2] : path[path.length - 1];
-          const icon = isFolder ? (
-            <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
-          ) : (
-            <FileIcon size="md" color={iconColor} />
-          );
+          // const icon = isFolder ? (
+          //   <FolderIcon color={canView ? '#1E2026' : '#aeb4bc'} />
+          // ) : (
+          //   <FileIcon size="md" color={iconColor} />
+          // );
+          const icon = renderFileTypeIcon(rowData);
           return (
             <Flex
               className="object-name"
@@ -576,6 +661,7 @@ export const FileTable = (props: fileListProps) => {
           } = info;
           // Get column property and values
           const objectName = (rowData.object_name as string) ?? '';
+          const objectId = (rowData.id as string) ?? '';
           const {
             payload_size: payloadSize,
             checksums,
@@ -667,7 +753,7 @@ export const FileTable = (props: fileListProps) => {
                 await onDownload(url);
               }
             } else {
-              setFileInfo({ name: objectName, size: payloadSize });
+              setFileInfo({ name: objectName, size: payloadSize, id: objectId });
               setShareLink(url);
               setCurrentVisibility(visibility);
               onConfirmDownloadModalOpen();
@@ -682,6 +768,7 @@ export const FileTable = (props: fileListProps) => {
 
           const onShare = () => {
             setShareLink(directDownloadLink);
+            setShareObject(rowData as IObjectProps['object_info']);
             onShareModalOpen();
           };
           const directDownloadLink = encodeURI(
@@ -739,11 +826,12 @@ export const FileTable = (props: fileListProps) => {
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
                             setRemainingQuota(null);
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             setHash(checksums?.[0] ?? '');
                             setCreatedDate(create_at);
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
+                            setShareObject(rowData as IObjectProps['object_info']);
                             onInfoModalOpen();
                             const quotaData = await getQuota(bucketName, primarySp.endpoint);
                             if (quotaData) {
@@ -779,7 +867,7 @@ export const FileTable = (props: fileListProps) => {
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
 
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             // calculate gas fee
                             try {
                               setGasFeeLoading(true);
@@ -812,7 +900,7 @@ export const FileTable = (props: fileListProps) => {
                           }
                           onClick={async (e: React.MouseEvent) => {
                             e.stopPropagation();
-                            setFileInfo({ name: objectName, size: payloadSize });
+                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
                             // calculate gas fee
                             try {
                               setGasFeeLoading(true);
@@ -898,7 +986,8 @@ export const FileTable = (props: fileListProps) => {
     <>
       <Box width={containerWidth} minW="">
         <Box
-          className="container"
+          overflowY="auto"
+          maxW='100%'
           borderRadius={'16px'}
           height={tableNotFullHeight < tableFullHeight ? tableNotFullHeight : tableFullHeight}
           paddingX="16px"
@@ -965,7 +1054,13 @@ export const FileTable = (props: fileListProps) => {
               {virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<any>;
 
-                const { object_status, visibility, object_name, payload_size } = row.original;
+                const {
+                  object_status,
+                  visibility,
+                  object_name,
+                  payload_size,
+                  id: object_id,
+                } = row.original;
                 const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
                 const isFolder = object_name?.endsWith('/') ?? false;
@@ -1002,7 +1097,7 @@ export const FileTable = (props: fileListProps) => {
                           `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
                         if (!allowDirectView) {
-                          setFileInfo({ name: object_name, size: payload_size });
+                          setFileInfo({ name: object_name, size: payload_size, id: object_id });
                           setViewLink(previewLink);
                           setCurrentVisibility(visibility);
                           onConfirmViewModalOpen();
@@ -1024,7 +1119,8 @@ export const FileTable = (props: fileListProps) => {
                               const { freeQuota, readQuota, consumedQuota } = quotaData;
                               const currentRemainingQuota = readQuota + freeQuota - consumedQuota;
                               const isAbleDownload = !(
-                                currentRemainingQuota && currentRemainingQuota - Number(payload_size) < 0
+                                currentRemainingQuota &&
+                                currentRemainingQuota - Number(payload_size) < 0
                               );
                               if (!isAbleDownload) {
                                 setStatusModalIcon(NOT_ENOUGH_QUOTA_URL);
@@ -1177,7 +1273,12 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
       />
-      <ShareModal isOpen={isShareModalOpen} onClose={onShareModalClose} shareLink={shareLink} />
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={onShareModalClose}
+        shareObject={shareObject}
+        onAccessChange={onAccessChange}
+      />
     </>
   );
 };

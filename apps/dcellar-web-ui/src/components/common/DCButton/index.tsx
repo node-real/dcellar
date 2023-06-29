@@ -1,5 +1,5 @@
 import { Button, ButtonProps, ButtonVariantType } from '@totejs/uikit';
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 import { ButtonConfig, DCVariants, TDCVariant } from './buttonConfig';
 import { GAClick, GAShow } from '@/components/common/GATracker';
@@ -13,10 +13,10 @@ export interface DCButtonProps extends Omit<ButtonProps, 'variant'> {
   gaShowData?: Record<string, any>;
 }
 
-export const DCButton = (props: DCButtonProps) => {
+export const DCButton = forwardRef((props: DCButtonProps, ref: any) => {
   const { children, variant, gaClickName, gaClickData, gaShowName, gaShowData, ...restProps } =
     props;
-  // TODO type protect
+
   const styles = ButtonConfig.variants[variant as TDCVariant] || {};
   const originalVariant = DCVariants.some((item) => item === variant)
     ? 'scene'
@@ -25,10 +25,17 @@ export const DCButton = (props: DCButtonProps) => {
   return (
     <GAShow name={gaShowName} data={gaShowData}>
       <GAClick name={gaClickName} data={gaClickData}>
-        <Button h="48px" fontWeight="500" variant={originalVariant} {...styles} {...restProps}>
+        <Button
+          ref={ref}
+          h={48}
+          fontWeight={500}
+          variant={originalVariant}
+          {...styles}
+          {...restProps}
+        >
           {children}
         </Button>
       </GAClick>
     </GAShow>
   );
-};
+});

@@ -52,12 +52,12 @@ const Welcome = () => {
   const [loading, setLoading] = useState(false);
   const [switchNetworkDone, setSwitchNetworkDone] = useState(false);
   const [currentConnector, setCurrentConnector] = useState<any>();
-  const [isLargerThan1000] = useMediaQuery(['(min-width: 1001px)']);
-
-  const [isHigherThan704] = useMediaQuery('(min-height: 704px)');
-  const [isHigherThan600] = useMediaQuery('(min-height: 601px)');
+  const [isLargerThan1000, isHigherThan704, isHigherThan600] = useMediaQuery([
+    '(min-width: 1001px)',
+    '(min-height: 704px)',
+    '(min-height: 601px)',
+  ]);
   const hasOffChainAuth = useRef(false);
-
   const TitleGap = isHigherThan600 ? 48 : 206;
   const bgHeight = isHigherThan704 ? '560px' : '80%';
 
@@ -182,22 +182,24 @@ const Welcome = () => {
         }
       } else {
         if (currentAddress) {
-          const offChainList = getOffChainList({ address: currentAddress});
+          const offChainList = getOffChainList({ address: currentAddress });
           const isAvailable = checkOffChainDataAvailable(offChainList);
           if (!isAvailable) {
             hasOffChainAuth.current = true;
-            onOffChainAuth(currentAddress).then((res: any) => {
-              if (res.code === 0) {
-                loginDispatch({
-                  type: 'LOGIN',
-                  payload: {
-                    address: currentAddress,
-                  },
-                });
-              }
-            }).finally(() => {
-              hasOffChainAuth.current = false;
-            });
+            onOffChainAuth(currentAddress)
+              .then((res: any) => {
+                if (res.code === 0) {
+                  loginDispatch({
+                    type: 'LOGIN',
+                    payload: {
+                      address: currentAddress,
+                    },
+                  });
+                }
+              })
+              .finally(() => {
+                hasOffChainAuth.current = false;
+              });
           } else {
             loginDispatch({
               type: 'LOGIN',

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import FileEmptyIcon from '@/public/images/files/file_empty.svg';
-import DiscontinueImg from '@/public/images/files/file_failed.svg';
+import DiscontinueImg from '@/public/images/icons/discontinue.svg';
 import { Text } from '@totejs/uikit';
 
 export const FileListEmpty = ({
