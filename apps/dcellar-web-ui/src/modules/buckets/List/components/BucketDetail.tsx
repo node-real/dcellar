@@ -96,7 +96,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                         cursor={'pointer'}
                         textDecoration={'underline'}
                         _hover={{
-                          color: '#1184EE',
+                          color: '#3C9AF1',
                         }}
                         href={`${item.href}/${item.value}`}
                         fontSize={'14px'}
@@ -112,7 +112,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
                       cursor={'pointer'}
                       textDecoration={'underline'}
                       _hover={{
-                        color: '#1184EE',
+                        color: '#3C9AF1',
                       }}
                       href={`${item.href}/${item.value}`}
                       fontSize={'14px'}
