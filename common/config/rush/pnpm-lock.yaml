@@ -10,7 +10,7 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.15
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.1
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
@@ -62,7 +62,7 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.5
-      '@bnb-chain/greenfield-chain-sdk': 0.2.1-alpha.15
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.1
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
@@ -1566,8 +1566,8 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.2.1-alpha.15:
-    resolution: {integrity: sha512-pN5lXFHAImXmajdPsWFnZcEs58JaZi6BmonYiwYj2lqpN8ZoyP1Qw66yULlPMgecqw1MNn3c+l6J+KZ+bbTjng==}
+  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.1:
+    resolution: {integrity: sha512-ODZEO4n7J7Tp5TAVEgw/vPINoBLXb0fcm4mAg5F/wQWUT/UfUyLAMO8u1XfIFFMXLQp8K9BB4NFp2uxeVooZkw==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
