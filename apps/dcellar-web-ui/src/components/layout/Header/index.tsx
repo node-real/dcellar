@@ -1,5 +1,5 @@
 import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
@@ -12,6 +12,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { Tips } from '@/components/common/Tips';
+import { Logo } from '@/components/layout/Logo';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -195,6 +196,23 @@ export const Header = () => {
         borderBottom="1px solid #E6E8EA"
         justifyContent={'right'}
       >
+        <Flex paddingLeft="24px" alignItems={'center'}>
+          <GAClick name="dc.main.nav.logo.click">
+            <Logo href="/" />
+          </GAClick>
+          <Box
+            fontSize={'12px'}
+            lineHeight="24px"
+            paddingX={'4px'}
+            borderRadius="4px"
+            bgColor={'rgba(0, 186, 52, 0.1)'}
+            color="readable.brand6"
+            marginLeft={'4px'}
+          >
+            Testnet
+          </Box>
+        </Flex>
+        <Flex flex={1} />
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex

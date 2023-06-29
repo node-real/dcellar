@@ -53,7 +53,6 @@ export const Nav = () => {
       left={0}
       top={0}
       bottom={0}
-      zIndex={1}
     >
       <Flex height={'64px'} paddingLeft="24px" alignItems={'center'}>
         <GAClick name="dc.main.nav.logo.click">

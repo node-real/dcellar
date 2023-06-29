@@ -43,12 +43,12 @@ export function Page(props: React.PropsWithChildren) {
           flexDirection={'column'}
           bg="bg.bottom"
         >
+          <Nav />
           {children}
           {isShowFooter && <Footer />}
         </Flex>
         <Header />
       </Flex>
-      <Nav />
     </Flex>
   );
 }
