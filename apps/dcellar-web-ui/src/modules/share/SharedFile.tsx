@@ -7,14 +7,13 @@ import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
-import { useSPs } from '@/hooks/useSPs';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { headObject, quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
-import { find } from 'lodash-es';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
+import { useAppSelector } from '@/store';
 
 interface SharedFileProps {
   fileName: string;
@@ -31,7 +30,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   quotaData,
   loginAccount,
 }) {
-  const { sp, sps } = useSPs();
+  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
@@ -42,7 +41,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     onClose: onStatusModalClose,
   } = useDisclosure();
   const { bucketName, payloadSize, objectName } = objectInfo;
-  const endpoint = sp.endpoint;
+  const endpoint = spInfo[oneSp].endpoint;
   const size = payloadSize.toString();
 
   const onError = (type: ShareErrorType) => {
@@ -81,7 +80,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const bucketInfo = await headObject(bucketName);
     if (!bucketInfo) return onError(E_UNKNOWN);
 
-    const primarySp = find(sps, (sp) => sp.operatorAddress === bucketInfo.primarySpAddress);
+    const primarySp = spInfo[bucketInfo.primarySpAddress];
     if (!primarySp) return onError(E_SP_NOT_FOUND);
 
     const params = {

@@ -18,7 +18,6 @@ import { getClient } from '@/base/client';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { quotaRemains } from '@/facade/bucket';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { authDataValid } from '@/facade/auth';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { encodeObjectName } from '@/utils/string';
@@ -28,6 +27,7 @@ import {
   viewFileByAxiosResponse,
 } from '@/modules/file/utils';
 import { AxiosResponse } from 'axios';
+import { SpItem } from '@/store/slices/sp';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -77,7 +77,7 @@ export const getCanObjectAccess = async (
 
 export type DownloadPreviewParams = {
   objectInfo: ObjectInfo;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   address: string;
 };
 

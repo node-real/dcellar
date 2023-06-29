@@ -1,4 +1,4 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
+import { Checkbox, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
@@ -16,8 +16,8 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
 
 interface modalProps {
   title?: string;
@@ -28,7 +28,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;

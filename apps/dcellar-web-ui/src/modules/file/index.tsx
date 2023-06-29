@@ -31,7 +31,6 @@ import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import { getClient } from '@/base/client';
-import { useSPs } from '@/hooks/useSPs';
 import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
 import { validateObjectName } from './utils/validateObjectName';
@@ -39,9 +38,10 @@ import { genCreateObjectTx } from './utils/genCreateObjectTx';
 import { ChainVisibilityEnum, TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
-import { IRawSPInfo } from '../buckets/type';
 import { convertObjectInfo } from './utils/convertObjectInfo';
 import { ChecksumWorkerContext } from '@/context/GlobalContext/ChecksumWorkerContext';
+import { useAppSelector } from '@/store';
+import { SpItem } from '@/store/slices/sp';
 
 interface pageProps {
   bucketName: string;
@@ -112,6 +112,7 @@ const renderUploadButton = (
 let preSelectTime = Date.now();
 
 export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
+  const { spInfo, sps } = useAppSelector((root) => root.sp);
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
   const loginData = useLogin();
@@ -130,7 +131,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
-  const [primarySp, setPrimarySp] = useState<IRawSPInfo>({} as IRawSPInfo);
+  const [primarySp, setPrimarySp] = useState({} as SpItem);
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
@@ -138,7 +139,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const greenfieldRef = useRef<Worker>();
   const checksumWorkerApiRef = useContext(ChecksumWorkerContext);
   const router = useRouter();
-  const { sps } = useSPs();
   const { setOpenAuthModal } = useOffChainAuth();
   const isDiscontinued = bucketInfo.bucketStatus === 1;
 
@@ -192,7 +192,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   };
   const getGatewayParams = async () => {
     try {
-      if (isEmpty(sps)) return;
       setIsInitReady(false);
       const bucketInfo = await getBucketInfo(bucketName);
       setIsCurrentUser(bucketInfo?.owner === address);
@@ -207,20 +206,18 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       setPrimarySpAddress(currentPrimarySpAddress);
       const primarySpInfo = await getSpInfo(currentPrimarySpAddress);
       setPrimarySpSealAddress(primarySpInfo.sealAddress);
-      const spIndex = sps.findIndex(function (item: any) {
-        return item.operatorAddress === bucketInfo?.primarySpAddress;
-      });
-      if (spIndex < 0) {
+      const sp = spInfo[bucketInfo?.primarySpAddress];
+      if (!sp) {
         toast.error({
           description: `Sp address info is mismatched, please retry.`,
         });
         return;
       }
-      const currentEndpoint = sps[spIndex]?.endpoint;
-      setPrimarySp(sps[spIndex]);
+      const currentEndpoint = sp.endpoint;
+      setPrimarySp(sp);
       const currentSecondaryAddresses = sps
-        .filter((v: any, i: number) => i !== spIndex)
-        .map((item: any) => item.operatorAddress);
+        .filter((s) => s.operatorAddress !== sp.operatorAddress)
+        .map((s) => s.operatorAddress);
       setSecondarySpAddresses(currentSecondaryAddresses);
       getObjectList(currentEndpoint);
     } catch (error: any) {

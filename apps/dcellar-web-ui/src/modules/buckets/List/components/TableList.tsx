@@ -21,7 +21,6 @@ import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucket } from '@/modules/buckets/List/components/DeleteBucket';
 import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { useSPs } from '@/hooks/useSPs';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { ActionItem } from './ActionItem';
@@ -30,9 +29,10 @@ import { IBucketItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { getClient } from '@/base/client';
+import { useAppSelector } from '@/store';
 
 export const TableList = memo(() => {
-  const { sp, sps } = useSPs();
+  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
   const {
@@ -79,7 +79,6 @@ export const TableList = memo(() => {
         cell: (info) => {
           return (
             <ActionItem
-              sps={sps}
               info={info}
               rowData={rowData}
               setShowDetail={setShowDetail}
@@ -91,7 +90,7 @@ export const TableList = memo(() => {
         },
       },
     ],
-    [onOpen, rowData, sps],
+    [onOpen, rowData],
   );
   const isLoadingColumns = useMemo(
     () =>
@@ -107,11 +106,11 @@ export const TableList = memo(() => {
       try {
         // TODO add auth check and error handling
         const domain = getDomain();
-        const { seedString } = await getSpOffChainData({ address, spAddress: sp?.operatorAddress });
+        const { seedString } = await getSpOffChainData({ address, spAddress: oneSp });
         const client = await getClient();
         const res: any = await client.bucket.getUserBuckets({
           address,
-          endpoint: sp?.endpoint,
+          endpoint: spInfo[oneSp].endpoint,
           domain,
           seedString,
         });
@@ -132,7 +131,7 @@ export const TableList = memo(() => {
         return [];
       }
     },
-    { enabled: !isEmpty(sp) },
+    { enabled: !isEmpty(oneSp) },
   );
 
   const hasContinuedBucket = useMemo(() => {
@@ -148,7 +147,7 @@ export const TableList = memo(() => {
     return height - 65 - 48 - 24 - 48;
   }, [hasContinuedBucket, height]);
 
-  const tableNotFullHeight = useMemo(() => (data?.length * 56 + 45), [data?.length]);
+  const tableNotFullHeight = useMemo(() => data?.length * 56 + 45, [data?.length]);
 
   const skeletonData = useMemo(() => {
     return makeData(Math.floor(tableFullHeight / 56) - 1);

@@ -11,7 +11,7 @@ interface SPSelector {
 }
 
 export function SPSelector(props: SPSelector) {
-  const { sps, spInfo, primarySp } = useAppSelector((root) => root.sp);
+  const { sps, spInfo, oneSp } = useAppSelector((root) => root.sp);
   const len = sps.length;
   const [sp, setSP] = useState({} as SpItem);
   const [total, setTotal] = useState(0);
@@ -22,7 +22,7 @@ export function SPSelector(props: SPSelector) {
   useMount(() => {
     if (!len) return;
     setTotal(len);
-    setSP(spInfo[primarySp]);
+    setSP(spInfo[oneSp]);
   });
 
   useEffect(() => {

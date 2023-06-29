@@ -1,13 +1,13 @@
 import {
-  ModalCloseButton,
-  ModalHeader,
-  ModalFooter,
-  Image,
-  Text,
-  Flex,
-  toast,
   Box,
+  Flex,
+  Image,
   Link,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  Text,
+  toast,
   useOutsideClick,
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
@@ -17,27 +17,25 @@ import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
 
 import { useLogin } from '@/hooks/useLogin';
-import { GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import {
   BUTTON_GOT_IT,
   FETCH_OBJECT_APPROVAL_ERROR,
   FILE_DESCRIPTION_UPLOAD_ERROR,
   FILE_FAILED_URL,
+  FILE_INFO_IMAGE_URL,
   FILE_STATUS_UPLOADING,
   FILE_TITLE_UPLOAD_FAILED,
   FILE_TITLE_UPLOADING,
   FILE_UPLOAD_URL,
-  OBJECT_CREATE_STATUS,
-  OBJECT_SEALED_STATUS,
-  OBJECT_STATUS_FAILED,
   OBJECT_STATUS_UPLOADING,
 } from '@/modules/file/constant';
 import {
   formatBytes,
   renderBalanceNumber,
   renderFeeValue,
-  renderPrelockedFeeValue,
   renderInsufficientBalance,
+  renderPrelockedFeeValue,
   transformVisibility,
 } from '@/modules/file/utils';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
@@ -49,7 +47,6 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
-import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
@@ -62,6 +59,7 @@ import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { getClient } from '@/base/client';
+import { SpItem } from '@/store/slices/sp';
 
 const renderFee = (
   key: string,
@@ -106,7 +104,7 @@ const getObjectIsSealed = async ({
 }: {
   bucketName: string;
   folderName: string;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   objectName: string;
   address: string;
 }) => {
@@ -147,7 +145,7 @@ const POLLING_INTERVAL = 3000; // ms
 
 interface modalProps {
   title?: string;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   onClose: () => void;
   isOpen: boolean;
   description?: string;
@@ -190,7 +188,9 @@ export const FileDetailModal = (props: modalProps) => {
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
-  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
+  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(
+    ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
+  );
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
   useOutsideClick({
@@ -507,8 +507,7 @@ export const FileDetailModal = (props: modalProps) => {
         });
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.filter((v: any) => {
-          return v?.object_name !== finalName
-
+          return v?.object_name !== finalName;
         });
         setListObjects(errorListObjects);
         setLoading(false);

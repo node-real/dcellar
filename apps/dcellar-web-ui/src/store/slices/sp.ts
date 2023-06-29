@@ -20,13 +20,13 @@ export type SpItem = Omit<StorageProvider, 'description'> & Description;
 export interface SpState {
   sps: Array<SpItem>;
   spInfo: Record<string, SpItem>;
-  primarySp: string;
+  oneSp: string;
 }
 
 const initialState: SpState = {
   sps: [],
   spInfo: {},
-  primarySp: '', // operatorAddress
+  oneSp: '', // operatorAddress
 };
 
 export const spSlice = createSlice({
@@ -45,7 +45,7 @@ export const spSlice = createSlice({
 
       const availableSps = unsorted.filter((sp) => sp.moniker !== 'QATest');
       const len = availableSps.length;
-      state.primarySp = !len ? '' : availableSps[random(0, len - 1)].operatorAddress;
+      state.oneSp = !len ? '' : availableSps[random(0, len - 1)].operatorAddress;
       state.sps = sortBy(availableSps, ['moniker', 'operatorAddress']);
     },
   },

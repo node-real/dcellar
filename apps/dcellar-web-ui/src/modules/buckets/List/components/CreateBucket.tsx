@@ -81,8 +81,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     loginState: { address },
   } = useLogin();
 
-  const { sps: globalSps, spInfo, primarySp } = useAppSelector((root) => root.sp);
-  const globalSP = spInfo[primarySp];
+  const { sps: globalSps, spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const globalSP = spInfo[oneSp];
   // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
   const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();

@@ -37,6 +37,7 @@ import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-c
 import { formatFullTime } from '@/utils/time';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
 
 interface modalProps {
   title?: string;
@@ -48,7 +49,7 @@ interface modalProps {
   folderName: string;
   fileInfo?: { name: string; size: number; id: string };
   createdDate?: number;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   hash?: string;
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;

@@ -16,6 +16,7 @@ import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -86,7 +87,7 @@ const downloadWithProgress = async ({
 }: {
   bucketName: string;
   objectName: string;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   payloadSize: number;
   address: string;
 }) => {

@@ -18,7 +18,6 @@ import ChainBalanceContextProvider from '@/context/GlobalContext/BalanceContext'
 import { BnbPriceProvider } from '@/context/GlobalContext/BnbPriceProvider';
 import { ChecksumWorkerProvider } from '@/context/GlobalContext/ChecksumWorkerContext';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
-import { SPProvider } from '@/context/GlobalContext/SPProvider';
 import { StatusCodeContext } from '@/context/GlobalContext/StatusCodeContext';
 import { LoginContextProvider } from '@/context/LoginContext/provider';
 import { WalletConnectProvider } from '@/context/WalletConnectContext';
@@ -46,14 +45,16 @@ function DcellarApp({ Component, ...rest }: NextAppProps) {
     <QueryClientProvider client={queryClient}>
       <WalletConnectProvider>
         <LoginContextProvider inline>
-          <ThemeProvider theme={theme}>
-            <SPProvider>
-              <OffChainAuthProvider>
-                <Component {...props} />
-                <GAPageView />
-              </OffChainAuthProvider>
-            </SPProvider>
-          </ThemeProvider>
+          <BnbPriceProvider>
+            <ChainBalanceContextProvider>
+              <ThemeProvider theme={theme}>
+                <OffChainAuthProvider>
+                  <Component {...props.pageProps} />
+                  <GAPageView />
+                </OffChainAuthProvider>
+              </ThemeProvider>
+            </ChainBalanceContextProvider>
+          </BnbPriceProvider>
         </LoginContextProvider>
       </WalletConnectProvider>
     </QueryClientProvider>
@@ -68,17 +69,15 @@ function DcellarApp({ Component, ...rest }: NextAppProps) {
                 <ChainBalanceContextProvider>
                   <ThemeProvider theme={theme}>
                     <Layout>
-                      <SPProvider>
-                        <ChecksumWorkerProvider>
-                          {/* TODO provider should locate up layout */}
-                          <OffChainAuthProvider>
-                            <PageProtect>
-                              <Component {...props} />
-                              <GAPageView />
-                            </PageProtect>
-                          </OffChainAuthProvider>
-                        </ChecksumWorkerProvider>
-                      </SPProvider>
+                      <ChecksumWorkerProvider>
+                        {/* TODO provider should locate up layout */}
+                        <OffChainAuthProvider>
+                          <PageProtect>
+                            <Component {...props.pageProps} />
+                            <GAPageView />
+                          </PageProtect>
+                        </OffChainAuthProvider>
+                      </ChecksumWorkerProvider>
                     </Layout>
                   </ThemeProvider>
                 </ChainBalanceContextProvider>

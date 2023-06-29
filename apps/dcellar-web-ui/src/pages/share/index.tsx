@@ -1,10 +1,9 @@
-import { NextPageContext } from 'next';
+import { InferGetServerSidePropsType, NextPage, NextPageContext } from 'next';
 import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
 import React, { useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
-import { useSPs } from '@/hooks/useSPs';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex } from '@totejs/uikit';
@@ -22,6 +21,7 @@ import { Header } from '@/components/layout/Header';
 import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
+import { useAppSelector } from '@/store';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -29,15 +29,10 @@ const Container = styled.main`
   display: grid;
 `;
 
-export interface SharePageProps {
-  bucketName: string;
-  fileName: string;
-  objectName: string;
-}
-
-const SharePage = (props: SharePageProps) => {
+const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
+  console.log(props);
+  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
-  const { sp } = useSPs();
   const loginData = useLogin();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
@@ -47,15 +42,15 @@ const SharePage = (props: SharePageProps) => {
   const loginAccount = loginState?.address;
 
   useAsyncEffect(async () => {
-    if (!sp) return;
+    if (!oneSp) return;
     const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
       bucketName,
       objectName,
-      sp.endpoint,
+      spInfo[oneSp].endpoint,
     );
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
-  }, [sp]);
+  }, [oneSp]);
 
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const walletConnected = !!loginAccount;
@@ -114,7 +109,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const redirect = () => {
     res!.statusCode = 302;
     res!.setHeader('location', '/buckets');
-    return { props: {} };
+    return { props: { bucketName: '', fileName: '', objectName: '' } };
   };
 
   if (!file) return redirect();

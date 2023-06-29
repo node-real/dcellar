@@ -13,6 +13,7 @@ import {
   CenterProps,
   Circle,
   Flex,
+  Image,
   Menu,
   MenuButton,
   MenuItem,
@@ -23,10 +24,9 @@ import {
   toast,
   Tooltip,
   useDisclosure,
-  Image,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import { DownloadIcon, FileIcon } from '@totejs/icons';
+import { DownloadIcon } from '@totejs/icons';
 import { useAccount, useNetwork } from 'wagmi';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
@@ -59,8 +59,8 @@ import { ConfirmViewModal } from '@/modules/file/components/ConfirmViewModal';
 import { ConfirmDeleteModal } from '@/modules/file/components/ConfirmDeleteModal';
 import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal';
 import {
-  contentTypeToExtension,
   contentIconTypeToExtension,
+  contentTypeToExtension,
   directlyDownload,
   downloadWithProgress,
   formatBytes,
@@ -73,21 +73,18 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { getClient } from '@/base/client';
 import { useRouter } from 'next/router';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
 import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
-import { signTypedDataV4 } from '@/utils/signDataV4';
-import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { updateObjectInfo } from '@/facade/object';
 import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
+import { SpItem } from '@/store/slices/sp';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -118,7 +115,7 @@ interface fileListProps {
   listObjects: any;
   bucketName: string;
   folderName: string;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   isLoading: boolean;
   bucketIsDiscontinued: boolean;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -987,7 +984,7 @@ export const FileTable = (props: fileListProps) => {
       <Box width={containerWidth} minW="">
         <Box
           overflowY="auto"
-          maxW='100%'
+          maxW="100%"
           borderRadius={'16px'}
           height={tableNotFullHeight < tableFullHeight ? tableNotFullHeight : tableFullHeight}
           paddingX="16px"
