@@ -89,6 +89,7 @@ export const Header = () => {
                   target="_blank"
                   color="readable.primary"
                   textDecoration="underline"
+                  _hover={{ color: 'readable.brand5' }}
                 >
                   Learn more
                 </Link>
