@@ -674,6 +674,7 @@ export const FileTable = (props: fileListProps) => {
           const isUploadFailed = objectStatus === OBJECT_STATUS_FAILED;
           const downloadText = 'Download';
           const deleteText = isSealed ? 'Delete' : 'Cancel';
+          const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
@@ -776,7 +777,7 @@ export const FileTable = (props: fileListProps) => {
           if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
-              {isSealed && isCurrentUser && (
+              {isSealed && isCurrentUser && showFileIcon && (
                 <ActionButton gaClickName="dc.file.share_btn.0.click" onClick={onShare}>
                   <ShareIcon />
                 </ActionButton>
@@ -852,7 +853,7 @@ export const FileTable = (props: fileListProps) => {
                           {downloadText}
                         </GreenfieldMenuItem>
                       )}
-                      {isSealed && isCurrentUser && (
+                      {isSealed && isCurrentUser && showFileIcon && (
                         <GreenfieldMenuItem
                           gaClickName="dc.file.list_menu.share.click"
                           onClick={onShare}
