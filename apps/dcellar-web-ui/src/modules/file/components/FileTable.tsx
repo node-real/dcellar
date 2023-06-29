@@ -986,7 +986,8 @@ export const FileTable = (props: fileListProps) => {
     <>
       <Box width={containerWidth} minW="">
         <Box
-          className="container"
+          overflowY="auto"
+          maxW='100%'
           borderRadius={'16px'}
           height={tableNotFullHeight < tableFullHeight ? tableNotFullHeight : tableFullHeight}
           paddingX="16px"
