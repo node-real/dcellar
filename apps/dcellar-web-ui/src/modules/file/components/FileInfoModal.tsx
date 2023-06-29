@@ -147,7 +147,7 @@ const renderAddressWithLink = (
           cursor={'pointer'}
           textDecoration={'underline'}
           _hover={{
-            color: '#1184EE',
+            color: '#3C9AF1',
           }}
           href={`${GREENFIELD_CHAIN_EXPLORER_URL}/${type}/${address}`}
           fontSize={'14px'}

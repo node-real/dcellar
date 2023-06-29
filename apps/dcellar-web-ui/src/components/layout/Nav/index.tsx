@@ -77,6 +77,7 @@ export const Nav = () => {
             <GAClick key={item.text} name={item.gaClickName}>
               <Link href={item.link}>
                 <Flex
+                  fontSize={'16px'}
                   cursor={'pointer'}
                   p={'8px 12px'}
                   alignItems="center"
@@ -124,7 +125,7 @@ export const Nav = () => {
           <Link href={DcellarDoc} target="_blank">
             <NavItem>
               <DocIcon mr={12} />
-              Document
+              Documentation
             </NavItem>
           </Link>
         </GAClick>
