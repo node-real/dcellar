@@ -21,7 +21,7 @@ import { debounce, isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import NextLink from 'next/link';
 
-import { IRawSPInfo, TCreateBucketFromValues } from '../../type';
+import { TCreateBucketFromValues } from '../../type';
 import { GasFee } from './GasFee';
 import { useLogin } from '@/hooks/useLogin';
 import { genCreateBucketTx, pollingGetBucket } from '@/modules/buckets/List/utils';
@@ -38,13 +38,14 @@ import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceCon
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
-import { useSPs } from '@/hooks/useSPs';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
+import { useAppSelector } from '@/store';
+import { SpItem } from '@/store/slices/sp';
 
 type Props = {
   isOpen: boolean;
@@ -80,9 +81,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     loginState: { address },
   } = useLogin();
 
-  const { sp: globalSP, sps: globalSps } = useSPs();
+  const { sps: globalSps, spInfo, primarySp } = useAppSelector((root) => root.sp);
+  const globalSP = spInfo[primarySp];
   // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
-  const selectedSpRef = useRef<IRawSPInfo>(globalSP);
+  const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();
   const { availableBalance } = useDefaultChainBalance();
   const balance = BigNumber(availableBalance || 0);
@@ -390,7 +392,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   }, [balance, validateNameAndGas.gas.value]);
 
   const onChangeSP = useCallback(
-    (sp: IRawSPInfo) => {
+    (sp: SpItem) => {
       selectedSpRef.current = sp;
 
       const { value, available } = validateNameAndGas.name;
