@@ -3,6 +3,7 @@ import { Html, Head, Main, NextScript } from 'next/document';
 import { Ga4 } from '@/components/common/Ga4';
 import { GA_ID, assetPrefix } from '@/base/env';
 import { LCP_IMAGES } from '@/constants/common';
+import Script from 'next/script';
 
 export default function Document() {
   return (
@@ -25,7 +26,7 @@ export default function Document() {
           })}
         </>
       </Head>
-      <body style={{ background: 'transparent' }}>
+      <body>
         <Main />
         <NextScript />
         <script
@@ -34,7 +35,7 @@ export default function Document() {
           }}
         ></script>
         <script defer src={`${assetPrefix}/wasm/wasm_exec.js?v1`}></script>
-        <script defer src={`${assetPrefix}/wasm/init.js?v1`}></script>
+        <Script strategy='lazyOnload' src={`${assetPrefix}/wasm/init.js?v1`}></Script>
         <Ga4 id={GA_ID} />
       </body>
     </Html>

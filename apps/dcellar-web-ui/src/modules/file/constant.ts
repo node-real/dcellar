@@ -12,6 +12,7 @@ const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
 const DELETE_ICON_URL = `${assetPrefix}/images/icons/delete.gif`;
 const UPLOAD_IMAGE_URL = `${assetPrefix}/images/files/upload.svg`;
 const FILE_INFO_IMAGE_URL = `${assetPrefix}/images/files/upload_file.svg`;
+const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
@@ -59,6 +60,7 @@ const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimatin
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
+const AUTH_EXPIRED = 'Authentication Expired';
 
 export {
   FILE_BOX_IMAGE_URL,
@@ -112,4 +114,6 @@ export {
   FOLDER_DESCRIPTION_CREATE_ERROR,
   UNKNOWN_ERROR,
   DUPLICATE_OBJECT_NAME,
+  AUTH_EXPIRED,
+  UNKNOWN_ERROR_URL,
 };

@@ -56,11 +56,11 @@ export function CopyText(props: CopyTextProps) {
             alignSelf="flex-start"
             size="sm"
             variant="link"
-            color="readable.primary"
+            color={hasCopied ? "readable.brand6":"readable.normal"}
             icon={<CopyIcon size="md" />}
             onClick={onCopy}
             _hover={{
-              color: 'readable.brand6',
+              color: 'readable.brand5',
             }}
             {...iconProps}
           />

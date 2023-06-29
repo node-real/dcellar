@@ -675,7 +675,9 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         buttonOnClick={async () => {
           if (!file) return;
           const insertedString = `-${dayjs().format('YYYY-MM-DD HH:mm:ss')}`;
-          const fileWithExtensionNameRegex = /^[^.\n]+\.[a-zA-Z]+$/;
+          // The typical format of a file name. The file name part cannot contain angle brackets, colons, quotes, forward slashes, backslashes, vertical bars, question marks, asterisks, or newline characters. The file name can have an optional extension, which starts with a period and is followed by one or more non-special characters.
+          // TODO abstract this regex to one place
+          const fileWithExtensionNameRegex = /^[^<>:"/\\|?*\n]+(\.[^<>:"/\\|?*\n]+)*$/;
           const newFilename = fileWithExtensionNameRegex.test(fileName as string)
             ? (fileName as string).replace(/(\.[\w\d]+)$/, insertedString + '$1')
             : fileName + insertedString;

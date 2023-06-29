@@ -1,17 +1,17 @@
-import { Flex, Text, Button, Image, useOutsideClick, Circle } from '@totejs/uikit';
+import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount } from 'wagmi';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
-import { InternalRoutePaths } from '@/constants/links';
+import { assetPrefix } from '@/base/env';
+import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { removeOffChainData } from '@/modules/off-chain-auth/utils';
+import { Tips } from '@/components/common/Tips';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -22,13 +22,13 @@ const renderAvatar = (size?: 'sm' | 'md') => {
     </Circle>
   );
 };
-export const Header = ({ disconnect }: { disconnect: any }) => {
-  const loginData = useLogin();
-  const { loginState, loginDispatch } = loginData;
+
+export const Header = () => {
+  const { loginState, logout } = useLogin();
   const { address } = loginState;
+
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
-  const { address: walletAddress } = useAccount();
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
@@ -43,19 +43,6 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
     },
   });
 
-  const logout = () => {
-    loginDispatch({
-      type: 'LOGOUT',
-    });
-    removeOffChainData(address, GREENFIELD_CHAIN_ID);
-    router.push('/');
-    disconnect();
-  };
-  useEffect(() => {
-    if (!walletAddress || walletAddress !== address) {
-      logout();
-    }
-  }, [walletAddress]);
   return (
     <>
       <Flex
@@ -84,15 +71,32 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
             </Text>
           </CopyText>
         </Flex>
-        <Text
-          color="readable.disabled"
-          fontWeight="400"
-          mt="16px"
-          fontSize="12px"
-          lineHeight="20px"
-        >
-          Greenfield Available Balance
-        </Text>
+        <Flex alignItems="center" mt="16px">
+          <Text color="readable.disabled" fontWeight="400" fontSize="12px" lineHeight="20px">
+            Available Balance
+          </Text>
+          <Tips
+            iconSize={'16px'}
+            containerWidth={'200px'}
+            tips={
+              <Box fontSize={'12px'} lineHeight="14px" width={'200px'}>
+                <Box>
+                  Please notice that due to the locked fee, Greenfield available balance is not
+                  equal to your account overall balance, which is shown at your wallet.
+                </Box>
+                <Link
+                  href="https://docs.nodereal.io/docs/faq-1#question-what-is-greenfield-available-balance"
+                  target="_blank"
+                  color="readable.primary"
+                  textDecoration="underline"
+                  _hover={{ color: 'readable.brand5' }}
+                >
+                  Learn more
+                </Link>
+              </Box>
+            }
+          />
+        </Flex>
         <NewBalance />
         <Flex alignItems="center" mt="16px" width="100%" justifyContent="space-between" h="24px">
           <GAClick name="dc.main.account.transferin.click">
@@ -118,7 +122,7 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
           <GAClick name="dc.main.account.transferout.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               _hover={{ bg: 'readable.secondary' }}
               borderRadius="4px"
@@ -138,7 +142,7 @@ export const Header = ({ disconnect }: { disconnect: any }) => {
           <GAClick name="dc.main.account.send.click">
             <Button
               variant="scene"
-              bgColor="text.normal"
+              bgColor="readable.normal"
               h="24px"
               w={'91px'}
               padding={0}

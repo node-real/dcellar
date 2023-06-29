@@ -30,7 +30,7 @@ import { CreatingBucket } from './CreatingBucket';
 import { parseError } from '../../utils/parseError';
 import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
-import { InternalRoutePaths } from '@/constants/links';
+import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
@@ -155,6 +155,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const sp = selectedSpRef.current;
       const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
       const { seedString } = spOffChainData;
+
       if (!checkSpOffChainDataAvailable(spOffChainData)) {
         onClose();
         setOpenAuthModal([sp.operatorAddress]);
@@ -183,6 +184,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
       });
+      console.log(simulateInfo, 'simulateInfo');
+
       const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {
         setValidateNameAndGas(validateNameAndGas);
@@ -281,7 +284,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({address, spAddress: selectedSpRef.current.operatorAddress});
+        const spOffChainData = await getSpOffChainData({
+          address,
+          spAddress: selectedSpRef.current.operatorAddress,
+        });
         if (!checkSpOffChainDataAvailable(spOffChainData)) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
@@ -296,7 +302,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           .map((item: any) => item.operatorAddress);
         const spInfo = {
           endpoint: selectedSpRef.current.endpoint,
-          primarySpAddress:selectedSpRef.current.operatorAddress,
+          primarySpAddress: selectedSpRef.current.operatorAddress,
           sealAddress: selectedSpRef.current.sealAddress,
           secondarySpAddresses,
         };
@@ -322,6 +328,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           granter: '',
           signTypedDataCallback: async (addr: string, message: string) => {
             const provider = await connector?.getProvider();
+            console.log(message);
             return await signTypedDataV4(provider, addr, message);
           },
         });

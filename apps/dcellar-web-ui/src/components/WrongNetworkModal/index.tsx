@@ -1,64 +1,18 @@
 import React from 'react';
-import { Flex, ModalBody, ModalFooter, Text, toast } from '@totejs/uikit';
-import {
-  AddChainError,
-  ConnectorNotFoundError,
-  SwitchChainError,
-  useDisconnect,
-  UserRejectedRequestError,
-  useSwitchNetwork,
-} from 'wagmi';
+import { Flex, ModalBody, ModalFooter, Text } from '@totejs/uikit';
 
 import CreateFailedIcon from '@/public/images/common/wrong-network.svg';
 import { POPPINS_FONT } from '@/modules/wallet/constants';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { REQUEST_PENDING_NUM, USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { DCModal } from '../common/DCModal';
 import { DCButton } from '../common/DCButton';
+import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
+import { useLogin } from '@/hooks/useLogin';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
-  const { disconnect } = useDisconnect({
-    onSuccess() {
-      onClose();
-    },
-  });
-  const { switchNetwork } = useSwitchNetwork({
-    onError(data: any) {
-      if (data instanceof Error) {
-        if (data instanceof ConnectorNotFoundError || data instanceof UserRejectedRequestError) {
-          return;
-        }
-        if (data instanceof AddChainError) {
-          toast.info({
-            description: `Oops, add network met error, please check it in wallet extension.`,
-          });
-          return;
-        }
-        if (data instanceof SwitchChainError) {
-          toast.info({
-            description: `Oops, switch network met error, please check it in wallet extension.`,
-          });
-          return;
-        }
-        toast.error({
-          description: `Oops, switch network met error, please try again.`,
-        });
-        return;
-      }
-      const { code = '', message = '' } = data?.cause as any;
-      if (code && parseInt(code) === USER_REJECT_STATUS_NUM) return;
-      if (code && parseInt(code) === REQUEST_PENDING_NUM) {
-        toast.info({
-          description: `Oops, switch network action is pending, please confirm it in wallet extension that you are using.`,
-        });
-      } else {
-        toast.error({
-          description: `Oops, switch network met error, please try again.`,
-        });
-      }
-      // eslint-disable-next-line no-console
-      console.error(`Switch Network error, error code:${code}, message: ${message}`);
-    },
+  const { logout } = useLogin();
+
+  const { switchNetwork } = useWalletSwitchNetWork({
     onSuccess() {
       onClose();
     },
@@ -79,12 +33,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
         >
           Wrong Network
         </Text>
-        <Text
-          color="#76808F"
-          fontSize={'18px'}
-          fontWeight="400"
-          lineHeight={'22px'}
-        >
+        <Text color="#76808F" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
           You are on the wrong network. Switch your wallet to BNB Greenfield first.
         </Text>
       </ModalBody>
@@ -94,7 +43,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
           variant="dcPrimary"
           width={'100%'}
           onClick={() => {
-            switchNetwork && switchNetwork(GREENFIELD_CHAIN_ID);
+            switchNetwork?.(GREENFIELD_CHAIN_ID);
           }}
         >
           Switch to BNB Greenfield
@@ -105,7 +54,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
           width={'100%'}
           height="48px"
           onClick={() => {
-            disconnect();
+            logout();
             onClose();
           }}
         >

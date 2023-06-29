@@ -10,6 +10,9 @@ import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
 import { Logo } from '../Logo';
 import { isActiveUrl } from '@/utils/isActiveUrl';
 import { GAClick } from '@/components/common/GATracker';
+import { DcellarDoc, FAQ } from '@/constants/links';
+import { DocIcon, HelpIcon } from '@totejs/icons';
+import styled from '@emotion/styled';
 
 const MENU_LIST = [
   {
@@ -41,7 +44,8 @@ export const Nav = () => {
   };
 
   return (
-    <Box
+    <Flex
+      direction="column"
       w="269px"
       borderRight={'1px solid #E6E8EA;'}
       backgroundColor="bg.middle"
@@ -73,6 +77,7 @@ export const Nav = () => {
             <GAClick key={item.text} name={item.gaClickName}>
               <Link href={item.link}>
                 <Flex
+                  fontSize={'16px'}
                   cursor={'pointer'}
                   p={'8px 12px'}
                   alignItems="center"
@@ -115,6 +120,36 @@ export const Nav = () => {
             </GAClick>
           ))}
       </Box>
-    </Box>
+      <Box m={'24px'} borderTop="1px solid #E6E8EA" mt="auto">
+        <GAClick name="dc.main.nav.doc.click">
+          <Link href={DcellarDoc} target="_blank">
+            <NavItem>
+              <DocIcon mr={12} />
+              Documentation
+            </NavItem>
+          </Link>
+        </GAClick>
+        <GAClick name="dc.main.nav.faq.click">
+          <Link href={FAQ} target="_blank">
+            <NavItem>
+              <HelpIcon mr={12} />
+              FAQ
+            </NavItem>
+          </Link>
+        </GAClick>
+      </Box>
+    </Flex>
   );
 };
+
+const NavItem = styled(Flex)`
+  padding: 8px;
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 16px;
+  border-radius: 8px;
+  :hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+  }
+`;

@@ -22,10 +22,3 @@ h6 {
   margin: 0;
   padding: 0;
 }
-
-.container {
-  border: 1px solid lightgray;
-  height: 500px;
-  max-width: 100% !important;
-  overflow: auto;
-}
