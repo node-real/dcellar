@@ -5,15 +5,20 @@ import { POPPINS_FONT } from '@/modules/wallet/constants';
 import { TableList } from './components/TableList';
 import { SPProvider } from '@/context/GlobalContext/SPProvider';
 import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
-
-type TSP = {
-  address: string;
-  endpoint: string;
-};
-
-export const DefaultSP = React.createContext<TSP | null>(null);
+import { useMount } from 'ahooks';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { increment } from '@/store/slices/counter';
 
 export const BucketList = () => {
+  const dispatch = useAppDispatch();
+  const { value } = useAppSelector((root) => root.counter);
+  const { sps } = useAppSelector((root) => root.sp);
+
+  console.log(sps, value);
+  useMount(() => {
+    console.log('mounted');
+  });
+
   return (
     <WalletBalanceProvider>
       <SPProvider>
@@ -31,7 +36,7 @@ export const BucketList = () => {
             fontFamily={POPPINS_FONT}
             fontWeight={700}
           >
-            Buckets
+            Buckets {value}
           </Text>
           <Flex flex={1}>
             <TableList />

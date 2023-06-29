@@ -1,4 +1,4 @@
-FROM node:16.5.0-buster-slim
+FROM node:16.20.1-buster-slim
 
 WORKDIR /opt/deploy
 
