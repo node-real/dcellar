@@ -7,12 +7,14 @@ import counter from '@/store/slices/counter';
 import global from '@/store/slices/global';
 import sp from '@/store/slices/sp';
 import persist from '@/store/slices/persist';
+import bucket from '@/store/slices/bucket';
 
 const rootReducer = combineReducers({
   counter,
   global,
   persist,
   sp,
+  bucket,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
