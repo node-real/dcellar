@@ -48,16 +48,26 @@ export const spSlice = createSlice({
       state.oneSp = !len ? '' : availableSps[random(0, len - 1)].operatorAddress;
       state.sps = sortBy(availableSps, ['moniker', 'operatorAddress']);
     },
+    updateSps(state, { payload }: PayloadAction<string[]>) {
+      state.sps = state.sps.filter((sp) => payload.includes(sp.operatorAddress));
+      state.oneSp = payload[0];
+    },
+    filterSps(state, { payload }: PayloadAction<string[]>) {
+      state.sps = state.sps.filter((s) => !payload.includes(s.operatorAddress));
+      const len = state.sps.length;
+      state.oneSp = state.sps[random(0, len - 1)].operatorAddress;
+    },
   },
 });
 
-export const { setStorageProviders } = spSlice.actions;
+export const { setStorageProviders, updateSps, filterSps } = spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { sps: _sps } = getState().sp;
+  const { faultySps } = getState().persist;
   if (_sps.length) return;
 
-  const sps = await getStorageProviders();
+  const sps = (await getStorageProviders()).filter((s) => !faultySps.includes(s.operatorAddress));
   dispatch(setStorageProviders(sps));
 };
 

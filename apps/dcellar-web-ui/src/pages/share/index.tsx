@@ -18,7 +18,6 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import { ShareLogin } from '@/modules/share/ShareLogin';
 import { Header } from '@/components/layout/Header';
-import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
 import { useAppSelector } from '@/store';
@@ -30,16 +29,13 @@ const Container = styled.main`
 `;
 
 const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
-  console.log(props);
   const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
-  const loginData = useLogin();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
   const { objectName, fileName, bucketName } = props;
   const title = `${bucketName} - ${fileName}`;
-  const { loginState } = loginData;
-  const loginAccount = loginState?.address;
+  const { loginAccount } = useAppSelector((root) => root.persist);
 
   useAsyncEffect(async () => {
     if (!oneSp) return;
@@ -69,7 +65,8 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
       <Flex>
         <Box flex={1}>
           <Container>
-            {(!isPrivate || walletConnected) && (
+            {walletConnected && <Header />}
+            {!isPrivate && !walletConnected && (
               <Logo zIndex={1} href="/" margin="20px 24px" position="absolute" left={0} top={0} />
             )}
             {quotaData === undefined || objectInfo === undefined ? (
@@ -80,7 +77,6 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
               <ShareLogin />
             ) : (
               <>
-                {walletConnected && <Header />}
                 {isPrivate && !isOwner ? (
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (

@@ -4,7 +4,6 @@ import {
   downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
-  E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
@@ -18,7 +17,6 @@ import { getClient } from '@/base/client';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { quotaRemains } from '@/facade/bucket';
-import { authDataValid } from '@/facade/auth';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { encodeObjectName } from '@/utils/string';
 import {
@@ -83,11 +81,10 @@ export type DownloadPreviewParams = {
 
 const getObjectBytes = async (
   params: DownloadPreviewParams,
+  seedString: string,
 ): Promise<[AxiosResponse | null, ErrorMsg?]> => {
   const { address, primarySp, objectInfo } = params;
   const { bucketName, objectName, payloadSize } = objectInfo;
-  const valid = await authDataValid(address, primarySp.operatorAddress);
-  if (!valid) return [null, E_OFF_CHAIN_AUTH];
 
   const [result, error] = await downloadWithProgress({
     bucketName,
@@ -95,6 +92,7 @@ const getObjectBytes = async (
     primarySp,
     payloadSize: payloadSize.toNumber(),
     address,
+    seedString,
   }).then(resolve, downloadPreviewFault);
   if (!result) return [null, error];
 
@@ -103,6 +101,7 @@ const getObjectBytes = async (
 
 export const downloadObject = async (
   params: DownloadPreviewParams,
+  seedString: string,
 ): Promise<[boolean, ErrorMsg?]> => {
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
@@ -115,7 +114,7 @@ export const downloadObject = async (
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params);
+  const [result, error] = await getObjectBytes(params, seedString);
   if (!result) return [false, error];
 
   saveFileByAxiosResponse(result, objectName);
@@ -124,6 +123,7 @@ export const downloadObject = async (
 
 export const previewObject = async (
   params: DownloadPreviewParams,
+  seedString: string,
 ): Promise<[boolean, ErrorMsg?]> => {
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
@@ -136,7 +136,7 @@ export const previewObject = async (
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params);
+  const [result, error] = await getObjectBytes(params, seedString);
   if (!result) return [false, error];
 
   viewFileByAxiosResponse(result);

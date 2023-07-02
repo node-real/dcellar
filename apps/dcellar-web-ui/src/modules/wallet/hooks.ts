@@ -5,7 +5,6 @@ import BigNumber from 'bignumber.js';
 
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
-import { useLogin } from '@/hooks/useLogin';
 import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
 import { genSendTx } from './utils/genSendTx';
@@ -17,9 +16,7 @@ export const useGetFeeBasic = () => {
   const { transType } = useAppSelector((root) => root.wallet);
   const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);

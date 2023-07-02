@@ -1,9 +1,7 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@totejs/uikit';
 import type { AppProps } from 'next/app';
 import App from 'next/app';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -22,7 +20,6 @@ import { setupBnbPrice } from '@/store/slices/global';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
-  const [queryClient] = useState(() => new QueryClient());
   const { pathname } = useRouter();
   const persistor = persistStore(store, {}, function () {
     persistor.persist();
@@ -34,21 +31,19 @@ function DcellarApp({ Component, ...rest }: AppProps) {
       <Provider store={store}>
         <PersistGate persistor={persistor}>
           <ThemeProvider theme={theme}>
-            <QueryClientProvider client={queryClient}>
-              <WalletConnectProvider>
-                <LoginContextProvider inline={INLINE_LOGIN_PAGES.includes(pathname)}>
-                  <Page>
-                    {/* TODO provider should locate up layout */}
-                    <OffChainAuthProvider>
-                      <PageProtect>
-                        <Component {...props.pageProps} />
-                        <GAPageView />
-                      </PageProtect>
-                    </OffChainAuthProvider>
-                  </Page>
-                </LoginContextProvider>
-              </WalletConnectProvider>
-            </QueryClientProvider>
+            <WalletConnectProvider>
+              <LoginContextProvider inline={INLINE_LOGIN_PAGES.includes(pathname)}>
+                <Page>
+                  {/* TODO provider should locate up layout */}
+                  <OffChainAuthProvider>
+                    <PageProtect>
+                      <Component {...props.pageProps} />
+                      <GAPageView />
+                    </PageProtect>
+                  </OffChainAuthProvider>
+                </Page>
+              </LoginContextProvider>
+            </WalletConnectProvider>
           </ThemeProvider>
         </PersistGate>
       </Provider>

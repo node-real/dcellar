@@ -47,7 +47,6 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
@@ -57,8 +56,9 @@ import { ChainVisibilityEnum } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { getClient } from '@/base/client';
 import { SpItem } from '@/store/slices/sp';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 const renderFee = (
   key: string,
@@ -107,36 +107,36 @@ const getObjectIsSealed = async ({
   objectName: string;
   address: string;
 }) => {
-  const domain = getDomain();
-  const query = new URLSearchParams();
-  query.append('delimiter', '/');
-  query.append('max-keys', '1000');
-  if (folderName) {
-    query.append('prefix', folderName);
-  }
-  const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
-  const client = await getClient();
-  const listResult = await client.object.listObjects({
-    bucketName,
-    endpoint: primarySp.endpoint,
-    address,
-    seedString,
-    domain,
-    query,
-  });
-  if (listResult) {
-    //  @ts-ignore TODO temp
-    const listObjects = listResult.body.objects ?? [];
-    const sealObjectIndex = listObjects
-      .filter((v: any) => !v.removed)
-      .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
-      .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
-    if (sealObjectIndex >= 0) {
-      return listObjects[sealObjectIndex].seal_tx_hash;
-    }
-    return '';
-  }
-  return false;
+  // const domain = getDomain();
+  // const query = new URLSearchParams();
+  // query.append('delimiter', '/');
+  // query.append('max-keys', '1000');
+  // if (folderName) {
+  //   query.append('prefix', folderName);
+  // }
+  // const { seedString } = await getSpOffChainData({ address, spAddress: primarySp.operatorAddress });
+  // const client = await getClient();
+  // const listResult = await client.object.listObjects({
+  //   bucketName,
+  //   endpoint: primarySp.endpoint,
+  //   address,
+  //   seedString,
+  //   domain,
+  //   query,
+  // });
+  // if (listResult) {
+  //   //  @ts-ignore TODO temp
+  //   const listObjects = listResult.body.objects ?? [];
+  //   const sealObjectIndex = listObjects
+  //     .filter((v: any) => !v.removed)
+  //     .map((v: any) => (v.object_info ? convertObjectInfo(v.object_info) : convertObjectInfo(v)))
+  //     .findIndex((v: any) => v.object_name === objectName && v.object_status === 1);
+  //   if (sealObjectIndex >= 0) {
+  //     return listObjects[sealObjectIndex].seal_tx_hash;
+  //   }
+  //   return '';
+  // }
+  return true;
 };
 
 const INITIAL_DELAY = 500; // ms
@@ -176,10 +176,9 @@ interface modalProps {
 }
 
 export const FileDetailModal = (props: modalProps) => {
+  const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAppSelector(selectBalance(address));
@@ -413,10 +412,9 @@ export const FileDetailModal = (props: modalProps) => {
         // If upload size is small, then put obejct using fetch,
         // no need to show progress bar
         const domain = getDomain();
-        const { seedString } = await getSpOffChainData({
-          address,
-          spAddress: primarySp.operatorAddress,
-        });
+        const { seedString } = await dispatch(
+          getSpOffChainData(address, primarySp.operatorAddress),
+        );
         const uploadOptions = await generatePutObjectOptions({
           bucketName,
           objectName: finalName,
@@ -467,10 +465,10 @@ export const FileDetailModal = (props: modalProps) => {
             bucketName,
             objectName: finalName,
             primarySp: primarySp,
-            address: loginState.address,
+            address,
             folderName,
           });
-          if (sealTxHash && sealTxHash.length > 0) {
+          if (sealTxHash) {
             setIsSealed(true);
             stopPolling();
             toast.success({

@@ -8,12 +8,10 @@ import {
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
 import { selectBalance, selectBnbPrice } from '@/store/slices/global';
-import { useLogin } from '@/hooks/useLogin';
 
 const NewBalance = (props: any) => {
   const exchangeRate = useAppSelector(selectBnbPrice);
-  const { loginState } = useLogin();
-  const address = loginState?.address;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { availableBalance, lockFee } = useAppSelector(selectBalance(address));
 
   const renderBalanceNumber = () => {

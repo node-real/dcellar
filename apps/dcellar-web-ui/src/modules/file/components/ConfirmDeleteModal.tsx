@@ -2,8 +2,6 @@ import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } fr
 import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 
-import { useLogin } from '@/hooks/useLogin';
-
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -90,9 +88,7 @@ const renderFee = (
 };
 
 export const ConfirmDeleteModal = (props: modalProps) => {
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const bnbPrice = useAppSelector(selectBnbPrice);
   const exchangeRate = Number(bnbPrice);
   const [loading, setLoading] = useState(false);

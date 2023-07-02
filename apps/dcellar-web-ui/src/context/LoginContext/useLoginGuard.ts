@@ -1,10 +1,10 @@
 import { InternalRoutePaths } from '@/constants/paths';
-import { LoginState } from '@/context/LoginContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/store';
 
-export function useLoginGuard(loginState: LoginState, inline: boolean) {
-  const { address } = loginState;
+export function useLoginGuard(inline: boolean) {
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
 
   const router = useRouter();
   const { pathname, asPath } = router;

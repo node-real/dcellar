@@ -26,7 +26,7 @@ export const getObjectInfoAndBucketQuota = async (
 
 export type BnbPriceInfo = { price: string; symbol: string };
 
-export const defaultBnbInfo = () => ({ price: '300', symbol: 'BNBUSDT' });
+export const getDefaultBnbInfo = () => ({ price: '300', symbol: 'BNBUSDT' });
 
 export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
   const [res, error] = await get({
@@ -34,6 +34,6 @@ export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
     customOptions: { needNotify: false },
   }).then(resolve, commonFault);
 
-  if (error) return defaultBnbInfo();
+  if (error) return getDefaultBnbInfo();
   return res as BnbPriceInfo;
 };

@@ -19,7 +19,7 @@ const MENU_LIST = [
     icon: () => <BucketsIcon color="readable.normal" />,
     selectedIcon: () => <BucketsFilledIcon color={'#00BA34'} />,
     text: 'Buckets',
-    link: '/buckets',
+    link: '/bucket',
     enablePrefix: true,
     gaClickName: 'dc.main.nav.bucket.click',
   },

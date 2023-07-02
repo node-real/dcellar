@@ -10,26 +10,27 @@ import BigNumber from 'bignumber.js';
 import { useBalance } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { useLogin } from '@/hooks/useLogin';
+import { filterSps } from '@/store/slices/sp';
 
 const MINIMUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
 export function StreamBalance() {
   const dispatch = useAppDispatch();
-  const { loginState } = useLogin();
-  const { address } = loginState;
+  const { loginAccount: address, faultySps } = useAppSelector((root) => root.persist);
   const { availableBalance, useMetamaskValue, latestStaticBalance, lockFee, netflowRate } =
     useAppSelector(selectBalance(address));
 
   const { data: greenfieldBalanceData } = useBalance({
     address: address as any,
     chainId: GREENFIELD_CHAIN_ID,
-    watch: true,
+    watch: useMetamaskValue,
+    cacheTime: 5000,
   });
 
   const metamaskValue = greenfieldBalanceData?.formatted ?? '0';
 
   useMount(() => {
+    dispatch(filterSps(faultySps));
     dispatch(setupBnbPrice());
   });
 
@@ -47,7 +48,7 @@ export function StreamBalance() {
     const _availableBalance = BigNumber(availableBalance);
     if (_metamaskValue.minus(_availableBalance).abs().gte(MINIMUM_ALLOWED_CHANGED_BALANCE))
       dispatch(setupBalance(address, metamaskValue));
-  }, [metamaskValue]);
+  }, [metamaskValue, availableBalance]);
 
   useThrottleEffect(() => {
     const _availableBalance = BigNumber(availableBalance);

@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
-import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
@@ -15,7 +14,8 @@ import { Logo } from '@/components/layout/Logo';
 import { StreamBalance } from '@/components/layout/Header/StreamBalance';
 import { useDebounceEffect } from 'ahooks';
 import { setupBnbPrice } from '@/store/slices/global';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { useLogin } from '@/hooks/useLogin';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -29,8 +29,8 @@ const renderAvatar = (size?: 'sm' | 'md') => {
 
 export const Header = () => {
   const dispatch = useAppDispatch();
-  const { loginState, logout } = useLogin();
-  const { address } = loginState;
+  const { logout } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
 

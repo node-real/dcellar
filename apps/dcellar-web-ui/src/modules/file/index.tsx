@@ -2,7 +2,6 @@ import { Flex, Image, Link, Text, toast, Tooltip, useDisclosure } from '@totejs/
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
-import { useLogin } from '@/hooks/useLogin';
 
 import {
   BUTTON_GOT_IT,
@@ -23,7 +22,6 @@ import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { FileListEmpty } from './components/FileListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
@@ -38,9 +36,10 @@ import { ChainVisibilityEnum, TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { convertObjectInfo } from './utils/convertObjectInfo';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
 import { useChecksumApi } from '@/modules/checksum';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 interface pageProps {
   bucketName: string;
@@ -111,12 +110,11 @@ const renderUploadButton = (
 let preSelectTime = Date.now();
 
 export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
+  const dispatch = useAppDispatch();
   const { spInfo, sps } = useAppSelector((root) => root.sp);
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [freeze, setFreeze] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
@@ -143,7 +141,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
-      const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
+      const { seedString } = await dispatch(getSpOffChainData(address, primarySpAddress));
       const query = new URLSearchParams();
       query.append('delimiter', '/');
       query.append('max-keys', '1000');
@@ -302,11 +300,8 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     if (preSelectTime > selectTime) return;
     setFreeze(false);
 
-    const spOffChainData = await getSpOffChainData({
-      address,
-      spAddress: primarySpAddress,
-    });
-    if (!checkSpOffChainDataAvailable(spOffChainData)) {
+    const { seedString } = await dispatch(getSpOffChainData(address, primarySpAddress));
+    if (!seedString) {
       onStatusModalClose();
       onDetailModalClose();
       setOpenAuthModal();
@@ -335,7 +330,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         spInfo,
         signType: 'offChainAuth',
         domain,
-        seedString: spOffChainData.seedString,
+        seedString,
       };
       const CreateObjectTx = await genCreateObjectTx(configParam);
 

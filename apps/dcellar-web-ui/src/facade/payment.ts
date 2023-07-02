@@ -13,7 +13,7 @@ export const getStreamRecord = async (address: string) => {
   const client = await getClient();
   const { streamRecord } = await client.payment.getStreamRecord(address).catch((error: any) => {
     if (error.message.includes('key not found')) useMetamaskValue = true;
-    return {} as QueryGetStreamRecordResponse;
+    return { streamRecord: {} } as QueryGetStreamRecordResponse;
   });
   const ts = Math.floor(getUtcZeroTimestamp() / 1000);
 

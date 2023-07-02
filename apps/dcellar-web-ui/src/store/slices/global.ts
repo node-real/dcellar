@@ -1,10 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BnbPriceInfo, defaultBnbInfo, getBnbPrice } from '@/facade/common';
+import { BnbPriceInfo, getDefaultBnbInfo, getBnbPrice } from '@/facade/common';
 import { AppDispatch, AppState } from '@/store';
 import { getAccountBalance } from '@/facade/account';
 import { getStreamRecord } from '@/facade/payment';
 import BigNumber from 'bignumber.js';
-import amount from '@/modules/wallet/components/Amount';
 
 type Balance = {
   amount: string;
@@ -16,7 +15,7 @@ type Balance = {
   useMetamaskValue: boolean;
 };
 
-export const defaultBalance = () => ({
+export const getDefaultBalance = () => ({
   amount: '0',
   denom: 'BNB',
   netflowRate: '0',
@@ -26,15 +25,15 @@ export const defaultBalance = () => ({
   useMetamaskValue: false,
 });
 
+export const defaultBalance = getDefaultBalance();
+
 export interface GlobalState {
   bnb: BnbPriceInfo;
-  loginAccount: string;
   balances: Record<string, Balance>;
 }
 
 const initialState: GlobalState = {
-  bnb: defaultBnbInfo(),
-  loginAccount: '',
+  bnb: getDefaultBnbInfo(),
   balances: {},
 };
 
@@ -62,8 +61,10 @@ export const { setBnbInfo, setBalance, updateStaticBalance } = globalSlice.actio
 
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
+export const selectBalances = (state: AppState) => state.global.balances;
+
 export const selectBalance = (address: string) => (state: AppState) =>
-  state.global.balances[address] || defaultBalance();
+  selectBalances(state)[address] || defaultBalance;
 
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();

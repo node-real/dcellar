@@ -2,7 +2,11 @@ import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/stor
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
+import { getDomain } from '@/utils/getDomain';
+import { commonFault, ErrorResponse } from '@/facade/error';
+import { resolve } from '@/facade/common';
+import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
+import { IObjectResultType } from '@bnb-chain/greenfield-chain-sdk';
 
 export const quotaRemains = (quota: IQuotaProps, payload: string) => {
   const { freeQuota, readQuota, consumedQuota } = quota;
@@ -17,6 +21,16 @@ export const headObject = async (bucketName: string) => {
   return bucketInfo || null;
 };
 
-export const getUserBuckets = async (address: string, operator: string) => {
-  // const { seed } = await getSpOffChainData({ address, spAddress: operator })
+export const getUserBuckets = async (
+  address: string,
+  endpoint: string,
+  seedString: string,
+): Promise<ErrorResponse | [IObjectResultType<BucketProps[]>, null]> => {
+  const domain = getDomain();
+  const client = await getClient();
+  const [res, error] = await client.bucket
+    .getUserBuckets({ address, endpoint, domain, seedString })
+    .then(resolve, commonFault);
+  if (error) return [null, error];
+  return [res!, null];
 };

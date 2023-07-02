@@ -1,23 +1,28 @@
-import {
-  BucketContainer,
-  CreateBucket,
-  PageTitle,
-  PanelContainer,
-} from '@/modules/bucket/bucket.style';
-import { AddIcon } from '@totejs/icons';
-import { useMount } from 'ahooks';
+import { BucketContainer, PageTitle, PanelContainer } from '@/modules/bucket/bucket.style';
+import { NewBucket } from '@/modules/bucket/components/NewBucket';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBucketList, setupBuckets } from '@/store/slices/bucket';
+import { useAsyncEffect } from 'ahooks';
+import { BucketList } from '@/modules/bucket/components/BucketList';
 
 export const BucketPage = () => {
-  useMount(() => {});
+  const dispatch = useAppDispatch();
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { loading } = useAppSelector((root) => root.bucket);
+  const bucketList = useAppSelector(selectBucketList(loginAccount));
+
+  useAsyncEffect(async () => {
+    if (!loginAccount) return;
+    await dispatch(setupBuckets(loginAccount));
+  }, [loginAccount, dispatch]);
 
   return (
     <BucketContainer>
       <PanelContainer>
         <PageTitle>Buckets</PageTitle>
-        <CreateBucket variant="dcPrimary" leftIcon={<AddIcon />} iconSpacing={8}>
-          New Bucket
-        </CreateBucket>
+        {!loading && !!bucketList.length && <NewBucket />}
       </PanelContainer>
+      <BucketList />
     </BucketContainer>
   );
 };

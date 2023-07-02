@@ -23,7 +23,6 @@ import NextLink from 'next/link';
 
 import { TCreateBucketFromValues } from '../../type';
 import { GasFee } from './GasFee';
-import { useLogin } from '@/hooks/useLogin';
 import { genCreateBucketTx, pollingGetBucket } from '@/modules/buckets/List/utils';
 import { CreateBucketFailed } from '@/modules/buckets/List/components/CreateBucketFailed';
 import { CreatingBucket } from './CreatingBucket';
@@ -34,18 +33,18 @@ import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { selectBalance } from '@/store/slices/global';
 
 type Props = {
   isOpen: boolean;
@@ -77,16 +76,14 @@ const initValidateNameAndGas = {
 };
 
 export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
-  const {
-    loginState: { address },
-  } = useLogin();
-
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { sps: globalSps, spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
   // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
   const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();
-  const { availableBalance } = useDefaultChainBalance();
+  const { availableBalance } = useAppSelector(selectBalance(address));
   const balance = BigNumber(availableBalance || 0);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);
@@ -155,10 +152,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const domain = getDomain();
       const sp = selectedSpRef.current;
-      const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
-      const { seedString } = spOffChainData;
+      const { seedString } = await dispatch(getSpOffChainData(address, sp.operatorAddress));
 
-      if (!checkSpOffChainDataAvailable(spOffChainData)) {
+      if (!seedString) {
         onClose();
         setOpenAuthModal([sp.operatorAddress]);
         return;
@@ -286,16 +282,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({
-          address,
-          spAddress: selectedSpRef.current.operatorAddress,
-        });
-        if (!checkSpOffChainDataAvailable(spOffChainData)) {
+        const { seedString } = await dispatch(
+          getSpOffChainData(address, selectedSpRef.current.operatorAddress),
+        );
+        if (!seedString) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
           return;
         }
-        const { seedString } = spOffChainData;
         const bucketName = data.bucketName;
         const domain = getDomain();
         // NOTICE: Avoid the user skip got get gas fee step

@@ -5,24 +5,22 @@ import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { setOffChainData } from '@/modules/off-chain-auth/utils';
-import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
 import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
 import { getClient } from '@/base/client';
 import { isEmpty } from 'lodash-es';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
+import { setupOffchain } from '@/store/slices/persist';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
+  const dispatch = useAppDispatch();
   const { spInfo, sps } = useAppSelector((root) => root.sp);
   const [isAuthPending, setIsAuthPending] = useState(false);
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const authSps = useRef<SpItem[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
@@ -63,10 +61,11 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           provider,
         );
         const { code, body: offChainData } = res;
+
         if (code !== 0 || isEmpty(offChainData)) {
           throw res;
         }
-        setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
+        dispatch(setupOffchain(address, offChainData, isEmpty(authSps.current)));
         setIsAuthPending(false);
         onClose();
 

@@ -13,7 +13,6 @@ import { Head } from '../components/Head';
 import { TransferIcon } from '../components/TransferIcon';
 import { StatusModal } from '../components/StatusModal';
 import Container from '../components/Container';
-import { useLogin } from '@/hooks/useLogin';
 import {
   BSC_CHAIN_ID,
   BSC_EXPLORER_URL,
@@ -37,9 +36,7 @@ export const TransferIn = () => {
   const [status, setStatus] = useState<any>('success');
   const router = useRouter();
   const [viewTxUrl, setViewTxUrl] = useState('');
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { data: signer } = useSigner();
   const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
   const [isGasLoading, setIsGasLoading] = useState(false);

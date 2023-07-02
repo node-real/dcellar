@@ -13,7 +13,8 @@ import { headObject, quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 interface SharedFileProps {
   fileName: string;
@@ -30,6 +31,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   quotaData,
   loginAccount,
 }) {
+  const dispatch = useAppDispatch();
   const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
@@ -44,10 +46,10 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   const endpoint = spInfo[oneSp].endpoint;
   const size = payloadSize.toString();
 
-  const onError = (type: ShareErrorType) => {
+  const onError = (type: string) => {
     setAction('');
-    const errorData = SHARE_ERROR_TYPES[type]
-      ? SHARE_ERROR_TYPES[type]
+    const errorData = SHARE_ERROR_TYPES[type as ShareErrorType]
+      ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
     setStatusModalIcon(errorData.icon);
     setStatusModalTitle(errorData.title);
@@ -88,9 +90,12 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       objectInfo,
       address: loginAccount,
     };
+
+    const operator = primarySp.operatorAddress;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [success, opsError] = await (e === 'download'
-      ? downloadObject(params)
-      : previewObject(params));
+      ? downloadObject(params, seedString)
+      : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
     setAction('');
     return success;

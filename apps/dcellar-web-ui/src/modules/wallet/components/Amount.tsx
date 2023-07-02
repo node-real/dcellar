@@ -27,13 +27,10 @@ import BNBIcon from '@/public/images/icons/bnb.svg';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
-import {
-  useChainsBalance,
-  useDefaultChainBalance,
-} from '@/context/GlobalContext/WalletBalanceContext';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBalance, selectBnbPrice } from '@/store/slices/global';
 
 type AmountProps = {
   disabled: boolean;
@@ -67,7 +64,8 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
   const defaultFee = DefaultFee[transType];
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
-  const { availableBalance: balance } = useDefaultChainBalance();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { availableBalance: balance } = useAppSelector(selectBalance(address));
   const { isLoading, all } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {

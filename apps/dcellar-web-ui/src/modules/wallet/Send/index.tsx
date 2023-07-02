@@ -11,7 +11,6 @@ import { Address } from '../components/Address';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { useLogin } from '@/hooks/useLogin';
 import { StatusModal } from '../components/StatusModal';
 import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
@@ -19,12 +18,10 @@ import { TWalletFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { useAppSelector } from '@/store';
 
 export const Send = () => {
-  const { chain } = useNetwork();
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');

@@ -15,7 +15,6 @@ import { InputItem } from '@/modules/file/components/InputItem';
 import { GasFeeItem } from '@/modules/file/components/GasFeeItem';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
-import { useLogin } from '@/hooks/useLogin';
 import {
   BUTTON_GOT_IT,
   DUPLICATE_OBJECT_NAME,
@@ -95,9 +94,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     fetchCreateObjectApproval,
   } = props;
 
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { connector } = useAccount();
   const { availableBalance } = useAppSelector(selectBalance(address));
   const [loading, setLoading] = useState(false);

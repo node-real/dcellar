@@ -3,7 +3,6 @@ import { Flex, Text } from '@totejs/uikit';
 import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
 import { useAppSelector } from '@/store';
 import { selectBalance, selectBnbPrice } from '@/store/slices/global';
-import { useLogin } from '@/hooks/useLogin';
 
 interface GasFeeItemProps {
   label?: string;
@@ -12,8 +11,7 @@ interface GasFeeItemProps {
 
 export const GasFeeItem = memo<GasFeeItemProps>(function GasFeeItem(props) {
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginState } = useLogin();
-  const address = loginState?.address;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { availableBalance } = useAppSelector(selectBalance(address));
   const exchangeRate = Number(bnbPrice);
   const { label = 'Gas Fee', gasFee } = props;

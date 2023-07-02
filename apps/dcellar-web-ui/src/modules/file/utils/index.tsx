@@ -11,12 +11,11 @@ import React from 'react';
 import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getDomain } from '@/utils/getDomain';
-import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -84,19 +83,17 @@ const downloadWithProgress = async ({
   primarySp,
   payloadSize,
   address,
+  seedString,
 }: {
   bucketName: string;
   objectName: string;
   primarySp: SpItem;
   payloadSize: number;
   address: string;
+  seedString: string;
 }) => {
   try {
     const domain = getDomain();
-    const { seedString } = await getSpOffChainData({
-      address,
-      spAddress: primarySp.operatorAddress,
-    });
     const uploadOptions = await generateGetObjectOptions({
       bucketName,
       objectName,

@@ -8,9 +8,8 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import LoadingIcon from '@/public/images/icons/loading.svg';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBalance, selectBnbPrice } from '@/store/slices/global';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -19,7 +18,8 @@ type GasFeeProps = {
 };
 export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { availableBalance } = useDefaultChainBalance();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { availableBalance } = useAppSelector(selectBalance(address));
   const balance = BigNumber(availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =

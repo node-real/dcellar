@@ -1,8 +1,8 @@
 import React, { createContext, useContext } from 'react';
-import { useBalance, useNetwork } from 'wagmi';
+import { Address, useBalance, useNetwork } from 'wagmi';
 
-import { useLogin } from '@/hooks/useLogin';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useAppSelector } from '@/store';
 
 type TChainBalance = {
   chainId: number;
@@ -20,9 +20,7 @@ type TWalletBalance = {
 export const WalletBalanceContext = createContext<TWalletBalance>({} as TWalletBalance);
 
 export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
-  const loginData = useLogin();
-  const { loginState = {} } = loginData;
-  const { address } = loginState as any;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { chain } = useNetwork();
 
   const {
@@ -30,7 +28,7 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
     isError: isBscError,
     data: bscBalance,
   } = useBalance({
-    address,
+    address: address as Address,
     watch: true,
     chainId: BSC_CHAIN_ID,
   });
@@ -39,7 +37,7 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
     isError: isGnfdError,
     data: gnfdBalance,
   } = useBalance({
-    address,
+    address: address as Address,
     // TODO
     watch: false,
     chainId: GREENFIELD_CHAIN_ID,
@@ -74,20 +72,4 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
 
 export const useChainsBalance = () => {
   return useContext(WalletBalanceContext);
-};
-
-export const useDefaultChainBalance = () => {
-  const chainsBalance = useChainsBalance();
-  const { defaultChainId, all } = chainsBalance;
-  const defaultChainBalance = all.find((item) => item.chainId === defaultChainId) as TChainBalance;
-
-  return defaultChainBalance || {};
-};
-
-export const useChainBalance = ({ chainId }: { chainId: number }) => {
-  const chainsBalance = useChainsBalance();
-  const { all } = chainsBalance;
-  const chainBalance = all.find((item) => item.chainId === chainId) as TChainBalance;
-
-  return chainBalance;
 };

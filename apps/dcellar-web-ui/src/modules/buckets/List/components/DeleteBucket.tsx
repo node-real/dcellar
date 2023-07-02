@@ -17,7 +17,6 @@ import NextLink from 'next/link';
 
 import { GasFee } from '@/modules/buckets/List/components/GasFee';
 import { deleteBucket, getDeleteBucketFee } from '@/modules/buckets/List/utils';
-import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucketFailed } from './DeleteFailed';
 import { BucketNotEmpty } from '@/modules/buckets/List/components/BucketNotEmpty';
 import { DeletingBucket } from '@/modules/buckets/List/components/DeletingBucket';
@@ -25,22 +24,21 @@ import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/paths';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
+import { useAppSelector } from '@/store';
+import { selectBalance } from '@/store/slices/global';
 
 export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) => {
   const [gasFee, setGasFee] = useState(BigNumber('0'));
   const [isGasLoading, setIsGasLoading] = useState(false);
   const [deleteErrorMsg, setDeleteErrorMsg] = useState('');
-  const { availableBalance } = useDefaultChainBalance();
-  const balance = BigNumber(availableBalance || 0);
   // pending, fetching, failed, notEmpty
   const [status, setStatus] = useState('pending');
   const { connector } = useAccount();
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { availableBalance } = useAppSelector(selectBalance(address));
+  const balance = BigNumber(availableBalance || 0);
   const { chain } = useNetwork();
 
   const requestGetBucketFee = useCallback(async () => {
