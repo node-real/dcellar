@@ -26,7 +26,7 @@ import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBalance, selectBnbPrice } from '@/store/slices/global';
 
 interface modalProps {
   title?: string;
@@ -97,7 +97,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const exchangeRate = Number(bnbPrice);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
+  const { availableBalance } = useAppSelector(selectBalance(address));
   const {
     title = 'Confirm Delete',
     onClose,

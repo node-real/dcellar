@@ -4,6 +4,7 @@ import { AppDispatch, AppState } from '@/store';
 import { getAccountBalance } from '@/facade/account';
 import { getStreamRecord } from '@/facade/payment';
 import BigNumber from 'bignumber.js';
+import amount from '@/modules/wallet/components/Amount';
 
 type Balance = {
   amount: string;
@@ -14,6 +15,16 @@ type Balance = {
   availableBalance: string;
   useMetamaskValue: boolean;
 };
+
+export const defaultBalance = () => ({
+  amount: '0',
+  denom: 'BNB',
+  netflowRate: '0',
+  latestStaticBalance: '0',
+  lockFee: '0',
+  availableBalance: '0',
+  useMetamaskValue: false,
+});
 
 export interface GlobalState {
   bnb: BnbPriceInfo;
@@ -50,6 +61,9 @@ export const globalSlice = createSlice({
 export const { setBnbInfo, setBalance, updateStaticBalance } = globalSlice.actions;
 
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
+
+export const selectBalance = (address: string) => (state: AppState) =>
+  state.global.balances[address] || defaultBalance();
 
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();

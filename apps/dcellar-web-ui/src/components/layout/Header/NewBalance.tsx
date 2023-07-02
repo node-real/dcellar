@@ -7,15 +7,14 @@ import {
 } from '@/modules/wallet/constants';
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBalance, selectBnbPrice } from '@/store/slices/global';
 import { useLogin } from '@/hooks/useLogin';
 
 const NewBalance = (props: any) => {
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginState } = useLogin();
   const address = loginState?.address;
-  const { availableBalance, lockFee } =
-    useAppSelector((root) => root.global.balances)[address] || {};
+  const { availableBalance, lockFee } = useAppSelector(selectBalance(address));
 
   const renderBalanceNumber = () => {
     if (Number(availableBalance) < 0) return 'Fetching balance...';

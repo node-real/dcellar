@@ -44,6 +44,7 @@ import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
+import { selectBalance } from '@/store/slices/global';
 
 interface modalProps {
   title?: string;
@@ -98,7 +99,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     loginState: { address },
   } = useLogin();
   const { connector } = useAccount();
-  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
+  const { availableBalance } = useAppSelector(selectBalance(address));
   const [loading, setLoading] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');

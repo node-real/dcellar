@@ -1,5 +1,6 @@
 import { useMount, useThrottleEffect } from 'ahooks';
 import {
+  selectBalance,
   setBalance,
   setupBalance,
   setupBnbPrice,
@@ -15,11 +16,10 @@ const MINIMUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
 export function StreamBalance() {
   const dispatch = useAppDispatch();
-  const { balances } = useAppSelector((root) => root.global);
   const { loginState } = useLogin();
   const { address } = loginState;
-  const balance = balances[address] || {};
-  const { availableBalance, useMetamaskValue, latestStaticBalance, lockFee, netflowRate } = balance;
+  const { availableBalance, useMetamaskValue, latestStaticBalance, lockFee, netflowRate } =
+    useAppSelector(selectBalance(address));
 
   const { data: greenfieldBalanceData } = useBalance({
     address: address as any,
@@ -39,7 +39,6 @@ export function StreamBalance() {
   }, [address]);
 
   useThrottleEffect(() => {
-    if (!availableBalance) return;
     if (useMetamaskValue) {
       dispatch(setBalance({ address, balance: { availableBalance: metamaskValue } }));
       return;
@@ -51,7 +50,6 @@ export function StreamBalance() {
   }, [metamaskValue]);
 
   useThrottleEffect(() => {
-    if (!availableBalance) return;
     const _availableBalance = BigNumber(availableBalance);
     const _netflowRate = BigNumber(netflowRate);
     const _latestStaticBalance = BigNumber(latestStaticBalance);
@@ -68,7 +66,6 @@ export function StreamBalance() {
   }, [latestStaticBalance, netflowRate]);
 
   useThrottleEffect(() => {
-    if (!availableBalance) return;
     let ref: any = null;
     const _netflowRate = BigNumber(netflowRate);
     if (!_netflowRate.eq(0)) {

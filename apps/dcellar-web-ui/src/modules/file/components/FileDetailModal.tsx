@@ -58,7 +58,7 @@ import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { getClient } from '@/base/client';
 import { SpItem } from '@/store/slices/sp';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBalance, selectBnbPrice } from '@/store/slices/global';
 
 const renderFee = (
   key: string,
@@ -182,7 +182,7 @@ export const FileDetailModal = (props: modalProps) => {
   const { address } = loginState;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
+  const { availableBalance } = useAppSelector(selectBalance(address));
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
