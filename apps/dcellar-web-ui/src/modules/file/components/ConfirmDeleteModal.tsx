@@ -1,6 +1,6 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
-import { useAccount, useNetwork } from 'wagmi';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { useAccount } from 'wagmi';
+import React, { useEffect, useState } from 'react';
 
 import { useLogin } from '@/hooks/useLogin';
 
@@ -19,14 +19,14 @@ import {
   FILE_TITLE_DELETING,
 } from '@/modules/file/constant';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 
 interface modalProps {
   title?: string;
@@ -93,12 +93,11 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState } = loginData;
   const { address } = loginState;
-  const { chain } = useNetwork();
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = Number(bnbPrice);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAvailableBalance();
+  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
   const {
     title = 'Confirm Delete',
     onClose,

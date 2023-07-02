@@ -74,7 +74,7 @@ export const Nav = () => {
         {MENU_LIST &&
           MENU_LIST.map((item) => (
             <GAClick key={item.text} name={item.gaClickName}>
-              <Link href={item.link}>
+              <Link href={item.link} replace>
                 <Flex
                   fontSize={'16px'}
                   cursor={'pointer'}

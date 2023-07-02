@@ -1,6 +1,6 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi';
+import { useNetwork, useProvider, useSigner } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
@@ -16,23 +16,23 @@ import Container from '../components/Container';
 import { useLogin } from '@/hooks/useLogin';
 import {
   BSC_CHAIN_ID,
-  CROSS_CHAIN_CONTRACT_ADDRESS,
   BSC_EXPLORER_URL,
+  CROSS_CHAIN_CONTRACT_ADDRESS,
   GREENFIELD_CHAIN_ID,
   TOKEN_HUB_CONTRACT_ADDRESS,
 } from '@/base/env';
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
-import { EOperation, TCalculateGas, TTransferInFromValues, TFeeData } from '../type';
+import { EOperation, TCalculateGas, TFeeData, TTransferInFromValues } from '../type';
 import { CROSS_CHAIN_ABI, INIT_FEE_DATA, TOKENHUB_ABI, WalletOperationInfos } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
-import { OperationTypeContext } from '..';
 import { InternalRoutePaths } from '@/constants/paths';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
+import { useAppSelector } from '@/store';
 
 export const TransferIn = () => {
-  const { type } = React.useContext(OperationTypeContext);
+  const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const router = useRouter();
@@ -56,8 +56,7 @@ export const TransferIn = () => {
   });
   const { chain } = useNetwork();
   const provider = useProvider();
-  const { connector } = useAccount();
-  const curInfo = WalletOperationInfos[type];
+  const curInfo = WalletOperationInfos[transType];
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
@@ -169,12 +168,17 @@ export const TransferIn = () => {
   };
 
   useEffect(() => {
-    if (!isEmpty(errors) || !isRight || isEmpty(inputAmount) || type !== EOperation.transfer_in) {
+    if (
+      !isEmpty(errors) ||
+      !isRight ||
+      isEmpty(inputAmount) ||
+      transType !== EOperation.transfer_in
+    ) {
       return;
     }
 
     getFee({ amountIn: inputAmount });
-  }, [getFee, isRight, type, inputAmount, errors]);
+  }, [getFee, isRight, transType, inputAmount, errors]);
 
   return (
     <Container>

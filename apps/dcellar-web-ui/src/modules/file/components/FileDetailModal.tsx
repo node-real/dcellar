@@ -12,7 +12,7 @@ import {
 } from '@totejs/uikit';
 import { MenuCloseIcon } from '@totejs/icons';
 import { useAccount } from 'wagmi';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
 
@@ -39,12 +39,10 @@ import {
   transformVisibility,
 } from '@/modules/file/utils';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
 import { DotLoading } from '@/components/common/DotLoading';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { useRouter } from 'next/router';
@@ -55,16 +53,17 @@ import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { convertToSecond, getUtcZeroTimestamp } from '@/utils/time';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { getClient } from '@/base/client';
 import { SpItem } from '@/store/slices/sp';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 
 const renderFee = (
   key: string,
   bnbValue: string,
-  exchangeRate: number,
+  exchangeRate: number | string,
   keyIcon?: React.ReactNode,
 ) => {
   return (
@@ -177,14 +176,13 @@ interface modalProps {
 }
 
 export const FileDetailModal = (props: modalProps) => {
+  const exchangeRate = useAppSelector(selectBnbPrice);
   const loginData = useLogin();
   const { loginState } = loginData;
   const { address } = loginState;
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAvailableBalance();
+  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);

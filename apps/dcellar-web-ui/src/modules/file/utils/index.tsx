@@ -40,7 +40,7 @@ const getObjectInfo = async (bucketName: string, objectName: string) => {
   return await client.object.headObject(bucketName, objectName);
 };
 
-const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
+const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   // loading status
   // todo add error status maybe?
   if (!bnbValue || Number(bnbValue) < 0) {
@@ -48,7 +48,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number) => {
   }
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
-const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number) => {
+const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   // loading status
   // todo add error status maybe?
   if (!bnbValue || Number(bnbValue) < 0) {
@@ -60,8 +60,8 @@ const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number) => {
 
   return `${renderBnbvalue} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
-const renderUsd = (bnbValue: string, exchangeRate: number) => {
-  const numberInUsd = Number(bnbValue ?? 0) * exchangeRate;
+const renderUsd = (bnbValue: string, exchangeRate: number | string) => {
+  const numberInUsd = Number(bnbValue ?? 0) * Number(exchangeRate);
   return `$${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
 };
 

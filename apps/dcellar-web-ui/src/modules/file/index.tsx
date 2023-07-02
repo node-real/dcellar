@@ -1,5 +1,5 @@
-import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
-import React, { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
+import { Flex, Image, Link, Text, toast, Tooltip, useDisclosure } from '@totejs/uikit';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
 import { useLogin } from '@/hooks/useLogin';
@@ -22,7 +22,6 @@ import { DuplicateNameModal } from '@/modules/file/components/DuplicateNameModal
 import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
 import { checkSpOffChainDataAvailable, getSpOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
@@ -39,9 +38,9 @@ import { ChainVisibilityEnum, TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
 import { convertObjectInfo } from './utils/convertObjectInfo';
-import { ChecksumWorkerContext } from '@/context/GlobalContext/ChecksumWorkerContext';
 import { useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
+import { useChecksumApi } from '@/modules/checksum';
 
 interface pageProps {
   bucketName: string;
@@ -137,10 +136,9 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [isInitReady, setIsInitReady] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const greenfieldRef = useRef<Worker>();
-  const checksumWorkerApiRef = useContext(ChecksumWorkerContext);
-  const router = useRouter();
   const { setOpenAuthModal } = useOffChainAuth();
   const isDiscontinued = bucketInfo.bucketStatus === 1;
+  const checksumWorkerApi = useChecksumApi();
 
   const getObjectList = async (currentEndpoint: string) => {
     try {
@@ -298,7 +296,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     setFreeze(true);
     const start = performance.now();
     let selectTime = (preSelectTime = Date.now());
-    hashResult = await checksumWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
+    hashResult = await checksumWorkerApi?.generateCheckSumV2(uploadFile).finally(() => {
       console.info('HASH: ', performance.now() - start);
     });
     if (preSelectTime > selectTime) return;

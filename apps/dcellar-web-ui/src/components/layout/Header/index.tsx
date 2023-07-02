@@ -1,5 +1,5 @@
-import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
-import React, { useEffect, useRef, useState } from 'react';
+import { Box, Button, Circle, Flex, Image, Link, Text, useOutsideClick } from '@totejs/uikit';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
@@ -10,9 +10,12 @@ import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
+import { StreamBalance } from '@/components/layout/Header/StreamBalance';
+import { useDebounceEffect } from 'ahooks';
+import { setupBnbPrice } from '@/store/slices/global';
+import { useAppDispatch } from '@/store';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -25,14 +28,15 @@ const renderAvatar = (size?: 'sm' | 'md') => {
 };
 
 export const Header = () => {
+  const dispatch = useAppDispatch();
   const { loginState, logout } = useLogin();
   const { address } = loginState;
-
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
+
   useOutsideClick({
     ref,
     handler: () => {
@@ -44,8 +48,14 @@ export const Header = () => {
     },
   });
 
+  useDebounceEffect(() => {
+    if (!showPanel) return;
+    dispatch(setupBnbPrice());
+  }, [showPanel]);
+
   return (
     <>
+      <StreamBalance />
       <Flex
         w="340px"
         ref={ref}

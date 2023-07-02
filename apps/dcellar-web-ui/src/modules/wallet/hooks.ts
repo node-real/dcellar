@@ -6,16 +6,16 @@ import BigNumber from 'bignumber.js';
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
 import { useLogin } from '@/hooks/useLogin';
-import { OperationTypeContext } from '.';
 import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
 import { genSendTx } from './utils/genSendTx';
 import { genTransferOutTx } from './utils/genTransferOutTx';
 import { getClient } from '@/base/client';
+import { useAppSelector } from '@/store';
 
 export const useGetFeeBasic = () => {
-  const { type } = React.useContext(OperationTypeContext);
-  const curInfo = WalletOperationInfos[type];
+  const { transType } = useAppSelector((root) => root.wallet);
+  const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
   const {
     loginState: { address },
@@ -25,7 +25,7 @@ export const useGetFeeBasic = () => {
   }, [chain?.id, curInfo?.chainId]);
 
   return {
-    type,
+    type: transType,
     isRight,
     chain,
     address,

@@ -43,7 +43,7 @@ import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
+import { useAppSelector } from '@/store';
 
 interface modalProps {
   title?: string;
@@ -98,7 +98,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     loginState: { address },
   } = useLogin();
   const { connector } = useAccount();
-  const { availableBalance } = useAvailableBalance();
+  const { availableBalance } = useAppSelector((root) => root.global.balances)[address] || {};
   const [loading, setLoading] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');

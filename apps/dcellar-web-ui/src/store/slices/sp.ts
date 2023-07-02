@@ -4,7 +4,7 @@ import {
   Description,
   StorageProvider,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
-import { AppDispatch } from '@/store';
+import { AppDispatch, GetState } from '@/store';
 import { omit, random, sortBy } from 'lodash-es';
 
 const defaultDescription = (): Description => ({
@@ -53,7 +53,10 @@ export const spSlice = createSlice({
 
 export const { setStorageProviders } = spSlice.actions;
 
-export const setupStorageProviders = () => async (dispatch: AppDispatch) => {
+export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
+  const { sps: _sps } = getState().sp;
+  if (_sps.length) return;
+
   const sps = await getStorageProviders();
   dispatch(setStorageProviders(sps));
 };

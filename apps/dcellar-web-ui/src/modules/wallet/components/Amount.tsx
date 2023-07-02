@@ -9,14 +9,12 @@ import {
   InputRightElement,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback } from 'react';
-import { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
-import { OperationTypeContext } from '..';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -34,6 +32,8 @@ import {
   useDefaultChainBalance,
 } from '@/context/GlobalContext/WalletBalanceContext';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 
 type AmountProps = {
   disabled: boolean;
@@ -61,19 +61,11 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-export const Amount = ({
-  register,
-  errors,
-  disabled,
-  watch,
-  feeData,
-  setValue,
-  getGasFee,
-  maxDisabled,
-}: AmountProps) => {
-  const { type, bnbPrice } = React.useContext(OperationTypeContext);
-  const defaultFee = DefaultFee[type];
-  const curInfo = WalletOperationInfos[type];
+export const Amount = ({ register, errors, disabled, watch, feeData, setValue }: AmountProps) => {
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { transType } = useAppSelector((root) => root.wallet);
+  const defaultFee = DefaultFee[transType];
+  const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
   const { availableBalance: balance } = useDefaultChainBalance();
   const { isLoading, all } = useChainsBalance();
@@ -88,7 +80,7 @@ export const Amount = ({
 
     let newBalance = null;
     // bsc balance
-    if (type === EOperation.transfer_in) {
+    if (transType === EOperation.transfer_in) {
       newBalance = all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance;
     } else {
       // gnfd balance
@@ -100,11 +92,11 @@ export const Amount = ({
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = bnbPrice && BigNumber(newBalance).times(BigNumber(bnbPrice.value || 0));
+    const usdPrice = BigNumber(newBalance).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return `Balance on ${curInfo?.chainName}: ${val}${' '}BNB (${unifyUsdPrice})`;
-  }, [all, bnbPrice, curInfo?.chainName, isLoading, type]);
+  }, [all, bnbPrice, curInfo?.chainName, isLoading, transType]);
 
   // const onMaxClick = async () => {
   //   if (balance && feeData) {
@@ -188,7 +180,7 @@ export const Amount = ({
                   let totalAmount = BigNumber(0);
                   const balanceVal = BigNumber(balance || 0);
                   // TODO temp limit
-                  if (type === EOperation.send) {
+                  if (transType === EOperation.send) {
                     totalAmount =
                       gasFee.toString() === '0'
                         ? BigNumber(val).plus(BigNumber(defaultFee))

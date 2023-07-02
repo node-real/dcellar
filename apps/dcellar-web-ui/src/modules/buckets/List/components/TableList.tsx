@@ -100,6 +100,7 @@ export const TableList = memo(() => {
       })),
     [columns],
   );
+  // todo remove Query
   let { data, isLoading, refetch } = useQuery<any>(
     ['getUserBuckets'],
     async () => {

@@ -1,8 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-export interface PersistState {}
+export type PersistedAccountConfig = {
+  seedString: string;
+  directDownload: boolean;
+  directView: boolean;
+};
 
-const initialState: PersistState = {};
+export interface PersistState {
+  accounts: Record<string, PersistedAccountConfig>;
+}
+
+const initialState: PersistState = {
+  accounts: {},
+};
 
 export const persistSlice = createSlice({
   name: 'persist',
