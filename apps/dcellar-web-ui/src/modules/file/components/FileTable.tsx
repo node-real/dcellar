@@ -67,6 +67,7 @@ import {
   getQuota,
   saveFileByAxiosResponse,
   viewFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
@@ -676,6 +677,9 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
+          const isPublic =
+            visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ || isCurrentUser;
+
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
@@ -683,7 +687,9 @@ export const FileTable = (props: fileListProps) => {
             try {
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
               if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
-                directlyDownload(url);
+                // directlyDownload(url);
+                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
+                window.open(link, '_blank');
               } else {
                 const spOffChainData = await getSpOffChainData({
                   address: loginState.address,
@@ -701,15 +707,19 @@ export const FileTable = (props: fileListProps) => {
                 // setStatusModalButtonText('');
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
-                const result = await downloadWithProgress({
-                  bucketName,
-                  objectName,
-                  primarySp,
-                  payloadSize: Number(payloadSize),
-                  address: loginState.address,
-                });
-                saveFileByAxiosResponse(result, objectName);
+
+                // const result = await downloadWithProgress({
+                //   bucketName,
+                //   objectName,
+                //   primarySp,
+                //   payloadSize: Number(payloadSize),
+                //   address: loginState.address,
+                // });
+                // saveFileByAxiosResponse(result, objectName);
+
                 // onStatusModalClose();
+                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
+                window.open(link, '_blank');
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
@@ -783,7 +793,7 @@ export const FileTable = (props: fileListProps) => {
                 </ActionButton>
               )}
 
-              {isSealed && (
+              {isSealed && isPublic && (
                 <ActionButton
                   gaClickName="dc.file.download_btn.0.click"
                   onClick={() => {
@@ -793,154 +803,157 @@ export const FileTable = (props: fileListProps) => {
                   <DownloadIcon size="md" color="readable.brand6" />
                 </ActionButton>
               )}
-              <Menu offset={[-12, 0]} placement="bottom-start" strategy="fixed" trigger="hover">
-                {({ isOpen }) => (
-                  <>
-                    <GAClick name="dc.file.detail_btn.0.click">
-                      <MenuButton
-                        boxSize={24}
-                        display={'flex'}
-                        justifyContent={'center'}
-                        alignItems={'center'}
-                        as="div"
-                        cursor="pointer"
-                        onClick={(e) => e.stopPropagation()}
-                        bgColor={isOpen ? 'rgba(0, 186, 52, 0.1)' : 'transparent'}
-                        color={isOpen ? 'readable.brand6' : 'readable.normal'}
-                        borderRadius={18}
-                        transitionProperty="colors"
-                        transitionDuration="normal"
-                        _hover={{
-                          bgColor: 'rgba(0, 186, 52, 0.2)',
-                          color: 'readable.brand6',
-                        }}
-                      >
-                        <MenuIcon size="md" />
-                      </MenuButton>
-                    </GAClick>
-                    <MenuList w={'120px'}>
-                      <GAShow name="dc.file.list_menu.0.show" isShow={isOpen} />
-                      {isSealed && isCurrentUser && (
-                        <GreenfieldMenuItem
-                          gaClickName="dc.file.list_menu.detail.click"
-                          onClick={async (e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            setRemainingQuota(null);
-                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
-                            setHash(checksums?.[0] ?? '');
-                            setCreatedDate(create_at);
-                            setShareLink(directDownloadLink);
-                            setCurrentVisibility(visibility);
-                            setShareObject(rowData as IObjectProps['object_info']);
-                            onInfoModalOpen();
-                            const quotaData = await getQuota(bucketName, primarySp.endpoint);
-                            if (quotaData) {
-                              const { freeQuota, readQuota, consumedQuota } = quotaData;
-                              setRemainingQuota(readQuota + freeQuota - consumedQuota);
-                            }
+              {isPublic && (
+                <Menu offset={[-12, 0]} placement="bottom-start" strategy="fixed" trigger="hover">
+                  {({ isOpen }) => (
+                    <>
+                      <GAClick name="dc.file.detail_btn.0.click">
+                        <MenuButton
+                          boxSize={24}
+                          display={'flex'}
+                          justifyContent={'center'}
+                          alignItems={'center'}
+                          as="div"
+                          cursor="pointer"
+                          onClick={(e) => e.stopPropagation()}
+                          bgColor={isOpen ? 'rgba(0, 186, 52, 0.1)' : 'transparent'}
+                          color={isOpen ? 'readable.brand6' : 'readable.normal'}
+                          borderRadius={18}
+                          transitionProperty="colors"
+                          transitionDuration="normal"
+                          _hover={{
+                            bgColor: 'rgba(0, 186, 52, 0.2)',
+                            color: 'readable.brand6',
                           }}
                         >
-                          View Details
-                        </GreenfieldMenuItem>
-                      )}
-                      {isSealed && (
-                        <GreenfieldMenuItem
-                          gaClickName="dc.file.list_menu.download.click"
-                          onClick={() => {
-                            downloadWithConfirm(directDownloadLink);
-                          }}
-                        >
-                          {downloadText}
-                        </GreenfieldMenuItem>
-                      )}
-                      {isSealed && isCurrentUser && showFileIcon && (
-                        <GreenfieldMenuItem
-                          gaClickName="dc.file.list_menu.share.click"
-                          onClick={onShare}
-                        >
-                          Share
-                        </GreenfieldMenuItem>
-                      )}
-                      {isUploadFailed && isCurrentUser && (
-                        <GreenfieldMenuItem
-                          gaClickName="dc.file.list_menu.cancel.click"
-                          onClick={async (e: React.MouseEvent) => {
-                            e.stopPropagation();
+                          <MenuIcon size="md" />
+                        </MenuButton>
+                      </GAClick>
 
-                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
-                            // calculate gas fee
-                            try {
-                              setGasFeeLoading(true);
-                              setGasFee('-1');
-                              setLockFeeLoading(true);
-                              setLockFee('-1');
-                              setLockFeeLoading(false);
-                              onConfirmCancelModalOpen();
-                              getCancelGasFeeAndSet(objectName, onConfirmCancelModalClose);
-                            } catch (error) {
-                              setGasFeeLoading(false);
-                              toast.error({
-                                description: 'Get gas fee error',
-                              });
-                              onConfirmCancelModalClose();
-                              // eslint-disable-next-line no-console
-                              console.error('get gas fee error', error);
-                            }
-                          }}
-                        >
-                          Cancel
-                        </GreenfieldMenuItem>
-                      )}
-                      {isCurrentUser && !isUploadFailed && (
-                        <GreenfieldMenuItem
-                          gaClickName={
-                            isSealed
-                              ? 'dc.file.list_menu.delete.click'
-                              : 'dc.file.list_menu.cancel.click'
-                          }
-                          onClick={async (e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            setFileInfo({ name: objectName, size: payloadSize, id: objectId });
-                            // calculate gas fee
-                            try {
-                              setGasFeeLoading(true);
-                              setGasFee('-1');
-                              setLockFeeLoading(true);
-                              setLockFee('-1');
-                              if (isSealed) {
-                                // delete object if sealed
-                                onConfirmDeleteModalOpen();
-                                getDeleteGasFeeAndSet(objectName, onConfirmDeleteModalClose);
-                                getLockFeeAndSet(payloadSize, onConfirmDeleteModalClose);
-                              } else {
-                                // cancel object if unsealed
-                                // setLockFeeLoading(false);
+                      <MenuList w={'120px'}>
+                        <GAShow name="dc.file.list_menu.0.show" isShow={isOpen} />
+                        {isSealed && isCurrentUser && (
+                          <GreenfieldMenuItem
+                            gaClickName="dc.file.list_menu.detail.click"
+                            onClick={async (e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              setRemainingQuota(null);
+                              setFileInfo({ name: objectName, size: payloadSize, id: objectId });
+                              setHash(checksums?.[0] ?? '');
+                              setCreatedDate(create_at);
+                              setShareLink(directDownloadLink);
+                              setCurrentVisibility(visibility);
+                              setShareObject(rowData as IObjectProps['object_info']);
+                              onInfoModalOpen();
+                              const quotaData = await getQuota(bucketName, primarySp.endpoint);
+                              if (quotaData) {
+                                const { freeQuota, readQuota, consumedQuota } = quotaData;
+                                setRemainingQuota(readQuota + freeQuota - consumedQuota);
+                              }
+                            }}
+                          >
+                            View Details
+                          </GreenfieldMenuItem>
+                        )}
+                        {isSealed && (
+                          <GreenfieldMenuItem
+                            gaClickName="dc.file.list_menu.download.click"
+                            onClick={() => {
+                              downloadWithConfirm(directDownloadLink);
+                            }}
+                          >
+                            {downloadText}
+                          </GreenfieldMenuItem>
+                        )}
+                        {isSealed && isCurrentUser && showFileIcon && (
+                          <GreenfieldMenuItem
+                            gaClickName="dc.file.list_menu.share.click"
+                            onClick={onShare}
+                          >
+                            Share
+                          </GreenfieldMenuItem>
+                        )}
+                        {isUploadFailed && isCurrentUser && (
+                          <GreenfieldMenuItem
+                            gaClickName="dc.file.list_menu.cancel.click"
+                            onClick={async (e: React.MouseEvent) => {
+                              e.stopPropagation();
+
+                              setFileInfo({ name: objectName, size: payloadSize, id: objectId });
+                              // calculate gas fee
+                              try {
+                                setGasFeeLoading(true);
+                                setGasFee('-1');
+                                setLockFeeLoading(true);
+                                setLockFee('-1');
+                                setLockFeeLoading(false);
                                 onConfirmCancelModalOpen();
                                 getCancelGasFeeAndSet(objectName, onConfirmCancelModalClose);
-                                getLockFeeAndSet(payloadSize, onConfirmCancelModalClose);
-                              }
-                            } catch (error) {
-                              setGasFeeLoading(false);
-                              toast.error({
-                                description: 'Get gas fee error',
-                              });
-                              if (isSealed) {
-                                onConfirmDeleteModalClose();
-                              } else {
+                              } catch (error) {
+                                setGasFeeLoading(false);
+                                toast.error({
+                                  description: 'Get gas fee error',
+                                });
                                 onConfirmCancelModalClose();
+                                // eslint-disable-next-line no-console
+                                console.error('get gas fee error', error);
                               }
-                              // eslint-disable-next-line no-console
-                              console.error('Get gas fee error', error);
+                            }}
+                          >
+                            Cancel
+                          </GreenfieldMenuItem>
+                        )}
+                        {isCurrentUser && !isUploadFailed && (
+                          <GreenfieldMenuItem
+                            gaClickName={
+                              isSealed
+                                ? 'dc.file.list_menu.delete.click'
+                                : 'dc.file.list_menu.cancel.click'
                             }
-                          }}
-                        >
-                          {deleteText}
-                        </GreenfieldMenuItem>
-                      )}
-                    </MenuList>
-                  </>
-                )}
-              </Menu>
+                            onClick={async (e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              setFileInfo({ name: objectName, size: payloadSize, id: objectId });
+                              // calculate gas fee
+                              try {
+                                setGasFeeLoading(true);
+                                setGasFee('-1');
+                                setLockFeeLoading(true);
+                                setLockFee('-1');
+                                if (isSealed) {
+                                  // delete object if sealed
+                                  onConfirmDeleteModalOpen();
+                                  getDeleteGasFeeAndSet(objectName, onConfirmDeleteModalClose);
+                                  getLockFeeAndSet(payloadSize, onConfirmDeleteModalClose);
+                                } else {
+                                  // cancel object if unsealed
+                                  // setLockFeeLoading(false);
+                                  onConfirmCancelModalOpen();
+                                  getCancelGasFeeAndSet(objectName, onConfirmCancelModalClose);
+                                  getLockFeeAndSet(payloadSize, onConfirmCancelModalClose);
+                                }
+                              } catch (error) {
+                                setGasFeeLoading(false);
+                                toast.error({
+                                  description: 'Get gas fee error',
+                                });
+                                if (isSealed) {
+                                  onConfirmDeleteModalClose();
+                                } else {
+                                  onConfirmCancelModalClose();
+                                }
+                                // eslint-disable-next-line no-console
+                                console.error('Get gas fee error', error);
+                              }
+                            }}
+                          >
+                            {deleteText}
+                          </GreenfieldMenuItem>
+                        )}
+                      </MenuList>
+                    </>
+                  )}
+                </Menu>
+              )}
             </Flex>
           );
         },
@@ -987,7 +1000,7 @@ export const FileTable = (props: fileListProps) => {
       <Box width={containerWidth} minW="">
         <Box
           overflowY="auto"
-          maxW='100%'
+          maxW="100%"
           borderRadius={'16px'}
           height={tableNotFullHeight < tableFullHeight ? tableNotFullHeight : tableFullHeight}
           paddingX="16px"
@@ -1060,9 +1073,13 @@ export const FileTable = (props: fileListProps) => {
                   object_name,
                   payload_size,
                   id: object_id,
+                  owner,
                 } = row.original;
                 const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
+                const isPublic =
+                  owner === address ||
+                  visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
                 const isFolder = object_name?.endsWith('/') ?? false;
 
                 return (
@@ -1088,6 +1105,7 @@ export const FileTable = (props: fileListProps) => {
                       borderBottom="1px solid #E6E8EA"
                       onClick={async () => {
                         if (!canView) return;
+                        if (!isPublic) return;
                         if (isFolder) {
                           // toast.info({ description: 'Click here to view folder files.' });
                           router.push(`/buckets/${bucketName}/${encodedObjectName}`);

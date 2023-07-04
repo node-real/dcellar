@@ -7,6 +7,7 @@ import {
   downloadWithProgress,
   formatBytes,
   saveFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -174,26 +175,35 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               setLoading(false);
               // only public file can be direct download
               if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
-                directlyDownload(shareLink);
-              } else {
-                const spOffChainData = await getSpOffChainData({
-                  address: loginState.address,
-                  spAddress: primarySp.operatorAddress,
-                });
-                if (!checkSpOffChainDataAvailable(spOffChainData)) {
-                  onClose();
-                  onStatusModalClose();
-                  setOpenAuthModal();
-                  return;
-                }
-                const result = await downloadWithProgress({
+                // directlyDownload(shareLink);
+                const link = getBuiltInLink(
+                  primarySp.endpoint,
                   bucketName,
-                  objectName: name,
-                  primarySp,
-                  payloadSize: Number(size),
-                  address: loginState.address,
-                });
-                saveFileByAxiosResponse(result, name);
+                  fileInfo.name,
+                  'download',
+                );
+
+                window.open(link, '_blank');
+                console.log(primarySp);
+              } else {
+                // const spOffChainData = await getSpOffChainData({
+                //   address: loginState.address,
+                //   spAddress: primarySp.operatorAddress,
+                // });
+                // if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                //   onClose();
+                //   onStatusModalClose();
+                //   setOpenAuthModal();
+                //   return;
+                // }
+                // const result = await downloadWithProgress({
+                //   bucketName,
+                //   objectName: name,
+                //   primarySp,
+                //   payloadSize: Number(size),
+                //   address: loginState.address,
+                // });
+                // saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
