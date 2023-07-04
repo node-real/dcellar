@@ -67,6 +67,7 @@ import {
   getQuota,
   saveFileByAxiosResponse,
   viewFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
@@ -676,6 +677,7 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
+
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
@@ -701,15 +703,19 @@ export const FileTable = (props: fileListProps) => {
                 // setStatusModalButtonText('');
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
-                const result = await downloadWithProgress({
-                  bucketName,
-                  objectName,
-                  primarySp,
-                  payloadSize: Number(payloadSize),
-                  address: loginState.address,
-                });
-                saveFileByAxiosResponse(result, objectName);
+
+                // const result = await downloadWithProgress({
+                //   bucketName,
+                //   objectName,
+                //   primarySp,
+                //   payloadSize: Number(payloadSize),
+                //   address: loginState.address,
+                // });
+                // saveFileByAxiosResponse(result, objectName);
+
                 // onStatusModalClose();
+                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
+                window.open(link, '_blank');
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
@@ -818,6 +824,7 @@ export const FileTable = (props: fileListProps) => {
                         <MenuIcon size="md" />
                       </MenuButton>
                     </GAClick>
+
                     <MenuList w={'120px'}>
                       <GAShow name="dc.file.list_menu.0.show" isShow={isOpen} />
                       {isSealed && isCurrentUser && (
@@ -987,7 +994,7 @@ export const FileTable = (props: fileListProps) => {
       <Box width={containerWidth} minW="">
         <Box
           overflowY="auto"
-          maxW='100%'
+          maxW="100%"
           borderRadius={'16px'}
           height={tableNotFullHeight < tableFullHeight ? tableNotFullHeight : tableFullHeight}
           paddingX="16px"
@@ -1060,9 +1067,13 @@ export const FileTable = (props: fileListProps) => {
                   object_name,
                   payload_size,
                   id: object_id,
+                  owner,
                 } = row.original;
                 const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
+                const isPublic =
+                  owner === address ||
+                  visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
                 const isFolder = object_name?.endsWith('/') ?? false;
 
                 return (
@@ -1096,6 +1107,11 @@ export const FileTable = (props: fileListProps) => {
                         const previewLink = encodeURI(
                           `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
+                        if (!isPublic) {
+                          window.open(previewLink, '_blank');
+                          return;
+                        }
+
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size, id: object_id });
                           setViewLink(previewLink);

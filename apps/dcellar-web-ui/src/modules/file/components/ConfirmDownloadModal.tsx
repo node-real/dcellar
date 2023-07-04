@@ -7,6 +7,7 @@ import {
   downloadWithProgress,
   formatBytes,
   saveFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -186,14 +187,21 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                   setOpenAuthModal();
                   return;
                 }
-                const result = await downloadWithProgress({
+                const link = getBuiltInLink(
+                  primarySp.endpoint,
                   bucketName,
-                  objectName: name,
-                  primarySp,
-                  payloadSize: Number(size),
-                  address: loginState.address,
-                });
-                saveFileByAxiosResponse(result, name);
+                  fileInfo.name,
+                  'download',
+                );
+                window.open(link, '_blank');
+                // const result = await downloadWithProgress({
+                //   bucketName,
+                //   objectName: name,
+                //   primarySp,
+                //   payloadSize: Number(size),
+                //   address: loginState.address,
+                // });
+                // saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
