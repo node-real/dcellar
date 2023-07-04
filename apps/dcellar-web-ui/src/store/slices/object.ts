@@ -27,6 +27,7 @@ export interface ObjectState {
   objectsMeta: Record<string, Omit<IObjectList, 'objects' | 'common_prefixes'>>;
   objectsInfo: Record<string, IObjectProps>;
   currentPage: Record<string, number>;
+  restoreCurrent: boolean;
 }
 
 const initialState: ObjectState = {
@@ -39,12 +40,16 @@ const initialState: ObjectState = {
   objectsMeta: {},
   objectsInfo: {},
   currentPage: {},
+  restoreCurrent: true,
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setRestoreCurrent(state, { payload }: PayloadAction<boolean>) {
+      state.restoreCurrent = payload;
+    },
     setCurrentObjectPage(state, { payload }: PayloadAction<{ path: string; current: number }>) {
       const { path, current } = payload;
       state.currentPage[path] = current;
@@ -131,8 +136,12 @@ const _getAllList = async (
 
 export const setupListObjects =
   (params: Partial<ListObjectsParams>) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { prefix, bucketName, path } = getState().object;
+    const { prefix, bucketName, path, restoreCurrent } = getState().object;
     const { loginAccount: address } = getState().persist;
+    dispatch(setRestoreCurrent(true));
+    if (!restoreCurrent) {
+      dispatch(setCurrentObjectPage({ path, current: 0 }));
+    }
     const _query = new URLSearchParams(params.query?.toString() || '');
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
@@ -165,6 +174,7 @@ export const selectObjectList = (root: AppState) => {
   return objects[path] || defaultObjectList;
 };
 
-export const { setFolders, setCurrentObjectPage, setObjectList } = objectSlice.actions;
+export const { setFolders, setCurrentObjectPage, setObjectList, setRestoreCurrent } =
+  objectSlice.actions;
 
 export default objectSlice.reducer;

@@ -6,6 +6,7 @@ import {
   selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
+  setRestoreCurrent,
   setupListObjects,
 } from '@/store/slices/object';
 import { chunk, reverse, sortBy } from 'lodash-es';
@@ -81,6 +82,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
+    if (sortName === name && dir === newSort) return;
+    dispatch(setRestoreCurrent(false));
     dispatch(updateObjectSorter([name, newSort] as SorterType));
   };
 
