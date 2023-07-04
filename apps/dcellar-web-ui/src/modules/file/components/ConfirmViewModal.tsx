@@ -57,6 +57,7 @@ const renderProp = (key: string, value: string) => {
 export const ConfirmViewModal = (props: modalProps) => {
   const loginData = useLogin();
   const { loginState, loginDispatch } = loginData;
+
   const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
   const [hasChangedView, setHasChangedView] = useState(false);
   const { setOpenAuthModal } = useOffChainAuth();
