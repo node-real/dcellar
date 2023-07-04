@@ -35,6 +35,7 @@ export const SortItem = styled.span`
   margin-left: -16px;
   margin-top: -7px;
   margin-bottom: -7px;
+  user-select: none;
   > span {
     display: none;
   }

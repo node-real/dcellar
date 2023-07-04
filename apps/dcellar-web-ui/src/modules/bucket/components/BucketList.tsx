@@ -38,8 +38,8 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   const { loading, currentPage } = useAppSelector((root) => root.bucket);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
-  const ascend = useMemo(() => sortBy(bucketList, sortName), [bucketList, sortName]);
-  const sortedList = useMemo(() => (dir === 'ascend' ? ascend : reverse(ascend)), [ascend, dir]);
+  const ascend = sortBy(bucketList, sortName);
+  const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
 
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;

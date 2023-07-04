@@ -8,7 +8,6 @@ import { BucketList } from '@/modules/bucket/components/BucketList';
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { loading } = useAppSelector((root) => root.bucket);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
 
   useAsyncEffect(async () => {
@@ -20,7 +19,7 @@ export const BucketPage = () => {
     <BucketContainer>
       <PanelContainer>
         <PageTitle>Buckets</PageTitle>
-        {!loading && !!bucketList.length && <NewBucket />}
+        {!!bucketList.length && <NewBucket />}
       </PanelContainer>
       <BucketList />
     </BucketContainer>
