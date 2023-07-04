@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
   selectObjectList,
+  selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
   setupListObjects,
@@ -35,7 +36,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     objectPageSize,
     objectSortBy: [sortName, dir],
   } = useAppSelector((root) => root.persist);
-  const { currentPage, bucketName, prefix } = useAppSelector((root) => root.object);
+  const { bucketName, prefix, path } = useAppSelector((root) => root.object);
+  const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
   const { spInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
@@ -148,9 +150,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
     if (prev || next) {
-      return dispatch(setCurrentObjectPage(currentPage + (next ? 1 : -1)));
+      return dispatch(setCurrentObjectPage({ path, current: currentPage + (next ? 1 : -1) }));
     }
-    dispatch(setCurrentObjectPage(0));
+    dispatch(setCurrentObjectPage({ path, current: 0 }));
     dispatch(updateObjectPageSize(pageSize));
   };
 

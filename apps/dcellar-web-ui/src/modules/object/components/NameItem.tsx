@@ -1,17 +1,20 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import styled from '@emotion/styled';
-import { ObjectItem } from '@/store/slices/object';
-import { useAppSelector } from '@/store';
+import { ObjectItem, setCurrentObjectPage } from '@/store/slices/object';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { contentIconTypeToExtension } from '@/modules/file/utils';
 import { Image, Tooltip } from '@totejs/uikit';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
+import { encodeObjectName } from '@/utils/string';
+import { trimEnd } from 'lodash-es';
 
 interface NameItemProps {
   item: ObjectItem;
 }
 
 export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
+  const dispatch = useAppDispatch();
   const { folder, objectName, name, visibility } = item;
   const { bucketName } = useAppSelector((root) => root.object);
   const fileType = contentIconTypeToExtension(objectName);
@@ -39,9 +42,13 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   return (
     <Container>
       <Link
-        href={`/buckets/${bucketName}/${objectName}`}
+        href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
-          if (folder) return;
+          if (folder) {
+            const path = trimEnd([bucketName, objectName].join('/'), '/');
+            dispatch(setCurrentObjectPage({ path, current: 0 }));
+            return;
+          }
           e.preventDefault();
         }}
       >

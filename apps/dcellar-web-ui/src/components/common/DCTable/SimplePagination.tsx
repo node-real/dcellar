@@ -5,7 +5,7 @@ import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
 
-const defaultPageSizeOptions = [1, 10, 20, 50, 100, 500];
+const defaultPageSizeOptions = [10, 20, 50, 100, 500];
 
 export interface SimplePaginationProps {
   pageSizeOptions?: number[];

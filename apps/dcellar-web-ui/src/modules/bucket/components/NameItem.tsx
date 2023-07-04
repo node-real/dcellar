@@ -5,12 +5,15 @@ import { DiscontinueNotice } from './DiscontinueNotice';
 import FileIcon from '@/public/images/icons/file.svg';
 import Link from 'next/link';
 import styled from '@emotion/styled';
+import { useAppDispatch } from '@/store';
+import { setCurrentObjectPage } from '@/store/slices/object';
 
 interface NameItemProps {
   item: BucketItem;
 }
 
 export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
+  const dispatch = useAppDispatch();
   const { delete_at, bucket_status, bucket_name } = item;
   const discontinue = bucket_status === 1;
   const estimateTime = formatFullTime(
@@ -21,7 +24,12 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`;
   return (
     <Container>
-      <Link href={`/buckets/${bucket_name}`}>
+      <Link
+        href={`/buckets/${bucket_name}`}
+        onClick={() => {
+          dispatch(setCurrentObjectPage({ path: bucket_name, current: 0 }));
+        }}
+      >
         <FileIcon /> <span title={item.bucket_name}>{item.bucket_name}</span>
       </Link>
       {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
