@@ -175,27 +175,25 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               setLoading(false);
               // only public file can be direct download
               if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
-                // directlyDownload(shareLink);
+                directlyDownload(shareLink);
+              } else {
+                const spOffChainData = await getSpOffChainData({
+                  address: loginState.address,
+                  spAddress: primarySp.operatorAddress,
+                });
+                if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                  onClose();
+                  onStatusModalClose();
+                  setOpenAuthModal();
+                  return;
+                }
                 const link = getBuiltInLink(
                   primarySp.endpoint,
                   bucketName,
                   fileInfo.name,
                   'download',
                 );
-
                 window.open(link, '_blank');
-                console.log(primarySp);
-              } else {
-                // const spOffChainData = await getSpOffChainData({
-                //   address: loginState.address,
-                //   spAddress: primarySp.operatorAddress,
-                // });
-                // if (!checkSpOffChainDataAvailable(spOffChainData)) {
-                //   onClose();
-                //   onStatusModalClose();
-                //   setOpenAuthModal();
-                //   return;
-                // }
                 // const result = await downloadWithProgress({
                 //   bucketName,
                 //   objectName: name,
