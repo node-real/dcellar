@@ -74,6 +74,11 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
             <Image
               alt="Oops, something went wrong"
               src={`${assetPrefix}/images/common/no_bucket.png`}
+              w={120}
+              h={120}
+              sx={{
+                aspectRatio: '120/120',
+              }}
             />
           ) : (
             <Image
