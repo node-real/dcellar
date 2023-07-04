@@ -32,6 +32,8 @@ export interface PersistState {
   loginAccount: string;
   faultySps: Array<string>;
   bucketSortBy: SorterType;
+  objectSortBy: SorterType;
+  objectPageSize: number;
   bucketPageSize: number;
 }
 
@@ -41,12 +43,20 @@ const initialState: PersistState = {
   faultySps: [],
   bucketSortBy: ['create_at', 'descend'],
   bucketPageSize: 20,
+  objectSortBy: ['create_at', 'descend'],
+  objectPageSize: 20,
 };
 
 export const persistSlice = createSlice({
   name: 'persist',
   initialState,
   reducers: {
+    updateObjectPageSize(state, { payload }: PayloadAction<number>) {
+      state.objectPageSize = payload;
+    },
+    updateObjectSorter(state, { payload }: PayloadAction<SorterType>) {
+      state.objectSortBy = payload;
+    },
     updateBucketPageSize(state, { payload }: PayloadAction<number>) {
       state.bucketPageSize = payload;
     },
@@ -162,6 +172,8 @@ export const {
   setAccountSps,
   setFaultySps,
   updateBucketPageSize,
+  updateObjectSorter,
+  updateObjectPageSize,
 } = persistSlice.actions;
 
 export default persistSlice.reducer;

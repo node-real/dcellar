@@ -13,7 +13,7 @@ export const quotaRemains = (quota: IQuotaProps, payload: string) => {
   return !BigNumber(freeQuota).plus(readQuota).minus(consumedQuota).minus(payload).isNegative();
 };
 
-export const headObject = async (bucketName: string) => {
+export const headBucket = async (bucketName: string) => {
   const client = await getClient();
   const { bucketInfo } = await client.bucket
     .headBucket(bucketName)

@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBucketList, setupBuckets } from '@/store/slices/bucket';
 import { useAsyncEffect } from 'ahooks';
 import { BucketList } from '@/modules/bucket/components/BucketList';
+import Head from 'next/head';
+import React from 'react';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
@@ -17,6 +19,9 @@ export const BucketPage = () => {
 
   return (
     <BucketContainer>
+      <Head>
+        <title>Buckets - DCellar</title>
+      </Head>
       <PanelContainer>
         <PageTitle>Buckets</PageTitle>
         {!!bucketList.length && <NewBucket />}

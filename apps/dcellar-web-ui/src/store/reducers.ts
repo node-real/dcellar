@@ -8,6 +8,7 @@ import sp from '@/store/slices/sp';
 import persist from '@/store/slices/persist';
 import bucket from '@/store/slices/bucket';
 import wallet from '@/store/slices/wallet';
+import object from '@/store/slices/object';
 
 const rootReducer = combineReducers({
   global,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   sp,
   bucket,
   wallet,
+  object,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

@@ -6,7 +6,7 @@ import {
   selectHasDiscontinue,
   setCurrentBucketPage,
 } from '@/store/slices/bucket';
-import { AlignType, DCTable } from '@/components/common/DCTable';
+import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { ColumnProps } from 'antd/es/table';
 import { NameItem } from '@/modules/bucket/components/NameItem';
 import { formatTime, getMillisecond } from '@/utils/time';
@@ -15,16 +15,8 @@ import { MoreIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/bucket/components/ListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
-import { SortItem } from '@/modules/bucket/bucket.style';
-import Ascend from '@/components/common/SvgIcon/Ascend.svg';
-import Descend from '@/components/common/SvgIcon/Descend.svg';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
-
-const SortIcon = {
-  descend: <Descend />,
-  ascend: <Ascend />,
-};
 
 interface BucketListProps {}
 
@@ -51,7 +43,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       key: 'bucket_name',
       title: (
         <SortItem onClick={() => updateSorter('bucket_name', 'ascend')}>
-          Name{sortName === 'bucket_name' ? SortIcon[dir] : <span>{<Ascend />}</span>}
+          Name{sortName === 'bucket_name' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
       render: (_: string, record: BucketItem) => <NameItem item={record} />,
@@ -61,7 +53,8 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       width: 250,
       title: (
         <SortItem onClick={() => updateSorter('create_at', 'descend')}>
-          Date Created{sortName === 'create_at' ? SortIcon[dir] : <span>{<Descend />}</span>}
+          Date Created
+          {sortName === 'create_at' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
       render: (_: string, record: BucketItem) => (
@@ -110,12 +103,10 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
           spinning: loading,
           indicator: <Loading />,
         }}
-        tableLayout="fixed"
         rowKey="bucket_name"
         columns={columns}
         dataSource={page}
         renderEmpty={() => <ListEmpty empty={empty} />}
-        pagination={false}
         pageSize={bucketPageSize}
         pageChange={onPageChange}
         canNext={canNext}

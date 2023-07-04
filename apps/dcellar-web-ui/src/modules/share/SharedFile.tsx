@@ -9,7 +9,7 @@ import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/stor
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { headObject, quotaRemains } from '@/facade/bucket';
+import { headBucket, quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
@@ -79,7 +79,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const errType = accessError as ShareErrorType;
     if (errType) return onError(errType);
 
-    const bucketInfo = await headObject(bucketName);
+    const bucketInfo = await headBucket(bucketName);
     if (!bucketInfo) return onError(E_UNKNOWN);
 
     const primarySp = spInfo[bucketInfo.primarySpAddress];

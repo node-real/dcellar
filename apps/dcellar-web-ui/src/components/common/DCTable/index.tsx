@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import React, { memo } from 'react';
 import { Table, ConfigProvider, TableProps, ThemeConfig } from 'antd';
 import { ConfigProviderProps } from 'antd/es/config-provider';
 import styled from '@emotion/styled';
@@ -6,6 +6,9 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
+import Descend from '@/components/common/SvgIcon/Descend.svg';
+import Ascend from '@/components/common/SvgIcon/Ascend.svg';
+import { Flex, Text } from '@totejs/uikit';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -36,7 +39,7 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
   return (
     <Container>
       <ConfigProvider renderEmpty={renderEmpty} theme={theme}>
-        <Table {...props} />
+        <Table {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
       <SimplePagination
         pageSize={pageSize}
@@ -47,6 +50,50 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
     </Container>
   );
 });
+
+export const FailStatus = (
+  <Flex
+    display="inline-flex"
+    bg={'rgba(238, 57, 17, 0.1)'}
+    h={'20px'}
+    borderRadius={'12px'}
+    paddingX={'8px'}
+    alignItems={'center'}
+    justifyContent={'center'}
+  >
+    <Text lineHeight={'24px'} fontSize={'12px'} color="#EE3911" fontWeight={500}>
+      Upload Failed
+    </Text>
+  </Flex>
+);
+
+export const SortIcon = {
+  descend: <Descend />,
+  ascend: <Ascend />,
+};
+
+export const SortItem = styled.span`
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 7px 16px;
+  transition: all 0.2s;
+  margin-left: -16px;
+  margin-top: -7px;
+  margin-bottom: -7px;
+  user-select: none;
+  > span {
+    display: none;
+  }
+  :hover {
+    color: #1e2026;
+    > span {
+      display: inline;
+    }
+    border-radius: 360px;
+    background: rgba(0, 186, 52, 0.1);
+  }
+`;
 
 const Container = styled.div`
   border-radius: 16px;

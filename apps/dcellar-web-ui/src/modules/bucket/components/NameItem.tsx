@@ -21,7 +21,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`;
   return (
     <Container>
-      <Link href={`/bucket/${bucket_name}`}>
+      <Link href={`/buckets/${bucket_name}`}>
         <FileIcon /> <span title={item.bucket_name}>{item.bucket_name}</span>
       </Link>
       {discontinue && <DiscontinueNotice content={content} learnMore={more} />}

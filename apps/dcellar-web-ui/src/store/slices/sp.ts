@@ -33,12 +33,17 @@ export const spSlice = createSlice({
   name: 'sp',
   initialState,
   reducers: {
-    setStorageProviders(state, { payload }: PayloadAction<StorageProvider[]>) {
-      const unsorted = payload.map((s) => {
+    setStorageProviders(
+      state,
+      { payload }: PayloadAction<{ sps: StorageProvider[]; faultySps: string[] }>,
+    ) {
+      const { sps, faultySps } = payload;
+      const unsorted = sps.map((s) => {
         const item = {
           ...omit(s, 'description'),
           ...(s.description || defaultDescription()),
         };
+        // ensure all sp info recorded
         state.spInfo[s.operatorAddress] = item;
         return item;
       });
@@ -46,7 +51,9 @@ export const spSlice = createSlice({
       const availableSps = unsorted.filter((sp) => sp.moniker !== 'QATest');
       const len = availableSps.length;
       state.oneSp = !len ? '' : availableSps[random(0, len - 1)].operatorAddress;
-      state.sps = sortBy(availableSps, ['moniker', 'operatorAddress']);
+      state.sps = sortBy(availableSps, ['moniker', 'operatorAddress']).filter(
+        (s) => !faultySps.includes(s.operatorAddress),
+      );
     },
     updateSps(state, { payload }: PayloadAction<string[]>) {
       state.sps = state.sps.filter((sp) => payload.includes(sp.operatorAddress));
@@ -67,8 +74,8 @@ export const setupStorageProviders = () => async (dispatch: AppDispatch, getStat
   const { faultySps } = getState().persist;
   if (_sps.length) return;
 
-  const sps = (await getStorageProviders()).filter((s) => !faultySps.includes(s.operatorAddress));
-  dispatch(setStorageProviders(sps));
+  const sps = await getStorageProviders();
+  dispatch(setStorageProviders({ sps, faultySps }));
 };
 
 export default spSlice.reducer;

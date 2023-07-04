@@ -1,6 +1,7 @@
-import { TxResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectProps, IObjectResultType, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
+  commonFault,
   downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
@@ -26,6 +27,7 @@ import {
 } from '@/modules/file/utils';
 import { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
+import { getDomain } from '@/utils/getDomain';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -141,4 +143,38 @@ export const previewObject = async (
 
   viewFileByAxiosResponse(result);
   return [true];
+};
+
+export type ListObjectsParams = {
+  address: string;
+  bucketName: string;
+  endpoint: string;
+  seedString: string;
+  query: URLSearchParams;
+};
+
+export type IObjectList = {
+  objects: IObjectProps[];
+  key_count: string;
+  max_keys: string;
+  is_truncated: boolean;
+  next_continuation_token: string;
+  name: string;
+  prefix: string;
+  delimiter: string;
+  common_prefixes: string[];
+  continuation_token: number;
+};
+
+export const getListObjects = async (
+  params: ListObjectsParams,
+): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
+  const domain = getDomain();
+  const client = await getClient();
+  const payload = { domain, ...params };
+  const [list, error] = (await client.object
+    .listObjects(payload)
+    .then(resolve, commonFault)) as any;
+  if (error) return [null, error];
+  return [list! as IObjectResultType<IObjectList>, null];
 };

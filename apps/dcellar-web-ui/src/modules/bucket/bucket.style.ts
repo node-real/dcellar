@@ -25,26 +25,3 @@ export const CreateBucket = styled(DCButton)`
   font-size: 14px;
   white-space: nowrap;
 `;
-
-export const SortItem = styled.span`
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 7px 16px;
-  transition: all 0.2s;
-  margin-left: -16px;
-  margin-top: -7px;
-  margin-bottom: -7px;
-  user-select: none;
-  > span {
-    display: none;
-  }
-  :hover {
-    color: #1e2026;
-    > span {
-      display: inline;
-    }
-    border-radius: 360px;
-    background: rgba(0, 186, 52, 0.1);
-  }
-`;
