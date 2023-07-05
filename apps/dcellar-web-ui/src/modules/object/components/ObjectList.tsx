@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
@@ -6,7 +6,6 @@ import {
   selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
-  setFolders,
   setRestoreCurrent,
   setupListObjects,
 } from '@/store/slices/object';

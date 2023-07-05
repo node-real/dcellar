@@ -4,8 +4,6 @@ import {
   QDrawerCloseButton,
   QDrawerHeader,
   QDrawerBody,
-  QDrawerFooter,
-  Button,
   Flex,
   Text,
   Link,

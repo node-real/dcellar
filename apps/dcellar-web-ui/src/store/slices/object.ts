@@ -135,7 +135,8 @@ const _getAllList = async (
 };
 
 export const setupListObjects =
-  (params: Partial<ListObjectsParams>) => async (dispatch: AppDispatch, getState: GetState) => {
+  (params: Partial<ListObjectsParams>, _path?: string) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
     const { prefix, bucketName, path, restoreCurrent } = getState().object;
     const { loginAccount: address } = getState().persist;
     dispatch(setRestoreCurrent(true));
@@ -146,13 +147,14 @@ export const setupListObjects =
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
     if (prefix) _query.append('prefix', prefix);
-    const payload = { ...params, query: _query, bucketName, address } as ListObjectsParams;
+    // support any path list objects, bucketName & _path
+    const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
     const [res, error] = await _getAllList(payload);
     if (error) {
       toast.error({ description: error });
       return;
     }
-    dispatch(setObjectList({ path, list: res! }));
+    dispatch(setObjectList({ path: _path || path, list: res! }));
   };
 
 export const selectPathLoading = (root: AppState) => {
