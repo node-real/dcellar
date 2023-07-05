@@ -156,21 +156,18 @@ export const setupListObjects =
   };
 
 export const selectPathLoading = (root: AppState) => {
-  const { bucketName, folders, objects } = root.object;
-  const path = [bucketName, ...folders].join('/');
+  const { objects, path } = root.object;
   return !(path in objects);
 };
 
 export const selectPathCurrent = (root: AppState) => {
-  const { bucketName, folders, currentPage } = root.object;
-  const path = [bucketName, ...folders].join('/');
+  const { currentPage, path } = root.object;
   return currentPage[path] || 0;
 };
 
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
-  const { bucketName, folders, objects } = root.object;
-  const path = [bucketName, ...folders].join('/');
+  const { objects, path } = root.object;
   return objects[path] || defaultObjectList;
 };
 
