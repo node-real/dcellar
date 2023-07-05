@@ -193,11 +193,10 @@ const UploadProgress = (props: { progress: number }) => {
           fontSize={'12px'}
           lineHeight={'15px'}
           fontWeight={400}
-          bg="#F1CA3C"
           borderRadius={4}
           padding={4}
         >
-          Sealing
+          Sealing...
         </Box>
       ) : (
         <Text
