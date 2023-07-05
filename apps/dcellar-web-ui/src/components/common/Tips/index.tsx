@@ -29,6 +29,7 @@ export const Tips = ({
       strategy="fixed"
       placement={placement}
       offset={offset}
+      closeDelay={500}
       onOpen={() => setIsOpen(true)}
       onClose={() => setIsOpen(false)}
     >

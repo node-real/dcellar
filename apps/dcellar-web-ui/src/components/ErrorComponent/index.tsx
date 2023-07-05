@@ -21,11 +21,11 @@ const Container = styled.main`
 const Content = styled.div`
   margin: auto;
   text-align: center;
-  img {
+  /* img {
     aspect-ratio: 275/ 240;
     width: 275px;
     margin: auto;
-  }
+  } */
 `;
 
 const Logo = styled.img`
@@ -76,6 +76,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
               src={`${assetPrefix}/images/common/no_bucket.png`}
               w={120}
               h={120}
+              m="auto"
               sx={{
                 aspectRatio: '120/120',
               }}
@@ -84,6 +85,11 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
             <Image
               alt="Oops, something went wrong"
               src={`${assetPrefix}/images/${statusCode === 404 ? '404' : 'error'}.png`}
+              w={275}
+              sx={{
+                aspectRatio: '275/ 240',
+              }}
+              m="auto"
             />
           )}
 
