@@ -190,7 +190,9 @@ export const FileDetailModal = (props: modalProps) => {
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
-  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE);
+  const [visibility, setVisibility] = useState<ChainVisibilityEnum>(
+    ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
+  );
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
   useOutsideClick({
@@ -507,8 +509,7 @@ export const FileDetailModal = (props: modalProps) => {
         });
       } catch (error: any) {
         const errorListObjects = fileUploadingLists.filter((v: any) => {
-          return v?.object_name !== finalName
-
+          return v?.object_name !== finalName;
         });
         setListObjects(errorListObjects);
         setLoading(false);

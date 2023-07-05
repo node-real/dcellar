@@ -24,6 +24,7 @@ import {
   Tooltip,
   useDisclosure,
   Image,
+  keyframes,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon, FileIcon } from '@totejs/icons';
@@ -158,24 +159,55 @@ const UploadProgress = (props: { progress: number }) => {
   let { progress = 0 } = props;
   // As progress will stay put for a while in 100%, user might get confused,
   // so we hold the progress to 99% at mostbg
-  if (progress >= 99) {
-    progress = 99;
-  }
   if (progress < 0) {
     progress = 0;
   }
+  const loading = keyframes`
+  from {
+    transform: translateX(0),;
+  }
+
+  to {
+    transform: translateX(300%);
+  }
+`;
+
   return (
     <Flex alignItems={'center'}>
       <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
-        <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
+        {progress > 99 ? (
+          <Flex
+            w={`30%`}
+            bg={'#1184EE'}
+            borderRadius={'28px'}
+            animation={`${loading} 2s linear infinite`}
+          />
+        ) : (
+          <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
+        )}
       </Flex>
-      <Text
-        color={'readable.normal'}
-        ml={'4px'}
-        fontSize={'12px'}
-        lineHeight={'15px'}
-        fontWeight={400}
-      >{`${progress}%`}</Text>
+      {progress > 99 ? (
+        <Box
+          color={'readable.normal'}
+          ml={'4px'}
+          fontSize={'12px'}
+          lineHeight={'15px'}
+          fontWeight={400}
+          bg="#F1CA3C"
+          borderRadius={4}
+          padding={4}
+        >
+          Sealing
+        </Box>
+      ) : (
+        <Text
+          color={'readable.normal'}
+          ml={'4px'}
+          fontSize={'12px'}
+          lineHeight={'15px'}
+          fontWeight={400}
+        >{`${progress}%`}</Text>
+      )}
     </Flex>
   );
 };
