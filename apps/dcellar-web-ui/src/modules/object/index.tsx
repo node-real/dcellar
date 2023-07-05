@@ -15,6 +15,7 @@ import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip } from '@totejs/uikit';
 import { selectObjectList, setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
+import { useEffect } from 'react';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -27,8 +28,11 @@ export const ObjectsPage = () => {
   const title = last(items)!;
   const [bucketName, ...folders] = items;
 
-  useAsyncEffect(async () => {
+  useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
+    return () => {
+      dispatch(setFolders({ bucketName: '', folders: [] }));
+    };
   }, [bucketName, folders, dispatch]);
 
   useAsyncEffect(async () => {

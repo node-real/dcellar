@@ -81,13 +81,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     dispatch(setupListObjects(params));
   }, [primarySpAddress, prefix]);
 
-  useEffect(() => {
-    return () => {
-      // ensure current bucketName folder in right state.
-      dispatch(setFolders({ bucketName: '', folders: [] }));
-    };
-  }, [prefix, dispatch]);
-
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
     if (sortName === name && dir === newSort) return;

@@ -21,11 +21,11 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 
   if (!owner) return <></>;
 
-  const maxFolderDepth =
-    folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) ||
-    folders.length >= MAX_FOLDER_LEVEL;
+  const invalidPath = folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN);
+  const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
 
   const disabled = maxFolderDepth || discontinue;
+  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL;
 
   return (
     <Flex gap={12}>
@@ -53,20 +53,22 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       </Tooltip>
       <Tooltip
         placement="bottom-end"
-        content="Bucket in the discontinue status cannot upload files."
-        visibility={discontinue ? 'visible' : 'hidden'}
+        content={
+          discontinue ? 'Bucket in the discontinue status cannot upload files.' : 'Path invalid'
+        }
+        visibility={uploadDisabled ? 'visible' : 'hidden'}
       >
         <GAClick name={gaUploadClickName}>
           <label htmlFor="file-upload" className="custom-file-upload">
             <Flex
-              bgColor={discontinue ? '#AEB4BC' : 'readable.brand6'}
-              _hover={{ bg: discontinue ? '#AEB4BC' : '#2EC659' }}
+              bgColor={uploadDisabled ? '#AEB4BC' : 'readable.brand6'}
+              _hover={{ bg: uploadDisabled ? '#AEB4BC' : '#2EC659' }}
               position="relative"
               paddingX="16px"
               paddingY="8px"
               alignItems="center"
               borderRadius={'8px'}
-              cursor={discontinue ? 'default' : 'pointer'}
+              cursor={uploadDisabled ? 'default' : 'pointer'}
             >
               <UploadIcon color="#fff" w="24px" h="24px" alt="" />
               <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
