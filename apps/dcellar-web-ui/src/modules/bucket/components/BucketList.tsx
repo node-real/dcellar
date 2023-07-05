@@ -20,6 +20,7 @@ import { chunk, reverse, sortBy } from 'lodash-es';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
+import { DeleteBucket } from '@/modules/bucket/components/DeleteBucket';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -110,6 +111,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   return (
     <>
       <DetailDrawer />
+      <DeleteBucket />
       {discontinue && (
         <DiscontinueBanner
           content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
