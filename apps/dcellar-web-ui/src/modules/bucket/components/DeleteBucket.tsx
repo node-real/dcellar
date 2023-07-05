@@ -11,7 +11,7 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
   const isOpen = !!editDelete.bucket_name;
-  const [open, setOpen] = useState(isOpen);
+  const [open, setOpen] = useState(isOpen); // for modal close animation
   const bucket = bucketInfo[editDelete.bucket_name] || {};
   const primarySp = bucket.primary_sp_address;
   const sp = spInfo[primarySp] || {};

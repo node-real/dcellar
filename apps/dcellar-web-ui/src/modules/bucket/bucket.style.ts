@@ -18,7 +18,7 @@ export const PageTitle = styled.h1`
   font-weight: 700;
 `;
 
-export const CreateBucket = styled(DCButton)`
+export const CreateBucketButton = styled(DCButton)`
   width: 161px;
   height: 40px;
   padding: 8px 24px;

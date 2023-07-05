@@ -25,6 +25,7 @@ export interface BucketState {
   owner: boolean;
   editDetail: BucketItem;
   editDelete: BucketItem;
+  editCreate: boolean;
 }
 
 const initialState: BucketState = {
@@ -37,6 +38,7 @@ const initialState: BucketState = {
   owner: true,
   editDetail: {} as BucketItem,
   editDelete: {} as BucketItem,
+  editCreate: false,
 };
 
 export const bucketSlice = createSlice({
@@ -46,6 +48,9 @@ export const bucketSlice = createSlice({
     setReadQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
       const { bucketName, quota } = payload;
       state.quotas[bucketName] = quota;
+    },
+    setEditCreate(state, { payload }: PayloadAction<boolean>) {
+      state.editCreate = payload;
     },
     setEditDetail(state, { payload }: PayloadAction<BucketItem>) {
       state.editDetail = payload;
@@ -164,6 +169,7 @@ export const {
   setEditDetail,
   setEditDelete,
   setReadQuota,
+  setEditCreate,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

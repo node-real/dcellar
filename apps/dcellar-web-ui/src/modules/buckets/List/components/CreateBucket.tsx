@@ -7,12 +7,14 @@ import {
   InputGroup,
   InputRightElement,
   Link,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  ModalHeader,
   Text,
   toast,
+  QDrawer,
+  QDrawerCloseButton,
+  QDrawerHeader,
+  QDrawerBody,
+  QDrawerFooter,
+  Modal,
 } from '@totejs/uikit';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -400,20 +402,19 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const gaOptions = getGAOptions(status);
 
   return (
-    <DCModal
-      isOpen={isOpen}
-      onClose={onClose}
-      gaShowName={gaOptions.showName}
-      gaClickCloseName={gaOptions.closeName}
-    >
-      <ModalCloseButton />
-      <Box>
-        {status === 'pending' && (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <ModalHeader fontFamily="heading">Create a Bucket</ModalHeader>
-            <ModalBody mt={0}>
+    <>
+      {status === 'operating' && <CreatingBucket />}
+      {status === 'failed' && (
+        <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
+      )}
+      <QDrawer w={568} isOpen={isOpen} onClose={onClose}>
+        <QDrawerCloseButton />
+        <QDrawerHeader>Create a Bucket</QDrawerHeader>
+        <QDrawerBody mt={0}>
+          <Box>
+            <form id="create-bucket-drawer" onSubmit={handleSubmit(onSubmit)}>
               <Box
-                textAlign="center"
+                textAlign="left"
                 fontSize={18}
                 fontWeight={400}
                 lineHeight="22px"
@@ -523,25 +524,25 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   </GAClick>
                 </Flex>
               )}
-            </ModalBody>
-            <ModalFooter>
-              <DCButton
-                variant="dcPrimary"
-                disabled={disableCreateButton()}
-                backgroundColor={'readable.brand6'}
-                height={'48px'}
-                width={'100%'}
-                gaClickName="dc.bucket.create_modal.createbtn.click"
-              >
-                Create
-              </DCButton>
-            </ModalFooter>
-          </form>
-        )}
-        {status === 'operating' && <CreatingBucket />}
-        {status === 'failed' && <CreateBucketFailed onClose={onClose} errorMsg={submitErrorMsg} />}
-      </Box>
-    </DCModal>
+            </form>
+          </Box>
+        </QDrawerBody>
+        <QDrawerFooter>
+          <DCButton
+            variant="dcPrimary"
+            disabled={disableCreateButton()}
+            backgroundColor={'readable.brand6'}
+            height={'48px'}
+            width={'100%'}
+            gaClickName="dc.bucket.create_modal.createbtn.click"
+            type="submit"
+            form="create-bucket-drawer"
+          >
+            Create
+          </DCButton>
+        </QDrawerFooter>
+      </QDrawer>
+    </>
   );
 };
 
