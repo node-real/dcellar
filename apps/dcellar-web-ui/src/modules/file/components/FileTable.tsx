@@ -163,12 +163,14 @@ const UploadProgress = (props: { progress: number }) => {
     progress = 0;
   }
   const loading = keyframes`
-  from {
-    transform: translateX(0),;
+  0%,
+  100% {
+    transform: translateX(-10px);
+
   }
 
-  to {
-    transform: translateX(300%);
+  50% {
+    transform: translateX(70px);
   }
 `;
 
@@ -180,7 +182,7 @@ const UploadProgress = (props: { progress: number }) => {
             w={`30%`}
             bg={'#1184EE'}
             borderRadius={'28px'}
-            animation={`${loading} 2s linear infinite`}
+            animation={`${loading} 1.5s linear infinite`}
           />
         ) : (
           <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
