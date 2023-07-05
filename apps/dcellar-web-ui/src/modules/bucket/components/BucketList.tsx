@@ -5,19 +5,26 @@ import {
   selectBucketList,
   selectHasDiscontinue,
   setCurrentBucketPage,
+  setEditDelete,
+  setEditDetail,
 } from '@/store/slices/bucket';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { ColumnProps } from 'antd/es/table';
 import { NameItem } from '@/modules/bucket/components/NameItem';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Text } from '@totejs/uikit';
-import { MoreIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/bucket/components/ListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
+import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
 
+const Actions: ActionMenuItem[] = [
+  { label: 'View Details', value: 'detail' },
+  { label: 'Delete', value: 'delete' },
+];
 interface BucketListProps {}
 
 export const BucketList = memo<BucketListProps>(function BucketList() {
@@ -36,6 +43,15 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
     dispatch(updateBucketSorter([name, newSort] as SorterType));
+  };
+
+  const onMenuClick = (menu: string, record: BucketItem) => {
+    switch (menu) {
+      case 'detail':
+        return dispatch(setEditDetail(record));
+      case 'delete':
+        return dispatch(setEditDelete(record));
+    }
   };
 
   const columns: ColumnProps<BucketItem>[] = [
@@ -68,7 +84,9 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       width: 200,
       align: 'center' as AlignType,
       title: 'Action',
-      render: () => <MoreIcon />,
+      render: (_: string, record: BucketItem) => (
+        <ActionMenu menus={Actions} onChange={(e) => onMenuClick(e, record)} />
+      ),
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
@@ -91,6 +109,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   return (
     <>
+      <DetailDrawer />
       {discontinue && (
         <DiscontinueBanner
           content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
@@ -111,6 +130,9 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
+        onRow={(record) => ({
+          onClick: () => onMenuClick('detail', record),
+        })}
       />
     </>
   );

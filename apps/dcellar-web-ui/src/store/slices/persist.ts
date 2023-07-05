@@ -43,7 +43,7 @@ const initialState: PersistState = {
   faultySps: [],
   bucketSortBy: ['create_at', 'descend'],
   bucketPageSize: 20,
-  objectSortBy: ['create_at', 'descend'],
+  objectSortBy: ['createAt', 'descend'],
   objectPageSize: 20,
 };
 

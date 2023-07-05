@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
@@ -6,6 +6,7 @@ import {
   selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
+  setFolders,
   setRestoreCurrent,
   setupListObjects,
 } from '@/store/slices/object';
@@ -79,6 +80,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     };
     dispatch(setupListObjects(params));
   }, [primarySpAddress, prefix]);
+
+  useEffect(() => {
+    return () => {
+      // ensure current bucketName folder in right state.
+      dispatch(setFolders({ bucketName: '', folders: [] }));
+    };
+  }, [prefix, dispatch]);
 
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;

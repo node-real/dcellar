@@ -34,3 +34,14 @@ export const getUserBuckets = async (
   if (error) return [null, error];
   return [res!, null];
 };
+
+export const getBucketReadQuota = async (
+  bucketName: string,
+  endpoint: string,
+): Promise<IQuotaProps | null> => {
+  const client = await getClient();
+  const { body } = await client.bucket
+    .getBucketReadQuota({ bucketName, endpoint })
+    .catch(() => ({} as IObjectResultType<IQuotaProps>));
+  return body || null;
+};

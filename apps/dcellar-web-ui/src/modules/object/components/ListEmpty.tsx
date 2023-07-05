@@ -12,7 +12,7 @@ interface ListEmptyProps {
 }
 
 export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
-  const { discontinue } = useAppSelector((root) => root.bucket);
+  const { discontinue, owner } = useAppSelector((root) => root.bucket);
   const { bucketName, folders } = useAppSelector((root) => root.object);
   const items = [bucketName, ...folders];
   const lastItem = last(items);
@@ -56,10 +56,12 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
           >
             {subTitle}
           </Text>
-          <NewObject
-            gaFolderClickName="dc.file.empty.create_folder.click"
-            gaUploadClickName="dc.file.empty.upload.click"
-          />
+          {!discontinue && owner && (
+            <NewObject
+              gaFolderClickName="dc.file.empty.create_folder.click"
+              gaUploadClickName="dc.file.empty.upload.click"
+            />
+          )}
         </>
       )}
     </Container>

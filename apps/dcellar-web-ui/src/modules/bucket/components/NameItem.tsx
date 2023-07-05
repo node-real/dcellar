@@ -26,13 +26,14 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
     <Container>
       <Link
         href={`/buckets/${bucket_name}`}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           dispatch(setCurrentObjectPage({ path: bucket_name, current: 0 }));
         }}
       >
         <FileIcon /> <span title={item.bucket_name}>{item.bucket_name}</span>
+        {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
       </Link>
-      {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
     </Container>
   );
 });

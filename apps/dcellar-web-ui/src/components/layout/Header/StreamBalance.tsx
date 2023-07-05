@@ -11,16 +11,19 @@ import { useBalance } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { filterSps } from '@/store/slices/sp';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 
 const MINIMUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
 export function StreamBalance() {
   const dispatch = useAppDispatch();
+  const { asPath } = useRouter();
   const { loginAccount: address, faultySps } = useAppSelector((root) => root.persist);
   const { availableBalance, useMetamaskValue, latestStaticBalance, lockFee, netflowRate } =
     useAppSelector(selectBalance(address));
 
-  const { data: greenfieldBalanceData } = useBalance({
+  const { data: greenfieldBalanceData, refetch } = useBalance({
     address: address as any,
     chainId: GREENFIELD_CHAIN_ID,
     watch: useMetamaskValue,
@@ -33,6 +36,10 @@ export function StreamBalance() {
     dispatch(filterSps(faultySps));
     dispatch(setupBnbPrice());
   });
+
+  useEffect(() => {
+    refetch();
+  }, [asPath, refetch]);
 
   useThrottleEffect(() => {
     if (!address) return;

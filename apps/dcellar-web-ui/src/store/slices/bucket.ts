@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { getUserBuckets, headBucket } from '@/facade/bucket';
+import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
 import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
 import { omit } from 'lodash-es';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 
 export type BucketItem = Omit<BucketProps, 'bucket_info'> & {
   bucket_name: string;
@@ -16,26 +17,42 @@ export type BucketItem = Omit<BucketProps, 'bucket_info'> & {
 export interface BucketState {
   bucketInfo: Record<string, BucketProps['bucket_info']>;
   buckets: Record<string, BucketItem[]>;
+  quotas: Record<string, IQuotaProps>;
   loading: boolean;
   currentPage: number;
   // current visit bucket;
   discontinue: boolean;
   owner: boolean;
+  editDetail: BucketItem;
+  editDelete: BucketItem;
 }
 
 const initialState: BucketState = {
   buckets: {},
   bucketInfo: {},
+  quotas: {},
   loading: true,
   currentPage: 0,
   discontinue: false,
   owner: true,
+  editDetail: {} as BucketItem,
+  editDelete: {} as BucketItem,
 };
 
 export const bucketSlice = createSlice({
   name: 'bucket',
   initialState,
   reducers: {
+    setReadQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
+      const { bucketName, quota } = payload;
+      state.quotas[bucketName] = quota;
+    },
+    setEditDetail(state, { payload }: PayloadAction<BucketItem>) {
+      state.editDetail = payload;
+    },
+    setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
+      state.editDelete = payload;
+    },
     setBucketStatus(state, { payload }: PayloadAction<{ discontinue: boolean; owner: boolean }>) {
       const { discontinue, owner } = payload;
       state.discontinue = discontinue;
@@ -124,7 +141,29 @@ export const setupBuckets =
     dispatch(setBucketList({ address, buckets: res.body || [] }));
   };
 
-export const { setBucketList, setLoading, setCurrentBucketPage, setBucketInfo, setBucketStatus } =
-  bucketSlice.actions;
+export const setupBucketQuota =
+  (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { spInfo } = getState().sp;
+    const { bucketInfo } = getState().bucket;
+    const spAddress = bucketInfo[bucketName].primary_sp_address;
+    const sp = spInfo[spAddress];
+    const quota = await getBucketReadQuota(bucketName, sp.endpoint);
+    if (!quota) {
+      toast.error({ description: 'Get bucket read quota error' });
+      return;
+    }
+    dispatch(setReadQuota({ bucketName, quota }));
+  };
+
+export const {
+  setBucketList,
+  setLoading,
+  setCurrentBucketPage,
+  setBucketInfo,
+  setBucketStatus,
+  setEditDetail,
+  setEditDelete,
+  setReadQuota,
+} = bucketSlice.actions;
 
 export default bucketSlice.reducer;

@@ -60,7 +60,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           <label htmlFor="file-upload" className="custom-file-upload">
             <Flex
               bgColor={discontinue ? '#AEB4BC' : 'readable.brand6'}
-              _hover={{ bg: '#2EC659' }}
+              _hover={{ bg: discontinue ? '#AEB4BC' : '#2EC659' }}
               position="relative"
               paddingX="16px"
               paddingY="8px"
