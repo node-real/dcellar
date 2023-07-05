@@ -32,8 +32,8 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
         }}
       >
         <FileIcon /> <span title={item.bucket_name}>{item.bucket_name}</span>
-        {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
       </Link>
+      {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
     </Container>
   );
 });

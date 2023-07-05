@@ -12,11 +12,11 @@ export const DiscontinueNotice = ({
   return (
     <Menu strategy="fixed" trigger="hover" placement="right-start">
       <>
-        <MenuButton>
+        <MenuButton onClick={(e) => e.stopPropagation()}>
           <WaringTriangleIcon />
         </MenuButton>
         <MenuList>
-          <Box width={'280px'} padding="8px 12px">
+          <Box width={'280px'} padding="8px 12px" onClick={(e) => e.stopPropagation()}>
             <Text fontSize={'14px'} fontWeight={'600'} marginBottom={'4px'}>
               Discontinue Notice
             </Text>
