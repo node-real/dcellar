@@ -31,6 +31,10 @@ import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 
 export const TransferIn = () => {
+  const {
+    TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+    CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+  } = useAppSelector((root) => root.apollo);
   const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
@@ -65,7 +69,7 @@ export const TransferIn = () => {
         try {
           setIsGasLoading(true);
           const crossChainContract = new ethers.Contract(
-            CROSS_CHAIN_CONTRACT_ADDRESS,
+            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
             CROSS_CHAIN_ABI,
             signer!,
           );
@@ -84,7 +88,7 @@ export const TransferIn = () => {
               ? amountInFormat.add(ackRelayFee).add(relayFee)
               : amountInFormat;
           const tokenHubContract = new ethers.Contract(
-            TOKEN_HUB_CONTRACT_ADDRESS,
+            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
             TOKENHUB_ABI,
             signer!,
           );
@@ -123,12 +127,12 @@ export const TransferIn = () => {
 
     try {
       const crossChainContract = new ethers.Contract(
-        CROSS_CHAIN_CONTRACT_ADDRESS,
+        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
         CROSS_CHAIN_ABI,
         signer!,
       );
       const tokenHubContract = new ethers.Contract(
-        TOKEN_HUB_CONTRACT_ADDRESS,
+        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
         TOKENHUB_ABI,
         signer!,
       );
