@@ -45,7 +45,7 @@ export const ObjectsPage = () => {
       dispatch(setBucketStatus(payload));
       return;
     }
-    const error = dispatch(setupBucket(bucketName, loginAccount));
+    const error = await dispatch(setupBucket(bucketName, loginAccount));
     if (!error) return;
     await router.replace('/no-bucket?err=noBucket');
   }, [bucketName, dispatch]);
