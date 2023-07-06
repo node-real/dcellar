@@ -1,7 +1,7 @@
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
-import { IgnoreFooterPaths, INLINE_LOGIN_PAGES } from '@/constants/paths';
+import { IgnoreFooterPaths } from '@/constants/paths';
 import { Flex } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
@@ -25,9 +25,6 @@ export function Page(props: React.PropsWithChildren) {
       </>
     );
   }
-
-  // todo refactor, custom layout
-  if (INLINE_LOGIN_PAGES.includes(pathname)) return <>{children}</>;
 
   return (
     <Flex minH={'100vh'} minW={'1000px'} bg="bg.bottom" position={'relative'}>

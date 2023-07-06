@@ -1,7 +1,7 @@
 import { InferGetServerSidePropsType, NextPage, NextPageContext } from 'next';
 import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 import { useAsyncEffect } from 'ahooks';
@@ -117,6 +117,10 @@ export const getServerSideProps = async (context: NextPageContext) => {
   if (!fileName) return redirect();
 
   return { props: { bucketName, fileName, objectName } };
+};
+
+(SharePage as any).getLayout = function getLayout(page: ReactNode) {
+  return <>{page}</>;
 };
 
 export default SharePage;

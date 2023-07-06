@@ -6,5 +6,3 @@ export const InternalRoutePaths = {
   send: '/wallet?type=send',
   buckets: '/buckets',
 };
-
-export const INLINE_LOGIN_PAGES = ['/share'];

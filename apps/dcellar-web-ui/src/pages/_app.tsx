@@ -1,7 +1,6 @@
 import { ThemeProvider } from '@totejs/uikit';
 import type { AppProps } from 'next/app';
 import App from 'next/app';
-import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -15,15 +14,17 @@ import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthConte
 import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
 import { Page } from '@/components/layout/Page';
-import { INLINE_LOGIN_PAGES } from '@/constants/paths';
 import { setupBnbPrice } from '@/store/slices/global';
+import { ReactNode } from 'react';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
-  const { pathname } = useRouter();
   const persistor = persistStore(store, {}, function () {
     persistor.persist();
   });
+
+  const customLayout = (Component as any).getLayout;
+  const getLayout = customLayout || ((page: ReactNode) => <Page>{page}</Page>);
 
   return (
     <>
@@ -32,16 +33,15 @@ function DcellarApp({ Component, ...rest }: AppProps) {
         <PersistGate persistor={persistor}>
           <ThemeProvider theme={theme}>
             <WalletConnectProvider>
-              <LoginContextProvider inline={INLINE_LOGIN_PAGES.includes(pathname)}>
-                <Page>
-                  {/* TODO provider should locate up layout */}
+              <LoginContextProvider inline={!!customLayout}>
+                {getLayout(
                   <OffChainAuthProvider>
                     <PageProtect>
                       <Component {...props.pageProps} />
                       <GAPageView />
                     </PageProtect>
-                  </OffChainAuthProvider>
-                </Page>
+                  </OffChainAuthProvider>,
+                )}
               </LoginContextProvider>
             </WalletConnectProvider>
           </ThemeProvider>

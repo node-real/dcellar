@@ -47,8 +47,7 @@ export const ObjectsPage = () => {
     }
     const error = dispatch(setupBucket(bucketName, loginAccount));
     if (!error) return;
-    // todo refactor
-    // await router.replace('/no-bucket?err=noBucket');
+    await router.replace('/no-bucket?err=noBucket');
   }, [bucketName, dispatch]);
 
   return (
