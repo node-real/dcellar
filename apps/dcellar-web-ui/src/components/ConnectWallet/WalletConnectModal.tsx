@@ -29,6 +29,10 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
   }, []);
 
   const onConnectError = useCallback((err: Error, args: any) => {
+    console.log('wallet:', window.ethereum)
+    console.log('err:', err)
+    console.log('args:', args)
+
     if (err instanceof ConnectorNotFoundError) {
       const { connector } = args;
 
