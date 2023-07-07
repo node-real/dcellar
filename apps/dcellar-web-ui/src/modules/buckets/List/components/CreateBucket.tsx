@@ -184,7 +184,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
       });
-      console.log(simulateInfo, 'simulateInfo');
 
       const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {

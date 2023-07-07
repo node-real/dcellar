@@ -14,7 +14,6 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 // import { AccessItem } from '@/modules/file/components/AccessItem';
-import { encodeObjectName } from '@/utils/string';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, setEditShare } from '@/store/slices/object';
 
@@ -23,15 +22,13 @@ interface modalProps { }
 export const ShareObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
   const { hasCopied, onCopy, setValue } = useClipboard('');
-  const { editShare, objectsInfo, path } = useAppSelector((root) => root.object);
-  const objectPath = `${path}/${editShare?.objectName}`;
-  const shareObject = objectsInfo[objectPath]?.object_info;
-  console.log('shareObject', shareObject);
-  const params = [shareObject?.bucket_name, encodeObjectName(shareObject?.object_name || '')].join('/');
+  const { editShare, path } = useAppSelector((root) => root.object);
+  const params = [path, editShare.name].join('/');
   const isOpen = !!editShare.objectName;
   const onClose = () => {
     dispatch(setEditShare({} as ObjectItem));
   };
+
   useEffect(() => {
     setValue(`${location.origin}/share?file=${encodeURIComponent(params)}`);
   }, [setValue, params]);
@@ -71,7 +68,7 @@ export const ShareObject = (props: modalProps) => {
                 overflow="hidden"
                 textOverflow="ellipsis"
               >
-                {editShare.objectName}
+                {editShare.name}
               </Text>
             }
             ”

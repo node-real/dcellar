@@ -49,30 +49,31 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
+import { duplicateName } from '@/utils/object';
 
-interface modalProps {}
+interface modalProps {
+  refetch: () => void;
+}
 
-export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
+export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetch}) {
   const dispatch = useDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders } = useAppSelector((root) => root.object);
+  const { bucketName, folders, objects, path} = useAppSelector((root) => root.object);
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { spInfo, sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { availableBalance } = useAppSelector((root) => root.global.balances?.[address] || {});
+  const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
   const isOpen = useAppSelector((root) => root.object.editCreate);
-  console.log('isOpen---22', isOpen);
   const onClose = () => {
     dispatch(setEditCreate(false));
   }
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
   }
-
-
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
@@ -148,10 +149,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
       } else {
         setFormErrors([UNKNOWN_ERROR]);
       }
-
       return;
     }
-
     dispatch(
       setStatusDetail({
         icon: PENDING_ICON_URL,
@@ -164,7 +163,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
 
     // 2. broadcast tx
     const [txRes, bcError] = await broadcastCreateTx(CreateObjectTx);
-
     if (bcError) {
       setLoading(false);
       if (bcError === E_USER_REJECT_STATUS_NUM) {
@@ -184,18 +182,24 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
       return;
     }
     if (txRes?.code !== 0) {
-      // updateFileListStatus(objectName, OBJECT_STATUS_FAILED);
+      dispatch(setStatusDetail({
+        icon: FILE_FAILED_URL,
+        title: FOLDER_CREATE_FAILED,
+        description: FOLDER_DESCRIPTION_CREATE_ERROR,
+        buttonText: BUTTON_GOT_IT,
+        errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
+        buttonOnClick: onCloseStatusModal,
+      }))
       return;
     }
     const { transactionHash } = txRes;
     setLoading(false);
     showSuccessToast(transactionHash);
+    dispatch(setStatusDetail({} as TStatusDetail));
     onClose();
-    // TODO trigger refresh list action
+    refetch();
   };
-
   const validateFolderName = (value: string) => {
-    // TODO add name verify by headObject
     const errors = Array<string>();
     if (value === '') {
       errors.push('Please enter the folder name.');
@@ -207,6 +211,9 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
     }
     if (value.includes('/')) {
       errors.push('Cannot consist of slash(/).');
+    }
+    if (duplicateName(value, folderList)) {
+      errors.push('Folder name already exists.')
     }
     setFormErrors(errors);
 

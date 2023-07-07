@@ -50,13 +50,13 @@ export type TEditUpload = {
   isOpen: boolean;
   fileInfos: TFileItem[];
   maxSize: number;
-  visibility: keyof typeof VisibilityType;
+  visibility: VisibilityType;
 }
 export type TUploading =  {
   isOpen: boolean;
   isLoading: boolean;
   fileInfos: TFileItem[];
-  visibility: keyof typeof VisibilityType;
+  visibility: VisibilityType;
 }
 export interface ObjectState {
   bucketName: string;
@@ -73,6 +73,7 @@ export interface ObjectState {
   editCreate: boolean;
   editDownload: ObjectItem;
   editShare: ObjectItem;
+  editCancel: ObjectItem;
   primarySp: SpItem;
   statusDetail: TStatusDetail;
   files: File[];
@@ -96,6 +97,7 @@ const initialState: ObjectState = {
   editCreate: false,
   editDownload: {} as ObjectItem,
   editShare: {} as ObjectItem,
+  editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   primarySp: {} as SpItem,
   files: [],
@@ -151,6 +153,9 @@ export const objectSlice = createSlice({
     },
     setEditUpload(state, { payload }: PayloadAction<Partial<TEditUpload>>) {
       state.editUpload = {...state.editUpload, ...payload};
+    },
+    setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
+      state.editCancel = payload;
     },
     setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
       state.uploading = {
@@ -259,7 +264,9 @@ export const setupListObjects =
     }
     dispatch(setObjectList({ path: _path || path, list: res! }));
   };
-
+export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
+  dispatch(setStatusDetail({} as TStatusDetail));
+}
 export const selectPathLoading = (root: AppState) => {
   const { objects, path } = root.object;
   return !(path in objects);
@@ -269,6 +276,7 @@ export const selectPathCurrent = (root: AppState) => {
   const { currentPage, path } = root.object;
   return currentPage[path] || 0;
 };
+
 
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
@@ -290,6 +298,7 @@ export const {
   setFiles,
   setEditShare,
   setEditUpload,
+  setEditCancel,
   setUploading,
 } = objectSlice.actions;
 

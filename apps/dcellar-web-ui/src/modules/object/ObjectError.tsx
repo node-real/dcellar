@@ -30,6 +30,20 @@ export const OBJECT_ERROR_TYPES = {
     title: 'File is empty',
     icon: FILE_EMPTY_URL,
     desc: 'File size is zero, please check.',
+  },
+  OBJECT_TOO_LARGE: {
+    title: 'Object is too large',
+    icon: FILE_TOO_LARGE_URL,
+    desc: 'Object size exceeded the maximum allowed size (256MB).',
+  },
+  OBJECT_NAME_EXISTS: {
+    title: 'Object Name is exists',
+    icon: FILE_FAILED_URL
+  },
+  ACCOUNT_BALANCE_NOT_ENOUGH: {
+    title: 'Account balance is not enough',
+    icon: FILE_FAILED_URL,
+    desc: 'Account balance is not enough, please recharge.',
   }
 }
 

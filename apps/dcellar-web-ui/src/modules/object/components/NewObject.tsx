@@ -32,9 +32,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           isOpen: true,
           fileInfos: [
             {
-              name: file.name,
-              size: file.size+'',
-              type: file.type,
+              name: file?.name,
+              size: file?.size+'',
+              type: file?.type,
               status: 'WAIT_CHECKING',
             },
           ],

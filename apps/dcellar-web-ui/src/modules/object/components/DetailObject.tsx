@@ -220,29 +220,24 @@ const renderVisibilityTag = (visibility: any) => {
   return <></>;
 };
 
-export const DetailDrawer = (props: modalProps) => {
+export const DetailObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
 
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
-  const { directDownload: allowDirectDownload } = accounts[loginAccount];
+  const { directDownload: allowDirectDownload } = accounts?.[loginAccount];
   const { setOpenAuthModal } = useOffChainAuth();
   const { editDetail, bucketName, primarySp, objectsInfo, path } = useAppSelector((root) => root.object);
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
-  console.log('objectInfo', objectInfo);
   const { spInfo } = useAppSelector((root) => root.sp);
 
   const {
     quotas: { consumedQuota, freeQuota, readQuota },
   } = useAppSelector((root) => root.bucket);
-  console.log('consumedQuota', consumedQuota, freeQuota, readQuota);
   const remainingQuota = Number(readQuota) - Number(freeQuota) - Number(consumedQuota);
   const isOpen = !!editDetail.name;
   const onClose = () => {
     dispatch(setEditDetail({} as ObjectItem));
-  };
-  const onCloseStatusDetail = () => {
-    dispatch(setStatusDetail({} as TStatusDetail));
   };
 
   const shareLink = getShareLink(bucketName, editDetail?.objectName);

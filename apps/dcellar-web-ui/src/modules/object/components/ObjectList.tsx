@@ -6,6 +6,7 @@ import {
   selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
+  setEditCancel,
   setEditDelete,
   setEditDetail,
   setEditDownload,
@@ -35,10 +36,10 @@ import { NameItem } from '@/modules/object/components/NameItem';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { DeleteObject } from './DeleteObject';
 import { StatusDetail } from './StatusDetail';
-import { DetailDrawer } from './DetailDrawer';
+import { DetailObject } from './DetailObject';
 import { VisibilityType } from '@/modules/file/type';
 import { ShareObject } from './ShareObject';
-import { ConfirmDownload } from './ConfirmDownload';
+import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
@@ -46,12 +47,16 @@ import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_UNKNOWN } from '@/facade/error';
 import { downloadObject } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { UploadObjects } from '@/modules/upload/UploadObjects';
+import { OBJECT_SEALED_STATUS } from '@/modules/file/constant';
+import { CancelObject } from './CancelObject';
+import { CreateFolder } from './CreateFolder';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Delete', value: 'delete' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
+  { label: 'Cancel', value: 'cancel' },
 ];
 
 interface ObjectListProps {}
@@ -71,8 +76,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { spInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { editDelete, statusDetail, editDetail, editShare, editDownload, editUpload } = useAppSelector((root) => root.object);
-  const { directDownload } = accounts[loginAccount];
+  const { editDelete, statusDetail, editDetail, editShare, editDownload, editUpload, editCancel, editCreate } = useAppSelector((root) => root.object);
+  const directDownload = useMemo(() => {
+    if (accounts && loginAccount && accounts[loginAccount]) {
+      return accounts[loginAccount].directDownload;
+    }
+  }, [accounts, loginAccount]);
+
   const ascend = (() => {
     const _name = sortName as keyof ObjectItem;
     const sorted = sortBy(objectList, _name);
@@ -127,13 +137,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const download = async (object: ObjectItem) => {
     // TODO remove it
-    dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: false } }));
+    // dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: false } }));
     if (directDownload) {
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
         bucketName,
         object.objectName,
         spInfo[primarySpAddress].endpoint,
       );
+      if (objectInfo === null) {
+        return onError(E_UNKNOWN);
+      }
       if (quotaData === null) {
         return onError(E_GET_QUOTA_FAILED);
       }
@@ -165,6 +178,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return dispatch(setEditShare(record));
       case 'download':
         return download(record);
+      case 'cancel':
+        return dispatch(setEditCancel(record));
     }
   };
 
@@ -227,8 +242,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const isFolder = record.objectName.endsWith('/');
         if (isFolder) return null;
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
+        const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
         if (!isPublic) {
           fitActions = Actions.filter((a) => a.value !== 'share');
+        }
+        if (isSealed) {
+          fitActions = fitActions.filter((a) => a.value !== 'cancel');
+        } else {
+          fitActions = fitActions.filter((a) => a.value === 'cancel');
         }
 
         return <ActionMenu menus={fitActions} onChange={(e) => onMenuClick(e, record)} />;
@@ -250,16 +271,30 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     dispatch(updateObjectPageSize(pageSize));
   };
 
+  const refetch = async () => {
+    if (!primarySpAddress) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
+    const query = new URLSearchParams();
+    const params = {
+      seedString,
+      query,
+      endpoint: spInfo[primarySpAddress].endpoint,
+    };
+    dispatch(setupListObjects(params));
+  };
+
   const empty = !loading && !sortedList.length;
 
   return (
     <>
-      {!!editDelete?.objectName && <DeleteObject />}
-      {!!statusDetail.title && <StatusDetail />}
-      {!!editDetail?.objectName && <DetailDrawer />}
-      {!!editShare?.objectName && <ShareObject />}
-      {!!editDownload?.objectName && <ConfirmDownload />}
+      {editCreate && <CreateFolder refetch={refetch} />}
+      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {statusDetail.title && <StatusDetail />}
+      {editDetail?.objectName && <DetailObject />}
+      {editShare?.objectName && <ShareObject />}
+      {editDownload?.objectName && <DownloadObject />}
       {editUpload?.isOpen && <UploadObjects />}
+      {editCancel.objectName && <CancelObject refetch={refetch} />}
       {discontinue && (
         <DiscontinueBanner
           content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "

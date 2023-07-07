@@ -45,7 +45,7 @@ export const Fee = () => {
           )}
         </Flex>
         <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key === 'Prelocked storage fee'
+          {key === 'Pre-locked storage fee(6months)'
             ? renderPrelockedFeeValue(bnbValue, exchangeRate)
             : renderFeeValue(bnbValue, exchangeRate)}
         </Text>
@@ -64,7 +64,7 @@ export const Fee = () => {
         gap={'4px'}
       >
         {renderFee(
-          'Prelocked storage fee',
+          'Pre-locked storage fee(6months)',
           lockFee,
           +exchangeRate,
           <Tips

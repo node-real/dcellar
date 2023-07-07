@@ -20,6 +20,7 @@ export const E_OBJECT_NAME_NOT_UTF8 = 'OBJECT_NAME_NOT_UTF8';
 export const E_OBJECT_NAME_CONTAINS_SLASH = 'OBJECT_NAME_CONTAINS_SLASH';
 export const E_CAL_OBJECT_HASH = 'CAL_OBJECT_HASH';
 export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
+export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export declare class BroadcastTxError extends Error {
   readonly code: number;
   readonly codespace: string;

@@ -38,7 +38,7 @@ const renderProp = (key: string, value: string) => {
   );
 };
 
-export const ConfirmDownload = (props: modalProps) => {
+export const DownloadObject = (props: modalProps) => {
   const dispatch = useDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
@@ -56,7 +56,6 @@ export const ConfirmDownload = (props: modalProps) => {
   useEffect(() => {
     const objectPath = `${path}/${editDownload?.objectName}`;
     const shareObject = objectsInfo[objectPath]?.object_info;
-    console.log('shareObject', shareObject);
     const params = [
       shareObject?.bucket_name,
       encodeObjectName(shareObject?.object_name || ''),

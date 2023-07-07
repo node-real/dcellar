@@ -1,37 +1,38 @@
 import { MenuCloseIcon } from '@totejs/icons';
-import { Button, Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import React, { forwardRef, use, useEffect, useState } from 'react';
+import { Box, Button, Center, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
+import React, { forwardRef, useState } from 'react';
 import PrivateFileIcon from '../file/components/PrivateFileIcon';
-import { ChainVisibilityEnum } from '../file/type';
+import { VisibilityType } from '../file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppDispatch } from '@/store';
 import { setEditUpload } from '@/store/slices/object';
+import SelectedIcon from '@/public/images/files/icons/selected.svg';
 const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" />,
+    bgColor: '#E6E8EA',
     label: 'Private',
     desc: 'Only me can open with the link.',
-    value: ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE,
+    value: VisibilityType.VISIBILITY_TYPE_PRIVATE,
   },
   {
     icon: <PublicFileIcon fillColor="#1E2026" />,
-    label: 'Everyone can access',
+    bgColor: '#E7F3FD',
+    label: 'Public',
     desc: 'Anyone with the link can open at anytime and can find in explorer.',
-    value: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+    value: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
   },
 ];
 
-export const AccessItem = () => {
+export const AccessItem = ({freeze}: {freeze: boolean}) => {
   const [value, setValue] = useState(options[0]);
-  const freeze = false;
   const dispatch = useAppDispatch();
-  const { isOpen } = useAppSelector((state) => state.object.editUpload);
   const CustomMenuButton = forwardRef((props: any, ref: any) => {
     const { children, ...restProps } = props;
     return (
       <Button
         ref={ref}
-        // w="100%"
+        _hover={{}}
         variant="ghost"
         border={'none'}
         justifyContent="space-between"
@@ -47,9 +48,9 @@ export const AccessItem = () => {
         {...restProps}
       >
         <Flex align={'center'}>
-          {/* <Center boxSize={24} mr={6}>
-            <Circle size={10} bg="scene.primary.normal" />
-          </Center> */}
+          <Center borderRadius={'50%'} boxSize={24} mr={6} backgroundColor={value.bgColor}>
+            {value.icon}
+          </Center>
           {children}
         </Flex>
         <MenuCloseIcon transitionDuration="normal" />
@@ -61,18 +62,25 @@ export const AccessItem = () => {
     dispatch(setEditUpload({ visibility: value.value }));
   };
   return (
-    <Menu matchWidth={false} placement="bottom-start" size={'sm'}>
+    <Menu matchWidth={false} placement="bottom-start" size={'sm'} offset={[20, 0]} >
       <MenuButton as={CustomMenuButton} disabled={freeze} width={'fit-content'}>
         {value.label}
       </MenuButton>
       <MenuList borderRadius={8}>
         {options.map((item) => (
           <MenuItem
+            fontSize={'14px'}
+            padding={'12px 16px 12px 8px'}
             key={item.value}
+            _selected={{ bg: 'primary.normal', color: 'white' }}
             isDisabled={value.value === item.value}
+            _disabled={{backgroundColor: 'rgba(0, 186, 52, 0.10)'}}
             onClick={() => onChangeValue(item)}
           >
+            {value.value === item.value ? <SelectedIcon /> : <Box w={16} h={16} />}
+            <Text ml='8px'>
             {item.label}
+            </Text>
           </MenuItem>
         ))}
       </MenuList>
@@ -81,9 +89,3 @@ export const AccessItem = () => {
 };
 
 export default AccessItem;
-function dispatch(arg0: {
-  payload: Partial<import('@/store/slices/object').TUpload>;
-  type: 'object/setEditUpload';
-}) {
-  throw new Error('Function not implemented.');
-}
