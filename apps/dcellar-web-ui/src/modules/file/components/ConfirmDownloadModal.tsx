@@ -46,6 +46,7 @@ interface modalProps {
   shareLink?: string;
   remainingQuota: number | null;
   visibility?: ChainVisibilityEnum;
+  isCurrentUser: boolean;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -68,6 +69,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
   const [hasChangedDownload, setHasChangedDownload] = useState(false);
   const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
+
   const {
     title = 'Confirm Download',
     onClose,
@@ -86,6 +88,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     shareLink,
     remainingQuota,
     visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
+    isCurrentUser,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -174,6 +177,19 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               }
               setLoading(false);
               // only public file can be direct download
+              if (
+                visibility !== ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ &&
+                !isCurrentUser
+              ) {
+                const link = getBuiltInLink(
+                  primarySp.endpoint,
+                  bucketName,
+                  fileInfo.name,
+                  'download',
+                );
+                window.open(link, '_blank');
+                return;
+              }
               if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(shareLink);
               } else {
@@ -187,21 +203,15 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                   setOpenAuthModal();
                   return;
                 }
-                const link = getBuiltInLink(
-                  primarySp.endpoint,
+
+                const result = await downloadWithProgress({
                   bucketName,
-                  fileInfo.name,
-                  'download',
-                );
-                window.open(link, '_blank');
-                // const result = await downloadWithProgress({
-                //   bucketName,
-                //   objectName: name,
-                //   primarySp,
-                //   payloadSize: Number(size),
-                //   address: loginState.address,
-                // });
-                // saveFileByAxiosResponse(result, name);
+                  objectName: name,
+                  primarySp,
+                  payloadSize: Number(size),
+                  address: loginState.address,
+                });
+                saveFileByAxiosResponse(result, name);
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {

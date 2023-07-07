@@ -297,6 +297,7 @@ export const FileTable = (props: fileListProps) => {
   const [currentVisibility, setCurrentVisibility] = useState(
     ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
   );
+  const [currentUser, setIsCurrentUser] = useState(true);
   const { width, height } = useWindowSize();
   const router = useRouter();
   const containerWidth = useMemo(() => {
@@ -716,6 +717,15 @@ export const FileTable = (props: fileListProps) => {
 
           const onDownload = async (url?: string) => {
             try {
+              console.log(visibility);
+              if (
+                !isCurrentUser &&
+                visibility !== ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
+              ) {
+                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
+                window.open(link, '_blank');
+                return;
+              }
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
               if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(url);
@@ -737,18 +747,15 @@ export const FileTable = (props: fileListProps) => {
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
 
-                // const result = await downloadWithProgress({
-                //   bucketName,
-                //   objectName,
-                //   primarySp,
-                //   payloadSize: Number(payloadSize),
-                //   address: loginState.address,
-                // });
-                // saveFileByAxiosResponse(result, objectName);
-
-                // onStatusModalClose();
-                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
-                window.open(link, '_blank');
+                const result = await downloadWithProgress({
+                  bucketName,
+                  objectName,
+                  primarySp,
+                  payloadSize: Number(payloadSize),
+                  address: loginState.address,
+                });
+                saveFileByAxiosResponse(result, objectName);
+                onStatusModalClose();
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
@@ -795,6 +802,7 @@ export const FileTable = (props: fileListProps) => {
               setFileInfo({ name: objectName, size: payloadSize, id: objectId });
               setShareLink(url);
               setCurrentVisibility(visibility);
+              setIsCurrentUser(isCurrentUser);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
               const quotaData = await getQuota(bucketName, primarySp.endpoint);
@@ -1140,15 +1148,12 @@ export const FileTable = (props: fileListProps) => {
                         const previewLink = encodeURI(
                           `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
-                        if (!isPublic) {
-                          window.open(previewLink, '_blank');
-                          return;
-                        }
 
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size, id: object_id });
                           setViewLink(previewLink);
                           setCurrentVisibility(visibility);
+                          setIsCurrentUser(owner === address);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
                           const quotaData = await getQuota(bucketName, primarySp.endpoint);
@@ -1156,6 +1161,10 @@ export const FileTable = (props: fileListProps) => {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
                           }
+                          return;
+                        }
+                        if (!isPublic) {
+                          window.open(previewLink, '_blank');
                           return;
                         }
                         if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
@@ -1266,6 +1275,7 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalButtonText={setStatusModalButtonText}
         shareLink={shareLink}
         remainingQuota={remainingQuota}
+        isCurrentUser={currentUser}
       />
       <ConfirmViewModal
         onClose={onConfirmViewModalClose}
@@ -1285,6 +1295,7 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
         remainingQuota={remainingQuota}
+        isCurrentUser={currentUser}
       />
       <ConfirmDeleteModal
         onClose={onConfirmDeleteModalClose}
