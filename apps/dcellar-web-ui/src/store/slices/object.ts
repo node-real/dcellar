@@ -5,6 +5,9 @@ import { toast } from '@totejs/uikit';
 import { last, omit, trimEnd } from 'lodash-es';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
+import { SpItem } from './sp';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { THashResult } from '@/modules/checksum/checksumWorkerV2';
 
 export type ObjectItem = {
   objectName: string;
@@ -17,7 +20,44 @@ export type ObjectItem = {
   objectStatus: number;
   removed: boolean;
 };
+export type TLayerAction = {
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onOpen: () => void;
+}
 
+export type TStatusDetail = {
+  icon: string;
+  title: string;
+  description?: string;
+  buttonText?: string;
+  errorText?: string;
+  buttonOnClick?: () => void;
+}
+
+export type TFileItem = {
+  name: string;
+  size: string;
+  type: string;
+  calHash?: THashResult;
+  status: 'WAIT_CHECKING' | 'WAIT_UPLOAD' | 'UPLOADING' | 'UPLOAD_SUCCESS' | 'UPLOAD_FAIL';
+  errorMsg?: string;
+  txnHash?: string;
+};
+
+export type TEditUpload = {
+  isOpen: boolean;
+  fileInfos: TFileItem[];
+  maxSize: number;
+  visibility: keyof typeof VisibilityType;
+}
+export type TUploading =  {
+  isOpen: boolean;
+  isLoading: boolean;
+  fileInfos: TFileItem[];
+  visibility: keyof typeof VisibilityType;
+}
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -28,6 +68,16 @@ export interface ObjectState {
   objectsInfo: Record<string, IObjectProps>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
+  editDetail: ObjectItem;
+  editDelete: ObjectItem;
+  editCreate: boolean;
+  editDownload: ObjectItem;
+  editShare: ObjectItem;
+  primarySp: SpItem;
+  statusDetail: TStatusDetail;
+  files: File[];
+  editUpload: TEditUpload;
+  uploading: TUploading;
 }
 
 const initialState: ObjectState = {
@@ -41,6 +91,26 @@ const initialState: ObjectState = {
   objectsInfo: {},
   currentPage: {},
   restoreCurrent: true,
+  editDetail: {} as ObjectItem,
+  editDelete: {} as ObjectItem,
+  editCreate: false,
+  editDownload: {} as ObjectItem,
+  editShare: {} as ObjectItem,
+  statusDetail: {} as TStatusDetail,
+  primarySp: {} as SpItem,
+  files: [],
+  editUpload: {
+    isOpen: false,
+    maxSize: 5 * 1024 * 1024,
+    visibility: 'VISIBILITY_TYPE_PRIVATE',
+    fileInfos: [],
+  },
+  uploading: {
+    visibility: 'VISIBILITY_TYPE_PRIVATE',
+    isOpen: false,
+    fileInfos: [],
+    isLoading: false,
+  }
 };
 
 export const objectSlice = createSlice({
@@ -60,6 +130,39 @@ export const objectSlice = createSlice({
       state.folders = folders;
       state.prefix = !folders.length ? '' : folders.join('/') + '/';
       state.path = [bucketName, ...folders].join('/');
+    },
+    setPrimarySp(state, { payload }: PayloadAction<SpItem>) {
+      state.primarySp = payload;
+    },
+    setEditCreate(state, { payload }: PayloadAction<boolean>) {
+      state.editCreate = payload;
+    },
+    setEditDetail(state, { payload }: PayloadAction<ObjectItem>) {
+      state.editDetail = payload;
+    },
+    setEditDelete(state, { payload }: PayloadAction<ObjectItem>) {
+      state.editDelete = payload;
+    },
+    setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
+      state.statusDetail = payload;
+    },
+    setFiles(state, { payload }: PayloadAction<File[]>) {
+      state.files = payload;
+    },
+    setEditUpload(state, { payload }: PayloadAction<Partial<TEditUpload>>) {
+      state.editUpload = {...state.editUpload, ...payload};
+    },
+    setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
+      state.uploading = {
+        ...state.uploading,
+        ...payload
+      };
+    },
+    setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
+      state.editShare = payload;
+    },
+    setEditDownload(state, { payload }: PayloadAction<ObjectItem>) {
+      state.editDownload = payload;
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
       const { path, list } = payload;
@@ -173,7 +276,21 @@ export const selectObjectList = (root: AppState) => {
   return objects[path] || defaultObjectList;
 };
 
-export const { setFolders, setCurrentObjectPage, setObjectList, setRestoreCurrent } =
-  objectSlice.actions;
+export const {
+  setFolders,
+  setCurrentObjectPage,
+  setObjectList,
+  setRestoreCurrent,
+  setEditDetail,
+  setEditDelete,
+  setEditCreate,
+  setEditDownload,
+  setPrimarySp,
+  setStatusDetail,
+  setFiles,
+  setEditShare,
+  setEditUpload,
+  setUploading,
+} = objectSlice.actions;
 
 export default objectSlice.reducer;

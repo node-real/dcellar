@@ -1,8 +1,9 @@
-import React, { memo } from 'react';
-import { useAppSelector } from '@/store';
+import React, { ChangeEvent, memo } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import { Flex, Text, Tooltip } from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
+import { setEditCreate, setEditUpload, setFiles } from '@/store/slices/object';
 
 interface NewObjectProps {
   gaFolderClickName?: string;
@@ -16,9 +17,31 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   gaFolderClickName = '',
   gaUploadClickName = '',
 }) {
+  const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
   const { folders } = useAppSelector((root) => root.object);
-
+  const onOpenCreateFolder = () => {
+    dispatch(setEditCreate(true));
+  };
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const file = e.target.files[0];
+      dispatch(setFiles([file]));
+      dispatch(
+        setEditUpload({
+          isOpen: true,
+          fileInfos: [
+            {
+              name: file.name,
+              size: file.size+'',
+              type: file.type,
+              status: 'WAIT_CHECKING',
+            },
+          ],
+        }),
+      );
+    }
+  };
   if (!owner) return <></>;
 
   const invalidPath = folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN);
@@ -44,6 +67,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             alignItems="center"
             borderRadius={'8px'}
             cursor={disabled ? 'default' : 'pointer'}
+            onClick={onOpenCreateFolder}
           >
             <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
               Create Folder
@@ -75,6 +99,19 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 Upload
               </Text>
             </Flex>
+            <input
+              type="file"
+              id="file-upload"
+              onChange={handleFileChange}
+              style={{
+                visibility: 'hidden',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
           </label>
         </GAClick>
       </Tooltip>

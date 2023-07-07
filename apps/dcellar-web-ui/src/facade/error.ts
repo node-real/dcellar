@@ -9,7 +9,17 @@ export const E_NO_QUOTA = 'NO_QUOTA';
 export const E_UNKNOWN = 'UNKNOWN';
 export const E_OFF_CHAIN_AUTH = 'OFF_CHAIN_AUTH';
 export const E_SP_NOT_FOUND = 'SP_NOT_FOUND';
-
+export const E_GET_QUOTA_FAILED = 'GET_QUOTA_FAILED';
+export const E_NOT_BROWSER = 'NOT_BROWSER';
+export const E_REQUEST_PENDING_NUM = '-32002';
+export const E_FILE_TOO_LARGE = 'OBJECT_TOO_LARGE';
+export const E_FILE_IS_EMPTY = 'FILE_IS_EMPTY';
+export const E_OBJECT_NAME_EMPTY = 'OBJECT_NAME_EMPTY';
+export const E_OBJECT_NAME_TOO_LONG = 'OBJECT_NAME_TOO_LONG';
+export const E_OBJECT_NAME_NOT_UTF8 = 'OBJECT_NAME_NOT_UTF8';
+export const E_OBJECT_NAME_CONTAINS_SLASH = 'OBJECT_NAME_CONTAINS_SLASH';
+export const E_CAL_OBJECT_HASH = 'CAL_OBJECT_HASH';
+export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
 export declare class BroadcastTxError extends Error {
   readonly code: number;
   readonly codespace: string;

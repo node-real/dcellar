@@ -16,6 +16,8 @@ import { useDebounceEffect } from 'ahooks';
 import { setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
+import { GasList } from './GasList';
+import { TaskManagement } from '@/modules/upload/TaskManagement';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -56,6 +58,7 @@ export const Header = () => {
   return (
     <>
       <StreamBalance />
+      <GasList/>
       <Flex
         w="340px"
         ref={ref}
@@ -223,6 +226,7 @@ export const Header = () => {
           </Box>
         </Flex>
         <Flex flex={1} />
+        <TaskManagement />
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex

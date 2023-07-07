@@ -13,12 +13,15 @@ import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip } from '@totejs/uikit';
-import { selectObjectList, setFolders } from '@/store/slices/object';
+import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import { useEffect } from 'react';
+import { SpItem } from '@/store/slices/sp';
+import { CreateFolder } from './components/CreateFolder';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
+  const { spInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const objectList = useAppSelector(selectObjectList);
@@ -27,13 +30,18 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
+  const primarySp = spInfo[bucketInfo[bucketName]?.primary_sp_address];
+
 
   useEffect(() => {
+    dispatch(setPrimarySp(primarySp));
     dispatch(setFolders({ bucketName, folders }));
+
     return () => {
       dispatch(setFolders({ bucketName: '', folders: [] }));
+      dispatch(setPrimarySp({} as SpItem));
     };
-  }, [bucketName, folders, dispatch]);
+  }, [bucketName, folders, dispatch, primarySp]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];
@@ -56,6 +64,7 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
+        <CreateFolder/>
         <ObjectBreadcrumb />
         <PanelContent>
           <Tooltip

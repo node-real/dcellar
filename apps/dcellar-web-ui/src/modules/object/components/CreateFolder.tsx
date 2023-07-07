@@ -1,0 +1,360 @@
+import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import BigNumber from 'bignumber.js';
+import {
+  Flex,
+  FormControl,
+  Link,
+  QDrawerBody,
+  QDrawerCloseButton,
+  QDrawerFooter,
+  QDrawerHeader,
+  Text,
+  toast,
+} from '@totejs/uikit';
+import { InputItem } from '@/modules/file/components/InputItem';
+import { GasFeeItem } from '@/modules/file/components/GasFeeItem';
+import { DCButton } from '@/components/common/DCButton';
+import { WarningInfo } from '@/components/common/WarningInfo';
+import {
+  BUTTON_GOT_IT,
+  DUPLICATE_OBJECT_NAME,
+  FILE_FAILED_URL,
+  FILE_STATUS_UPLOADING,
+  FOLDER_CREATE_FAILED,
+  FOLDER_CREATING,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
+  GET_GAS_FEE_LACK_BALANCE_ERROR,
+  PENDING_ICON_URL,
+  UNKNOWN_ERROR,
+} from '@/modules/file/constant';
+import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
+import { DotLoading } from '@/components/common/DotLoading';
+import {
+  MsgCreateObjectTypeUrl,
+  TCreateObjectByOffChainAuth,
+} from '@bnb-chain/greenfield-chain-sdk';
+import { useAccount } from 'wagmi';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
+import { GAClick, GAShow } from '@/components/common/GATracker';
+import { InternalRoutePaths } from '@/constants/paths';
+import { E_USER_REJECT_STATUS_NUM, broadcastFault, simulateFault } from '@/facade/error';
+import { useAppSelector } from '@/store';
+import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
+import { getDomain } from '@/utils/getDomain';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { useDispatch } from 'react-redux';
+import { useChecksumApi } from '@/modules/checksum';
+import { resolve } from '@/facade/common';
+import { DCDrawer } from '@/components/common/DCDrawer';
+import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
+
+interface modalProps {}
+
+export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
+  const dispatch = useDispatch();
+  const { connector } = useAccount();
+  const checksumWorkerApi = useChecksumApi();
+  const { bucketName, folders } = useAppSelector((root) => root.object);
+  const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
+  const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { spInfo, sps } = useAppSelector((root) => root.sp);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { availableBalance } = useAppSelector((root) => root.global.balances?.[address] || {});
+  const isOpen = useAppSelector((root) => root.object.editCreate);
+  console.log('isOpen---22', isOpen);
+  const onClose = () => {
+    dispatch(setEditCreate(false));
+  }
+  const onCloseStatusModal = () => {
+    dispatch(setStatusDetail({} as TStatusDetail));
+  }
+
+
+  const [loading, setLoading] = useState(false);
+  const [inputFolderName, setInputFolderName] = useState('');
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [usedNames, setUsedNames] = useState<string[]>([]);
+
+  const primarySp = useMemo(() => {
+    return spInfo[bucketInfo[bucketName]?.primary_sp_address] || {};
+  }, [bucketInfo, bucketName, spInfo]);
+
+  const getPath = useCallback(
+    (name: string) => {
+      const parentFolderName = folders && folders[folders.length - 1];
+
+      return parentFolderName && parentFolderName.length > 0
+        ? `${parentFolderName}/${name}/`
+        : `${name}/`;
+    },
+    [folders],
+  );
+
+  const broadcastCreateTx = async (createTx: any) => {
+    const [simulateInfo, error] = await createTx
+      .simulate({ denom: 'BNB' })
+      .then(resolve, simulateFault);
+    const signTypedDataCallback = async (addr: string, message: string) => {
+      const provider = await connector?.getProvider();
+      return signTypedDataV4(provider, addr, message);
+    };
+    return createTx
+      .broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo?.gasLimit),
+        gasPrice: simulateInfo?.gasPrice || '5000000000',
+        payer: address,
+        signTypedDataCallback,
+      })
+      .then(resolve, broadcastFault);
+  };
+
+  const showSuccessToast = (tx: string) => {
+    toast.success({
+      description: (
+        <>
+          Folder created successfully! View in{' '}
+          <Link
+            color="#3C9AF1"
+            _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
+            href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${tx}`}
+            isExternal
+          >
+            GreenfieldScan
+          </Link>
+          .
+        </>
+      ),
+      duration: 3000,
+    });
+  };
+
+  const onCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+    setLoading(true);
+
+    // 1. create tx and validate folder by chain
+    const [CreateObjectTx, error] = await fetchCreateFolderApproval(inputFolderName);
+    if (typeof error === 'string') {
+      setLoading(false);
+      if (error?.includes('lack of') || error?.includes('static balance is not enough')) {
+        setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+      } else if (error?.includes('Object already exists')) {
+        setFormErrors([DUPLICATE_OBJECT_NAME]);
+        setUsedNames((names) => [...names, inputFolderName]);
+      } else {
+        setFormErrors([UNKNOWN_ERROR]);
+      }
+
+      return;
+    }
+
+    dispatch(
+      setStatusDetail({
+        icon: PENDING_ICON_URL,
+        title: FOLDER_CREATING,
+        errorText: '',
+        description: FILE_STATUS_UPLOADING,
+        buttonText: '',
+      }),
+    );
+
+    // 2. broadcast tx
+    const [txRes, bcError] = await broadcastCreateTx(CreateObjectTx);
+
+    if (bcError) {
+      setLoading(false);
+      if (bcError === E_USER_REJECT_STATUS_NUM) {
+        // onStatusModalClose();
+        return;
+      }
+      dispatch(
+        setStatusDetail({
+          icon: FILE_FAILED_URL,
+          title: FOLDER_CREATE_FAILED,
+          description: FOLDER_DESCRIPTION_CREATE_ERROR,
+          buttonText: BUTTON_GOT_IT,
+          errorText: bcError ? `Error Message: ${bcError}` : '',
+          buttonOnClick: onCloseStatusModal,
+        }),
+      );
+      return;
+    }
+    if (txRes?.code !== 0) {
+      // updateFileListStatus(objectName, OBJECT_STATUS_FAILED);
+      return;
+    }
+    const { transactionHash } = txRes;
+    setLoading(false);
+    showSuccessToast(transactionHash);
+    onClose();
+    // TODO trigger refresh list action
+  };
+
+  const validateFolderName = (value: string) => {
+    // TODO add name verify by headObject
+    const errors = Array<string>();
+    if (value === '') {
+      errors.push('Please enter the folder name.');
+      setFormErrors(errors);
+      return false;
+    }
+    if (new Blob([value]).size > 70) {
+      errors.push('Must be between 1 to 70 characters long.');
+    }
+    if (value.includes('/')) {
+      errors.push('Cannot consist of slash(/).');
+    }
+    setFormErrors(errors);
+
+    return !errors.length;
+  };
+
+  const fetchCreateFolderApproval = async (
+    folderName: string,
+    visibility: any = 'VISIBILITY_TYPE_INHERIT',
+  ) => {
+    const fullPath = getPath(folderName);
+    const file = new File([], fullPath, { type: 'text/plain' });
+    const domain = getDomain();
+    //@ts-ignore TODO
+    const { seedString } = await dispatch(getSpOffChainData(address, primarySp.operatorAddress));
+    const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
+    const secondarySpAddresses = sps
+      .filter((item: any) => item.operatorAddress !== primarySp.operatorAddress)
+      .map((item: any) => item.operatorAddress);
+    const spInfo = {
+      endpoint: primarySp?.endpoint,
+      primarySpAddress: primarySp?.operatorAddress,
+      sealAddress: primarySp?.sealAddress,
+      secondarySpAddresses,
+    };
+    const createObjectPayload: TCreateObjectByOffChainAuth = {
+      bucketName,
+      objectName: fullPath,
+      creator: address,
+      visibility,
+      fileType: file.type,
+      contentLength: file.size,
+      expectCheckSums: hashResult?.expectCheckSums || [],
+      spInfo,
+      signType: 'offChainAuth',
+      domain,
+      seedString,
+    };
+    const createObjectTx = await genCreateObjectTx(createObjectPayload);
+
+    const [simulateInfo, error] = await createObjectTx
+      .simulate({ denom: 'BNB' })
+      .then(resolve, simulateFault);
+
+    return [createObjectTx, error];
+  };
+
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
+  const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const folderName = e.target.value;
+    setInputFolderName(folderName);
+    if (usedNames.includes(folderName)) {
+      setFormErrors([DUPLICATE_OBJECT_NAME]);
+      return;
+    }
+    if (!lackGasFee) validateFolderName(folderName);
+  };
+
+  useEffect(() => {
+    const fee = BigNumber(gasFee);
+    const balance = BigNumber(availableBalance || 0);
+    if (fee.gte(0) && fee.gt(balance)) {
+      setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+    }
+  }, [gasFee, availableBalance]);
+
+  useEffect(() => {
+    setFormErrors([]);
+    setInputFolderName('');
+    setLoading(false);
+    setUsedNames([]);
+  }, [isOpen]);
+
+  return (
+    <DCDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      gaShowName="dc.file.create_folder_m.0.show"
+      gaClickCloseName="dc.file.create_folder_m.close.click"
+    >
+      <QDrawerCloseButton />
+      <QDrawerHeader>Create a Folder</QDrawerHeader>
+      <QDrawerBody>
+        <Text
+          align="center"
+          color="readable.tertiary"
+          mt={32}
+          fontWeight={400}
+          fontSize={18}
+          lineHeight="22px"
+        >
+          Use folders to group files in your bucket. Folder names can't contain "/".
+        </Text>
+        <Flex mt={32} flexDirection="column" alignItems="center">
+          <FormControl isInvalid={!!formErrors.length} w="100%">
+            <InputItem
+              value={inputFolderName}
+              onChange={onFolderNameChange}
+              tips={{
+                title: 'Naming Rules',
+                rules: ['Must be between 1 and 70 characters long.', 'Cannot consist of slash(/).'],
+              }}
+            />
+            {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
+          </FormControl>
+          <GasFeeItem gasFee={gasFee + ''} />
+          {lackGasFee && (
+            <Flex w="100%" justifyContent="space-between" mt={8}>
+              <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
+                <GAShow name={'dc.file.create_folder_m.transferin.show'}>
+                  Insufficient balance.&nbsp;
+                  <GAClick name={'dc.file.create_folder_m.transferin.click'}>
+                    <Link
+                      href={InternalRoutePaths.transfer_in}
+                      style={{ textDecoration: 'underline' }}
+                      color="#EE3911"
+                    >
+                      Transfer in
+                    </Link>
+                  </GAClick>
+                </GAShow>
+              </Text>
+            </Flex>
+          )}
+        </Flex>
+      </QDrawerBody>
+      <QDrawerFooter w="100%">
+        <Flex w="100%" flexDirection="column">
+          <DCButton
+            w="100%"
+            variant="dcPrimary"
+            onClick={onCreateFolder}
+            isDisabled={loading || !!formErrors.length}
+            justifyContent="center"
+            gaClickName="dc.file.create_folder_m.create.click"
+          >
+            {loading ? (
+              <>
+                Loading
+                <DotLoading />
+              </>
+            ) : (
+              'Create'
+            )}
+          </DCButton>
+          <WarningInfo content="Please be aware that data loss might occur during testnet phase." />
+        </Flex>
+      </QDrawerFooter>
+    </DCDrawer>
+  );
+});

@@ -1,10 +1,11 @@
-import { IObjectProps, IObjectResultType, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectProps, IObjectResultType, TCreateObject, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
   downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
+  E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
@@ -28,6 +29,10 @@ import {
 import { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import { getDomain } from '@/utils/getDomain';
+import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
+import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -178,3 +183,144 @@ export const getListObjects = async (
   if (error) return [null, error];
   return [list! as IObjectResultType<IObjectList>, null];
 };
+
+export const getShareLink = (bucketName: string, objectName: string) => {
+  const params = [bucketName, objectName || ''].join('/');
+
+  return `${location.origin}/share?file=${encodeURIComponent(params)}`;
+}
+
+export const headObject = async ({bucketName, objectName}: {bucketName: string, objectName: string}) => {
+  const client = await getClient();
+  const { objectInfo } = await client.object
+    .headObject(bucketName, objectName)
+    .catch(() => ({} as QueryHeadObjectResponse));
+
+  return objectInfo || null;
+};
+
+export const headObjectInSp = async ({ bucketName, objectName, endpoint, seedString, }: { bucketName: string, objectName: string, endpoint: string, seedString: string}) => {
+  const url = `${endpoint}/${bucketName}/${objectName}?object-meta`;
+  const [data, error] = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Basic ${btoa(seedString)}`,
+    }
+  }).then((res) => res.json(), commonFault);
+
+  return [data, error];
+};
+
+export const deleteObject = async (
+  params: any, Connector: any): Promise<any> => {
+  const { bucketName, objectName, address } = params;
+  const client = await getClient();
+  const delObjTx = await client.object.deleteObject({
+    bucketName,
+    objectName,
+    operator: address,
+  });
+  const [simulateInfo, simulateError] = await delObjTx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: address,
+    granter: '',
+    signTypedDataCallback: async (addr: string, message: string) => {
+      const provider = await Connector?.getProvider();
+      return await signTypedDataV4(provider, addr, message);
+    },
+  }
+
+  return await delObjTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+}
+
+export const cancelCreateObject = async (
+  params: any, Connector: any): Promise<any> => {
+  const { bucketName, objectName, address } = params;
+  const client = await getClient();
+  const cancelObjectTx = await client.object.cancelCreateObject({
+    bucketName,
+    objectName,
+    operator: address,
+  });
+  const [simulateInfo, simulateError] = await cancelObjectTx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: address,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(Connector)
+  };
+
+  return await cancelObjectTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+}
+
+export const uploadObject = async (
+  params: any, Connector: any): Promise<any> => {
+  const { bucketName, objectName, file, primarySp, objectTxnHash, address, domain, seedString, } = params;
+  const uploadOptions = await generatePutObjectOptions({
+    bucketName,
+    objectName,
+    body: file,
+    endpoint: primarySp.endpoint,
+    txnHash: objectTxnHash,
+    userAddress: address,
+    domain,
+    seedString,
+  });
+  const { url, headers } = uploadOptions;
+}
+
+export const createObjectOnChain = async (
+  params: any, Connector: any): Promise<any> => {
+  // 先做offchainData的检查
+  const { address, primarySp, hash, visibility, bucketName, spInfo, domain, seedString } = params;
+
+  // auth check 也应该提取出去
+  const valid = await authDataValid(address, primarySp.operatorAddress);
+  if (!valid) return [null, E_OFF_CHAIN_AUTH];
+  const { newObjectName, uploadFile } = params;
+  const objectName = newObjectName ? newObjectName : uploadFile.name;
+  const start = performance.now();
+  // 暂时去掉preSelectTime的校验
+  let selectTime = Date.now();
+  // const hashResult = await checksumWorkerApiRef.current?.generateCheckSumV2(uploadFile)
+  const { contentLength, expectCheckSums } = hash;
+  const createObjectPayload: TCreateObject = {
+    bucketName,
+    objectName,
+    creator: address,
+    visibility,
+    fileType: uploadFile.type || 'application/octet-stream',
+    contentLength,
+    expectCheckSums,
+    spInfo,
+    signType: 'offChainAuth',
+    domain,
+    seedString,
+  }
+  const createObjectTx = await genCreateObjectTx(createObjectPayload);
+  const [simulateInfo, simulateError] = await createObjectTx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: address,
+    signTypedDataCallback: signTypedDataCallback(Connector),
+    granter: '',
+  }
+
+  return await createObjectTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+}

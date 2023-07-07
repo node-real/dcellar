@@ -8,7 +8,7 @@ import WalletIcon from '@/public/images/icons/wallet.svg';
 import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
 import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
 import { Logo } from '../Logo';
-import { isActiveUrl } from '@/utils/isActiveUrl';
+import { isActivePath } from '@/utils/isActivePath';
 import { GAClick } from '@/components/common/GATracker';
 import { DcellarDoc, FAQ } from '@/constants/links';
 import { DocIcon, HelpIcon } from '@totejs/icons';
@@ -19,7 +19,7 @@ const MENU_LIST = [
     icon: () => <BucketsIcon color="readable.normal" />,
     selectedIcon: () => <BucketsFilledIcon color={'#00BA34'} />,
     text: 'Buckets',
-    link: '/buckets',
+    path: '/buckets',
     enablePrefix: true,
     gaClickName: 'dc.main.nav.bucket.click',
   },
@@ -27,7 +27,7 @@ const MENU_LIST = [
     icon: () => <WalletIcon color="readable.normal" />,
     selectedIcon: () => <WalletFilledIcon color="#00BA34" />,
     text: 'Wallet',
-    link: `/wallet`,
+    path: `/wallet`,
     gaClickName: 'dc.main.nav.wallet.click',
   },
 ];
@@ -74,7 +74,7 @@ export const Nav = () => {
         {MENU_LIST &&
           MENU_LIST.map((item) => (
             <GAClick key={item.text} name={item.gaClickName}>
-              <Link href={item.link} replace>
+              <Link href={item.path} replace>
                 <Flex
                   fontSize={'16px'}
                   cursor={'pointer'}
@@ -85,17 +85,17 @@ export const Nav = () => {
                   onMouseOver={over}
                   onMouseOut={out}
                   backgroundColor={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? 'rgba(0, 186, 52, 0.1)'
                       : 'none'
                   }
                   color={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? '#009E2C'
                       : '#1E2026'
                   }
                   _hover={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? {
                           backgroundColor: 'rgba(0, 186, 52, 0.15)',
                           color: '#009E2C',
@@ -106,7 +106,7 @@ export const Nav = () => {
                         }
                   }
                 >
-                  {isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix) ? (
+                  {isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix) ? (
                     <item.selectedIcon />
                   ) : (
                     <item.icon />
