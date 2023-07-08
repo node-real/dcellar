@@ -1,4 +1,4 @@
-import { IObjectProps, IObjectResultType, TCreateObject, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectProps, IObjectResultType, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
@@ -29,7 +29,7 @@ import {
 import { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import { getDomain } from '@/utils/getDomain';
-import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import { QueryHeadObjectResponse, QueryLockFeeRequest } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
@@ -262,4 +262,9 @@ export const cancelCreateObject = async (
   };
 
   return await cancelObjectTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+}
+
+export const queryLockFee = async (params: QueryLockFeeRequest) => {
+  const client = await getClient();
+  return await client.storage.queryLockFee(params).then(resolve, commonFault);
 }

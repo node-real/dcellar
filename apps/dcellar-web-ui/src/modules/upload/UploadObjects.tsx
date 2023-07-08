@@ -49,21 +49,19 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { contentIconTypeToExtension, formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useChecksumApi } from '../checksum';
-import { TFileItem, setEditUpload, setStatusDetail, setUploading } from '@/store/slices/object';
+import { SINGLE_FILE_MAX_SIZE, TFileItem, setEditUpload, setStatusDetail, setUploading } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { Long, TCreateObject, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { duplicateName } from '@/utils/object';
+import { duplicateName, formatLockFee } from '@/utils/object';
 import { reverseVisibilityType } from '@/utils/constant';
-import { set } from 'react-hook-form';
-
-const MAX_SIZE = 256;
+import { queryLockFee } from '@/facade/object';
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const {
-    editUpload: { isOpen, visibility, fileInfos },
+    editUpload: { isOpen, visibility, fileInfos},
     bucketName,
     primarySp,
     files,
@@ -71,9 +69,10 @@ export const UploadObjects = () => {
     objects,
     path,
   } = useAppSelector((root) => root.object);
-  const [status, setStatus] = useState<'CHECKING' | 'CHECKED' | null>(null);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { sps: globalSps } = useAppSelector((root) => root.sp);
+  const [status, setStatus] = useState<'CHECKING' | 'CHECKED' | null>(null);
+  const [lockFee, setLockFee] = useState<string>('');
   const checkSumApi = useChecksumApi();
   const file = files[0];
   const objectList = objects[path].filter((item) => !item.objectName.endsWith('/'));
@@ -104,7 +103,7 @@ export const UploadObjects = () => {
     if (!file) {
       return [null, E_FILE_IS_EMPTY];
     }
-    if (file.size > MAX_SIZE * 1024 * 1024) {
+    if (file.size > SINGLE_FILE_MAX_SIZE) {
       return [null, E_FILE_TOO_LARGE];
     }
     if (file.size <= 0) {
@@ -128,6 +127,44 @@ export const UploadObjects = () => {
     return [null, null];
   };
 
+  useEffect(() => {
+    const validateFile = async () => {
+      setStatus('CHECKING');
+      const [basRes, basError] = basicValidate(file);
+      if (basError) {
+        setStatus('CHECKED');
+        return dispatch(
+          setEditUpload({
+            fileInfos: [{ ...fileInfos[0], errorMsg: getErrorMsg(basError).title }],
+          }),
+        );
+      }
+      const hashResult = await checkSumApi?.generateCheckSumV2(file);
+      const params = {
+        createAt: Long.fromInt(Math.ceil(getUtcZeroTimestamp()/1000)),
+        primarySpAddress: primarySp.operatorAddress,
+        payloadSize: Long.fromInt(file.size),
+      }
+      const [data, error] = await queryLockFee(params);
+      if (error) {
+
+        return;
+      }
+      setLockFee(formatLockFee(data?.amount))
+      dispatch(
+        setEditUpload({
+          fileInfos: [{ ...fileInfos[0], errorMsg: '', calHash: hashResult }],
+        }),
+      );
+      setStatus('CHECKED');
+    };
+    validateFile();
+
+    return () => {
+      dispatch(setEditUpload({ isOpen: false, fileInfos: [] }));
+    };
+  }, [isOpen]);
+
   const onUploadClick = async () => {
     const domain = getDomain();
     const secondarySpAddresses = globalSps
@@ -150,8 +187,9 @@ export const UploadObjects = () => {
       creator: loginAccount,
       visibility: reverseVisibilityType[visibility],
       fileType: file.type || 'application/octet-stream',
-      contentLength: fileInfos[0]?.calHash.contentLength,
-      expectCheckSums: fileInfos[0]?.calHash.expectCheckSums,
+      // TODO refactor to use calHash
+      contentLength: fileInfos[0]?.calHash?.contentLength,
+      expectCheckSums: fileInfos[0]?.calHash?.expectCheckSums,
       spInfo,
       signType: 'offChainAuth',
       domain,
@@ -208,32 +246,6 @@ export const UploadObjects = () => {
     return [res, null];
   };
 
-  useEffect(() => {
-    const validateFile = async () => {
-      setStatus('CHECKING');
-      const [basRes, basError] = basicValidate(file);
-      if (basError) {
-        setStatus('CHECKED');
-        return dispatch(
-          setEditUpload({
-            fileInfos: [{ ...fileInfos[0], errorMsg: getErrorMsg(basError).title }],
-          }),
-        );
-      }
-      const hashResult = await checkSumApi?.generateCheckSumV2(file);
-      dispatch(
-        setEditUpload({
-          fileInfos: [{ ...fileInfos[0], errorMsg: '', calHash: hashResult }],
-        }),
-      );
-      setStatus('CHECKED');
-    };
-    validateFile();
-
-    return () => {
-      dispatch(setEditUpload({ isOpen: false, fileInfos: [] }));
-    };
-  }, [isOpen]);
 
   return (
     <DCDrawer isOpen={isOpen} onClose={onClose}>
@@ -296,7 +308,7 @@ export const UploadObjects = () => {
         </Flex>
       </QDrawerBody>
       <QDrawerFooter flexDirection={'column'} marginTop={'12px'}>
-        <Fee />
+        <Fee lockFee={lockFee} />
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"

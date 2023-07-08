@@ -24,8 +24,11 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { Long, MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { selectBalance } from '@/store/slices/global';
+import { useAsyncEffect } from 'ahooks';
+import { queryLockFee } from '@/facade/object';
+import { formatLockFee } from '@/utils/object';
 
 interface modalProps {
   refetch: () => void;
@@ -71,14 +74,14 @@ const renderFee = (
 
 export const DeleteObject = ({refetch}: modalProps) => {
   const dispatch = useAppDispatch();
-  const {loginAccount: address, accounts}= useAppSelector((root) => root.persist)
-  const { chain } = useNetwork();
+  const [lockFee, setLockFee] = useState('');
+  const {loginAccount: address }= useAppSelector((root) => root.persist)
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
+  const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { availableBalance } = useAppSelector(selectBalance(address));
-  const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
   const isOpen = !!editDelete.objectName;
   const onClose = () => {
     dispatch(setEditDelete({} as ObjectItem));
@@ -86,8 +89,23 @@ export const DeleteObject = ({refetch}: modalProps) => {
   const {gasList} = useAppSelector((root) => root.global.gasHub);
   const simulateGasFee = gasList[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
   const { connector } = useAccount();
-  // TODO use arthur new lockfee api
-  const lockFee = '0.1';
+
+  useAsyncEffect(async () => {
+    const params = {
+      createAt: Long.fromInt(editDelete.createAt),
+      payloadSize: Long.fromInt(editDelete.payloadSize),
+      primarySpAddress: primarySp.operatorAddress,
+    }
+    const [data, error] = await queryLockFee(params);
+    if (error) {
+      toast.error({
+        description: error || 'Query lock fee failed!'
+      });
+      return;
+    }
+
+    setLockFee(formatLockFee(data?.amount));
+  }, [isOpen]);
 
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {

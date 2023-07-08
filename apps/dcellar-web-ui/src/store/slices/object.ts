@@ -49,7 +49,6 @@ export type TFileItem = {
 export type TEditUpload = {
   isOpen: boolean;
   fileInfos: TFileItem[];
-  maxSize: number;
   visibility: VisibilityType;
 }
 export type TUploading =  {
@@ -103,17 +102,17 @@ const initialState: ObjectState = {
   files: [],
   editUpload: {
     isOpen: false,
-    maxSize: 5 * 1024 * 1024,
-    visibility: 'VISIBILITY_TYPE_PRIVATE',
+    visibility: 2,
     fileInfos: [],
   },
   uploading: {
-    visibility: 'VISIBILITY_TYPE_PRIVATE',
+    visibility: 2,
     isOpen: false,
     fileInfos: [],
     isLoading: false,
   }
 };
+export const SINGLE_FILE_MAX_SIZE = 256 * 1024 * 1024;
 
 export const objectSlice = createSlice({
   name: 'object',

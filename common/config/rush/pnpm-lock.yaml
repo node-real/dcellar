@@ -10,8 +10,8 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.1
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.6
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -62,8 +62,8 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.5
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.1
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.6
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@next/bundle-analyzer': 13.4.5
@@ -1622,12 +1622,11 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.1:
-    resolution: {integrity: sha512-ODZEO4n7J7Tp5TAVEgw/vPINoBLXb0fcm4mAg5F/wQWUT/UfUyLAMO8u1XfIFFMXLQp8K9BB4NFp2uxeVooZkw==}
+  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.6:
+    resolution: {integrity: sha512-33V3rlHUEbdwIGbCkld/4teT8WTlZFAtl0R7KOChklZ+Yb10y/HKIw/yUhnyU6jEN75mwrldBFpovlSEs9YxDQ==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.11
-      '@bnb-chain/greenfiled-file-handle': 0.2.0
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
@@ -1637,27 +1636,27 @@ packages:
       '@ethersproject/strings': 5.7.0
       '@ethersproject/units': 5.7.0
       '@metamask/eth-sig-util': 5.1.0
+      cross-fetch: 3.1.6
       dayjs: 1.11.8
+      dotenv: 16.3.1
       ethereum-cryptography: 2.0.0
+      lodash.mapvalues: 4.6.0
+      lodash.sortby: 4.7.0
       long: 5.2.3
       reflect-metadata: 0.1.13
       tsyringe: 4.7.0
     transitivePeerDependencies:
       - bufferutil
       - debug
+      - encoding
       - utf-8-validate
     dev: false
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.11:
-    resolution: {integrity: sha512-59ILIwpifUWUAihTbU+DDEkddH5Xz0lghxUMRGwjvlB8+MF0m5t+R6SAJWk0ZkVMVIWdIGJphjkBJn2ffKbisA==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.13:
+    resolution: {integrity: sha512-ClfQzmeO+saqRXx7kx0XPn0Y0ILh7cSG8CF2k22D1f4k3p5XeUhF3lZSpIOtuTf7eRkd3lXsIlNPSjN3AUZHTw==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.3
-    dev: false
-
-  /@bnb-chain/greenfiled-file-handle/0.2.0:
-    resolution: {integrity: sha512-UER3459jjNouGEr5lMb1zFT9yPqOthLdspl3RTfP5HDgM2P2Y+13PlXSi4DY1PNL8pjah7iZbfmxdJH7V+y9wg==}
-    engines: {npm: please use pnpm, yarn: please use pnpm}
     dev: false
 
   /@builder.io/partytown/0.7.6:
@@ -5681,6 +5680,11 @@ packages:
       is-obj: 2.0.0
     dev: true
 
+  /dotenv/16.3.1:
+    resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
+    engines: {node: '>=12'}
+    dev: false
+
   /duplexer/0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
     dev: false
@@ -7357,6 +7361,10 @@ packages:
     resolution: {integrity: sha512-N8XRTIMMqqDgSy4VLKPnJ/+hpGZN+PHQiJnSenYqPaVV/NCqEogTnAdZLQiGKhxX+JCs8waWq2t1XHWKOmlY8g==}
     dev: true
 
+  /lodash.mapvalues/4.6.0:
+    resolution: {integrity: sha512-JPFqXFeZQ7BfS00H58kClY7SPVeHertPE0lNuCyZ26/XlN8TvakYD7b9bGyNmXbT/D3BbtPAAmq90gPWqLkxlQ==}
+    dev: false
+
   /lodash.memoize/4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
     dev: true
@@ -7372,6 +7380,10 @@ packages:
   /lodash.snakecase/4.1.1:
     resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==}
     dev: true
+
+  /lodash.sortby/4.7.0:
+    resolution: {integrity: sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==}
+    dev: false
 
   /lodash.startcase/4.4.0:
     resolution: {integrity: sha512-+WKqsK294HMSc2jEbNgpHpd0JfIBhp7rEV4aqXWqFr6AlXov+SlcgB1Fv01y2kGe3Gc8nMW7VA0SrGuSkRfIEg==}

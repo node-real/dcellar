@@ -24,8 +24,11 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ObjectItem, TStatusDetail, setEditCancel, setStatusDetail, setupListObjects } from '@/store/slices/object';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '@/store';
-import { MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { useAsyncEffect } from 'ahooks';
+import { queryLockFee } from '@/facade/object';
+import { formatLockFee } from '@/utils/object';
 
 interface modalProps {
   refetch: () => void;
@@ -58,6 +61,7 @@ const renderFee = (
 
 export const CancelObject = ({refetch}: modalProps) => {
   const dispatch = useDispatch();
+  const [lockFee, setLockFee] = useState('');
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { gasList } = useAppSelector((root) => root.global.gasHub);
   const { bnb: { price: bnbPrice }, balances
@@ -75,9 +79,25 @@ export const CancelObject = ({refetch}: modalProps) => {
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 
-  // TODO lockFee
-  const lockFee = '0.11111111111';
   const simulateGasFee = gasList[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
+
+  useAsyncEffect(async () => {
+    const params = {
+      createAt: Long.fromInt(editCancel.createAt),
+      payloadSize: Long.fromInt(editCancel.payloadSize),
+      primarySpAddress: primarySp.operatorAddress,
+    }
+    const [data, error] = await queryLockFee(params);
+    if (error) {
+      toast.error({
+        description: error || 'Query lock fee failed!'
+      });
+      return;
+    }
+
+    setLockFee(formatLockFee(data?.amount));
+  }, [isOpen]);
+
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
       setButtonDisabled(false);

@@ -23,3 +23,7 @@ export const convertVisibility = () => {
 
   return reverseVisibilityType;
 }
+
+export const formatLockFee = (lockFee: string | undefined) => {
+  return String(Number(lockFee || '') / Math.pow(10, 19));
+};

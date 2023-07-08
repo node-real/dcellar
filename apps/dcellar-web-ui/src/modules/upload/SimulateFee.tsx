@@ -11,10 +11,12 @@ import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { Box, Flex, Text } from '@totejs/uikit';
 import React from 'react';
 
-export const Fee = () => {
-  // TODO lockFee 从arthur最新接口获取
-  const lockFee = '0.006';
-  const {loginAccount} = useAppSelector((root) => root.persist)
+interface FeeProps {
+  lockFee: string;
+}
+
+export const Fee = ({lockFee}: FeeProps) => {
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const { availableBalance } =
   useAppSelector(selectBalance(loginAccount));
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
