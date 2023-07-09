@@ -1,5 +1,5 @@
 import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { directlyDownload, formatBytes } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -15,12 +15,10 @@ import { useAppSelector } from '@/store';
 import { useDispatch } from 'react-redux';
 import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 import { ObjectItem, TStatusDetail, setEditDownload, setStatusDetail } from '@/store/slices/object';
-import { encodeObjectName } from '@/utils/string';
 import { quotaRemains } from '@/facade/bucket';
-import { downloadObject } from '@/facade/object';
+import { downloadObject, getDirectDownloadLink } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_UNKNOWN } from '@/facade/error';
-import { on } from 'events';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 
 interface modalProps {}
@@ -40,29 +38,25 @@ const renderProp = (key: string, value: string) => {
 
 export const DownloadObject = (props: modalProps) => {
   const dispatch = useDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { loginAccount, accounts } = useAppSelector((root) => root.persist);
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
-  const { path, primarySp, editDownload, bucketName, objectsInfo } = useAppSelector(
+  const { primarySp, editDownload, bucketName, objectsInfo } = useAppSelector(
     (root) => root.object,
   );
   const { spInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const [loading, setLoading] = useState(false);
+  const directDownload = accounts[loginAccount].directDownload;
   const isOpen = !!editDownload.objectName;
   const onClose = () => {
     dispatch(setEditDownload({} as ObjectItem));
   };
-  const [shareLink, setShareLink] = useState('');
-  useEffect(() => {
-    const objectPath = `${path}/${editDownload?.objectName}`;
-    const shareObject = objectsInfo[objectPath]?.object_info;
-    const params = [
-      shareObject?.bucket_name,
-      encodeObjectName(shareObject?.object_name || ''),
-    ].join('/');
 
-    setShareLink(`${location.origin}/share?file=${encodeURIComponent(params)}`);
-  }, [editDownload?.objectName, objectsInfo, path]);
+  const directDownloadLink = getDirectDownloadLink({
+    bucketName,
+    primarySpEndpoint: primarySp.endpoint,
+    objectName: editDownload.objectName,
+  });
 
   const quotaData = quotas[bucketName];
 
@@ -148,11 +142,11 @@ export const DownloadObject = (props: modalProps) => {
               );
             }
             if (
-              shareLink &&
+              directDownloadLink &&
               editDownload.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
             ) {
               onClose();
-              return directlyDownload(shareLink);
+              return directlyDownload(directDownloadLink);
             }
             const params = {
               primarySp,
@@ -163,6 +157,9 @@ export const DownloadObject = (props: modalProps) => {
             const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
             const [success, opsError] = await downloadObject(params, seedString);
             if (opsError) return onError(opsError);
+            directDownload !== currentAllowDirectDownload && dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: currentAllowDirectDownload } }));
+            onClose();
+
             return success;
           }}
           isLoading={loading}

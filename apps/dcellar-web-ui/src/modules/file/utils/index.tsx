@@ -334,7 +334,7 @@ const transformVisibility = (visibility: ChainVisibilityEnum) => {
       return 'Unspecified';
 
     case ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ:
-      return 'Everyone can access';
+      return 'Public';
 
     case ChainVisibilityEnum.VISIBILITY_TYPE_PRIVATE:
       return 'Private';

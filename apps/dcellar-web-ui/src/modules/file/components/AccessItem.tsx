@@ -24,7 +24,7 @@ const options = [
   },
   {
     icon: <PublicFileIcon fillColor="#1E2026" />,
-    label: 'Everyone can access',
+    label: 'Public',
     desc: 'Anyone with the link can open at anytime and can find in explorer.',
     value: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
   },

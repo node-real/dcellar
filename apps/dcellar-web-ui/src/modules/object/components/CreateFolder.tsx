@@ -59,13 +59,13 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
   const dispatch = useDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path} = useAppSelector((root) => root.object);
+  const { bucketName, folders, objects, path, primarySp} = useAppSelector((root) => root.object);
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
-  const { spInfo, sps } = useAppSelector((root) => root.sp);
+  const { sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance } = useAppSelector((root) => root.global.balances?.[address] || {});
+  const balances = useAppSelector((root) => root.global.balances);
+  const { availableBalance } = balances?.[address] || {};
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const onClose = () => {
@@ -78,10 +78,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
-
-  const primarySp = useMemo(() => {
-    return spInfo[bucketInfo[bucketName]?.primary_sp_address] || {};
-  }, [bucketInfo, bucketName, spInfo]);
 
   const getPath = useCallback(
     (name: string) => {

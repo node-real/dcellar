@@ -34,7 +34,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDetail, setEditDownload, setEditShare, setStatusDetail } from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { VisibilityType } from '@/modules/file/type';
-import { downloadObject, getShareLink } from '@/facade/object';
+import { downloadObject, getDirectDownloadLink, getShareLink } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { quotaRemains } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';
@@ -195,7 +195,7 @@ const renderVisibilityTag = (visibility: any) => {
           lineHeight={'17px'}
           ml={'6px'}
         >
-          Everyone can access
+          Public
         </Text>
       </Flex>
     );
@@ -241,6 +241,11 @@ export const DetailObject = (props: modalProps) => {
   };
 
   const shareLink = getShareLink(bucketName, editDetail?.objectName);
+  const directDownloadLink = getDirectDownloadLink({
+    bucketName,
+    objectName: editDetail?.objectName,
+    primarySpEndpoint: primarySp?.endpoint,
+  });
   const [downloadButtonDisabled, setDownloadButtonDisabled] = useState(false);
   const onError = (type: string) => {
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -399,10 +404,10 @@ export const DetailObject = (props: modalProps) => {
                 }
                 if (allowDirectDownload) {
                   if (
-                    shareLink &&
+                    directDownloadLink &&
                     editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
                   ) {
-                    return directlyDownload(shareLink);
+                    return directlyDownload(directDownloadLink);
                   } else {
                     const params = {
                       primarySp,

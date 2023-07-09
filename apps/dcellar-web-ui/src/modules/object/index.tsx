@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useWhyDidYouUpdate } from 'ahooks';
 import { setBucketStatus, setupBucket } from '@/store/slices/bucket';
 import Head from 'next/head';
 import {
@@ -10,7 +10,7 @@ import {
   PanelContent,
 } from '@/modules/object/objects.style';
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
-import { last } from 'lodash-es';
+import { isEmpty, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip } from '@totejs/uikit';
 import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/object';
@@ -29,18 +29,22 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
-  const primarySp = spInfo[bucketInfo[bucketName]?.primary_sp_address];
-
-
   useEffect(() => {
-    dispatch(setPrimarySp(primarySp));
     dispatch(setFolders({ bucketName, folders }));
 
     return () => {
       dispatch(setFolders({ bucketName: '', folders: [] }));
-      dispatch(setPrimarySp({} as SpItem));
     };
-  }, [bucketName, folders, dispatch, primarySp]);
+  }, [bucketName, dispatch, folders]);
+
+  useEffect(() => {
+    const primarySp = spInfo[bucketInfo[bucketName]?.primary_sp_address];
+    !isEmpty(primarySp) && dispatch(setPrimarySp(primarySp));
+
+    return () => {
+      !isEmpty(primarySp) && dispatch(setPrimarySp({} as SpItem));
+    };
+  }, [bucketName, folders, dispatch, spInfo, bucketInfo]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];

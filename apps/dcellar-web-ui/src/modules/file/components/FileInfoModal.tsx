@@ -215,7 +215,7 @@ const renderVisibilityTag = (visibility: ChainVisibilityEnum) => {
           lineHeight={'17px'}
           ml={'6px'}
         >
-          Everyone can access
+          Public
         </Text>
       </Flex>
     );

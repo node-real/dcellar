@@ -8,9 +8,11 @@ export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;
 }
 
-export type THashResult =
-  | { contentLength: number; expectCheckSums: string[]; fileChunks: number }
-  | undefined;
+export type THashResult = {
+  contentLength: number;
+  expectCheckSums: string[];
+  fileChunks: number;
+};
 
 const segmentSize = 16 * 1024 * 1024;
 const dataBlocks = 4;

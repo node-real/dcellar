@@ -190,6 +190,13 @@ export const getShareLink = (bucketName: string, objectName: string) => {
   return `${location.origin}/share?file=${encodeURIComponent(params)}`;
 }
 
+export const getDirectDownloadLink = ({primarySpEndpoint, bucketName, objectName
+}: { primarySpEndpoint: string; bucketName: string; objectName: string}) => {
+  return encodeURI(
+    `${primarySpEndpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
+  );
+}
+
 export const headObject = async ({bucketName, objectName}: {bucketName: string, objectName: string}) => {
   const client = await getClient();
   const { objectInfo } = await client.object

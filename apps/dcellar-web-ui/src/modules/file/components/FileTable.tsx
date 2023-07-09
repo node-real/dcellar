@@ -503,7 +503,7 @@ export const FileTable = (props: fileListProps) => {
     };
 
     return (
-      <Tooltip content={'Everyone can access.'} placement={'bottom-start'}>
+      <Tooltip content={'Public'} placement={'bottom-start'}>
         <Flex ml={'6px'} mt={'2px'}>
           {renderIconByObjectStatus()}
         </Flex>

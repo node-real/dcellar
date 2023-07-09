@@ -30,7 +30,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
     <>
       {icon} <span title={name}>{name}</span>
       {visibility === 1 && !folder && (
-        <Tooltip content={'Everyone can access.'} placement={'bottom-start'}>
+        <Tooltip content={'Public'} placement={'bottom-start'}>
           <span className="access-icon">
             <PublicFileIcon fillColor="currentColor" />
           </span>

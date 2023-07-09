@@ -56,6 +56,7 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { duplicateName, formatLockFee } from '@/utils/object';
 import { reverseVisibilityType } from '@/utils/constant';
 import { queryLockFee } from '@/facade/object';
+import { THashResult } from '../checksum/checksumWorkerV2';
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
@@ -139,6 +140,7 @@ export const UploadObjects = () => {
           }),
         );
       }
+      // TODO 有时候无法计算出hash，所以这里做一个重试, 如何中断计算hash
       const hashResult = await checkSumApi?.generateCheckSumV2(file);
       const params = {
         createAt: Long.fromInt(Math.ceil(getUtcZeroTimestamp()/1000)),
@@ -176,20 +178,19 @@ export const UploadObjects = () => {
       sealAddress: primarySp.sealAddress,
       secondarySpAddresses,
     };
-
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
     const finalName = [...folders, file.name].join('/');
+    const {contentLength, expectCheckSums} = fileInfos[0].calHash as THashResult;
     const createObjectPayload: TCreateObject = {
       bucketName,
       objectName: finalName,
       creator: loginAccount,
       visibility: reverseVisibilityType[visibility],
       fileType: file.type || 'application/octet-stream',
-      // TODO refactor to use calHash
-      contentLength: fileInfos[0]?.calHash?.contentLength,
-      expectCheckSums: fileInfos[0]?.calHash?.expectCheckSums,
+      contentLength,
+      expectCheckSums,
       spInfo,
       signType: 'offChainAuth',
       domain,
