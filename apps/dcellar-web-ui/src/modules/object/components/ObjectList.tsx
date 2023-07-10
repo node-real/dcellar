@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
@@ -29,7 +29,7 @@ import { Text } from '@totejs/uikit';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/object/components/ListEmpty';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useCreation } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
 import { NameItem } from '@/modules/object/components/NameItem';
@@ -77,11 +77,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { editDelete, statusDetail, editDetail, editShare, editDownload, editUpload, editCancel, editCreate } = useAppSelector((root) => root.object);
-  const directDownload = useMemo(() => {
-    if (accounts && loginAccount && accounts[loginAccount]) {
-      return accounts[loginAccount].directDownload;
-    }
-  }, [accounts, loginAccount]);
 
   const ascend = (() => {
     const _name = sortName as keyof ObjectItem;
@@ -261,7 +256,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
-  const chunks = useMemo(() => chunk(sortedList, objectPageSize), [sortedList, objectPageSize]);
+  const chunks = useCreation(() => chunk(sortedList, objectPageSize), [sortedList, objectPageSize]);
   const pages = chunks.length;
   const current = currentPage >= pages ? 0 : currentPage;
   const page = chunks[current];
