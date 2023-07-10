@@ -3,7 +3,9 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import { Flex, Text, Tooltip } from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
-import { setEditCreate, setEditUpload, setFiles } from '@/store/slices/object';
+import { setEditCreate, setEditUpload } from '@/store/slices/object';
+import { addToHashQueue } from '@/store/slices/global';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 
 interface NewObjectProps {
   gaFolderClickName?: string;
@@ -24,23 +26,12 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     dispatch(setEditCreate(true));
   };
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const file = e.target.files[0];
-      dispatch(setFiles([file]));
-      dispatch(
-        setEditUpload({
-          isOpen: true,
-          fileInfos: [
-            {
-              name: file?.name,
-              size: file?.size+'',
-              type: file?.type,
-              status: 'WAIT_CHECKING',
-            },
-          ],
-        }),
-      );
-    }
+    const files = e.target.files || [];
+    if (!files.length) return;
+    const id = getUtcZeroTimestamp( );
+    dispatch(addToHashQueue({ id, file: files[0] }));
+    dispatch(setEditUpload(id));
+    e.target.value = '';
   };
   if (!owner) return <></>;
 

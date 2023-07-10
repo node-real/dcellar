@@ -5,7 +5,6 @@ import {
   downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
-  E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
@@ -31,8 +30,6 @@ import { SpItem } from '@/store/slices/sp';
 import { getDomain } from '@/utils/getDomain';
 import { QueryHeadObjectResponse, QueryLockFeeRequest } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
-import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -197,29 +194,7 @@ export const getDirectDownloadLink = ({primarySpEndpoint, bucketName, objectName
   );
 }
 
-export const headObject = async ({bucketName, objectName}: {bucketName: string, objectName: string}) => {
-  const client = await getClient();
-  const { objectInfo } = await client.object
-    .headObject(bucketName, objectName)
-    .catch(() => ({} as QueryHeadObjectResponse));
-
-  return objectInfo || null;
-};
-
-export const headObjectInSp = async ({ bucketName, objectName, endpoint, seedString, }: { bucketName: string, objectName: string, endpoint: string, seedString: string}) => {
-  const url = `${endpoint}/${bucketName}/${objectName}?object-meta`;
-  const [data, error] = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Basic ${btoa(seedString)}`,
-    }
-  }).then((res) => res.json(), commonFault);
-
-  return [data, error];
-};
-
-export const deleteObject = async (
-  params: any, Connector: any): Promise<any> => {
+export const deleteObject = async (params: any, Connector: any): Promise<any> => {
   const { bucketName, objectName, address } = params;
   const client = await getClient();
   const delObjTx = await client.object.deleteObject({
@@ -227,9 +202,11 @@ export const deleteObject = async (
     objectName,
     operator: address,
   });
-  const [simulateInfo, simulateError] = await delObjTx.simulate({
-    denom: 'BNB',
-  }).then(resolve, simulateFault);
+  const [simulateInfo, simulateError] = await delObjTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
   if (simulateError) return [null, simulateError];
   const broadcastPayload = {
     denom: 'BNB',
@@ -241,13 +218,12 @@ export const deleteObject = async (
       const provider = await Connector?.getProvider();
       return await signTypedDataV4(provider, addr, message);
     },
-  }
+  };
 
   return await delObjTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
-}
+};
 
-export const cancelCreateObject = async (
-  params: any, Connector: any): Promise<any> => {
+export const cancelCreateObject = async (params: any, Connector: any): Promise<any> => {
   const { bucketName, objectName, address } = params;
   const client = await getClient();
   const cancelObjectTx = await client.object.cancelCreateObject({
@@ -255,9 +231,11 @@ export const cancelCreateObject = async (
     objectName,
     operator: address,
   });
-  const [simulateInfo, simulateError] = await cancelObjectTx.simulate({
-    denom: 'BNB',
-  }).then(resolve, simulateFault);
+  const [simulateInfo, simulateError] = await cancelObjectTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
   if (simulateError) return [null, simulateError];
   const broadcastPayload = {
     denom: 'BNB',
@@ -265,13 +243,21 @@ export const cancelCreateObject = async (
     gasPrice: simulateInfo?.gasPrice || '5000000000',
     payer: address,
     granter: '',
-    signTypedDataCallback: signTypedDataCallback(Connector)
+    signTypedDataCallback: signTypedDataCallback(Connector),
   };
 
   return await cancelObjectTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
-}
+};
 
 export const queryLockFee = async (params: QueryLockFeeRequest) => {
   const client = await getClient();
   return await client.storage.queryLockFee(params).then(resolve, commonFault);
 }
+
+export const headObject = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
+  const { objectInfo } = await client.object
+    .headObject(bucketName, objectName)
+    .catch(() => ({} as QueryHeadObjectResponse));
+  return objectInfo || null;
+};

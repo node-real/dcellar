@@ -25,7 +25,7 @@ export type TLayerAction = {
   onToggle: () => void;
   onClose: () => void;
   onOpen: () => void;
-}
+};
 
 export type TStatusDetail = {
   icon: string;
@@ -34,7 +34,7 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
-}
+};
 
 export type TFileItem = {
   name: string;
@@ -75,8 +75,7 @@ export interface ObjectState {
   editCancel: ObjectItem;
   primarySp: SpItem;
   statusDetail: TStatusDetail;
-  files: File[];
-  editUpload: TEditUpload;
+  editUpload: number;
   uploading: TUploading;
 }
 
@@ -86,7 +85,6 @@ const initialState: ObjectState = {
   prefix: '',
   path: '',
   objects: {},
-  // todo fixit, folder has default folder object
   objectsMeta: {},
   objectsInfo: {},
   currentPage: {},
@@ -99,18 +97,13 @@ const initialState: ObjectState = {
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   primarySp: {} as SpItem,
-  files: [],
-  editUpload: {
-    isOpen: false,
-    visibility: 2,
-    fileInfos: [],
-  },
+  editUpload: 0,
   uploading: {
     visibility: 2,
     isOpen: false,
     fileInfos: [],
     isLoading: false,
-  }
+  },
 };
 export const SINGLE_FILE_MAX_SIZE = 256 * 1024 * 1024;
 
@@ -147,11 +140,8 @@ export const objectSlice = createSlice({
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setFiles(state, { payload }: PayloadAction<File[]>) {
-      state.files = payload;
-    },
-    setEditUpload(state, { payload }: PayloadAction<Partial<TEditUpload>>) {
-      state.editUpload = {...state.editUpload, ...payload};
+    setEditUpload(state, { payload }: PayloadAction<number>) {
+      state.editUpload = payload;
     },
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
@@ -159,7 +149,7 @@ export const objectSlice = createSlice({
     setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
       state.uploading = {
         ...state.uploading,
-        ...payload
+        ...payload,
       };
     },
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
@@ -294,7 +284,6 @@ export const {
   setEditDownload,
   setPrimarySp,
   setStatusDetail,
-  setFiles,
   setEditShare,
   setEditUpload,
   setEditCancel,

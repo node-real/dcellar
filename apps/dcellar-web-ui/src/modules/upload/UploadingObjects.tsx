@@ -1,84 +1,42 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
-  Text,
+  Box,
   Flex,
   Image,
   QDrawerBody,
   QDrawerCloseButton,
   QDrawerHeader,
-  Box,
   QListItem,
+  Text,
 } from '@totejs/uikit';
 import { FILE_UPLOAD_URL } from '@/modules/file/constant';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { TFileItem, setUploading } from '@/store/slices/object';
-import { CloseIcon, SkeletonIcon } from '@totejs/icons';
+import { useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
-import { useAsyncEffect } from 'ahooks';
-import { generatePutObjectOptions } from '../file/utils/generatePubObjectOptions';
-import { getDomain } from '@/utils/getDomain';
-import { getSpOffChainData } from '@/store/slices/persist';
-import axios from 'axios';
+import { sortBy } from 'lodash-es';
+import CircleProgress from '../file/components/CircleProgress';
+import { ColoredSuccessIcon } from '@totejs/icons';
 
 export const UploadingObjects = () => {
-  const dispatch = useAppDispatch();
-  const { files, uploading: { fileInfos }, bucketName, primarySp, folders } = useAppSelector((root) => root.object);
-  const {loginAccount} = useAppSelector((root) => root.persist);
-  const objectName = `${fileInfos[0]?.name}`;
-  const file = files[0];
-  const [progress, setProgress] = useState(0);
+  const { objectsInfo } = useAppSelector((root) => root.object);
+  const { uploadQueue } = useAppSelector((root) => root.global);
+  const { loginAccount } = useAppSelector((root) => root.persist);
 
-  useAsyncEffect(async () => {
-    // TODO 上传服务抽离到全局，本页面只做展示
-    console.log('invoke uploading Objects');
-    if (!fileInfos || fileInfos.length === 0) {
-      return;
-    }
-    const domain = getDomain();
-    dispatch(setUploading({isLoading: true}));
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
-    const finalName = [...folders, objectName].join('/');
-    const { url, headers } = await generatePutObjectOptions({
-      bucketName,
-      objectName: finalName,
-      body: file,
-      endpoint: primarySp.endpoint,
-      txnHash: fileInfos[0]?.txnHash,
-      userAddress: loginAccount,
-      domain,
-      seedString,
-    });
+  const queue = sortBy(uploadQueue[loginAccount] || [], [
+    (o) => {
+      switch (o.status) {
+        case 'SEAL':
+          return 0;
+        case 'UPLOAD':
+          return 1;
+        case 'WAIT':
+          return 2;
+        case 'FINISH':
+          return 3;
+      }
+    },
+  ]);
 
-    await axios.put(url, file, {
-      onUploadProgress: (progressEvent) => {
-        const progress = Math.round(
-          (progressEvent.loaded / (progressEvent.total as number)) * 100,
-        );
-        // TODO 页面展示文件上传进度
-        console.log('progress', progress);
-      },
-      headers: {
-        Authorization: headers.get('Authorization'),
-        'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-        'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-        'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
-      },
-    });
-    dispatch(setUploading({isLoading: false}));
-    // TODO add get seal tx hash
-    // startPolling(() => {
-    //   const sealTxHash = await getObjectIsSealed({
-    //     bucketName,
-    //     objectName: finalName,
-    //     primarySp: primarySp,
-    //     address: loginState.address,
-    //     folderName,
-    //   });
-    // });
-
-  }, []);
-
-  if (files.length === 0) {
+  if (!queue.length) {
     return (
       <>
         <QDrawerCloseButton />
@@ -104,25 +62,53 @@ export const UploadingObjects = () => {
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Object</QDrawerHeader>
       <QDrawerBody>
-        <Box fontWeight={'600'} fontSize={'18px'} borderBottom={'1px solid readable.border'}>Current Upload</Box>
-        <Flex flexDirection={'column'} alignItems={'center'} display={'flex'}>
-          {/* TODO UI展示更多信息 */}
-          {fileInfos &&
-            fileInfos.map((item: TFileItem, index: number) => (
-              <QListItem key={index} paddingX={'6px'} left={<SkeletonIcon />} right={<CloseIcon />} marginTop={0}>
-                <Flex marginLeft={'12px'}>
-                  <Box>
-                    <Box>{item.name}</Box>
-                    {item.errorMsg ? (
-                      <Box color={'red'}>{item.errorMsg}</Box>
-                    ) : (
-                      <Box>{formatBytes(item.size)}</Box>
-                    )}
-                  </Box>
-                </Flex>
-              </QListItem>
-            ))}
-        </Flex>
+        <Box fontWeight={'600'} fontSize={'18px'} borderBottom={'1px solid readable.border'}>
+          Current Upload
+        </Box>
+        {queue.map((task) => (
+          <QListItem key={task.id} paddingX={'6px'} right={null}>
+            <Flex marginLeft={'12px'} fontSize={'12px'} alignItems={'center'}>
+              <Box>
+                <Box>{task.file.name}</Box>
+                {task.msg ? (
+                  <Box color={'red'}>{task.msg}</Box>
+                ) : (
+                  <Box>{formatBytes(task.file.size)}</Box>
+                )}
+              </Box>
+              <Flex
+                fontSize={'12px'}
+                color="readable.tertiary"
+                justifyContent={'center'}
+                alignItems={'center'}
+                flex={1}
+              >
+                {`${[task.bucketName, ...task.folders].join('/')}/`}
+              </Flex>
+              {/* <Box>create hash: {task.createHash}</Box>
+              <Box>
+                seal hash:{' '}
+                {
+                  objectsInfo[[task.bucketName, ...task.folders, task.file.name].join('/')]
+                    ?.seal_tx_hash
+                }
+              </Box> */}
+              <Box>
+                {task.progress ? (
+                  <ColoredSuccessIcon />
+                ) : (
+                  <CircleProgress
+                    progress={task.progress}
+                    size={18}
+                    strokeWidth={2}
+                    circleOneStroke="rgba(0,186,52,0.1)"
+                    circleTwoStroke="#00BA34"
+                  />
+                )}
+              </Box>
+            </Flex>
+          </QListItem>
+        ))}
       </QDrawerBody>
     </>
   );

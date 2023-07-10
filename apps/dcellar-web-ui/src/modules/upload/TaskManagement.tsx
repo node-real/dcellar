@@ -1,35 +1,28 @@
-import { DotLoading } from '@/components/common/DotLoading';
-import { LoadingIcon } from '@/components/common/SvgIcon/LoadingIcon';
-import { Box, Flex, QDrawer, Text, useDisclosure } from '@totejs/uikit';
-import React from 'react';
+import { Box, Flex, QDrawer, Text } from '@totejs/uikit';
+import React, { useState } from 'react';
 import { UploadingObjects } from './UploadingObjects';
+import { LoadingIcon } from '@/components/common/SvgIcon/LoadingIcon';
 import { useAppSelector } from '@/store';
-import { useDispatch } from 'react-redux';
-import { setUploading } from '@/store/slices/object';
+import { selectUploadQueue } from '@/store/slices/global';
+import { DCButton } from '@/components/common/DCButton';
+import { Loading } from '@/components/common/Loading';
 
-
-// 上传进度也是一个全局状态，最好也在redux中管理
 export const TaskManagement = () => {
-  // 能够拿到task management的trigger
-  const dispatch = useDispatch();
-  const { isOpen } = useAppSelector((root) => root.object.uploading);
-  const onToggle = () => {
-    dispatch(setUploading({ isOpen: !isOpen }))
-  }
-  const onClose = () => {
-    dispatch(setUploading({isOpen: false}))
-  }
-  const isUploading = false;
-  // 当列表点击上传确认时，触发task management的trigger
+  const [open, setOpen] = useState(false);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const queue = useAppSelector(selectUploadQueue(loginAccount));
+
+  const isUploading = queue.some((i) => i.status === 'UPLOAD');
+
   const renderButton = () => {
     if (isUploading) {
       return (
-        <Flex onClick={onToggle} alignItems={'center'} justifyContent={'center'}>
-          <LoadingIcon />
-          <Text color="readable.tertiary" fontSize={'14px'}>
+        <DCButton variant='ghost' onClick={() => setOpen(true)} alignItems={'center'} justifyContent={'center'}>
+          <Loading/>
+          <Text fontWeight={500} fontSize={'14px'} marginLeft={'8px'}>
             Uploading...
           </Text>
-        </Flex>
+        </DCButton>
       );
     }
     return (
@@ -38,19 +31,24 @@ export const TaskManagement = () => {
         alignSelf={'center'}
         marginRight={'12px'}
         onClick={() => {
-          onToggle()
+          setOpen(true);
           console.log('task management trigger');
         }}
       >
-        <Box>Task Management</Box>
+        <DCButton variant='ghost' fontWeight={'500'}>Task Management</DCButton>
       </Box>
     );
   };
+
   return (
     <>
       {renderButton()}
-      {/* 上传过程中的存到这里 */}
-      <QDrawer isOpen={isOpen} onClose={onClose} width={'568px'} closeOnOverlayClick={false}>
+      <QDrawer
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        width={'568px'}
+        closeOnOverlayClick={false}
+      >
         <UploadingObjects />
       </QDrawer>
     </>

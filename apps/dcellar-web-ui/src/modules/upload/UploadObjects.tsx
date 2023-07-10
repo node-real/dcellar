@@ -1,42 +1,37 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Text,
+  Box,
   Flex,
-  Image,
   QDrawerBody,
   QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanels,
-  TabPanel,
-  Box,
   QListItem,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  toast,
 } from '@totejs/uikit';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  FILE_TITLE_UPLOAD_FAILED,
-} from '@/modules/file/constant';
+import { BUTTON_GOT_IT, FILE_FAILED_URL, FILE_TITLE_UPLOAD_FAILED } from '@/modules/file/constant';
 import Fee from './SimulateFee';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import AccessItem from './AccessItem';
 import {
+  broadcastFault,
+  E_ACCOUNT_BALANCE_NOT_ENOUGH,
   E_FILE_IS_EMPTY,
+  E_FILE_TOO_LARGE,
   E_OBJECT_NAME_CONTAINS_SLASH,
   E_OBJECT_NAME_EMPTY,
   E_OBJECT_NAME_EXISTS,
   E_OBJECT_NAME_NOT_UTF8,
   E_OBJECT_NAME_TOO_LONG,
-  E_FILE_TOO_LARGE,
-  broadcastFault,
-  simulateFault,
   E_UNKNOWN,
-  E_ACCOUNT_BALANCE_NOT_ENOUGH,
+  simulateFault,
 } from '@/facade/error';
 import { isUTF8 } from '../file/utils/file';
 
@@ -46,39 +41,42 @@ import { useAccount } from 'wagmi';
 import { resolve } from '@/facade/common';
 import { getDomain } from '@/utils/getDomain';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { contentIconTypeToExtension, formatBytes } from '../file/utils';
+import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { useChecksumApi } from '../checksum';
-import { SINGLE_FILE_MAX_SIZE, TFileItem, setEditUpload, setStatusDetail, setUploading } from '@/store/slices/object';
+import { setEditUpload, setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { Long, TCreateObject, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { duplicateName, formatLockFee } from '@/utils/object';
+import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import {
+  addTaskToUploadQueue,
+  selectHashFile,
+  updateHashQueue,
+  updateHashStatus,
+  updateHashTaskMsg,
+} from '@/store/slices/global';
+import { useAsyncEffect } from 'ahooks';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { reverseVisibilityType } from '@/utils/constant';
-import { queryLockFee } from '@/facade/object';
-import { THashResult } from '../checksum/checksumWorkerV2';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
+import { duplicateName } from '@/utils/object';
+
+const MAX_SIZE = 256;
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
+  const { editUpload, path, objects } = useAppSelector((root) => root.object);
   const { connector } = useAccount();
-  const {
-    editUpload: { isOpen, visibility, fileInfos},
-    bucketName,
-    primarySp,
-    files,
-    folders,
-    objects,
-    path,
-  } = useAppSelector((root) => root.object);
+  const { bucketName, primarySp, folders } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { sps: globalSps } = useAppSelector((root) => root.sp);
-  const [status, setStatus] = useState<'CHECKING' | 'CHECKED' | null>(null);
-  const [lockFee, setLockFee] = useState<string>('');
-  const checkSumApi = useChecksumApi();
-  const file = files[0];
-  const objectList = objects[path].filter((item) => !item.objectName.endsWith('/'));
+  const selectedFile = useAppSelector(selectHashFile(editUpload));
+  const [visibility, setVisibility] = useState<VisibilityType>(
+    VisibilityType.VISIBILITY_TYPE_PRIVATE,
+  );
+  const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
+  const [creating, setCreating] = useState(false);
+
   const onClose = () => {
-    dispatch(setEditUpload({ isOpen: false }));
+    dispatch(setEditUpload(0));
   };
   const getErrorMsg = (type: string) => {
     return OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -86,88 +84,37 @@ export const UploadObjects = () => {
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
   };
 
-  const buttonDisabled = useMemo(() => {
-    const hasError = fileInfos.some((item) => !!item.errorMsg);
-    return status !== 'CHECKED' || hasError;
-  }, [fileInfos, status]);
-  const fileType = contentIconTypeToExtension(file.name);
-  const icon = (
-    <Image
-      src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
-      alt={fileType}
-      width={24}
-      height={24}
-    />
-  );
-
   const basicValidate = (file: File) => {
     if (!file) {
-      return [null, E_FILE_IS_EMPTY];
+      return E_FILE_IS_EMPTY;
     }
-    if (file.size > SINGLE_FILE_MAX_SIZE) {
-      return [null, E_FILE_TOO_LARGE];
+    if (file.size > MAX_SIZE * 1024 * 1024) {
+      return E_FILE_TOO_LARGE;
     }
     if (file.size <= 0) {
-      return [null, E_FILE_IS_EMPTY];
+      return E_FILE_IS_EMPTY;
     }
     if (!file.name) {
-      return [null, E_OBJECT_NAME_EMPTY];
+      return E_OBJECT_NAME_EMPTY;
     }
     if (file.name.length > 1024) {
-      return [null, E_OBJECT_NAME_TOO_LONG];
+      return E_OBJECT_NAME_TOO_LONG;
     }
     if (!isUTF8(file.name)) {
-      return [null, E_OBJECT_NAME_NOT_UTF8];
+      return E_OBJECT_NAME_NOT_UTF8;
     }
     if (file.name.includes('//')) {
-      return [null, E_OBJECT_NAME_CONTAINS_SLASH];
+      return E_OBJECT_NAME_CONTAINS_SLASH;
     }
     if (duplicateName(file.name, objectList)) {
-      return [null, E_OBJECT_NAME_EXISTS];
+      return E_OBJECT_NAME_EXISTS;
     }
-    return [null, null];
+    return '';
   };
 
-  useEffect(() => {
-    const validateFile = async () => {
-      setStatus('CHECKING');
-      const [basRes, basError] = basicValidate(file);
-      if (basError) {
-        setStatus('CHECKED');
-        return dispatch(
-          setEditUpload({
-            fileInfos: [{ ...fileInfos[0], errorMsg: getErrorMsg(basError).title }],
-          }),
-        );
-      }
-      // TODO 有时候无法计算出hash，所以这里做一个重试, 如何中断计算hash
-      const hashResult = await checkSumApi?.generateCheckSumV2(file);
-      const params = {
-        createAt: Long.fromInt(Math.ceil(getUtcZeroTimestamp()/1000)),
-        primarySpAddress: primarySp.operatorAddress,
-        payloadSize: Long.fromInt(file.size),
-      }
-      const [data, error] = await queryLockFee(params);
-      if (error) {
-
-        return;
-      }
-      setLockFee(formatLockFee(data?.amount))
-      dispatch(
-        setEditUpload({
-          fileInfos: [{ ...fileInfos[0], errorMsg: '', calHash: hashResult }],
-        }),
-      );
-      setStatus('CHECKED');
-    };
-    validateFile();
-
-    return () => {
-      dispatch(setEditUpload({ isOpen: false, fileInfos: [] }));
-    };
-  }, [isOpen]);
-
   const onUploadClick = async () => {
+    if (!selectedFile) return;
+    setCreating(true);
     const domain = getDomain();
     const secondarySpAddresses = globalSps
       .filter((item: any) => item.operator !== primarySp.operatorAddress)
@@ -178,19 +125,19 @@ export const UploadObjects = () => {
       sealAddress: primarySp.sealAddress,
       secondarySpAddresses,
     };
+
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
-    const finalName = [...folders, file.name].join('/');
-    const {contentLength, expectCheckSums} = fileInfos[0].calHash as THashResult;
+    const finalName = [...folders, selectedFile.name].join('/');
     const createObjectPayload: TCreateObject = {
       bucketName,
       objectName: finalName,
       creator: loginAccount,
       visibility: reverseVisibilityType[visibility],
-      fileType: file.type || 'application/octet-stream',
-      contentLength,
-      expectCheckSums,
+      fileType: selectedFile.type || 'application/octet-stream',
+      contentLength: selectedFile.size,
+      expectCheckSums: selectedFile.checksum,
       spInfo,
       signType: 'offChainAuth',
       domain,
@@ -204,7 +151,10 @@ export const UploadObjects = () => {
       })
       .then(resolve, simulateFault);
     if (simulateError) {
-      if (simulateError?.includes('lack of') || simulateError?.includes('static balance is not enough')) {
+      if (
+        simulateError?.includes('lack of') ||
+        simulateError?.includes('static balance is not enough')
+      ) {
         dispatch(setStatusDetail(getErrorMsg(E_ACCOUNT_BALANCE_NOT_ENOUGH)));
       } else if (simulateError?.includes('Object already exists')) {
         dispatch(setStatusDetail(getErrorMsg(E_OBJECT_NAME_EXISTS)));
@@ -218,13 +168,15 @@ export const UploadObjects = () => {
       gasLimit: Number(simulateInfo?.gasLimit),
       gasPrice: simulateInfo?.gasPrice || '5000000000',
       payer: loginAccount,
-      signTypedDataCallback: signTypedDataCallback(connector),
+      signTypedDataCallback: signTypedDataCallback(connector!),
       granter: '',
     };
     const [res, error] = await createObjectTx
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
+
     if (error || res?.code !== 0) {
+      setCreating(false);
       dispatch(
         setStatusDetail({
           title: FILE_TITLE_UPLOAD_FAILED,
@@ -234,95 +186,98 @@ export const UploadObjects = () => {
           errorText: 'Error message: ' + (error || res?.rawLog) ?? '',
         }),
       );
+      return;
     }
-    dispatch(setEditUpload({ isOpen: false, fileInfos: [] }));
-    dispatch(
-      setUploading({
-        isOpen: true,
-        fileInfos: [{ ...fileInfos[0], errorMsg: error || '', txnHash: res?.transactionHash }],
-      }),
-    );
-    console.log('data-------', error, res);
-    // 成功之后，则弹出上传任务drawer
-    return [res, null];
+    toast.success({ description: 'object created!' });
+    dispatch(addTaskToUploadQueue(selectedFile.id, res.transactionHash, primarySp.operatorAddress));
+    dispatch(setEditUpload(0));
+    setCreating(false);
   };
 
+  useAsyncEffect(async () => {
+    if (!editUpload) {
+      setCreating(false);
+      dispatch(updateHashQueue());
+      return;
+    }
+    if (!selectedFile) return;
+    const { file, id } = selectedFile;
+    const error = basicValidate(file);
+    if (!error) {
+      dispatch(updateHashStatus({ id, status: 'WAIT' }));
+      return;
+    }
+    dispatch(updateHashTaskMsg({ id, msg: getErrorMsg(error).title }));
+  }, [editUpload]);
+
+  const loading = selectedFile?.status !== 'READY';
 
   return (
-    <DCDrawer isOpen={isOpen} onClose={onClose}>
+    <DCDrawer isOpen={!!editUpload} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
-      <QDrawerBody marginTop={'24px'}>
-        <Tabs>
-          <TabList>
-            <Tab h="auto" paddingBottom={'8px'}>
-              All Objects
-            </Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel>
-              <Flex
-                alignItems={'center'}
-                justifyContent={'space-between'}
-                borderBottom={'1px solid readable.border'}
-                marginTop={'20px'}
-              >
-                <AccessItem freeze={status === 'CHECKING'} />
-                <Box>
-                  Total Upload: <strong>{formatBytes(file.size)}</strong> / <strong>1 Files</strong>
-                </Box>
-              </Flex>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-        <Flex flexDirection={'column'} alignItems={'center'} display={'flex'}>
-          {fileInfos &&
-            fileInfos.map((item: TFileItem, index: number) => (
-              <QListItem
-                key={index}
-                paddingX={'6px'}
-                left={icon}
-                // right={<CloseIcon color={'readable.tertiary'} />}
-                right={null}
-              >
-                <Flex marginLeft={'12px'}>
-                  <Box fontSize={'12px'}>
-                    <Text fontWeight={500}>{item.name}</Text>
-                    {item.errorMsg ? (
-                      <Box color={'red'}>{item.errorMsg}</Box>
-                    ) : (
-                      <Box color="readable.tertiary">{formatBytes(item.size)}</Box>
-                    )}
+      {!!selectedFile && (
+        <QDrawerBody marginTop={'24px'}>
+          <Tabs>
+            <TabList>
+              <Tab h="auto" paddingBottom={'8px'}>
+                All Objects
+              </Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel>
+                <Flex
+                  alignItems={'center'}
+                  justifyContent={'space-between'}
+                  borderBottom={'1px solid readable.border'}
+                  marginTop={'20px'}
+                >
+                  <AccessItem freeze={loading} value={visibility} onChange={setVisibility} />
+                  <Box>
+                    Total Upload: <strong>{formatBytes(selectedFile.size)}</strong> /{' '}
+                    <strong>1 Files</strong>
                   </Box>
-                  <Flex
-                    fontSize={'12px'}
-                    color="readable.tertiary"
-                    justifyContent={'flex-end'}
-                    alignItems={'center'}
-                    flex={1}
-                  >
-                    {`${path}/`}
-                  </Flex>
                 </Flex>
-              </QListItem>
-            ))}
-        </Flex>
-      </QDrawerBody>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+          <Flex mt="32px" flexDirection={'column'} alignItems={'center'} display={'flex'}>
+            <QListItem paddingX={'6px'} right={null}>
+              <Flex marginLeft={'12px'} fontSize={'12px'}>
+                <Box>
+                  <Box>{selectedFile.name}</Box>
+                  {selectedFile.msg ? (
+                    <Box color={'red'}>{selectedFile.msg}</Box>
+                  ) : (
+                    <Box>{formatBytes(selectedFile.size)}</Box>
+                  )}
+                </Box>
+                <Flex
+                  fontSize={'12px'}
+                  color="readable.tertiary"
+                  justifyContent={'flex-end'}
+                  alignItems={'center'}
+                  flex={1}
+                >
+                  {`${path}/`}
+                </Flex>
+              </Flex>
+            </QListItem>
+          </Flex>
+        </QDrawerBody>
+      )}
       <QDrawerFooter flexDirection={'column'} marginTop={'12px'}>
-        <Fee lockFee={lockFee} />
+        <Fee lockFee={selectedFile?.lockFee || ''} />
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"
             variant={'dcPrimary'}
-            onClick={() => {
-              console.log('upload file');
-              onUploadClick();
-            }}
-            isDisabled={buttonDisabled}
+            onClick={onUploadClick}
+            isDisabled={loading || creating}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >
-            {status === 'CHECKING' ? (
+            {loading || creating ? (
               <>
                 Loading
                 <DotLoading />

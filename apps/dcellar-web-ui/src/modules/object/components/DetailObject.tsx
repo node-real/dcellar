@@ -10,10 +10,7 @@ import {
   QDrawerBody,
 } from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
-import {
-  directlyDownload,
-  formatBytes,
-} from '@/modules/file/utils';
+import { directlyDownload, formatBytes } from '@/modules/file/utils';
 import { CopyText } from '@/components/common/CopyText';
 import { encodeObjectName, formatAddress, trimAddress, formatId } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -31,7 +28,14 @@ import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectItem, TStatusDetail, setEditDetail, setEditDownload, setEditShare, setStatusDetail } from '@/store/slices/object';
+import {
+  ObjectItem,
+  TStatusDetail,
+  setEditDetail,
+  setEditDownload,
+  setEditShare,
+  setStatusDetail,
+} from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { VisibilityType } from '@/modules/file/type';
 import { downloadObject, getDirectDownloadLink, getShareLink } from '@/facade/object';
@@ -41,7 +45,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_UNKNOWN } from '@/facade/error';
 
-interface modalProps { }
+interface modalProps {}
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -93,6 +97,7 @@ const renderAddressLink = (
         {key}
       </Text>
       <Text
+        as="div"
         flex={1}
         noOfLines={1}
         fontWeight={500}
@@ -226,7 +231,9 @@ export const DetailObject = (props: modalProps) => {
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount];
   const { setOpenAuthModal } = useOffChainAuth();
-  const { editDetail, bucketName, primarySp, objectsInfo, path } = useAppSelector((root) => root.object);
+  const { editDetail, bucketName, primarySp, objectsInfo, path } = useAppSelector(
+    (root) => root.object,
+  );
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
   const { spInfo } = useAppSelector((root) => root.sp);
@@ -311,7 +318,10 @@ export const DetailObject = (props: modalProps) => {
           </Flex>
           <Divider />
           <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-            {renderPropRow('Date uploaded', formatFullTime((+objectInfo.object_info.create_at) * 1000))}
+            {renderPropRow(
+              'Date uploaded',
+              formatFullTime(+objectInfo.object_info.create_at * 1000),
+            )}
             {renderAddressLink(
               'Object ID',
               formatId(Number(objectInfo.object_info?.id)),
@@ -336,26 +346,26 @@ export const DetailObject = (props: modalProps) => {
               objectInfo.create_tx_hash,
               'dc.object.f_detail_pop.create_tx_hash.click',
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
-              'tx'
+              'tx',
             )}
             {renderAddressLink(
               'Seal transaction hash',
               objectInfo.seal_tx_hash,
               'dc.object.f_detail_pop.seal_tx_hash.click',
               'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-              'tx'
+              'tx',
             )}
             {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
-            renderPropRow(
-              'Universal link',
-              renderUrlWithLink(
-                `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(editDetail.name)}`,
-                true,
-                32,
-                'dc.file.f_detail_pop.universal.click',
-                'dc.file.f_detail_pop.copy_universal.click',
-              ),
-            )}
+              renderPropRow(
+                'Universal link',
+                renderUrlWithLink(
+                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(editDetail.name)}`,
+                  true,
+                  32,
+                  'dc.file.f_detail_pop.universal.click',
+                  'dc.file.f_detail_pop.copy_universal.click',
+                ),
+              )}
           </Flex>
         </QDrawerBody>
         <QDrawerFooter flexDirection={'column'}>
@@ -368,7 +378,7 @@ export const DetailObject = (props: modalProps) => {
                 borderColor={'readable.normal'}
                 gaClickName="dc.file.f_detail_pop.share.click"
                 onClick={() => {
-                  dispatch(setEditShare(editDetail))
+                  dispatch(setEditShare(editDetail));
                   onClose();
                 }}
               >
@@ -415,7 +425,9 @@ export const DetailObject = (props: modalProps) => {
                       address: loginAccount,
                     };
                     const operator = primarySp.operatorAddress;
-                    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+                    const { seedString } = await dispatch(
+                      getSpOffChainData(loginAccount, operator),
+                    );
                     const [success, opsError] = await downloadObject(params, seedString);
                     if (opsError) return onError(opsError);
 

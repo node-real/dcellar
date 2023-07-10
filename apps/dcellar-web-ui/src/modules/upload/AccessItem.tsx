@@ -1,12 +1,23 @@
 import { MenuCloseIcon } from '@totejs/icons';
-import { Box, Button, Center, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
-import React, { forwardRef, useState } from 'react';
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+} from '@totejs/uikit';
+import React, { forwardRef } from 'react';
 import PrivateFileIcon from '../file/components/PrivateFileIcon';
-import { VisibilityType } from '../file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import { useAppDispatch } from '@/store';
-import { setEditUpload } from '@/store/slices/object';
+import { find } from 'lodash-es';
+import { useMount } from 'ahooks';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import SelectedIcon from '@/public/images/files/icons/selected.svg';
+
 const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" />,
@@ -24,9 +35,16 @@ const options = [
   },
 ];
 
-export const AccessItem = ({freeze}: {freeze: boolean}) => {
-  const [value, setValue] = useState(options[0]);
-  const dispatch = useAppDispatch();
+interface AccessItemProps {
+  value: VisibilityType;
+  freeze: boolean;
+  onChange: (val: VisibilityType) => void;
+}
+
+export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
+  value = value || options[0].value;
+  const option = find(options, (op) => op.value === value)!;
+
   const CustomMenuButton = forwardRef((props: any, ref: any) => {
     const { children, ...restProps } = props;
     return (
@@ -48,8 +66,8 @@ export const AccessItem = ({freeze}: {freeze: boolean}) => {
         {...restProps}
       >
         <Flex align={'center'}>
-          <Center borderRadius={'50%'} boxSize={24} mr={6} backgroundColor={value.bgColor}>
-            {value.icon}
+          <Center borderRadius={'50%'} boxSize={24} mr={6} backgroundColor={option.bgColor}>
+            {option.icon}
           </Center>
           {children}
         </Flex>
@@ -57,30 +75,29 @@ export const AccessItem = ({freeze}: {freeze: boolean}) => {
       </Button>
     );
   });
-  const onChangeValue = (value: any) => {
-    setValue(value);
-    dispatch(setEditUpload({ visibility: value.value }));
-  };
+
+  useMount(() => {
+    onChange(value);
+  });
+
   return (
-    <Menu matchWidth={false} placement="bottom-start" size={'sm'} offset={[20, 0]} >
+    <Menu matchWidth={false} placement="bottom-start" size={'sm'} offset={[20, 0]}>
       <MenuButton as={CustomMenuButton} disabled={freeze} width={'fit-content'}>
-        {value.label}
+        {option.label}
       </MenuButton>
       <MenuList borderRadius={8}>
         {options.map((item) => (
           <MenuItem
             fontSize={'14px'}
             padding={'12px 16px 12px 8px'}
-            key={item.value}
             _selected={{ bg: 'primary.normal', color: 'white' }}
-            isDisabled={value.value === item.value}
-            _disabled={{backgroundColor: 'rgba(0, 186, 52, 0.10)'}}
-            onClick={() => onChangeValue(item)}
+            key={item.value}
+            isDisabled={option.value === item.value}
+            _disabled={{ backgroundColor: 'rgba(0, 186, 52, 0.10)' }}
+            onClick={() => onChange(item.value)}
           >
-            {value.value === item.value ? <SelectedIcon /> : <Box w={16} h={16} />}
-            <Text ml='8px'>
-            {item.label}
-            </Text>
+            {value === item.value ? <SelectedIcon /> : <Box w={16} h={16} />}
+            <Text ml="8px">{item.label}</Text>
           </MenuItem>
         ))}
       </MenuList>

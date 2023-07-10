@@ -70,10 +70,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const onClose = () => {
     dispatch(setEditCreate(false));
-  }
+  };
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
-  }
+  };
+
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);

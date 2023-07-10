@@ -9,6 +9,9 @@ import {
 import Descend from '@/components/common/SvgIcon/Descend.svg';
 import Ascend from '@/components/common/SvgIcon/Ascend.svg';
 import { Flex, Text } from '@totejs/uikit';
+import { useAppSelector } from '@/store';
+import { selectUploadQueue, UploadFile } from '@/store/slices/global';
+import { find } from 'lodash-es';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -51,21 +54,32 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
   );
 });
 
-export const FailStatus = (
-  <Flex
-    display="inline-flex"
-    bg={'rgba(238, 57, 17, 0.1)'}
-    h={'20px'}
-    borderRadius={'12px'}
-    paddingX={'8px'}
-    alignItems={'center'}
-    justifyContent={'center'}
-  >
-    <Text lineHeight={'24px'} fontSize={'12px'} color="#EE3911" fontWeight={500}>
-      Upload Failed
-    </Text>
-  </Flex>
-);
+// todo refactor
+export const FailStatus = ({ object }: { object: string }) => {
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const queue = useAppSelector(selectUploadQueue(loginAccount));
+
+  const file = find<UploadFile>(
+    queue,
+    (q) => [q.bucketName, ...q.folders, q.file.name].join('/') === object,
+  );
+
+  return (
+    <Flex
+      display="inline-flex"
+      bg={'rgba(238, 57, 17, 0.1)'}
+      h={'20px'}
+      borderRadius={'12px'}
+      paddingX={'8px'}
+      alignItems={'center'}
+      justifyContent={'center'}
+    >
+      <Text lineHeight={'24px'} fontSize={'12px'} color="#EE3911" fontWeight={500}>
+        {file ? file.status : 'Upload Failed'}
+      </Text>
+    </Flex>
+  );
+};
 
 export const SortIcon = {
   descend: <Descend />,

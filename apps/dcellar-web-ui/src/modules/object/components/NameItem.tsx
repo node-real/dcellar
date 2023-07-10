@@ -75,7 +75,7 @@ const Container = styled.div`
     svg {
       flex-shrink: 0;
     }
-    span {
+    span:first-of-type {
       margin: 0 4px;
       min-width: 0;
       white-space: nowrap;

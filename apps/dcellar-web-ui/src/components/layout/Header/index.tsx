@@ -18,6 +18,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
 import { GasList } from './GasList';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
+import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -57,8 +58,9 @@ export const Header = () => {
 
   return (
     <>
+      <GlobalTasks />
       <StreamBalance />
-      <GasList/>
+      <GasList />
       <Flex
         w="340px"
         ref={ref}
