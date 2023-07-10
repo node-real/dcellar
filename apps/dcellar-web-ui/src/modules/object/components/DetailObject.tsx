@@ -396,7 +396,7 @@ export const DetailObject = (props: modalProps) => {
                   editDetail.objectName,
                   spInfo[primarySp.operatorAddress].endpoint,
                 );
-                const remainQuota = quotaRemains(quotaData, editDetail.payloadSize + '');
+                const remainQuota = quotaRemains(quotaData!, editDetail.payloadSize + '');
                 if (!remainQuota) {
                   onClose();
                   return dispatch(
@@ -421,7 +421,7 @@ export const DetailObject = (props: modalProps) => {
                   } else {
                     const params = {
                       primarySp,
-                      objectInfo,
+                      objectInfo: objectInfo!,
                       address: loginAccount,
                     };
                     const operator = primarySp.operatorAddress;

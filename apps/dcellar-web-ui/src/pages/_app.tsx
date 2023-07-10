@@ -14,7 +14,6 @@ import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthConte
 import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
 import { Page } from '@/components/layout/Page';
-import { setupBnbPrice } from '@/store/slices/global';
 import { ReactNode } from 'react';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
@@ -54,7 +53,8 @@ function DcellarApp({ Component, ...rest }: AppProps) {
 // Disable Automatic Static Optimization to make runtime envs work.
 DcellarApp.getInitialProps = wrapper.getInitialAppProps((store) => async (appCtx) => {
   // todo refactor every page fetch policy
-  await Promise.all([store.dispatch(setupStorageProviders()), store.dispatch(setupBnbPrice())]);
+  // only empty cache, then do fetch
+  await store.dispatch(setupStorageProviders());
   const nest = await App.getInitialProps(appCtx);
 
   return { pageProps: { ...nest.pageProps } };

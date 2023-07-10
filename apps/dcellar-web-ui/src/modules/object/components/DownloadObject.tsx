@@ -11,7 +11,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { VisibilityType } from '@/modules/file/type';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { useDispatch } from 'react-redux';
 import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 import { ObjectItem, TStatusDetail, setEditDownload, setStatusDetail } from '@/store/slices/object';
@@ -37,12 +37,10 @@ const renderProp = (key: string, value: string) => {
 };
 
 export const DownloadObject = (props: modalProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
-  const { primarySp, editDownload, bucketName, objectsInfo } = useAppSelector(
-    (root) => root.object,
-  );
+  const { primarySp, editDownload, bucketName } = useAppSelector((root) => root.object);
   const { spInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const [loading, setLoading] = useState(false);
@@ -125,7 +123,7 @@ export const DownloadObject = (props: modalProps) => {
               editDownload.objectName,
               spInfo[primarySp.operatorAddress].endpoint,
             );
-            const remainQuota = quotaRemains(quotaData, editDownload.payloadSize + '');
+            const remainQuota = quotaRemains(quotaData!, editDownload.payloadSize + '');
             if (!remainQuota) {
               onClose();
               return dispatch(
@@ -150,14 +148,20 @@ export const DownloadObject = (props: modalProps) => {
             }
             const params = {
               primarySp,
-              objectInfo,
+              objectInfo: objectInfo!,
               address: loginAccount,
             };
             const operator = primarySp.operatorAddress;
             const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
             const [success, opsError] = await downloadObject(params, seedString);
             if (opsError) return onError(opsError);
-            directDownload !== currentAllowDirectDownload && dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: currentAllowDirectDownload } }));
+            directDownload !== currentAllowDirectDownload &&
+              dispatch(
+                setAccountConfig({
+                  address: loginAccount,
+                  config: { directDownload: currentAllowDirectDownload },
+                }),
+              );
             onClose();
 
             return success;
