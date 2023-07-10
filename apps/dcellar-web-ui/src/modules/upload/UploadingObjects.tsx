@@ -94,9 +94,7 @@ export const UploadingObjects = () => {
                 }
               </Box> */}
               <Box>
-                {task.progress ? (
-                  <ColoredSuccessIcon />
-                ) : (
+                {task.progress !== 100 ? (
                   <CircleProgress
                     progress={task.progress}
                     size={18}
@@ -104,6 +102,8 @@ export const UploadingObjects = () => {
                     circleOneStroke="rgba(0,186,52,0.1)"
                     circleTwoStroke="#00BA34"
                   />
+                ) : (
+                  <ColoredSuccessIcon />
                 )}
               </Box>
             </Flex>
