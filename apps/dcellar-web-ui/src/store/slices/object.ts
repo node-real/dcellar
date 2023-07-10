@@ -25,7 +25,7 @@ export type TLayerAction = {
   onToggle: () => void;
   onClose: () => void;
   onOpen: () => void;
-}
+};
 
 export type TStatusDetail = {
   icon: string;
@@ -34,7 +34,7 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
-}
+};
 
 export type TFileItem = {
   name: string;
@@ -46,18 +46,12 @@ export type TFileItem = {
   txnHash?: string;
 };
 
-export type TEditUpload = {
-  isOpen: boolean;
-  fileInfos: TFileItem[];
-  maxSize: number;
-  visibility: keyof typeof VisibilityType;
-}
-export type TUploading =  {
+export type TUploading = {
   isOpen: boolean;
   isLoading: boolean;
   fileInfos: TFileItem[];
   visibility: keyof typeof VisibilityType;
-}
+};
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -75,8 +69,7 @@ export interface ObjectState {
   editShare: ObjectItem;
   primarySp: SpItem;
   statusDetail: TStatusDetail;
-  files: File[];
-  editUpload: TEditUpload;
+  editUpload: number;
   uploading: TUploading;
 }
 
@@ -86,7 +79,6 @@ const initialState: ObjectState = {
   prefix: '',
   path: '',
   objects: {},
-  // todo fixit, folder has default folder object
   objectsMeta: {},
   objectsInfo: {},
   currentPage: {},
@@ -98,19 +90,13 @@ const initialState: ObjectState = {
   editShare: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   primarySp: {} as SpItem,
-  files: [],
-  editUpload: {
-    isOpen: false,
-    maxSize: 5 * 1024 * 1024,
-    visibility: 'VISIBILITY_TYPE_PRIVATE',
-    fileInfos: [],
-  },
+  editUpload: 0,
   uploading: {
     visibility: 'VISIBILITY_TYPE_PRIVATE',
     isOpen: false,
     fileInfos: [],
     isLoading: false,
-  }
+  },
 };
 
 export const objectSlice = createSlice({
@@ -146,16 +132,13 @@ export const objectSlice = createSlice({
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setFiles(state, { payload }: PayloadAction<File[]>) {
-      state.files = payload;
-    },
-    setEditUpload(state, { payload }: PayloadAction<Partial<TEditUpload>>) {
-      state.editUpload = {...state.editUpload, ...payload};
+    setEditUpload(state, { payload }: PayloadAction<number>) {
+      state.editUpload = payload;
     },
     setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
       state.uploading = {
         ...state.uploading,
-        ...payload
+        ...payload,
       };
     },
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
@@ -287,7 +270,6 @@ export const {
   setEditDownload,
   setPrimarySp,
   setStatusDetail,
-  setFiles,
   setEditShare,
   setEditUpload,
   setUploading,

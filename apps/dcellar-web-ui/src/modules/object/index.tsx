@@ -32,7 +32,6 @@ export const ObjectsPage = () => {
   const [bucketName, ...folders] = items;
   const primarySp = spInfo[bucketInfo[bucketName]?.primary_sp_address];
 
-
   useEffect(() => {
     dispatch(setPrimarySp(primarySp));
     dispatch(setFolders({ bucketName, folders }));
@@ -64,7 +63,7 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <CreateFolder/>
+        <CreateFolder />
         <ObjectBreadcrumb />
         <PanelContent>
           <Tooltip

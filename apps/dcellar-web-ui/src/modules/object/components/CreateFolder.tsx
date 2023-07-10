@@ -62,16 +62,15 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer() {
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { spInfo, sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance } = useAppSelector((root) => root.global.balances?.[address] || {});
+  const { availableBalance } = useAppSelector((root) => root.global.balances?.[address]) || {};
   const isOpen = useAppSelector((root) => root.object.editCreate);
-  console.log('isOpen---22', isOpen);
+  // console.log('isOpen---22', isOpen);
   const onClose = () => {
     dispatch(setEditCreate(false));
-  }
+  };
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
-  }
-
+  };
 
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');

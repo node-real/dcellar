@@ -1,11 +1,11 @@
 import { MenuCloseIcon } from '@totejs/icons';
 import { Button, Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import React, { forwardRef, use, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import PrivateFileIcon from '../file/components/PrivateFileIcon';
 import { ChainVisibilityEnum } from '../file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditUpload } from '@/store/slices/object';
+import { find } from 'lodash-es';
+import { useMount } from 'ahooks';
 const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" />,
@@ -21,11 +21,16 @@ const options = [
   },
 ];
 
-export const AccessItem = () => {
-  const [value, setValue] = useState(options[0]);
+interface AccessItemProps {
+  value: string;
+  onChange: (val: string) => void;
+}
+
+export const AccessItem = ({ value, onChange }: AccessItemProps) => {
+  value = value || options[0].value;
+  const option = find(options, (op) => op.value === value)!;
+
   const freeze = false;
-  const dispatch = useAppDispatch();
-  const { isOpen } = useAppSelector((state) => state.object.editUpload);
   const CustomMenuButton = forwardRef((props: any, ref: any) => {
     const { children, ...restProps } = props;
     return (
@@ -56,21 +61,22 @@ export const AccessItem = () => {
       </Button>
     );
   });
-  const onChangeValue = (value: any) => {
-    setValue(value);
-    dispatch(setEditUpload({ visibility: value.value }));
-  };
+
+  useMount(() => {
+    onChange(value);
+  });
+
   return (
     <Menu matchWidth={false} placement="bottom-start" size={'sm'}>
       <MenuButton as={CustomMenuButton} disabled={freeze} width={'fit-content'}>
-        {value.label}
+        {option.label}
       </MenuButton>
       <MenuList borderRadius={8}>
         {options.map((item) => (
           <MenuItem
             key={item.value}
-            isDisabled={value.value === item.value}
-            onClick={() => onChangeValue(item)}
+            isDisabled={option.value === item.value}
+            onClick={() => onChange(item.value)}
           >
             {item.label}
           </MenuItem>
@@ -81,9 +87,3 @@ export const AccessItem = () => {
 };
 
 export default AccessItem;
-function dispatch(arg0: {
-  payload: Partial<import('@/store/slices/object').TUpload>;
-  type: 'object/setEditUpload';
-}) {
-  throw new Error('Function not implemented.');
-}

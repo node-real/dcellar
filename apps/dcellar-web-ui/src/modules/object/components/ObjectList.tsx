@@ -42,10 +42,11 @@ import { ConfirmDownload } from './ConfirmDownload';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_UNKNOWN } from '@/facade/error';
+import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
 import { downloadObject } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { UploadObjects } from '@/modules/upload/UploadObjects';
+import { selectUploadQueue } from '@/store/slices/global';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -67,12 +68,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const { bucketName, prefix, path } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
-  const { bucketInfo, discontinue, quotas } = useAppSelector((root) => root.bucket);
+  const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
   const { spInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { editDelete, statusDetail, editDetail, editShare, editDownload, editUpload } = useAppSelector((root) => root.object);
-  const { directDownload } = accounts[loginAccount];
+  const { editDelete, statusDetail, editDetail, editShare, editDownload } = useAppSelector(
+    (root) => root.object,
+  );
+
   const ascend = (() => {
     const _name = sortName as keyof ObjectItem;
     const sorted = sortBy(objectList, _name);
@@ -119,7 +122,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const onError = (type: string) => {
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
-    ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
+      ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
     dispatch(setStatusDetail(errorData));
@@ -128,7 +131,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const download = async (object: ObjectItem) => {
     // TODO remove it
     dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: false } }));
-    if (directDownload) {
+    const config = accounts[loginAccount] || {};
+    if (config.directDownload) {
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
         bucketName,
         object.objectName,
@@ -137,13 +141,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       if (quotaData === null) {
         return onError(E_GET_QUOTA_FAILED);
       }
+      if (objectInfo === null) {
+        return onError(E_OBJECT_NAME_EXISTS);
+      }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
         primarySp: primarySpInfo,
         objectInfo,
         address: loginAccount,
-      }
+      };
 
       const operator = primarySpInfo.operatorAddress;
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
@@ -153,7 +160,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     }
 
     return dispatch(setEditDownload(object));
-  }
+  };
 
   const onMenuClick = (menu: string, record: ObjectItem) => {
     switch (menu) {
@@ -198,7 +205,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           '--'
         ) : (
           <>
-            {formatBytes(record.payloadSize)} {record.objectStatus === 0 && FailStatus}
+            {formatBytes(record.payloadSize)}{' '}
+            {record.objectStatus === 0 && <FailStatus object={[path, record.name].join('/')} />}
           </>
         ),
     },
@@ -259,7 +267,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       {!!editDetail?.objectName && <DetailDrawer />}
       {!!editShare?.objectName && <ShareObject />}
       {!!editDownload?.objectName && <ConfirmDownload />}
-      {editUpload?.isOpen && <UploadObjects />}
+      <UploadObjects />
       {discontinue && (
         <DiscontinueBanner
           content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
@@ -280,7 +288,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         onRow={(record) => ({
           onClick: () => {
             const isFolder = record.objectName.endsWith('/');
-            !isFolder && onMenuClick('detail', record)
+            !isFolder && onMenuClick('detail', record);
           },
         })}
       />
