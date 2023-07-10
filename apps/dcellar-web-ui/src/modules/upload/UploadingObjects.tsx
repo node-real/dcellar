@@ -15,6 +15,8 @@ import { formatBytes } from '../file/utils';
 import { sortBy } from 'lodash-es';
 import CircleProgress from '../file/components/CircleProgress';
 import { ColoredSuccessIcon } from '@totejs/icons';
+import { Loading } from '@/components/common/Loading';
+import { UploadFile } from '@/store/slices/global';
 
 export const UploadingObjects = () => {
   const { objectsInfo } = useAppSelector((root) => root.object);
@@ -56,6 +58,35 @@ export const UploadingObjects = () => {
       </>
     );
   }
+  const FileStatus = ({ task }: { task: UploadFile }) => {
+    switch (task.status) {
+      case 'WAIT':
+        return (
+          <Flex justifyContent={'center'} alignItems={'center'}>
+            waiting
+          </Flex>
+        );
+      case 'UPLOAD':
+        return (
+          <CircleProgress
+            progress={task.progress}
+            size={18}
+            strokeWidth={2}
+            circleOneStroke="rgba(0,186,52,0.1)"
+            circleTwoStroke="#00BA34"
+          />
+        );
+      case 'SEAL':
+        return (
+          <Flex alignItems={'center'} justifyContent={'center'}>
+            <Loading />
+            sealing
+          </Flex>
+        );
+      case 'FINISH':
+        return <ColoredSuccessIcon />;
+    }
+  };
 
   return (
     <>
@@ -94,17 +125,7 @@ export const UploadingObjects = () => {
                 }
               </Box> */}
               <Box>
-                {task.progress !== 100 ? (
-                  <CircleProgress
-                    progress={task.progress}
-                    size={18}
-                    strokeWidth={2}
-                    circleOneStroke="rgba(0,186,52,0.1)"
-                    circleTwoStroke="#00BA34"
-                  />
-                ) : (
-                  <ColoredSuccessIcon />
-                )}
+                <FileStatus task={task} />
               </Box>
             </Flex>
           </QListItem>
