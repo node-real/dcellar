@@ -44,6 +44,11 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Account balance is not enough',
     icon: FILE_FAILED_URL,
     desc: 'Account balance is not enough, please recharge.',
+  },
+  NO_PERMISSION: {
+    title: 'No permission',
+    icon: FILE_FAILED_URL,
+    desc: "You don't have this object permission.",
   }
 }
 

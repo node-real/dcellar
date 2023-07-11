@@ -123,6 +123,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const onError = (type: string) => {
+    console.log('type', type);
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];

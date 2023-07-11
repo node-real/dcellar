@@ -21,6 +21,7 @@ export const E_OBJECT_NAME_CONTAINS_SLASH = 'OBJECT_NAME_CONTAINS_SLASH';
 export const E_CAL_OBJECT_HASH = 'CAL_OBJECT_HASH';
 export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
+export const E_NO_PERMISSION = 'NO_PERMISSION';
 export declare class BroadcastTxError extends Error {
   readonly code: number;
   readonly codespace: string;
@@ -49,6 +50,9 @@ export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
 export const downloadPreviewFault = (e: any): ErrorResponse => {
   if (e?.response?.status === 500) {
     return [null, E_OFF_CHAIN_AUTH];
+  }
+  if (e?.response?.status === 401) {
+    return [null, E_NO_PERMISSION];
   }
   return [null, E_UNKNOWN_ERROR];
 };

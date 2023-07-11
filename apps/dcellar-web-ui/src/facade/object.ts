@@ -107,6 +107,7 @@ export const downloadObject = async (
   params: DownloadPreviewParams,
   seedString: string,
 ): Promise<[boolean, ErrorMsg?]> => {
+  debugger;
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
   const { visibility, bucketName, objectName } = objectInfo;
