@@ -21,6 +21,8 @@ type TGas = {
   gasList: TGasList;
 };
 
+export type TFileStatus = 'CHECK' | 'WAIT' | 'HASH' | 'READY' | 'SEAL' | 'FINISH' | 'UPLOAD';
+
 export type HashFile = {
   file: File;
   status: 'CHECK' | 'WAIT' | 'HASH' | 'READY';
@@ -39,7 +41,7 @@ export type UploadFile = {
   id: number;
   sp: string;
   file: HashFile;
-  status: 'WAIT' | 'UPLOAD' | 'SEAL' | 'FINISH';
+  status: TFileStatus;
   createHash: string;
   msg: string;
   progress: number;

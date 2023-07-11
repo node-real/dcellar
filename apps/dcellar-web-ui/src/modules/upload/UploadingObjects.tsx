@@ -9,7 +9,7 @@ import {
   QListItem,
   Text,
 } from '@totejs/uikit';
-import { FILE_UPLOAD_URL } from '@/modules/file/constant';
+import { FILE_UPLOAD_STATIC_URL } from '@/modules/file/constant';
 import { useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { sortBy } from 'lodash-es';
@@ -17,6 +17,7 @@ import CircleProgress from '../file/components/CircleProgress';
 import { ColoredSuccessIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
+import { EllipsisText } from '@/components/common/EllipsisText';
 
 export const UploadingObjects = () => {
   const { objectsInfo } = useAppSelector((root) => root.object);
@@ -51,7 +52,7 @@ export const UploadingObjects = () => {
             alignItems={'center'}
             justifyContent={'center'}
           >
-            <Image alt="upload" src={FILE_UPLOAD_URL} width={'120px'} />
+            <Image alt="upload" src={FILE_UPLOAD_STATIC_URL} width={'120px'} />
             <Text marginTop={'12px'}>You don't have upload tasks.</Text>
           </Flex>
         </QDrawerBody>
@@ -62,9 +63,9 @@ export const UploadingObjects = () => {
     switch (task.status) {
       case 'WAIT':
         return (
-          <Flex justifyContent={'center'} alignItems={'center'}>
+          <>
             waiting
-          </Flex>
+          </>
         );
       case 'UPLOAD':
         return (
@@ -74,17 +75,19 @@ export const UploadingObjects = () => {
             strokeWidth={2}
             circleOneStroke="rgba(0,186,52,0.1)"
             circleTwoStroke="#00BA34"
-          />
+            />
         );
       case 'SEAL':
         return (
-          <Flex alignItems={'center'} justifyContent={'center'}>
+          <>
             <Loading />
             sealing
-          </Flex>
+          </>
         );
       case 'FINISH':
         return <ColoredSuccessIcon />;
+      default:
+        return null;
     }
   };
 
@@ -97,25 +100,23 @@ export const UploadingObjects = () => {
           Current Upload
         </Box>
         {queue.map((task) => (
-          <QListItem key={task.id} paddingX={'6px'} right={null}>
+          <QListItem cursor={'default'} _hover={{}} maxW={'520px'} key={task.id} paddingX={'6px'} right={null}>
             <Flex marginLeft={'12px'} fontSize={'12px'} alignItems={'center'}>
-              <Box>
-                <Box>{task.file.name}</Box>
+              <Box maxW='200px'>
+                <EllipsisText marginRight={'12px'}>{task.file.name}</EllipsisText>
                 {task.msg ? (
-                  <Box color={'red'}>{task.msg}</Box>
+                  <EllipsisText color={'red'}>{task.msg}</EllipsisText>
                 ) : (
-                  <Box>{formatBytes(task.file.size)}</Box>
+                  <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
                 )}
               </Box>
-              <Flex
-                fontSize={'12px'}
-                color="readable.tertiary"
-                justifyContent={'center'}
-                alignItems={'center'}
-                flex={1}
+              <EllipsisText
+                maxW='200px'
+                textAlign={'center'}
+                marginRight={'12px'}
               >
                 {`${[task.bucketName, ...task.folders].join('/')}/`}
-              </Flex>
+              </EllipsisText>
               {/* <Box>create hash: {task.createHash}</Box>
               <Box>
                 seal hash:{' '}
@@ -124,9 +125,9 @@ export const UploadingObjects = () => {
                     ?.seal_tx_hash
                 }
               </Box> */}
-              <Box>
+              <Flex flex={1} justifyContent={'flex-end'} alignItems={'center'}>
                 <FileStatus task={task} />
-              </Box>
+              </Flex>
             </Flex>
           </QListItem>
         ))}

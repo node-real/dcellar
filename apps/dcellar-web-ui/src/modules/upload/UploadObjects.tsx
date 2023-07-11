@@ -58,6 +58,7 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { reverseVisibilityType } from '@/utils/constant';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { duplicateName } from '@/utils/object';
+import { EllipsisText } from '@/components/common/EllipsisText';
 
 const MAX_SIZE = 256;
 
@@ -243,25 +244,17 @@ export const UploadObjects = () => {
             </TabPanels>
           </Tabs>
           <Flex mt="32px" flexDirection={'column'} alignItems={'center'} display={'flex'}>
-            <QListItem paddingX={'6px'} right={null}>
-              <Flex marginLeft={'12px'} fontSize={'12px'}>
-                <Box>
-                  <Box>{selectedFile.name}</Box>
+            <QListItem cursor={'default'} _hover={{}} maxW={'520px'} paddingX={'6px'} right={null}>
+              <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
+                <Box maxW={'300px'}>
+                  <EllipsisText marginRight={'12px'}>{selectedFile.name}</EllipsisText>
                   {selectedFile.msg ? (
-                    <Box color={'red'}>{selectedFile.msg}</Box>
+                    <EllipsisText color={'red'}>{selectedFile.msg}</EllipsisText>
                   ) : (
-                    <Box>{formatBytes(selectedFile.size)}</Box>
+                    <EllipsisText>{formatBytes(selectedFile.size)}</EllipsisText>
                   )}
                 </Box>
-                <Flex
-                  fontSize={'12px'}
-                  color="readable.tertiary"
-                  justifyContent={'flex-end'}
-                  alignItems={'center'}
-                  flex={1}
-                >
-                  {`${path}/`}
-                </Flex>
+                <EllipsisText maxW='200px' textAlign={'right'} flex={1}>{`${path}/`}</EllipsisText>
               </Flex>
             </QListItem>
           </Flex>

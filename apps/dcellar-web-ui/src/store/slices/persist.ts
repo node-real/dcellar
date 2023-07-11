@@ -42,9 +42,9 @@ const initialState: PersistState = {
   loginAccount: '',
   faultySps: [],
   bucketSortBy: ['create_at', 'descend'],
-  bucketPageSize: 20,
+  bucketPageSize: 50,
   objectSortBy: ['createAt', 'descend'],
-  objectPageSize: 20,
+  objectPageSize: 50,
 };
 
 export const persistSlice = createSlice({
