@@ -24,7 +24,6 @@ import {
   toast,
   Tooltip,
   useDisclosure,
-  Image,
   keyframes,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
