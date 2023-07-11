@@ -88,7 +88,7 @@ secondWorkers = _initSecondWorkers({
 });
 
 export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
-  if (!file) return;
+  if (!file) return {} as THashResult;
 
   const taskId = Date.now();
   let checkSumRes: THashResult;
@@ -158,7 +158,7 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
     console.log('check sum error', e);
   }
 
-  return checkSumRes;
+  return checkSumRes!;
 };
 
 Comlink.expose({

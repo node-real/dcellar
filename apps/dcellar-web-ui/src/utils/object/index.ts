@@ -13,11 +13,10 @@ export const duplicateName = (name: string, objects: ObjectItem[]) => {
 const StringIsNumber = (value: string) => isNaN(Number(value)) === false;
 
 export const convertVisibility = () => {
-  const reverseVisibilityType: TReverseVisibilityType = {} as TReverseVisibilityType;
+  const reverseVisibilityType: any = {} as TReverseVisibilityType;
   Object.keys(VisibilityType)
     .filter(StringIsNumber)
-    // @ts-ignore
-    .forEach((item: TKey) => {
+    .forEach((item: any) => {
       reverseVisibilityType[item] = VisibilityType[item];
     });
 
