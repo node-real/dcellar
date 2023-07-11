@@ -29,6 +29,7 @@ import { selectBalance } from '@/store/slices/global';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
+import { getLockFee } from '@/utils/wallet';
 
 interface modalProps {
   refetch: () => void;
@@ -96,7 +97,9 @@ export const DeleteObject = ({refetch}: modalProps) => {
       payloadSize: Long.fromInt(editDelete.payloadSize),
       primarySpAddress: primarySp.operatorAddress,
     }
+    const lockFeeInBNB = await getLockFee(editDelete.payloadSize, primarySp.operatorAddress);
     const [data, error] = await queryLockFee(params);
+    console.log('lockFeeInBNB', lockFeeInBNB, formatLockFee(data?.amount));
     if (error) {
       toast.error({
         description: error || 'Query lock fee failed!'

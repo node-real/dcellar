@@ -43,7 +43,7 @@ import { getDomain } from '@/utils/getDomain';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { setEditUpload, setStatusDetail } from '@/store/slices/object';
+import { TStatusDetail, setEditUpload, setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import {
@@ -183,6 +183,7 @@ export const UploadObjects = () => {
           icon: FILE_FAILED_URL,
           description: 'Sorry, there’s something wrong when uploading the file.',
           buttonText: BUTTON_GOT_IT,
+          buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           errorText: 'Error message: ' + (error || res?.rawLog) ?? '',
         }),
       );
