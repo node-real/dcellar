@@ -24,5 +24,5 @@ export const convertVisibility = () => {
 }
 
 export const formatLockFee = (lockFee: string | undefined) => {
-  return String(Number(lockFee || '') / Math.pow(10, 19));
+  return String(Number(lockFee || '') / Math.pow(10, 18));
 };
