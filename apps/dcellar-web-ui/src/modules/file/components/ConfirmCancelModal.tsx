@@ -21,8 +21,9 @@ import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { selectBalance } from '@/store/slices/balance';
 
 interface modalProps {
   title?: string;
@@ -72,11 +73,12 @@ const renderFee = (
 };
 
 export const ConfirmCancelModal = (props: modalProps) => {
+  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
 
   const {
     title = 'Cancel Uploading',
@@ -97,6 +99,12 @@ export const ConfirmCancelModal = (props: modalProps) => {
     outsideLoading,
     setStatusModalErrorText,
   } = props;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
+
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
       setButtonDisabled(false);

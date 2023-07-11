@@ -1,4 +1,4 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
+import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
@@ -21,14 +21,13 @@ import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { ObjectItem, TStatusDetail, setEditCancel, setStatusDetail, setupListObjects } from '@/store/slices/object';
-import { useDispatch } from 'react-redux';
-import { useAppSelector } from '@/store';
+import { ObjectItem, setEditCancel, setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { getSpOffChainData } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 interface modalProps {
   refetch: () => void;
@@ -59,38 +58,44 @@ const renderFee = (
   );
 };
 
-export const CancelObject = ({refetch}: modalProps) => {
-  const dispatch = useDispatch();
+export const CancelObject = ({ refetch }: modalProps) => {
+  const dispatch = useAppDispatch();
   const [lockFee, setLockFee] = useState('');
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { gasList } = useAppSelector((root) => root.global.gasHub);
-  const { bnb: { price: bnbPrice }, balances
-  } = useAppSelector((root) => root.global)
-  const {availableBalance} = balances[loginAccount]
-  const {bucketName, editCancel, primarySp} = useAppSelector((root) => root.object);
+  const {
+    bnb: { price: bnbPrice },
+  } = useAppSelector((root) => root.global);
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bucketName, editCancel, primarySp } = useAppSelector((root) => root.object);
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const isOpen = !!editCancel.objectName;
   const onClose = () => {
-    dispatch(setEditCancel({} as ObjectItem))
-  }
+    dispatch(setEditCancel({} as ObjectItem));
+  };
   const onStatusDetailClose = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 
   const simulateGasFee = gasList[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
 
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(loginAccount));
+  }, [isOpen, dispatch, loginAccount]);
+
   useAsyncEffect(async () => {
     const params = {
       createAt: Long.fromInt(editCancel.createAt),
       payloadSize: Long.fromInt(editCancel.payloadSize),
       primarySpAddress: primarySp.operatorAddress,
-    }
+    };
     const [data, error] = await queryLockFee(params);
     if (error) {
       toast.error({
-        description: error || 'Query lock fee failed!'
+        description: error || 'Query lock fee failed!',
       });
       return;
     }
@@ -124,7 +129,7 @@ export const CancelObject = ({refetch}: modalProps) => {
       buttonText: BUTTON_GOT_IT,
       errorText: 'Error message: ' + error?.message ?? '',
       buttonOnClick: onStatusDetailClose,
-    })
+    });
   };
 
   return (
@@ -196,13 +201,15 @@ export const CancelObject = ({refetch}: modalProps) => {
             try {
               setLoading(true);
               onClose();
-              dispatch(setStatusDetail({
-                icon: PENDING_ICON_URL,
-                title: FILE_TITLE_CANCELING,
-                description: FILE_STATUS_CANCELING,
-                buttonText: '',
-                errorText: '',
-              }));
+              dispatch(
+                setStatusDetail({
+                  icon: PENDING_ICON_URL,
+                  title: FILE_TITLE_CANCELING,
+                  description: FILE_STATUS_CANCELING,
+                  buttonText: '',
+                  errorText: '',
+                }),
+              );
               const client = await getClient();
               const cancelObjectTx = await client.object.cancelCreateObject({
                 bucketName,

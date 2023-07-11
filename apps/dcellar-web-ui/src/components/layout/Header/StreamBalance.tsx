@@ -1,11 +1,5 @@
 import { useMount, useThrottleEffect } from 'ahooks';
-import {
-  selectBalance,
-  setBalance,
-  setupBalance,
-  setupBnbPrice,
-  updateStaticBalance,
-} from '@/store/slices/global';
+import { setupBnbPrice } from '@/store/slices/global';
 import BigNumber from 'bignumber.js';
 import { useBalance } from 'wagmi';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -13,6 +7,12 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { filterSps } from '@/store/slices/sp';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import {
+  selectBalance,
+  setBalance,
+  setupBalance,
+  updateStaticBalance,
+} from '@/store/slices/balance';
 
 const MINIMUM_ALLOWED_CHANGED_BALANCE = '0.000005';
 
@@ -38,6 +38,7 @@ export function StreamBalance() {
   });
 
   useEffect(() => {
+    // update metamask
     refetch();
   }, [asPath, refetch]);
 
@@ -55,7 +56,7 @@ export function StreamBalance() {
     const _availableBalance = BigNumber(availableBalance);
     if (_metamaskValue.minus(_availableBalance).abs().gte(MINIMUM_ALLOWED_CHANGED_BALANCE))
       dispatch(setupBalance(address, metamaskValue));
-  }, [metamaskValue, availableBalance]);
+  }, [metamaskValue]);
 
   useThrottleEffect(() => {
     const _availableBalance = BigNumber(availableBalance);

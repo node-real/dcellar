@@ -1,24 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BnbPriceInfo, getDefaultBnbInfo, getBnbPrice } from '@/facade/common';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { getAccountBalance } from '@/facade/account';
-import { getStreamRecord } from '@/facade/payment';
-import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
 import { find, keyBy } from 'lodash-es';
 import { setupListObjects } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-
-type Balance = {
-  amount: string;
-  denom: string;
-  netflowRate: string;
-  latestStaticBalance: string;
-  lockFee: string;
-  availableBalance: string;
-  useMetamaskValue: boolean;
-};
+import { defaultBalance } from '@/store/slices/balance';
 
 type TGasList = {
   [msgTypeUrl: string]: {
@@ -32,18 +20,6 @@ type TGas = {
   gasPrice: number;
   gasList: TGasList;
 };
-
-export const getDefaultBalance = () => ({
-  amount: '0',
-  denom: 'BNB',
-  netflowRate: '0',
-  latestStaticBalance: '0',
-  lockFee: '0',
-  availableBalance: '0',
-  useMetamaskValue: false,
-});
-
-export const defaultBalance = getDefaultBalance();
 
 export type HashFile = {
   file: File;
@@ -71,27 +47,35 @@ export type UploadFile = {
 
 export interface GlobalState {
   bnb: BnbPriceInfo;
-  balances: Record<string, Balance>;
   gasHub: TGas;
   hashQueue: HashFile[]; // max length two, share cross different accounts.
   uploadQueue: Record<string, UploadFile[]>;
+  _availableBalance: string; // using static value, avoid rerender
+  _lockFee: string;
 }
 
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
-  balances: {},
   gasHub: {
     gasPrice: 5e-9,
     gasList: {},
   },
   hashQueue: [],
   uploadQueue: {},
+  _availableBalance: '0',
+  _lockFee: '0',
 };
 
 export const globalSlice = createSlice({
   name: 'global',
   initialState,
   reducers: {
+    setTmpAvailableBalance(state, { payload }: PayloadAction<string>) {
+      state._availableBalance = payload;
+    },
+    setTmpLockFee(state, { payload }: PayloadAction<string>) {
+      state._lockFee = payload;
+    },
     updateUploadMsg(
       state,
       { payload }: PayloadAction<{ account: string; id: number; msg: string }>,
@@ -129,7 +113,10 @@ export const globalSlice = createSlice({
     updateHashQueue(state) {
       state.hashQueue = state.hashQueue.filter((task) => task.status === 'HASH');
     },
-    updateHashChecksum(state, { payload }: PayloadAction<{ id: number; checksum: string[], lockFee: string }>) {
+    updateHashChecksum(
+      state,
+      { payload }: PayloadAction<{ id: number; checksum: string[]; lockFee: string }>,
+    ) {
       const { id, checksum, lockFee } = payload;
       const queue = state.hashQueue;
       const task = find<HashFile>(queue, (t) => t.id === id);
@@ -181,16 +168,6 @@ export const globalSlice = createSlice({
     setBnbInfo(state, { payload }: PayloadAction<BnbPriceInfo>) {
       state.bnb = payload;
     },
-    setBalance(state, { payload }: PayloadAction<{ address: string; balance: Partial<Balance> }>) {
-      const { address, balance } = payload;
-      const _config = state.balances[address];
-      state.balances[address] = { ..._config, ...balance };
-    },
-    updateStaticBalance(state, { payload }: PayloadAction<{ address: string; offset: string }>) {
-      const { address, offset } = payload;
-      const pre = state.balances[address].latestStaticBalance;
-      state.balances[address].latestStaticBalance = BigNumber(pre).plus(offset).toString();
-    },
     setGasList(state, { payload }: PayloadAction<QueryMsgGasParamsResponse>) {
       const { gasPrice } = state.gasHub;
       const gasList = keyBy(
@@ -213,8 +190,6 @@ export const globalSlice = createSlice({
 
 export const {
   setBnbInfo,
-  setBalance,
-  updateStaticBalance,
   updateHashStatus,
   addToHashQueue,
   updateHashTaskMsg,
@@ -224,6 +199,8 @@ export const {
   updateUploadStatus,
   updateUploadProgress,
   updateUploadMsg,
+  setTmpAvailableBalance,
+  setTmpLockFee,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
@@ -232,11 +209,6 @@ export const selectUploadQueue = (address: string) => (root: AppState) => {
 };
 
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
-
-export const selectBalances = (state: AppState) => state.global.balances;
-
-export const selectBalance = (address: string) => (state: AppState) =>
-  selectBalances(state)[address] || defaultBalance;
 
 export const selectHashTask = (state: AppState) => {
   const queue = state.global.hashQueue;
@@ -299,25 +271,18 @@ export const addTaskToUploadQueue =
     dispatch(addToUploadQueue(_task));
   };
 
-export const setupBalance =
-  (address: string, metamaskValue = '0') =>
-  async (dispatch: AppDispatch) => {
-    const [balance, { netflowRate, latestStaticBalance, lockFee, useMetamaskValue }] =
-      await Promise.all([getAccountBalance({ address }), getStreamRecord(address)]);
-    const _amount = BigNumber(balance.amount).dividedBy(10 ** 18);
-    const availableBalance = useMetamaskValue
-      ? metamaskValue
-      : _amount.plus(BigNumber.max(0, latestStaticBalance)).toString();
+export const setupTmpAvailableBalance =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { balances } = getState().balance;
+    const balance = balances[address] || defaultBalance;
+    dispatch(setTmpAvailableBalance(balance.availableBalance));
+  };
 
-    const _balance = {
-      ...balance,
-      netflowRate,
-      latestStaticBalance,
-      lockFee,
-      useMetamaskValue,
-      availableBalance,
-    };
-    dispatch(setBalance({ address, balance: _balance }));
+export const setupTmpLockFee =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { balances } = getState().balance;
+    const balance = balances[address] || defaultBalance;
+    dispatch(setTmpLockFee(balance.lockFee));
   };
 
 export default globalSlice.reducer;

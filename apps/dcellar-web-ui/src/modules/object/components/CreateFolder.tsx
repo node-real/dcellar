@@ -40,32 +40,31 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
 import { E_USER_REJECT_STATUS_NUM, broadcastFault, simulateFault } from '@/facade/error';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { useDispatch } from 'react-redux';
 import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
 import { duplicateName } from '@/utils/object';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 interface modalProps {
   refetch: () => void;
 }
 
-export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetch}) {
-  const dispatch = useDispatch();
+export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refetch }) {
+  const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, primarySp} = useAppSelector((root) => root.object);
+  const { bucketName, folders, objects, path, primarySp } = useAppSelector((root) => root.object);
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
   const { sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const balances = useAppSelector((root) => root.global.balances);
-  const { availableBalance } = balances?.[address] || {};
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const onClose = () => {
@@ -79,6 +78,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
 
   const getPath = useCallback(
     (name: string) => {
@@ -179,14 +183,16 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
       return;
     }
     if (txRes?.code !== 0) {
-      dispatch(setStatusDetail({
-        icon: FILE_FAILED_URL,
-        title: FOLDER_CREATE_FAILED,
-        description: FOLDER_DESCRIPTION_CREATE_ERROR,
-        buttonText: BUTTON_GOT_IT,
-        errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
-        buttonOnClick: onCloseStatusModal,
-      }))
+      dispatch(
+        setStatusDetail({
+          icon: FILE_FAILED_URL,
+          title: FOLDER_CREATE_FAILED,
+          description: FOLDER_DESCRIPTION_CREATE_ERROR,
+          buttonText: BUTTON_GOT_IT,
+          errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
+          buttonOnClick: onCloseStatusModal,
+        }),
+      );
       return;
     }
     const { transactionHash } = txRes;
@@ -210,7 +216,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({refetc
       errors.push('Cannot consist of slash(/).');
     }
     if (duplicateName(value, folderList)) {
-      errors.push('Folder name already exists.')
+      errors.push('Folder name already exists.');
     }
     setFormErrors(errors);
 

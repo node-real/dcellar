@@ -7,14 +7,13 @@ import {
   InputGroup,
   InputRightElement,
   Link,
+  QDrawer,
+  QDrawerBody,
+  QDrawerCloseButton,
+  QDrawerFooter,
+  QDrawerHeader,
   Text,
   toast,
-  QDrawer,
-  QDrawerCloseButton,
-  QDrawerHeader,
-  QDrawerBody,
-  QDrawerFooter,
-  Modal,
 } from '@totejs/uikit';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -33,7 +32,6 @@ import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
 import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
-import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
@@ -46,7 +44,8 @@ import { ChainVisibilityEnum } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { selectBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 type Props = {
   isOpen: boolean;
@@ -85,12 +84,16 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
   const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();
-  const { availableBalance } = useAppSelector(selectBalance(address));
-  const balance = BigNumber(availableBalance || 0);
+  const { _availableBalance } = useAppSelector((root) => root.global);
+  const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
