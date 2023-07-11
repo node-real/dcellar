@@ -6,6 +6,7 @@ import {
   downloadWithProgress,
   formatBytes,
   saveFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -45,6 +46,7 @@ interface modalProps {
   shareLink?: string;
   remainingQuota: number | null;
   visibility?: ChainVisibilityEnum;
+  isCurrentUser: boolean;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -67,6 +69,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
   const [hasChangedDownload, setHasChangedDownload] = useState(false);
   const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
+
   const {
     title = 'Confirm Download',
     onClose,
@@ -85,6 +88,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
     shareLink,
     remainingQuota,
     visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
+    isCurrentUser,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -168,6 +172,19 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               }
               setLoading(false);
               // only public file can be direct download
+              if (
+                visibility !== ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ &&
+                !isCurrentUser
+              ) {
+                const link = getBuiltInLink(
+                  primarySp.endpoint,
+                  bucketName,
+                  fileInfo.name,
+                  'download',
+                );
+                window.open(link, '_blank');
+                return;
+              }
               if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(shareLink);
               } else {
@@ -180,6 +197,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                   setOpenAuthModal();
                   return;
                 }
+
                 const result = await downloadWithProgress({
                   bucketName,
                   objectName: name,

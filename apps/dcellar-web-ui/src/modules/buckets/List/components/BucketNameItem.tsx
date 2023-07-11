@@ -1,6 +1,6 @@
 import { Box, Flex, Text } from '@totejs/uikit'
 import React from 'react'
-import FileIcon from '@/public/images/icons/file.svg';
+import FileIcon from '@/public/images/icons/bucket_icon.svg';
 import { formatFullTime } from '@/utils/time';
 import { DiscontinueNotice } from './DiscontinueNotice';
 

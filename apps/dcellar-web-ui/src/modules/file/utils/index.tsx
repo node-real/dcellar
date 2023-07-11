@@ -154,6 +154,14 @@ const downloadWithProgress = async ({
     throw error;
   }
 };
+const getBuiltInLink = (
+  primarySp: string,
+  bucketName: string,
+  fileName: string,
+  type: 'download' | 'view',
+) => {
+  return `${primarySp}/${type}/${bucketName}/${fileName}`;
+};
 
 const contentTypeToExtension = (contentType = '', fileName?: string) => {
   if (fileName?.endsWith('/')) return 'FOLDER';
@@ -406,4 +414,5 @@ export {
   saveFileByAxiosResponse,
   truncateFileName,
   renderPrelockedFeeValue,
+  getBuiltInLink
 };
