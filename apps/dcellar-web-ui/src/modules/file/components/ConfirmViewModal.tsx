@@ -38,6 +38,7 @@ interface modalProps {
   viewLink?: string;
   remainingQuota: number | null;
   visibility?: ChainVisibilityEnum;
+  isCurrentUser: boolean;
 }
 
 const renderProp = (key: string, value: string) => {
@@ -79,6 +80,7 @@ export const ConfirmViewModal = (props: modalProps) => {
     viewLink,
     remainingQuota,
     visibility = ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
+    isCurrentUser,
   } = props;
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { name, size = '0' } = fileInfo;
@@ -154,7 +156,7 @@ export const ConfirmViewModal = (props: modalProps) => {
                 dispatch(setAccountConfig({ address, config: { directDownload: true } }));
               }
               setLoading(false);
-              if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
+              if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ || !isCurrentUser) {
                 window.open(viewLink, '_blank');
               } else {
                 // viewFile({ bucketName, objectName: object_name, endpoint });

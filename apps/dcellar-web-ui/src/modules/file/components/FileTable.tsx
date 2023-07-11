@@ -24,6 +24,8 @@ import {
   toast,
   Tooltip,
   useDisclosure,
+  Image,
+  keyframes,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
 import { DownloadIcon } from '@totejs/icons';
@@ -66,6 +68,7 @@ import {
   getQuota,
   saveFileByAxiosResponse,
   viewFileByAxiosResponse,
+  getBuiltInLink,
 } from '@/modules/file/utils';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { ShareModal } from '@/modules/file/components/ShareModal';
@@ -154,24 +157,56 @@ const UploadProgress = (props: { progress: number }) => {
   let { progress = 0 } = props;
   // As progress will stay put for a while in 100%, user might get confused,
   // so we hold the progress to 99% at mostbg
-  if (progress >= 99) {
-    progress = 99;
-  }
   if (progress < 0) {
     progress = 0;
   }
+  const loading = keyframes`
+  0%,
+  100% {
+    transform: translateX(-10px);
+
+  }
+
+  50% {
+    transform: translateX(70px);
+  }
+`;
+
   return (
     <Flex alignItems={'center'}>
       <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
-        <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
+        {progress > 99 ? (
+          <Flex
+            w={`30%`}
+            bg={'#1184EE'}
+            borderRadius={'28px'}
+            animation={`${loading} 1.5s linear infinite`}
+          />
+        ) : (
+          <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
+        )}
       </Flex>
-      <Text
-        color={'readable.normal'}
-        ml={'4px'}
-        fontSize={'12px'}
-        lineHeight={'15px'}
-        fontWeight={400}
-      >{`${progress}%`}</Text>
+      {progress > 99 ? (
+        <Box
+          color={'readable.normal'}
+          ml={'4px'}
+          fontSize={'12px'}
+          lineHeight={'15px'}
+          fontWeight={400}
+          borderRadius={4}
+          padding={4}
+        >
+          Sealing...
+        </Box>
+      ) : (
+        <Text
+          color={'readable.normal'}
+          ml={'4px'}
+          fontSize={'12px'}
+          lineHeight={'15px'}
+          fontWeight={400}
+        >{`${progress}%`}</Text>
+      )}
     </Flex>
   );
 };
@@ -262,6 +297,7 @@ export const FileTable = (props: fileListProps) => {
   const [currentVisibility, setCurrentVisibility] = useState(
     ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED,
   );
+  const [currentUser, setIsCurrentUser] = useState(true);
   const { width, height } = useWindowSize();
   const router = useRouter();
   const containerWidth = useMemo(() => {
@@ -675,11 +711,21 @@ export const FileTable = (props: fileListProps) => {
           const deleteText = isSealed ? 'Delete' : 'Cancel';
           const showFileIcon = visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
           const isCurrentUser = rowData.owner === address;
+
           const isFolder = objectName.endsWith('/');
           if (isUploading || (!isCurrentUser && !isSealed)) return <></>;
 
           const onDownload = async (url?: string) => {
             try {
+              console.log(visibility);
+              if (
+                !isCurrentUser &&
+                visibility !== ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
+              ) {
+                const link = getBuiltInLink(primarySp.endpoint, bucketName, objectName, 'download');
+                window.open(link, '_blank');
+                return;
+              }
               // If we pass the download url, then we are obliged to directly download it rather than show a modal
               if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(url);
@@ -699,6 +745,7 @@ export const FileTable = (props: fileListProps) => {
                 // setStatusModalButtonText('');
                 // onStatusModalOpen();
                 // await downloadFile({ bucketName, objectName, endpoint });
+
                 const result = await downloadWithProgress({
                   bucketName,
                   objectName,
@@ -708,7 +755,7 @@ export const FileTable = (props: fileListProps) => {
                   seedString,
                 });
                 saveFileByAxiosResponse(result, objectName);
-                // onStatusModalClose();
+                onStatusModalClose();
               }
             } catch (error: any) {
               if (error?.response?.status === 500) {
@@ -755,6 +802,7 @@ export const FileTable = (props: fileListProps) => {
               setFileInfo({ name: objectName, size: payloadSize, id: objectId });
               setShareLink(url);
               setCurrentVisibility(visibility);
+              setIsCurrentUser(isCurrentUser);
               onConfirmDownloadModalOpen();
               setRemainingQuota(null);
               const quotaData = await getQuota(bucketName, primarySp.endpoint);
@@ -817,6 +865,7 @@ export const FileTable = (props: fileListProps) => {
                         <MenuIcon size="md" />
                       </MenuButton>
                     </GAClick>
+
                     <MenuList w={'120px'}>
                       <GAShow name="dc.file.list_menu.0.show" isShow={isOpen} />
                       {isSealed && isCurrentUser && (
@@ -1059,9 +1108,13 @@ export const FileTable = (props: fileListProps) => {
                   object_name,
                   payload_size,
                   id: object_id,
+                  owner,
                 } = row.original;
                 const encodedObjectName = encodeObjectName(object_name);
                 const canView = object_status === OBJECT_SEALED_STATUS;
+                const isPublic =
+                  owner === address ||
+                  visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ;
                 const isFolder = object_name?.endsWith('/') ?? false;
 
                 return (
@@ -1095,10 +1148,12 @@ export const FileTable = (props: fileListProps) => {
                         const previewLink = encodeURI(
                           `${primarySp.endpoint}/view/${bucketName}/${encodedObjectName}`,
                         );
+
                         if (!allowDirectView) {
                           setFileInfo({ name: object_name, size: payload_size, id: object_id });
                           setViewLink(previewLink);
                           setCurrentVisibility(visibility);
+                          setIsCurrentUser(owner === address);
                           onConfirmViewModalOpen();
                           setRemainingQuota(null);
                           const quotaData = await getQuota(bucketName, primarySp.endpoint);
@@ -1106,6 +1161,10 @@ export const FileTable = (props: fileListProps) => {
                             const { freeQuota, readQuota, consumedQuota } = quotaData;
                             setRemainingQuota(readQuota + freeQuota - consumedQuota);
                           }
+                          return;
+                        }
+                        if (!isPublic) {
+                          window.open(previewLink, '_blank');
                           return;
                         }
                         if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
@@ -1216,6 +1275,7 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalButtonText={setStatusModalButtonText}
         shareLink={shareLink}
         remainingQuota={remainingQuota}
+        isCurrentUser={currentUser}
       />
       <ConfirmViewModal
         onClose={onConfirmViewModalClose}
@@ -1235,6 +1295,7 @@ export const FileTable = (props: fileListProps) => {
         setStatusModalErrorText={setStatusModalErrorText}
         setStatusModalButtonText={setStatusModalButtonText}
         remainingQuota={remainingQuota}
+        isCurrentUser={currentUser}
       />
       <ConfirmDeleteModal
         onClose={onConfirmDeleteModalClose}
