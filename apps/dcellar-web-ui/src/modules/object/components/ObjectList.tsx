@@ -131,8 +131,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const download = async (object: ObjectItem) => {
-    // TODO remove it
-    dispatch(setAccountConfig({ address: loginAccount, config: { directDownload: false } }));
     const config = accounts[loginAccount] || {};
     if (config.directDownload) {
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(

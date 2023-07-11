@@ -7,7 +7,6 @@ import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
 import { find, keyBy } from 'lodash-es';
-import { gasRes } from './tmp';
 import { setupListObjects } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 
@@ -255,10 +254,8 @@ export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
 
 export const setupGasList = () => async (dispatch: AppDispatch) => {
   const client = await getClient();
-  // TODO recover it
-  // const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [] });
-  // console.log('res', JSON.stringify(res));
-  dispatch(globalSlice.actions.setGasList(gasRes));
+  const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [] });
+  dispatch(globalSlice.actions.setGasList(res));
 };
 
 export const uploadQueueAndRefresh =
