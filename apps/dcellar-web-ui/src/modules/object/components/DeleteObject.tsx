@@ -1,5 +1,5 @@
 import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
-import { useAccount, useNetwork } from 'wagmi';
+import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
@@ -24,12 +24,10 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
-import { Long, MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { selectBalance } from '@/store/slices/global';
+import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
-import { queryLockFee } from '@/facade/object';
-import { formatLockFee } from '@/utils/object';
 import { getLockFee } from '@/utils/wallet';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 interface modalProps {
   refetch: () => void;
@@ -73,41 +71,32 @@ const renderFee = (
   );
 };
 
-export const DeleteObject = ({refetch}: modalProps) => {
+export const DeleteObject = ({ refetch }: modalProps) => {
   const dispatch = useAppDispatch();
   const [lockFee, setLockFee] = useState('');
-  const {loginAccount: address }= useAppSelector((root) => root.persist)
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const isOpen = !!editDelete.objectName;
   const onClose = () => {
     dispatch(setEditDelete({} as ObjectItem));
   };
-  const {gasList} = useAppSelector((root) => root.global.gasHub);
+  const { gasList } = useAppSelector((root) => root.global.gasHub);
   const simulateGasFee = gasList[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
   const { connector } = useAccount();
 
-  useAsyncEffect(async () => {
-    const params = {
-      createAt: Long.fromInt(editDelete.createAt),
-      payloadSize: Long.fromInt(editDelete.payloadSize),
-      primarySpAddress: primarySp.operatorAddress,
-    }
-    const lockFeeInBNB = await getLockFee(editDelete.payloadSize, primarySp.operatorAddress);
-    const [data, error] = await queryLockFee(params);
-    console.log('lockFeeInBNB', lockFeeInBNB, formatLockFee(data?.amount));
-    if (error) {
-      toast.error({
-        description: error || 'Query lock fee failed!'
-      });
-      return;
-    }
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
 
-    setLockFee(formatLockFee(data?.amount));
+  useAsyncEffect(async () => {
+    const lockFeeInBNB = await getLockFee(editDelete.payloadSize, primarySp.operatorAddress);
+    setLockFee(lockFeeInBNB);
   }, [isOpen]);
 
   useEffect(() => {
@@ -116,7 +105,6 @@ export const DeleteObject = ({refetch}: modalProps) => {
       return;
     }
     const currentBalance = Number(availableBalance);
-    // TODO 这个有点诡异，不应该是放出来的pre lock fee吗，为什么加在后面
     if (currentBalance >= Number(simulateGasFee) + Number(lockFee)) {
       setButtonDisabled(false);
       return;
@@ -128,16 +116,18 @@ export const DeleteObject = ({refetch}: modalProps) => {
   const description = `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
-    dispatch(setStatusDetail({
-      icon: FILE_FAILED_URL,
-      title: FILE_TITLE_DELETE_FAILED,
-      description: description,
-      buttonText: BUTTON_GOT_IT,
-      errorText: 'Error message: ' + error?.message ?? '',
-      buttonOnClick: () => {
-        dispatch(setStatusDetail({} as TStatusDetail))
-      }
-    }))
+    dispatch(
+      setStatusDetail({
+        icon: FILE_FAILED_URL,
+        title: FILE_TITLE_DELETE_FAILED,
+        description: description,
+        buttonText: BUTTON_GOT_IT,
+        errorText: 'Error message: ' + error?.message ?? '',
+        buttonOnClick: () => {
+          dispatch(setStatusDetail({} as TStatusDetail));
+        },
+      }),
+    );
   };
 
   return (
@@ -190,11 +180,11 @@ export const DeleteObject = ({refetch}: modalProps) => {
             }
           />,
         )}
-        {renderFee('Gas Fee', simulateGasFee+'', exchangeRate)}
+        {renderFee('Gas Fee', simulateGasFee + '', exchangeRate)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee+'', lockFee, availableBalance || '0', {
+          {renderInsufficientBalance(simulateGasFee + '', lockFee, availableBalance || '0', {
             gaShowName: 'dc.file.delete_confirm.depost.show',
             gaClickName: 'dc.file.delete_confirm.transferin.click',
           })}
@@ -221,13 +211,15 @@ export const DeleteObject = ({refetch}: modalProps) => {
             try {
               setLoading(true);
               onClose();
-              dispatch(setStatusDetail({
-                icon: FILE_DELETE_GIF,
-                title: FILE_TITLE_DELETING,
-                description: FILE_STATUS_DELETING,
-                buttonText: '',
-                errorText: '',
-              }));
+              dispatch(
+                setStatusDetail({
+                  icon: FILE_DELETE_GIF,
+                  title: FILE_TITLE_DELETING,
+                  description: FILE_STATUS_DELETING,
+                  buttonText: '',
+                  errorText: '',
+                }),
+              );
               const client = await getClient();
               const delObjTx = await client.object.deleteObject({
                 bucketName,

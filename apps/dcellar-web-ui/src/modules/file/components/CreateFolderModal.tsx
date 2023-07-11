@@ -42,8 +42,8 @@ import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { ChainVisibilityEnum } from '../type';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
-import { useAppSelector } from '@/store';
-import { selectBalance } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 interface modalProps {
   title?: string;
@@ -93,16 +93,21 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setStatusModalErrorText,
     fetchCreateObjectApproval,
   } = props;
-
+  const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { connector } = useAccount();
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const [loading, setLoading] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [gasFee, setGasFee] = useState('-1');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
 
   const getPath = (name: string) => {
     return parentFolderName && parentFolderName.length > 0

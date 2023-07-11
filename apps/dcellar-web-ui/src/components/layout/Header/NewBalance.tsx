@@ -6,13 +6,22 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { Tips } from '@/components/common/Tips';
-import { useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 const NewBalance = (props: any) => {
+  const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance, lockFee } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance, _lockFee: lockFee } = useAppSelector(
+    (root) => root.global,
+  );
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+    dispatch(setupTmpLockFee(address));
+  });
 
   const renderBalanceNumber = () => {
     if (Number(availableBalance) < 0) return 'Fetching balance...';

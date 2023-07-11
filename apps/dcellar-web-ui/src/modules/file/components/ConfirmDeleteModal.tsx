@@ -23,8 +23,9 @@ import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { selectBalance } from '@/store/slices/balance';
 
 interface modalProps {
   title?: string;
@@ -88,12 +89,13 @@ const renderFee = (
 };
 
 export const ConfirmDeleteModal = (props: modalProps) => {
+  const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const bnbPrice = useAppSelector(selectBnbPrice);
   const exchangeRate = Number(bnbPrice);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const {
     title = 'Confirm Delete',
     onClose,
@@ -113,6 +115,12 @@ export const ConfirmDeleteModal = (props: modalProps) => {
     setStatusModalButtonText,
     setStatusModalErrorText,
   } = props;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
+
   const { connector } = useAccount();
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {

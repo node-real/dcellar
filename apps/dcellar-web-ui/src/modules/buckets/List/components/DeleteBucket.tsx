@@ -26,10 +26,11 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
-import { useAppSelector } from '@/store';
-import { selectBalance } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) => {
+  const dispatch = useAppDispatch();
   const [gasFee, setGasFee] = useState(BigNumber('0'));
   const [isGasLoading, setIsGasLoading] = useState(false);
   const [deleteErrorMsg, setDeleteErrorMsg] = useState('');
@@ -37,9 +38,14 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const [status, setStatus] = useState('pending');
   const { connector } = useAccount();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const balance = BigNumber(availableBalance || 0);
   const { chain } = useNetwork();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
 
   const requestGetBucketFee = useCallback(async () => {
     setIsGasLoading(true);

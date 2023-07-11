@@ -5,23 +5,29 @@ import {
   renderInsufficientBalance,
   renderPrelockedFeeValue,
 } from '@/modules/file/utils';
-import { useAppSelector } from '@/store';
-import { selectBalance } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { Box, Flex, Text } from '@totejs/uikit';
 import React from 'react';
+import { useMount } from 'ahooks';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
 
 interface FeeProps {
   lockFee: string;
 }
 
-export const Fee = ({lockFee}: FeeProps) => {
+export const Fee = ({ lockFee }: FeeProps) => {
+  const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { availableBalance } =
-  useAppSelector(selectBalance(loginAccount));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
-  const {price: exchangeRate} = useAppSelector((root) => root.global.bnb);
+  const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(loginAccount));
+  });
+
   const renderFee = (
     key: string,
     bnbValue: string,
@@ -90,12 +96,12 @@ export const Fee = ({lockFee}: FeeProps) => {
             }
           />,
         )}
-        {renderFee('Gas fee', gasFee+'', +exchangeRate)}
+        {renderFee('Gas fee', gasFee + '', +exchangeRate)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
         {/*todo correct the error showing logics*/}
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(gasFee+'', lockFee, availableBalance || '0', {
+          {renderInsufficientBalance(gasFee + '', lockFee, availableBalance || '0', {
             gaShowName: 'dc.file.upload_modal.transferin.show',
             gaClickName: 'dc.file.upload_modal.transferin.click',
           })}

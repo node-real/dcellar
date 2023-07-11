@@ -53,12 +53,11 @@ import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { convertToSecond, getUtcZeroTimestamp } from '@/utils/time';
 import { ChainVisibilityEnum } from '../type';
-import { convertObjectInfo } from '../utils/convertObjectInfo';
-import { getClient } from '@/base/client';
 import { SpItem } from '@/store/slices/sp';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { selectBalance } from '@/store/slices/balance';
 
 const renderFee = (
   key: string,
@@ -181,7 +180,7 @@ export const FileDetailModal = (props: modalProps) => {
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const timeoutRef = useRef<any>(null);
   const intervalRef = useRef<any>(null);
   const [isSealed, setIsSealed] = useState(false);
@@ -229,6 +228,12 @@ export const FileDetailModal = (props: modalProps) => {
     freeze,
     createObjectData,
   } = props;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
+
   const router = useRouter();
   const listObjectsRef = useRef<any[]>([]);
   // todo fixit

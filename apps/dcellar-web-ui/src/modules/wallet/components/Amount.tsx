@@ -29,8 +29,9 @@ import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
-import { useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 type AmountProps = {
   disabled: boolean;
@@ -59,18 +60,23 @@ const DefaultFee = {
 };
 
 export const Amount = ({ register, errors, disabled, watch, feeData, setValue }: AmountProps) => {
+  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
   const defaultFee = DefaultFee[transType];
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance: balance } = useAppSelector(selectBalance(address));
+  const { _availableBalance: balance } = useAppSelector((root) => root.global);
   const { isLoading, all } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   // balance always show no matter what chain is selected by metamask
   const Balance = useCallback(() => {

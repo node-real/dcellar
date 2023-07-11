@@ -8,8 +8,9 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import LoadingIcon from '@/public/images/icons/loading.svg';
-import { useAppSelector } from '@/store';
-import { selectBalance, selectBnbPrice } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -17,16 +18,21 @@ type GasFeeProps = {
   hasError: boolean;
 };
 export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
+  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { availableBalance } = useAppSelector(selectBalance(address));
-  const balance = BigNumber(availableBalance || 0);
+  const { _availableBalance } = useAppSelector((root) => root.global);
+  const balance = BigNumber(_availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =
     gasFee &&
     currencyFormatter(
       gasFee.times(bnbPrice).dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER),
     );
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   const strBalance = balance && balance.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
   const usdBalance =
