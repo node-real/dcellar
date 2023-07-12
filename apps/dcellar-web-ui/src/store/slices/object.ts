@@ -269,6 +269,8 @@ export const setupListObjects =
     if (prefix) _query.append('prefix', prefix);
     // support any path list objects, bucketName & _path
     const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
+    // fix refresh then nav to other pages.
+    if (!bucketName) return;
     const [res, error] = await _getAllList(payload);
     if (error) {
       toast.error({ description: error });
