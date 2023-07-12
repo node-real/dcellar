@@ -277,7 +277,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         } else {
           fitActions = fitActions.filter((a) => ['cancel', 'detail'].includes(a.value));
         }
-        const key = path + '/' + record.objectName;
+        const key = path + '/' + record.name;
         const curObjectInfo = objectsInfo[key];
         // if this object is not yours, you only can download it
         if (curObjectInfo?.object_info?.owner !== loginAccount) {
