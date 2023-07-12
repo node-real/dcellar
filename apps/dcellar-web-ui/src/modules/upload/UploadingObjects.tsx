@@ -101,8 +101,8 @@ export const UploadingObjects = () => {
         </Box>
         {queue.map((task) => (
           <QListItem cursor={'default'} _hover={{}} maxW={'520px'} key={task.id} paddingX={'6px'} right={null}>
-            <Flex marginLeft={'12px'} fontSize={'12px'} alignItems={'center'}>
-              <Box maxW='200px'>
+            <Flex marginLeft={'12px'} fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
+              <Box maxW='200px' flex={1}>
                 <EllipsisText marginRight={'12px'}>{task.file.name}</EllipsisText>
                 {task.msg ? (
                   <EllipsisText color={'red'}>{task.msg}</EllipsisText>
@@ -125,7 +125,7 @@ export const UploadingObjects = () => {
                     ?.seal_tx_hash
                 }
               </Box> */}
-              <Flex flex={1} justifyContent={'flex-end'} alignItems={'center'}>
+              <Flex maxW={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
                 <FileStatus task={task} />
               </Flex>
             </Flex>
