@@ -28,6 +28,7 @@ import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface modalProps {
   refetch: () => void;
@@ -205,7 +206,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                 setStatusDetail({
                   icon: PENDING_ICON_URL,
                   title: FILE_TITLE_CANCELING,
-                  description: FILE_STATUS_CANCELING,
+                  desc: FILE_STATUS_CANCELING,
                   buttonText: '',
                   errorText: '',
                 }),
@@ -233,6 +234,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
               if (txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
                 refetch();
+                dispatch(setupBucketQuota(bucketName))
               } else {
                 toast.error({ description: 'Uploading cancelled failed.' });
               }

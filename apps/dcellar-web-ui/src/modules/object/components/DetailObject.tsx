@@ -44,6 +44,7 @@ import { quotaRemains } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_UNKNOWN } from '@/facade/error';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface modalProps {}
 
@@ -429,6 +430,7 @@ export const DetailObject = (props: modalProps) => {
                     );
                     const [success, opsError] = await downloadObject(params, seedString);
                     if (opsError) return onError(opsError);
+                    dispatch(setupBucketQuota(bucketName));
 
                     return success;
                   }

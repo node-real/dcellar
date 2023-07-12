@@ -14,6 +14,7 @@ import { downloadObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface NameItemProps {
   item: ObjectItem;
@@ -73,6 +74,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return onError(opsError);
+      dispatch(setupBucketQuota(bucketName));
       return success;
     }
 

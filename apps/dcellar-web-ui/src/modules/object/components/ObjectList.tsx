@@ -133,6 +133,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
+
     if (config.directDownload) {
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
         bucketName,
@@ -160,6 +161,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return onError(opsError);
+      dispatch(setupBucketQuota(bucketName));
       return success;
     }
 

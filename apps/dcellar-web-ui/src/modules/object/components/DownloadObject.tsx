@@ -20,6 +20,7 @@ import { downloadObject, getDirectDownloadLink } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_UNKNOWN } from '@/facade/error';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface modalProps {}
 
@@ -152,9 +153,12 @@ export const DownloadObject = (props: modalProps) => {
               address: loginAccount,
             };
             const operator = primarySp.operatorAddress;
+
             const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+            onClose();
             const [success, opsError] = await downloadObject(params, seedString);
             if (opsError) return onError(opsError);
+            dispatch(setupBucketQuota(bucketName));
             directDownload !== currentAllowDirectDownload &&
               dispatch(
                 setAccountConfig({
@@ -162,7 +166,6 @@ export const DownloadObject = (props: modalProps) => {
                   config: { directDownload: currentAllowDirectDownload },
                 }),
               );
-            onClose();
 
             return success;
           }}

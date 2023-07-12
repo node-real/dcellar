@@ -15,6 +15,7 @@ import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface SharedFileProps {
   fileName: string;
@@ -97,6 +98,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
+    dispatch(setupBucketQuota(bucketName));
     setAction('');
     return success;
   };
