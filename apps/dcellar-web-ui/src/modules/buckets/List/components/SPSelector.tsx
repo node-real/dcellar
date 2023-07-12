@@ -6,6 +6,8 @@ import { trimLongStr } from '@/utils/string';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import { useSPs } from '@/hooks/useSPs';
 import { IRawSPInfo } from '../../type';
+import { filterAuthSps } from '@/utils/sp';
+import { useLogin } from '@/hooks/useLogin';
 
 interface SPSelector {
   onChange: (value: IRawSPInfo) => void;
@@ -13,9 +15,9 @@ interface SPSelector {
 
 export function SPSelector(props: SPSelector) {
   const { onChange } = props;
-
-  const { sps: globalSps } = useSPs();
-
+  const { loginState: {address}, logout } = useLogin();
+  const { sps } = useSPs();
+  const globalSps = useMemo(() => filterAuthSps({address, sps}), [address, sps]);
   const finalSPs = useMemo<IRawSPInfo[]>(() => {
     const sps: IRawSPInfo[] =
       globalSps.filter((v: IRawSPInfo) => v?.description?.moniker !== 'QATest') ?? [];
