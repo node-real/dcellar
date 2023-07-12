@@ -4,7 +4,7 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getClient } from '@/base/client';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
 import { find, keyBy } from 'lodash-es';
-import { setupListObjects } from '@/store/slices/object';
+import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 
@@ -238,7 +238,7 @@ export const setupGasList = () => async (dispatch: AppDispatch) => {
   dispatch(globalSlice.actions.setGasList(res));
 };
 
-export const uploadQueueAndRefresh =
+export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
     const { spInfo } = getState().sp;
     const { loginAccount } = getState().persist;
@@ -254,7 +254,21 @@ export const uploadQueueAndRefresh =
       bucketName: task.bucketName,
     };
     await dispatch(setupListObjects(params, [task.bucketName, ...task.folders].join('/')));
+  };
+
+export const uploadQueueAndRefresh =
+  (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    await dispatch(refreshTaskFolder(task));
     dispatch(updateUploadStatus({ ids: [task.id], status: 'FINISH', account: loginAccount }));
+    dispatch(
+      updateObjectStatus({
+        bucketName: task.bucketName,
+        folders: task.folders,
+        name: task.file.name,
+        objectStatus: 1,
+      }),
+    );
   };
 
 export const addTaskToUploadQueue =
@@ -277,20 +291,21 @@ export const addTaskToUploadQueue =
       progress: 0,
     };
     dispatch(addToUploadQueue(_task));
+    dispatch(refreshTaskFolder(_task));
   };
 
 export const setupTmpAvailableBalance =
-  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  (address: string, _balance?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { balances } = getState().balance;
     const balance = balances[address] || defaultBalance;
-    dispatch(setTmpAvailableBalance(balance.availableBalance));
+    dispatch(setTmpAvailableBalance(_balance || balance.availableBalance));
   };
 
 export const setupTmpLockFee =
-  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  (address: string, _lockFee?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { balances } = getState().balance;
     const balance = balances[address] || defaultBalance;
-    dispatch(setTmpLockFee(balance.lockFee));
+    dispatch(setTmpLockFee(_lockFee || balance.lockFee));
   };
 
 export default globalSlice.reducer;

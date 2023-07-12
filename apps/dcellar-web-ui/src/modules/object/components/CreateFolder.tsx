@@ -39,7 +39,13 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
-import { E_USER_REJECT_STATUS_NUM, broadcastFault, commonFault, simulateFault } from '@/facade/error';
+import {
+  E_USER_REJECT_STATUS_NUM,
+  broadcastFault,
+  simulateFault,
+  createTxFault,
+  E_OFF_CHAIN_AUTH,
+} from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { getDomain } from '@/utils/getDomain';
@@ -50,6 +56,7 @@ import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
 import { duplicateName } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
   refetch: () => void;
@@ -67,6 +74,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
   const isOpen = useAppSelector((root) => root.object.editCreate);
+  const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
     dispatch(setEditCreate(false));
   };
@@ -137,11 +145,14 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const onCreateFolder = async () => {
     if (!validateFolderName(inputFolderName)) return;
     setLoading(true);
-    debugger;
+
     // 1. create tx and validate folder by chain
     const [CreateObjectTx, error] = await fetchCreateFolderApproval(inputFolderName);
     if (typeof error === 'string') {
       setLoading(false);
+      if (error === E_OFF_CHAIN_AUTH) {
+        return setOpenAuthModal();
+      }
       if (error?.includes('lack of') || error?.includes('static balance is not enough')) {
         setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
       } else if (error?.includes('Object already exists') || error?.includes('repeated object')) {
@@ -201,6 +212,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     dispatch(setStatusDetail({} as TStatusDetail));
     onClose();
     refetch();
+    // todo refactor
+    setTimeout(refetch, 500);
   };
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
@@ -255,10 +268,16 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       domain,
       seedString,
     };
-    const [createObjectTx, rError] = await genCreateObjectTx(createObjectPayload).then(resolve, commonFault);
-    if (!createObjectTx) return [createObjectTx, rError];
+    const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload).then(
+      resolve,
+      createTxFault,
+    );
 
-    const [simulateInfo, error] = await createObjectTx
+    if (createError) {
+      return [null, createError];
+    }
+
+    const [simulateInfo, error] = await createObjectTx!
       .simulate({ denom: 'BNB' })
       .then(resolve, simulateFault);
     if (!simulateInfo) return [simulateInfo, error];

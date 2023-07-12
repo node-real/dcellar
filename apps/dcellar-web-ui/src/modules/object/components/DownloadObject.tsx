@@ -18,9 +18,10 @@ import { ObjectItem, TStatusDetail, setEditDownload, setStatusDetail } from '@/s
 import { quotaRemains } from '@/facade/bucket';
 import { downloadObject, getDirectDownloadLink } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_UNKNOWN } from '@/facade/error';
+import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { setupBucketQuota } from '@/store/slices/bucket';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {}
 
@@ -47,6 +48,7 @@ export const DownloadObject = (props: modalProps) => {
   const [loading, setLoading] = useState(false);
   const directDownload = accounts[loginAccount].directDownload;
   const isOpen = !!editDownload.objectName;
+  const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
     dispatch(setEditDownload({} as ObjectItem));
   };
@@ -61,6 +63,10 @@ export const DownloadObject = (props: modalProps) => {
 
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const onError = (type: string) => {
+    if (type === E_OFF_CHAIN_AUTH) {
+      onClose();
+      return setOpenAuthModal();
+    }
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];

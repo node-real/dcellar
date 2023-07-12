@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { css } from '@emotion/react';
 
 export const ObjectContainer = styled.div`
   margin: 24px;
@@ -26,4 +27,16 @@ export const ObjectName = styled.h1`
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: Poppins, sans-serif;
+`;
+
+export const StyledRow = styled.div<{ $disabled: boolean }>`
+  ${(props) =>
+    props.$disabled &&
+    css`
+      color: #aeb4bc;
+      cursor: text;
+      a {
+        pointer-events: none;
+      }
+    `}
 `;

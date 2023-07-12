@@ -33,43 +33,51 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
 
   return (
     <Container>
-      {empty && (
-        <>
-          {EmptyIcon}
-          <Text
-            fontSize="18px"
-            lineHeight="22px"
-            fontWeight={500}
-            mt={'16px'}
-            color={'readable.secondary'}
-          >
-            {title}
-          </Text>
-          <Text
-            fontSize="12px"
-            lineHeight="16px"
-            fontWeight={400}
-            mt={'4px'}
-            mb={'24px'}
-            color={'readable.tertiary'}
-            textAlign={'center'}
-          >
-            {subTitle}
-          </Text>
-          {!discontinue && owner && (
-            <NewObject
-              gaFolderClickName="dc.file.empty.create_folder.click"
-              gaUploadClickName="dc.file.empty.upload.click"
-            />
-          )}
-        </>
-      )}
+      <Content>
+        {empty && (
+          <>
+            {EmptyIcon}
+            <Text
+              fontSize="18px"
+              lineHeight="22px"
+              fontWeight={500}
+              mt={'16px'}
+              color={'readable.secondary'}
+            >
+              {title}
+            </Text>
+            <Text
+              fontSize="12px"
+              lineHeight="16px"
+              fontWeight={400}
+              mt={'4px'}
+              mb={'24px'}
+              color={'readable.tertiary'}
+              textAlign={'center'}
+            >
+              {subTitle}
+            </Text>
+            {!discontinue && owner && (
+              <NewObject
+                gaFolderClickName="dc.file.empty.create_folder.click"
+                gaUploadClickName="dc.file.empty.upload.click"
+              />
+            )}
+          </>
+        )}
+      </Content>
     </Container>
   );
 });
 
+const Content = styled.div`
+  display: grid;
+  place-items: center;
+  max-width: 568px;
+`;
+
 const Container = styled.div`
-  height: 300px;
+  height: 530px;
   display: grid;
   place-items: center;
 `;

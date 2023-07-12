@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
-import { last, omit, trimEnd } from 'lodash-es';
+import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { SpItem } from './sp';
@@ -50,13 +50,13 @@ export type TEditUpload = {
   isOpen: boolean;
   fileInfos: TFileItem[];
   visibility: VisibilityType;
-}
-export type TUploading =  {
+};
+export type TUploading = {
   isOpen: boolean;
   isLoading: boolean;
   fileInfos: TFileItem[];
   visibility: VisibilityType;
-}
+};
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -111,6 +111,29 @@ export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    updateObjectStatus(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        bucketName: string;
+        folders: string[];
+        name: string;
+        objectStatus: number;
+      }>,
+    ) {
+      const { name, folders, objectStatus, bucketName } = payload;
+      const path = [bucketName, ...folders].join('/');
+      const items = state.objects[path] || [];
+      const objectName = [...folders, name].join('/');
+      const object = find<ObjectItem>(items, (i) => i.objectName === objectName);
+      if (object) {
+        object.objectStatus = objectStatus;
+      }
+      const info = state.objectsInfo[path];
+      if (!info) return;
+      info.object_info.object_status = objectStatus as any; // number
+    },
     setRestoreCurrent(state, { payload }: PayloadAction<boolean>) {
       state.restoreCurrent = payload;
     },
@@ -255,7 +278,7 @@ export const setupListObjects =
   };
 export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
   dispatch(setStatusDetail({} as TStatusDetail));
-}
+};
 export const selectPathLoading = (root: AppState) => {
   const { objects, path } = root.object;
   return !(path in objects);
@@ -265,7 +288,6 @@ export const selectPathCurrent = (root: AppState) => {
   const { currentPage, path } = root.object;
   return currentPage[path] || 0;
 };
-
 
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
@@ -288,6 +310,7 @@ export const {
   setEditUpload,
   setEditCancel,
   setUploading,
+  updateObjectStatus,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

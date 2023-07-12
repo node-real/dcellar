@@ -63,6 +63,7 @@ const renderPropRow = (key: string, value: React.ReactNode) => {
         {key}
       </Text>
       <Text
+        as="div"
         flex={1}
         noOfLines={1}
         fontWeight={500}
@@ -368,80 +369,82 @@ export const DetailObject = (props: modalProps) => {
               )}
           </Flex>
         </QDrawerBody>
-        <QDrawerFooter flexDirection={'column'}>
-          <Flex w={'100%'}>
-            {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ && (
+        {editDetail.objectStatus === 1 && (
+          <QDrawerFooter flexDirection={'column'}>
+            <Flex w={'100%'}>
+              {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ && (
+                <DCButton
+                  variant={'dcGhost'}
+                  flex={1}
+                  mr={'16px'}
+                  borderColor={'readable.normal'}
+                  gaClickName="dc.file.f_detail_pop.share.click"
+                  onClick={() => {
+                    dispatch(setEditShare(editDetail));
+                    onClose();
+                  }}
+                >
+                  Share
+                </DCButton>
+              )}
               <DCButton
-                variant={'dcGhost'}
+                variant={'dcPrimary'}
                 flex={1}
-                mr={'16px'}
-                borderColor={'readable.normal'}
-                gaClickName="dc.file.f_detail_pop.share.click"
-                onClick={() => {
-                  dispatch(setEditShare(editDetail));
-                  onClose();
+                isDisabled={downloadButtonDisabled}
+                gaClickName="dc.file.f_detail_pop.download.click"
+                onClick={async () => {
+                  const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+                    bucketName,
+                    editDetail.objectName,
+                    spInfo[primarySp.operatorAddress].endpoint,
+                  );
+                  const remainQuota = quotaRemains(quotaData!, editDetail.payloadSize + '');
+                  if (!remainQuota) {
+                    onClose();
+                    return dispatch(
+                      setStatusDetail({
+                        icon: NOT_ENOUGH_QUOTA_URL,
+                        title: NOT_ENOUGH_QUOTA,
+                        errorText: '',
+                        desc: NOT_ENOUGH_QUOTA_ERROR,
+                        buttonText: BUTTON_GOT_IT,
+                        buttonOnClick: () => {
+                          dispatch(setStatusDetail({} as TStatusDetail));
+                        },
+                      }),
+                    );
+                  }
+                  if (allowDirectDownload) {
+                    if (
+                      directDownloadLink &&
+                      editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
+                    ) {
+                      return directlyDownload(directDownloadLink);
+                    } else {
+                      const params = {
+                        primarySp,
+                        objectInfo: objectInfo!,
+                        address: loginAccount,
+                      };
+                      const operator = primarySp.operatorAddress;
+                      const { seedString } = await dispatch(
+                        getSpOffChainData(loginAccount, operator),
+                      );
+                      const [success, opsError] = await downloadObject(params, seedString);
+                      if (opsError) return onError(opsError);
+                      dispatch(setupBucketQuota(bucketName));
+
+                      return success;
+                    }
+                  }
+                  return dispatch(setEditDownload(editDetail));
                 }}
               >
-                Share
+                Download
               </DCButton>
-            )}
-            <DCButton
-              variant={'dcPrimary'}
-              flex={1}
-              isDisabled={downloadButtonDisabled}
-              gaClickName="dc.file.f_detail_pop.download.click"
-              onClick={async () => {
-                const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
-                  bucketName,
-                  editDetail.objectName,
-                  spInfo[primarySp.operatorAddress].endpoint,
-                );
-                const remainQuota = quotaRemains(quotaData!, editDetail.payloadSize + '');
-                if (!remainQuota) {
-                  onClose();
-                  return dispatch(
-                    setStatusDetail({
-                      icon: NOT_ENOUGH_QUOTA_URL,
-                      title: NOT_ENOUGH_QUOTA,
-                      errorText: '',
-                      desc: NOT_ENOUGH_QUOTA_ERROR,
-                      buttonText: BUTTON_GOT_IT,
-                      buttonOnClick: () => {
-                        dispatch(setStatusDetail({} as TStatusDetail));
-                      },
-                    }),
-                  );
-                }
-                if (allowDirectDownload) {
-                  if (
-                    directDownloadLink &&
-                    editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
-                  ) {
-                    return directlyDownload(directDownloadLink);
-                  } else {
-                    const params = {
-                      primarySp,
-                      objectInfo: objectInfo!,
-                      address: loginAccount,
-                    };
-                    const operator = primarySp.operatorAddress;
-                    const { seedString } = await dispatch(
-                      getSpOffChainData(loginAccount, operator),
-                    );
-                    const [success, opsError] = await downloadObject(params, seedString);
-                    if (opsError) return onError(opsError);
-                    dispatch(setupBucketQuota(bucketName));
-
-                    return success;
-                  }
-                }
-                return dispatch(setEditDownload(editDetail));
-              }}
-            >
-              Download
-            </DCButton>
-          </Flex>
-        </QDrawerFooter>
+            </Flex>
+          </QDrawerFooter>
+        )}
       </DCDrawer>
     </>
   );

@@ -229,10 +229,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             value: BigNumber(0),
           };
           types['validateBalance'] = '';
-        } else if (e.statusCode === 500) {
+        } else if (
+          e.statusCode === 500 ||
+          (e.message === 'Get create bucket approval error.' && e.statusCode === 404)
+        ) {
+          // todo refactor
           onClose();
           types['validateOffChainAuth'] = '';
-          setOpenAuthModal([selectedSpRef.current.operatorAddress]);
+          setOpenAuthModal();
         } else {
           const { isError, message } = parseError(e.message);
           types['validateBalanceAndName'] =
@@ -332,6 +336,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             return await signTypedDataV4(provider, addr, message);
           },
         });
+
+        // todo refactor
         await pollingGetBucket({
           address: createBucketParams.creator,
           endpoint: createBucketParams.spInfo.endpoint,
@@ -405,7 +411,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
 
   return (
     <>
-      {status === 'operating' && <CreatingBucket />}
+      {status === 'operating' && <CreatingBucket onClose={() => setStatus('pending')} />}
       {status === 'failed' && (
         <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
       )}

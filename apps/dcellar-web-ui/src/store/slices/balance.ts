@@ -3,6 +3,11 @@ import BigNumber from 'bignumber.js';
 import { AppDispatch, AppState } from '@/store';
 import { getAccountBalance } from '@/facade/account';
 import { getStreamRecord } from '@/facade/payment';
+import {
+  setTmpAvailableBalance,
+  setupTmpAvailableBalance,
+  setupTmpLockFee,
+} from '@/store/slices/global';
 
 type Balance = {
   amount: string;
@@ -78,6 +83,8 @@ export const setupBalance =
       availableBalance,
     };
     dispatch(setBalance({ address, balance: _balance }));
+    dispatch(setupTmpAvailableBalance(address, _balance.availableBalance));
+    dispatch(setupTmpLockFee(address, _balance.lockFee));
   };
 
 export default balanceSlice.reducer;
