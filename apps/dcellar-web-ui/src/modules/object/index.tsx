@@ -17,7 +17,6 @@ import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/objec
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import { useEffect } from 'react';
 import { SpItem } from '@/store/slices/sp';
-import { CreateFolder } from './components/CreateFolder';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();

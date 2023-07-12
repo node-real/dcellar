@@ -10,11 +10,12 @@ import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { headBucket, quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
+import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface SharedFileProps {
   fileName: string;
@@ -42,12 +43,16 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     onOpen: onStatusModalOpen,
     onClose: onStatusModalClose,
   } = useDisclosure();
+  const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
   const endpoint = spInfo[oneSp].endpoint;
   const size = payloadSize.toString();
 
   const onError = (type: string) => {
     setAction('');
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
     const errorData = SHARE_ERROR_TYPES[type as ShareErrorType]
       ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
@@ -58,7 +63,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   };
 
   const onAction = async (e: ActionType) => {
-    if (action) return;
+    if (action === e) return;
     reportEvent({
       name:
         e === 'download'

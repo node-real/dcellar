@@ -33,6 +33,7 @@ export declare class BroadcastTxError extends Error {
 export type ErrorResponse = [null, ErrorMsg];
 
 export const simulateFault = (e: any): ErrorResponse => {
+  console.error('SimulateFault', e);
   if (e?.message.includes('static balance is not enough')) {
     return [null, E_GET_GAS_FEE_LACK_BALANCE_ERROR];
   }
@@ -41,8 +42,23 @@ export const simulateFault = (e: any): ErrorResponse => {
 
 export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
+  console.error('BroadcastFault', e);
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
     return [null, E_USER_REJECT_STATUS_NUM];
+  }
+  return [null, e?.message || E_UNKNOWN_ERROR];
+};
+
+export const createTxFault = (e: any): ErrorResponse => {
+  const { code = '', message } = e;
+  console.error('CreateTxFault', e);
+  // todo refactor
+  if (
+    code === -1 &&
+    (e as any).statusCode === 404 &&
+    ['Get create object approval error.', 'Get create bucket approval error.'].includes(message)
+  ) {
+    return [null, E_OFF_CHAIN_AUTH];
   }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };

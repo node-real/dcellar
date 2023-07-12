@@ -27,7 +27,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const {primarySp} = useAppSelector((root) => root.object);
+  const { primarySp } = useAppSelector((root) => root.object);
   const hashTask = useAppSelector(selectHashTask);
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
@@ -49,12 +49,18 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const res = await checksumApi?.generateCheckSumV2(hashTask.file);
     const params = {
       primarySpAddress: primarySp.operatorAddress,
-      createAt: Long.fromInt(Math.floor(hashTask.id/1000)),
+      createAt: Long.fromInt(Math.floor(hashTask.id / 1000)),
       payloadSize: Long.fromInt(hashTask.file.size),
-    }
+    };
     const [data, error] = await queryLockFee(params);
     const { expectCheckSums } = res!;
-    dispatch(updateHashChecksum({ id: hashTask.id, checksum: expectCheckSums, lockFee: formatLockFee(data?.amount) }));
+    dispatch(
+      updateHashChecksum({
+        id: hashTask.id,
+        checksum: expectCheckSums,
+        lockFee: formatLockFee(data?.amount),
+      }),
+    );
   }, [hashTask, dispatch]);
 
   // todo refactor

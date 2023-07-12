@@ -205,7 +205,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                 setStatusDetail({
                   icon: PENDING_ICON_URL,
                   title: FILE_TITLE_CANCELING,
-                  description: FILE_STATUS_CANCELING,
+                  desc: FILE_STATUS_CANCELING,
                   buttonText: '',
                   errorText: '',
                 }),

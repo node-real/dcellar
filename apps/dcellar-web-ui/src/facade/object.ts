@@ -28,7 +28,10 @@ import {
 import { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import { getDomain } from '@/utils/getDomain';
-import { QueryHeadObjectResponse, QueryLockFeeRequest } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import {
+  QueryHeadObjectResponse,
+  QueryLockFeeRequest,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
@@ -119,6 +122,7 @@ export const downloadObject = async (
   }
 
   const [result, error] = await getObjectBytes(params, seedString);
+  console.log(result, error);
   if (!result) return [false, error];
 
   saveFileByAxiosResponse(result, objectName);
@@ -185,14 +189,19 @@ export const getShareLink = (bucketName: string, objectName: string) => {
   const params = [bucketName, objectName || ''].join('/');
 
   return `${location.origin}/share?file=${encodeURIComponent(params)}`;
-}
+};
 
-export const getDirectDownloadLink = ({primarySpEndpoint, bucketName, objectName
-}: { primarySpEndpoint: string; bucketName: string; objectName: string}) => {
-  return encodeURI(
-    `${primarySpEndpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
-  );
-}
+export const getDirectDownloadLink = ({
+  primarySpEndpoint,
+  bucketName,
+  objectName,
+}: {
+  primarySpEndpoint: string;
+  bucketName: string;
+  objectName: string;
+}) => {
+  return encodeURI(`${primarySpEndpoint}/download/${bucketName}/${encodeObjectName(objectName)}`);
+};
 
 export const deleteObject = async (params: any, Connector: any): Promise<any> => {
   const { bucketName, objectName, address } = params;
@@ -253,7 +262,7 @@ export const queryLockFee = async (params: QueryLockFeeRequest) => {
   const client = await getClient();
   const res = await client.storage.queryLockFee(params);
   return await client.storage.queryLockFee(params).then(resolve, commonFault);
-}
+};
 
 export const headObject = async (bucketName: string, objectName: string) => {
   const client = await getClient();

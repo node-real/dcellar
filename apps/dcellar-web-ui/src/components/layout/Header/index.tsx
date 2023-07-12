@@ -12,8 +12,8 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 import { StreamBalance } from '@/components/layout/Header/StreamBalance';
-import { useDebounceEffect } from 'ahooks';
-import { setupBnbPrice } from '@/store/slices/global';
+import { useDebounceEffect, useMount } from 'ahooks';
+import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
 import { GasList } from './GasList';
@@ -54,6 +54,8 @@ export const Header = () => {
   useDebounceEffect(() => {
     if (!showPanel) return;
     dispatch(setupBnbPrice());
+    dispatch(setupTmpAvailableBalance(address));
+    dispatch(setupTmpLockFee(address));
   }, [showPanel]);
 
   return (

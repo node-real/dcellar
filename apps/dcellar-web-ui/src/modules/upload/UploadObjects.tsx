@@ -14,7 +14,14 @@ import {
   Tabs,
   toast,
 } from '@totejs/uikit';
-import { BUTTON_GOT_IT, FILE_FAILED_URL, FILE_STATUS_UPLOADING, FILE_TITLE_UPLOAD_FAILED, FILE_UPLOAD_URL, OBJECT_TITLE_CREATING } from '@/modules/file/constant';
+import {
+  BUTTON_GOT_IT,
+  FILE_FAILED_URL,
+  FILE_STATUS_UPLOADING,
+  FILE_TITLE_UPLOAD_FAILED,
+  FILE_UPLOAD_URL,
+  OBJECT_TITLE_CREATING,
+} from '@/modules/file/constant';
 import Fee from './SimulateFee';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -22,6 +29,7 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import AccessItem from './AccessItem';
 import {
   broadcastFault,
+  createTxFault,
   E_ACCOUNT_BALANCE_NOT_ENOUGH,
   E_FILE_IS_EMPTY,
   E_FILE_TOO_LARGE,
@@ -30,6 +38,7 @@ import {
   E_OBJECT_NAME_EXISTS,
   E_OBJECT_NAME_NOT_UTF8,
   E_OBJECT_NAME_TOO_LONG,
+  E_OFF_CHAIN_AUTH,
   E_UNKNOWN,
   simulateFault,
 } from '@/facade/error';
@@ -59,19 +68,21 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { reverseVisibilityType } from '@/utils/constant';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { duplicateName } from '@/utils/object';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { EllipsisText } from '@/components/common/EllipsisText';
 
 const MAX_SIZE = 256;
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
+  const { setOpenAuthModal } = useOffChainAuth();
   const { editUpload, path, objects } = useAppSelector((root) => root.object);
   const { connector } = useAccount();
   const { bucketName, primarySp, folders } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { sps: globalSps } = useAppSelector((root) => root.sp);
   const selectedFile = useAppSelector(selectHashFile(editUpload));
-  const {hashQueue} = useAppSelector((root) => root.global);
+  const { hashQueue } = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
@@ -115,14 +126,34 @@ export const UploadObjects = () => {
     return '';
   };
 
+  const errorHandler = (error: string) => {
+    setCreating(false);
+    if (error === E_OFF_CHAIN_AUTH) {
+      setOpenAuthModal();
+      return;
+    }
+    dispatch(
+      setStatusDetail({
+        title: FILE_TITLE_UPLOAD_FAILED,
+        icon: FILE_FAILED_URL,
+        desc: 'Sorry, there’s something wrong when uploading the file.',
+        buttonText: BUTTON_GOT_IT,
+        buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+        errorText: 'Error message: ' + error,
+      }),
+    );
+  };
+
   const onUploadClick = async () => {
     if (!selectedFile) return;
     setCreating(true);
-    dispatch(setStatusDetail({
-      icon: FILE_UPLOAD_URL,
-      title: OBJECT_TITLE_CREATING,
-      desc: FILE_STATUS_UPLOADING,
-    }));
+    dispatch(
+      setStatusDetail({
+        icon: FILE_UPLOAD_URL,
+        title: OBJECT_TITLE_CREATING,
+        desc: FILE_STATUS_UPLOADING,
+      }),
+    );
     const domain = getDomain();
     const secondarySpAddresses = globalSps
       .filter((item: any) => item.operator !== primarySp.operatorAddress)
@@ -152,12 +183,21 @@ export const UploadObjects = () => {
       seedString,
     };
     console.log('createObjectPayload', createObjectPayload);
-    const createObjectTx = await genCreateObjectTx(createObjectPayload);
-    const [simulateInfo, simulateError] = await createObjectTx
+    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
+      resolve,
+      createTxFault,
+    );
+
+    if (_createError) {
+      return errorHandler(_createError);
+    }
+
+    const [simulateInfo, simulateError] = await createObjectTx!
       .simulate({
         denom: 'BNB',
       })
       .then(resolve, simulateFault);
+
     if (simulateError) {
       if (
         simulateError?.includes('lack of') ||
@@ -179,26 +219,18 @@ export const UploadObjects = () => {
       signTypedDataCallback: signTypedDataCallback(connector!),
       granter: '',
     };
-    const [res, error] = await createObjectTx
+    const [res, error] = await createObjectTx!
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
 
-    if (error || res?.code !== 0) {
-      setCreating(false);
-      dispatch(
-        setStatusDetail({
-          title: FILE_TITLE_UPLOAD_FAILED,
-          icon: FILE_FAILED_URL,
-          desc: 'Sorry, there’s something wrong when uploading the file.',
-          buttonText: BUTTON_GOT_IT,
-          buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
-          errorText: 'Error message: ' + (error || res?.rawLog) ?? '',
-        }),
-      );
-      return;
+    const _ = res?.rawLog;
+    if (error) {
+      return errorHandler(error || _!);
     }
     toast.success({ description: 'Object created successfully!' });
-    dispatch(addTaskToUploadQueue(selectedFile.id, res.transactionHash, primarySp.operatorAddress));
+    dispatch(
+      addTaskToUploadQueue(selectedFile.id, res!.transactionHash, primarySp.operatorAddress),
+    );
     dispatch(setEditUpload(0));
     dispatch(setStatusDetail({} as TStatusDetail));
     dispatch(setTaskManagement(true));
@@ -265,7 +297,7 @@ export const UploadObjects = () => {
                     <EllipsisText>{formatBytes(selectedFile.size)}</EllipsisText>
                   )}
                 </Box>
-                <EllipsisText maxW='200px' textAlign={'right'} flex={1}>{`${path}/`}</EllipsisText>
+                <EllipsisText maxW="200px" textAlign={'right'} flex={1}>{`${path}/`}</EllipsisText>
               </Flex>
             </QListItem>
           </Flex>

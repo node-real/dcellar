@@ -23,12 +23,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
   const { folders } = useAppSelector((root) => root.object);
   const onOpenCreateFolder = () => {
+    if (disabled) return;
     dispatch(setEditCreate(true));
   };
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files || [];
     if (!files.length) return;
-    const id = getUtcZeroTimestamp( );
+    const id = getUtcZeroTimestamp();
     dispatch(addToHashQueue({ id, file: files[0] }));
     dispatch(setEditUpload(id));
     e.target.value = '';
@@ -90,19 +91,21 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 Upload
               </Text>
             </Flex>
-            <input
-              type="file"
-              id="file-upload"
-              onChange={handleFileChange}
-              style={{
-                visibility: 'hidden',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
+            {!uploadDisabled && (
+              <input
+                type="file"
+                id="file-upload"
+                onChange={handleFileChange}
+                style={{
+                  visibility: 'hidden',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+            )}
           </label>
         </GAClick>
       </Tooltip>

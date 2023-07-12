@@ -19,13 +19,11 @@ import { chunk, reverse, sortBy } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
-  setAccountConfig,
   SorterType,
   updateObjectPageSize,
   updateObjectSorter,
 } from '@/store/slices/persist';
-import { AlignType, DCTable, FailStatus, SortIcon, SortItem } from '@/components/common/DCTable';
-import { Text } from '@totejs/uikit';
+import { AlignType, DCTable, UploadStatus, SortIcon, SortItem } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/object/components/ListEmpty';
@@ -43,13 +41,21 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
+import {
+  E_GET_QUOTA_FAILED,
+  E_NO_QUOTA,
+  E_OBJECT_NAME_EXISTS,
+  E_OFF_CHAIN_AUTH,
+  E_UNKNOWN,
+} from '@/facade/error';
 import { downloadObject } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { UploadObjects } from '@/modules/upload/UploadObjects';
 import { OBJECT_SEALED_STATUS } from '@/modules/file/constant';
 import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { StyledRow } from '@/modules/object/objects.style';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -76,7 +82,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { spInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { editDelete, statusDetail, editDetail, editShare, editDownload, editUpload, editCancel, editCreate } = useAppSelector((root) => root.object);
+  const { setOpenAuthModal } = useOffChainAuth();
+  const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
+    useAppSelector((root) => root.object);
 
   const ascend = (() => {
     const _name = sortName as keyof ObjectItem;
@@ -124,6 +132,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const onError = (type: string) => {
     console.log('type', type);
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
@@ -189,14 +200,25 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           Name{sortName === 'objectName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: ObjectItem) => <NameItem item={record} />,
+      render: (_: string, record: ObjectItem) => (
+        <StyledRow $disabled={record.objectStatus !== 1}>
+          <NameItem item={record} />
+        </StyledRow>
+      ),
     },
     {
       key: 'contentType',
       width: 150,
-      title: 'Type',
-      render: (_: string, record: ObjectItem) =>
-        contentTypeToExtension(record.contentType, record.objectName),
+      title: (
+        <SortItem onClick={() => updateSorter('contentType', 'ascend')}>
+          Type{sortName === 'contentType' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
+        </SortItem>
+      ),
+      render: (_: string, record: ObjectItem) => (
+        <StyledRow $disabled={record.objectStatus !== 1}>
+          {contentTypeToExtension(record.contentType, record.objectName)}
+        </StyledRow>
+      ),
     },
     {
       key: 'payloadSize',
@@ -210,15 +232,18 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         record.folder ? (
           '--'
         ) : (
-          <>
-            {formatBytes(record.payloadSize)}{' '}
-            {record.objectStatus === 0 && <FailStatus object={[path, record.name].join('/')} />}
-          </>
+          <StyledRow $disabled={record.objectStatus !== 1}>
+            {record.objectStatus === 1 ? (
+              formatBytes(record.payloadSize)
+            ) : (
+              <UploadStatus object={[path, record.name].join('/')} size={record.payloadSize} />
+            )}
+          </StyledRow>
         ),
     },
     {
       key: 'createAt',
-      width: 250,
+      width: 160,
       title: (
         <SortItem onClick={() => updateSorter('createAt', 'descend')}>
           Date Created
@@ -226,14 +251,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         </SortItem>
       ),
       render: (_: string, record: ObjectItem) => (
-        <Text color={'readable.normal'} _hover={{ color: 'readable.normal' }}>
+        <StyledRow $disabled={record.objectStatus !== 1}>
           {formatTime(getMillisecond(record.createAt))}
-        </Text>
+        </StyledRow>
       ),
     },
     {
       key: 'Action',
-      width: 200,
+      width: 100,
       align: 'center' as AlignType,
       title: 'Action',
       render: (_: string, record: ObjectItem) => {
@@ -248,7 +273,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
-          fitActions = fitActions.filter((a) => a.value === 'cancel');
+          fitActions = fitActions.filter((a) => ['cancel', 'detail'].includes(a.value));
         }
         const key = path + '/' + record.objectName;
         const curObjectInfo = objectsInfo[key];

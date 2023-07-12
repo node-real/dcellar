@@ -123,6 +123,10 @@ const Container = styled.div`
     pointer-events: none;
     width: 24px;
   }
+  img {
+    flex-shrink: 0;
+    min-width: 24px;
+  }
   a {
     display: flex;
     align-items: center;
