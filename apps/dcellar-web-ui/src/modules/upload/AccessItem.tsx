@@ -27,7 +27,7 @@ const options = [
     value: VisibilityType.VISIBILITY_TYPE_PRIVATE,
   },
   {
-    icon: <PublicFileIcon fillColor="#1E2026" />,
+    icon: <PublicFileIcon fillColor="#1184EE" />,
     bgColor: '#E7F3FD',
     label: 'Public',
     desc: 'Anyone with the link can open at anytime and can find in explorer.',
@@ -50,11 +50,12 @@ export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
     return (
       <Button
         ref={ref}
-        _hover={{}}
         variant="ghost"
         border={'none'}
         justifyContent="space-between"
-        px={12}
+        p={'4px 0'}
+        height={'32px'}
+        w={'fit-content'}
         fontWeight={600}
         fontSize={14}
         lineHeight={'17px'}

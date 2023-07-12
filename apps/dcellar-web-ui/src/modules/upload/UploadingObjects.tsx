@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   Box,
   Flex,
@@ -38,7 +38,35 @@ export const UploadingObjects = () => {
       }
     },
   ]);
-
+  const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
+    switch (task.status) {
+      case 'WAIT':
+        return (
+          <>
+            waiting
+          </>
+        );
+      case 'UPLOAD':
+        return (
+          <CircleProgress
+            progress={task.progress}
+            size={18}
+            strokeWidth={2}
+            circleOneStroke="rgba(0,186,52,0.1)"
+            circleTwoStroke="#00BA34"
+            />
+        );
+      case 'SEAL':
+        return <>
+        <Loading />
+        sealing
+      </>;
+      case 'FINISH':
+        return <ColoredSuccessIcon />;
+      default:
+        return null;
+    }
+  }, []);
   if (!queue.length) {
     return (
       <>
@@ -59,44 +87,13 @@ export const UploadingObjects = () => {
       </>
     );
   }
-  const FileStatus = ({ task }: { task: UploadFile }) => {
-    switch (task.status) {
-      case 'WAIT':
-        return (
-          <>
-            waiting
-          </>
-        );
-      case 'UPLOAD':
-        return (
-          <CircleProgress
-            progress={task.progress}
-            size={18}
-            strokeWidth={2}
-            circleOneStroke="rgba(0,186,52,0.1)"
-            circleTwoStroke="#00BA34"
-            />
-        );
-      case 'SEAL':
-        return (
-          <>
-            <Loading />
-            sealing
-          </>
-        );
-      case 'FINISH':
-        return <ColoredSuccessIcon />;
-      default:
-        return null;
-    }
-  };
 
   return (
     <>
       <QDrawerCloseButton />
-      <QDrawerHeader>Upload Object</QDrawerHeader>
+      <QDrawerHeader>Task Management</QDrawerHeader>
       <QDrawerBody>
-        <Box fontWeight={'600'} fontSize={'18px'} borderBottom={'1px solid readable.border'}>
+        <Box fontWeight={'600'} fontSize={'14px'} paddingBottom={'8px'} borderBottom={'1px solid readable.border'}>
           Current Upload
         </Box>
         {queue.map((task) => (

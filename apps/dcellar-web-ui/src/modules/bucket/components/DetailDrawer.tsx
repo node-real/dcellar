@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useMemo } from 'react';
 import {
-  QDrawer,
   QDrawerCloseButton,
   QDrawerHeader,
   QDrawerBody,
@@ -21,6 +20,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { Label } from '@/modules/buckets/List/components/BucketDetail';
 import { formatBytes } from '@/modules/file/utils';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
+import { DCDrawer } from '@/components/common/DCDrawer';
 
 interface DetailDrawerProps {}
 
@@ -169,7 +169,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   };
 
   return (
-    <QDrawer w={568} isOpen={isOpen} onClose={onClose}>
+    <DCDrawer isOpen={isOpen} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
       <QDrawerBody>
@@ -193,6 +193,6 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
         <Divider marginBottom={16} />
         {getContent()}
       </QDrawerBody>
-    </QDrawer>
+    </DCDrawer>
   );
 });

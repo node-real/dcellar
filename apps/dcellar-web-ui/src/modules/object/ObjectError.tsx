@@ -46,9 +46,9 @@ export const OBJECT_ERROR_TYPES = {
     desc: 'Account balance is not enough, please recharge.',
   },
   NO_PERMISSION: {
-    title: 'No permission',
+    title: 'You need Access',
     icon: FILE_FAILED_URL,
-    desc: "You don't have this object permission.",
+    desc: "You don't have permission to download. You can ask the person who shared the link to invite you directly.",
   }
 }
 

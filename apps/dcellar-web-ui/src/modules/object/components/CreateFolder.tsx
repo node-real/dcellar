@@ -39,7 +39,7 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { InternalRoutePaths } from '@/constants/paths';
-import { E_USER_REJECT_STATUS_NUM, broadcastFault, simulateFault } from '@/facade/error';
+import { E_USER_REJECT_STATUS_NUM, broadcastFault, commonFault, simulateFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { getDomain } from '@/utils/getDomain';
@@ -85,14 +85,14 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   }, [isOpen, dispatch, address]);
 
   const getPath = useCallback(
-    (name: string) => {
+    (name: string, folders: string[]) => {
       const parentFolderName = folders && folders[folders.length - 1];
 
       return parentFolderName && parentFolderName.length > 0
-        ? `${parentFolderName}/${name}/`
+        ? `${folders.join('/')}/${name}/`
         : `${name}/`;
     },
-    [folders],
+    [],
   );
 
   const broadcastCreateTx = async (createTx: any) => {
@@ -137,14 +137,14 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const onCreateFolder = async () => {
     if (!validateFolderName(inputFolderName)) return;
     setLoading(true);
-
+    debugger;
     // 1. create tx and validate folder by chain
     const [CreateObjectTx, error] = await fetchCreateFolderApproval(inputFolderName);
     if (typeof error === 'string') {
       setLoading(false);
       if (error?.includes('lack of') || error?.includes('static balance is not enough')) {
         setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
-      } else if (error?.includes('Object already exists')) {
+      } else if (error?.includes('Object already exists') || error?.includes('repeated object')) {
         setFormErrors([DUPLICATE_OBJECT_NAME]);
         setUsedNames((names) => [...names, inputFolderName]);
       } else {
@@ -157,7 +157,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         icon: PENDING_ICON_URL,
         title: FOLDER_CREATING,
         errorText: '',
-        description: FILE_STATUS_UPLOADING,
+        desc: FILE_STATUS_UPLOADING,
         buttonText: '',
       }),
     );
@@ -174,7 +174,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         setStatusDetail({
           icon: FILE_FAILED_URL,
           title: FOLDER_CREATE_FAILED,
-          description: FOLDER_DESCRIPTION_CREATE_ERROR,
+          desc: FOLDER_DESCRIPTION_CREATE_ERROR,
           buttonText: BUTTON_GOT_IT,
           errorText: bcError ? `Error Message: ${bcError}` : '',
           buttonOnClick: onCloseStatusModal,
@@ -187,7 +187,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         setStatusDetail({
           icon: FILE_FAILED_URL,
           title: FOLDER_CREATE_FAILED,
-          description: FOLDER_DESCRIPTION_CREATE_ERROR,
+          desc: FOLDER_DESCRIPTION_CREATE_ERROR,
           buttonText: BUTTON_GOT_IT,
           errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
           buttonOnClick: onCloseStatusModal,
@@ -227,7 +227,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     folderName: string,
     visibility: any = 'VISIBILITY_TYPE_INHERIT',
   ) => {
-    const fullPath = getPath(folderName);
+    const fullPath = getPath(folderName, folders);
     const file = new File([], fullPath, { type: 'text/plain' });
     const domain = getDomain();
     //@ts-ignore TODO
@@ -255,11 +255,13 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       domain,
       seedString,
     };
-    const createObjectTx = await genCreateObjectTx(createObjectPayload);
+    const [createObjectTx, rError] = await genCreateObjectTx(createObjectPayload).then(resolve, commonFault);
+    if (!createObjectTx) return [createObjectTx, rError];
 
     const [simulateInfo, error] = await createObjectTx
       .simulate({ denom: 'BNB' })
       .then(resolve, simulateFault);
+    if (!simulateInfo) return [simulateInfo, error];
 
     return [createObjectTx, error];
   };
@@ -307,6 +309,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
           fontWeight={400}
           fontSize={18}
           lineHeight="22px"
+          textAlign={'left'}
         >
           Use folders to group files in your bucket. Folder names can't contain "/".
         </Text>

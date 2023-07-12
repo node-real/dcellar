@@ -131,7 +131,7 @@ export const DownloadObject = (props: modalProps) => {
                   icon: NOT_ENOUGH_QUOTA_URL,
                   title: NOT_ENOUGH_QUOTA,
                   errorText: '',
-                  description: NOT_ENOUGH_QUOTA_ERROR,
+                  desc: NOT_ENOUGH_QUOTA_ERROR,
                   buttonText: BUTTON_GOT_IT,
                   buttonOnClick: () => {
                     dispatch(setStatusDetail({} as TStatusDetail));

@@ -70,7 +70,7 @@ export const StatusDetail = () => {
           color={'readable.secondary'}
         >
           {/* Sorry. This is a hack.*/}
-          {statusDetail?.description === FILE_STATUS_DOWNLOADING ? (
+          {statusDetail?.desc === FILE_STATUS_DOWNLOADING ? (
             <>
               {FILE_STATUS_DOWNLOADING.replace('...', '')}
               <Box display={'inline-block'} marginTop={'-0.1em'}>
@@ -78,7 +78,7 @@ export const StatusDetail = () => {
               </Box>
             </>
           ) : (
-            statusDetail?.description
+            statusDetail?.desc
           )}
         </Text>
         {statusDetail?.errorText && (

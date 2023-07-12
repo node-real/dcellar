@@ -6,7 +6,7 @@ import { TransferIn } from './TransferIn';
 import { TransferOut } from './TransferOut';
 import { Send } from './Send';
 import { EOperation } from './type';
-import { POPPINS_FONT } from './constants';
+import { INTER_FONT, POPPINS_FONT } from './constants';
 import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
@@ -44,7 +44,7 @@ export const Wallet = () => {
               <Tab
                 width={'90px'}
                 textAlign="center"
-                fontFamily={POPPINS_FONT}
+                fontFamily={INTER_FONT}
                 tabKey={EOperation.transfer_in}
                 borderBottom={'4px solid transparent'}
                 marginBottom={'-2px'}
@@ -62,7 +62,7 @@ export const Wallet = () => {
             </GAClick>
             <GAClick name="dc.wallet.tab.transferout.click">
               <Tab
-                fontFamily={POPPINS_FONT}
+                fontFamily={INTER_FONT}
                 tabKey={EOperation.transfer_out}
                 textAlign="center"
                 width="105px"
@@ -82,7 +82,7 @@ export const Wallet = () => {
             </GAClick>
             <GAClick name="dc.wallet.tab.send.click">
               <Tab
-                fontFamily={POPPINS_FONT}
+                fontFamily={INTER_FONT}
                 tabKey={EOperation.send}
                 textAlign="center"
                 width="45px"

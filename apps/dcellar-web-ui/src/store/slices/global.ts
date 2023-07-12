@@ -54,6 +54,7 @@ export interface GlobalState {
   uploadQueue: Record<string, UploadFile[]>;
   _availableBalance: string; // using static value, avoid rerender
   _lockFee: string;
+  taskManagement: boolean;
 }
 
 const initialState: GlobalState = {
@@ -66,6 +67,7 @@ const initialState: GlobalState = {
   uploadQueue: {},
   _availableBalance: '0',
   _lockFee: '0',
+  taskManagement: false,
 };
 
 export const globalSlice = createSlice({
@@ -187,6 +189,9 @@ export const globalSlice = createSlice({
 
       state.gasHub.gasList = gasList;
     },
+    setTaskManagement(state, { payload }: PayloadAction<boolean>) {
+      state.taskManagement = payload;
+    }
   },
 });
 
@@ -203,6 +208,7 @@ export const {
   updateUploadMsg,
   setTmpAvailableBalance,
   setTmpLockFee,
+  setTaskManagement,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();

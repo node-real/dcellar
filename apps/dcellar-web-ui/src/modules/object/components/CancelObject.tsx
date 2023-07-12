@@ -125,7 +125,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
     setStatusDetail({
       icon: FILE_FAILED_URL,
       title: FILE_TITLE_CANCEL_FAILED,
-      description: description,
+      desc: description,
       buttonText: BUTTON_GOT_IT,
       errorText: 'Error message: ' + error?.message ?? '',
       buttonOnClick: onStatusDetailClose,

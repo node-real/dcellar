@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { BucketItem } from '@/store/slices/bucket';
 import { formatFullTime } from '@/utils/time';
 import { DiscontinueNotice } from './DiscontinueNotice';
-import FileIcon from '@/public/images/icons/file.svg';
+import FileIcon from '@/public/images/icons/bucket_icon.svg';
 import Link from 'next/link';
 import styled from '@emotion/styled';
 import { useAppDispatch } from '@/store';

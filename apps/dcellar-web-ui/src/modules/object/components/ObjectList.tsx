@@ -70,7 +70,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     accounts,
   } = useAppSelector((root) => root.persist);
 
-  const { bucketName, prefix, path } = useAppSelector((root) => root.object);
+  const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
   const { spInfo } = useAppSelector((root) => root.sp);
@@ -249,6 +249,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
           fitActions = fitActions.filter((a) => a.value === 'cancel');
+        }
+        const key = path + '/' + record.objectName;
+        const curObjectInfo = objectsInfo[key];
+        // if this object is not yours, you only can download it
+        if (curObjectInfo?.object_info?.owner !== loginAccount) {
+          fitActions = fitActions.filter((a) => a.value === 'download');
         }
 
         return <ActionMenu menus={fitActions} onChange={(e) => onMenuClick(e, record)} />;

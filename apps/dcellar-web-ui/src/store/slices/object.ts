@@ -30,7 +30,7 @@ export type TLayerAction = {
 export type TStatusDetail = {
   icon: string;
   title: string;
-  description?: string;
+  desc?: string;
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;

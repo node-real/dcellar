@@ -53,7 +53,7 @@ export const Fee = ({ lockFee }: FeeProps) => {
           )}
         </Flex>
         <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key === 'Pre-locked storage fee(6months)'
+          {key === 'Pre-locked storage fee'
             ? renderPrelockedFeeValue(bnbValue, exchangeRate)
             : renderFeeValue(bnbValue, exchangeRate)}
         </Text>
@@ -72,7 +72,7 @@ export const Fee = ({ lockFee }: FeeProps) => {
         gap={'4px'}
       >
         {renderFee(
-          'Pre-locked storage fee(6months)',
+          'Pre-locked storage fee',
           lockFee,
           +exchangeRate,
           <Tips

@@ -10,7 +10,7 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230711151845
+      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230712073047
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
@@ -62,7 +62,7 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.5
-      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230711151845
+      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230712073047
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
@@ -1622,11 +1622,11 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.0.0-snapshot-20230711151845:
-    resolution: {integrity: sha512-BnP9ZJkB+NoUST3nBCXI6nwyYiKWqrOt17Mlz8jInrWnAlGrzJd6HKIEUgJUNozYIAhVxf8Hyp2mnMZ/4X8Qqw==}
+  /@bnb-chain/greenfield-chain-sdk/0.0.0-snapshot-20230712073047:
+    resolution: {integrity: sha512-/PUnOP09AtxdlNbJIsj79GA4wp+Er3pxGYl43c84gqtKrB8eWE6tQIIn9mp4ZKw17cTO1OxFppSeeRiJiY8T4w==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.10
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
       '@bnb-chain/greenfiled-file-handle': 0.2.0
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
@@ -1646,13 +1646,6 @@ packages:
       - bufferutil
       - debug
       - utf-8-validate
-    dev: false
-
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.10:
-    resolution: {integrity: sha512-JTZjKAQfo2e9d0PUXy9umqNNnpEOv2rvUsfAyJFijG8rnHAR1SUJchh0su344b6u0t+bhvUu/fixA3VVqaNvQw==}
-    dependencies:
-      long: 4.0.0
-      protobufjs: 6.11.3
     dev: false
 
   /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.13:

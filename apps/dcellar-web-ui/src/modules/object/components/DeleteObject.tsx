@@ -120,7 +120,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
       setStatusDetail({
         icon: FILE_FAILED_URL,
         title: FILE_TITLE_DELETE_FAILED,
-        description: description,
+        desc: description,
         buttonText: BUTTON_GOT_IT,
         errorText: 'Error message: ' + error?.message ?? '',
         buttonOnClick: () => {
@@ -215,7 +215,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 setStatusDetail({
                   icon: FILE_DELETE_GIF,
                   title: FILE_TITLE_DELETING,
-                  description: FILE_STATUS_DELETING,
+                  desc: FILE_STATUS_DELETING,
                   buttonText: '',
                   errorText: '',
                 }),

@@ -107,7 +107,6 @@ export const downloadObject = async (
   params: DownloadPreviewParams,
   seedString: string,
 ): Promise<[boolean, ErrorMsg?]> => {
-  debugger;
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
   const { visibility, bucketName, objectName } = objectInfo;
@@ -252,6 +251,7 @@ export const cancelCreateObject = async (params: any, Connector: any): Promise<a
 
 export const queryLockFee = async (params: QueryLockFeeRequest) => {
   const client = await getClient();
+  const res = await client.storage.queryLockFee(params);
   return await client.storage.queryLockFee(params).then(resolve, commonFault);
 }
 

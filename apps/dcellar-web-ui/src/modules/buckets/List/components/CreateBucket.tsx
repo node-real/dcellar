@@ -7,7 +7,6 @@ import {
   InputGroup,
   InputRightElement,
   Link,
-  QDrawer,
   QDrawerBody,
   QDrawerCloseButton,
   QDrawerFooter,
@@ -46,6 +45,7 @@ import { SpItem } from '@/store/slices/sp';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { DCDrawer } from '@/components/common/DCDrawer';
 
 type Props = {
   isOpen: boolean;
@@ -409,7 +409,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       {status === 'failed' && (
         <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
       )}
-      <QDrawer w={568} isOpen={isOpen} onClose={onClose}>
+      <DCDrawer isOpen={isOpen} onClose={onClose}>
         <QDrawerCloseButton />
         <QDrawerHeader>Create a Bucket</QDrawerHeader>
         <QDrawerBody mt={0}>
@@ -543,7 +543,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             Create
           </DCButton>
         </QDrawerFooter>
-      </QDrawer>
+      </DCDrawer>
     </>
   );
 };

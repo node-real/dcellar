@@ -14,7 +14,7 @@ import {
   Tabs,
   toast,
 } from '@totejs/uikit';
-import { BUTTON_GOT_IT, FILE_FAILED_URL, FILE_TITLE_UPLOAD_FAILED } from '@/modules/file/constant';
+import { BUTTON_GOT_IT, FILE_FAILED_URL, FILE_STATUS_UPLOADING, FILE_TITLE_UPLOAD_FAILED, FILE_UPLOAD_URL, OBJECT_TITLE_CREATING } from '@/modules/file/constant';
 import Fee from './SimulateFee';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -49,6 +49,7 @@ import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import {
   addTaskToUploadQueue,
   selectHashFile,
+  setTaskManagement,
   updateHashQueue,
   updateHashStatus,
   updateHashTaskMsg,
@@ -70,6 +71,7 @@ export const UploadObjects = () => {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { sps: globalSps } = useAppSelector((root) => root.sp);
   const selectedFile = useAppSelector(selectHashFile(editUpload));
+  const {hashQueue} = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
@@ -116,6 +118,11 @@ export const UploadObjects = () => {
   const onUploadClick = async () => {
     if (!selectedFile) return;
     setCreating(true);
+    dispatch(setStatusDetail({
+      icon: FILE_UPLOAD_URL,
+      title: OBJECT_TITLE_CREATING,
+      desc: FILE_STATUS_UPLOADING,
+    }));
     const domain = getDomain();
     const secondarySpAddresses = globalSps
       .filter((item: any) => item.operator !== primarySp.operatorAddress)
@@ -182,7 +189,7 @@ export const UploadObjects = () => {
         setStatusDetail({
           title: FILE_TITLE_UPLOAD_FAILED,
           icon: FILE_FAILED_URL,
-          description: 'Sorry, there’s something wrong when uploading the file.',
+          desc: 'Sorry, there’s something wrong when uploading the file.',
           buttonText: BUTTON_GOT_IT,
           buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           errorText: 'Error message: ' + (error || res?.rawLog) ?? '',
@@ -190,9 +197,11 @@ export const UploadObjects = () => {
       );
       return;
     }
-    toast.success({ description: 'object created!' });
+    toast.success({ description: 'Object created successfully!' });
     dispatch(addTaskToUploadQueue(selectedFile.id, res.transactionHash, primarySp.operatorAddress));
     dispatch(setEditUpload(0));
+    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setTaskManagement(true));
     setCreating(false);
   };
 
@@ -213,6 +222,7 @@ export const UploadObjects = () => {
   }, [editUpload]);
 
   const loading = selectedFile?.status !== 'READY';
+  const hasError = hashQueue.some((item) => item.msg !== '');
 
   return (
     <DCDrawer isOpen={!!editUpload} onClose={onClose}>
@@ -233,6 +243,7 @@ export const UploadObjects = () => {
                   justifyContent={'space-between'}
                   borderBottom={'1px solid readable.border'}
                   marginTop={'20px'}
+                  marginBottom={'8px'}
                 >
                   <AccessItem freeze={loading} value={visibility} onChange={setVisibility} />
                   <Box>
@@ -271,7 +282,7 @@ export const UploadObjects = () => {
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >
-            {loading || creating ? (
+            {(loading || creating) && !hasError ? (
               <>
                 Loading
                 <DotLoading />
