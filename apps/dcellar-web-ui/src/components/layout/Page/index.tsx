@@ -39,7 +39,7 @@ export function Page(props: React.PropsWithChildren) {
           flex={1}
           ml="269px"
           mt="64px"
-          minW={'calc(100vw - 269px)'}
+          minW={'calc(100% - 269px)'}
           flexDirection={'column'}
           bg="bg.bottom"
         >
