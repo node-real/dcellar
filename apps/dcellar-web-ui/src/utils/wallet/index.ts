@@ -53,7 +53,8 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
       redundantParityChunkNum = 0,
     } = params && params.versionedParams || {};
     const { params: paymentParams } = await client.payment.params();
-    const { reserveTime } = paymentParams?.versionedParams as any;
+    // @ts-ignore
+    const { reserveTime } = paymentParams?.versionedParams || {};
     const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
       .plus(
