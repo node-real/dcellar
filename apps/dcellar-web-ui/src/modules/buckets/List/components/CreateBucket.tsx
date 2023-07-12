@@ -45,6 +45,7 @@ import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
+import { filterAuthSps } from '@/utils/sp';
 
 type Props = {
   isOpen: boolean;
@@ -80,7 +81,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     loginState: { address },
   } = useLogin();
 
-  const { sp: globalSP, sps: globalSps } = useSPs();
+  const { sp: globalSP, sps } = useSPs();
+  const globalSps = filterAuthSps({address, sps})
   // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
   const selectedSpRef = useRef<IRawSPInfo>(globalSP);
   const { connector } = useAccount();

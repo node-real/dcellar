@@ -30,6 +30,7 @@ import { IBucketItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { getClient } from '@/base/client';
+import { filterAuthSps } from '@/utils/sp';
 
 export const TableList = memo(() => {
   const { sp, sps } = useSPs();
@@ -38,6 +39,7 @@ export const TableList = memo(() => {
   const {
     loginState: { address },
   } = useLogin();
+  const globalSps = useMemo(() => filterAuthSps({ address, sps }), [address, sps]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [rowData, setRowData] = useState<any>();
   const [showDetail, setShowDetail] = useState(false);
@@ -79,7 +81,7 @@ export const TableList = memo(() => {
         cell: (info) => {
           return (
             <ActionItem
-              sps={sps}
+              sps={globalSps}
               info={info}
               rowData={rowData}
               setShowDetail={setShowDetail}
@@ -91,7 +93,7 @@ export const TableList = memo(() => {
         },
       },
     ],
-    [onOpen, rowData, sps],
+    [onOpen, rowData, globalSps],
   );
   const isLoadingColumns = useMemo(
     () =>

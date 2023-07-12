@@ -1,4 +1,6 @@
 import { getClient } from '@/base/client';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { IReturnOffChainAuthKeyPairAndUpload, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 
 const getStorageProviders = async () => {
   const client = await getClient();
@@ -23,4 +25,23 @@ const getSpInfo = async (spAddress: string): Promise<any> => {
   return await client.sp.getStorageProviderInfo(spAddress);
 };
 
-export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo };
+const filterAuthSps = ({ address, sps }: { address: string; sps: any[]; }) => {
+  const curTime = getUtcZeroTimestamp();
+  const key = `${address}-${GREENFIELD_CHAIN_ID}`;
+  const localData = localStorage.getItem(key);
+  const parseLocalData = localData && JSON.parse(localData) || [];
+  const compatibleOldData = Array.isArray(parseLocalData) ? parseLocalData : [parseLocalData];
+
+  const offChainSps = compatibleOldData.filter((item: IReturnOffChainAuthKeyPairAndUpload) => {
+    return item.expirationTime > curTime;
+  }).map(item => item.spAddresses).flat();
+
+  const filterSps = sps.filter((sp) => {
+    return offChainSps.includes(sp.operatorAddress);
+  });
+
+
+  return filterSps;
+}
+
+export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps };
