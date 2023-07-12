@@ -33,13 +33,14 @@ import { getClient } from '@/base/client';
 import { filterAuthSps } from '@/utils/sp';
 
 export const TableList = memo(() => {
-  const { sp, sps } = useSPs();
+  const { sps } = useSPs();
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
   const {
     loginState: { address },
   } = useLogin();
   const globalSps = useMemo(() => filterAuthSps({ address, sps }), [address, sps]);
+  const sp = globalSps[Math.floor(Math.random() * globalSps.length)]
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [rowData, setRowData] = useState<any>();
   const [showDetail, setShowDetail] = useState(false);
