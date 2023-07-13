@@ -34,7 +34,6 @@ export const StyledRow = styled.div<{ $disabled: boolean }>`
     props.$disabled &&
     css`
       color: #aeb4bc;
-      cursor: text;
       a {
         pointer-events: none;
       }
