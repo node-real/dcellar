@@ -24,16 +24,18 @@ import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 
-interface modalProps { }
+interface modalProps {}
 
 export const StatusDetail = () => {
   const dispatch = useAppDispatch();
-  const statusDetail = useAppSelector((root) => root.object.statusDetail)
+  const statusDetail = useAppSelector((root) => root.object.statusDetail);
   const isOpen = !!statusDetail?.title;
   const gaOptions = getGAOptions(statusDetail.title);
   const onClose = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
-  }
+    // todo fix it
+    document.documentElement.style.overflowY = '';
+  };
   return (
     <DCModal
       isOpen={isOpen}

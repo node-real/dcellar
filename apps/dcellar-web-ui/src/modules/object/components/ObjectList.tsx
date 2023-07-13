@@ -89,27 +89,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
     useAppSelector((root) => root.object);
 
-  const ascend = (() => {
-    const _name = sortName as keyof ObjectItem;
-    const sorted = sortBy(objectList, _name);
-    switch (_name) {
-      case 'createAt':
-        return sortBy(sorted, [(o) => (o.folder ? 0 : 1)]);
-      default:
-        return sorted;
-    }
-  })();
-  const descend = (() => {
-    const _name = sortName as keyof ObjectItem;
-    const sorted = reverse(sortBy(objectList, _name));
-    switch (_name) {
-      case 'createAt':
-        return sortBy(sorted, [(o) => (o.folder ? 0 : 1)]);
-      default:
-        return sorted;
-    }
-  })();
-  const sortedList = dir === 'ascend' ? ascend : descend;
+  const ascend = sortBy(objectList, sortName);
+  const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const primarySpAddress = bucketInfo[bucketName]?.primary_sp_address;
   const primarySpInfo = spInfo[primarySpAddress];
 

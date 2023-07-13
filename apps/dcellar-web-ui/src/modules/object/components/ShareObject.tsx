@@ -17,7 +17,7 @@ import { GAClick } from '@/components/common/GATracker';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, setEditShare } from '@/store/slices/object';
 
-interface modalProps { }
+interface modalProps {}
 
 export const ShareObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
@@ -27,6 +27,8 @@ export const ShareObject = (props: modalProps) => {
   const isOpen = !!editShare.objectName;
   const onClose = () => {
     dispatch(setEditShare({} as ObjectItem));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
 
   useEffect(() => {

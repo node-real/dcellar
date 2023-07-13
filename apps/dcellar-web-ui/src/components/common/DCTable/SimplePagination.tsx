@@ -26,10 +26,14 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
     <Menu placement="top">
       {({ isOpen }) => (
         <>
-          <StyledButton as={Button} rightIcon={isOpen ? <MenuOpenIcon /> : <MenuCloseIcon />}>
+          <StyledButton
+            $open={isOpen!}
+            as={Button}
+            rightIcon={isOpen ? <MenuOpenIcon /> : <MenuCloseIcon />}
+          >
             {pageSize}
           </StyledButton>
-          <MenuList w={80}>
+          <MenuList w={50} borderRadius={4}>
             {pageSizeOptions.map((p) => (
               <StyledMenuItem
                 key={p}
@@ -61,15 +65,28 @@ const disabled = css`
   color: #e6e8ea;
 `;
 
+const active = css`
+  transition: all 0.2s;
+  :hover {
+    color: #00ba34;
+  }
+`;
+
 const StyledBack = styled(BackIcon, transientOptions)<{ $disabled: boolean }>`
+  ${active};
   ${(props) => props.$disabled && disabled}
 `;
 
 const StyledGo = styled(GoIcon, transientOptions)<{ $disabled: boolean }>`
+  ${active};
   ${(props) => props.$disabled && disabled}
 `;
 
 const StyledMenuItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
+  padding: 2px 4px;
+  height: 19px;
+  font-size: 12px;
+  font-weight: 400;
   ${(props) =>
     props.$active &&
     css`
@@ -77,7 +94,7 @@ const StyledMenuItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
     `}
 `;
 
-const StyledButton = styled(MenuButton)`
+const StyledButton = styled(MenuButton, transientOptions)<{ $open: boolean }>`
   margin-left: 12px;
   margin-right: 8px;
   display: flex;
@@ -91,9 +108,17 @@ const StyledButton = styled(MenuButton)`
   font-size: 12px;
   color: #1e2026;
   justify-content: space-between;
+  font-weight: 400;
   :hover {
-    background: #e6e8ea;
+    border-color: #00ba34;
+    background: #fff;
   }
+  ${(props) =>
+    props.$open &&
+    css`
+      border-color: #00ba34;
+      background: #fff;
+    `}
   svg {
     pointer-events: none;
     width: 12px;

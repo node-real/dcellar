@@ -191,7 +191,7 @@ export const globalSlice = createSlice({
     },
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
-    }
+    },
   },
 });
 
@@ -271,6 +271,16 @@ export const uploadQueueAndRefresh =
     );
   };
 
+const fetchedList: Record<string, boolean> = {};
+
+// ensure upload file in file list
+export const progressFetchList =
+  (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
+    if (fetchedList[task.id]) return;
+    fetchedList[task.id] = true;
+    await dispatch(refreshTaskFolder(task));
+  };
+
 export const addTaskToUploadQueue =
   (id: number, hash: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { hashQueue } = getState().global;
@@ -291,7 +301,7 @@ export const addTaskToUploadQueue =
       progress: 0,
     };
     dispatch(addToUploadQueue(_task));
-    dispatch(refreshTaskFolder(_task));
+    // dispatch(refreshTaskFolder(_task));
   };
 
 export const setupTmpAvailableBalance =

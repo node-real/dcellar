@@ -147,13 +147,6 @@ export const UploadObjects = () => {
   const onUploadClick = async () => {
     if (!selectedFile) return;
     setCreating(true);
-    dispatch(
-      setStatusDetail({
-        icon: FILE_UPLOAD_URL,
-        title: OBJECT_TITLE_CREATING,
-        desc: FILE_STATUS_UPLOADING,
-      }),
-    );
     const domain = getDomain();
     const secondarySpAddresses = globalSps
       .filter((item: any) => item.operator !== primarySp.operatorAddress)
@@ -191,6 +184,14 @@ export const UploadObjects = () => {
     if (_createError) {
       return errorHandler(_createError);
     }
+
+    dispatch(
+      setStatusDetail({
+        icon: FILE_UPLOAD_URL,
+        title: OBJECT_TITLE_CREATING,
+        desc: FILE_STATUS_UPLOADING,
+      }),
+    );
 
     const [simulateInfo, simulateError] = await createObjectTx!
       .simulate({

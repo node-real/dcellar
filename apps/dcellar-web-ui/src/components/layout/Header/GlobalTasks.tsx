@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  progressFetchList,
   selectHashTask,
   selectUploadQueue,
   updateHashChecksum,
@@ -79,8 +80,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     });
     const { url, headers } = uploadOptions;
     axios.put(url, task.file.file, {
-      onUploadProgress(progressEvent) {
+      async onUploadProgress(progressEvent) {
         const progress = Math.round((progressEvent.loaded / (progressEvent.total as number)) * 100);
+        await dispatch(progressFetchList(task));
         dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
       },
       headers: {

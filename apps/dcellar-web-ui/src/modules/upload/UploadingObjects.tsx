@@ -41,11 +41,7 @@ export const UploadingObjects = () => {
   const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
     switch (task.status) {
       case 'WAIT':
-        return (
-          <>
-            waiting
-          </>
-        );
+        return <>waiting</>;
       case 'UPLOAD':
         return (
           <CircleProgress
@@ -54,13 +50,15 @@ export const UploadingObjects = () => {
             strokeWidth={2}
             circleOneStroke="rgba(0,186,52,0.1)"
             circleTwoStroke="#00BA34"
-            />
+          />
         );
       case 'SEAL':
-        return <>
-        <Loading />
-        sealing
-      </>;
+        return (
+          <>
+            <Loading />
+            sealing
+          </>
+        );
       case 'FINISH':
         return <ColoredSuccessIcon />;
       default:
@@ -93,28 +91,47 @@ export const UploadingObjects = () => {
       <QDrawerCloseButton />
       <QDrawerHeader>Task Management</QDrawerHeader>
       <QDrawerBody>
-        <Box fontWeight={'600'} fontSize={'14px'} paddingBottom={'8px'} borderBottom={'1px solid readable.border'}>
+        <Box
+          fontWeight={'600'}
+          fontSize={'14px'}
+          paddingBottom={'8px'}
+          borderBottom={'1px solid readable.border'}
+        >
           Current Upload
         </Box>
-        {queue.map((task) => (
-          <QListItem cursor={'default'} _hover={{}} maxW={'520px'} key={task.id} paddingX={'6px'} right={null}>
-            <Flex marginLeft={'12px'} fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
-              <Box maxW='200px' flex={1}>
-                <EllipsisText marginRight={'12px'}>{task.file.name}</EllipsisText>
-                {task.msg ? (
-                  <EllipsisText color={'red'}>{task.msg}</EllipsisText>
-                ) : (
-                  <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
-                )}
-              </Box>
-              <EllipsisText
-                maxW='200px'
-                textAlign={'center'}
-                marginRight={'12px'}
+        {queue.map((task) => {
+          const prefix = `${[task.bucketName, ...task.folders].join('/')}/`;
+          return (
+            <QListItem
+              cursor={'default'}
+              _hover={{}}
+              maxW={'520px'}
+              key={task.id}
+              paddingX={'6px'}
+              right={null}
+            >
+              <Flex
+                marginLeft={'12px'}
+                fontSize={'12px'}
+                alignItems={'center'}
+                justifyContent={'space-between'}
               >
-                {`${[task.bucketName, ...task.folders].join('/')}/`}
-              </EllipsisText>
-              {/* <Box>create hash: {task.createHash}</Box>
+                <Box maxW="200px" flex={1}>
+                  <EllipsisText marginRight={'12px'} title={task.file.name}>
+                    {task.file.name}
+                  </EllipsisText>
+                  {task.msg ? (
+                    <EllipsisText color={'red'} title={task.msg}>
+                      {task.msg}
+                    </EllipsisText>
+                  ) : (
+                    <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
+                  )}
+                </Box>
+                <EllipsisText maxW="200px" textAlign={'center'} marginRight={'12px'} title={prefix}>
+                  {prefix}
+                </EllipsisText>
+                {/* <Box>create hash: {task.createHash}</Box>
               <Box>
                 seal hash:{' '}
                 {
@@ -122,12 +139,13 @@ export const UploadingObjects = () => {
                     ?.seal_tx_hash
                 }
               </Box> */}
-              <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
-                <FileStatus task={task} />
+                <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
+                  <FileStatus task={task} />
+                </Flex>
               </Flex>
-            </Flex>
-          </QListItem>
-        ))}
+            </QListItem>
+          );
+        })}
       </QDrawerBody>
     </>
   );

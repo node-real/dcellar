@@ -57,7 +57,7 @@ export const createTxFault = (e: any): ErrorResponse => {
   // todo refactor
   if (
     code === -1 &&
-    (e as any).statusCode === 404 &&
+    (e as any).statusCode === 500 &&
     ['Get create object approval error.', 'Get create bucket approval error.'].includes(message)
   ) {
     return [null, E_OFF_CHAIN_AUTH];

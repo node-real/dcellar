@@ -77,6 +77,8 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const isOpen = !!editCancel.objectName;
   const onClose = () => {
     dispatch(setEditCancel({} as ObjectItem));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
   const onStatusDetailClose = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
@@ -222,17 +224,19 @@ export const CancelObject = ({ refetch }: modalProps) => {
               const simulateInfo = await cancelObjectTx.simulate({
                 denom: 'BNB',
               });
-              const [txRes, error] = await cancelObjectTx.broadcast({
-                denom: 'BNB',
-                gasLimit: Number(simulateInfo?.gasLimit),
-                gasPrice: simulateInfo?.gasPrice || '5000000000',
-                payer: loginAccount,
-                granter: '',
-                signTypedDataCallback: async (addr: string, message: string) => {
-                  const provider = await connector?.getProvider();
-                  return await signTypedDataV4(provider, addr, message);
-                },
-              }).then(resolve, commonFault);
+              const [txRes, error] = await cancelObjectTx
+                .broadcast({
+                  denom: 'BNB',
+                  gasLimit: Number(simulateInfo?.gasLimit),
+                  gasPrice: simulateInfo?.gasPrice || '5000000000',
+                  payer: loginAccount,
+                  granter: '',
+                  signTypedDataCallback: async (addr: string, message: string) => {
+                    const provider = await connector?.getProvider();
+                    return await signTypedDataV4(provider, addr, message);
+                  },
+                })
+                .then(resolve, commonFault);
               if (txRes === null) {
                 onStatusDetailClose();
                 toast.error({ description: error || 'Uploading cancelled failed.' });
@@ -241,7 +245,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
               if (txRes && txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
                 refetch();
-                dispatch(setupBucketQuota(bucketName))
+                dispatch(setupBucketQuota(bucketName));
               } else {
                 toast.error({ description: 'Uploading cancelled failed.' });
               }
