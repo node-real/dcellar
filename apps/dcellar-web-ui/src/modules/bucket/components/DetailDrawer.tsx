@@ -78,15 +78,15 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
         gaClickName: 'dc.bucket.b_detail_pop.create_tx_hash.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
       },
-      {
-        canCopy: true,
-        label: 'Update transaction hash',
-        value: editDetail.update_tx_hash,
-        display: formatAddress(editDetail.update_tx_hash),
-        copyGaClickName: 'dc.bucket.b_detail_pop.copy_update_tx_hash.click',
-        gaClickName: 'dc.bucket.b_detail_pop.update_tx_hash.click',
-        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
-      },
+      // {
+      //   canCopy: true,
+      //   label: 'Update transaction hash',
+      //   value: editDetail.update_tx_hash,
+      //   display: formatAddress(editDetail.update_tx_hash),
+      //   copyGaClickName: 'dc.bucket.b_detail_pop.copy_update_tx_hash.click',
+      //   gaClickName: 'dc.bucket.b_detail_pop.update_tx_hash.click',
+      //   href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
+      // },
     ];
 
     return (

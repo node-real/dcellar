@@ -12,7 +12,6 @@ import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { VisibilityType } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { useDispatch } from 'react-redux';
 import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 import { ObjectItem, TStatusDetail, setEditDownload, setStatusDetail } from '@/store/slices/object';
 import { quotaRemains } from '@/facade/bucket';
@@ -166,7 +165,7 @@ export const DownloadObject = (props: modalProps) => {
             const [success, opsError] = await downloadObject(params, seedString);
             if (opsError) return onError(opsError);
             dispatch(setupBucketQuota(bucketName));
-            currentAllowDirectDownload !== null && directDownload !== currentAllowDirectDownload &&
+            currentAllowDirectDownload !== null &&
               dispatch(
                 setAccountConfig({
                   address: loginAccount,
