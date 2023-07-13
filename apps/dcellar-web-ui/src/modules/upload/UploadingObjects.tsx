@@ -44,13 +44,15 @@ export const UploadingObjects = () => {
         return <>waiting</>;
       case 'UPLOAD':
         return (
-          <CircleProgress
-            progress={task.progress}
-            size={18}
-            strokeWidth={2}
-            circleOneStroke="rgba(0,186,52,0.1)"
-            circleTwoStroke="#00BA34"
-          />
+          <Box as="span" mr={2}>
+            <CircleProgress
+              progress={task.progress}
+              size={20}
+              strokeWidth={2}
+              circleOneStroke="rgba(0,186,52,0.1)"
+              circleTwoStroke="#00BA34"
+            />
+          </Box>
         );
       case 'SEAL':
         return (
@@ -109,6 +111,7 @@ export const UploadingObjects = () => {
               key={task.id}
               paddingX={'6px'}
               right={null}
+              display="block"
             >
               <Flex
                 marginLeft={'12px'}
