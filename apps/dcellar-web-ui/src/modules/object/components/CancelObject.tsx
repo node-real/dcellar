@@ -82,6 +82,8 @@ export const CancelObject = ({ refetch }: modalProps) => {
   };
   const onStatusDetailClose = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
 
   const simulateGasFee = gasList[MsgCancelCreateObjectTypeUrl]?.gasFee + '';

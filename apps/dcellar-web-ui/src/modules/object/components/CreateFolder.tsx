@@ -82,6 +82,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   };
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
 
   const [loading, setLoading] = useState(false);
