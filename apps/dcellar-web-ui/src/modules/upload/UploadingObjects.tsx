@@ -122,7 +122,7 @@ export const UploadingObjects = () => {
                     ?.seal_tx_hash
                 }
               </Box> */}
-              <Flex maxW={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
+              <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
                 <FileStatus task={task} />
               </Flex>
             </Flex>

@@ -1,3 +1,5 @@
+import { ErrorMsgMap } from "@/context/WalletConnectContext/error/error";
+
 export type ErrorMsg = string;
 
 export const E_GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
@@ -44,7 +46,7 @@ export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
   console.error('BroadcastFault', e);
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
-    return [null, E_USER_REJECT_STATUS_NUM];
+    return [null, ErrorMsgMap[E_USER_REJECT_STATUS_NUM]];
   }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };

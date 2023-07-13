@@ -37,7 +37,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
     const infos = [
       {
         canCopy: false,
-        label: 'Date created',
+        label: 'Date Created',
         value: formatFullTime(create_at),
         display: formatFullTime(create_at),
         href: '',
@@ -105,12 +105,12 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             >
               <Label>{item.label}</Label>
               <Flex>
-                {item.label === 'Date created' && (
+                {item.label === 'Date Created' && (
                   <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
                     {item.display}
                   </Text>
                 )}
-                {item.label !== 'Date created' &&
+                {item.label !== 'Date Created' &&
                   (item.canCopy ? (
                     <GAClick name={item.gaClickName}>
                       <Link

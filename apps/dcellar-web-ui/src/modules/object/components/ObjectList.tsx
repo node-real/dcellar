@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
@@ -20,6 +20,7 @@ import { chunk, reverse, sortBy } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
+  setAccountConfig,
   SorterType,
   updateObjectPageSize,
   updateObjectSorter,
@@ -60,13 +61,13 @@ import { StyledRow } from '@/modules/object/objects.style';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
-  { label: 'Delete', value: 'delete' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
   { label: 'Cancel', value: 'cancel' },
+  { label: 'Delete', value: 'delete' },
 ];
 
-interface ObjectListProps {}
+interface ObjectListProps { }
 
 export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const dispatch = useAppDispatch();
@@ -77,6 +78,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     accounts,
   } = useAppSelector((root) => root.persist);
 
+  const [rowIndex, setRowIndex] = useState(-1)
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
@@ -264,8 +266,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       width: 100,
       align: 'center' as AlignType,
       title: 'Action',
-      render: (_: string, record: ObjectItem) => {
+      render: (_: string, record: ObjectItem, index: number) => {
         let fitActions = Actions;
+        let operations: string[] = [];
+        const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
         if (isFolder) return null;
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
@@ -285,7 +289,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
 
-        return <ActionMenu menus={fitActions} onChange={(e) => onMenuClick(e, record)} />;
+        if (isCurRow && !isFolder) {
+          operations = isPublic && isSealed ? ['share', 'download'] : ['download'];
+        }
+
+
+        return <ActionMenu menus={fitActions} operations={operations} onChange={(e) => onMenuClick(e, record)} />;
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
@@ -351,11 +360,17 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record) => ({
+        onRow={(record, index) => ({
           onClick: () => {
             const isFolder = record.objectName.endsWith('/');
             !isFolder && onMenuClick('detail', record);
           },
+          onMouseEnter: () => {
+            setRowIndex(index || -1);
+          },
+          onMouseLeave: () => {
+            setRowIndex(-1)
+          }
         })}
       />
     </>

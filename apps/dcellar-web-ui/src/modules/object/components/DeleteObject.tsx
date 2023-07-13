@@ -230,6 +230,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               const simulateInfo = await delObjTx.simulate({
                 denom: 'BNB',
               });
+              debugger;
               const [txRes, error] = await delObjTx.broadcast({
                 denom: 'BNB',
                 gasLimit: Number(simulateInfo?.gasLimit),
@@ -242,6 +243,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 },
               }).then(resolve, broadcastFault);
               if (txRes === null) {
+                dispatch(setStatusDetail({} as TStatusDetail));
                 return toast.error({ description: error || 'Delete file error.' });
               }
               if (txRes.code === 0) {

@@ -93,12 +93,16 @@ export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
             padding={'12px 16px 12px 8px'}
             _selected={{ bg: 'primary.normal', color: 'white' }}
             key={item.value}
+            alignItems={'flex-start'}
             isDisabled={option.value === item.value}
             _disabled={{ backgroundColor: 'rgba(0, 186, 52, 0.10)' }}
             onClick={() => onChange(item.value)}
           >
             {value === item.value ? <SelectedIcon /> : <Box w={16} h={16} />}
-            <Text ml="8px">{item.label}</Text>
+            <Box>
+              <Text ml="8px">{item.label}</Text>
+              <Text ml="8px" fontSize="12px" color="readable.secondary">{item.desc}</Text>
+            </Box>
           </MenuItem>
         ))}
       </MenuList>

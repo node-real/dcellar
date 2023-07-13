@@ -10,7 +10,7 @@ import { encodeObjectName } from '@/utils/string';
 import { trimEnd } from 'lodash-es';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { downloadObject } from '@/facade/object';
+import { previewObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
@@ -72,7 +72,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
 
       const operator = primarySp.operatorAddress;
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
-      const [success, opsError] = await downloadObject(params, seedString);
+      const [success, opsError] = await previewObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));
       return success;

@@ -37,7 +37,7 @@ export const OBJECT_ERROR_TYPES = {
     desc: 'Object size exceeded the maximum allowed size (256MB).',
   },
   OBJECT_NAME_EXISTS: {
-    title: 'Object Name is exists',
+    title: 'Object name already exists',
     icon: FILE_FAILED_URL
   },
   ACCOUNT_BALANCE_NOT_ENOUGH: {

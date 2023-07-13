@@ -212,6 +212,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         bg="bg.middle"
         borderBottom="1px solid #E6E8EA"
         justifyContent={'right'}
+        alignItems={'center'}
       >
         <Flex paddingLeft="24px" alignItems={'center'}>
           <GAClick name="dc.main.nav.logo.click">

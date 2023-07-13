@@ -214,7 +214,7 @@ interface ActionButtonProps extends CenterProps {
   gaClickName?: string;
 }
 
-function ActionButton(props: ActionButtonProps) {
+export function ActionButton(props: ActionButtonProps) {
   const { children, onClick, gaClickName, ...restProps } = props;
 
   const onBeforeClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -227,7 +227,7 @@ function ActionButton(props: ActionButtonProps) {
       <Circle
         className="btn-action"
         boxSize={24}
-        visibility={'hidden'}
+        // visibility={'hidden'}
         bg="rgba(0, 186, 52, 0.1)"
         flexShrink={0}
         cursor="pointer"

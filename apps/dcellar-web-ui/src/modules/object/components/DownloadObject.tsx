@@ -41,7 +41,7 @@ const renderProp = (key: string, value: string) => {
 export const DownloadObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
-  const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
+  const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(null);
   const { primarySp, editDownload, bucketName } = useAppSelector((root) => root.object);
   const { spInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
@@ -52,7 +52,6 @@ export const DownloadObject = (props: modalProps) => {
   const onClose = () => {
     dispatch(setEditDownload({} as ObjectItem));
   };
-
   const directDownloadLink = getDirectDownloadLink({
     bucketName,
     primarySpEndpoint: primarySp.endpoint,
@@ -165,7 +164,7 @@ export const DownloadObject = (props: modalProps) => {
             const [success, opsError] = await downloadObject(params, seedString);
             if (opsError) return onError(opsError);
             dispatch(setupBucketQuota(bucketName));
-            directDownload !== currentAllowDirectDownload &&
+            currentAllowDirectDownload !== null && directDownload !== currentAllowDirectDownload &&
               dispatch(
                 setAccountConfig({
                   address: loginAccount,
@@ -189,20 +188,15 @@ export const DownloadObject = (props: modalProps) => {
             }
           >
             <Checkbox
-              isChecked={currentAllowDirectDownload}
+              isChecked={currentAllowDirectDownload === null ? directDownload : currentAllowDirectDownload}
               color="readable.tertiary"
               fontWeight={400}
               fontSize={16}
               lineHeight="19px"
               onChange={(e) => {
                 e.stopPropagation();
-                dispatch(
-                  setAccountConfig({
-                    address: loginAccount,
-                    config: { directDownload: !currentAllowDirectDownload },
-                  }),
-                );
-                setCurrentAllowDirectDownload(!currentAllowDirectDownload);
+                const checked = currentAllowDirectDownload === null ? !directDownload : !currentAllowDirectDownload;
+                setCurrentAllowDirectDownload(checked);
               }}
             >
               Don't show again.

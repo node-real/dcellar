@@ -1,46 +1,68 @@
 import React, { memo } from 'react';
-import { Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
+import { Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
+import { isEmpty } from 'lodash-es';
+import ShareIcon from '@/public/images/icons/share.svg';
+import { DownloadIcon } from '@totejs/icons';
+import { ActionButton } from '@/modules/file/components/FileTable';
 
 export type ActionMenuItem = { label: string; value: string };
 
 interface ActionMenuProps {
   onChange?: (menu: string) => void;
   menus?: Array<ActionMenuItem>;
+  operations: string[];
 }
 
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
+  operations = [],
   menus = [],
 }) {
+  if (isEmpty(menus)) return null;
+  console.log('operations', operations)
   return (
-    <Menu placement="bottom-end" trigger="hover">
-      {({ isOpen }) => (
-        <>
-          <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
-            <MenuIcon />
-          </StyledMenuButton>
-          <MenuList w={120}>
-            <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
-            {menus.map((m) => (
-              <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>
-                <StyledMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange(m.value);
-                  }}
-                >
-                  {m.label}
-                </StyledMenuItem>
-              </GAClick>
-            ))}
-          </MenuList>
-        </>
-      )}
-    </Menu>
+    <Flex justifyContent={'flex-end'}>
+      {operations.map((m) => {
+        switch (m) {
+          case 'download':
+            return <ActionButton key={m} gaClickName="dc.file.download_btn.0.click" marginRight={'8px'}  onClick={() => (onChange(m))}>
+              <DownloadIcon size="md" color="readable.brand6" />
+            </ActionButton>;
+          case 'share':
+            return <ActionButton marginRight={'8px'} key={m} gaClickName="dc.file.share_btn.0.click" onClick={() => (onChange(m))}>
+              <ShareIcon />
+            </ActionButton>;
+        }
+      })}
+      <Menu placement="bottom-end" trigger="hover">
+        {({ isOpen }) => (
+          <>
+            <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
+              <MenuIcon />
+            </StyledMenuButton>
+            <MenuList w={120}>
+              <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
+              {menus.map((m) => (
+                <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>
+                  <StyledMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange(m.value);
+                    }}
+                  >
+                    {m.label}
+                  </StyledMenuItem>
+                </GAClick>
+              ))}
+            </MenuList>
+          </>
+        )}
+      </Menu>
+    </Flex>
   );
 });
 
