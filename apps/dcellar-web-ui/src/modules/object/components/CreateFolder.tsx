@@ -59,7 +59,7 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
-  refetch: () => void;
+  refetch: (name?: string) => void;
 }
 
 export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refetch }) {
@@ -92,16 +92,13 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     dispatch(setupTmpAvailableBalance(address));
   }, [isOpen, dispatch, address]);
 
-  const getPath = useCallback(
-    (name: string, folders: string[]) => {
-      const parentFolderName = folders && folders[folders.length - 1];
+  const getPath = useCallback((name: string, folders: string[]) => {
+    const parentFolderName = folders && folders[folders.length - 1];
 
-      return parentFolderName && parentFolderName.length > 0
-        ? `${folders.join('/')}/${name}/`
-        : `${name}/`;
-    },
-    [],
-  );
+    return parentFolderName && parentFolderName.length > 0
+      ? `${folders.join('/')}/${name}/`
+      : `${name}/`;
+  }, []);
 
   const broadcastCreateTx = async (createTx: any) => {
     const [simulateInfo, error] = await createTx
@@ -211,9 +208,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     showSuccessToast(transactionHash);
     dispatch(setStatusDetail({} as TStatusDetail));
     onClose();
-    refetch();
-    // todo refactor
-    setTimeout(refetch, 500);
+    refetch(inputFolderName);
   };
   const validateFolderName = (value: string) => {
     const errors = Array<string>();

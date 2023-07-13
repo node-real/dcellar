@@ -13,6 +13,7 @@ import {
   setEditShare,
   setRestoreCurrent,
   setStatusDetail,
+  setupDummyFolder,
   setupListObjects,
 } from '@/store/slices/object';
 import { chunk, reverse, sortBy } from 'lodash-es';
@@ -303,7 +304,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     dispatch(updateObjectPageSize(pageSize));
   };
 
-  const refetch = async () => {
+  const refetch = async (name?: string) => {
     if (!primarySpAddress) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
     const query = new URLSearchParams();
@@ -312,7 +313,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       query,
       endpoint: spInfo[primarySpAddress].endpoint,
     };
-    dispatch(setupListObjects(params));
+    if (name) {
+      await dispatch(setupListObjects(params));
+      // if folder not exist in list, then add dummy folder
+      dispatch(setupDummyFolder(name));
+    } else {
+      dispatch(setupListObjects(params));
+    }
   };
 
   const empty = !loading && !sortedList.length;

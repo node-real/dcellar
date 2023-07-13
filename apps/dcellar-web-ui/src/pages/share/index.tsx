@@ -65,7 +65,7 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
       <Flex>
         <Box flex={1}>
           <Container>
-            {walletConnected && <Header />}
+            {walletConnected && <Header taskManagement={false} />}
             {!isPrivate && !walletConnected && (
               <Logo zIndex={1} href="/" margin="20px 24px" position="absolute" left={0} top={0} />
             )}
