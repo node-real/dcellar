@@ -1,19 +1,28 @@
-import { useContext } from 'react';
-import { Box, Flex, Text, Link } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 
 import { getNumInDigits } from '@/utils/wallet';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { Tips } from '@/components/common/Tips';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 const NewBalance = (props: any) => {
-  const { availableBalance, lockFee } = useAvailableBalance();
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
+  const dispatch = useAppDispatch();
+  const exchangeRate = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { _availableBalance: availableBalance, _lockFee: lockFee } = useAppSelector(
+    (root) => root.global,
+  );
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+    dispatch(setupTmpLockFee(address));
+  });
+
   const renderBalanceNumber = () => {
     if (Number(availableBalance) < 0) return 'Fetching balance...';
     return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
@@ -27,8 +36,8 @@ const NewBalance = (props: any) => {
   };
 
   const renderUsd = () => {
-    if (exchangeRate <= 0) return '';
-    const numberInUsd = Number(availableBalance) * exchangeRate;
+    if (Number(exchangeRate) <= 0) return '';
+    const numberInUsd = Number(availableBalance) * Number(exchangeRate);
     return `≈ $${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
   };
   return (

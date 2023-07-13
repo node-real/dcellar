@@ -1,7 +1,6 @@
 import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 
-import { useLogin } from '@/hooks/useLogin';
 import {
   directlyDownload,
   downloadWithProgress,
@@ -22,9 +21,10 @@ import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 
 interface modalProps {
   title?: string;
@@ -35,7 +35,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -63,8 +63,8 @@ const renderProp = (key: string, value: string) => {
 };
 
 export const ConfirmDownloadModal = (props: modalProps) => {
-  const loginData = useLogin();
-  const { loginState, loginDispatch } = loginData;
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState(true);
   const [hasChangedDownload, setHasChangedDownload] = useState(false);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -168,12 +168,7 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               setLoading(true);
               onClose();
               if (!hasChangedDownload) {
-                loginDispatch({
-                  type: 'UPDATE_DOWNLOAD_OPTION',
-                  payload: {
-                    allowDirectDownload: true,
-                  },
-                });
+                dispatch(setAccountConfig({ address, config: { directDownload: true } }));
               }
               setLoading(false);
               // only public file can be direct download
@@ -193,11 +188,10 @@ export const ConfirmDownloadModal = (props: modalProps) => {
               if (shareLink && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(shareLink);
               } else {
-                const spOffChainData = await getSpOffChainData({
-                  address: loginState.address,
-                  spAddress: primarySp.operatorAddress,
-                });
-                if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                const { seedString } = await dispatch(
+                  getSpOffChainData(address, primarySp.operatorAddress),
+                );
+                if (!seedString) {
                   onClose();
                   onStatusModalClose();
                   setOpenAuthModal();
@@ -209,7 +203,8 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                   objectName: name,
                   primarySp,
                   payloadSize: Number(size),
-                  address: loginState.address,
+                  address,
+                  seedString,
                 });
                 saveFileByAxiosResponse(result, name);
               }
@@ -251,12 +246,12 @@ export const ConfirmDownloadModal = (props: modalProps) => {
                 if (!hasChangedDownload) {
                   setHasChangedDownload(true);
                 }
-                loginDispatch({
-                  type: 'UPDATE_DOWNLOAD_OPTION',
-                  payload: {
-                    allowDirectDownload: !currentAllowDirectDownload,
-                  },
-                });
+                dispatch(
+                  setAccountConfig({
+                    address,
+                    config: { directDownload: !currentAllowDirectDownload },
+                  }),
+                );
                 setCurrentAllowDirectDownload(!currentAllowDirectDownload);
               }}
             >

@@ -3,6 +3,8 @@ import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/gree
 import { IObjectResultType } from '@bnb-chain/greenfield-chain-sdk';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { get } from '@/base/http';
+import { commonFault } from '@/facade/error';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -20,4 +22,18 @@ export const getObjectInfoAndBucketQuota = async (
   ]);
 
   return [objectInfo || null, body || null];
+};
+
+export type BnbPriceInfo = { price: string; symbol: string };
+
+export const getDefaultBnbInfo = () => ({ price: '300', symbol: 'BNBUSDT' });
+
+export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
+  const [res, error] = await get({
+    url: 'https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT',
+    customOptions: { needNotify: false },
+  }).then(resolve, commonFault);
+
+  if (error) return getDefaultBnbInfo();
+  return res as BnbPriceInfo;
 };

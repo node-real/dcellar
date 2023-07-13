@@ -1,8 +1,7 @@
-import { Flex, Text, Image, useDisclosure, toast, Link, Tooltip } from '@totejs/uikit';
-import React, { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
+import { Flex, Image, Link, Text, toast, Tooltip, useDisclosure } from '@totejs/uikit';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { FileDetailModal } from '@/modules/file/components/FileDetailModal';
-import { useLogin } from '@/hooks/useLogin';
 
 import {
   BUTTON_GOT_IT,
@@ -22,16 +21,13 @@ import { DuplicateNameModal } from '@/modules/file/components/DuplicateNameModal
 import { getLockFee } from '@/utils/wallet';
 import { FileTable } from '@/modules/file/components/FileTable';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '../off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { FileListEmpty } from './components/FileListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import { getClient } from '@/base/client';
-import { useSPs } from '@/hooks/useSPs';
 import { ISpInfo, TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { isEmpty } from 'lodash-es';
 import { validateObjectName } from './utils/validateObjectName';
@@ -39,9 +35,11 @@ import { genCreateObjectTx } from './utils/genCreateObjectTx';
 import { ChainVisibilityEnum, TCreateObjectData } from './type';
 import dayjs from 'dayjs';
 import { CreateFolderModal } from '@/modules/file/components/CreateFolderModal';
-import { IRawSPInfo } from '../buckets/type';
 import { convertObjectInfo } from './utils/convertObjectInfo';
-import { ChecksumWorkerContext } from '@/context/GlobalContext/ChecksumWorkerContext';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { SpItem } from '@/store/slices/sp';
+import { useChecksumApi } from '@/modules/checksum';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 interface pageProps {
   bucketName: string;
@@ -112,11 +110,11 @@ const renderUploadButton = (
 let preSelectTime = Date.now();
 
 export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
+  const dispatch = useAppDispatch();
+  const { spInfo, sps } = useAppSelector((root) => root.sp);
   const [file, setFile] = useState<File>();
   const [fileName, setFileName] = useState<string>();
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [freeze, setFreeze] = useState(false);
   const [gasFeeLoading, setGasFeeLoading] = useState(true);
   const [lockFeeLoading, setLockFeeLoading] = useState(true);
@@ -130,22 +128,20 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   const [primarySpAddress, setPrimarySpAddress] = useState<string>('');
   const [primarySpSealAddress, setPrimarySpSealAddress] = useState<string>('');
   const [secondarySpAddresses, setSecondarySpAddresses] = useState<Array<string>>();
-  const [primarySp, setPrimarySp] = useState<IRawSPInfo>({} as IRawSPInfo);
+  const [primarySp, setPrimarySp] = useState({} as SpItem);
   const [isEmptyData, setIsEmptyData] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [isInitReady, setIsInitReady] = useState(false);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const greenfieldRef = useRef<Worker>();
-  const checksumWorkerApiRef = useContext(ChecksumWorkerContext);
-  const router = useRouter();
-  const { sps } = useSPs();
   const { setOpenAuthModal } = useOffChainAuth();
   const isDiscontinued = bucketInfo.bucketStatus === 1;
+  const checksumWorkerApi = useChecksumApi();
 
   const getObjectList = async (currentEndpoint: string) => {
     try {
       const domain = getDomain();
-      const { seedString } = await getSpOffChainData({ address, spAddress: primarySpAddress });
+      const { seedString } = await dispatch(getSpOffChainData(address, primarySpAddress));
       const query = new URLSearchParams();
       query.append('delimiter', '/');
       query.append('max-keys', '1000');
@@ -192,7 +188,6 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
   };
   const getGatewayParams = async () => {
     try {
-      if (isEmpty(sps)) return;
       setIsInitReady(false);
       const bucketInfo = await getBucketInfo(bucketName);
       setIsCurrentUser(bucketInfo?.owner === address);
@@ -207,20 +202,18 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       setPrimarySpAddress(currentPrimarySpAddress);
       const primarySpInfo = await getSpInfo(currentPrimarySpAddress);
       setPrimarySpSealAddress(primarySpInfo.sealAddress);
-      const spIndex = sps.findIndex(function (item: any) {
-        return item.operatorAddress === bucketInfo?.primarySpAddress;
-      });
-      if (spIndex < 0) {
+      const sp = spInfo[bucketInfo?.primarySpAddress];
+      if (!sp) {
         toast.error({
           description: `Sp address info is mismatched, please retry.`,
         });
         return;
       }
-      const currentEndpoint = sps[spIndex]?.endpoint;
-      setPrimarySp(sps[spIndex]);
+      const currentEndpoint = sp.endpoint;
+      setPrimarySp(sp);
       const currentSecondaryAddresses = sps
-        .filter((v: any, i: number) => i !== spIndex)
-        .map((item: any) => item.operatorAddress);
+        .filter((s) => s.operatorAddress !== sp.operatorAddress)
+        .map((s) => s.operatorAddress);
       setSecondarySpAddresses(currentSecondaryAddresses);
       getObjectList(currentEndpoint);
     } catch (error: any) {
@@ -301,17 +294,14 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
     setFreeze(true);
     const start = performance.now();
     let selectTime = (preSelectTime = Date.now());
-    hashResult = await checksumWorkerApiRef.current?.generateCheckSumV2(uploadFile).finally(() => {
+    hashResult = await checksumWorkerApi?.generateCheckSumV2(uploadFile).finally(() => {
       console.info('HASH: ', performance.now() - start);
     });
     if (preSelectTime > selectTime) return;
     setFreeze(false);
 
-    const spOffChainData = await getSpOffChainData({
-      address,
-      spAddress: primarySpAddress,
-    });
-    if (!checkSpOffChainDataAvailable(spOffChainData)) {
+    const { seedString } = await dispatch(getSpOffChainData(address, primarySpAddress));
+    if (!seedString) {
       onStatusModalClose();
       onDetailModalClose();
       setOpenAuthModal();
@@ -340,7 +330,7 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
         spInfo,
         signType: 'offChainAuth',
         domain,
-        seedString: spOffChainData.seedString,
+        seedString,
       };
       const CreateObjectTx = await genCreateObjectTx(configParam);
 

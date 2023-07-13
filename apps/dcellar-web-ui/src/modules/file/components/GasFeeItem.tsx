@@ -1,8 +1,10 @@
-import { memo, useContext } from 'react';
+import { memo } from 'react';
 import { Flex, Text } from '@totejs/uikit';
 import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { selectBalance } from '@/store/slices/balance';
+import { useMount } from 'ahooks';
 
 interface GasFeeItemProps {
   label?: string;
@@ -10,10 +12,16 @@ interface GasFeeItemProps {
 }
 
 export const GasFeeItem = memo<GasFeeItemProps>(function GasFeeItem(props) {
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const { availableBalance } = useAvailableBalance();
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const exchangeRate = Number(bnbPrice);
   const { label = 'Gas Fee', gasFee } = props;
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   return (
     <>

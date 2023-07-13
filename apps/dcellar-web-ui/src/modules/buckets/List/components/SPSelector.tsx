@@ -1,99 +1,68 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Text } from '@totejs/uikit';
-
 import { IDCSelectOption, Select } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
-import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { useSPs } from '@/hooks/useSPs';
-import { IRawSPInfo } from '../../type';
-import { filterAuthSps } from '@/utils/sp';
-import { useLogin } from '@/hooks/useLogin';
+import { useAppSelector } from '@/store';
+import { useMount } from 'ahooks';
+import { SpItem } from '@/store/slices/sp';
 
 interface SPSelector {
-  onChange: (value: IRawSPInfo) => void;
+  onChange: (value: SpItem) => void;
 }
 
 export function SPSelector(props: SPSelector) {
-  const { onChange } = props;
-  const { loginState: {address}, logout } = useLogin();
-  const { sps } = useSPs();
-  const globalSps = useMemo(() => filterAuthSps({address, sps}), [address, sps]);
-  const finalSPs = useMemo<IRawSPInfo[]>(() => {
-    const sps: IRawSPInfo[] =
-      globalSps.filter((v: IRawSPInfo) => v?.description?.moniker !== 'QATest') ?? [];
-
-    return sps.sort((a, b) => {
-      const nameA = a.description?.moniker;
-      const nameB = b.description?.moniker;
-
-      if (nameA && nameB) {
-        return nameA < nameB ? -1 : 1;
-      }
-      if (!nameA && !nameB) {
-        return a.operatorAddress < b.operatorAddress ? -1 : 1;
-      }
-      if (nameA) return -1;
-      if (nameB) return 1;
-
-      return 0;
-    });
-  }, [globalSps]);
-
-  const [sp, setSP] = useState<IRawSPInfo>();
+  const { sps, spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const len = sps.length;
+  const [sp, setSP] = useState({} as SpItem);
   const [total, setTotal] = useState(0);
+  const { onChange } = props;
+  const saveOnChangeRef = useRef(onChange);
+  saveOnChangeRef.current = onChange;
 
-  useEffect(() => {
-    const len = finalSPs.length;
-    const index = ~~(Math.random() * len);
-
-    setSP(finalSPs[index]);
+  useMount(() => {
+    if (!len) return;
     setTotal(len);
-  }, [finalSPs]);
+    setSP(spInfo[oneSp]);
+  });
 
-  const saveOnChangeRef = useSaveFuncRef(onChange);
   useEffect(() => {
-    saveOnChangeRef.current?.(sp as IRawSPInfo);
-  }, [saveOnChangeRef, sp]);
+    if (!sp.operatorAddress) return;
+    saveOnChangeRef.current?.(sp);
+  }, [sp]);
 
-  const onChangeSP = useCallback(
-    (value: string) => {
-      const target = finalSPs.find((item: IRawSPInfo) => item.operatorAddress === value);
-      if (target) {
-        setSP(target);
-      }
-    },
-    [finalSPs],
-  );
+  const onChangeSP = (value: string) => {
+    setSP(spInfo[value]);
+  };
 
-  const onSearchFilter = useCallback((keyword: string, item: IDCSelectOption) => {
+  const onSearch = (result: IDCSelectOption[]) => {
+    setTotal(result.length);
+  };
+
+  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
     const tmpName = item.name.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
-  }, []);
+  };
 
-  const onSearch = useCallback((result: IDCSelectOption[]) => {
-    setTotal(result.length);
-  }, []);
-
-  const { text, value } = useTextAndValue(sp);
-
-  const options = useMemo(() => {
-    return finalSPs.map((item) => {
-      const { operatorAddress, name, endpoint } = getNameAndAddress(item);
-      return {
-        label: <OptionItem address={operatorAddress} name={name}  endpoint={endpoint} />,
-        value: operatorAddress,
-        name,
-        endpoint: item.endpoint,
-      };
-    });
-  }, [finalSPs]);
+  const options = useMemo(
+    () =>
+      sps.map((item) => {
+        const { operatorAddress, moniker: name, endpoint } = item;
+        return {
+          label: <OptionItem address={operatorAddress} name={name} endpoint={endpoint} />,
+          value: operatorAddress,
+          name,
+          endpoint: item.endpoint,
+        };
+      }),
+    [sps],
+  );
 
   return (
     <Select
-      value={value}
-      text={text}
+      value={sp.operatorAddress}
+      text={renderItem(sp.moniker, sp.operatorAddress)}
       options={options}
       header={`Primary Storage Provider (${total})`}
       onChange={onChangeSP}
@@ -106,41 +75,12 @@ export function SPSelector(props: SPSelector) {
   );
 }
 
-function getNameAndAddress(item: any = {}) {
-  return {
-    operatorAddress: item?.operatorAddress ?? '',
-    name: item?.description?.moniker ?? '',
-    endpoint: item?.endpoint ?? '',
-  };
-}
-
-function useTextAndValue(item: any) {
-  const [value, setValue] = useState('');
-  const [text, setText] = useState('');
-
-  useEffect(() => {
-    const { operatorAddress, name } = getNameAndAddress(item);
-    setValue(operatorAddress);
-
-    const addr = trimLongStr(operatorAddress, 10, 6, 4);
-    if (name && operatorAddress) {
-      setText(`${name} | ${addr}`);
-    } else if (name || operatorAddress) {
-      setText(`${name || addr}`);
-    } else {
-      setText('');
-    }
-  }, [item]);
-
-  return {
-    value,
-    text,
-  };
-}
+const renderItem = (moniker: string, address: string) => {
+  return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
+};
 
 function OptionItem(props: any) {
   const { address, name, endpoint } = props;
-  const renderAddress = trimLongStr(address, 10, 6, 4);
 
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
@@ -152,13 +92,13 @@ function OptionItem(props: any) {
         color="readable.top.secondary"
         noOfLines={1}
       >
-        {`${name} | ${renderAddress}`}
+        {renderItem(name, address)}
       </Text>
       {name && (
         <Text
           mt={2}
           fontSize={12}
-          transformOrigin='0 50%'
+          transformOrigin="0 50%"
           transform={'scale(0.85)'}
           lineHeight="18px"
           fontWeight={400}

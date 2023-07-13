@@ -9,8 +9,6 @@ import {
   Divider,
 } from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
-
-import { useLogin } from '@/hooks/useLogin';
 import {
   directlyDownload,
   downloadWithProgress,
@@ -33,10 +31,11 @@ import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { formatFullTime } from '@/utils/time';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData, selectAccountConfig } from '@/store/slices/persist';
 
 interface modalProps {
   title?: string;
@@ -48,7 +47,7 @@ interface modalProps {
   folderName: string;
   fileInfo?: { name: string; size: number; id: string };
   createdDate?: number;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   hash?: string;
   onConfirmDownloadModalOpen: () => void;
   onShareModalOpen: () => void;
@@ -216,7 +215,7 @@ const renderVisibilityTag = (visibility: ChainVisibilityEnum) => {
           lineHeight={'17px'}
           ml={'6px'}
         >
-          Everyone can access
+          Public
         </Text>
       </Flex>
     );
@@ -242,9 +241,9 @@ const renderVisibilityTag = (visibility: ChainVisibilityEnum) => {
 };
 
 export const FileInfoModal = (props: modalProps) => {
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { allowDirectDownload } = loginState;
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { directDownload: allowDirectDownload } = useAppSelector(selectAccountConfig(address));
   const { setOpenAuthModal } = useOffChainAuth();
   const {
     title = 'File Detail',
@@ -408,11 +407,10 @@ export const FileInfoModal = (props: modalProps) => {
                     directlyDownload(shareLink);
                   } else {
                     try {
-                      const spOffChainData = await getSpOffChainData({
-                        spAddress: primarySp.operatorAddress,
-                        address: loginState.address,
-                      });
-                      if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                      const { seedString } = await dispatch(
+                        getSpOffChainData(address, primarySp.operatorAddress),
+                      );
+                      if (!seedString) {
                         onClose();
                         setOpenAuthModal();
                         return;
@@ -422,7 +420,8 @@ export const FileInfoModal = (props: modalProps) => {
                         objectName: name,
                         primarySp,
                         payloadSize: Number(size),
-                        address: loginState.address,
+                        address,
+                        seedString,
                       });
                       saveFileByAxiosResponse(result, name);
                     } catch (e: any) {

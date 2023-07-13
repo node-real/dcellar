@@ -7,14 +7,16 @@ import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
-import { useSPs } from '@/hooks/useSPs';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { headObject, quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
-import { find } from 'lodash-es';
+import { headBucket, quotaRemains } from '@/facade/bucket';
+import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface SharedFileProps {
   fileName: string;
@@ -31,7 +33,8 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   quotaData,
   loginAccount,
 }) {
-  const { sp, sps } = useSPs();
+  const dispatch = useAppDispatch();
+  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
@@ -41,14 +44,18 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     onOpen: onStatusModalOpen,
     onClose: onStatusModalClose,
   } = useDisclosure();
+  const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
-  const endpoint = sp.endpoint;
+  const endpoint = spInfo[oneSp].endpoint;
   const size = payloadSize.toString();
 
-  const onError = (type: ShareErrorType) => {
+  const onError = (type: string) => {
     setAction('');
-    const errorData = SHARE_ERROR_TYPES[type]
-      ? SHARE_ERROR_TYPES[type]
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
+    const errorData = SHARE_ERROR_TYPES[type as ShareErrorType]
+      ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
     setStatusModalIcon(errorData.icon);
     setStatusModalTitle(errorData.title);
@@ -57,7 +64,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   };
 
   const onAction = async (e: ActionType) => {
-    if (action) return;
+    if (action === e) return;
     reportEvent({
       name:
         e === 'download'
@@ -78,10 +85,10 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const errType = accessError as ShareErrorType;
     if (errType) return onError(errType);
 
-    const bucketInfo = await headObject(bucketName);
+    const bucketInfo = await headBucket(bucketName);
     if (!bucketInfo) return onError(E_UNKNOWN);
 
-    const primarySp = find(sps, (sp) => sp.operatorAddress === bucketInfo.primarySpAddress);
+    const primarySp = spInfo[bucketInfo.primarySpAddress];
     if (!primarySp) return onError(E_SP_NOT_FOUND);
 
     const params = {
@@ -89,10 +96,14 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       objectInfo,
       address: loginAccount,
     };
+
+    const operator = primarySp.operatorAddress;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [success, opsError] = await (e === 'download'
-      ? downloadObject(params)
-      : previewObject(params));
+      ? downloadObject(params, seedString)
+      : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
+    dispatch(setupBucketQuota(bucketName));
     setAction('');
     return success;
   };

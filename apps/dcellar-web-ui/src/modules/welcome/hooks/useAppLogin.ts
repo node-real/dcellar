@@ -1,45 +1,29 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { useLogin } from '@/hooks/useLogin';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkOffChainDataAvailable, getOffChainList } from '@/modules/off-chain-auth/utils';
-import { useEffect } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
+import { useAppDispatch } from '@/store';
+import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
+import { useAsyncEffect } from 'ahooks';
 
 export function useAppLogin(address?: string) {
+  const dispatch = useAppDispatch();
   const { chain } = useNetwork();
   const { isConnected } = useAccount();
-
-  const { loginDispatch } = useLogin();
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
 
-  useEffect(() => {
+  useAsyncEffect(async () => {
     if (isConnected && chain?.id === GREENFIELD_CHAIN_ID && address) {
-      const offChainList = getOffChainList({ address });
-      const isAvailable = checkOffChainDataAvailable(offChainList);
+      const isAvailable = await dispatch(checkOffChainDataAvailable(address));
 
       if (!isAvailable) {
-        onOffChainAuth(address).then((res: any) => {
-          if (res.code === 0) {
-            loginDispatch({
-              type: 'LOGIN',
-              payload: {
-                address,
-              },
-            });
-          }
-        });
+        const res = await onOffChainAuth(address);
+        if (res.code !== 0) return;
+        dispatch(setLogin(address));
       } else {
-        loginDispatch({
-          type: 'LOGIN',
-          payload: {
-            address,
-          },
-        });
+        dispatch(setLogin(address));
       }
     }
-  }, [address, chain?.id, isConnected, loginDispatch, onOffChainAuth]);
+  }, [address, chain?.id, isConnected, onOffChainAuth, dispatch]);
 
-  return {
-    isAuthPending,
-  };
+  return { isAuthPending };
 }

@@ -51,9 +51,10 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
       minChargeSize = new Long(0),
       redundantDataChunkNum = 0,
       redundantParityChunkNum = 0,
-    } = params && params.versionedParams || {};
-    const { params: paymentParams = {} } = await client.payment.params();
-    const { reserveTime } = paymentParams as any;
+    } = (params && params.versionedParams) || {};
+    const { params: paymentParams } = await client.payment.params();
+    // @ts-ignore
+    const { reserveTime } = paymentParams || {};
     const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
       .plus(
@@ -64,7 +65,7 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
       .times(BigNumber(chargeSize))
       .dividedBy(Math.pow(10, 18));
     const lockFeeInBNB = lockedFeeRate
-      .times(BigNumber(reserveTime.toString()))
+      .times(BigNumber(reserveTime?.toString() || 0))
       .dividedBy(Math.pow(10, 18));
     return lockFeeInBNB.toString();
   } catch (error: any) {

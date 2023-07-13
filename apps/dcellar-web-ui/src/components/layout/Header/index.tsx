@@ -1,17 +1,24 @@
-import { Flex, Text, Button, Image, useOutsideClick, Circle, Box, Link } from '@totejs/uikit';
-import { useEffect, useRef, useState } from 'react';
+import { Box, Button, Circle, Flex, Image, Link, Text, useOutsideClick } from '@totejs/uikit';
+import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
-import { useLogin } from '@/hooks/useLogin';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { Tips } from '@/components/common/Tips';
+import { Logo } from '@/components/layout/Logo';
+import { StreamBalance } from '@/components/layout/Header/StreamBalance';
+import { useDebounceEffect, useMount } from 'ahooks';
+import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { useLogin } from '@/hooks/useLogin';
+import { GasList } from './GasList';
+import { TaskManagement } from '@/modules/upload/TaskManagement';
+import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -23,15 +30,16 @@ const renderAvatar = (size?: 'sm' | 'md') => {
   );
 };
 
-export const Header = () => {
-  const { loginState, logout } = useLogin();
-  const { address } = loginState;
-
+export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) => {
+  const dispatch = useAppDispatch();
+  const { logout } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const router = useRouter();
   const shortAddress = getShortenWalletAddress(address);
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
+
   useOutsideClick({
     ref,
     handler: () => {
@@ -43,8 +51,18 @@ export const Header = () => {
     },
   });
 
+  useDebounceEffect(() => {
+    if (!showPanel) return;
+    dispatch(setupBnbPrice());
+    dispatch(setupTmpAvailableBalance(address));
+    dispatch(setupTmpLockFee(address));
+  }, [showPanel]);
+
   return (
     <>
+      <GlobalTasks />
+      <StreamBalance />
+      <GasList />
       <Flex
         w="340px"
         ref={ref}
@@ -194,7 +212,26 @@ export const Header = () => {
         bg="bg.middle"
         borderBottom="1px solid #E6E8EA"
         justifyContent={'right'}
+        alignItems={'center'}
       >
+        <Flex paddingLeft="24px" alignItems={'center'}>
+          <GAClick name="dc.main.nav.logo.click">
+            <Logo href="/" />
+          </GAClick>
+          <Box
+            fontSize={'12px'}
+            lineHeight="24px"
+            paddingX={'4px'}
+            borderRadius="4px"
+            bgColor={'rgba(0, 186, 52, 0.1)'}
+            color="readable.brand6"
+            marginLeft={'4px'}
+          >
+            Testnet
+          </Box>
+        </Flex>
+        <Flex flex={1} />
+        {taskManagement && <TaskManagement />}
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex

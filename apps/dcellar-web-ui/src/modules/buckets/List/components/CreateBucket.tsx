@@ -7,10 +7,10 @@ import {
   InputGroup,
   InputRightElement,
   Link,
-  ModalBody,
-  ModalCloseButton,
-  ModalFooter,
-  ModalHeader,
+  QDrawerBody,
+  QDrawerCloseButton,
+  QDrawerFooter,
+  QDrawerHeader,
   Text,
   toast,
 } from '@totejs/uikit';
@@ -21,9 +21,8 @@ import { debounce, isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import NextLink from 'next/link';
 
-import { IRawSPInfo, TCreateBucketFromValues } from '../../type';
+import { TCreateBucketFromValues } from '../../type';
 import { GasFee } from './GasFee';
-import { useLogin } from '@/hooks/useLogin';
 import { genCreateBucketTx, pollingGetBucket } from '@/modules/buckets/List/utils';
 import { CreateBucketFailed } from '@/modules/buckets/List/components/CreateBucketFailed';
 import { CreatingBucket } from './CreatingBucket';
@@ -32,20 +31,21 @@ import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
 import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
-import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
-import { useSPs } from '@/hooks/useSPs';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
-import { filterAuthSps } from '@/utils/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { SpItem } from '@/store/slices/sp';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { useMount } from 'ahooks';
+import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { DCDrawer } from '@/components/common/DCDrawer';
 
 type Props = {
   isOpen: boolean;
@@ -77,22 +77,22 @@ const initValidateNameAndGas = {
 };
 
 export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
-  const {
-    loginState: { address },
-  } = useLogin();
-
-  const { sps } = useSPs();
-  const globalSps = useMemo(() => filterAuthSps({ address, sps }), [address, sps]);
-  const globalSP = globalSps[Math.floor(Math.random() * globalSps.length)]
-  // const [sp, setSP] = useState<IRawSPInfo>(globalSP);
-  const selectedSpRef = useRef<IRawSPInfo>(globalSP);
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { sps: globalSps, spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const globalSP = spInfo[oneSp];
+  const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();
-  const { availableBalance } = useDefaultChainBalance();
-  const balance = BigNumber(availableBalance || 0);
+  const { _availableBalance } = useAppSelector((root) => root.global);
+  const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
@@ -156,10 +156,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
       const domain = getDomain();
       const sp = selectedSpRef.current;
-      const spOffChainData = await getSpOffChainData({ address, spAddress: sp.operatorAddress });
-      const { seedString } = spOffChainData;
+      const { seedString } = await dispatch(getSpOffChainData(address, sp.operatorAddress));
 
-      if (!checkSpOffChainDataAvailable(spOffChainData)) {
+      if (!seedString) {
         onClose();
         setOpenAuthModal([sp.operatorAddress]);
         return;
@@ -187,7 +186,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
       });
-      console.log(simulateInfo, 'simulateInfo');
 
       const decimalGasFee = simulateInfo?.gasFee;
       if (curNonce !== nonceRef.current) {
@@ -230,10 +228,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             value: BigNumber(0),
           };
           types['validateBalance'] = '';
-        } else if (e.statusCode === 500) {
-          onClose();
-          types['validateOffChainAuth'] = '';
-          setOpenAuthModal([selectedSpRef.current.operatorAddress]);
+        } else if (
+          e.statusCode === 500 ||
+          (e.message === 'Get create bucket approval error.' && e.statusCode === 500)
+        ) {
+          // todo refactor
+          // onClose();
+          setValidateNameAndGas((v) => ({ ...v, isValidating: false }));
+          setOpenAuthModal();
         } else {
           const { isError, message } = parseError(e.message);
           types['validateBalanceAndName'] =
@@ -287,16 +289,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     async (data: any) => {
       try {
         setStatus('operating');
-        const spOffChainData = await getSpOffChainData({
-          address,
-          spAddress: selectedSpRef.current.operatorAddress,
-        });
-        if (!checkSpOffChainDataAvailable(spOffChainData)) {
+        const { seedString } = await dispatch(
+          getSpOffChainData(address, selectedSpRef.current.operatorAddress),
+        );
+        if (!seedString) {
           onClose();
           setOpenAuthModal([selectedSpRef.current.operatorAddress]);
           return;
         }
-        const { seedString } = spOffChainData;
         const bucketName = data.bucketName;
         const domain = getDomain();
         // NOTICE: Avoid the user skip got get gas fee step
@@ -331,10 +331,11 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           granter: '',
           signTypedDataCallback: async (addr: string, message: string) => {
             const provider = await connector?.getProvider();
-            console.log(message);
             return await signTypedDataV4(provider, addr, message);
           },
         });
+
+        // todo refactor
         await pollingGetBucket({
           address: createBucketParams.creator,
           endpoint: createBucketParams.spInfo.endpoint,
@@ -393,7 +394,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   }, [balance, validateNameAndGas.gas.value]);
 
   const onChangeSP = useCallback(
-    (sp: IRawSPInfo) => {
+    (sp: SpItem) => {
       selectedSpRef.current = sp;
 
       const { value, available } = validateNameAndGas.name;
@@ -407,20 +408,19 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const gaOptions = getGAOptions(status);
 
   return (
-    <DCModal
-      isOpen={isOpen}
-      onClose={onClose}
-      gaShowName={gaOptions.showName}
-      gaClickCloseName={gaOptions.closeName}
-    >
-      <ModalCloseButton />
-      <Box>
-        {status === 'pending' && (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <ModalHeader fontFamily="heading">Create a Bucket</ModalHeader>
-            <ModalBody mt={0}>
+    <>
+      {status === 'operating' && <CreatingBucket onClose={() => setStatus('pending')} />}
+      {status === 'failed' && (
+        <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
+      )}
+      <DCDrawer isOpen={isOpen} onClose={onClose}>
+        <QDrawerCloseButton />
+        <QDrawerHeader>Create a Bucket</QDrawerHeader>
+        <QDrawerBody mt={0}>
+          <Box>
+            <form id="create-bucket-drawer" onSubmit={handleSubmit(onSubmit)}>
               <Box
-                textAlign="center"
+                textAlign="left"
                 fontSize={18}
                 fontWeight={400}
                 lineHeight="22px"
@@ -530,25 +530,25 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   </GAClick>
                 </Flex>
               )}
-            </ModalBody>
-            <ModalFooter>
-              <DCButton
-                variant="dcPrimary"
-                disabled={disableCreateButton()}
-                backgroundColor={'readable.brand6'}
-                height={'48px'}
-                width={'100%'}
-                gaClickName="dc.bucket.create_modal.createbtn.click"
-              >
-                Create
-              </DCButton>
-            </ModalFooter>
-          </form>
-        )}
-        {status === 'operating' && <CreatingBucket />}
-        {status === 'failed' && <CreateBucketFailed onClose={onClose} errorMsg={submitErrorMsg} />}
-      </Box>
-    </DCModal>
+            </form>
+          </Box>
+        </QDrawerBody>
+        <QDrawerFooter>
+          <DCButton
+            variant="dcPrimary"
+            disabled={disableCreateButton()}
+            backgroundColor={'readable.brand6'}
+            height={'48px'}
+            width={'100%'}
+            gaClickName="dc.bucket.create_modal.createbtn.click"
+            type="submit"
+            form="create-bucket-drawer"
+          >
+            Create
+          </DCButton>
+        </QDrawerFooter>
+      </DCDrawer>
+    </>
   );
 };
 

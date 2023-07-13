@@ -12,7 +12,6 @@ import { Head } from '../components/Head';
 import { TransferIcon } from '../components/TransferIcon';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
-import { useLogin } from '@/hooks/useLogin';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
@@ -23,6 +22,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { useAppSelector } from '@/store';
 
 export const TransferOut = () => {
   const { chain } = useNetwork();
@@ -44,9 +44,7 @@ export const TransferOut = () => {
     mode: 'all',
   });
 
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
 
   const onSubmit = async (data: any) => {
     setStatus('pending');

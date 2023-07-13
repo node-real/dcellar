@@ -57,7 +57,7 @@ export function CopyText(props: CopyTextProps) {
             size="sm"
             variant="link"
             color={hasCopied ? "readable.brand6":"readable.normal"}
-            icon={<CopyIcon size="md" />}
+            icon={<CopyIcon size="md" color='readable.tertiary' />}
             onClick={onCopy}
             _hover={{
               color: 'readable.brand5',

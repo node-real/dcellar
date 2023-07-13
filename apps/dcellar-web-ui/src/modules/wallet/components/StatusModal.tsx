@@ -2,13 +2,13 @@ import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/ui
 import React from 'react';
 import { useMemo } from 'react';
 
-import { OperationTypeContext } from '..';
 import { Image } from '@totejs/uikit';
 import SuccessIcon from '@/public/images/icons/success.svg';
 import FailedIcon from '@/public/images/icons/failed.svg';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { PENDING_ICON_URL } from '@/modules/file/constant';
+import { useAppSelector } from '@/store';
 
 export type ModalProps = {
   onClose: () => void;
@@ -36,9 +36,9 @@ const contentTexts = {
 };
 
 export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) => {
-  const { type: operationType } = React.useContext(OperationTypeContext);
+  const { transType } = useAppSelector((root) => root.wallet);
 
-  const gaOptions = getGAOptions(operationType, status);
+  const gaOptions = getGAOptions(transType, status);
 
   const FooterButton = useMemo(() => {
     if (status === 'pending') return null;
@@ -55,7 +55,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
       );
     }
     if (status === 'success') {
-      switch (operationType) {
+      switch (transType) {
         case 'transfer_in':
           return (
             <>
@@ -114,7 +114,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           break;
       }
     }
-  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, operationType, status, viewTxUrl]);
+  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, transType, status, viewTxUrl]);
 
   const contentText = contentTexts[status];
 

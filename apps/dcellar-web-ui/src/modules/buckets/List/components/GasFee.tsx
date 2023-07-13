@@ -1,8 +1,6 @@
 import { Box, Flex } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
-import React, { useContext, useMemo } from 'react';
-
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
+import React, { useMemo } from 'react';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
@@ -10,7 +8,9 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import LoadingIcon from '@/public/images/icons/loading.svg';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -18,28 +18,26 @@ type GasFeeProps = {
   hasError: boolean;
 };
 export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const { availableBalance } = useDefaultChainBalance();
-  const balance = BigNumber(availableBalance || 0);
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { _availableBalance } = useAppSelector((root) => root.global);
+  const balance = BigNumber(_availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =
     gasFee &&
     currencyFormatter(
-      gasFee
-        .times(bnbPrice || 0)
-        .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
-        .toString(DECIMAL_NUMBER),
+      gasFee.times(bnbPrice).dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER),
     );
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   const strBalance = balance && balance.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
   const usdBalance =
     balance &&
-    currencyFormatter(
-      balance
-        .times(bnbPrice || 0)
-        .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
-        .toString(),
-    );
+    currencyFormatter(balance.times(bnbPrice).dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString());
   const feeDisplay = useMemo(() => {
     if (hasError || gasFee === null) {
       return `-- --`;

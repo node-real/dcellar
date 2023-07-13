@@ -9,14 +9,12 @@ import {
   InputRightElement,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback } from 'react';
-import { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
-import { OperationTypeContext } from '..';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -29,11 +27,11 @@ import BNBIcon from '@/public/images/icons/bnb.svg';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
-import {
-  useChainsBalance,
-  useDefaultChainBalance,
-} from '@/context/GlobalContext/WalletBalanceContext';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 type AmountProps = {
   disabled: boolean;
@@ -61,26 +59,24 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-export const Amount = ({
-  register,
-  errors,
-  disabled,
-  watch,
-  feeData,
-  setValue,
-  getGasFee,
-  maxDisabled,
-}: AmountProps) => {
-  const { type, bnbPrice } = React.useContext(OperationTypeContext);
-  const defaultFee = DefaultFee[type];
-  const curInfo = WalletOperationInfos[type];
+export const Amount = ({ register, errors, disabled, watch, feeData, setValue }: AmountProps) => {
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { transType } = useAppSelector((root) => root.wallet);
+  const defaultFee = DefaultFee[transType];
+  const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
-  const { availableBalance: balance } = useDefaultChainBalance();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { _availableBalance: balance } = useAppSelector((root) => root.global);
   const { isLoading, all } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   // balance always show no matter what chain is selected by metamask
   const Balance = useCallback(() => {
@@ -88,7 +84,7 @@ export const Amount = ({
 
     let newBalance = null;
     // bsc balance
-    if (type === EOperation.transfer_in) {
+    if (transType === EOperation.transfer_in) {
       newBalance = all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance;
     } else {
       // gnfd balance
@@ -100,11 +96,11 @@ export const Amount = ({
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = bnbPrice && BigNumber(newBalance).times(BigNumber(bnbPrice.value || 0));
+    const usdPrice = BigNumber(newBalance).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return `Balance on ${curInfo?.chainName}: ${val}${' '}BNB (${unifyUsdPrice})`;
-  }, [all, bnbPrice, curInfo?.chainName, isLoading, type]);
+  }, [all, bnbPrice, curInfo?.chainName, isLoading, transType]);
 
   // const onMaxClick = async () => {
   //   if (balance && feeData) {
@@ -188,7 +184,7 @@ export const Amount = ({
                   let totalAmount = BigNumber(0);
                   const balanceVal = BigNumber(balance || 0);
                   // TODO temp limit
-                  if (type === EOperation.send) {
+                  if (transType === EOperation.send) {
                     totalAmount =
                       gasFee.toString() === '0'
                         ? BigNumber(val).plus(BigNumber(defaultFee))

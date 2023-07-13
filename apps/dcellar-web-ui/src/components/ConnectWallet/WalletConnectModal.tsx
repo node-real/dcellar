@@ -11,16 +11,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConnectorNotFoundError } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { useLogin } from '@/hooks/useLogin';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
+import { useAppSelector } from '@/store';
 
 export interface WalletConnectModalProps extends DCModalProps {}
 
 export function WalletConnectModal(props: WalletConnectModalProps) {
   const { isOpen, onClose } = props;
 
-  const { loginState } = useLogin();
-  const [currentAddress, setCurrentAddress] = useState<string | undefined>(loginState.address);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
 
   const { isAuthPending } = useAppLogin(currentAddress);
 

@@ -1,4 +1,3 @@
-import { useLogin } from '@/hooks/useLogin';
 import { SEOHead } from '@/components/common/SEOHead';
 import React from 'react';
 import { Footer } from '@/components/layout/Footer';
@@ -11,6 +10,7 @@ import Link from 'next/link';
 import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/constants/paths';
+import { useAppSelector } from '@/store';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -40,12 +40,11 @@ interface ErrorComponentProps {
 }
 
 function ErrorComponent({ statusCode }: ErrorComponentProps) {
-  const { loginState } = useLogin();
   const { colorMode } = useColorMode();
   const router = useRouter();
   const { err } = router.query;
   const isNoBucket = err === 'noBucket';
-  const address = loginState?.address;
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const text = isNoBucket
     ? 'Bucket Not Exist or Deleted'
     : statusCode === 404

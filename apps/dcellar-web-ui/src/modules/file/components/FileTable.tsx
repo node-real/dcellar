@@ -13,6 +13,7 @@ import {
   CenterProps,
   Circle,
   Flex,
+  Image,
   Menu,
   MenuButton,
   MenuItem,
@@ -23,17 +24,15 @@ import {
   toast,
   Tooltip,
   useDisclosure,
-  Image,
   keyframes,
 } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import { DownloadIcon, FileIcon } from '@totejs/icons';
+import { DownloadIcon } from '@totejs/icons';
 import { useAccount, useNetwork } from 'wagmi';
 
 import MenuIcon from '@/public/images/icons/menu.svg';
 import ShareIcon from '@/public/images/icons/share.svg';
 import { makeData } from './makeData';
-import { useLogin } from '@/hooks/useLogin';
 import { getLockFee } from '@/utils/wallet';
 import {
   AUTH_EXPIRED,
@@ -60,8 +59,8 @@ import { ConfirmViewModal } from '@/modules/file/components/ConfirmViewModal';
 import { ConfirmDeleteModal } from '@/modules/file/components/ConfirmDeleteModal';
 import { ConfirmCancelModal } from '@/modules/file/components/ConfirmCancelModal';
 import {
-  contentTypeToExtension,
   contentIconTypeToExtension,
+  contentTypeToExtension,
   directlyDownload,
   downloadWithProgress,
   formatBytes,
@@ -75,21 +74,19 @@ import { ShareModal } from '@/modules/file/components/ShareModal';
 // import PublicFileIcon from '@/public/images/icons/public_file.svg';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import FolderIcon from '@/public/images/files/folder.svg';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
 import { getClient } from '@/base/client';
 import { useRouter } from 'next/router';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { encodeObjectName } from '@/utils/string';
 import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
-import { signTypedDataV4 } from '@/utils/signDataV4';
-import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { updateObjectInfo } from '@/facade/object';
 import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
+import { SpItem } from '@/store/slices/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData, selectAccountConfig } from '@/store/slices/persist';
 
 interface GreenfieldMenuItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -120,7 +117,7 @@ interface fileListProps {
   listObjects: any;
   bucketName: string;
   folderName: string;
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   isLoading: boolean;
   bucketIsDiscontinued: boolean;
   setListObjects: React.Dispatch<React.SetStateAction<any[]>>;
@@ -217,7 +214,7 @@ interface ActionButtonProps extends CenterProps {
   gaClickName?: string;
 }
 
-function ActionButton(props: ActionButtonProps) {
+export function ActionButton(props: ActionButtonProps) {
   const { children, onClick, gaClickName, ...restProps } = props;
 
   const onBeforeClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -230,7 +227,7 @@ function ActionButton(props: ActionButtonProps) {
       <Circle
         className="btn-action"
         boxSize={24}
-        visibility={'hidden'}
+        // visibility={'hidden'}
         bg="rgba(0, 186, 52, 0.1)"
         flexShrink={0}
         cursor="pointer"
@@ -267,10 +264,12 @@ export const FileTable = (props: fileListProps) => {
     setStatusModalButtonText,
     setStatusModalErrorText,
   } = props;
-  const loginData = useLogin();
   const { connector } = useAccount();
-  const { loginState } = loginData;
-  const { allowDirectDownload, address, allowDirectView } = loginState;
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { directDownload: allowDirectDownload, directView: allowDirectView } = useAppSelector(
+    selectAccountConfig(address),
+  );
   const { chain } = useNetwork();
   const flatData = useMemo(() => {
     return listObjects
@@ -539,7 +538,7 @@ export const FileTable = (props: fileListProps) => {
     };
 
     return (
-      <Tooltip content={'Everyone can access.'} placement={'bottom-start'}>
+      <Tooltip content={'Public'} placement={'bottom-start'}>
         <Flex ml={'6px'} mt={'2px'}>
           {renderIconByObjectStatus()}
         </Flex>
@@ -730,11 +729,10 @@ export const FileTable = (props: fileListProps) => {
               if (url && visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ) {
                 directlyDownload(url);
               } else {
-                const spOffChainData = await getSpOffChainData({
-                  address: loginState.address,
-                  spAddress: primarySp.operatorAddress,
-                });
-                if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                const { seedString } = await dispatch(
+                  getSpOffChainData(address, primarySp.operatorAddress),
+                );
+                if (!seedString) {
                   onStatusModalClose();
                   setOpenAuthModal();
                   return;
@@ -752,7 +750,8 @@ export const FileTable = (props: fileListProps) => {
                   objectName,
                   primarySp,
                   payloadSize: Number(payloadSize),
-                  address: loginState.address,
+                  address,
+                  seedString,
                 });
                 saveFileByAxiosResponse(result, objectName);
                 onStatusModalClose();
@@ -1190,11 +1189,10 @@ export const FileTable = (props: fileListProps) => {
                                 return;
                               }
                             }
-                            const spOffChainData = await getSpOffChainData({
-                              address: loginState.address,
-                              spAddress: primarySp.operatorAddress,
-                            });
-                            if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                            const { seedString } = await dispatch(
+                              getSpOffChainData(address, primarySp.operatorAddress),
+                            );
+                            if (!seedString) {
                               setOpenAuthModal();
                               return;
                             }
@@ -1203,7 +1201,8 @@ export const FileTable = (props: fileListProps) => {
                               objectName: object_name,
                               primarySp,
                               payloadSize: Number(payload_size),
-                              address: loginState.address,
+                              address,
+                              seedString,
                             });
                             viewFileByAxiosResponse(result);
                           } catch (error: any) {

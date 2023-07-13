@@ -1,7 +1,6 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
-import { useAccount, useNetwork } from 'wagmi';
-import React, { useContext, useEffect, useState } from 'react';
-import { useLogin } from '@/hooks/useLogin';
+import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { useAccount } from 'wagmi';
+import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -17,14 +16,14 @@ import {
   PENDING_ICON_URL,
 } from '@/modules/file/constant';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { DCButton } from '@/components/common/DCButton';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { IRawSPInfo } from '@/modules/buckets/type';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { selectBalance } from '@/store/slices/balance';
 
 interface modalProps {
   title?: string;
@@ -51,7 +50,7 @@ interface modalProps {
 const renderFee = (
   key: string,
   bnbValue: string,
-  exchangeRate: number,
+  exchangeRate: number | string,
   keyIcon?: React.ReactNode,
 ) => {
   return (
@@ -74,15 +73,12 @@ const renderFee = (
 };
 
 export const ConfirmCancelModal = (props: modalProps) => {
-  const loginData = useLogin();
-  const { loginState } = loginData;
-  const { address } = loginState;
-  const { chain } = useNetwork();
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { availableBalance } = useAvailableBalance();
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
 
   const {
     title = 'Cancel Uploading',
@@ -103,6 +99,12 @@ export const ConfirmCancelModal = (props: modalProps) => {
     outsideLoading,
     setStatusModalErrorText,
   } = props;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    dispatch(setupTmpAvailableBalance(address));
+  }, [isOpen, dispatch, address]);
+
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
       setButtonDisabled(false);
@@ -164,7 +166,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
         {renderFee(
           'Unlocked storage fee',
           lockFee,
-          exchangeRate,
+          bnbPrice,
           <Tips
             iconSize={'14px'}
             containerWidth={'308px'}
@@ -182,7 +184,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
             }
           />,
         )}
-        {renderFee('Gas Fee', simulateGasFee, exchangeRate)}
+        {renderFee('Gas Fee', simulateGasFee, bnbPrice)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'32px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>

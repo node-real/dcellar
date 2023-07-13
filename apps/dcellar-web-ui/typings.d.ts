@@ -1,3 +1,4 @@
+/// <reference types="redux-persist" />
 import { BaseThemeTypings } from '@totejs/uikit';
 
 declare module '@totejs/uikit' {

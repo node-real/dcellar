@@ -2,7 +2,6 @@ import { Box, Flex, Text } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 
-import { OperationTypeContext } from '..';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, TFeeData } from '../type';
 import {
@@ -12,6 +11,8 @@ import {
   INIT_FEE_DATA,
 } from '../constants';
 import { Tips } from '@/components/common/Tips';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 
 type FeeProps = {
   amount: string;
@@ -38,13 +39,14 @@ export const Fee = ({
   feeData = INIT_FEE_DATA,
   gaShowTipsName,
 }: FeeProps) => {
-  const { type, bnbPrice } = React.useContext(OperationTypeContext);
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { transType } = useAppSelector((root) => root.wallet);
   const { gasFee, relayerFee } = feeData;
-  const defaultFee = DefaultFee[type];
-  const defaultGasRelayerFee = DefaultGasRelayerFee[type];
+  const defaultFee = DefaultFee[transType];
+  const defaultGasRelayerFee = DefaultGasRelayerFee[transType];
   const totalFee = gasFee.plus(relayerFee);
   const isShowDefault = gasFee.toString() === '0' && relayerFee.toString() === '0';
-  const feeUsdPrice = bnbPrice && totalFee && totalFee.times(BigNumber(bnbPrice.value || 0));
+  const feeUsdPrice = totalFee && totalFee.times(BigNumber(bnbPrice));
   const formatFeeUsdPrice =
     feeUsdPrice &&
     currencyFormatter(feeUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
@@ -52,7 +54,7 @@ export const Fee = ({
   const totalAmount = BigNumber(amount || 0)
     .plus(totalFee)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1);
-  const totalUsdPrice = bnbPrice && totalAmount.times(BigNumber(bnbPrice.value || 0));
+  const totalUsdPrice = totalAmount.times(BigNumber(bnbPrice));
   const formatTotalUsdPrice =
     totalUsdPrice &&
     currencyFormatter(totalUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
@@ -75,7 +77,7 @@ export const Fee = ({
   const TotalAmountContent = `${totalAmount} BNB (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
-    if (type === EOperation.send) {
+    if (transType === EOperation.send) {
       return null;
     }
     return (
@@ -104,14 +106,14 @@ export const Fee = ({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [gasFee, relayerFee, type, defaultGasRelayerFee]);
+  }, [gasFee, relayerFee, transType, defaultGasRelayerFee]);
 
   return (
     <>
       <Flex justifyContent={'space-between'} mb="8px" alignItems={'center'}>
         <Flex>
           <Text color="readable.tertiary">Fee</Text>
-          {type !== 'send' && (
+          {transType !== 'send' && (
             <Tips
               containerWidth={'308px'}
               iconSize={'16px'}

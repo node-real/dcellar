@@ -3,15 +3,10 @@ import { getQuota } from '@/modules/file/utils';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { Flex, Menu, MenuButton, MenuItem, MenuList, toast, Text } from '@totejs/uikit';
 import React from 'react';
+import { useAppSelector } from '@/store';
 
-export const ActionItem = ({
-  sps,
-  setShowDetail,
-  setRowData,
-  setQuotaData,
-  onOpen,
-  info
-}: any) => {
+export const ActionItem = ({ setShowDetail, setRowData, setQuotaData, onOpen, info }: any) => {
+  const { spInfo } = useAppSelector((root) => root.sp);
   // CellContext<any, unknown>
   const {
     row: { original: rowData },
@@ -58,16 +53,14 @@ export const ActionItem = ({
                     onOpen();
                     setRowData(rowData);
                     setQuotaData(null);
-                    const spIndex = sps?.findIndex(function (item: any) {
-                      return item.operatorAddress === rowData?.originalData.bucket_info.primary_sp_address;
-                    });
-                    if (spIndex < 0) {
+                    const sp = spInfo[rowData?.originalData.bucket_info.primary_sp_address];
+                    if (!sp) {
                       toast.error({
                         description: `Sp address info is mismatched, please retry.`,
                       });
                       return;
                     }
-                    const { endpoint: spEndpoint } = sps[spIndex];
+                    const { endpoint: spEndpoint } = sp;
                     const currentQuotaData = await getQuota(rowData.bucket_name, spEndpoint);
                     setQuotaData(currentQuotaData);
                   }}
@@ -86,9 +79,7 @@ export const ActionItem = ({
                     setShowDetail(false);
                     onOpen();
                     // TODO Do not mix information from rowData and sp
-                    const curSp = sps.find(
-                      (item: any) => item.operatorAddress === rowData.originalData.bucket_info.primary_sp_address,
-                    );
+                    const curSp = spInfo[rowData.originalData.bucket_info.primary_sp_address];
                     setRowData({ ...rowData, spEndpoint: curSp?.endpoint });
                   }}
                 >

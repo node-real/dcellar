@@ -14,9 +14,9 @@ import { FieldErrors, UseFormGetValues, UseFormRegister } from 'react-hook-form'
 
 import { isRightChain } from '../utils/isRightChain';
 import { POPPINS_FONT, WalletOperationInfos } from '../constants';
-import { OperationTypeContext } from '..';
 import { TWalletFromValues } from '../type';
 import { Tips } from '@/components/common/Tips';
+import { useAppSelector } from '@/store';
 
 type AddressProps = {
   disabled: boolean;
@@ -27,8 +27,8 @@ type AddressProps = {
 };
 
 export const Address = ({ disabled, errors, register, gaShowTipsName }: AddressProps) => {
-  const { type } = React.useContext(OperationTypeContext);
-  const curInfo = WalletOperationInfos[type];
+  const { transType } = useAppSelector((root) => root.wallet);
+  const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

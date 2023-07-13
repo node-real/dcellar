@@ -15,10 +15,8 @@
   );
 
   async function run() {
-    console.clear();
-
     await go.run(inst);
-    inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
+    await WebAssembly.instantiate(mod, go.importObject); // reset instance
   }
 
   run();

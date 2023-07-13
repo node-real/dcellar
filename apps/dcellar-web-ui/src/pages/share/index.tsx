@@ -1,10 +1,9 @@
-import { NextPageContext } from 'next';
+import { InferGetServerSidePropsType, NextPage, NextPageContext } from 'next';
 import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
-import { useSPs } from '@/hooks/useSPs';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex } from '@totejs/uikit';
@@ -19,9 +18,9 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import { ShareLogin } from '@/modules/share/ShareLogin';
 import { Header } from '@/components/layout/Header';
-import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
+import { useAppSelector } from '@/store';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -29,33 +28,25 @@ const Container = styled.main`
   display: grid;
 `;
 
-export interface SharePageProps {
-  bucketName: string;
-  fileName: string;
-  objectName: string;
-}
-
-const SharePage = (props: SharePageProps) => {
+const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
+  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
-  const { sp } = useSPs();
-  const loginData = useLogin();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
   const { objectName, fileName, bucketName } = props;
   const title = `${bucketName} - ${fileName}`;
-  const { loginState } = loginData;
-  const loginAccount = loginState?.address;
+  const { loginAccount } = useAppSelector((root) => root.persist);
 
   useAsyncEffect(async () => {
-    if (!sp) return;
+    if (!oneSp) return;
     const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
       bucketName,
       objectName,
-      sp.endpoint,
+      spInfo[oneSp].endpoint,
     );
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
-  }, [sp]);
+  }, [oneSp]);
 
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const walletConnected = !!loginAccount;
@@ -74,7 +65,8 @@ const SharePage = (props: SharePageProps) => {
       <Flex>
         <Box flex={1}>
           <Container>
-            {(!isPrivate || walletConnected) && (
+            {walletConnected && <Header taskManagement={false} />}
+            {!isPrivate && !walletConnected && (
               <Logo zIndex={1} href="/" margin="20px 24px" position="absolute" left={0} top={0} />
             )}
             {quotaData === undefined || objectInfo === undefined ? (
@@ -85,7 +77,6 @@ const SharePage = (props: SharePageProps) => {
               <ShareLogin />
             ) : (
               <>
-                {walletConnected && <Header />}
                 {isPrivate && !isOwner ? (
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (
@@ -114,7 +105,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const redirect = () => {
     res!.statusCode = 302;
     res!.setHeader('location', '/buckets');
-    return { props: {} };
+    return { props: { bucketName: '', fileName: '', objectName: '' } };
   };
 
   if (!file) return redirect();
@@ -126,6 +117,10 @@ export const getServerSideProps = async (context: NextPageContext) => {
   if (!fileName) return redirect();
 
   return { props: { bucketName, fileName, objectName } };
+};
+
+(SharePage as any).getLayout = function getLayout(page: ReactNode) {
+  return <>{page}</>;
 };
 
 export default SharePage;

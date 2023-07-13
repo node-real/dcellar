@@ -32,7 +32,7 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
     const infos = [
       {
         canCopy: false,
-        label: 'Date created',
+        label: 'Date Created',
         value: formatFullTime(create_at) || new Date(),
         display: formatFullTime(create_at),
         href: '',
@@ -82,12 +82,12 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
             >
               <Label>{item.label}</Label>
               <Flex>
-                {item.label === 'Date created' && (
+                {item.label === 'Date Created' && (
                   <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
                     {item.display}
                   </Text>
                 )}
-                {item.label !== 'Date created' &&
+                {item.label !== 'Date Created' &&
                   (item.canCopy ? (
                     <GAClick name={item.gaClickName}>
                       <Link

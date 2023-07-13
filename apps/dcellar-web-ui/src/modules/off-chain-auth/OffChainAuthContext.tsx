@@ -5,33 +5,30 @@ import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { setOffChainData } from '@/modules/off-chain-auth/utils';
-import { useSPs } from '@/hooks/useSPs';
-import { useLogin } from '@/hooks/useLogin';
 import { getDomain } from '@/utils/getDomain';
 import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
 import { getClient } from '@/base/client';
 import { isEmpty } from 'lodash-es';
-import { IRawSPInfo } from '../buckets/type';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { SpItem } from '@/store/slices/sp';
+import { setupOffchain } from '@/store/slices/persist';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
+  const dispatch = useAppDispatch();
+  const { spInfo, allSps } = useAppSelector((root) => root.sp);
   const [isAuthPending, setIsAuthPending] = useState(false);
-  const {
-    loginState: { address },
-  } = useLogin();
-  const { sps } = useSPs();
-  const authSps = useRef<IRawSPInfo[]>([]);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const authSps = useRef<SpItem[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
 
   // For selected sps auth
   const setOpenAuthModal = (spAddress?: string[]) => {
     if (spAddress) {
-      const filterSps = sps.filter((item: any) => spAddress.includes(item.operatorAddress));
-      authSps.current = filterSps;
+      authSps.current = spAddress.map((a) => spInfo[a]);
     }
     onOpen();
   };
@@ -44,9 +41,9 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         const domain = getDomain();
 
         // If no sps selected, use all sps for welcome auth
-        const pruneSps = (isEmpty(authSps.current) ? sps : authSps.current).map((item: any) => ({
+        const pruneSps = (isEmpty(authSps.current) ? allSps : authSps.current).map((item: any) => ({
           address: item.operatorAddress,
-          name: item.description.moniker,
+          name: item.moniker,
           endpoint: item.endpoint,
         }));
 
@@ -64,10 +61,11 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           provider,
         );
         const { code, body: offChainData } = res;
+
         if (code !== 0 || isEmpty(offChainData)) {
           throw res;
         }
-        setOffChainData({ address, chainId: GREENFIELD_CHAIN_ID, offChainData });
+        dispatch(setupOffchain(address, offChainData, isEmpty(authSps.current)));
         setIsAuthPending(false);
         onClose();
 
@@ -82,7 +80,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         return { code: -1, error: e };
       }
     },
-    [connector, onClose, sps],
+    [connector, onClose, allSps],
   );
 
   return (

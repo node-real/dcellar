@@ -1,7 +1,5 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, Checkbox } from '@totejs/uikit';
+import { Checkbox, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
-
-import { useLogin } from '@/hooks/useLogin';
 import { downloadWithProgress, formatBytes, viewFileByAxiosResponse } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -15,9 +13,10 @@ import {
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { checkSpOffChainDataAvailable, getSpOffChainData } from '@/modules/off-chain-auth/utils';
-import { IRawSPInfo } from '@/modules/buckets/type';
 import { ChainVisibilityEnum } from '../type';
+import { SpItem } from '@/store/slices/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 
 interface modalProps {
   title?: string;
@@ -28,7 +27,7 @@ interface modalProps {
   buttonOnClick?: () => void;
   bucketName: string;
   fileInfo?: { name: string; size: number };
-  primarySp: IRawSPInfo;
+  primarySp: SpItem;
   setStatusModalIcon: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalTitle: React.Dispatch<React.SetStateAction<string>>;
   setStatusModalDescription: React.Dispatch<React.SetStateAction<string | JSX.Element>>;
@@ -56,9 +55,8 @@ const renderProp = (key: string, value: string) => {
 };
 
 export const ConfirmViewModal = (props: modalProps) => {
-  const loginData = useLogin();
-  const { loginState, loginDispatch } = loginData;
-
+  const dispatch = useAppDispatch();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [currentAllowDirectView, setCurrentAllowDirectView] = useState(true);
   const [hasChangedView, setHasChangedView] = useState(false);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -155,12 +153,7 @@ export const ConfirmViewModal = (props: modalProps) => {
               setLoading(true);
               onClose();
               if (!hasChangedView) {
-                loginDispatch({
-                  type: 'UPDATE_VIEW_OPTION',
-                  payload: {
-                    allowDirectView: true,
-                  },
-                });
+                dispatch(setAccountConfig({ address, config: { directDownload: true } }));
               }
               setLoading(false);
               if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ || !isCurrentUser) {
@@ -169,11 +162,10 @@ export const ConfirmViewModal = (props: modalProps) => {
                 // viewFile({ bucketName, objectName: object_name, endpoint });
                 // preview file
                 try {
-                  const spOffChainData = await getSpOffChainData({
-                    address: loginState.address,
-                    spAddress: primarySp.operatorAddress,
-                  });
-                  if (!checkSpOffChainDataAvailable(spOffChainData)) {
+                  const { seedString } = await dispatch(
+                    getSpOffChainData(address, primarySp.operatorAddress),
+                  );
+                  if (!seedString) {
                     onClose();
                     onStatusModalClose();
                     setOpenAuthModal();
@@ -184,7 +176,8 @@ export const ConfirmViewModal = (props: modalProps) => {
                     objectName: name,
                     primarySp,
                     payloadSize: Number(size),
-                    address: loginState.address,
+                    address,
+                    seedString,
                   });
                   viewFileByAxiosResponse(result);
                 } catch (error: any) {
@@ -220,12 +213,9 @@ export const ConfirmViewModal = (props: modalProps) => {
               if (!hasChangedView) {
                 setHasChangedView(true);
               }
-              loginDispatch({
-                type: 'UPDATE_VIEW_OPTION',
-                payload: {
-                  allowDirectView: !currentAllowDirectView,
-                },
-              });
+              dispatch(
+                setAccountConfig({ address, config: { directView: !currentAllowDirectView } }),
+              );
               setCurrentAllowDirectView(!currentAllowDirectView);
             }}
           >

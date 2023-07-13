@@ -1,4 +1,4 @@
-import React, { ReactNode, memo, useMemo, useState } from 'react';
+import React, { memo, ReactNode, useMemo, useState } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -7,40 +7,25 @@ import {
   Row,
   useReactTable,
 } from '@tanstack/react-table';
-import { useQuery } from '@tanstack/react-query';
 import { useVirtual } from '@tanstack/react-virtual';
-import { Box, Flex, SkeletonSquare, Text, toast, useDisclosure } from '@totejs/uikit';
+import { Box, Flex, SkeletonSquare, Text, useDisclosure } from '@totejs/uikit';
 import { useWindowSize } from 'react-use';
-import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 
 import { makeData } from './makeData';
 import { NewBucket } from './NewBucket';
 import { Empty } from '@/modules/buckets/List/components/Empty';
-import { useLogin } from '@/hooks/useLogin';
 import { DeleteBucket } from '@/modules/buckets/List/components/DeleteBucket';
 import { BucketDetail } from '@/modules/buckets/List/components/BucketDetail';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { useSPs } from '@/hooks/useSPs';
-import { getDomain } from '@/utils/getDomain';
-import { getSpOffChainData } from '@/modules/off-chain-auth/utils';
 import { ActionItem } from './ActionItem';
 import { BucketNameItem } from './BucketNameItem';
-import { IBucketItem } from '../type';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
-import { getClient } from '@/base/client';
-import { filterAuthSps } from '@/utils/sp';
 
 export const TableList = memo(() => {
-  const { sps } = useSPs();
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { width, height } = useWindowSize();
-  const {
-    loginState: { address },
-  } = useLogin();
-  const globalSps = useMemo(() => filterAuthSps({ address, sps }), [address, sps]);
-  const sp = globalSps[Math.floor(Math.random() * globalSps.length)]
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [rowData, setRowData] = useState<any>();
   const [showDetail, setShowDetail] = useState(false);
@@ -82,7 +67,6 @@ export const TableList = memo(() => {
         cell: (info) => {
           return (
             <ActionItem
-              sps={globalSps}
               info={info}
               rowData={rowData}
               setShowDetail={setShowDetail}
@@ -94,7 +78,7 @@ export const TableList = memo(() => {
         },
       },
     ],
-    [onOpen, rowData, globalSps],
+    [onOpen, rowData],
   );
   const isLoadingColumns = useMemo(
     () =>
@@ -104,39 +88,12 @@ export const TableList = memo(() => {
       })),
     [columns],
   );
-  let { data, isLoading, refetch } = useQuery<any>(
-    ['getUserBuckets'],
-    async () => {
-      try {
-        // TODO add auth check and error handling
-        const domain = getDomain();
-        const { seedString } = await getSpOffChainData({ address, spAddress: sp?.operatorAddress });
-        const client = await getClient();
-        const res: any = await client.bucket.getUserBuckets({
-          address,
-          endpoint: sp?.endpoint,
-          domain,
-          seedString,
-        });
-        const data = res.body
-          .filter((item: any) => !item.removed)
-          .map((item: IBucketItem) => ({
-            id: item.bucket_info.id,
-            bucket_name: item.bucket_info.bucket_name,
-            create_at: item.bucket_info.create_at,
-            originalData: item,
-          }))
-          .sort((a: any, b: any) => Number(b.create_at) - Number(a.create_at));
-        return data;
-      } catch (e) {
-        toast.error({
-          description: `Failed to get bucket list, please retry.`,
-        });
-        return [];
-      }
-    },
-    { enabled: !isEmpty(sp) },
-  );
+  // todo remove Query
+  let { data, isLoading, refetch } = {
+    data: [],
+    isLoading: false,
+    refetch: () => {},
+  };
 
   const hasContinuedBucket = useMemo(() => {
     return data?.some((item: any) => item.originalData.bucket_info.bucket_status === 1);
@@ -151,7 +108,7 @@ export const TableList = memo(() => {
     return height - 65 - 48 - 24 - 48;
   }, [hasContinuedBucket, height]);
 
-  const tableNotFullHeight = useMemo(() => (data?.length * 56 + 45), [data?.length]);
+  const tableNotFullHeight = useMemo(() => data?.length * 56 + 45, [data?.length]);
 
   const skeletonData = useMemo(() => {
     return makeData(Math.floor(tableFullHeight / 56) - 1);

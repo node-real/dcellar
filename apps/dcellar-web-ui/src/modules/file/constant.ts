@@ -7,6 +7,7 @@ const FILE_DELETE_GIF = `${assetPrefix}/images/icons/delete.gif`;
 const PENDING_ICON_URL = `${assetPrefix}/images/icons/pending.gif`;
 const COPY_SUCCESS_ICON = `${assetPrefix}/images/files/icon_success.svg`;
 const FILE_UPLOAD_URL = `${assetPrefix}/images/files/file_upload.gif`;
+const FILE_UPLOAD_STATIC_URL = `${assetPrefix}/images/files/file_upload_static.svg`;
 const FILE_DOWNLOAD_URL = `${assetPrefix}/images/files/file_download.gif`;
 const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
 const DELETE_ICON_URL = `${assetPrefix}/images/icons/delete.gif`;
@@ -16,6 +17,7 @@ const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
+const OBJECT_TITLE_CREATING = 'Creating Object';
 const FILE_TITLE_DOWNLOADING = 'Downloading File';
 const FILE_TITLE_DELETING = 'Deleting File';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
@@ -116,4 +118,6 @@ export {
   DUPLICATE_OBJECT_NAME,
   AUTH_EXPIRED,
   UNKNOWN_ERROR_URL,
+  FILE_UPLOAD_STATIC_URL,
+  OBJECT_TITLE_CREATING,
 };
