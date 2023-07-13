@@ -30,7 +30,7 @@ const renderAvatar = (size?: 'sm' | 'md') => {
   );
 };
 
-export const Header = () => {
+export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) => {
   const dispatch = useAppDispatch();
   const { logout } = useLogin();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
@@ -230,7 +230,7 @@ export const Header = () => {
           </Box>
         </Flex>
         <Flex flex={1} />
-        <TaskManagement />
+        {taskManagement && <TaskManagement />}
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex

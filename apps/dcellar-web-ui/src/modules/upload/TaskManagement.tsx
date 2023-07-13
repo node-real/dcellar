@@ -10,20 +10,26 @@ import { DCDrawer } from '@/components/common/DCDrawer';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();
-  const {taskManagement} = useAppSelector((root) => root.global);
+  const { taskManagement } = useAppSelector((root) => root.global);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
   const isOpen = taskManagement;
   const setOpen = (boo: boolean) => {
     dispatch(setTaskManagement(boo));
-  }
+  };
   const isUploading = queue.some((i) => i.status === 'UPLOAD');
 
   const renderButton = () => {
     if (isUploading) {
       return (
-        <DCButton variant='ghost' onClick={() => setOpen(true)} alignItems={'center'} justifyContent={'center'}>
-          <Loading/>
+        <DCButton
+          marginRight={'12px'}
+          variant="ghost"
+          onClick={() => setOpen(true)}
+          alignItems={'center'}
+          justifyContent={'center'}
+        >
+          <Loading />
           <Text fontWeight={500} fontSize={'14px'} marginLeft={'8px'}>
             Uploading...
           </Text>
@@ -40,7 +46,9 @@ export const TaskManagement = () => {
           console.log('task management trigger');
         }}
       >
-        <DCButton variant='ghost' fontWeight={'500'}>Task Management</DCButton>
+        <DCButton variant="ghost" fontWeight={'500'}>
+          Task Management
+        </DCButton>
       </Box>
     );
   };
@@ -48,10 +56,7 @@ export const TaskManagement = () => {
   return (
     <>
       {renderButton()}
-      <DCDrawer
-        isOpen={isOpen}
-        onClose={() => setOpen(false)}
-      >
+      <DCDrawer isOpen={isOpen} onClose={() => setOpen(false)}>
         <UploadingObjects />
       </DCDrawer>
     </>

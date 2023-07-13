@@ -200,6 +200,7 @@ const Container = styled.div`
 
   .ant-table-tbody > tr > td {
     font-weight: 500;
+    background: #fff;
   }
 
   .ant-spin-nested-loading > div > .ant-spin {

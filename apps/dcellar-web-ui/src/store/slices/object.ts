@@ -111,6 +111,12 @@ export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
+      const { path, folder } = payload;
+      const items = state.objects[path];
+      if (items.some((i) => i.name === folder.name)) return;
+      items.push(folder);
+    },
     updateObjectStatus(
       state,
       {
@@ -183,11 +189,12 @@ export const objectSlice = createSlice({
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
       const { path, list } = payload;
-      const folders = list.common_prefixes.map((i) => ({
+      // keep order
+      const folders = list.common_prefixes.reverse().map((i, index) => ({
         objectName: i,
         name: last(trimEnd(i, '/').split('/'))!,
         payloadSize: 0,
-        createAt: Date.now(),
+        createAt: Date.now() + index,
         contentType: '',
         folder: true,
         visibility: 3,
@@ -254,6 +261,28 @@ const _getAllList = async (
   return [list, null];
 };
 
+export const setupDummyFolder =
+  (name: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { bucketName, path, prefix } = getState().object;
+    if (!bucketName) return;
+    dispatch(
+      setDummyFolder({
+        path,
+        folder: {
+          objectName: prefix + name + '/',
+          name: last(trimEnd(name, '/').split('/'))!,
+          payloadSize: 0,
+          createAt: Date.now(),
+          contentType: '',
+          folder: true,
+          visibility: 3,
+          objectStatus: 1,
+          removed: false,
+        },
+      }),
+    );
+  };
+
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
@@ -313,6 +342,7 @@ export const {
   setEditCancel,
   setUploading,
   updateObjectStatus,
+  setDummyFolder,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
