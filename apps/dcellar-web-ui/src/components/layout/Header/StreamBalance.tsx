@@ -1,4 +1,4 @@
-import { useMount, useThrottleEffect } from 'ahooks';
+import { useAsyncEffect, useMount, useThrottleEffect } from 'ahooks';
 import { setupBnbPrice } from '@/store/slices/global';
 import BigNumber from 'bignumber.js';
 import { useBalance } from 'wagmi';
@@ -37,7 +37,8 @@ export function StreamBalance() {
     dispatch(setupBnbPrice());
   });
 
-  useEffect(() => {
+  useAsyncEffect(async () => {
+    if (!address) return;
     // update metamask
     refetch();
   }, [asPath, refetch]);

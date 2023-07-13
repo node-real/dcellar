@@ -45,6 +45,7 @@ export type UploadFile = {
   createHash: string;
   msg: string;
   progress: number;
+  fetched: boolean;
 };
 
 export interface GlobalState {
@@ -105,6 +106,13 @@ export const globalSlice = createSlice({
         task.status = 'SEAL';
         task.file.file = {} as any;
       }
+    },
+    updateUploadFetch(state, { payload }: PayloadAction<{ ids: number[]; account: string }>) {
+      const { account, ids } = payload;
+      const queue = state.uploadQueue[account] || [];
+      state.uploadQueue[account] = queue.map((q) =>
+        ids.includes(q.id) ? { ...q, fetched: true } : q,
+      );
     },
     updateUploadStatus(
       state,
@@ -191,7 +199,7 @@ export const globalSlice = createSlice({
     },
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
-    }
+    },
   },
 });
 
@@ -204,6 +212,7 @@ export const {
   updateHashQueue,
   addToUploadQueue,
   updateUploadStatus,
+  updateUploadFetch,
   updateUploadProgress,
   updateUploadMsg,
   setTmpAvailableBalance,
@@ -271,6 +280,15 @@ export const uploadQueueAndRefresh =
     );
   };
 
+// ensure upload file in file list
+export const progressFetchList =
+  (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
+    if (task.fetched) return;
+    const { loginAccount } = getState().persist;
+    await dispatch(updateUploadFetch({ ids: [task.id], account: loginAccount }));
+    await dispatch(refreshTaskFolder(task));
+  };
+
 export const addTaskToUploadQueue =
   (id: number, hash: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { hashQueue } = getState().global;
@@ -289,9 +307,10 @@ export const addTaskToUploadQueue =
       msg: '',
       status: 'WAIT',
       progress: 0,
+      fetched: false,
     };
     dispatch(addToUploadQueue(_task));
-    dispatch(refreshTaskFolder(_task));
+    // dispatch(refreshTaskFolder(_task));
   };
 
 export const setupTmpAvailableBalance =
