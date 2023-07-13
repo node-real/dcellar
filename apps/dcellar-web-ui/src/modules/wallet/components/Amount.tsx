@@ -53,7 +53,6 @@ const AmountErrors = {
 };
 
 const DefaultFee = {
-  // TODO temp down limit fee
   transfer_in: 0.00008 + 0.002,
   transfer_out: 0.000006 + 0.001,
   send: 0.000006,
@@ -67,40 +66,40 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance: balance } = useAppSelector((root) => root.global);
   const { isLoading, all } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
 
+  const balance = useMemo(() => {
+    if (transType === EOperation.transfer_in) {
+      return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || 0;
+    }
+    return all.find((item) => item.chainId === chain?.id)?.availableBalance || 0;
+  }, [all, chain?.id, transType]);
+
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));
   });
 
-  // balance always show no matter what chain is selected by metamask
   const Balance = useCallback(() => {
     if (isLoading) return null;
 
-    let newBalance = null;
-    // bsc balance
-    if (transType === EOperation.transfer_in) {
-      newBalance = all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance;
-    } else {
-      // gnfd balance
-      newBalance = all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance;
-    }
-    newBalance = newBalance || 0;
     const val = trimFloatZero(
-      BigNumber(newBalance || 0)
+      BigNumber(balance || 0)
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = BigNumber(newBalance).times(BigNumber(bnbPrice));
+    const usdPrice = BigNumber(balance).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
-    return `Balance on ${curInfo?.chainName}: ${val}${' '}BNB (${unifyUsdPrice})`;
-  }, [all, bnbPrice, curInfo?.chainName, isLoading, transType]);
+    return (
+      <>
+        Balance on {curInfo?.chainName}: {val} BNB ({unifyUsdPrice})
+      </>
+    );
+  }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
 
   // const onMaxClick = async () => {
   //   if (balance && feeData) {
@@ -219,7 +218,7 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
         <FormHelperText textAlign={'right'} color="#76808F">
-          {Balance()}
+          <Balance />
         </FormHelperText>
       </FormControl>
     </>

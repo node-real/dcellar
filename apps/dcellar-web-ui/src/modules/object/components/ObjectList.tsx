@@ -269,9 +269,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
 
-        if (isCurRow && !isFolder) {
-          operations = isPublic && isSealed ? ['share', 'download'] : ['download'];
-        }
+        isCurRow && !isFolder && isPublic && operations.push('share');
+        isCurRow && !isFolder && isSealed && operations.push('download');
 
         return <ActionMenu menus={fitActions} operations={operations} justifyContent='flex-end' onChange={(e) => onMenuClick(e, record)} />;
       },
@@ -345,7 +344,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
             !isFolder && onMenuClick('detail', record);
           },
           onMouseEnter: () => {
-            setRowIndex(index || -1);
+            setRowIndex(Number(index));
           },
           onMouseLeave: () => {
             setRowIndex(-1)
