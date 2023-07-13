@@ -230,11 +230,11 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           types['validateBalance'] = '';
         } else if (
           e.statusCode === 500 ||
-          (e.message === 'Get create bucket approval error.' && e.statusCode === 404)
+          (e.message === 'Get create bucket approval error.' && e.statusCode === 500)
         ) {
           // todo refactor
-          onClose();
-          types['validateOffChainAuth'] = '';
+          // onClose();
+          setValidateNameAndGas((v) => ({ ...v, isValidating: false }));
           setOpenAuthModal();
         } else {
           const { isError, message } = parseError(e.message);

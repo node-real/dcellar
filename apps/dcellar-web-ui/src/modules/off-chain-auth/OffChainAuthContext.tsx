@@ -18,7 +18,7 @@ export const OffChainAuthContext = createContext<any>({});
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const dispatch = useAppDispatch();
-  const { spInfo, sps } = useAppSelector((root) => root.sp);
+  const { spInfo, allSps } = useAppSelector((root) => root.sp);
   const [isAuthPending, setIsAuthPending] = useState(false);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const authSps = useRef<SpItem[]>([]);
@@ -41,7 +41,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         const domain = getDomain();
 
         // If no sps selected, use all sps for welcome auth
-        const pruneSps = (isEmpty(authSps.current) ? sps : authSps.current).map((item: any) => ({
+        const pruneSps = (isEmpty(authSps.current) ? allSps : authSps.current).map((item: any) => ({
           address: item.operatorAddress,
           name: item.moniker,
           endpoint: item.endpoint,
@@ -80,7 +80,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         return { code: -1, error: e };
       }
     },
-    [connector, onClose, sps],
+    [connector, onClose, allSps],
   );
 
   return (

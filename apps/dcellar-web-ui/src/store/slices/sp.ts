@@ -19,12 +19,14 @@ export type SpItem = Omit<StorageProvider, 'description'> & Description;
 
 export interface SpState {
   sps: Array<SpItem>;
+  allSps: Array<SpItem>; // include unstable
   spInfo: Record<string, SpItem>;
   oneSp: string;
 }
 
 const initialState: SpState = {
   sps: [],
+  allSps: [],
   spInfo: {},
   oneSp: '', // operatorAddress
 };
@@ -51,9 +53,9 @@ export const spSlice = createSlice({
       });
 
       const availableSps = unsorted.filter((sp) => sp.moniker !== 'QATest');
-      state.sps = sortBy(availableSps, ['moniker', 'operatorAddress']).filter(
-        (s) => !faultySps.includes(s.operatorAddress),
-      );
+      const sorted = sortBy(availableSps, ['moniker', 'operatorAddress']);
+      state.allSps = sorted;
+      state.sps = sorted.filter((s) => !faultySps.includes(s.operatorAddress));
       const rsps = recommend
         .map((r) => {
           const sp = find<SpItem>(state.sps, (s) => s.moniker.toLowerCase() === r.toLowerCase());

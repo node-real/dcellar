@@ -107,7 +107,7 @@ export const setupOffchain =
     const sps = payload.spAddresses;
     const curTime = getUtcZeroTimestamp();
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
-    const { sps: _sps } = getState().sp;
+    const { allSps } = getState().sp;
     const { offchain } = config;
     const legacyOffchain = offchain
       .map((o) => ({
@@ -117,11 +117,12 @@ export const setupOffchain =
       .filter((o) => o.spAddresses.length && o.expirationTime > curTime);
     // filter livable sps
     if (needUpdate) {
-      const faultySps = _sps
+      const faultySps = allSps
         .filter((s) => !sps.includes(s.operatorAddress))
         .map((s) => s.operatorAddress);
       dispatch(setFaultySps(faultySps));
-      dispatch(setAccountSps({ address, sps: _sps.map((s) => s.operatorAddress) }));
+      // persist all sps
+      dispatch(setAccountSps({ address, sps: allSps.map((s) => s.operatorAddress) }));
       dispatch(updateSps(sps));
     }
     dispatch(setOffchain({ address, offchain: [...legacyOffchain, payload] }));
@@ -152,14 +153,18 @@ export const checkSpOffChainDataAvailable =
     return !!(await dispatch(getSpOffChainData(address, sp))).seedString;
   };
 
+// todo refactor
 export const checkSpOffChainMayExpired =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const config = getState().persist.accounts[address] || getDefaultAccountConfig();
-    const { sps: serverSps } = getState().sp;
+    const { accounts, faultySps } = getState().persist;
+    const config = accounts[address] || getDefaultAccountConfig();
+    const allSps = getState().sp.allSps ?? [];
     const { offchain, sps } = config;
     const curTime = getUtcZeroTimestamp();
     const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24);
-    const hasNewSp = serverSps.some((s) => !sps.includes(s.operatorAddress));
+    const hasNewSp = allSps.some(
+      (s) => !sps.includes(s.operatorAddress) && !faultySps.includes(s.operatorAddress),
+    );
     return !offchain.length || mayExpired || hasNewSp;
   };
 
