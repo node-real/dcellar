@@ -17,6 +17,7 @@ export const DCDrawer = (props: DCDrawerProps) => {
       });
     }
     onClose?.();
+    document.documentElement.style.overflowY = '';
   };
 
   return (
