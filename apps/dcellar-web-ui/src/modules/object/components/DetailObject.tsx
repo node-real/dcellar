@@ -320,7 +320,7 @@ export const DetailObject = (props: modalProps) => {
           <Divider />
           <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
             {renderPropRow(
-              'Date uploaded',
+              'Date Created',
               formatFullTime(+objectInfo.object_info.create_at * 1000),
             )}
             {renderAddressLink(
