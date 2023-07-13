@@ -6,7 +6,6 @@ import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { filterSps } from '@/store/slices/sp';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import {
   selectBalance,
   setBalance,
