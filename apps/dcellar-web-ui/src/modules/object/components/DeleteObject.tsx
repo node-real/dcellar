@@ -21,13 +21,14 @@ import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { E_USER_REJECT_STATUS_NUM } from '@/facade/error';
+import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
 import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { resolve } from '@/facade/common';
 
 interface modalProps {
   refetch: () => void;
@@ -223,13 +224,13 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               const client = await getClient();
               const delObjTx = await client.object.deleteObject({
                 bucketName,
-                objectName: editDelete.name,
+                objectName: editDelete.objectName,
                 operator: address,
               });
               const simulateInfo = await delObjTx.simulate({
                 denom: 'BNB',
               });
-              const txRes = await delObjTx.broadcast({
+              const [txRes, error] = await delObjTx.broadcast({
                 denom: 'BNB',
                 gasLimit: Number(simulateInfo?.gasLimit),
                 gasPrice: simulateInfo?.gasPrice || '5000000000',
@@ -239,8 +240,10 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                   const provider = await connector?.getProvider();
                   return await signTypedDataV4(provider, addr, message);
                 },
-              });
-
+              }).then(resolve, broadcastFault);
+              if (txRes === null) {
+                return toast.error({ description: error || 'Delete file error.' });
+              }
               if (txRes.code === 0) {
                 toast.success({ description: 'File deleted successfully.' });
                 reportEvent({

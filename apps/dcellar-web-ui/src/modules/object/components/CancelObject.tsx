@@ -29,6 +29,8 @@ import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { setupBucketQuota } from '@/store/slices/bucket';
+import { commonFault } from '@/facade/error';
+import { resolve } from '@/facade/common';
 
 interface modalProps {
   refetch: () => void;
@@ -214,13 +216,13 @@ export const CancelObject = ({ refetch }: modalProps) => {
               const client = await getClient();
               const cancelObjectTx = await client.object.cancelCreateObject({
                 bucketName,
-                objectName: editCancel.name,
+                objectName: editCancel.objectName,
                 operator: loginAccount,
               });
               const simulateInfo = await cancelObjectTx.simulate({
                 denom: 'BNB',
               });
-              const txRes = await cancelObjectTx.broadcast({
+              const [txRes, error] = await cancelObjectTx.broadcast({
                 denom: 'BNB',
                 gasLimit: Number(simulateInfo?.gasLimit),
                 gasPrice: simulateInfo?.gasPrice || '5000000000',
@@ -230,8 +232,13 @@ export const CancelObject = ({ refetch }: modalProps) => {
                   const provider = await connector?.getProvider();
                   return await signTypedDataV4(provider, addr, message);
                 },
-              });
-              if (txRes.code === 0) {
+              }).then(resolve, commonFault);
+              if (txRes === null) {
+                onStatusDetailClose();
+                toast.error({ description: error || 'Uploading cancelled failed.' });
+                return;
+              }
+              if (txRes && txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
                 refetch();
                 dispatch(setupBucketQuota(bucketName))
