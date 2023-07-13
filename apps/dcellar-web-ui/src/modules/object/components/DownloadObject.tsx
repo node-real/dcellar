@@ -51,6 +51,8 @@ export const DownloadObject = (props: modalProps) => {
   const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
     dispatch(setEditDownload({} as ObjectItem));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
 
   const directDownloadLink = getDirectDownloadLink({

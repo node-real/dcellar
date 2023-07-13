@@ -247,6 +247,8 @@ export const DetailObject = (props: modalProps) => {
   const isOpen = !!editDetail.name;
   const onClose = () => {
     dispatch(setEditDetail({} as ObjectItem));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
 
   const shareLink = getShareLink(bucketName, editDetail?.objectName);

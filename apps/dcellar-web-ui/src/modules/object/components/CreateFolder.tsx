@@ -77,6 +77,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
     dispatch(setEditCreate(false));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));

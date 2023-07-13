@@ -24,6 +24,7 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
   const onClose = () => {
     setOpen(false);
     setTimeout(() => {
+      document.documentElement.style.overflowY = '';
       dispatch(setEditDelete({} as BucketItem));
     }, 200);
   };

@@ -85,6 +85,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const isOpen = !!editDelete.objectName;
   const onClose = () => {
     dispatch(setEditDelete({} as ObjectItem));
+    // todo fix it
+    document.documentElement.style.overflowY = '';
   };
   const { gasList } = useAppSelector((root) => root.global.gasHub);
   const simulateGasFee = gasList[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
@@ -230,17 +232,19 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               const simulateInfo = await delObjTx.simulate({
                 denom: 'BNB',
               });
-              const [txRes, error] = await delObjTx.broadcast({
-                denom: 'BNB',
-                gasLimit: Number(simulateInfo?.gasLimit),
-                gasPrice: simulateInfo?.gasPrice || '5000000000',
-                payer: address,
-                granter: '',
-                signTypedDataCallback: async (addr: string, message: string) => {
-                  const provider = await connector?.getProvider();
-                  return await signTypedDataV4(provider, addr, message);
-                },
-              }).then(resolve, broadcastFault);
+              const [txRes, error] = await delObjTx
+                .broadcast({
+                  denom: 'BNB',
+                  gasLimit: Number(simulateInfo?.gasLimit),
+                  gasPrice: simulateInfo?.gasPrice || '5000000000',
+                  payer: address,
+                  granter: '',
+                  signTypedDataCallback: async (addr: string, message: string) => {
+                    const provider = await connector?.getProvider();
+                    return await signTypedDataV4(provider, addr, message);
+                  },
+                })
+                .then(resolve, broadcastFault);
               if (txRes === null) {
                 return toast.error({ description: error || 'Delete file error.' });
               }

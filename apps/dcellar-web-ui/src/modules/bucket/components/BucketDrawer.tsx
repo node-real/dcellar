@@ -21,6 +21,8 @@ export const BucketDrawer = memo<BucketDrawerProps>(function BucketDrawer() {
     setOpen(false);
     setTimeout(() => {
       dispatch(setEditCreate(false));
+      // todo fix it
+      document.documentElement.style.overflowY = '';
     }, 200);
   };
 
