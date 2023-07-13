@@ -115,7 +115,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const onError = (type: string) => {
-    console.log('type', type);
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
     }
@@ -274,8 +273,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           operations = isPublic && isSealed ? ['share', 'download'] : ['download'];
         }
 
-
-        return <ActionMenu menus={fitActions} operations={operations} onChange={(e) => onMenuClick(e, record)} />;
+        return <ActionMenu menus={fitActions} operations={operations} justifyContent='flex-end' onChange={(e) => onMenuClick(e, record)} />;
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));

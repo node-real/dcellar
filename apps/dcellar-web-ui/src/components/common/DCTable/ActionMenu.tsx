@@ -14,18 +14,20 @@ export type ActionMenuItem = { label: string; value: string };
 interface ActionMenuProps {
   onChange?: (menu: string) => void;
   menus?: Array<ActionMenuItem>;
-  operations: string[];
+  operations?: string[];
+  justifyContent?: string;
 }
 
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
   operations = [],
   menus = [],
+  justifyContent,
 }) {
   if (isEmpty(menus)) return null;
-  console.log('operations', operations)
+
   return (
-    <Flex justifyContent={'flex-end'}>
+    <Flex justifyContent={justifyContent || 'center'}>
       {operations.map((m) => {
         switch (m) {
           case 'download':

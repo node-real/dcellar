@@ -38,7 +38,6 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
     />
   );
   const onError = (type: string) => {
-    console.log('type', type);
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];

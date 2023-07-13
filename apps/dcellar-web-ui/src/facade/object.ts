@@ -122,7 +122,6 @@ export const downloadObject = async (
   }
 
   const [result, error] = await getObjectBytes(params, seedString);
-  console.log(result, error);
   if (!result) return [false, error];
 
   saveFileByAxiosResponse(result, objectName);

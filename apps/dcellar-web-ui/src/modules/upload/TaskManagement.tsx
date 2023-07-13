@@ -43,7 +43,6 @@ export const TaskManagement = () => {
         marginRight={'12px'}
         onClick={() => {
           setOpen(true);
-          console.log('task management trigger');
         }}
       >
         <DCButton variant="ghost" fontWeight={'500'}>

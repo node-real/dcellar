@@ -331,7 +331,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           granter: '',
           signTypedDataCallback: async (addr: string, message: string) => {
             const provider = await connector?.getProvider();
-            console.log(message);
             return await signTypedDataV4(provider, addr, message);
           },
         });
