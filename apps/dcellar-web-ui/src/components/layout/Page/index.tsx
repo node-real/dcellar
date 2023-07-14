@@ -29,6 +29,7 @@ export function Page(props: React.PropsWithChildren) {
   return (
     <Flex minH={'100vh'} minW={'1000px'} bg="bg.bottom" position={'relative'}>
       <Flex
+        minW={0}
         flex={1}
         flexDirection={'column'}
         justifyContent="space-between"

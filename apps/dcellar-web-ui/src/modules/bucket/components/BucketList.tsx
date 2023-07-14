@@ -8,7 +8,7 @@ import {
   setEditDelete,
   setEditDetail,
 } from '@/store/slices/bucket';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { AlignType, DCTable, FixedType, SortIcon, SortItem } from '@/components/common/DCTable';
 import { ColumnProps } from 'antd/es/table';
 import { NameItem } from '@/modules/bucket/components/NameItem';
 import { formatTime, getMillisecond } from '@/utils/time';
@@ -67,7 +67,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
     },
     {
       key: 'created_at',
-      width: 250,
+      width: 200,
       title: (
         <SortItem onClick={() => updateSorter('create_at', 'descend')}>
           Date Created

@@ -21,7 +21,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { folders } = useAppSelector((root) => root.object);
+  const { folders, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const onOpenCreateFolder = () => {
     if (disabled) return;
     dispatch(setEditCreate(true));
@@ -36,7 +36,10 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   };
   if (!owner) return <></>;
 
-  const invalidPath = folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN);
+  const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
+
+  const invalidPath =
+    folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;
   const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
 
   const disabled = maxFolderDepth || discontinue;
@@ -45,7 +48,11 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   return (
     <Flex gap={12}>
       <Tooltip
-        content={`You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`}
+        content={
+          invalidPath
+            ? 'Folder does not exist.'
+            : `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
+        }
         placement={'bottom-start'}
         visibility={maxFolderDepth ? 'visible' : 'hidden'}
       >
@@ -70,7 +77,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       <Tooltip
         placement="bottom-end"
         content={
-          discontinue ? 'Bucket in the discontinue status cannot upload files.' : 'Path invalid'
+          discontinue
+            ? 'Bucket in the discontinue status cannot upload files.'
+            : 'Folder does not exist.'
         }
         visibility={uploadDisabled ? 'visible' : 'hidden'}
       >
