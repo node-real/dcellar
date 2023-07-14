@@ -67,7 +67,7 @@ const Actions: ActionMenuItem[] = [
   { label: 'Delete', value: 'delete' },
 ];
 
-interface ObjectListProps { }
+interface ObjectListProps {}
 
 export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const dispatch = useAppDispatch();
@@ -78,7 +78,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     accounts,
   } = useAppSelector((root) => root.persist);
 
-  const [rowIndex, setRowIndex] = useState(-1)
+  const [rowIndex, setRowIndex] = useState(-1);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
@@ -272,7 +272,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         isCurRow && !isFolder && isPublic && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
-        return <ActionMenu menus={fitActions} operations={operations} justifyContent='flex-end' onChange={(e) => onMenuClick(e, record)} />;
+        return (
+          <ActionMenu
+            menus={fitActions}
+            operations={operations}
+            justifyContent="flex-end"
+            onChange={(e) => onMenuClick(e, record)}
+          />
+        );
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
@@ -347,9 +354,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
             setRowIndex(Number(index));
           },
           onMouseLeave: () => {
-            setRowIndex(-1)
-          }
+            setRowIndex(-1);
+          },
         })}
+        scroll={{ x: 800 }}
       />
     </>
   );
