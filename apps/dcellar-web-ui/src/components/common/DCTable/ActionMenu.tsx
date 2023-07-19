@@ -40,7 +40,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             </ActionButton>;
         }
       })}
-      <Menu placement="bottom-end" trigger="hover">
+      <Menu placement="auto-end" trigger="hover" strategy='fixed'>
         {({ isOpen }) => (
           <>
             <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
