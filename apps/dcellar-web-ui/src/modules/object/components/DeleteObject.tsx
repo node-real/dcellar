@@ -115,8 +115,12 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const filePath = editDelete.objectName.split('/');
+  const isFolder = editDelete.objectName.endsWith('/');
   const showName = filePath[filePath.length - 1];
-  const description = `Are you sure you want to delete file "${showName}"?`;
+  const folderName = filePath[filePath.length - 2];
+  const description = isFolder
+    ? `Are you sure you want to delete folder "${folderName}"?`
+    : `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(

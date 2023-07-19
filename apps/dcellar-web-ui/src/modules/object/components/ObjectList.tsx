@@ -15,6 +15,7 @@ import {
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
+  _getAllList,
 } from '@/store/slices/object';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
@@ -43,6 +44,8 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { FolderNotEmpty } from '@/modules/object/components/FolderNotEmpty';
+
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
@@ -79,6 +82,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   } = useAppSelector((root) => root.persist);
 
   const [rowIndex, setRowIndex] = useState(-1);
+  const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
@@ -162,12 +166,21 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     return dispatch(setEditDownload(object));
   };
 
-  const onMenuClick = (menu: string, record: ObjectItem) => {
+  const onMenuClick = async (menu: string, record: ObjectItem) => {
     switch (menu) {
       case 'detail':
         return dispatch(setEditDetail(record));
       case 'delete':
-        return dispatch(setEditDelete(record));
+        let isFolder = record.objectName.endsWith('/');
+        if (isFolder) {
+          let res = await isFolderEmpty(record);
+          if (!res) {
+            setDeleteFolderNotEmpty(true);
+          }
+          return dispatch(setEditDelete(record));
+        } else {
+          return dispatch(setEditDelete(record));
+        }
       case 'share':
         return dispatch(setEditShare(record));
       case 'download':
@@ -176,7 +189,25 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return dispatch(setEditCancel(record));
     }
   };
+  const isFolderEmpty = async (record: ObjectItem) => {
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '1000');
+    _query.append('prefix', `${record.objectName}`);
 
+    const params = {
+      address: primarySpAddress,
+      bucketName: bucketName,
+      prefix: record.objectName,
+      query: _query,
+      endpoint: primarySpInfo.endpoint,
+      seedString: '',
+      delimiter: '/',
+      maxKeys: 1000,
+    };
+    const [res] = await _getAllList(params);
+    return res?.objects?.length === 1;
+  };
   const columns: ColumnProps<ObjectItem>[] = [
     {
       key: 'objectName',
@@ -251,9 +282,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         let operations: string[] = [];
         const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
-        if (isFolder) return null;
+
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
+
         if (!isPublic) {
           fitActions = Actions.filter((a) => a.value !== 'share');
         }
@@ -268,7 +300,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (curObjectInfo?.object_info?.owner !== loginAccount) {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
-
+        if (isFolder) {
+          fitActions = Actions.filter((a) => a.value === 'delete');
+        }
         isCurRow && !isFolder && isPublic && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
@@ -322,6 +356,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
       {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
       {editShare?.objectName && <ShareObject />}
