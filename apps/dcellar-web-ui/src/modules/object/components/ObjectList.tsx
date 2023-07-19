@@ -172,6 +172,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return dispatch(setEditDetail(record));
       case 'delete':
         let isFolder = record.objectName.endsWith('/');
+        setDeleteFolderNotEmpty(false);
         if (isFolder) {
           let res = await isFolderEmpty(record);
           if (!res) {

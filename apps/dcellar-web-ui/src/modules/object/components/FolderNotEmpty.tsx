@@ -6,10 +6,10 @@ import { POPPINS_FONT } from '@/modules/wallet/constants';
 import { DCButton } from '@/components/common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectItem, setEditDelete,  } from '@/store/slices/object';
+import { ObjectItem, setEditDelete } from '@/store/slices/object';
 
 export const FolderNotEmpty = () => {
-  const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
+  const { editDelete } = useAppSelector((root) => root.object);
   const dispatch = useAppDispatch();
 
   const isOpen = !!editDelete.objectName;
