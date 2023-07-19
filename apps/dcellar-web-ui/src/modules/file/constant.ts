@@ -20,6 +20,7 @@ const FILE_TITLE_UPLOADING = 'Uploading File';
 const OBJECT_TITLE_CREATING = 'Creating Object';
 const FILE_TITLE_DOWNLOADING = 'Downloading File';
 const FILE_TITLE_DELETING = 'Deleting File';
+const FOLDER_TITLE_DELETING = 'Deleting Folder';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
 const FOLDER_CREATING = 'Creating Folder';
 // error title
@@ -75,6 +76,7 @@ export {
   FILE_TITLE_UPLOADING,
   FILE_TITLE_DOWNLOADING,
   FILE_TITLE_DELETING,
+  FOLDER_TITLE_DELETING,
   FILE_TITLE_CANCELING,
   FILE_STATUS_UPLOADING,
   FILE_STATUS_DOWNLOADING,
