@@ -55,7 +55,7 @@ const nextConfig = {
   headers: async () => [
     {
       // cache public folder assets (default max-age: 0).
-      source: `${assetPrefix}/:public(fonts|images|wasm|zk-wasm)/:path*`,
+      source: `${assetPrefix}/:public(fonts|images|wasm|zk-main)/:path*`,
       locale: false,
       headers: [
         {
