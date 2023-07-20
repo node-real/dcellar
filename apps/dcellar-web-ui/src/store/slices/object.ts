@@ -237,7 +237,7 @@ export const objectSlice = createSlice({
   },
 });
 
-const _getAllList = async (
+export const _getAllList = async (
   params: ListObjectsParams,
 ): Promise<[IObjectList, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);

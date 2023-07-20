@@ -10,7 +10,7 @@
   const go = new Go();
 
   const { module: mod, instance: inst } = await WebAssembly.instantiateStreaming(
-    fetch(`${window.__ASSET_PREFIX}/wasm/zk-wasm.wasm`),
+    fetch(`${window.__ASSET_PREFIX}/wasm/zk-main.wasm`),
     go.importObject,
   );
 

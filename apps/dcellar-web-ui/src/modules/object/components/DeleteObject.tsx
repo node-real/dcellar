@@ -14,6 +14,7 @@ import {
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
+  FOLDER_TITLE_DELETING,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
@@ -115,8 +116,12 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const filePath = editDelete.objectName.split('/');
+  const isFolder = editDelete.objectName.endsWith('/');
   const showName = filePath[filePath.length - 1];
-  const description = `Are you sure you want to delete file "${showName}"?`;
+  const folderName = filePath[filePath.length - 2];
+  const description = isFolder
+    ? `Are you sure you want to delete folder "${folderName}"?`
+    : `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(
@@ -217,7 +222,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               dispatch(
                 setStatusDetail({
                   icon: FILE_DELETE_GIF,
-                  title: FILE_TITLE_DELETING,
+                  title: isFolder ? FOLDER_TITLE_DELETING : FILE_TITLE_DELETING,
                   desc: FILE_STATUS_DELETING,
                   buttonText: '',
                   errorText: '',
@@ -250,7 +255,11 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 return toast.error({ description: error || 'Delete file error.' });
               }
               if (txRes.code === 0) {
-                toast.success({ description: 'File deleted successfully.' });
+                toast.success({
+                  description: isFolder
+                    ? 'Folder deleted successfully.'
+                    : 'File deleted successfully.',
+                });
                 reportEvent({
                   name: 'dc.toast.file_delete.success.show',
                 });

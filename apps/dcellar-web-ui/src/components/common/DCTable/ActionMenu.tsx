@@ -13,11 +13,10 @@ export type ActionMenuItem = { label: string; value: string };
 
 interface ActionMenuProps {
   onChange?: (menu: string) => void;
-  menus?: Array<ActionMenuItem>;
+  menus: Array<ActionMenuItem>;
   operations?: string[];
   justifyContent?: string;
 }
-
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
   operations = [],
@@ -25,7 +24,6 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   justifyContent,
 }) {
   if (isEmpty(menus)) return null;
-
   return (
     <Flex justifyContent={justifyContent || 'center'}>
       {operations.map((m) => {
@@ -40,7 +38,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             </ActionButton>;
         }
       })}
-      <Menu placement="auto-end" trigger="hover" strategy='fixed'>
+      <Menu placement="bottom-end" trigger="hover" strategy='fixed'>
         {({ isOpen }) => (
           <>
             <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>

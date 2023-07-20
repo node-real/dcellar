@@ -716,7 +716,6 @@ export const FileTable = (props: fileListProps) => {
 
           const onDownload = async (url?: string) => {
             try {
-              console.log(visibility);
               if (
                 !isCurrentUser &&
                 visibility !== ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ
@@ -820,7 +819,7 @@ export const FileTable = (props: fileListProps) => {
           const directDownloadLink = encodeURI(
             `${primarySp.endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`,
           );
-          if (isFolder) return <></>;
+          // if (isFolder) return <></>;
           return (
             <Flex position="relative" gap={4} justifyContent="flex-end" alignItems={'center'}>
               {isSealed && isCurrentUser && showFileIcon && (
