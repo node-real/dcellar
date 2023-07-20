@@ -13,11 +13,11 @@ import {
 
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
-  name: runtimeEnv === 'prod' ? 'greenfield testnet' : `${runtimeEnv} - greenfield`,
-  network: 'greenfield',
+  name: runtimeEnv === 'prod' ? 'Greenfield Mekong Testnet' : `${runtimeEnv} - Greenfield`,
+  network: 'Greenfield Mekong Testnet',
   nativeCurrency: {
-    name: 'BNB',
-    symbol: 'BNB',
+    name: 'tBNB',
+    symbol: 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -29,18 +29,18 @@ const greenFieldChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'Greenfield Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
-    default: { name: 'Greenfield Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
+    etherscan: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
+    default: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
   },
 };
 
 const bscChain: Chain = {
   id: BSC_CHAIN_ID,
-  name: runtimeEnv === 'prod' ? 'greenfield bsc testnet' : `${runtimeEnv} - greenfield bsc`,
-  network: 'greenfield bsc',
+  name: 'BNB Smart Chain Testnet',
+  network: 'BNB Smart Chain Testnet',
   nativeCurrency: {
-    name: 'BNB',
-    symbol: 'BNB',
+    name: 'tBNB',
+    symbol: 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -52,8 +52,8 @@ const bscChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'BSC Scan', url: BSC_EXPLORER_URL },
-    default: { name: 'BSC Scan', url: BSC_EXPLORER_URL },
+    etherscan: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
+    default: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
   },
 };
 
