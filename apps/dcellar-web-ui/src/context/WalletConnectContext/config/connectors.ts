@@ -3,9 +3,13 @@ import { InjectedConnector } from 'wagmi/connectors/injected';
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
 function getMetaMaskConnector() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   // If trust wallet is already set as the default wallet, force using trustwallet
-  if (typeof window !== 'undefined' && window.ethereum?.isTrustWallet) {
-    console.log('isTrust wallet')
+  if (window.ethereum?.isTrustWallet) {
+    console.log('use trust wallet')
 
     return new InjectedConnector({
       chains,
@@ -22,7 +26,7 @@ function getMetaMaskConnector() {
     });
   }
 
-  console.log('isMeta mask')
+  console.log('use metamask')
 
   return new MetaMaskConnector({ chains })
 }
@@ -36,6 +40,11 @@ const trustWalletConnector = new InjectedConnector({
       if (typeof window === 'undefined') {
         return;
       }
+      if (window.trustwallet) {
+        Object.defineProperty(window.trustwallet, 'removeListener', {
+          value: window.trustwallet.off,
+        });
+      }
       return window.trustwallet
     }
   },
@@ -43,4 +52,4 @@ const trustWalletConnector = new InjectedConnector({
 
 const metaMaskConnector = getMetaMaskConnector()
 
-export const connectors = [trustWalletConnector, metaMaskConnector];
+export const connectors = [trustWalletConnector, metaMaskConnector] as InjectedConnector[];
