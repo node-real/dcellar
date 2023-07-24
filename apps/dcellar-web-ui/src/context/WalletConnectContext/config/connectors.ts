@@ -1,41 +1,37 @@
 import { chains } from '@/context/WalletConnectContext/config/chains';
 import { InjectedConnector } from 'wagmi/connectors/injected';
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
-const metaMaskConnector = new InjectedConnector({
-  chains,
-  options: {
-    name: 'MetaMask',
-    shimDisconnect: true,
-    getProvider: () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      // If trust wallet is already set as the default wallet, force using trustwallet
-      if (window.ethereum?.isTrustWallet) {
-        return window.trustwallet ?? window.ethereum
-      }
-      return window.ethereum
-    }
-  },
-});
+function getMetaMaskConnector() {
+  // If trust wallet is already set as the default wallet, force using trustwallet
+  if (typeof window !== 'undefined' && window.ethereum?.isTrustWallet) {
+    return new InjectedConnector({
+      chains,
+      options: {
+        name: 'MetaMask',
+        shimDisconnect: true,
+        getProvider: () => {
+          if (typeof window === 'undefined') {
+            return;
+          }
+          return window.trustwallet ?? window.ethereum
+        }
+      },
+    });
+  }
+
+  return new MetaMaskConnector({ chains })
+}
 
 const trustWalletConnector = new InjectedConnector({
   chains,
   options: {
     name: 'Trust Wallet',
     shimDisconnect: true,
-    getProvider: () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
-      if (window.trustwallet) {
-        Object.defineProperty(window.trustwallet, 'removeListener', {
-          value: window.trustwallet.off,
-        });
-      }
-      return window.trustwallet
-    }
+    getProvider: () => (typeof window !== 'undefined' ? window.trustwallet : undefined),
   },
 });
 
-export const connectors = [trustWalletConnector, metaMaskConnector];
+const metaMaskConnector = getMetaMaskConnector()
+
+export const connectors = [trustWalletConnector, metaMaskConnector] as InjectedConnector[];
