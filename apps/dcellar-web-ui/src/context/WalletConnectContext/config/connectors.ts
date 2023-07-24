@@ -12,7 +12,7 @@ const metaMaskConnector = new InjectedConnector({
       }
       // If trust wallet is already set as the default wallet, force using trustwallet
       if (window.ethereum?.isTrustWallet) {
-        return window.trustwallet
+        return window.trustwallet ?? window.ethereum
       }
       return window.ethereum
     }
