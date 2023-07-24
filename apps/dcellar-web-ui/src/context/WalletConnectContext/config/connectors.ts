@@ -46,6 +46,6 @@ const trustWalletConnector = new InjectedConnector({
   },
 });
 
-const metaMaskConnect = getMetaMaskConnector()
+const metaMaskConnector = getMetaMaskConnector()
 
-export const connectors = [trustWalletConnector, metaMaskConnect];
+export const connectors = [trustWalletConnector, metaMaskConnector];
