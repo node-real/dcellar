@@ -10,19 +10,12 @@ export const pollingCreateAsync =
     while (true) {
       await new Promise((resolve) => setTimeout(resolve, interval));
       try {
-        const { bucketName } = args[0] as any;
+        // const { bucketName } = args[0] as any;
         const result = (await fn(...args)) as any;
-        if (result.code === 0) {
-          const theNewBucket = (result.body || []).find(
-            (item: any) => item.bucket_info.bucket_name === bucketName,
-          );
+        if (result) {
             return;
           // continue
-        } else {
-          return;
         }
-
-        // continue
       } catch (e: any) {
         const { code } = parseError(e?.message);
         if (+code !== 6) {
