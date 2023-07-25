@@ -67,8 +67,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
   const { bucketName, folders, objects, path, primarySp } = useAppSelector((root) => root.object);
-  const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
-  const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
+  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);

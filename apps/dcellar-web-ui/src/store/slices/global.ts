@@ -7,6 +7,8 @@ import { find, keyBy } from 'lodash-es';
 import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
+import Long from 'long';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 type TGasList = {
   [msgTypeUrl: string]: {
@@ -18,30 +20,52 @@ type TGasList = {
 
 type TGas = {
   gasPrice: number;
-  gasList: TGasList;
+  gasObjects: TGasList;
 };
 
-export type TFileStatus = 'CHECK' | 'WAIT' | 'HASH' | 'READY' | 'SEAL' | 'FINISH' | 'UPLOAD';
+export type TPreLockFeeParams = {
+  spStorageStorePrice: string;
+  secondarySpStorePrice: string;
+  minChargeSize: number;
+  redundantDataChunkNum: number;
+  redundantParityChunkNum: number;
+  reserveTime: string;
+}
+
+type TPreLockFeeObjects = {
+  [key: string]: TPreLockFeeParams
+};
+
+export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
+
+export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'FINISH' | 'SEAL' | 'ERROR';
+
+export type TTmpAccount = {
+  address: string;
+  privateKey: string;
+};
 
 export type HashFile = {
   file: File;
-  status: 'CHECK' | 'WAIT' | 'HASH' | 'READY';
+  status: TFileStatus;
   id: number;
+  time: number;
   msg: string;
   type: string;
   size: number;
   name: string;
-  checksum: string[];
   lockFee: string;
 };
 
 export type UploadFile = {
   bucketName: string;
-  folders: string[];
+  prefixFolders: string[];
   id: number;
   sp: string;
   file: HashFile;
-  status: TFileStatus;
+  checksum: string[];
+  status: TUploadStatus;
+  visibility: VisibilityType;
   createHash: string;
   msg: string;
   progress: number;
@@ -50,24 +74,28 @@ export type UploadFile = {
 export interface GlobalState {
   bnb: BnbPriceInfo;
   gasHub: TGas;
+  preLockFeeObjects: TPreLockFeeObjects;
   hashQueue: HashFile[]; // max length two, share cross different accounts.
   uploadQueue: Record<string, UploadFile[]>;
   _availableBalance: string; // using static value, avoid rerender
   _lockFee: string;
   taskManagement: boolean;
+  tmpAccount: TTmpAccount;
 }
 
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
   gasHub: {
     gasPrice: 5e-9,
-    gasList: {},
+    gasObjects: {},
   },
+  preLockFeeObjects: {},
   hashQueue: [],
   uploadQueue: {},
   _availableBalance: '0',
   _lockFee: '0',
   taskManagement: false,
+  tmpAccount: {} as TTmpAccount,
 };
 
 export const globalSlice = createSlice({
@@ -114,27 +142,34 @@ export const globalSlice = createSlice({
       const queue = state.uploadQueue[account] || [];
       state.uploadQueue[account] = queue.map((q) => (ids.includes(q.id) ? { ...q, status } : q));
     },
-    updateHashQueue(state) {
-      state.hashQueue = state.hashQueue.filter((task) => task.status === 'HASH');
-    },
-    updateHashChecksum(
+    updateUploadChecksum(
       state,
-      { payload }: PayloadAction<{ id: number; checksum: string[]; lockFee: string }>,
+      { payload }: PayloadAction<{ account: string; id: number; checksum: string[]; }>,
     ) {
-      const { id, checksum, lockFee } = payload;
-      const queue = state.hashQueue;
-      const task = find<HashFile>(queue, (t) => t.id === id);
+      const { account, id, checksum } = payload;
+      const queues = state.uploadQueue;
+      const queue = queues[account]
+      const task = find<UploadFile>(queue, (t) => t.id === id);
       if (!task) return;
       task.status = 'READY';
       task.checksum = checksum;
-      task.lockFee = lockFee;
       if (queue.length === 1) return;
-      queue.shift(); // shift first ready item
+      // 为什么要移除啊？先不要移除，一定要以数据流动和管理进行思考
+      // queue.shift(); // shift first ready item
     },
-    updateHashTaskMsg(state, { payload }: PayloadAction<{ id: number; msg: string }>) {
+    updateHashTaskMsg(state, { payload }: PayloadAction<{ id: number; msg: string, }>) {
       const { id, msg } = payload;
       const task = find<HashFile>(state.hashQueue, (t) => t.id === id);
       if (!task) return;
+      task.status = 'ERROR';
+      task.msg = msg;
+
+    },
+    updateUploadTaskMsg(state, { payload }: PayloadAction<{ account: string, id: number, msg: string }>) {
+      const { id, msg } = payload;
+      const task = find<UploadFile>(state.uploadQueue[payload.account], (t) => t.id === id);
+      if (!task) return;
+      task.status = 'ERROR';
       task.msg = msg;
     },
     updateHashStatus(
@@ -146,35 +181,39 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = status;
     },
-    addToHashQueue(state, { payload }: PayloadAction<{ id: number; file: File }>) {
-      const { id, file } = payload;
+    addToHashQueue(state, { payload }: PayloadAction<{ id: number; file: File; time: number; }>) {
+      const { id, file, time } = payload;
       const task: HashFile = {
         file,
         status: 'CHECK',
         id,
+        time,
         msg: '',
         type: file.type,
         size: file.size,
         name: file.name,
-        checksum: Array<string>(),
         lockFee: '',
       };
-      state.hashQueue = state.hashQueue.filter((task) => task.status === 'HASH');
-      const queue = state.hashQueue;
-      // max length 2
-      queue.length >= 2 ? (queue[2] = task) : queue.push(task);
+      state.hashQueue.push(task);
     },
-    addToUploadQueue(state, { payload }: PayloadAction<UploadFile & { account: string }>) {
-      const { account, ...task } = payload;
-      const tasks = state.uploadQueue[account] || [];
-      state.uploadQueue[account] = [...tasks, task];
+    resetHashQueue(state) {
+      state.hashQueue = [];
+    },
+    removeFromHashQueue(state, { payload }: PayloadAction<{ id: number }>) {
+      const { id } = payload;
+      state.hashQueue = state.hashQueue.filter((task) => task.id !== id);
+    },
+    addToUploadQueue(state, { payload }: PayloadAction<{ account: string, tasks: UploadFile[] }>) {
+      const { account, tasks } = payload;
+      const existTasks = state.uploadQueue[account] || [];
+      state.uploadQueue[account] = [...existTasks, ...tasks];
     },
     setBnbInfo(state, { payload }: PayloadAction<BnbPriceInfo>) {
       state.bnb = payload;
     },
-    setGasList(state, { payload }: PayloadAction<QueryMsgGasParamsResponse>) {
+    setGasObjects(state, { payload }: PayloadAction<QueryMsgGasParamsResponse>) {
       const { gasPrice } = state.gasHub;
-      const gasList = keyBy(
+      const gasObjects = keyBy(
         payload.msgGasParams.map((item) => {
           const gasLimit = item.fixedType?.fixedGas.low || 0;
           const gasFee = gasPrice * gasLimit;
@@ -187,11 +226,18 @@ export const globalSlice = createSlice({
         'msgTypeUrl',
       );
 
-      state.gasHub.gasList = gasList;
+      state.gasHub.gasObjects = gasObjects;
     },
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
     },
+    setPreLockFeeObjects(state, { payload }: PayloadAction<{ primarySpAddress: string, lockFeeParams: TPreLockFeeParams }>) {
+      const { primarySpAddress, lockFeeParams } = payload;
+      state.preLockFeeObjects[primarySpAddress] = lockFeeParams;
+    },
+    setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
+      state.tmpAccount = payload;
+    }
   },
 });
 
@@ -200,8 +246,8 @@ export const {
   updateHashStatus,
   addToHashQueue,
   updateHashTaskMsg,
-  updateHashChecksum,
-  updateHashQueue,
+  updateUploadTaskMsg,
+  updateUploadChecksum,
   addToUploadQueue,
   updateUploadStatus,
   updateUploadProgress,
@@ -209,19 +255,26 @@ export const {
   setTmpAvailableBalance,
   setTmpLockFee,
   setTaskManagement,
+  removeFromHashQueue,
+  setTmpAccount,
+  resetHashQueue,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
+
 export const selectUploadQueue = (address: string) => (root: AppState) => {
   return root.global.uploadQueue[address] || _emptyUploadQueue;
 };
 
-export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
+export const selectHashTask = (address: string) => (root: AppState) => {
+  const uploadQueue = root.global.uploadQueue[address] || _emptyUploadQueue;
+  const hashQueue = uploadQueue.filter((task) => task.status === 'HASH');
+  const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT');
 
-export const selectHashTask = (state: AppState) => {
-  const queue = state.global.hashQueue;
-  return !queue.length ? null : queue[0].status === 'WAIT' ? queue[0] : null;
-};
+  const res = !!hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
+  return res;
+}
+export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
 export const selectHashFile = (id: number) => (state: AppState) => {
   return find<HashFile>(state.global.hashQueue, (f) => f.id === id);
@@ -232,11 +285,37 @@ export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   dispatch(setBnbInfo(res));
 };
 
-export const setupGasList = () => async (dispatch: AppDispatch) => {
+export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   const client = await getClient();
   const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [] });
-  dispatch(globalSlice.actions.setGasList(res));
+  dispatch(globalSlice.actions.setGasObjects(res));
 };
+
+export const setupPreLockFeeObjects = (primarySpAddress: string) => async (dispatch: AppDispatch) => {
+  const client = await getClient();
+  const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
+  const secondarySpStoragePrice = await client.sp.getSecondarySpStorePrice();
+  const { params: storageParams } = await client.storage.params();
+  const {
+    minChargeSize = new Long(0),
+    redundantDataChunkNum = 0,
+    redundantParityChunkNum = 0,
+  } = (storageParams && storageParams.versionedParams) || {};
+  const { params: paymentParams } = await client.payment.params();
+  const { reserveTime } = paymentParams || {};
+
+  const lockFeeParamsPayload = {
+    spStorageStorePrice: spStoragePrice?.storePrice || '',
+    secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
+    minChargeSize: minChargeSize.toNumber(),
+    redundantDataChunkNum,
+    redundantParityChunkNum,
+    reserveTime: reserveTime?.toString() || '',
+  };
+  dispatch(globalSlice.actions.setPreLockFeeObjects({
+    primarySpAddress, lockFeeParams: lockFeeParamsPayload
+  }))
+}
 
 export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -253,7 +332,7 @@ export const refreshTaskFolder =
       endpoint: primarySp.endpoint,
       bucketName: task.bucketName,
     };
-    await dispatch(setupListObjects(params, [task.bucketName, ...task.folders].join('/')));
+    await dispatch(setupListObjects(params, [task.bucketName, ...task.prefixFolders].join('/')));
   };
 
 export const uploadQueueAndRefresh =
@@ -264,7 +343,7 @@ export const uploadQueueAndRefresh =
     dispatch(
       updateObjectStatus({
         bucketName: task.bucketName,
-        folders: task.folders,
+        folders: task.prefixFolders,
         name: task.file.name,
         objectStatus: 1,
       }),
@@ -280,28 +359,30 @@ export const progressFetchList =
     fetchedList[task.id] = true;
     await dispatch(refreshTaskFolder(task));
   };
-
-export const addTaskToUploadQueue =
-  (id: number, hash: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
+export const addTasksToUploadQueue =
+  (sp: string, visibility: VisibilityType) => async (dispatch: AppDispatch, getState: GetState) => {
     const { hashQueue } = getState().global;
     const { bucketName, folders } = getState().object;
     const { loginAccount } = getState().persist;
-    const task = find(hashQueue, (t) => t.id === id);
-    if (!task) return;
-    const _task: UploadFile & { account: string } = {
-      bucketName,
-      folders,
-      sp,
-      account: loginAccount,
-      id,
-      file: task,
-      createHash: hash,
-      msg: '',
-      status: 'WAIT',
-      progress: 0,
-    };
-    dispatch(addToUploadQueue(_task));
-    // dispatch(refreshTaskFolder(_task));
+    const waitQueue = hashQueue.filter((t) => t.status === 'WAIT');
+    if (!waitQueue || waitQueue.length === 0) return;
+    const newUploadQueue = waitQueue.map((task) => {
+      const uploadTask: UploadFile = {
+        bucketName,
+        prefixFolders: folders,
+        sp,
+        id: task.id,
+        file: task,
+        msg: '',
+        status: 'WAIT',
+        progress: 0,
+        checksum: [],
+        visibility,
+        createHash: '',
+      }
+      return uploadTask;
+    });
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
   };
 
 export const setupTmpAvailableBalance =

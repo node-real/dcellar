@@ -16,7 +16,7 @@ import { useDebounceEffect, useMount } from 'ahooks';
 import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
-import { GasList } from './GasList';
+import { GasObjects } from './GasObjects';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
 
@@ -62,7 +62,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
     <>
       <GlobalTasks />
       <StreamBalance />
-      <GasList />
+      <GasObjects />
       <Flex
         w="340px"
         ref={ref}

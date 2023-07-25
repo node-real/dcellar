@@ -22,7 +22,15 @@ export const DCDrawer = (props: DCDrawerProps) => {
 
   return (
     <GAShow isShow={props.isOpen} name={gaShowName} data={gaShowData}>
-      <QDrawer closeOnOverlayClick={false} w={568} onClose={onBeforeClose} {...restProps}>
+      <QDrawer
+        closeOnOverlayClick={false}
+        w={568}
+        padding="16px 24px"
+        onClose={onBeforeClose}
+
+        rootProps={{ top: 68 }}
+        {...restProps}
+      >
         {children}
       </QDrawer>
     </GAShow>

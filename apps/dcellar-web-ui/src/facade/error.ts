@@ -4,6 +4,7 @@ export type ErrorMsg = string;
 
 export const E_GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
 export const E_UNKNOWN_ERROR = `Unknown error. Please try again later.`;
+export const E_SP_PRICE_FAILED = `Get SP storage price failed.`;
 export const E_USER_REJECT_STATUS_NUM = '4001';
 export const E_NOT_FOUND = 'NOT_FOUND';
 export const E_PERMISSION_DENIED = 'PERMISSION_DENIED';
@@ -24,6 +25,7 @@ export const E_CAL_OBJECT_HASH = 'CAL_OBJECT_HASH';
 export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export const E_NO_PERMISSION = 'NO_PERMISSION';
+export const E_SP_STORAGE_PRICE_FAILED = 'SP_STORAGE_PRICE_FAILED';
 export declare class BroadcastTxError extends Error {
   readonly code: number;
   readonly codespace: string;
@@ -81,3 +83,15 @@ export const commonFault = (e: any): ErrorResponse => {
   }
   return [null, E_UNKNOWN_ERROR];
 };
+
+export const queryLockFeeFault = (e: any): ErrorResponse => {
+  console.log('e', e);
+  if (e?.message.includes('storage price')) {
+    return [null, E_SP_PRICE_FAILED];
+  }
+  if (e?.message) {
+    return [null, e?.message];
+  }
+
+  return [null, E_UNKNOWN_ERROR];
+}

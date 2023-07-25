@@ -4,11 +4,13 @@ import {
   progressFetchList,
   selectHashTask,
   selectUploadQueue,
-  updateHashChecksum,
   updateHashStatus,
+  updateHashTaskMsg,
+  updateUploadChecksum,
   updateUploadMsg,
   updateUploadProgress,
   updateUploadStatus,
+  updateUploadTaskMsg,
   UploadFile,
   uploadQueueAndRefresh,
 } from '@/store/slices/global';
@@ -20,60 +22,123 @@ import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObject
 import axios from 'axios';
 import { headObject, queryLockFee } from '@/facade/object';
 import Long from 'long';
-import { formatLockFee } from '@/utils/object';
+import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { reverseVisibilityType } from '@/utils/constant';
+import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
+import { resolve } from '@/facade/common';
+import { broadcastFault, createTxFault, simulateFault } from '@/facade/error';
+import { isEmpty } from 'lodash-es';
 
 interface GlobalTasksProps {}
 
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { spInfo } = useAppSelector((root) => root.sp);
-  const { primarySp } = useAppSelector((root) => root.object);
-  const hashTask = useAppSelector(selectHashTask);
+  const { spInfo: spInfos } = useAppSelector((root) => root.sp);
+  const { primarySp, bucketName} = useAppSelector((root) => root.object);
+  const { tmpAccount } = useAppSelector((root) => root.global);
+  const { sps: globalSps } = useAppSelector((root) => root.sp);
+  const hashTask = useAppSelector(selectHashTask(loginAccount));
+  console.log('hashTask', hashTask);
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
   const upload = queue.filter((t) => t.status === 'UPLOAD');
-  const wait = queue.filter((t) => t.status === 'WAIT');
+  const ready = queue.filter((t) => t.status === 'READY');
   const offset = 3 - upload.length;
 
   const select3Task = useMemo(() => {
     if (offset <= 0) return [];
-    return wait.slice(0, offset).map((p) => p.id);
-  }, [offset, wait]);
+    return ready.slice(0, offset).map((p) => p.id);
+  }, [offset, ready]);
 
   const sealQueue = queue.filter((q) => q.status === 'SEAL').map((s) => s.id);
 
   useAsyncEffect(async () => {
     if (!hashTask) return;
-    dispatch(updateHashStatus({ id: hashTask.id, status: 'HASH' }));
-    const res = await checksumApi?.generateCheckSumV2(hashTask.file);
-    const params = {
-      primarySpAddress: primarySp.operatorAddress,
-      createAt: Long.fromInt(Math.floor(hashTask.id / 1000)),
-      payloadSize: Long.fromInt(hashTask.file.size),
-    };
-    const [data, error] = await queryLockFee(params);
+    dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
+    const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
+    if (isEmpty(res)) {
+      dispatch(updateUploadMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
+      return;
+    }
     const { expectCheckSums } = res!;
     dispatch(
-      updateHashChecksum({
+      updateUploadChecksum({
+        account: loginAccount,
         id: hashTask.id,
         checksum: expectCheckSums,
-        lockFee: formatLockFee(data?.amount),
       }),
     );
   }, [hashTask, dispatch]);
 
   // todo refactor
   const runUploadTask = async (task: UploadFile) => {
+    // 1. get approval from sp
+    debugger;
     const domain = getDomain();
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.sp));
+    const secondarySpAddresses = globalSps
+      .filter((item: any) => item.operator !== primarySp.operatorAddress)
+      .map((item: any) => item.operatorAddress);
+    const spInfo = {
+      endpoint: primarySp.endpoint,
+      primarySp: primarySp.operatorAddress,
+      sealAddress: primarySp.sealAddress,
+      secondarySpAddresses,
+    };
+    const finalName = [...task.prefixFolders, task.file.name].join('/');
+    const createObjectPayload: TCreateObject = {
+      bucketName,
+      objectName: finalName,
+      creator: tmpAccount.address,
+      visibility: reverseVisibilityType[task.visibility],
+      fileType: task.file.type || 'application/octet-stream',
+      contentLength: task.file.size,
+      expectCheckSums: task.checksum,
+      spInfo,
+      signType: 'authTypeV1',
+      privateKey: tmpAccount.privateKey,
+    };
+    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
+      resolve,
+      createTxFault,
+    );
+    if (_createError) {
+      return dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: _createError,
+      }))
+    }
+
+    const [simulateInfo, simulateError] = await createObjectTx!
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
+
+    const broadcastPayload = {
+      denom: 'BNB',
+      gasLimit: Number(simulateInfo?.gasLimit),
+      gasPrice: simulateInfo?.gasPrice || '5000000000',
+      payer: tmpAccount.address,
+      granter: loginAccount,
+      privateKey: tmpAccount.privateKey,
+    };
+    const [res, error] = await createObjectTx!
+      .broadcast(broadcastPayload)
+      .then(resolve, broadcastFault);
+
+    if (error) {
+      console.log('error', error)
+    }
     const uploadOptions = await generatePutObjectOptions({
       bucketName: task.bucketName,
-      objectName: [...task.folders, task.file.name].join('/'),
+      objectName: [...task.prefixFolders, task.file.name].join('/'),
       body: task.file.file,
-      endpoint: spInfo[task.sp].endpoint,
-      txnHash: task.createHash,
+      endpoint: spInfos[task.sp].endpoint,
+      txnHash: res?.transactionHash || '',
       userAddress: loginAccount,
       domain,
       seedString,
@@ -107,8 +172,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
 
     const _tasks = await Promise.all(
       tasks.map(async (task) => {
-        const { bucketName, folders, file } = task;
-        const objectName = [...folders, file.name].join('/');
+        const { bucketName, prefixFolders, file } = task;
+        const objectName = [...prefixFolders, file.name].join('/');
         const objectInfo = await headObject(bucketName, objectName);
         if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
           dispatch(

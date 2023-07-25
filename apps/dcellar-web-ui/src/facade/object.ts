@@ -14,6 +14,7 @@ import {
   E_UNKNOWN,
   ErrorMsg,
   ErrorResponse,
+  queryLockFeeFault,
   simulateFault,
 } from '@/facade/error';
 import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
@@ -41,6 +42,7 @@ import {
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import BigNumber from 'bignumber.js';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -249,8 +251,7 @@ export const cancelCreateObject = async (params: any, Connector: any): Promise<a
 
 export const queryLockFee = async (params: QueryLockFeeRequest) => {
   const client = await getClient();
-  const res = await client.storage.queryLockFee(params);
-  return await client.storage.queryLockFee(params).then(resolve, commonFault);
+  return await client.storage.queryLockFee(params).then(resolve, queryLockFeeFault);
 };
 
 export const headObject = async (bucketName: string, objectName: string) => {
