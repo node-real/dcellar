@@ -88,8 +88,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     // todo fix it
     document.documentElement.style.overflowY = '';
   };
-  const { gasList } = useAppSelector((root) => root.global.gasHub);
-  const simulateGasFee = gasList[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
+  const { gasObjects } = useAppSelector((root) => root.global.gasHub);
+  const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
   const { connector } = useAccount();
 
   useEffect(() => {

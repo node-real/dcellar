@@ -49,6 +49,11 @@ export const OBJECT_ERROR_TYPES = {
     title: 'You need Access',
     icon: FILE_FAILED_URL,
     desc: "You don't have permission to download. You can ask the person who shared the link to invite you directly.",
+  },
+  SP_STORAGE_PRICE_FAILED: {
+    title: 'Get storage price failed',
+    icon: FILE_FAILED_URL,
+    desc: 'Get storage price failed, please select another SP.',
   }
 }
 

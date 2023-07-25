@@ -65,7 +65,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const dispatch = useAppDispatch();
   const [lockFee, setLockFee] = useState('');
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { gasList } = useAppSelector((root) => root.global.gasHub);
+  const { gasObjects } = useAppSelector((root) => root.global.gasHub);
   const {
     bnb: { price: bnbPrice },
   } = useAppSelector((root) => root.global);
@@ -86,7 +86,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
     document.documentElement.style.overflowY = '';
   };
 
-  const simulateGasFee = gasList[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
+  const simulateGasFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
 
   useEffect(() => {
     if (!isOpen) return;

@@ -18,6 +18,7 @@ const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
 const OBJECT_TITLE_CREATING = 'Creating Object';
+const OBJECT_AUTH_TEMP_ACCOUNT_CREATING = 'Uploading';
 const FILE_TITLE_DOWNLOADING = 'Downloading File';
 const FILE_TITLE_DELETING = 'Deleting File';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
@@ -120,4 +121,5 @@ export {
   UNKNOWN_ERROR_URL,
   FILE_UPLOAD_STATIC_URL,
   OBJECT_TITLE_CREATING,
+  OBJECT_AUTH_TEMP_ACCOUNT_CREATING,
 };

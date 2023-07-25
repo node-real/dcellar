@@ -1,6 +1,8 @@
 import { getClient } from '@/base/client';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { TPreLockFeeParams } from '@/store/slices/global';
 import { IReturnOffChainAuthKeyPairAndUpload, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
+import { BigNumber } from 'bignumber.js';
 
 const getStorageProviders = async () => {
   const client = await getClient();
@@ -42,6 +44,32 @@ const filterAuthSps = ({ address, sps }: { address: string; sps: any[]; }) => {
 
 
   return filterSps;
+}
+
+export const calPreLockFee = ({ size, preLockFeeObject }: { size: number; primarySpAddress: string; preLockFeeObject: TPreLockFeeParams }) => {
+  const {
+    spStorageStorePrice,
+    secondarySpStorePrice,
+    redundantDataChunkNum,
+    redundantParityChunkNum,
+    minChargeSize,
+    reserveTime
+  } = preLockFeeObject;
+
+  const chargeSize = size >= minChargeSize ? size : minChargeSize;
+  const lockedFeeRate = BigNumber(spStorageStorePrice)
+    .plus(
+      BigNumber(secondarySpStorePrice).times(
+        redundantDataChunkNum + redundantParityChunkNum,
+      ),
+    )
+    .times(BigNumber(chargeSize)).dividedBy(Math.pow(10, 18));
+  const lockFeeInBNB = lockedFeeRate
+    .times(BigNumber(reserveTime || 0))
+    .dividedBy(Math.pow(10, 18));
+
+  return lockFeeInBNB.toString()
+
 }
 
 export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps };

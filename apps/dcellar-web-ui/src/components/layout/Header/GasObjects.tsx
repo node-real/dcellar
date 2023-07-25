@@ -1,12 +1,12 @@
 import { useAppDispatch } from "@/store";
-import { setupGasList } from "@/store/slices/global";
+import { setupGasObjects } from "@/store/slices/global";
 import { useAsyncEffect } from "ahooks";
 
-export const GasList = () => {
+export const GasObjects = () => {
   const dispatch = useAppDispatch();
   useAsyncEffect(async () => {
-    dispatch(setupGasList());
-  }, [dispatch, setupGasList]);
+    dispatch(setupGasObjects());
+  }, [dispatch, setupGasObjects]);
 
   return <></>
 }
