@@ -2,6 +2,7 @@ import { parseError } from '../utils/parseError';
 import { getClient } from '@/base/client';
 import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { get } from '@/base/http';
 
 export const pollingCreateAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
@@ -15,9 +16,7 @@ export const pollingCreateAsync =
           const theNewBucket = (result.body || []).find(
             (item: any) => item.bucket_info.bucket_name === bucketName,
           );
-          if (theNewBucket !== undefined) {
             return;
-          }
           // continue
         } else {
           return;
@@ -78,9 +77,27 @@ export const getUserBuckets = async (params: {
   const client = await getClient();
   return client.bucket.getUserBuckets(params);
 };
-
+export const getBucketMeta = async (params: {
+  bucketName: string;
+  address: string;
+  endpoint: string;
+}) => {
+  const { bucketName, endpoint } = params;
+  const res = await get({
+    url: `${endpoint}/${bucketName}?bucket-meta`,
+    //todo: remove auth info after backend enable not verify auth for meta service
+    options: {
+      headers: {
+        Authorization:
+          'authTypeV2 ECDSA-secp256k1, Signature=1234567812345678123456781234567812345678123456781234567812345678',
+      },
+    },
+  }).then();
+  return res;
+};
 // TODO This is a temp solution
-export const pollingGetBucket = pollingCreateAsync(getUserBuckets, 500);
+export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
+
 export const pollingDeleteBucket = pollingDeleteAsync(getUserBuckets, 500);
 
 export const getDeleteBucketFee = async ({ bucketName, address }: any) => {
