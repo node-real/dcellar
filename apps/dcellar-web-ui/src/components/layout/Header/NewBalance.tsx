@@ -9,14 +9,13 @@ import { Tips } from '@/components/common/Tips';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useMount } from 'ahooks';
+import { selectBalance } from '@/store/slices/balance';
 
 const NewBalance = (props: any) => {
   const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance: availableBalance, _lockFee: lockFee } = useAppSelector(
-    (root) => root.global,
-  );
+  const { availableBalance, lockFee } = useAppSelector(selectBalance(address));
 
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));

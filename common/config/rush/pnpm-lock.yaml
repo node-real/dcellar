@@ -10,8 +10,8 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230713041344
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
+      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230724100555
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.15
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -62,8 +62,8 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.5
-      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230713041344
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.13
+      '@bnb-chain/greenfield-chain-sdk': 0.0.0-snapshot-20230724100555
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.15
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@next/bundle-analyzer': 13.4.5
@@ -1622,8 +1622,8 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.0.0-snapshot-20230713041344:
-    resolution: {integrity: sha512-j13H0V2mQg/dve03eLyWmlK0BZXkxPfqJ/w4ZovxdKo0ckgZqg/wqieAmUVpTFGDYd8vB7cD7h++tjAO/Z+ZlQ==}
+  /@bnb-chain/greenfield-chain-sdk/0.0.0-snapshot-20230724100555:
+    resolution: {integrity: sha512-1f4NMpMvgpYq0f9e3WwC4IlLEssOPUdZKO+1kIJEbm+JRyq4gmpqBkMUYQi8Jkp2gRb2WlVBzL5mDfJUO+LTgw==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.15
@@ -1637,6 +1637,7 @@ packages:
       '@ethersproject/strings': 5.7.0
       '@ethersproject/units': 5.7.0
       '@metamask/eth-sig-util': 5.1.0
+      cross-fetch: 4.0.0
       dayjs: 1.11.8
       ethereum-cryptography: 2.0.0
       long: 5.2.3
@@ -1645,14 +1646,8 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - debug
+      - encoding
       - utf-8-validate
-    dev: false
-
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.13:
-    resolution: {integrity: sha512-ClfQzmeO+saqRXx7kx0XPn0Y0ILh7cSG8CF2k22D1f4k3p5XeUhF3lZSpIOtuTf7eRkd3lXsIlNPSjN3AUZHTw==}
-    dependencies:
-      long: 4.0.0
-      protobufjs: 6.11.3
     dev: false
 
   /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.15:
@@ -5455,7 +5450,15 @@ packages:
   /cross-fetch/3.1.6:
     resolution: {integrity: sha512-riRvo06crlE8HiqOwIpQhxwdOk4fOeR7FVM/wXoxchFEqMNUjvbs3bfo4OTgMEMHzppd4DxFBDbyySj8Cv781g==}
     dependencies:
-      node-fetch: 2.6.11
+      node-fetch: 2.6.12
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /cross-fetch/4.0.0:
+    resolution: {integrity: sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==}
+    dependencies:
+      node-fetch: 2.6.12
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -7697,6 +7700,18 @@ packages:
 
   /node-fetch/2.6.11:
     resolution: {integrity: sha512-4I6pdBY1EthSqDmJkiNk3JIT8cswwR9nfeW/cPdUagJYEQG7R95WRH74wpz7ma8Gh/9dI9FP+OU+0E4FvtA55w==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
+    dev: false
+
+  /node-fetch/2.6.12:
+    resolution: {integrity: sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
       encoding: ^0.1.0
