@@ -1,5 +1,5 @@
 import { Checkbox, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatBytes } from '@/modules/file/utils';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
@@ -11,6 +11,7 @@ import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/obje
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { setupBucketQuota } from '@/store/slices/bucket';
 
 interface modalProps {}
 
@@ -79,13 +80,18 @@ export const DownloadObject = (props: modalProps) => {
 
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+    onClose();
     const [success, opsError] = await (editDownload.action === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
     if (opsError) return onError(opsError);
-    onClose();
     return success;
   };
+
+  useEffect(() => {
+    if (!isOpen || !bucketName) return;
+    dispatch(setupBucketQuota(bucketName));
+  }, [isOpen, bucketName, dispatch]);
 
   return (
     <DCModal

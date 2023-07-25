@@ -192,24 +192,6 @@ export const getListObjects = async (
   return [list! as IObjectResultType<IObjectList>, null];
 };
 
-export const getShareLink = (bucketName: string, objectName: string) => {
-  const params = [bucketName, objectName || ''].join('/');
-
-  return `${location.origin}/share?file=${encodeURIComponent(params)}`;
-};
-
-export const getDirectDownloadLink = ({
-  primarySpEndpoint,
-  bucketName,
-  objectName,
-}: {
-  primarySpEndpoint: string;
-  bucketName: string;
-  objectName: string;
-}) => {
-  return encodeURI(`${primarySpEndpoint}/download/${bucketName}/${encodeObjectName(objectName)}`);
-};
-
 export const deleteObject = async (params: any, Connector: any): Promise<any> => {
   const { bucketName, objectName, address } = params;
   const client = await getClient();

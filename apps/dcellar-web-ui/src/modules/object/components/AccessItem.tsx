@@ -55,7 +55,7 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
                     {valueOption.label}
                   </StyledButton>
                 </GAClick>
-                <StyledMenuList w={390}>
+                <StyledMenuList w={456}>
                   {options.map((option) => (
                     <StyledItem
                       $active={option.value === value}
@@ -101,7 +101,7 @@ const OptionTitle = styled(Text)`
 `;
 
 const OptionDesc = styled(Text)`
-  font-size: 10px;
+  font-size: 12px;
   line-height: 18px;
   color: #76808f;
 `;

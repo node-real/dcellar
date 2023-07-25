@@ -163,7 +163,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       return success;
     }
 
-    return dispatch(setEditDownload(object));
+    return dispatch(setEditDownload({ ...object, action: 'download' }));
   };
 
   const onMenuClick = async (menu: string, record: ObjectItem) => {
