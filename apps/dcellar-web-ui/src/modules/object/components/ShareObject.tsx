@@ -23,8 +23,8 @@ interface modalProps {}
 export const ShareObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
   const { hasCopied, onCopy, setValue } = useClipboard('');
-  const { editShare, path } = useAppSelector((root) => root.object);
-  const params = [path, encodeObjectName(editShare.name)].join('/');
+  const { editShare, bucketName } = useAppSelector((root) => root.object);
+  const params = [bucketName, encodeObjectName(editShare.objectName)].join('/');
   const isOpen = !!editShare.objectName;
   const onClose = () => {
     dispatch(setEditShare({} as ObjectItem));
