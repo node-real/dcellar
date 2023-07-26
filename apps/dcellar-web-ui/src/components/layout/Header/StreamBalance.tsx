@@ -40,6 +40,7 @@ export function StreamBalance() {
     if (!address) return;
     // update metamask
     refetch();
+    dispatch(setupBalance(address, metamaskValue));
   }, [asPath, refetch]);
 
   useThrottleEffect(() => {

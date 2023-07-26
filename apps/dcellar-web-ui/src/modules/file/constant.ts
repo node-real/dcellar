@@ -7,6 +7,7 @@ const FILE_DELETE_GIF = `${assetPrefix}/images/icons/delete.gif`;
 const PENDING_ICON_URL = `${assetPrefix}/images/icons/pending.gif`;
 const COPY_SUCCESS_ICON = `${assetPrefix}/images/files/icon_success.svg`;
 const FILE_UPLOAD_URL = `${assetPrefix}/images/files/file_upload.gif`;
+const FILE_ACCESS_URL = `${assetPrefix}/images/files/file_access.svg`;
 const FILE_UPLOAD_STATIC_URL = `${assetPrefix}/images/files/file_upload_static.svg`;
 const FILE_DOWNLOAD_URL = `${assetPrefix}/images/files/file_download.gif`;
 const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
@@ -23,6 +24,7 @@ const FILE_TITLE_DELETING = 'Deleting File';
 const FOLDER_TITLE_DELETING = 'Deleting Folder';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
 const FOLDER_CREATING = 'Creating Folder';
+const FILE_ACCESS = 'Updating Access';
 // error title
 const FILE_TITLE_UPLOAD_FAILED = 'Upload Failed';
 const FILE_TITLE_DOWNLOAD_FAILED = 'Download Failed';
@@ -41,6 +43,7 @@ const FILE_STATUS_UPLOADING = 'Please confirm the transaction in your wallet.';
 const FILE_STATUS_DOWNLOADING = `Downloading file now, please wait...`;
 const FILE_STATUS_CANCELING = `Please confirm the transaction in your wallet.`;
 const FILE_STATUS_DELETING = `Please confirm the transaction in your wallet.`;
+const FILE_STATUS_ACCESS = `Please confirm this transaction in your wallet.`;
 // error description
 const FILE_DESCRIPTION_UPLOAD_ERROR = `Sorry, there’s something wrong when uploading the file.`;
 const FILE_DESCRIPTION_DOWNLOAD_ERROR = `Sorry, there’s something wrong when downloading the file.`;
@@ -122,4 +125,7 @@ export {
   UNKNOWN_ERROR_URL,
   FILE_UPLOAD_STATIC_URL,
   OBJECT_TITLE_CREATING,
+  FILE_ACCESS_URL,
+  FILE_STATUS_ACCESS,
+  FILE_ACCESS,
 };

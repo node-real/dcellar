@@ -115,7 +115,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             }
           />
         </Flex>
-        <NewBalance />
+        {showPanel && <NewBalance />}
         <Flex alignItems="center" mt="16px" width="100%" justifyContent="space-between" h="24px">
           <GAClick name="dc.main.account.transferin.click">
             <Button

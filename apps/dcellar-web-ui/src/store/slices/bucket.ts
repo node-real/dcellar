@@ -150,6 +150,8 @@ export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { spInfo } = getState().sp;
     const { bucketInfo } = getState().bucket;
+    const info = bucketInfo[bucketName];
+    if (!info) return;
     const spAddress = bucketInfo[bucketName].primary_sp_address;
     const sp = spInfo[spAddress];
     const quota = await getBucketReadQuota(bucketName, sp.endpoint);

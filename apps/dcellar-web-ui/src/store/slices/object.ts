@@ -57,6 +57,9 @@ export type TUploading = {
   fileInfos: TFileItem[];
   visibility: VisibilityType;
 };
+
+export type ObjectActionType = 'view' | 'download' | '';
+
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -70,7 +73,7 @@ export interface ObjectState {
   editDetail: ObjectItem;
   editDelete: ObjectItem;
   editCreate: boolean;
-  editDownload: ObjectItem;
+  editDownload: ObjectItem & { action?: ObjectActionType };
   editShare: ObjectItem;
   editCancel: ObjectItem;
   primarySp: SpItem;
@@ -92,7 +95,7 @@ const initialState: ObjectState = {
   editDetail: {} as ObjectItem,
   editDelete: {} as ObjectItem,
   editCreate: false,
-  editDownload: {} as ObjectItem,
+  editDownload: {} as ObjectItem & { action?: ObjectActionType },
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
@@ -111,6 +114,25 @@ export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    updateObjectVisibility(
+      state,
+      { payload }: PayloadAction<{ object: ObjectItem; visibility: number }>,
+    ) {
+      const { object, visibility } = payload;
+      const path = state.path;
+      const item = find<ObjectItem>(
+        state.objects[path] || [],
+        (i) => i.objectName === object.objectName,
+      );
+      if (state.editDetail.objectName === object.objectName) {
+        state.editDetail.visibility = visibility;
+      }
+      if (!item) return;
+      item.visibility = visibility;
+      const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
+      if (!info) return;
+      info.object_info.visibility = visibility;
+    },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
       const { path, folder } = payload;
       const items = state.objects[path];
@@ -184,7 +206,7 @@ export const objectSlice = createSlice({
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
       state.editShare = payload;
     },
-    setEditDownload(state, { payload }: PayloadAction<ObjectItem>) {
+    setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
@@ -343,6 +365,7 @@ export const {
   setUploading,
   updateObjectStatus,
   setDummyFolder,
+  updateObjectVisibility,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
