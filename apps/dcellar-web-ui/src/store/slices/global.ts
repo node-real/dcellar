@@ -8,7 +8,7 @@ import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 
-type TGasList = {
+export type TGasList = {
   [msgTypeUrl: string]: {
     gasLimit: number;
     msgTypeUrl: string;
@@ -39,7 +39,7 @@ export type UploadFile = {
   bucketName: string;
   folders: string[];
   id: number;
-  sp: string;
+  spAddress: string;
   file: HashFile;
   status: TFileStatus;
   createHash: string;
@@ -242,7 +242,7 @@ export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
     const { spInfo } = getState().sp;
     const { loginAccount } = getState().persist;
-    const primarySp = spInfo[task.sp];
+    const primarySp = spInfo[task.spAddress];
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
@@ -282,7 +282,7 @@ export const progressFetchList =
   };
 
 export const addTaskToUploadQueue =
-  (id: number, hash: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  (id: number, hash: string, spAddress: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { hashQueue } = getState().global;
     const { bucketName, folders } = getState().object;
     const { loginAccount } = getState().persist;
@@ -291,7 +291,7 @@ export const addTaskToUploadQueue =
     const _task: UploadFile & { account: string } = {
       bucketName,
       folders,
-      sp,
+      spAddress,
       account: loginAccount,
       id,
       file: task,

@@ -249,6 +249,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       .filter((item: any) => item.operatorAddress !== primarySp.operatorAddress)
       .map((item: any) => item.operatorAddress);
     const spInfo = {
+      id: primarySp?.id,
       endpoint: primarySp?.endpoint,
       primarySpAddress: primarySp?.operatorAddress,
       sealAddress: primarySp?.sealAddress,

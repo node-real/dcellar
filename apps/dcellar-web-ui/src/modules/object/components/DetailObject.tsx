@@ -257,11 +257,13 @@ export const DetailObject = (props: modalProps) => {
     const objectName = editDetail.objectName;
     const endpoint = primarySp.endpoint;
     setAction(e);
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const [_, accessError, objectInfo] = await getCanObjectAccess(
       bucketName,
       objectName,
       endpoint,
       loginAccount,
+      seedString,
     );
     if (accessError) return onError(accessError);
 
@@ -270,9 +272,6 @@ export const DetailObject = (props: modalProps) => {
       objectInfo: objectInfo!,
       address: loginAccount,
     };
-
-    const operator = primarySp.operatorAddress;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));

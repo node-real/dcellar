@@ -6,8 +6,8 @@ import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
-import { ObjectItem, setEditDownload, setStatusDetail } from '@/store/slices/object';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
+import { ObjectItem, setEditDownload, setStatusDetail } from '@/store/slices/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
@@ -65,11 +65,13 @@ export const DownloadObject = (props: modalProps) => {
   const onAction = async () => {
     const objectName = editDownload.objectName;
     const endpoint = primarySp.endpoint;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const [_, accessError, objectInfo] = await getCanObjectAccess(
       bucketName,
       objectName,
       endpoint,
       loginAccount,
+      seedString,
     );
     if (accessError) return onError(accessError);
     const params = {
@@ -79,8 +81,8 @@ export const DownloadObject = (props: modalProps) => {
     };
 
     const operator = primarySp.operatorAddress;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
-    onClose();
+    // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+    // onClose();
     const [success, opsError] = await (editDownload.action === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));

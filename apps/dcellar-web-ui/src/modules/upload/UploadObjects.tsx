@@ -152,6 +152,7 @@ export const UploadObjects = () => {
       .filter((item: any) => item.operator !== primarySp.operatorAddress)
       .map((item: any) => item.operatorAddress);
     const spInfo = {
+      id: primarySp.id,
       endpoint: primarySp.endpoint,
       primarySp: primarySp.operatorAddress,
       sealAddress: primarySp.sealAddress,

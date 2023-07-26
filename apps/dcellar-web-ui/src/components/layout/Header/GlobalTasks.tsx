@@ -67,12 +67,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   // todo refactor
   const runUploadTask = async (task: UploadFile) => {
     const domain = getDomain();
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.sp));
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const uploadOptions = await generatePutObjectOptions({
       bucketName: task.bucketName,
       objectName: [...task.folders, task.file.name].join('/'),
       body: task.file.file,
-      endpoint: spInfo[task.sp].endpoint,
+      endpoint: spInfo[task.spAddress].endpoint,
       txnHash: task.createHash,
       userAddress: loginAccount,
       domain,

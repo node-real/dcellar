@@ -9,7 +9,7 @@ import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/stor
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { headBucket, quotaRemains } from '@/facade/bucket';
+import { quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
@@ -34,7 +34,8 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   loginAccount,
 }) {
   const dispatch = useAppDispatch();
-  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
+  const { oneSp, spInfo, allSps } = useAppSelector((root) => root.sp);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
@@ -76,29 +77,26 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     if (!remainQuota) return onError(E_NO_QUOTA);
 
     setAction(e);
+    const bucket = bucketInfo[bucketName];
+    if (!bucket ) return onError(E_UNKNOWN);
+    const primarySp = spInfo[bucket.primary_sp_address];
+    if (!primarySp) return onError(E_SP_NOT_FOUND);
+    const operator = primarySp.operatorAddress;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [_, accessError] = await getCanObjectAccess(
       bucketName,
       objectName,
       endpoint,
       loginAccount,
+      seedString,
     );
     const errType = accessError as ShareErrorType;
     if (errType) return onError(errType);
-
-    const bucketInfo = await headBucket(bucketName);
-    if (!bucketInfo) return onError(E_UNKNOWN);
-
-    const primarySp = spInfo[bucketInfo.primarySpAddress];
-    if (!primarySp) return onError(E_SP_NOT_FOUND);
-
     const params = {
       primarySp,
       objectInfo,
       address: loginAccount,
     };
-
-    const operator = primarySp.operatorAddress;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));

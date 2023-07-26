@@ -20,7 +20,7 @@ import { SpItem } from '@/store/slices/sp';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { spInfo } = useAppSelector((root) => root.sp);
+  const { spInfo, allSps} = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const objectList = useAppSelector(selectObjectList);
@@ -44,7 +44,7 @@ export const ObjectsPage = () => {
     return () => {
       !isEmpty(primarySp) && dispatch(setPrimarySp({} as SpItem));
     };
-  }, [bucketName, folders, dispatch, spInfo, bucketInfo]);
+  }, [bucketName, folders, dispatch, bucketInfo, allSps, spInfo]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];

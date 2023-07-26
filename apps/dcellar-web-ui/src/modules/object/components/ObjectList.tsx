@@ -61,6 +61,7 @@ import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
+import { SpItem } from '@/store/slices/sp';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -96,7 +97,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const ascend = sortBy(objectList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const primarySpAddress = bucketInfo[bucketName]?.primary_sp_address;
-  const primarySpInfo = spInfo[primarySpAddress];
+  const primarySpInfo = primarySpAddress ? spInfo[primarySpAddress] : {} as SpItem;
 
   useAsyncEffect(async () => {
     if (!primarySpAddress) return;
@@ -105,7 +106,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     const params = {
       seedString,
       query,
-      endpoint: primarySpInfo.endpoint,
+      endpoint: primarySpInfo?.endpoint,
     };
     dispatch(setupListObjects(params));
     dispatch(setupBucketQuota(bucketName));
@@ -133,11 +134,15 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     const config = accounts[loginAccount] || {};
 
     if (config.directDownload) {
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpInfo.operatorAddress));
+      const gParams = {
         bucketName,
-        object.objectName,
-        spInfo[primarySpAddress].endpoint,
-      );
+        objectName: object.objectName,
+        endpoint: spInfo[primarySpAddress].endpoint,
+        seedString,
+        address: loginAccount,
+      }
+      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -155,8 +160,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         address: loginAccount,
       };
 
-      const operator = primarySpInfo.operatorAddress;
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+      // const operator = primarySpInfo.operatorAddress;
+      // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));

@@ -7,7 +7,7 @@ import {
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import React from 'react';
 import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
@@ -79,7 +79,7 @@ export const Fee = ({ lockFee }: FeeProps) => {
             iconSize={'14px'}
             containerWidth={'308px'}
             tips={
-              <Box width={'308px'} p="8px 12px">
+              <Box width={'308px'} p="0px 7px">
                 <Box
                   color={'readable.normal'}
                   fontSize="14px"
@@ -87,9 +87,18 @@ export const Fee = ({ lockFee }: FeeProps) => {
                   wordBreak={'break-word'}
                 >
                   <Box as="p">
-                    For uploading and storing files, besides transaction fee, Greenfield will
-                    prelock a certain amount of BNB and charge the storage fee by a certain flow
-                    rate.
+                    To upload and store objects on Greenfield, in addition to the transaction fee, a
+                    certain amount of BNB will be pre-locked for 6 months of storage. The storage
+                    fee will be charged based on the flow rate.{' '}
+                    <Link
+                      href="https://docs.nodereal.io/docs/dcellar-faq#fee-related"
+                      target="_blank"
+                      color="readable.primary"
+                      textDecoration="underline"
+                      _hover={{ color: 'readable.brand5' }}
+                    >
+                      Learn more
+                    </Link>
                   </Box>
                 </Box>
               </Box>

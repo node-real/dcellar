@@ -138,13 +138,13 @@ export const checkOffChainDataAvailable =
   };
 
 export const getSpOffChainData =
-  (address: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  (address: string, spAddress: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
     const { offchain } = config;
     const curTime = getUtcZeroTimestamp();
     return (find<OffChain>(
       offchain,
-      (o) => o.spAddresses.includes(sp) && o.expirationTime > curTime,
+      (o) => o.spAddresses.includes(spAddress) && o.expirationTime > curTime,
     ) || {}) as OffChain;
   };
 

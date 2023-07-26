@@ -13,8 +13,8 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
   const isOpen = !!editDelete.bucket_name;
   const [open, setOpen] = useState(isOpen); // for modal close animation
   const bucket = bucketInfo[editDelete.bucket_name] || {};
-  const primarySp = bucket.primary_sp_address;
-  const sp = spInfo[primarySp] || {};
+  const primarySpAddress = bucket.primary_sp_address;
+  const primarySp = spInfo[primarySpAddress] || {};
 
   useEffect(() => {
     if (!isOpen) return;
@@ -40,8 +40,8 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
       onClose={onClose}
       refetch={refetch}
       sp={{
-        address: primarySp,
-        endpoint: sp.endpoint,
+        address: primarySp.operatorAddress,
+        endpoint: primarySp.endpoint,
       }}
     />
   ) : null;

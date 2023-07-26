@@ -160,7 +160,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
 
       if (!seedString) {
         onClose();
-        setOpenAuthModal([sp.operatorAddress]);
+        setOpenAuthModal();
         return;
       }
       const secondarySpAddresses = globalSps
@@ -170,6 +170,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         creator: address,
         bucketName,
         spInfo: {
+          id: sp.id,
           endpoint: sp.endpoint,
           primarySpAddress: sp.operatorAddress,
           sealAddress: sp.sealAddress,
@@ -294,7 +295,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         );
         if (!seedString) {
           onClose();
-          setOpenAuthModal([selectedSpRef.current.operatorAddress]);
+          setOpenAuthModal();
           return;
         }
         const bucketName = data.bucketName;
@@ -304,6 +305,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           .filter((item: any) => item.operatorAddress !== selectedSpRef.current.operatorAddress)
           .map((item: any) => item.operatorAddress);
         const spInfo = {
+          id: selectedSpRef.current.id,
           endpoint: selectedSpRef.current.endpoint,
           primarySpAddress: selectedSpRef.current.operatorAddress,
           sealAddress: selectedSpRef.current.sealAddress,
@@ -367,7 +369,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, connector, globalSps, onClose, refetch, setOpenAuthModal],
+    [address, connector, dispatch, globalSps, onClose, refetch, setOpenAuthModal],
   );
 
   const disableCreateButton = () => {

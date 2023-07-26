@@ -150,11 +150,8 @@ export const File = ({ bucketName, folderName, bucketInfo }: pageProps) => {
       }
       const client = await getClient();
       const listResult = await client.object.listObjects({
-        address,
         bucketName,
         endpoint: currentEndpoint,
-        domain,
-        seedString,
         query,
       });
       const { objects = [], common_prefixes = [] } = listResult.body ?? ({} as any);

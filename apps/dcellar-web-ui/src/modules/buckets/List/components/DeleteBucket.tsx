@@ -41,6 +41,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const balance = BigNumber(availableBalance || 0);
   const { chain } = useNetwork();
+  const { gasList } = useAppSelector((root) => root.global.gasHub);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,7 +52,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
     setIsGasLoading(true);
     let decimalGasFee = '0';
     try {
-      decimalGasFee = await getDeleteBucketFee({ bucketName, address, chainId: chain?.id });
+      decimalGasFee = await getDeleteBucketFee(gasList);
       setGasFee(BigNumber(decimalGasFee));
     } catch (e: any) {
       if (e?.message.toLowerCase().includes('bucket is not empty')) {
@@ -61,7 +62,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
       console.log('get Bucket fee', e);
     }
     setIsGasLoading(false);
-  }, [address, bucketName, chain?.id]);
+  }, [gasList]);
 
   useEffect(() => {
     if (isEmpty(chain)) return;

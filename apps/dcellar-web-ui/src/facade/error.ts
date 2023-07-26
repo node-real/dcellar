@@ -72,7 +72,22 @@ export const downloadPreviewFault = (e: any): ErrorResponse => {
   if (e?.response?.status === 401) {
     return [null, E_NO_PERMISSION];
   }
+  if (e?.message) {
+    return [null, e?.message];
+  }
+
   return [null, E_UNKNOWN_ERROR];
+};
+
+export const offChainAuthFault = (e: any): ErrorResponse => {
+  if (e?.response?.status === 500) {
+    return [null, E_OFF_CHAIN_AUTH];
+  }
+  if (e?.message) {
+    return [null, e?.message];
+  }
+
+  return [null, ''];
 };
 
 export const commonFault = (e: any): ErrorResponse => {
@@ -81,3 +96,4 @@ export const commonFault = (e: any): ErrorResponse => {
   }
   return [null, E_UNKNOWN_ERROR];
 };
+

@@ -51,10 +51,12 @@ export const useTransferOutFee = () => {
       });
       const client = await getClient();
       const relayFeeInfo = await client.crosschain.getParams();
+      console.log('relayFeeInfo', relayFeeInfo);
+
       const relayFee = relayFeeInfo.params
         ? getRelayFeeBySimulate(
-            relayFeeInfo.params.transferOutAckRelayerFee,
-            relayFeeInfo.params.transferOutRelayerFee,
+            relayFeeInfo.params.bscTransferOutAckRelayerFee,
+            relayFeeInfo.params.bscTransferOutRelayerFee,
           )
         : '0';
 

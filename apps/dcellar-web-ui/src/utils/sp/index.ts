@@ -44,4 +44,18 @@ const filterAuthSps = ({ address, sps }: { address: string; sps: any[]; }) => {
   return filterSps;
 }
 
-export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps };
+const checkZkWasm = (attempts: number = 5): Promise<boolean>=> {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window.eddsaSign === 'function') {
+      resolve(true);
+    } else if (attempts > 0) {
+      setTimeout(() => {
+        resolve(checkZkWasm(attempts - 1));
+      }, 1000);
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps, checkZkWasm };

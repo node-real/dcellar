@@ -1,4 +1,13 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
+import {
+  ModalCloseButton,
+  ModalHeader,
+  ModalFooter,
+  Text,
+  Flex,
+  toast,
+  Box,
+  Link,
+} from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
@@ -25,7 +34,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
@@ -67,7 +76,7 @@ const renderFee = (
         )}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
+        ~{renderFeeValue(bnbValue, exchangeRate)}
       </Text>
     </Flex>
   );
@@ -117,6 +126,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   }, [simulateGasFee, availableBalance, lockFee]);
   const filePath = editDelete.objectName.split('/');
   const isFolder = editDelete.objectName.endsWith('/');
+  const isSavedSixMonths = getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
   const showName = filePath[filePath.length - 1];
   const folderName = filePath[filePath.length - 2];
   const description = isFolder
@@ -148,6 +158,29 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     >
       <ModalHeader>Confirm Delete</ModalHeader>
       <ModalCloseButton />
+      {!isFolder && isSavedSixMonths && (
+        <Text
+          fontSize="18px"
+          lineHeight={'22px'}
+          fontWeight={400}
+          textAlign={'center'}
+          marginTop="8px"
+          color={'readable.secondary'}
+          mb={'12px'}
+        >
+          You’ve paid 6 months locked storage fee for this object, but this object has been stored
+          less than 6 months.{' '}
+          <Link
+            color="readable.normal"
+            textDecoration={'underline'}
+            cursor={'pointer'}
+            href="https://docs.nodereal.io/docs/dcellar-faq#fee-related "
+            target='_blank'
+          >
+            Learn more
+          </Link>
+        </Text>
+      )}
       <Text
         fontSize="18px"
         lineHeight={'22px'}
@@ -167,7 +200,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
         borderRadius="12px"
         gap={'4px'}
       >
-        {renderFee(
+        {/* {renderFee(
           'Unlocked storage fee',
           lockFee,
           exchangeRate,
@@ -187,7 +220,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               </Box>
             }
           />,
-        )}
+        )} */}
         {renderFee('Gas Fee', simulateGasFee + '', exchangeRate)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
