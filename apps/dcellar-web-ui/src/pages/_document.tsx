@@ -35,7 +35,9 @@ export default function Document() {
           }}
         ></script>
         <script defer src={`${assetPrefix}/wasm/wasm_exec.js?v1`}></script>
-        <Script strategy='lazyOnload' src={`${assetPrefix}/wasm/init.js?v1`}></Script>
+        <Script strategy="lazyOnload" src={`${assetPrefix}/wasm/init.js?v1`}></Script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec.js?v1`}></script>
+        <Script strategy="lazyOnload" src={`${assetPrefix}/wasm/tinygo_init.js?v1`}></Script>
         <Ga4 id={GA_ID} />
       </body>
     </Html>
