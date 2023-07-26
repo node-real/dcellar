@@ -85,7 +85,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
-  const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
+  const { bucketInfo, discontinue, owner } = useAppSelector((root) => root.bucket);
   const { spInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
@@ -203,7 +203,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       query: _query,
       endpoint: primarySpInfo.endpoint,
       seedString: '',
-      delimiter: '/',
       maxKeys: 1000,
     };
     const [res] = await _getAllList(params);
@@ -283,7 +282,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         let operations: string[] = [];
         const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
-
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
@@ -301,8 +299,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (curObjectInfo?.object_info?.owner !== loginAccount) {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
-        if (isFolder) {
+        //if this folder is yours, you only can delete it
+        if (isFolder && owner) {
           fitActions = Actions.filter((a) => a.value === 'delete');
+        }
+        if (isFolder && !owner) {
+          fitActions = [];
         }
         isCurRow && !isFolder && isPublic && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
@@ -356,7 +358,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {editDelete?.objectName && !deleteFolderNotEmpty && <DeleteObject refetch={refetch} />}
       {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}

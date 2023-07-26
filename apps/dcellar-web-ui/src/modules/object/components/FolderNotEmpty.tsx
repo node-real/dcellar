@@ -20,7 +20,6 @@ export const FolderNotEmpty = () => {
     <DCModal
       isOpen={isOpen}
       onClose={onClose}
-      w="568px"
       gaShowName="dc.file.delete_confirm.modal.show"
       gaClickCloseName="dc.file.delete_confirm.close.click"
     >
@@ -38,7 +37,7 @@ export const FolderNotEmpty = () => {
           Folder not Empty
         </Text>
         <Text color="#474D57" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
-          Only empty folder can be deleted. Please delete all files in this folder first.
+          Only empty folder can be deleted. Please delete all objects in this folder first.
         </Text>
       </ModalBody>
       <ModalFooter>
