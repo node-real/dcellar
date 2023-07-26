@@ -289,7 +289,7 @@ const renderInsufficientBalance = (
   );
 };
 
-const directlyDownload = (url: string) => {
+const directlyDownload = (url: string, name?: string) => {
   if (!url) {
     toast.error({
       description: 'Download url not existed. Please check.',
@@ -297,7 +297,8 @@ const directlyDownload = (url: string) => {
   }
   const link = document.createElement('a');
   link.href = url;
-  link.download = '';
+  link.download = name || '';
+  link.target = '_blank';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -414,5 +415,5 @@ export {
   saveFileByAxiosResponse,
   truncateFileName,
   renderPrelockedFeeValue,
-  getBuiltInLink
+  getBuiltInLink,
 };

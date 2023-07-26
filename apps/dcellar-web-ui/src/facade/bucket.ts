@@ -8,7 +8,7 @@ import { resolve } from '@/facade/common';
 import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
 import { IObjectResultType } from '@bnb-chain/greenfield-chain-sdk';
 
-export const quotaRemains = (quota: IQuotaProps, payload: string) => {
+export const quotaRemains = (quota: IQuotaProps, payload: string | number) => {
   const { freeQuota, readQuota, consumedQuota } = quota;
   return !BigNumber(freeQuota).plus(readQuota).minus(consumedQuota).minus(payload).isNegative();
 };

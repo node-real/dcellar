@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { useAsyncEffect, useWhyDidYouUpdate } from 'ahooks';
+import { useAsyncEffect } from 'ahooks';
 import { setBucketStatus, setupBucket } from '@/store/slices/bucket';
 import Head from 'next/head';
 import {
@@ -12,17 +12,19 @@ import {
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { isEmpty, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Tooltip } from '@totejs/uikit';
+import { Text, Tooltip } from '@totejs/uikit';
 import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { SpItem } from '@/store/slices/sp';
+import { BatchOperations } from '@/modules/object/components/BatchOperations';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
   const { spInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const objectList = useAppSelector(selectObjectList);
   const router = useRouter();
   const { path } = router.query;
@@ -61,6 +63,8 @@ export const ObjectsPage = () => {
     await router.replace('/no-bucket?err=noBucket');
   }, [bucketName, dispatch]);
 
+  const selected = selectedRowKeys.length;
+
   return (
     <ObjectContainer>
       <Head>
@@ -69,13 +73,18 @@ export const ObjectsPage = () => {
       <PanelContainer>
         <ObjectBreadcrumb />
         <PanelContent>
-          <Tooltip
-            content={title}
-            placement="bottom-end"
-            visibility={title.length > 40 ? 'visible' : 'hidden'}
-          >
-            <ObjectName>{title}</ObjectName>
-          </Tooltip>
+          {selected > 0 ? (
+            <BatchOperations />
+          ) : (
+            <Tooltip
+              content={title}
+              placement="bottom-end"
+              visibility={title.length > 40 ? 'visible' : 'hidden'}
+            >
+              <ObjectName>{title}</ObjectName>
+            </Tooltip>
+          )}
+
           {!!objectList.length && (
             <NewObject
               gaFolderClickName="dc.file.list.create_folder.click"

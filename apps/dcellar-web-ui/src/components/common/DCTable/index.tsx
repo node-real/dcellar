@@ -20,6 +20,7 @@ export type FixedType = 'left' | 'right' | boolean;
 
 const theme: ThemeConfig = {
   token: {
+    colorPrimary: '#00BA34',
     colorBorderSecondary: '#e6e8ea',
     colorLink: '#00BA34',
     colorLinkActive: '#00BA34',
@@ -197,6 +198,7 @@ const Container = styled.div`
     padding-top: 13px;
     padding-bottom: 13px;
   }
+  .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
     background: rgba(0, 186, 52, 0.1);
   }

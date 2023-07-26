@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import React, { Key, memo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  _getAllList,
   ObjectItem,
   selectObjectList,
   selectPathCurrent,
@@ -12,21 +13,20 @@ import {
   setEditDownload,
   setEditShare,
   setRestoreCurrent,
+  setSelectedRowKeys,
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
-  _getAllList,
 } from '@/store/slices/object';
-import { chunk, reverse, sortBy } from 'lodash-es';
+import { chunk, reverse, sortBy, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
-  setAccountConfig,
   SorterType,
   updateObjectPageSize,
   updateObjectSorter,
 } from '@/store/slices/persist';
-import { AlignType, DCTable, UploadStatus, SortIcon, SortItem } from '@/components/common/DCTable';
+import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/object/components/ListEmpty';
@@ -83,7 +83,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const [rowIndex, setRowIndex] = useState(-1);
   const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
-  const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
+  const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
+    (root) => root.object,
+  );
   const currentPage = useAppSelector(selectPathCurrent);
   const { bucketInfo, discontinue, owner } = useAppSelector((root) => root.bucket);
   const { spInfo } = useAppSelector((root) => root.sp);
@@ -335,6 +337,34 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     dispatch(updateObjectPageSize(pageSize));
   };
 
+  const onSelectChange = (item: ObjectItem) => {
+    dispatch(setSelectedRowKeys(xor(selectedRowKeys, [item.objectName])));
+  };
+
+  const onSelectAllChange = (
+    selected: boolean,
+    selectedRows: ObjectItem[],
+    changeRows: ObjectItem[],
+  ) => {
+    const _changeRows = changeRows.filter(Boolean).map((i) => i.objectName);
+    if (selected) {
+      dispatch(setSelectedRowKeys(uniq(selectedRowKeys.concat(_changeRows))));
+    } else {
+      dispatch(setSelectedRowKeys(without(selectedRowKeys, ..._changeRows)));
+    }
+  };
+
+  const rowSelection = {
+    checkStrictly: true,
+    selectedRowKeys,
+    onSelect: onSelectChange,
+    onSelectAll: onSelectAllChange,
+    getCheckboxProps: (record: ObjectItem) => ({
+      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
+      name: record.name,
+    }),
+  };
+
   const refetch = async (name?: string) => {
     if (!primarySpAddress) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
@@ -374,6 +404,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         />
       )}
       <DCTable
+        rowSelection={owner ? rowSelection : undefined}
         loading={{ spinning: loading, indicator: <Loading /> }}
         rowKey="objectName"
         columns={columns}

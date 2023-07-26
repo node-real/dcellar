@@ -6,8 +6,7 @@ import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { SpItem } from './sp';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { THashResult } from '@/modules/checksum/checksumWorkerV2';
+import { Key } from 'react';
 
 export type ObjectItem = {
   objectName: string;
@@ -20,12 +19,6 @@ export type ObjectItem = {
   objectStatus: number;
   removed: boolean;
 };
-export type TLayerAction = {
-  isOpen: boolean;
-  onToggle: () => void;
-  onClose: () => void;
-  onOpen: () => void;
-};
 
 export type TStatusDetail = {
   icon: string;
@@ -34,28 +27,6 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
-};
-
-export type TFileItem = {
-  name: string;
-  size: string;
-  type: string;
-  calHash?: THashResult;
-  status: 'WAIT_CHECKING' | 'WAIT_UPLOAD' | 'UPLOADING' | 'UPLOAD_SUCCESS' | 'UPLOAD_FAIL';
-  errorMsg?: string;
-  txnHash?: string;
-};
-
-export type TEditUpload = {
-  isOpen: boolean;
-  fileInfos: TFileItem[];
-  visibility: VisibilityType;
-};
-export type TUploading = {
-  isOpen: boolean;
-  isLoading: boolean;
-  fileInfos: TFileItem[];
-  visibility: VisibilityType;
 };
 
 export type ObjectActionType = 'view' | 'download' | '';
@@ -79,7 +50,7 @@ export interface ObjectState {
   primarySp: SpItem;
   statusDetail: TStatusDetail;
   editUpload: number;
-  uploading: TUploading;
+  selectedRowKeys: Key[];
 }
 
 const initialState: ObjectState = {
@@ -101,12 +72,7 @@ const initialState: ObjectState = {
   statusDetail: {} as TStatusDetail,
   primarySp: {} as SpItem,
   editUpload: 0,
-  uploading: {
-    visibility: 2,
-    isOpen: false,
-    fileInfos: [],
-    isLoading: false,
-  },
+  selectedRowKeys: [],
 };
 export const SINGLE_FILE_MAX_SIZE = 256 * 1024 * 1024;
 
@@ -114,6 +80,9 @@ export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setSelectedRowKeys(state, { payload }: PayloadAction<Key[]>) {
+      state.selectedRowKeys = payload;
+    },
     updateObjectVisibility(
       state,
       { payload }: PayloadAction<{ object: ObjectItem; visibility: number }>,
@@ -196,12 +165,6 @@ export const objectSlice = createSlice({
     },
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
-    },
-    setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
-      state.uploading = {
-        ...state.uploading,
-        ...payload,
-      };
     },
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
       state.editShare = payload;
@@ -361,10 +324,10 @@ export const {
   setEditShare,
   setEditUpload,
   setEditCancel,
-  setUploading,
   updateObjectStatus,
   setDummyFolder,
   updateObjectVisibility,
+  setSelectedRowKeys,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
