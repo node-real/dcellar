@@ -16,14 +16,15 @@ import { GAClick } from '@/components/common/GATracker';
 // import { AccessItem } from '@/modules/file/components/AccessItem';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, setEditShare } from '@/store/slices/object';
+import { encodeObjectName } from '@/utils/string';
 
 interface modalProps {}
 
 export const ShareObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
   const { hasCopied, onCopy, setValue } = useClipboard('');
-  const { editShare, path } = useAppSelector((root) => root.object);
-  const params = [path, editShare.name].join('/');
+  const { editShare, bucketName } = useAppSelector((root) => root.object);
+  const params = [bucketName, encodeObjectName(editShare.objectName)].join('/');
   const isOpen = !!editShare.objectName;
   const onClose = () => {
     dispatch(setEditShare({} as ObjectItem));
