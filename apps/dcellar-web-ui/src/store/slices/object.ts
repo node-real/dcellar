@@ -304,7 +304,6 @@ export const setupDummyFolder =
       }),
     );
   };
-
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
