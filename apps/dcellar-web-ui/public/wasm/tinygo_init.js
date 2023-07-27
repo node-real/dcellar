@@ -8,7 +8,15 @@ if (!WebAssembly.instantiateStreaming) {
 
 (async () => {
   const go = new Go();
-  const moduleBytes = fetch(`${window.__ASSET_PREFIX}/wasm/tinygo.wasm`);
+  const moduleBytes = fetch(`${window.__ASSET_PREFIX}/wasm/zk.wasm`);
+  const module = await WebAssembly.instantiateStreaming(moduleBytes, go.importObject);
+
+  go.run(module.instance);
+})();
+
+(async () => {
+  const go = new Go();
+  const moduleBytes = fetch(`${window.__ASSET_PREFIX}/wasm/hash.wasm`);
   const module = await WebAssembly.instantiateStreaming(moduleBytes, go.importObject);
 
   go.run(module.instance);

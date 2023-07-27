@@ -25,19 +25,17 @@ export default function Document() {
             <link rel="preload" href={url} as="image" />;
           })}
         </>
-      </Head>
-      <body>
-        <Main />
-        <NextScript />
         <script
           dangerouslySetInnerHTML={{
             __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/wasm/wasm_exec.js?v1`}></script>
-        <Script strategy="lazyOnload" src={`${assetPrefix}/wasm/init.js?v1`}></Script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec.js?v1`}></script>
-        <Script strategy="lazyOnload" src={`${assetPrefix}/wasm/tinygo_init.js?v1`}></Script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_init.js?v1`}></script>
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
         <Ga4 id={GA_ID} />
       </body>
     </Html>
