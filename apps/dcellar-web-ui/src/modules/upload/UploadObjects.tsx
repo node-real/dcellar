@@ -148,17 +148,6 @@ export const UploadObjects = () => {
     if (!selectedFile) return;
     setCreating(true);
     const domain = getDomain();
-    const secondarySpAddresses = globalSps
-      .filter((item: any) => item.operator !== primarySp.operatorAddress)
-      .map((item: any) => item.operatorAddress);
-    const spInfo = {
-      id: primarySp.id,
-      endpoint: primarySp.endpoint,
-      primarySp: primarySp.operatorAddress,
-      sealAddress: primarySp.sealAddress,
-      secondarySpAddresses,
-    };
-
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
@@ -171,7 +160,6 @@ export const UploadObjects = () => {
       fileType: selectedFile.type || 'application/octet-stream',
       contentLength: selectedFile.size,
       expectCheckSums: selectedFile.checksum,
-      spInfo,
       signType: 'offChainAuth',
       domain,
       seedString,

@@ -79,7 +79,7 @@ const initValidateNameAndGas = {
 export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { sps: globalSps, spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
   const selectedSpRef = useRef<SpItem>(globalSP);
   const { connector } = useAccount();
@@ -163,18 +163,11 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      const secondarySpAddresses = globalSps
-        .filter((item: any) => item.operatorAddress !== sp.operatorAddress)
-        .map((item: any) => item.operatorAddress);
       const createBucketParams: TCreateBucket = {
         creator: address,
         bucketName,
         spInfo: {
-          id: sp.id,
-          endpoint: sp.endpoint,
           primarySpAddress: sp.operatorAddress,
-          sealAddress: sp.sealAddress,
-          secondarySpAddresses,
         },
         signType: 'offChainAuth',
         domain,
@@ -300,16 +293,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         }
         const bucketName = data.bucketName;
         const domain = getDomain();
-        // NOTICE: Avoid the user skip got get gas fee step
-        const secondarySpAddresses = globalSps
-          .filter((item: any) => item.operatorAddress !== selectedSpRef.current.operatorAddress)
-          .map((item: any) => item.operatorAddress);
         const spInfo = {
-          id: selectedSpRef.current.id,
-          endpoint: selectedSpRef.current.endpoint,
           primarySpAddress: selectedSpRef.current.operatorAddress,
-          sealAddress: selectedSpRef.current.sealAddress,
-          secondarySpAddresses,
         };
         const createBucketParams: TCreateBucket = {
           creator: address,
@@ -336,12 +321,10 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
             return await signTypedDataV4(provider, addr, message);
           },
         });
-
         // todo refactor
         await pollingGetBucket({
           address: createBucketParams.creator,
-          endpoint: createBucketParams.spInfo.endpoint,
-          // @ts-ignore This is a temp solution for check bucket has been recorded in metaservice
+          endpoint: globalSP.endpoint,
           bucketName: createBucketParams.bucketName,
         });
 
@@ -369,7 +352,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         console.log('submit error', e);
       }
     },
-    [address, connector, dispatch, globalSps, onClose, refetch, setOpenAuthModal],
+    [address, connector, dispatch, globalSP?.endpoint, onClose, refetch, setOpenAuthModal],
   );
 
   const disableCreateButton = () => {
