@@ -7,25 +7,18 @@ import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
 import { omit } from 'lodash-es';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
-import { checkZkWasm } from '@/utils/sp';
 import { SpItem } from './sp';
+import { getVirtualGroupFamily } from '@/facade/virtual-group';
 
-export type TBucketInfo = BucketInfo & {
-  primarySpAddress: string;
-}
-
-export type TBucketProps = BucketProps & {
-  bucket_info: Omit<BucketProps['bucket_info'], 'bucket_name'> & { primary_sp_address: string };
-};
-
-export type BucketItem = Omit<TBucketProps, 'bucket_info'> & {
+export type BucketItem = Omit<BucketProps, 'bucket_info'> & {
   bucket_name: string;
   create_at: number;
   bucket_status: number;
 };
 
+export type TEditDetailItem = BucketItem & { primary_sp_address?: string };
 export interface BucketState {
-  bucketInfo: Record<string, TBucketProps['bucket_info']>;
+  bucketInfo: Record<string, BucketProps['bucket_info']>;
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
@@ -33,7 +26,7 @@ export interface BucketState {
   // current visit bucket;
   discontinue: boolean;
   owner: boolean;
-  editDetail: BucketItem;
+  editDetail: TEditDetailItem;
   editDelete: BucketItem;
   editCreate: boolean;
 }
@@ -62,7 +55,7 @@ export const bucketSlice = createSlice({
     setEditCreate(state, { payload }: PayloadAction<boolean>) {
       state.editCreate = payload;
     },
-    setEditDetail(state, { payload }: PayloadAction<BucketItem>) {
+    setEditDetail(state, { payload }: PayloadAction<TEditDetailItem>) {
       state.editDetail = payload;
     },
     setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
@@ -79,7 +72,7 @@ export const bucketSlice = createSlice({
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
     },
-    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: TBucketInfo}>) {
+    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo}>) {
       const { address, bucket } = payload;
       if (!address) return;
       const bucketName = bucket.bucketName;
@@ -95,8 +88,6 @@ export const bucketSlice = createSlice({
         create_at: bucket.createAt.toString(),
         payment_address: bucket.paymentAddress,
         bucket_status: bucket.bucketStatus,
-        primary_sp_id: bucket.primarySpId,
-        primary_sp_address: bucket.primarySpAddress,
         global_virtual_group_family_id: bucket.globalVirtualGroupFamilyId,
         charged_read_quota: bucket.chargedReadQuota.toString(),
         // billing_info
@@ -105,7 +96,7 @@ export const bucketSlice = createSlice({
       state.owner = address === newInfo.owner;
       state.discontinue = newInfo.bucket_status === 1;
     },
-    setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: TBucketProps[] }>) {
+    setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
       const all = buckets
         .map((bucket) => {
@@ -135,14 +126,8 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
-    const { allSps } = getState().sp;
-    const primarySpAddress = allSps.find(sp => sp.id === bucket?.primarySpId)?.operatorAddress || '';
-    const newBucket = {
-      ...bucket,
-      primarySpAddress,
-    } as TBucketInfo;
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket: newBucket }));
+    dispatch(setBucketInfo({ address, bucket}));
   };
 
 export const setupBuckets =
@@ -161,12 +146,10 @@ export const setupBuckets =
         return;
       }
       const bucketList = res.body?.map((bucket) => {
-        const primarySp = allSps.find(sp => sp.id === bucket.bucket_info.primary_sp_id) as SpItem;
         return {
           ...bucket,
           bucket_info: {
             ...bucket.bucket_info,
-            primary_sp_address: primarySp.operatorAddress,
           },
         }
       })
@@ -180,16 +163,17 @@ export const setupBucketQuota =
     const { bucketInfo } = getState().bucket;
     const info = bucketInfo[bucketName];
     if (!info) return;
-    const spId = bucketInfo[bucketName].primary_sp_id;
-    const sp = allSps.find(sp => sp.id === spId);
-    const isLoad = await checkZkWasm();
-    if (!isLoad || !sp) {
-      return toast.error({ description: 'The current network is weak.' });
+    const familyId = bucketInfo[bucketName].global_virtual_group_family_id;
+    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId });
+    if (familyResp === null) {
+      return VGerror;
     }
+    const sp = allSps.find((item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId);
+    if (!sp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
-      endpoint: sp?.endpoint,
+      endpoint: sp.endpoint,
       seedString,
       address: loginAccount
     });

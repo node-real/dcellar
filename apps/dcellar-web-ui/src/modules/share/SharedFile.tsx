@@ -17,6 +17,8 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { SpItem } from '@/store/slices/sp';
 
 interface SharedFileProps {
   fileName: string;
@@ -78,8 +80,12 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
 
     setAction(e);
     const bucket = bucketInfo[bucketName];
-    if (!bucket ) return onError(E_UNKNOWN);
-    const primarySp = spInfo[bucket.primary_sp_address];
+    if (!bucket) return onError(E_UNKNOWN);
+    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
+    if (familyResp === null) {
+      return VGerror;
+    }
+    const primarySp = allSps.find((item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId);
     if (!primarySp) return onError(E_SP_NOT_FOUND);
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));

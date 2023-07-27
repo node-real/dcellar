@@ -17,6 +17,7 @@ import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/objec
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import { useEffect } from 'react';
 import { SpItem } from '@/store/slices/sp';
+import { getVirtualGroupFamily } from '@/facade/virtual-group';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -37,14 +38,14 @@ export const ObjectsPage = () => {
     };
   }, [bucketName, dispatch, folders]);
 
-  useEffect(() => {
-    const primarySp = spInfo[bucketInfo[bucketName]?.primary_sp_address];
-    !isEmpty(primarySp) && dispatch(setPrimarySp(primarySp));
-
-    return () => {
-      !isEmpty(primarySp) && dispatch(setPrimarySp({} as SpItem));
-    };
-  }, [bucketName, folders, dispatch, bucketInfo, allSps, spInfo]);
+  useAsyncEffect(async () => {
+    const bucket = bucketInfo[bucketName];
+    if (!bucket) return;
+    const a = performance.now();
+    const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
+    const primarySp = allSps.find((sp) => sp.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
+    dispatch(setPrimarySp(primarySp));
+  }, [bucketInfo, bucketName])
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];

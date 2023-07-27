@@ -20,11 +20,6 @@ const getObjectInfo = async (bucketName: string, objectName: string): Promise<an
   return await client.object.headObject(bucketName, objectName);
 };
 
-const getSpInfo = async (spAddress: string): Promise<any> => {
-  const client = await getClient();
-  return await client.sp.getStorageProviderInfo(spAddress);
-};
-
 const filterAuthSps = ({ address, sps }: { address: string; sps: any[]; }) => {
   const curTime = getUtcZeroTimestamp();
   const key = `${address}-${GREENFIELD_CHAIN_ID}`;
@@ -58,4 +53,4 @@ const checkZkWasm = (attempts: number = 5): Promise<boolean>=> {
   });
 }
 
-export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps, checkZkWasm };
+export { getStorageProviders, getBucketInfo, getObjectInfo, filterAuthSps, checkZkWasm };

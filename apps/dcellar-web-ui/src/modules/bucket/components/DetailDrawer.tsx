@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import {
   QDrawerCloseButton,
   QDrawerHeader,
@@ -21,16 +21,20 @@ import { Label } from '@/modules/buckets/List/components/BucketDetail';
 import { formatBytes } from '@/modules/file/utils';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { useAsync } from 'react-use';
+import { getClient } from '@/base/client';
+import { SpItem } from '@/store/slices/sp';
+import { useAsyncEffect } from 'ahooks';
 
 interface DetailDrawerProps {}
 
 export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const dispatch = useAppDispatch();
   const { editDetail, quotas, bucketInfo } = useAppSelector((root) => root.bucket);
+  const { allSps } = useAppSelector((root) => root.sp);
   const isOpen = !!editDetail.bucket_name;
   const quota = quotas[editDetail.bucket_name];
   const bucket = bucketInfo[editDetail.bucket_name] || {};
-
   const getContent = () => {
     if (!isOpen) return;
     const create_at = getMillisecond(editDetail.create_at);
@@ -54,8 +58,8 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       {
         canCopy: true,
         label: 'Primary SP address',
-        value: bucket.primary_sp_address,
-        display: formatAddress(bucket.primary_sp_address),
+        value: editDetail?.primary_sp_address || '--',
+        display: editDetail?.primary_sp_address ? formatAddress(editDetail.primary_sp_address) : '--',
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
         gaClickName: 'dc.bucket.b_detail_pop.spadd.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
@@ -163,6 +167,17 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
     if (!editDetail.bucket_name) return;
     dispatch(setupBucketQuota(editDetail.bucket_name));
   }, [editDetail.bucket_name, dispatch]);
+
+  useAsyncEffect(async () => {
+    if (!editDetail.bucket_name || editDetail.primary_sp_address) return;
+    const client = await getClient();
+    const endpoint = await client.sp.getSPUrlByBucket(editDetail.bucket_name);
+    const primarySp = allSps.find((sp: SpItem) => sp.endpoint === endpoint) as SpItem;
+    dispatch(setEditDetail({
+      ...editDetail,
+      primary_sp_address: primarySp.operatorAddress
+    }));
+  }, [editDetail]);
 
   const onClose = () => {
     dispatch(setEditDetail({} as BucketItem));

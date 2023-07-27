@@ -86,8 +86,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
-  const { bucketInfo, discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { spInfo } = useAppSelector((root) => root.sp);
+  const { discontinue, owner } = useAppSelector((root) => root.bucket);
+  const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -96,7 +96,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const ascend = sortBy(objectList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
-  const primarySpAddress = bucketInfo[bucketName]?.primary_sp_address;
+  const primarySpAddress = oneSp;
   const primarySpInfo = primarySpAddress ? spInfo[primarySpAddress] : {} as SpItem;
 
   useAsyncEffect(async () => {
