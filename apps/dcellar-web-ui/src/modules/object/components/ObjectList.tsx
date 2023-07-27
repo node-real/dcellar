@@ -363,7 +363,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {editDelete?.objectName && !deleteFolderNotEmpty &&<DeleteObject refetch={refetch} />}
       {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
