@@ -161,7 +161,7 @@ export const checkSpOffChainMayExpired =
     const allSps = getState().sp.allSps ?? [];
     const { offchain, sps } = config;
     const curTime = getUtcZeroTimestamp();
-    const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24);
+    const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
     const hasNewSp = allSps.some(
       (s) => !sps.includes(s.operatorAddress) && !faultySps.includes(s.operatorAddress),
     );
