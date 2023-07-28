@@ -13,7 +13,12 @@ import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { isEmpty, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
 import { Text, Tooltip } from '@totejs/uikit';
-import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/object';
+import {
+  selectObjectList,
+  setFolders,
+  setPrimarySp,
+  setSelectedRowKeys,
+} from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { SpItem } from '@/store/slices/sp';
@@ -31,9 +36,9 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
+
   useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
-
     return () => {
       dispatch(setFolders({ bucketName: '', folders: [] }));
     };

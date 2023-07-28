@@ -10,6 +10,7 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { useMount } from 'ahooks';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
+import { BatchDeleteObject } from '@/modules/object/components/batch-delete/BatchDeleteObject';
 
 interface BatchOperationsProps {}
 
@@ -22,6 +23,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const { bucketName, objects, path, primarySp } = useAppSelector((root) => root.object);
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const quotaData = quotas[bucketName];
+  const [isBatchDeleteOpen, setBatchDeleteOpen] = React.useState(false);
 
   useMount(() => {
     dispatch(setupBucketQuota(bucketName));
@@ -50,9 +52,24 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     // const domain = getDomain();
     // todo
   };
-
+  const onBatchDelete = async () => {
+    const items = objects[path].filter((i) => selectedRowKeys.includes(i.objectName));
+    let remainQuota = quotaRemains(
+      quotaData,
+      items.reduce((x, y) => x + y.payloadSize, 0),
+    );
+    if (!remainQuota) return onError(E_NO_QUOTA);
+    console.log(isBatchDeleteOpen, 'onBatchDelete');
+    setBatchDeleteOpen(true);
+  };
+  const refetch = async (name?: string) => {};
   return (
     <>
+      <BatchDeleteObject
+        refetch={refetch}
+        isOpen={isBatchDeleteOpen}
+        cancelFn={() => setBatchDeleteOpen(false)}
+      />
       <Text as="div" fontWeight={500} alignItems="center" display="flex">
         {selected} File{selected > 1 && 's'} Selected{' '}
         <ActionButton
@@ -62,7 +79,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
         >
           <DownloadIcon boxSize={16} size="md" color="readable.brand6" />
         </ActionButton>
-        <ActionButton gaClickName="dc.file.batch_delete_btn.click" ml={16}>
+        <ActionButton gaClickName="dc.file.batch_delete_btn.click" ml={16} onClick={onBatchDelete}>
           <DeleteIcon boxSize={16} size="md" color="readable.brand6" />
         </ActionButton>
       </Text>
