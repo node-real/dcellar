@@ -27,8 +27,9 @@ interface GlobalTasksProps {}
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { spInfo } = useAppSelector((root) => root.sp);
-  const { primarySp } = useAppSelector((root) => root.object);
+  const { spInfo, primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const hashTask = useAppSelector(selectHashTask);
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);

@@ -224,9 +224,11 @@ export const DetailObject = (props: modalProps) => {
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount];
   const { setOpenAuthModal } = useOffChainAuth();
-  const { editDetail, bucketName, primarySp, objectsInfo, path } = useAppSelector(
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { editDetail, bucketName, objectsInfo, path } = useAppSelector(
     (root) => root.object,
   );
+  const primarySp = primarySpInfo[bucketName];
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
 

@@ -34,7 +34,9 @@ export const DownloadObject = (props: modalProps) => {
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(
     null,
   );
-  const { primarySp, editDownload, bucketName } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { editDownload, bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const directDownload = accounts[loginAccount].directDownload;
   const isOpen = !!editDownload.objectName;

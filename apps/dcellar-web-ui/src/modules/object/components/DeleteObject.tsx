@@ -87,7 +87,9 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [lockFee, setLockFee] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-  const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { editDelete, bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);

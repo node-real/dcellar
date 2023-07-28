@@ -76,7 +76,6 @@ export interface ObjectState {
   editDownload: ObjectItem & { action?: ObjectActionType };
   editShare: ObjectItem;
   editCancel: ObjectItem;
-  primarySp: SpItem;
   statusDetail: TStatusDetail;
   editUpload: number;
   uploading: TUploading;
@@ -99,7 +98,6 @@ const initialState: ObjectState = {
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  primarySp: {} as SpItem,
   editUpload: 0,
   uploading: {
     visibility: 2,
@@ -175,9 +173,6 @@ export const objectSlice = createSlice({
       state.folders = folders;
       state.prefix = !folders.length ? '' : folders.join('/') + '/';
       state.path = [bucketName, ...folders].join('/');
-    },
-    setPrimarySp(state, { payload }: PayloadAction<SpItem>) {
-      state.primarySp = payload;
     },
     setEditCreate(state, { payload }: PayloadAction<boolean>) {
       state.editCreate = payload;
@@ -357,7 +352,6 @@ export const {
   setEditDelete,
   setEditCreate,
   setEditDownload,
-  setPrimarySp,
   setStatusDetail,
   setEditShare,
   setEditUpload,

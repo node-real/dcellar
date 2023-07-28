@@ -10,18 +10,18 @@ import {
   PanelContent,
 } from '@/modules/object/objects.style';
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
-import { isEmpty, last } from 'lodash-es';
+import { last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip } from '@totejs/uikit';
 import { selectObjectList, setFolders, setPrimarySp } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import { useEffect } from 'react';
-import { SpItem } from '@/store/slices/sp';
+import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { spInfo, allSps} = useAppSelector((root) => root.sp);
+  const { allSps, primarySpInfo} = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const objectList = useAppSelector(selectObjectList);
@@ -41,10 +41,14 @@ export const ObjectsPage = () => {
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];
     if (!bucket) return;
-    const a = performance.now();
-    const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
-    const primarySp = allSps.find((sp) => sp.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
-    dispatch(setPrimarySp(primarySp));
+    const primarySp = primarySpInfo[bucketName];
+      console.log('get primary sp before')
+    if (!primarySp) {
+      console.log('get primary sp after')
+      const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
+      const sp = allSps.find((item) => item.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
+      dispatch(setPrimarySpInfo({ bucketName, sp}));
+    }
   }, [bucketInfo, bucketName])
 
   useAsyncEffect(async () => {

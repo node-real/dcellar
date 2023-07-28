@@ -78,7 +78,9 @@ export const UploadObjects = () => {
   const { setOpenAuthModal } = useOffChainAuth();
   const { editUpload, path, objects } = useAppSelector((root) => root.object);
   const { connector } = useAccount();
-  const { bucketName, primarySp, folders } = useAppSelector((root) => root.object);
+  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { bucketName, folders } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { sps: globalSps } = useAppSelector((root) => root.sp);
   const selectedFile = useAppSelector(selectHashFile(editUpload));

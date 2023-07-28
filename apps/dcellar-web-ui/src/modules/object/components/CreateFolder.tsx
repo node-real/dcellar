@@ -66,7 +66,9 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { bucketName, folders, objects, path} = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
   const { sps } = useAppSelector((root) => root.sp);

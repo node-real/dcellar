@@ -1,6 +1,6 @@
 import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -28,7 +28,7 @@ import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import bucket, { setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 
@@ -68,9 +68,11 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const { gasList } = useAppSelector((root) => root.global.gasHub);
   const {
     bnb: { price: bnbPrice },
+    _availableBalance: availableBalance,
   } = useAppSelector((root) => root.global);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
-  const { bucketName, editCancel, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { bucketName, editCancel } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
