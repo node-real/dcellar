@@ -61,6 +61,7 @@ import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
+import { SpItem } from '@/store/slices/sp';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -87,8 +88,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     (root) => root.object,
   );
   const currentPage = useAppSelector(selectPathCurrent);
-  const { bucketInfo, discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { spInfo } = useAppSelector((root) => root.sp);
+  const { discontinue, owner } = useAppSelector((root) => root.bucket);
+  const { spInfo, primarySpInfo} = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -97,21 +98,20 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const ascend = sortBy(objectList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
-  const primarySpAddress = bucketInfo[bucketName]?.primary_sp_address;
-  const primarySpInfo = spInfo[primarySpAddress];
+  const primarySp = primarySpInfo[bucketName];
 
   useAsyncEffect(async () => {
-    if (!primarySpAddress) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
+    if (!primarySp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const query = new URLSearchParams();
     const params = {
       seedString,
       query,
-      endpoint: primarySpInfo.endpoint,
+      endpoint: primarySp.endpoint,
     };
     dispatch(setupListObjects(params));
     dispatch(setupBucketQuota(bucketName));
-  }, [primarySpAddress, prefix]);
+  }, [primarySp, prefix]);
 
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -135,11 +135,15 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     const config = accounts[loginAccount] || {};
 
     if (config.directDownload) {
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const gParams = {
         bucketName,
-        object.objectName,
-        spInfo[primarySpAddress].endpoint,
-      );
+        objectName: object.objectName,
+        endpoint: primarySp.endpoint,
+        seedString,
+        address: loginAccount,
+      }
+      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -152,13 +156,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
-        primarySp: primarySpInfo,
+        primarySp,
         objectInfo,
         address: loginAccount,
       };
 
-      const operator = primarySpInfo.operatorAddress;
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+      // const operator = primarySpInfo.operatorAddress;
+      // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));
@@ -199,11 +203,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     _query.append('prefix', `${record.objectName}`);
 
     const params = {
-      address: primarySpAddress,
+      address: primarySp.operatorAddress,
       bucketName: bucketName,
       prefix: record.objectName,
       query: _query,
-      endpoint: primarySpInfo.endpoint,
+      endpoint: primarySp.endpoint,
       seedString: '',
       maxKeys: 1000,
     };
@@ -366,13 +370,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const refetch = async (name?: string) => {
-    if (!primarySpAddress) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
+    if (!primarySp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const query = new URLSearchParams();
     const params = {
       seedString,
       query,
-      endpoint: spInfo[primarySpAddress].endpoint,
+      endpoint: primarySp.endpoint,
     };
     if (name) {
       await dispatch(setupListObjects(params));
@@ -388,7 +392,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {editDelete?.objectName && !deleteFolderNotEmpty &&<DeleteObject refetch={refetch} />}
       {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}

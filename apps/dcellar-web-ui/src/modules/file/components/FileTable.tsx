@@ -81,7 +81,7 @@ import { useRouter } from 'next/router';
 import { encodeObjectName } from '@/utils/string';
 import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
-import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse } from '@bnb-chain/greenfield-chain-sdk';
 import { updateObjectInfo } from '@/facade/object';
 import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
 import { SpItem } from '@/store/slices/sp';
@@ -286,8 +286,8 @@ export const FileTable = (props: fileListProps) => {
   const [gasFee, setGasFee] = useState('-1');
   const [lockFee, setLockFee] = useState('-1');
   const [shareLink, setShareLink] = useState('');
-  const [shareObject, setShareObject] = useState<IObjectProps['object_info']>(
-    {} as IObjectProps['object_info'],
+  const [shareObject, setShareObject] = useState<IObjectResponse['object_info']>(
+    {} as IObjectResponse['object_info'],
   );
   const [viewLink, setViewLink] = useState('');
   const { setOpenAuthModal } = useOffChainAuth();
@@ -392,7 +392,7 @@ export const FileTable = (props: fileListProps) => {
     }
   };
 
-  const onAccessChange = async (target: IObjectProps['object_info'], access: string) => {
+  const onAccessChange = async (target: IObjectResponse['object_info'], access: string) => {
     onShareModalClose();
     const onClose = openPendingModal();
 
@@ -813,7 +813,7 @@ export const FileTable = (props: fileListProps) => {
 
           const onShare = () => {
             setShareLink(directDownloadLink);
-            setShareObject(rowData as IObjectProps['object_info']);
+            setShareObject(rowData as IObjectResponse['object_info']);
             onShareModalOpen();
           };
           const directDownloadLink = encodeURI(
@@ -877,7 +877,7 @@ export const FileTable = (props: fileListProps) => {
                             setCreatedDate(create_at);
                             setShareLink(directDownloadLink);
                             setCurrentVisibility(visibility);
-                            setShareObject(rowData as IObjectProps['object_info']);
+                            setShareObject(rowData as IObjectResponse['object_info']);
                             onInfoModalOpen();
                             const quotaData = await getQuota(bucketName, primarySp.endpoint);
                             if (quotaData) {

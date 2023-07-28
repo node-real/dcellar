@@ -89,9 +89,11 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
-  const { editDelete, bucketName, primarySp, objectsInfo, path } = useAppSelector(
+  const { editDelete, bucketName, objectsInfo, path } = useAppSelector(
     (root) => root.object,
   );
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);

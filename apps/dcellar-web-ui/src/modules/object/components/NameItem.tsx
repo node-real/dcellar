@@ -36,7 +36,9 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const { bucketName, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
   const icon = (
@@ -60,11 +62,15 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
     if (config.directDownload) {
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const gParams = {
         bucketName,
-        object.objectName,
-        primarySp.endpoint,
-      );
+        objectName: object.objectName,
+        endpoint: primarySp.endpoint,
+        seedString,
+        address: loginAccount,
+      }
+      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -77,13 +83,10 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
-        primarySp: primarySp,
+        primarySp,
         objectInfo,
         address: loginAccount,
       };
-
-      const operator = primarySp.operatorAddress;
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await previewObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));

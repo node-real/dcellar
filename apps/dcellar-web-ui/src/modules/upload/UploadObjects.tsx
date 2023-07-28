@@ -19,7 +19,6 @@ import {
   FILE_TITLE_UPLOAD_FAILED,
   FILE_UPLOAD_URL,
   OBJECT_AUTH_TEMP_ACCOUNT_CREATING,
-  OBJECT_TITLE_CREATING,
 } from '@/modules/file/constant';
 import Fee from './SimulateFee';
 import { DCButton } from '@/components/common/DCButton';
@@ -71,7 +70,9 @@ export const UploadObjects = () => {
   const dispatch = useAppDispatch();
   const feeRef = useRef<TSimulateFee>();
   const { editUpload, path, objects } = useAppSelector((root) => root.object);
-  const { bucketName, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { bucketName, folders } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { hashQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
@@ -192,7 +193,7 @@ export const UploadObjects = () => {
   }, [preLockFeeObjects, selectedFiles]);
 
   const hasSuccess = hashQueue.some((item) => item.status === 'WAIT');
-
+  console.log('disable status', loading, creating, !hasSuccess, !feeRef.current?.isBalanceAvailable)
   return (
     <DCDrawer isOpen={!!editUpload} onClose={onClose}>
       <QDrawerCloseButton />

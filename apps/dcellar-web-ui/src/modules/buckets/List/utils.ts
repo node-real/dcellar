@@ -1,8 +1,9 @@
 import { parseError } from '../utils/parseError';
 import { getClient } from '@/base/client';
-import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteBucketTypeUrl, TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import axios from 'axios';
+import { TGasList } from '@/store/slices/global';
 
 export const pollingCreateAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
@@ -14,7 +15,7 @@ export const pollingCreateAsync =
         const { data } = result;
         if (data) {
           const newBucket = data.bucket;
-          if (newBucket.bucket_info.bucket_name === args[0].bucketName) {
+          if (newBucket?.bucket_info?.bucket_name === args[0].bucketName) {
             return;
           }
         }
@@ -66,17 +67,7 @@ export const getBucketMeta = async (params: {
 }) => {
   const { bucketName, endpoint } = params;
   const url = `${endpoint}/${bucketName}?bucket-meta`;
-  const res = await axios
-    .get(
-      url,
-      //todo: remove auth info after backend enable not verify auth for meta service
-      {
-        headers: {
-          Authorization:
-            'authTypeV2 ECDSA-secp256k1, Signature=1234567812345678123456781234567812345678123456781234567812345678',
-        },
-      },
-    )
+  const res = await axios.get(url)
     .catch((e) => {
       return e.response;
     });
@@ -87,17 +78,8 @@ export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
 
 export const pollingDeleteBucket = pollingDeleteAsync(getBucketMeta, 500);
 
-export const getDeleteBucketFee = async ({ bucketName, address }: any) => {
-  const client = await getClient();
-  const deleteBucketTx = await client.bucket.deleteBucket({
-    bucketName: bucketName,
-    operator: address,
-  });
-  const simulateInfo = await deleteBucketTx.simulate({
-    denom: 'BNB',
-  });
-
-  return simulateInfo.gasFee;
+export const getDeleteBucketFee = async (gasList: TGasList) => {
+  return String(gasList[MsgDeleteBucketTypeUrl]?.gasFee ?? 0);
 };
 
 export const genCreateBucketTx = async (configParam: TCreateBucket) => {

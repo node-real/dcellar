@@ -1,9 +1,4 @@
-import {
-  IObjectProps,
-  IObjectResultType,
-  IQuotaProps,
-  TxResponse,
-} from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, IObjectResultType, TListObjects, IQuotaProps, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
@@ -77,8 +72,16 @@ export const getCanObjectAccess = async (
   objectName: string,
   endpoint: string,
   loginAccount: string,
-): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]> => {
-  const [info, quota] = await getObjectInfoAndBucketQuota(bucketName, objectName, endpoint);
+  seedString: string,
+): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]>  => {
+  const params = {
+    bucketName,
+    objectName,
+    endpoint,
+    address: loginAccount,
+    seedString,
+  }
+  const [info, quota] = await getObjectInfoAndBucketQuota(params);
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
@@ -169,7 +172,7 @@ export type ListObjectsParams = {
 };
 
 export type IObjectList = {
-  objects: IObjectProps[];
+  objects: IObjectResponse[];
   key_count: string;
   max_keys: string;
   is_truncated: boolean;
@@ -182,11 +185,10 @@ export type IObjectList = {
 };
 
 export const getListObjects = async (
-  params: ListObjectsParams,
+  params: TListObjects,
 ): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
-  const domain = getDomain();
   const client = await getClient();
-  const payload = { domain, ...params };
+  const payload = params;
   const [list, error] = (await client.object
     .listObjects(payload)
     .then(resolve, commonFault)) as any;

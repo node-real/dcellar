@@ -22,11 +22,6 @@ const getObjectInfo = async (bucketName: string, objectName: string): Promise<an
   return await client.object.headObject(bucketName, objectName);
 };
 
-const getSpInfo = async (spAddress: string): Promise<any> => {
-  const client = await getClient();
-  return await client.sp.getStorageProviderInfo(spAddress);
-};
-
 const filterAuthSps = ({ address, sps }: { address: string; sps: any[]; }) => {
   const curTime = getUtcZeroTimestamp();
   const key = `${address}-${GREENFIELD_CHAIN_ID}`;
@@ -71,5 +66,18 @@ export const calPreLockFee = ({ size, preLockFeeObject }: { size: number; primar
   return lockFeeInBNB.toString()
 
 }
+const checkZkWasm = (attempts: number = 5): Promise<boolean>=> {
+  return new Promise<boolean>((resolve) => {
+    if (typeof window.eddsaSign === 'function') {
+      resolve(true);
+    } else if (attempts > 0) {
+      setTimeout(() => {
+        resolve(checkZkWasm(attempts - 1));
+      }, 1000);
+    } else {
+      resolve(false);
+    }
+  });
+}
 
-export { getStorageProviders, getBucketInfo, getObjectInfo, getSpInfo, filterAuthSps };
+export { getStorageProviders, getBucketInfo, getObjectInfo, filterAuthSps, checkZkWasm };

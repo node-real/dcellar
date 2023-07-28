@@ -3,7 +3,7 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
 import { find, last, omit, trimEnd } from 'lodash-es';
-import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { SpItem } from './sp';
 import { Key } from 'react';
@@ -38,7 +38,7 @@ export interface ObjectState {
   path: string;
   objects: Record<string, ObjectItem[]>;
   objectsMeta: Record<string, Omit<IObjectList, 'objects' | 'common_prefixes'>>;
-  objectsInfo: Record<string, IObjectProps>;
+  objectsInfo: Record<string, IObjectResponse>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
   editDetail: ObjectItem;
@@ -47,7 +47,6 @@ export interface ObjectState {
   editDownload: ObjectItem & { action?: ObjectActionType };
   editShare: ObjectItem;
   editCancel: ObjectItem;
-  primarySp: SpItem;
   statusDetail: TStatusDetail;
   editUpload: number;
   selectedRowKeys: Key[];
@@ -70,7 +69,6 @@ const initialState: ObjectState = {
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  primarySp: {} as SpItem,
   editUpload: 0,
   selectedRowKeys: [],
 };
@@ -145,9 +143,6 @@ export const objectSlice = createSlice({
       state.prefix = !folders.length ? '' : folders.join('/') + '/';
       state.path = [bucketName, ...folders].join('/');
     },
-    setPrimarySp(state, { payload }: PayloadAction<SpItem>) {
-      state.primarySp = payload;
-    },
     setEditCreate(state, { payload }: PayloadAction<boolean>) {
       state.editCreate = payload;
     },
@@ -217,20 +212,20 @@ export const objectSlice = createSlice({
         .filter((i) => !i.objectName.endsWith('/') && !i.removed);
 
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
-      state.objects[path] = folders.concat(objects);
+      state.objects[path] = folders.concat(objects as ObjectItem[]);
     },
   },
 });
 
 export const _getAllList = async (
-  params: ListObjectsParams,
+  params: TListObjects,
 ): Promise<[IObjectList, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
   const list = res.body!;
   const token = list.next_continuation_token;
   if (token) {
-    params.query.set('continuation-token', token);
+    params.query?.set('continuation-token', token);
     const [res, error] = await _getAllList(params);
     if (error) return [null, error];
     const newList = res!;
@@ -270,6 +265,7 @@ export const setupDummyFolder =
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
+
     const { prefix, bucketName, path, restoreCurrent } = getState().object;
     const { loginAccount: address } = getState().persist;
     dispatch(setRestoreCurrent(true));
@@ -319,7 +315,6 @@ export const {
   setEditDelete,
   setEditCreate,
   setEditDownload,
-  setPrimarySp,
   setStatusDetail,
   setEditShare,
   setEditUpload,
