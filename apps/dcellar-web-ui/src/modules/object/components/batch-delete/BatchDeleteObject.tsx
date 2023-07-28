@@ -1,6 +1,6 @@
 import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -38,6 +38,7 @@ import { resolve } from '@/facade/common';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
+import { ColoredWaitingIcon } from '@totejs/icons';
 
 interface modalProps {
   refetch: () => void;
@@ -89,10 +90,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
-  const { editDelete, bucketName, objectsInfo, path } = useAppSelector(
-    (root) => root.object,
-  );
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { bucketName, objectsInfo, path } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
@@ -103,7 +102,6 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const deleteObjects = selectedRowKeys.map((key) => {
     return objectsInfo[path + '/' + key];
   });
-  console.log(deleteObjects, 'deleteObjects');
 
   const onClose = () => {
     document.documentElement.style.overflowY = '';
@@ -173,33 +171,78 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
     const client = await getClient();
     const delObjTx = await client.object.deleteObject({
       bucketName,
-      objectName: objectName,
+      objectName,
       operator: tmpAccount.address,
     });
+
     const simulateInfo = await delObjTx.simulate({
       denom: 'BNB',
     });
-    const [txRes, error] = await delObjTx
-      .broadcast({
-        denom: 'BNB',
-        gasLimit: Number(simulateInfo?.gasLimit),
-        gasPrice: simulateInfo?.gasPrice || '5000000000',
-        payer: tmpAccount.address,
-        granter: '',
-        privateKey: tmpAccount.privateKey,
-        // signTypedDataCallback: async (addr: string, message: string) => {
-        //   const provider = await connector?.getProvider();
-        //   return await signTypedDataV4(provider, addr, message);
-        // },
-      })
-      .then(resolve, broadcastFault);
+
+    const txRes = await delObjTx.broadcast({
+      denom: 'BNB',
+      gasLimit: Number(simulateInfo?.gasLimit),
+      gasPrice: simulateInfo?.gasPrice || '5000000000',
+      payer: tmpAccount.address,
+      granter: loginAccount,
+      privateKey: tmpAccount.privateKey,
+    });
+    console.log(txRes, 'txRes');
+
     if (txRes === null) {
       dispatch(setStatusDetail({} as TStatusDetail));
-      return toast.error({ description: error || 'Delete file error.' });
+      return toast.error({ description: 'Delete object error.' });
     }
     if (txRes.code === 0) {
       toast.success({
-        description: 'File deleted successfully.',
+        description: 'object deleted successfully.',
+      });
+      reportEvent({
+        name: 'dc.toast.file_delete.success.show',
+      });
+    } else {
+      toast.error({ description: 'Delete file error.' });
+    }
+  };
+  const deleteObjectUseMulti = async (objectList: any[], tmpAccount: TTmpAccount) => {
+    const client = await getClient();
+    const multiMsg: any[] = await Promise.all(
+      objectList.map(async (objectName) => {
+        const delTx = await client.object.deleteObject({
+          bucketName,
+          objectName,
+          operator: tmpAccount.address,
+        });
+        return delTx;
+      }),
+    );
+
+    console.log(multiMsg, 'multiMsg');
+    const delObjTxs = await client.basic.multiTx(multiMsg);
+
+    console.log(delObjTxs, 'delObjTxs');
+
+    const simulateInfo = await delObjTxs.simulate({
+      denom: 'BNB',
+    });
+
+    const txRes = await delObjTxs.broadcast({
+      denom: 'BNB',
+      gasLimit: Number(simulateInfo?.gasLimit),
+      gasPrice: simulateInfo?.gasPrice || '5000000000',
+      payer: tmpAccount.address,
+      granter: loginAccount,
+      privateKey: tmpAccount.privateKey,
+    });
+    console.log(txRes, 'txRes');
+
+    if (txRes === null) {
+      dispatch(setStatusDetail({} as TStatusDetail));
+      return toast.error({ description: 'Delete object error.' });
+    }
+    if (txRes.code === 0) {
+      toast.success({
+        description: 'object deleted successfully.',
       });
       reportEvent({
         name: 'dc.toast.file_delete.success.show',
@@ -220,20 +263,23 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
           desc: FILE_STATUS_DELETING,
         }),
       );
-      console.log(lockFee, 'parseEther(lockFee)');
       const [tmpAccount, err] = await createTmpAccount({
         address: loginAccount,
         bucketName,
         amount: parseEther(round(Number(lockFee), 6).toString()).toString(),
+        connector,
+        actionType: 'delete',
+        objectList: selectedRowKeys,
       });
       if (!tmpAccount) {
         return errorHandler(err);
       }
-
       dispatch(setTmpAccount(tmpAccount));
+      // deleteObjectUseMulti(selectedRowKeys, tmpAccount);
       deleteObjects.map((obj) => {
         deleteObject(obj.object_info.object_name, tmpAccount);
       });
+      toast.info({ description: 'Objects deleting', icon: <ColoredWaitingIcon /> });
       refetch();
       onClose();
       dispatch(setSelectedRowKeys([]));
