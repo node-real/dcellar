@@ -80,7 +80,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         return { code: -1, error: e };
       }
     },
-    [connector, onClose, allSps],
+    [connector, allSps, dispatch, onClose],
   );
 
   return (

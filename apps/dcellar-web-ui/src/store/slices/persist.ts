@@ -138,13 +138,13 @@ export const checkOffChainDataAvailable =
   };
 
 export const getSpOffChainData =
-  (address: string, sp: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  (address: string, spAddress: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
     const { offchain } = config;
     const curTime = getUtcZeroTimestamp();
     return (find<OffChain>(
       offchain,
-      (o) => o.spAddresses.includes(sp) && o.expirationTime > curTime,
+      (o) => o.spAddresses.includes(spAddress) && o.expirationTime > curTime,
     ) || {}) as OffChain;
   };
 
@@ -161,7 +161,7 @@ export const checkSpOffChainMayExpired =
     const allSps = getState().sp.allSps ?? [];
     const { offchain, sps } = config;
     const curTime = getUtcZeroTimestamp();
-    const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24);
+    const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
     const hasNewSp = allSps.some(
       (s) => !sps.includes(s.operatorAddress) && !faultySps.includes(s.operatorAddress),
     );

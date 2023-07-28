@@ -12,7 +12,7 @@ const globalScope = globalThis as GlobalScope;
 const go = new globalScope.Go();
 let isReady = false;
 WebAssembly.instantiateStreaming(
-  globalScope.fetch(`${assetPrefix}/wasm/main.wasm`),
+  globalScope.fetch(`${assetPrefix}/wasm/hash.wasm`),
   go.importObject,
 ).then(async (result) => {
   go.run(result.instance);

@@ -20,6 +20,7 @@ export const BucketPage = () => {
   }, [documentVisibility]);
 
   useAsyncEffect(async () => {
+
     if (!loginAccount) return;
     await dispatch(setupBuckets(loginAccount));
   }, [loginAccount, dispatch]);

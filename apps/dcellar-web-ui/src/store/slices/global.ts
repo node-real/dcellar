@@ -10,7 +10,7 @@ import { defaultBalance } from '@/store/slices/balance';
 import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
-type TGasList = {
+export type TGasList = {
   [msgTypeUrl: string]: {
     gasLimit: number;
     msgTypeUrl: string;
@@ -61,7 +61,7 @@ export type UploadFile = {
   bucketName: string;
   prefixFolders: string[];
   id: number;
-  sp: string;
+  spAddress: string;
   file: HashFile;
   checksum: string[];
   status: TUploadStatus;
@@ -321,7 +321,7 @@ export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
     const { spInfo } = getState().sp;
     const { loginAccount } = getState().persist;
-    const primarySp = spInfo[task.sp];
+    const primarySp = spInfo[task.spAddress];
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
@@ -360,7 +360,7 @@ export const progressFetchList =
     await dispatch(refreshTaskFolder(task));
   };
 export const addTasksToUploadQueue =
-  (sp: string, visibility: VisibilityType) => async (dispatch: AppDispatch, getState: GetState) => {
+  (spAddress: string, visibility: VisibilityType) => async (dispatch: AppDispatch, getState: GetState) => {
     const { hashQueue } = getState().global;
     const { bucketName, folders } = getState().object;
     const { loginAccount } = getState().persist;
@@ -370,7 +370,7 @@ export const addTasksToUploadQueue =
       const uploadTask: UploadFile = {
         bucketName,
         prefixFolders: folders,
-        sp,
+        spAddress,
         id: task.id,
         file: task,
         msg: '',

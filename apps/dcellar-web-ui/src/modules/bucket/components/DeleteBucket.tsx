@@ -7,14 +7,12 @@ interface DeleteBucketProps {}
 
 export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
   const dispatch = useAppDispatch();
-  const { editDelete, bucketInfo } = useAppSelector((root) => root.bucket);
+  const { editDelete } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { spInfo } = useAppSelector((root) => root.sp);
+  const { spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const globalSP = spInfo[oneSp];
   const isOpen = !!editDelete.bucket_name;
   const [open, setOpen] = useState(isOpen); // for modal close animation
-  const bucket = bucketInfo[editDelete.bucket_name] || {};
-  const primarySp = bucket.primary_sp_address;
-  const sp = spInfo[primarySp] || {};
 
   useEffect(() => {
     if (!isOpen) return;
@@ -40,8 +38,8 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
       onClose={onClose}
       refetch={refetch}
       sp={{
-        address: primarySp,
-        endpoint: sp.endpoint,
+        address: globalSP.operatorAddress,
+        endpoint: globalSP.endpoint,
       }}
     />
   ) : null;

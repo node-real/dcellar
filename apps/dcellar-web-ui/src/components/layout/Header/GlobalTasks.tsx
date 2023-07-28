@@ -4,8 +4,6 @@ import {
   progressFetchList,
   selectHashTask,
   selectUploadQueue,
-  updateHashStatus,
-  updateHashTaskMsg,
   updateUploadChecksum,
   updateUploadMsg,
   updateUploadProgress,
@@ -20,8 +18,7 @@ import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
-import { headObject, queryLockFee } from '@/facade/object';
-import Long from 'long';
+import { headObject } from '@/facade/object';
 import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
@@ -34,12 +31,10 @@ interface GlobalTasksProps {}
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { spInfo: spInfos } = useAppSelector((root) => root.sp);
-  const { primarySp, bucketName} = useAppSelector((root) => root.object);
+  const { spInfo } = useAppSelector((root) => root.sp);
+  const { bucketName } = useAppSelector((root) => root.object);
   const { tmpAccount } = useAppSelector((root) => root.global);
-  const { sps: globalSps } = useAppSelector((root) => root.sp);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
-  console.log('hashTask', hashTask);
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
@@ -75,18 +70,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   // todo refactor
   const runUploadTask = async (task: UploadFile) => {
     // 1. get approval from sp
-    debugger;
     const domain = getDomain();
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.sp));
-    const secondarySpAddresses = globalSps
-      .filter((item: any) => item.operator !== primarySp.operatorAddress)
-      .map((item: any) => item.operatorAddress);
-    const spInfo = {
-      endpoint: primarySp.endpoint,
-      primarySp: primarySp.operatorAddress,
-      sealAddress: primarySp.sealAddress,
-      secondarySpAddresses,
-    };
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.file.name].join('/');
     const createObjectPayload: TCreateObject = {
       bucketName,
@@ -96,7 +81,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       fileType: task.file.type || 'application/octet-stream',
       contentLength: task.file.size,
       expectCheckSums: task.checksum,
-      spInfo,
       signType: 'authTypeV1',
       privateKey: tmpAccount.privateKey,
     };
@@ -129,16 +113,16 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const [res, error] = await createObjectTx!
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
-
-    if (error) {
+    if (!res || error) {
       console.log('error', error)
+      return;
     }
     const uploadOptions = await generatePutObjectOptions({
       bucketName: task.bucketName,
       objectName: [...task.prefixFolders, task.file.name].join('/'),
       body: task.file.file,
-      endpoint: spInfos[task.sp].endpoint,
-      txnHash: res?.transactionHash || '',
+      endpoint: spInfo[task.spAddress].endpoint,
+      txnHash: res.transactionHash,
       userAddress: loginAccount,
       domain,
       seedString,

@@ -15,6 +15,7 @@ import {
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
+  _getAllList,
 } from '@/store/slices/object';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
@@ -43,6 +44,8 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { FolderNotEmpty } from '@/modules/object/components/FolderNotEmpty';
+
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
@@ -58,6 +61,7 @@ import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
+import { SpItem } from '@/store/slices/sp';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -67,7 +71,7 @@ const Actions: ActionMenuItem[] = [
   { label: 'Delete', value: 'delete' },
 ];
 
-interface ObjectListProps { }
+interface ObjectListProps {}
 
 export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const dispatch = useAppDispatch();
@@ -78,11 +82,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     accounts,
   } = useAppSelector((root) => root.persist);
 
-  const [rowIndex, setRowIndex] = useState(-1)
+  const [rowIndex, setRowIndex] = useState(-1);
+  const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
-  const { bucketInfo, discontinue } = useAppSelector((root) => root.bucket);
-  const { spInfo } = useAppSelector((root) => root.sp);
+  const { discontinue, owner } = useAppSelector((root) => root.bucket);
+  const { spInfo, primarySpInfo} = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -91,21 +96,20 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const ascend = sortBy(objectList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
-  const primarySpAddress = bucketInfo[bucketName]?.primary_sp_address;
-  const primarySpInfo = spInfo[primarySpAddress];
+  const primarySp = primarySpInfo[bucketName];
 
   useAsyncEffect(async () => {
-    if (!primarySpAddress) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
+    if (!primarySp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const query = new URLSearchParams();
     const params = {
       seedString,
       query,
-      endpoint: primarySpInfo.endpoint,
+      endpoint: primarySp.endpoint,
     };
     dispatch(setupListObjects(params));
     dispatch(setupBucketQuota(bucketName));
-  }, [primarySpAddress, prefix]);
+  }, [primarySp, prefix]);
 
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -129,11 +133,15 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     const config = accounts[loginAccount] || {};
 
     if (config.directDownload) {
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const gParams = {
         bucketName,
-        object.objectName,
-        spInfo[primarySpAddress].endpoint,
-      );
+        objectName: object.objectName,
+        endpoint: primarySp.endpoint,
+        seedString,
+        address: loginAccount,
+      }
+      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -146,28 +154,38 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
-        primarySp: primarySpInfo,
+        primarySp,
         objectInfo,
         address: loginAccount,
       };
 
-      const operator = primarySpInfo.operatorAddress;
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+      // const operator = primarySpInfo.operatorAddress;
+      // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));
       return success;
     }
 
-    return dispatch(setEditDownload(object));
+    return dispatch(setEditDownload({ ...object, action: 'download' }));
   };
 
-  const onMenuClick = (menu: string, record: ObjectItem) => {
+  const onMenuClick = async (menu: string, record: ObjectItem) => {
     switch (menu) {
       case 'detail':
         return dispatch(setEditDetail(record));
       case 'delete':
-        return dispatch(setEditDelete(record));
+        let isFolder = record.objectName.endsWith('/');
+        setDeleteFolderNotEmpty(false);
+        if (isFolder) {
+          let res = await isFolderEmpty(record);
+          if (!res) {
+            setDeleteFolderNotEmpty(true);
+          }
+          return dispatch(setEditDelete(record));
+        } else {
+          return dispatch(setEditDelete(record));
+        }
       case 'share':
         return dispatch(setEditShare(record));
       case 'download':
@@ -176,7 +194,24 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return dispatch(setEditCancel(record));
     }
   };
+  const isFolderEmpty = async (record: ObjectItem) => {
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '1000');
+    _query.append('prefix', `${record.objectName}`);
 
+    const params = {
+      address: primarySp.operatorAddress,
+      bucketName: bucketName,
+      prefix: record.objectName,
+      query: _query,
+      endpoint: primarySp.endpoint,
+      seedString: '',
+      maxKeys: 1000,
+    };
+    const [res] = await _getAllList(params);
+    return res?.objects?.length === 1;
+  };
   const columns: ColumnProps<ObjectItem>[] = [
     {
       key: 'objectName',
@@ -251,9 +286,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         let operations: string[] = [];
         const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
-        if (isFolder) return null;
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
+
         if (!isPublic) {
           fitActions = Actions.filter((a) => a.value !== 'share');
         }
@@ -268,11 +303,24 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (curObjectInfo?.object_info?.owner !== loginAccount) {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
-
+        //if this folder is yours, you only can delete it
+        if (isFolder && owner) {
+          fitActions = Actions.filter((a) => a.value === 'delete');
+        }
+        if (isFolder && !owner) {
+          fitActions = [];
+        }
         isCurRow && !isFolder && isPublic && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
-        return <ActionMenu menus={fitActions} operations={operations} justifyContent='flex-end' onChange={(e) => onMenuClick(e, record)} />;
+        return (
+          <ActionMenu
+            menus={fitActions}
+            operations={operations}
+            justifyContent="flex-end"
+            onChange={(e) => onMenuClick(e, record)}
+          />
+        );
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
@@ -292,13 +340,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const refetch = async (name?: string) => {
-    if (!primarySpAddress) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySpAddress));
+    if (!primarySp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const query = new URLSearchParams();
     const params = {
       seedString,
       query,
-      endpoint: spInfo[primarySpAddress].endpoint,
+      endpoint: primarySp.endpoint,
     };
     if (name) {
       await dispatch(setupListObjects(params));
@@ -314,7 +362,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
+      {editDelete?.objectName && !deleteFolderNotEmpty &&<DeleteObject refetch={refetch} />}
+      {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
       {editShare?.objectName && <ShareObject />}
@@ -347,9 +396,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
             setRowIndex(Number(index));
           },
           onMouseLeave: () => {
-            setRowIndex(-1)
-          }
+            setRowIndex(-1);
+          },
         })}
+        scroll={{ x: 800 }}
       />
     </>
   );

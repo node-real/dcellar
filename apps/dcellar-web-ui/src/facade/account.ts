@@ -64,14 +64,15 @@ export const createTmpAccount = async ({address, bucketName, amount}: any): Prom
   }
 
   console.log('simuluateInfo', simulateInfo);
-
-  const [res, error] = await txs.broadcast({
+  const payload = {
     denom: 'BNB',
     gasLimit: Number(210000),
     gasPrice: '5000000000',
     payer: address,
     granter: '',
-  }).then(resolve, broadcastFault);
+  }
+  console.log('payload', payload)
+  const [res, error] = await txs.broadcast(payload).then(resolve, broadcastFault);
 
   if (res && res.code !== 0 || error) {
     return [null, error || UNKNOWN_ERROR];

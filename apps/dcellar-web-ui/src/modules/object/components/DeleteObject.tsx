@@ -1,4 +1,13 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
+import {
+  ModalCloseButton,
+  ModalHeader,
+  ModalFooter,
+  Text,
+  Flex,
+  toast,
+  Box,
+  Link,
+} from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
@@ -14,6 +23,7 @@ import {
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
+  FOLDER_TITLE_DELETING,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
@@ -24,7 +34,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
@@ -66,7 +76,7 @@ const renderFee = (
         )}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
+        ~{renderFeeValue(bnbValue, exchangeRate)}
       </Text>
     </Flex>
   );
@@ -77,7 +87,9 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [lockFee, setLockFee] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-  const { editDelete, bucketName, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { editDelete, bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
@@ -115,8 +127,13 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance, lockFee]);
   const filePath = editDelete.objectName.split('/');
+  const isFolder = editDelete.objectName.endsWith('/');
+  const isSavedSixMonths = getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
   const showName = filePath[filePath.length - 1];
-  const description = `Are you sure you want to delete file "${showName}"?`;
+  const folderName = filePath[filePath.length - 2];
+  const description = isFolder
+    ? `Are you sure you want to delete folder "${folderName}"?`
+    : `Are you sure you want to delete file "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(
@@ -143,6 +160,29 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     >
       <ModalHeader>Confirm Delete</ModalHeader>
       <ModalCloseButton />
+      {!isFolder && isSavedSixMonths && (
+        <Text
+          fontSize="18px"
+          lineHeight={'22px'}
+          fontWeight={400}
+          textAlign={'center'}
+          marginTop="8px"
+          color={'readable.secondary'}
+          mb={'12px'}
+        >
+          You’ve paid 6 months locked storage fee for this object, but this object has been stored
+          less than 6 months.{' '}
+          <Link
+            color="readable.normal"
+            textDecoration={'underline'}
+            cursor={'pointer'}
+            href="https://docs.nodereal.io/docs/dcellar-faq#fee-related "
+            target='_blank'
+          >
+            Learn more
+          </Link>
+        </Text>
+      )}
       <Text
         fontSize="18px"
         lineHeight={'22px'}
@@ -162,7 +202,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
         borderRadius="12px"
         gap={'4px'}
       >
-        {renderFee(
+        {/* {renderFee(
           'Unlocked storage fee',
           lockFee,
           exchangeRate,
@@ -182,7 +222,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               </Box>
             }
           />,
-        )}
+        )} */}
         {renderFee('Gas Fee', simulateGasFee + '', exchangeRate)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
@@ -217,7 +257,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               dispatch(
                 setStatusDetail({
                   icon: FILE_DELETE_GIF,
-                  title: FILE_TITLE_DELETING,
+                  title: isFolder ? FOLDER_TITLE_DELETING : FILE_TITLE_DELETING,
                   desc: FILE_STATUS_DELETING,
                   buttonText: '',
                   errorText: '',
@@ -250,7 +290,11 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 return toast.error({ description: error || 'Delete file error.' });
               }
               if (txRes.code === 0) {
-                toast.success({ description: 'File deleted successfully.' });
+                toast.success({
+                  description: isFolder
+                    ? 'Folder deleted successfully.'
+                    : 'File deleted successfully.',
+                });
                 reportEvent({
                   name: 'dc.toast.file_delete.success.show',
                 });

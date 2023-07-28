@@ -7,7 +7,7 @@ import {
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { Box, Fade, Flex, Slide, Text, useDisclosure } from '@totejs/uikit';
+import { Box, Fade, Flex, Slide, Text, useDisclosure, Link } from '@totejs/uikit';
 import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
 import { setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
@@ -23,10 +23,12 @@ export const Fee = forwardRef((props, ref) => {
   const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { hashQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
-  const { primarySp } = useAppSelector((root) => root.object);
+  const { bucketName } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const isChecking =
     hashQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
-    const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle } = useDisclosure();
+  const primarySp = primarySpInfo[bucketName];
   useAsyncEffect(async () => {
     if (isEmpty(preLockFeeObjects[primarySp.operatorAddress])) {
       return await dispatch(setupPreLockFeeObjects(primarySp.operatorAddress));
@@ -57,7 +59,7 @@ export const Fee = forwardRef((props, ref) => {
     isBalanceAvailable: Number(availableBalance) >= Number(gasFee) + Number(lockFee),
     amount: String(Number(gasFee) + Number(lockFee)),
     balance: availableBalance,
-  }))
+  }));
   useMount(() => {
     dispatch(setupTmpAvailableBalance(loginAccount));
   });
@@ -109,55 +111,65 @@ export const Fee = forwardRef((props, ref) => {
         <Text>Total Fees</Text>
         <Text justifySelf={'flex-end'}>
           {renderFeeValue(String(Number(gasFee) + Number(lockFee)), exchangeRate)}
-          <MenuCloseIcon sx={{
-          transform: isOpen? 'rotate(180deg)': 'rotate(0deg)',
-        }}/>
+          <MenuCloseIcon
+            sx={{
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          />
         </Text>
-
       </Flex>
-      <Box borderTop="1px solid #AEB4BC" display={isOpen? 'none': 'block'}>
-      <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
-        {renderFee(
-          'Pre-locked storage fee',
-          lockFee,
-          +exchangeRate,
-          <Tips
-            iconSize={'14px'}
-            containerWidth={'308px'}
-            tips={
-              <Box width={'308px'} p="8px 12px">
-                <Box
-                  color={'readable.normal'}
-                  fontSize="14px"
-                  lineHeight="1.5"
-                  wordBreak={'break-word'}
-                >
-                  <Box as="p">
-                    For uploading and storing files, besides transaction fee, Greenfield will
-                    prelock a certain amount of BNB and charge the storage fee by a certain flow
-                    rate.
+      <Box borderTop="1px solid #AEB4BC" display={isOpen ? 'none' : 'block'}>
+        <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
+          {renderFee(
+            'Pre-locked storage fee',
+            lockFee,
+            +exchangeRate,
+            <Tips
+              iconSize={'14px'}
+              containerWidth={'308px'}
+              tips={
+                <Box width={'308px'} p="0px 7px">
+                  <Box
+                    color={'readable.normal'}
+                    fontSize="14px"
+                    lineHeight="1.5"
+                    wordBreak={'break-word'}
+                  >
+                    <Box as="p">
+                      To upload and store objects on Greenfield, in addition to the transaction fee,
+                      a certain amount of BNB will be pre-locked for 6 months of storage. The
+                      storage fee will be charged based on the flow rate.{' '}
+                      <Link
+                        href="https://docs.nodereal.io/docs/dcellar-faq#fee-related"
+                        target="_blank"
+                        color="readable.primary"
+                        textDecoration="underline"
+                        _hover={{ color: 'readable.brand5' }}
+                      >
+                        Learn more
+                      </Link>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            }
-          />,
-        )}
-        {renderFee('Gas fee', gasFee + '', +exchangeRate)}
-      </Flex>
-      <Flex w={'100%'} justifyContent={'space-between'} >
-        {/*todo correct the error showing logics*/}
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {!isChecking &&
-            renderInsufficientBalance(gasFee + '', lockFee, availableBalance || '0', {
-              gaShowName: 'dc.file.upload_modal.transferin.show',
-              gaClickName: 'dc.file.upload_modal.transferin.click',
-            })}
-        </Text>
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-          Available balance: {renderBalanceNumber(availableBalance || '0')}
-        </Text>
+              }
+            />,
+          )}
+          {renderFee('Gas fee', gasFee + '', +exchangeRate)}
         </Flex>
-        </Box>
+        <Flex w={'100%'} justifyContent={'space-between'}>
+          {/*todo correct the error showing logics*/}
+          <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
+            {!isChecking &&
+              renderInsufficientBalance(gasFee + '', lockFee, availableBalance || '0', {
+                gaShowName: 'dc.file.upload_modal.transferin.show',
+                gaClickName: 'dc.file.upload_modal.transferin.click',
+              })}
+          </Text>
+          <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
+            Available balance: {renderBalanceNumber(availableBalance || '0')}
+          </Text>
+        </Flex>
+      </Box>
     </Flex>
   );
 });

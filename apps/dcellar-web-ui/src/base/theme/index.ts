@@ -18,7 +18,6 @@ export const theme = {
     global: {
       body: {
         bg: 'transparent',
-
         '.ui-toast-manager': {
           top: 65,
           maxW: '500px',

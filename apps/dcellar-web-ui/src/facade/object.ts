@@ -1,4 +1,4 @@
-import { IObjectProps, IObjectResultType, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, IObjectResultType, TListObjects, IQuotaProps, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
@@ -13,7 +13,10 @@ import {
   simulateFault,
 } from '@/facade/error';
 import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
-import { MsgUpdateObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import {
+  MsgPutPolicy,
+  MsgUpdateObjectInfo,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
 import { getClient } from '@/base/client';
 import { signTypedDataCallback } from '@/facade/wallet';
@@ -69,8 +72,16 @@ export const getCanObjectAccess = async (
   objectName: string,
   endpoint: string,
   loginAccount: string,
-): Promise<[boolean, ErrorMsg?]> => {
-  const [info, quota] = await getObjectInfoAndBucketQuota(bucketName, objectName, endpoint);
+  seedString: string,
+): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]>  => {
+  const params = {
+    bucketName,
+    objectName,
+    endpoint,
+    address: loginAccount,
+    seedString,
+  }
+  const [info, quota] = await getObjectInfoAndBucketQuota(params);
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
@@ -79,7 +90,7 @@ export const getCanObjectAccess = async (
 
   if (!quota) return [false, E_UNKNOWN];
   if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
-  return [true];
+  return [true, '', info, quota];
 };
 
 export type DownloadPreviewParams = {
@@ -161,7 +172,7 @@ export type ListObjectsParams = {
 };
 
 export type IObjectList = {
-  objects: IObjectProps[];
+  objects: IObjectResponse[];
   key_count: string;
   max_keys: string;
   is_truncated: boolean;
@@ -174,34 +185,15 @@ export type IObjectList = {
 };
 
 export const getListObjects = async (
-  params: ListObjectsParams,
+  params: TListObjects,
 ): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
-  const domain = getDomain();
   const client = await getClient();
-  const payload = { domain, ...params };
+  const payload = params;
   const [list, error] = (await client.object
     .listObjects(payload)
     .then(resolve, commonFault)) as any;
   if (error) return [null, error];
   return [list! as IObjectResultType<IObjectList>, null];
-};
-
-export const getShareLink = (bucketName: string, objectName: string) => {
-  const params = [bucketName, objectName || ''].join('/');
-
-  return `${location.origin}/share?file=${encodeURIComponent(params)}`;
-};
-
-export const getDirectDownloadLink = ({
-  primarySpEndpoint,
-  bucketName,
-  objectName,
-}: {
-  primarySpEndpoint: string;
-  bucketName: string;
-  objectName: string;
-}) => {
-  return encodeURI(`${primarySpEndpoint}/download/${bucketName}/${encodeObjectName(objectName)}`);
 };
 
 export const deleteObject = async (params: any, Connector: any): Promise<any> => {
@@ -270,4 +262,27 @@ export const headObject = async (bucketName: string, objectName: string) => {
     .headObject(bucketName, objectName)
     .catch(() => ({} as QueryHeadObjectResponse));
   return objectInfo || null;
+};
+
+export const putObjectPolicy = async (
+  connector: Connector,
+  bucketName: string,
+  objectName: string,
+  srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>,
+): BroadcastResponse => {
+  const client = await getClient();
+  const tx = await client.object.putObjectPolicy(bucketName, objectName, srcMsg);
+  const [simulateInfo, simulateError] = await tx
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: srcMsg.operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };

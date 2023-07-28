@@ -3,7 +3,7 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
 import { find, last, omit, trimEnd } from 'lodash-es';
-import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { SpItem } from './sp';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
@@ -57,6 +57,9 @@ export type TUploading = {
   fileInfos: TFileItem[];
   visibility: VisibilityType;
 };
+
+export type ObjectActionType = 'view' | 'download' | '';
+
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -64,16 +67,15 @@ export interface ObjectState {
   path: string;
   objects: Record<string, ObjectItem[]>;
   objectsMeta: Record<string, Omit<IObjectList, 'objects' | 'common_prefixes'>>;
-  objectsInfo: Record<string, IObjectProps>;
+  objectsInfo: Record<string, IObjectResponse>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
   editDetail: ObjectItem;
   editDelete: ObjectItem;
   editCreate: boolean;
-  editDownload: ObjectItem;
+  editDownload: ObjectItem & { action?: ObjectActionType };
   editShare: ObjectItem;
   editCancel: ObjectItem;
-  primarySp: SpItem;
   statusDetail: TStatusDetail;
   editUpload: number;
   uploading: TUploading;
@@ -92,11 +94,10 @@ const initialState: ObjectState = {
   editDetail: {} as ObjectItem,
   editDelete: {} as ObjectItem,
   editCreate: false,
-  editDownload: {} as ObjectItem,
+  editDownload: {} as ObjectItem & { action?: ObjectActionType },
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  primarySp: {} as SpItem,
   editUpload: 0,
   uploading: {
     visibility: 2,
@@ -111,6 +112,25 @@ export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    updateObjectVisibility(
+      state,
+      { payload }: PayloadAction<{ object: ObjectItem; visibility: number }>,
+    ) {
+      const { object, visibility } = payload;
+      const path = state.path;
+      const item = find<ObjectItem>(
+        state.objects[path] || [],
+        (i) => i.objectName === object.objectName,
+      );
+      if (state.editDetail.objectName === object.objectName) {
+        state.editDetail.visibility = visibility;
+      }
+      if (!item) return;
+      item.visibility = visibility;
+      const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
+      if (!info) return;
+      info.object_info.visibility = visibility;
+    },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
       const { path, folder } = payload;
       const items = state.objects[path];
@@ -154,9 +174,6 @@ export const objectSlice = createSlice({
       state.prefix = !folders.length ? '' : folders.join('/') + '/';
       state.path = [bucketName, ...folders].join('/');
     },
-    setPrimarySp(state, { payload }: PayloadAction<SpItem>) {
-      state.primarySp = payload;
-    },
     setEditCreate(state, { payload }: PayloadAction<boolean>) {
       state.editCreate = payload;
     },
@@ -184,7 +201,7 @@ export const objectSlice = createSlice({
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
       state.editShare = payload;
     },
-    setEditDownload(state, { payload }: PayloadAction<ObjectItem>) {
+    setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
@@ -232,20 +249,20 @@ export const objectSlice = createSlice({
         .filter((i) => !i.objectName.endsWith('/') && !i.removed);
 
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
-      state.objects[path] = folders.concat(objects);
+      state.objects[path] = folders.concat(objects as ObjectItem[]);
     },
   },
 });
 
-const _getAllList = async (
-  params: ListObjectsParams,
+export const _getAllList = async (
+  params: TListObjects,
 ): Promise<[IObjectList, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
   const list = res.body!;
   const token = list.next_continuation_token;
   if (token) {
-    params.query.set('continuation-token', token);
+    params.query?.set('continuation-token', token);
     const [res, error] = await _getAllList(params);
     if (error) return [null, error];
     const newList = res!;
@@ -282,10 +299,10 @@ export const setupDummyFolder =
       }),
     );
   };
-
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
+
     const { prefix, bucketName, path, restoreCurrent } = getState().object;
     const { loginAccount: address } = getState().persist;
     dispatch(setRestoreCurrent(true));
@@ -335,7 +352,6 @@ export const {
   setEditDelete,
   setEditCreate,
   setEditDownload,
-  setPrimarySp,
   setStatusDetail,
   setEditShare,
   setEditUpload,
@@ -343,6 +359,7 @@ export const {
   setUploading,
   updateObjectStatus,
   setDummyFolder,
+  updateObjectVisibility,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

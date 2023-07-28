@@ -66,7 +66,9 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { bucketName, folders, objects, path} = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { sps } = useAppSelector((root) => root.sp);
@@ -118,6 +120,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         gasLimit: Number(simulateInfo?.gasLimit),
         gasPrice: simulateInfo?.gasPrice || '5000000000',
         payer: address,
+        granter: '',
         signTypedDataCallback,
       })
       .then(resolve, broadcastFault);
@@ -242,18 +245,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     const fullPath = getPath(folderName, folders);
     const file = new File([], fullPath, { type: 'text/plain' });
     const domain = getDomain();
-    //@ts-ignore TODO
     const { seedString } = await dispatch(getSpOffChainData(address, primarySp.operatorAddress));
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const secondarySpAddresses = sps
-      .filter((item: any) => item.operatorAddress !== primarySp.operatorAddress)
-      .map((item: any) => item.operatorAddress);
-    const spInfo = {
-      endpoint: primarySp?.endpoint,
-      primarySpAddress: primarySp?.operatorAddress,
-      sealAddress: primarySp?.sealAddress,
-      secondarySpAddresses,
-    };
     const createObjectPayload: TCreateObjectByOffChainAuth = {
       bucketName,
       objectName: fullPath,
@@ -262,7 +255,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       fileType: file.type,
       contentLength: file.size,
       expectCheckSums: hashResult?.expectCheckSums || [],
-      spInfo,
       signType: 'offChainAuth',
       domain,
       seedString,

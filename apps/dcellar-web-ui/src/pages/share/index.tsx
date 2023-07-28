@@ -20,7 +20,8 @@ import { ShareLogin } from '@/modules/share/ShareLogin';
 import { Header } from '@/components/layout/Header';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -36,14 +37,19 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
   const { objectName, fileName, bucketName } = props;
   const title = `${bucketName} - ${fileName}`;
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const dispatch = useAppDispatch();
 
   useAsyncEffect(async () => {
     if (!oneSp) return;
-    const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    const params = {
       bucketName,
       objectName,
-      spInfo[oneSp].endpoint,
-    );
+      endpoint: spInfo[oneSp].endpoint,
+      seedString,
+      address: loginAccount,
+    }
+    const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(params);
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
   }, [oneSp]);

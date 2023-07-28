@@ -1,7 +1,9 @@
 import { parseError } from '../utils/parseError';
 import { getClient } from '@/base/client';
-import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteBucketTypeUrl, TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import axios from 'axios';
+import { TGasList } from '@/store/slices/global';
 
 export const pollingCreateAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
@@ -9,27 +11,19 @@ export const pollingCreateAsync =
     while (true) {
       await new Promise((resolve) => setTimeout(resolve, interval));
       try {
-        const { bucketName } = args[0] as any;
         const result = (await fn(...args)) as any;
-        if (result.code === 0) {
-          const theNewBucket = (result.body || []).find(
-            (item: any) => item.bucket_info.bucket_name === bucketName,
-          );
-          if (theNewBucket !== undefined) {
+        const { data } = result;
+        if (data) {
+          const newBucket = data.bucket;
+          if (newBucket?.bucket_info?.bucket_name === args[0].bucketName) {
             return;
           }
-          // continue
-        } else {
-          return;
         }
-
-        // continue
       } catch (e: any) {
         const { code } = parseError(e?.message);
         if (+code !== 6) {
           throw e;
         }
-        // continue
       }
     }
   };
@@ -39,26 +33,14 @@ export const pollingDeleteAsync =
   async (...args: T): Promise<any> => {
     await new Promise((resolve) => setTimeout(resolve, interval));
     while (true) {
+      const res = (await fn(...args)) as any;
       try {
-        const { bucketName } = args[0] as any;
-        const result = (await fn(...args)) as any;
-        if (result.code === 0) {
-          const theNewBucket = (result.body || []).find(
-            (item: any) => item.bucket_info.bucket_name === bucketName,
-          );
-          if (theNewBucket === undefined || theNewBucket.removed === true) {
-            return;
-          }
-          // continue
-        } else {
+        if (res.status === 500) {
           return;
         }
-        // continue
       } catch (e: any) {
-        const { code, message } = parseError(e?.message);
-        if (code === -1 && message === 'Address is empty, please check.') {
-          return;
-        } else {
+        const { code } = parseError(e?.message);
+        if (+code !== 6) {
           throw e;
         }
       }
@@ -78,22 +60,26 @@ export const getUserBuckets = async (params: {
   const client = await getClient();
   return client.bucket.getUserBuckets(params);
 };
-
+export const getBucketMeta = async (params: {
+  bucketName: string;
+  address: string;
+  endpoint: string;
+}) => {
+  const { bucketName, endpoint } = params;
+  const url = `${endpoint}/${bucketName}?bucket-meta`;
+  const res = await axios.get(url)
+    .catch((e) => {
+      return e.response;
+    });
+  return res;
+};
 // TODO This is a temp solution
-export const pollingGetBucket = pollingCreateAsync(getUserBuckets, 500);
-export const pollingDeleteBucket = pollingDeleteAsync(getUserBuckets, 500);
+export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
 
-export const getDeleteBucketFee = async ({ bucketName, address }: any) => {
-  const client = await getClient();
-  const deleteBucketTx = await client.bucket.deleteBucket({
-    bucketName: bucketName,
-    operator: address,
-  });
-  const simulateInfo = await deleteBucketTx.simulate({
-    denom: 'BNB',
-  });
+export const pollingDeleteBucket = pollingDeleteAsync(getBucketMeta, 500);
 
-  return simulateInfo.gasFee;
+export const getDeleteBucketFee = async (gasList: TGasList) => {
+  return String(gasList[MsgDeleteBucketTypeUrl]?.gasFee ?? 0);
 };
 
 export const genCreateBucketTx = async (configParam: TCreateBucket) => {

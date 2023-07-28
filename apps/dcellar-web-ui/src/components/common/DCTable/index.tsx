@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Table, ConfigProvider, TableProps, ThemeConfig, Progress } from 'antd';
+import { Table, ConfigProvider, TableProps, ThemeConfig } from 'antd';
 import { ConfigProviderProps } from 'antd/es/config-provider';
 import styled from '@emotion/styled';
 import {
@@ -15,6 +15,8 @@ import { find } from 'lodash-es';
 import { formatBytes } from '@/modules/file/utils';
 
 export type AlignType = 'left' | 'right' | 'center';
+
+export type FixedType = 'left' | 'right' | boolean;
 
 const theme: ThemeConfig = {
   token: {
@@ -119,7 +121,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 
   const file = find<UploadFile>(
     queue,
-    (q) => [q.bucketName, ...q.folders, q.file.name].join('/') === object,
+    (q) => [q.bucketName, ...q.prefixFolders, q.file.name].join('/') === object,
   );
 
   const failed = (
@@ -183,6 +185,7 @@ const Container = styled.div`
   box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
   background: #fff;
   padding: 0 16px;
+  position: relative;
   .ant-table-thead > tr > th {
     background: #fff;
     &:before {
@@ -205,5 +208,13 @@ const Container = styled.div`
 
   .ant-spin-nested-loading > div > .ant-spin {
     max-height: max-content;
+  }
+
+  .ant-table-ping-left:not(.ant-table-has-fix-left) .ant-table-container::before {
+    display: none;
+  }
+
+  .ant-table-ping-right:not(.ant-table-has-fix-right) .ant-table-container::after {
+    display: none;
   }
 `;

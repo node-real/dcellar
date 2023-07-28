@@ -1,7 +1,12 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import styled from '@emotion/styled';
-import { ObjectItem, setCurrentObjectPage, setEditDownload, setStatusDetail } from '@/store/slices/object';
+import {
+  ObjectItem,
+  setCurrentObjectPage,
+  setEditDownload,
+  setStatusDetail,
+} from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { contentIconTypeToExtension } from '@/modules/file/utils';
 import { Image, Tooltip } from '@totejs/uikit';
@@ -12,9 +17,16 @@ import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { previewObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
+import {
+  E_GET_QUOTA_FAILED,
+  E_NO_QUOTA,
+  E_OBJECT_NAME_EXISTS,
+  E_OFF_CHAIN_AUTH,
+  E_UNKNOWN,
+} from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
 import { setupBucketQuota } from '@/store/slices/bucket';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface NameItemProps {
   item: ObjectItem;
@@ -22,13 +34,13 @@ interface NameItemProps {
 
 export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const dispatch = useAppDispatch();
+  const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const { bucketName, primarySp } = useAppSelector((root) => root.object);
+  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { bucketName } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
-  const {
-    loginAccount,
-    accounts,
-  } = useAppSelector((root) => root.persist);
+  const { loginAccount, accounts } = useAppSelector((root) => root.persist);
   const icon = (
     <Image
       src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
@@ -38,6 +50,9 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
     />
   );
   const onError = (type: string) => {
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
@@ -47,11 +62,15 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
     if (config.directDownload) {
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const gParams = {
         bucketName,
-        object.objectName,
-        primarySp.endpoint,
-      );
+        objectName: object.objectName,
+        endpoint: primarySp.endpoint,
+        seedString,
+        address: loginAccount,
+      }
+      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -64,20 +83,17 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
-        primarySp: primarySp,
+        primarySp,
         objectInfo,
         address: loginAccount,
       };
-
-      const operator = primarySp.operatorAddress;
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await previewObject(params, seedString);
       if (opsError) return onError(opsError);
       dispatch(setupBucketQuota(bucketName));
       return success;
     }
 
-    return dispatch(setEditDownload(object));
+    return dispatch(setEditDownload({ ...object, action: 'view' }));
   };
 
   const content = (

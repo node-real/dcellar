@@ -1,27 +1,21 @@
 import {
-  Image,
-  Text,
-  Flex,
-  Link,
   Divider,
-  QDrawerHeader,
+  Flex,
+  Image,
+  Link,
+  QDrawerBody,
   QDrawerCloseButton,
   QDrawerFooter,
-  QDrawerBody,
+  QDrawerHeader,
+  Text,
 } from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
-import { directlyDownload, formatBytes } from '@/modules/file/utils';
+import { formatBytes } from '@/modules/file/utils';
 import { CopyText } from '@/components/common/CopyText';
-import { encodeObjectName, formatAddress, trimAddress, formatId } from '@/utils/string';
+import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useState } from 'react';
-import {
-  BUTTON_GOT_IT,
-  NOT_ENOUGH_QUOTA,
-  NOT_ENOUGH_QUOTA_ERROR,
-  NOT_ENOUGH_QUOTA_URL,
-  FILE_INFO_IMAGE_URL,
-} from '@/modules/file/constant';
+import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
@@ -29,22 +23,19 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  ObjectActionType,
   ObjectItem,
-  TStatusDetail,
   setEditDetail,
   setEditDownload,
-  setEditShare,
   setStatusDetail,
 } from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { VisibilityType } from '@/modules/file/type';
-import { downloadObject, getDirectDownloadLink, getShareLink } from '@/facade/object';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { quotaRemains } from '@/facade/bucket';
+import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_UNKNOWN } from '@/facade/error';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { SharePermission } from '@/modules/object/components/SharePermission';
 
 interface modalProps {}
 
@@ -229,21 +220,18 @@ const renderVisibilityTag = (visibility: any) => {
 
 export const DetailObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
-
+  const [action, setAction] = useState<ObjectActionType>('');
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount];
   const { setOpenAuthModal } = useOffChainAuth();
-  const { editDetail, bucketName, primarySp, objectsInfo, path } = useAppSelector(
+  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { editDetail, bucketName, objectsInfo, path } = useAppSelector(
     (root) => root.object,
   );
+  const primarySp = primarySpInfo[bucketName];
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
-  const { spInfo } = useAppSelector((root) => root.sp);
 
-  const {
-    quotas: { consumedQuota, freeQuota, readQuota },
-  } = useAppSelector((root) => root.bucket);
-  const remainingQuota = Number(readQuota) - Number(freeQuota) - Number(consumedQuota);
   const isOpen = !!editDetail.name;
   const onClose = () => {
     dispatch(setEditDetail({} as ObjectItem));
@@ -251,19 +239,47 @@ export const DetailObject = (props: modalProps) => {
     document.documentElement.style.overflowY = '';
   };
 
-  const shareLink = getShareLink(bucketName, editDetail?.objectName);
-  const directDownloadLink = getDirectDownloadLink({
-    bucketName,
-    objectName: editDetail?.objectName,
-    primarySpEndpoint: primarySp?.endpoint,
-  });
-  const [downloadButtonDisabled, setDownloadButtonDisabled] = useState(false);
   const onError = (type: string) => {
+    setAction('');
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
     dispatch(setStatusDetail(errorData));
+  };
+
+  const onAction = async (e: ObjectActionType) => {
+    if (action === e) return;
+    if (!allowDirectDownload) {
+      return dispatch(setEditDownload({ ...editDetail, action: e }));
+    }
+    const objectName = editDetail.objectName;
+    const endpoint = primarySp.endpoint;
+    setAction(e);
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const [_, accessError, objectInfo] = await getCanObjectAccess(
+      bucketName,
+      objectName,
+      endpoint,
+      loginAccount,
+      seedString,
+    );
+    if (accessError) return onError(accessError);
+
+    const params = {
+      primarySp,
+      objectInfo: objectInfo!,
+      address: loginAccount,
+    };
+    const [success, opsError] = await (e === 'download'
+      ? downloadObject(params, seedString)
+      : previewObject(params, seedString));
+    if (opsError) return onError(opsError);
+    setAction('');
+    return success;
   };
 
   return (
@@ -279,14 +295,14 @@ export const DetailObject = (props: modalProps) => {
         </QDrawerHeader>
         <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
         <QDrawerBody>
-          <Flex my="32px" flexDirection={'column'} alignItems={'center'} display={'flex'}>
+          <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
             <Flex w="100%" overflow="hidden">
-              <Image src={FILE_INFO_IMAGE_URL} boxSize={120} mr={'24px'} alt="" />
+              <Image src={FILE_INFO_IMAGE_URL} boxSize={48} mr={'24px'} alt="" />
               <Flex flex={1} flexDirection={'column'}>
                 <Text
-                  fontSize={'14px'}
-                  lineHeight={'17px'}
-                  fontWeight={500}
+                  fontSize={18}
+                  fontWeight={600}
+                  lineHeight="normal"
                   wordBreak={'break-all'}
                   color={'readable.normal'}
                   mb="8px"
@@ -295,32 +311,21 @@ export const DetailObject = (props: modalProps) => {
                   {editDetail.name}
                 </Text>
                 <Text
-                  fontSize={'12px'}
-                  lineHeight={'15px'}
-                  fontWeight={400}
+                  fontSize={14}
+                  lineHeight="normal"
+                  fontWeight={500}
                   wordBreak={'break-all'}
                   color={'readable.tertiary'}
-                  mb="12px"
                   w={'100%'}
                   as="div"
                 >
                   {formatBytes(editDetail.payloadSize)}
                 </Text>
-                <Flex>
-                  <Flex
-                    h={'24px'}
-                    bg={'rgba(0, 186, 52, 0.1)'}
-                    paddingX={'10px'}
-                    borderRadius={'12px'}
-                  >
-                    {renderVisibilityTag(editDetail.visibility)}
-                  </Flex>
-                </Flex>
               </Flex>
             </Flex>
           </Flex>
           <Divider />
-          <Flex mt={16} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
+          <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
             {renderPropRow(
               'Date Created',
               formatFullTime(+objectInfo.object_info.create_at * 1000),
@@ -370,77 +375,27 @@ export const DetailObject = (props: modalProps) => {
                 ),
               )}
           </Flex>
+          <Divider />
+          <SharePermission />
         </QDrawerBody>
         {editDetail.objectStatus === 1 && (
           <QDrawerFooter flexDirection={'column'}>
             <Flex w={'100%'}>
-              {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ && (
-                <DCButton
-                  variant={'dcGhost'}
-                  flex={1}
-                  mr={'16px'}
-                  borderColor={'readable.normal'}
-                  gaClickName="dc.file.f_detail_pop.share.click"
-                  onClick={() => {
-                    dispatch(setEditShare(editDetail));
-                    onClose();
-                  }}
-                >
-                  Share
-                </DCButton>
-              )}
+              <DCButton
+                variant={'dcGhost'}
+                flex={1}
+                mr={'16px'}
+                borderColor={'readable.normal'}
+                gaClickName="dc.file.f_detail_pop.share.click"
+                onClick={() => onAction('view')}
+              >
+                Preview
+              </DCButton>
               <DCButton
                 variant={'dcPrimary'}
                 flex={1}
-                isDisabled={downloadButtonDisabled}
                 gaClickName="dc.file.f_detail_pop.download.click"
-                onClick={async () => {
-                  const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
-                    bucketName,
-                    editDetail.objectName,
-                    spInfo[primarySp.operatorAddress].endpoint,
-                  );
-                  const remainQuota = quotaRemains(quotaData!, editDetail.payloadSize + '');
-                  if (!remainQuota) {
-                    onClose();
-                    return dispatch(
-                      setStatusDetail({
-                        icon: NOT_ENOUGH_QUOTA_URL,
-                        title: NOT_ENOUGH_QUOTA,
-                        errorText: '',
-                        desc: NOT_ENOUGH_QUOTA_ERROR,
-                        buttonText: BUTTON_GOT_IT,
-                        buttonOnClick: () => {
-                          dispatch(setStatusDetail({} as TStatusDetail));
-                        },
-                      }),
-                    );
-                  }
-                  if (allowDirectDownload) {
-                    if (
-                      directDownloadLink &&
-                      editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ
-                    ) {
-                      return directlyDownload(directDownloadLink);
-                    } else {
-                      const params = {
-                        primarySp,
-                        objectInfo: objectInfo!,
-                        address: loginAccount,
-                      };
-                      const operator = primarySp.operatorAddress;
-                      const { seedString } = await dispatch(
-                        getSpOffChainData(loginAccount, operator),
-                      );
-                      const [success, opsError] = await downloadObject(params, seedString);
-                      if (opsError) return onError(opsError);
-                      dispatch(setupBucketQuota(bucketName));
-
-                      return success;
-                    }
-                  }
-                  return dispatch(setEditDownload(editDetail));
-                }}
+                onClick={() => onAction('download')}
               >
                 Download
               </DCButton>
