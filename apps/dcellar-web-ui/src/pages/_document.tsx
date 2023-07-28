@@ -32,6 +32,7 @@ export default function Document() {
         ></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec.js?v1`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_init.js?v1`}></script>
+        <link rel="icon prefetch" href={`${assetPrefix}/wasm/main.wasm`} />
       </Head>
       <body>
         <Main />
