@@ -133,7 +133,7 @@ export const Fee = () => {
         <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
           {renderFee(
             'Pre-locked storage fee',
-            lockFee,
+            lockFee + '',
             +exchangeRate,
             <Tips
               iconSize={'14px'}
@@ -171,7 +171,7 @@ export const Fee = () => {
           {/*todo correct the error showing logics*/}
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
             {!isChecking &&
-              renderInsufficientBalance(gasFee + '', lockFee, availableBalance || '0', {
+              renderInsufficientBalance(gasFee + '', lockFee + '', availableBalance || '0', {
                 gaShowName: 'dc.file.upload_modal.transferin.show',
                 gaClickName: 'dc.file.upload_modal.transferin.click',
               })}
