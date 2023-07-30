@@ -195,7 +195,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'32px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee, lockFee, availableBalance || '0')}
+          {renderInsufficientBalance(simulateGasFee, '0', availableBalance || '0')}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
           Available balance: {renderBalanceNumber(availableBalance || '0')}

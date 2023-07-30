@@ -7,16 +7,16 @@ import React, { useMemo } from 'react';
 import { formatBytes } from '../file/utils';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { CloseIcon } from '@totejs/icons';
-import { removeFromHashQueue } from '@/store/slices/global';
+import { removeFromWaitQueue } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 
 type ListItemProps = { path: string; type: 'ALL' | 'WAIT' | 'ERROR' };
 
 export const ListItem = ({ path, type }: ListItemProps) => {
   const dispatch = useAppDispatch();
-  const { hashQueue: selectedFiles } = useAppSelector((root) => root.global);
+  const { waitQueue: selectedFiles } = useAppSelector((root) => root.global);
   const onRemoveClick = (id: number) => {
-    dispatch(removeFromHashQueue({ id }));
+    dispatch(removeFromWaitQueue({ id }));
   };
   const list = useMemo(() => {
     switch (type) {

@@ -3,8 +3,8 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import { Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip } from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
-import { setEditCreate, setEditUpload } from '@/store/slices/object';
-import { addToHashQueue } from '@/store/slices/global';
+import { setEditCreate, setEditUploadStatus } from '@/store/slices/object';
+import { addToWaitQueue } from '@/store/slices/global';
 import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 
@@ -40,7 +40,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     console.log(e);
-    console.log('files', e.target.files, typeof e.target.files);
     const files = e.target.files;
     if (!files || !files.length) return;
     const uploadIds: number[] = [];
@@ -48,9 +47,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       const time = getUtcZeroTimestamp();
       const id = parseInt(String(time * Math.random()));
       uploadIds.push(id);
-      dispatch(addToHashQueue({ id, file, time }));
+      dispatch(addToWaitQueue({ id, file, time }));
     });
-    dispatch(setEditUpload(1));
+    dispatch(setEditUploadStatus(true));
     e.target.value = '';
   };
 

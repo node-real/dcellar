@@ -253,7 +253,7 @@ export const DetailObject = (props: modalProps) => {
 
   const onAction = async (e: ObjectActionType) => {
     if (action === e) return;
-    if (!allowDirectDownload) {
+    if (!allowDirectDownload && e === 'download') {
       return dispatch(setEditDownload({ ...editDetail, action: e }));
     }
     const objectName = editDetail.objectName;
@@ -274,6 +274,7 @@ export const DetailObject = (props: modalProps) => {
       objectInfo: objectInfo!,
       address: loginAccount,
     };
+    debugger;
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));

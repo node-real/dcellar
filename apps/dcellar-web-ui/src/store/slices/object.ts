@@ -46,11 +46,6 @@ export type TFileItem = {
   txnHash?: string;
 };
 
-export type TEditUpload = {
-  isOpen: boolean;
-  fileInfos: TFileItem[];
-  visibility: VisibilityType;
-};
 export type TUploading = {
   isOpen: boolean;
   isLoading: boolean;
@@ -60,6 +55,13 @@ export type TUploading = {
 
 export type ObjectActionType = 'view' | 'download' | '';
 
+export type TEditUploadContent = {
+  gasFee: string;
+  preLockFee: string;
+  totalFee: string;
+  isBalanceAvailable: boolean;
+}
+export type TEditUpload = TEditUploadContent & { isOpen: boolean; }
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -77,7 +79,7 @@ export interface ObjectState {
   editShare: ObjectItem;
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
-  editUpload: number;
+  editUpload: TEditUpload;
   uploading: TUploading;
 }
 
@@ -98,7 +100,7 @@ const initialState: ObjectState = {
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  editUpload: 0,
+  editUpload: {} as TEditUpload,
   uploading: {
     visibility: 2,
     isOpen: false,
@@ -186,8 +188,14 @@ export const objectSlice = createSlice({
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setEditUpload(state, { payload }: PayloadAction<number>) {
-      state.editUpload = payload;
+    setEditUploadStatus(state, {payload}: PayloadAction<boolean>) {
+      state.editUpload.isOpen = payload;
+    },
+    setEditUpload(state, { payload }: PayloadAction<TEditUploadContent>) {
+      state.editUpload = {
+        ...state.editUpload,
+        ...payload
+      };
     },
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
@@ -301,29 +309,29 @@ export const setupDummyFolder =
   };
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
+    async (dispatch: AppDispatch, getState: GetState) => {
 
-    const { prefix, bucketName, path, restoreCurrent } = getState().object;
-    const { loginAccount: address } = getState().persist;
-    dispatch(setRestoreCurrent(true));
-    if (!restoreCurrent) {
-      dispatch(setCurrentObjectPage({ path, current: 0 }));
-    }
-    const _query = new URLSearchParams(params.query?.toString() || '');
-    _query.append('max-keys', '1000');
-    _query.append('delimiter', '/');
-    if (prefix) _query.append('prefix', prefix);
-    // support any path list objects, bucketName & _path
-    const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
-    // fix refresh then nav to other pages.
-    if (!bucketName) return;
-    const [res, error] = await _getAllList(payload);
-    if (error) {
-      toast.error({ description: error });
-      return;
-    }
-    dispatch(setObjectList({ path: _path || path, list: res! }));
-  };
+      const { prefix, bucketName, path, restoreCurrent } = getState().object;
+      const { loginAccount: address } = getState().persist;
+      dispatch(setRestoreCurrent(true));
+      if (!restoreCurrent) {
+        dispatch(setCurrentObjectPage({ path, current: 0 }));
+      }
+      const _query = new URLSearchParams(params.query?.toString() || '');
+      _query.append('max-keys', '1000');
+      _query.append('delimiter', '/');
+      if (prefix) _query.append('prefix', prefix);
+      // support any path list objects, bucketName & _path
+      const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
+      // fix refresh then nav to other pages.
+      if (!bucketName) return;
+      const [res, error] = await _getAllList(payload);
+      if (error) {
+        toast.error({ description: error });
+        return;
+      }
+      dispatch(setObjectList({ path: _path || path, list: res! }));
+    };
 export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
   dispatch(setStatusDetail({} as TStatusDetail));
 };
@@ -355,6 +363,7 @@ export const {
   setStatusDetail,
   setEditShare,
   setEditUpload,
+  setEditUploadStatus,
   setEditCancel,
   setUploading,
   updateObjectStatus,

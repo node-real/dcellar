@@ -39,14 +39,14 @@ import { isUTF8 } from '../file/utils/file';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { TStatusDetail, setEditUpload, setStatusDetail } from '@/store/slices/object';
+import { TEditUpload, TStatusDetail, setEditUpload, setEditUploadStatus, setStatusDetail } from '@/store/slices/object';
 import {
   addTasksToUploadQueue,
-  resetHashQueue,
+  resetWaitQueue,
   setTaskManagement,
   setTmpAccount,
-  updateHashStatus,
-  updateHashTaskMsg,
+  updateWaitFileStatus,
+  updateWaitTaskMsg,
 } from '@/store/slices/global';
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
@@ -60,32 +60,26 @@ import { parseEther } from 'ethers/lib/utils.js';
 
 const MAX_SIZE = 256;
 
-type TSimulateFee = {
-  isBalanceAvailable: boolean;
-  amount: string;
-  balance: string;
-};
-
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
-  const feeRef = useRef<TSimulateFee>();
-  const { editUpload, path, objects } = useAppSelector((root) => root.object);
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { editUpload, bucketName, path, objects } = useAppSelector((root) => root.object);
   const {primarySpInfo} = useAppSelector((root) => root.sp);
-  const { bucketName, folders } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { hashQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
+  const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
-  const selectedFiles = hashQueue;
+  const selectedFiles = waitQueue;
   const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
   const [creating, setCreating] = useState(false);
   const { tabOptions, activeKey, setActiveKey } = useTab();
 
   const onClose = () => {
-    dispatch(setEditUpload(0));
-    dispatch(resetHashQueue());
+    dispatch(setEditUploadStatus(false))
+    dispatch(setEditUpload({} as TEditUpload));
+    dispatch(resetWaitQueue());
   };
 
   const getErrorMsg = (type: string) => {
@@ -145,12 +139,8 @@ export const UploadObjects = () => {
         desc: FILE_STATUS_UPLOADING,
       }),
     );
-    const { amount, balance } = feeRef.current || {};
-    if (!amount || !balance) {
-      console.error('get total fee error', feeRef.current);
-      return;
-    }
-    const safeAmount = Number(amount) * 1.05 > Number(balance) ? round(Number(balance), 6) : round(Number(amount) * 1.05, 6);
+    const { totalFee: amount } = editUpload;
+    const safeAmount = Number(amount) * 1.05 > Number(availableBalance) ? round(Number(availableBalance), 6) : round(Number(amount) * 1.05, 6);
     const [tmpAccount, error] = await createTmpAccount({
       address: loginAccount,
       bucketName,
@@ -174,17 +164,17 @@ export const UploadObjects = () => {
       const { file, id } = item;
       const error = basicValidate(file);
       if (!error) {
-        dispatch(updateHashStatus({ id, status: 'WAIT' }));
+        dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
         return;
       }
-      dispatch(updateHashTaskMsg({ id, msg: getErrorMsg(error).title }));
+      dispatch(updateWaitTaskMsg({ id, msg: getErrorMsg(error).title }));
     });
   }, [editUpload]);
 
   useUpdateEffect(() => {
     if (selectedFiles.length === 0) {
-      dispatch(setEditUpload(0));
-
+      dispatch(setEditUploadStatus(false))
+      dispatch(setEditUpload({} as TEditUpload));
     }
   }, [selectedFiles.length]);
 
@@ -192,10 +182,10 @@ export const UploadObjects = () => {
     return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects, selectedFiles]);
 
-  const hasSuccess = hashQueue.some((item) => item.status === 'WAIT');
-  console.log('disable status', loading, creating, !hasSuccess, !feeRef.current?.isBalanceAvailable)
+  const hasSuccess = waitQueue.some((item) => item.status === 'WAIT');
+
   return (
-    <DCDrawer isOpen={!!editUpload} onClose={onClose}>
+    <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
       {!isEmpty(selectedFiles) && (
@@ -240,13 +230,13 @@ export const UploadObjects = () => {
             / <strong>{selectedFiles.length} Files</strong>
           </Box>
         </Flex>
-        <Fee ref={feeRef} />
+        <Fee />
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"
             variant={'dcPrimary'}
             onClick={onUploadClick}
-            isDisabled={loading || creating || !hasSuccess || !feeRef.current?.isBalanceAvailable}
+            isDisabled={loading || creating || !hasSuccess || !editUpload.isBalanceAvailable}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >

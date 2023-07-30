@@ -52,7 +52,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   useAsyncEffect(async () => {
     if (!hashTask) return;
     dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
+    const a = performance.now();
     const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
+    console.log('hashing time', performance.now() - a);
     if (isEmpty(res)) {
       dispatch(updateUploadMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
       return;
@@ -71,6 +73,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const runUploadTask = async (task: UploadFile) => {
     // 1. get approval from sp
     const domain = getDomain();
+    debugger;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.file.name].join('/');
     const createObjectPayload: TCreateObject = {
@@ -114,7 +117,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      console.log('error', error)
+      console.log('error', error);
+      dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: error,
+      }));
       return;
     }
     const uploadOptions = await generatePutObjectOptions({
@@ -147,8 +155,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     if (!select3Task.length) return;
     dispatch(updateUploadStatus({ ids: select3Task, status: 'UPLOAD', account: loginAccount }));
     const tasks = queue.filter((t) => select3Task.includes(t.id));
+    console.log('tasks', tasks);
     tasks.forEach(runUploadTask);
-  }, [select3Task.join('')]);
+  }, [select3Task.join(',')]);
 
   useAsyncEffect(async () => {
     if (!sealQueue.length) return;

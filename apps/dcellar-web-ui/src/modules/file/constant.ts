@@ -14,6 +14,7 @@ const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
 const DELETE_ICON_URL = `${assetPrefix}/images/icons/delete.gif`;
 const UPLOAD_IMAGE_URL = `${assetPrefix}/images/files/upload.svg`;
 const FILE_INFO_IMAGE_URL = `${assetPrefix}/images/files/upload_file.svg`;
+const FOLDER_NOT_EMPTY_ICON = `${assetPrefix}/images/buckets/object_not_empty.svg`;
 const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
 
 // status_TITLE
@@ -33,6 +34,7 @@ const FILE_TITLE_DELETE_FAILED = 'Delete Failed';
 const FILE_TITLE_CANCEL_FAILED = 'Cancel Failed';
 const NOT_ENOUGH_QUOTA = 'Not Enough Quota';
 const FOLDER_CREATE_FAILED = 'Create Failed';
+const FOLDER_TITLE_NOT_EMPTY = 'Folder not Empty';
 
 const FILE_TITLE_FILE_TOO_LARGE = 'File is too large';
 const FILE_TITLE_FILE_EMPTY = 'File is empty';
@@ -53,6 +55,8 @@ const FILE_DESCRIPTION_CANCEL_ERROR = `Sorry, there’s something wrong when can
 const NOT_ENOUGH_QUOTA_ERROR = `Sorry, you don’t have enough download quota to download this file now.`;
 const FOLDER_DESCRIPTION_CREATE_ERROR = `Sorry, there’s something wrong when creating the folder.`;
 const BUTTON_GOT_IT = 'Got It';
+const FOLDER_DESC_NOT_EMPTY = 'Only empty folder can be deleted. Please delete all objects in this folder first.';
+
 // file status
 const OBJECT_SEALED_STATUS = 1;
 const OBJECT_CREATE_STATUS = 0;
@@ -130,4 +134,7 @@ export {
   FILE_ACCESS_URL,
   FILE_STATUS_ACCESS,
   FILE_ACCESS,
+  FOLDER_TITLE_NOT_EMPTY,
+  FOLDER_NOT_EMPTY_ICON,
+  FOLDER_DESC_NOT_EMPTY,
 };
