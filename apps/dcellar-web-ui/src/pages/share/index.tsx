@@ -22,6 +22,8 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
+import { SpItem } from '@/store/slices/sp';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -30,7 +32,7 @@ const Container = styled.main`
 `;
 
 const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
-  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
+  const { oneSp, allSps } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
@@ -42,10 +44,12 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
   useAsyncEffect(async () => {
     if (!oneSp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    const [primarySpEndpoint, error] = await getSpUrlByBucketName(bucketName);
+    if (!primarySpEndpoint) return;
     const params = {
       bucketName,
       objectName,
-      endpoint: spInfo[oneSp].endpoint,
+      endpoint: primarySpEndpoint,
       seedString,
       address: loginAccount,
     }

@@ -166,6 +166,7 @@ export const UploadObjects = () => {
       domain,
       seedString,
     };
+    console.log('createObjectPayload', createObjectPayload);
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
       resolve,
       createTxFault,

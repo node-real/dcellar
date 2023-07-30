@@ -87,7 +87,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { spInfo, primarySpInfo} = useAppSelector((root) => root.sp);
+  const { primarySpInfo} = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -289,9 +289,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
-        if (!isPublic) {
-          fitActions = Actions.filter((a) => a.value !== 'share');
-        }
+        // if (!isPublic) {
+        //   fitActions = Actions.filter((a) => a.value !== 'share');
+        // }
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
@@ -310,7 +310,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        isCurRow && !isFolder && isPublic && operations.push('share');
+        isCurRow && !isFolder && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
         return (

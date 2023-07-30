@@ -49,7 +49,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     if (!hashTask) return;
     dispatch(updateHashStatus({ id: hashTask.id, status: 'HASH' }));
     const a = performance.now();
-    console.log('start', a);
     const res = await checksumApi?.generateCheckSumV2(hashTask.file);
     console.log('hashing time', performance.now() - a);
     const params = {

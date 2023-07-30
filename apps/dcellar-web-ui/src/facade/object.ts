@@ -1,4 +1,4 @@
-import { IObjectResponse, IObjectResultType, TListObjects, IQuotaProps, TxResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, IObjectResultType, TListObjects, IQuotaProps, TxResponse, ISimulateGasFee } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
@@ -155,6 +155,7 @@ export const previewObject = async (
   }
 
   const [result, error] = await getObjectBytes(params, seedString);
+  console.log('result', result)
   if (!result) return [false, error];
 
   viewFileByAxiosResponse(result);
@@ -284,4 +285,19 @@ export const putObjectPolicy = async (
     signTypedDataCallback: signTypedDataCallback(connector),
   };
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const preExecDeleteObject = async (bucketName: string, objectName: string, address: string): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
+  const client = await getClient();
+  const deleteBucketTx = await client.object.deleteObject({
+    bucketName,
+    objectName,
+    operator: address,
+  });
+  const [data, error] = await deleteBucketTx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+
+  if (error) return [null, error];
+  return [data!, null];
 };

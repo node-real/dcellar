@@ -42,9 +42,7 @@ export const ObjectsPage = () => {
     const bucket = bucketInfo[bucketName];
     if (!bucket) return;
     const primarySp = primarySpInfo[bucketName];
-      console.log('get primary sp before')
     if (!primarySp) {
-      console.log('get primary sp after')
       const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
       const sp = allSps.find((item) => item.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
       dispatch(setPrimarySpInfo({ bucketName, sp}));
