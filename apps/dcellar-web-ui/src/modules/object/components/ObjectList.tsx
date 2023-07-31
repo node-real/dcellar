@@ -282,12 +282,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         let operations: string[] = [];
         const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
-        const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
-        if (!isPublic) {
-          fitActions = Actions.filter((a) => a.value !== 'share');
-        }
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
@@ -306,7 +302,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        isCurRow && !isFolder && isPublic && operations.push('share');
+        isCurRow && !isFolder && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
         return (
@@ -358,7 +354,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && !deleteFolderNotEmpty &&<DeleteObject refetch={refetch} />}
+      {editDelete?.objectName && !deleteFolderNotEmpty && <DeleteObject refetch={refetch} />}
       {deleteFolderNotEmpty && <FolderNotEmpty />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}

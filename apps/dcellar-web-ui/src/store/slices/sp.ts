@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getStorageProviders } from '@/facade/sp';
+import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import {
   Description,
   StorageProvider,
@@ -17,11 +17,24 @@ const defaultDescription = (): Description => ({
 
 export type SpItem = Omit<StorageProvider, 'description'> & Description;
 
+export type SpMeta = {
+  Description: string;
+  Endpoint: string;
+  FreeReadQuota: number;
+  Latency: number;
+  ReadPrice: string;
+  SPAddress: string;
+  StakedBnb: string;
+  Status: string;
+  StorePrice: string;
+};
+
 export interface SpState {
   sps: Array<SpItem>;
   allSps: Array<SpItem>; // include unstable
   spInfo: Record<string, SpItem>;
   oneSp: string;
+  spMeta: Record<string, SpMeta>;
 }
 
 const initialState: SpState = {
@@ -29,12 +42,18 @@ const initialState: SpState = {
   allSps: [],
   spInfo: {},
   oneSp: '', // operatorAddress
+  spMeta: {},
 };
 
 export const spSlice = createSlice({
   name: 'sp',
   initialState,
   reducers: {
+    setSpMeta(state, { payload }: PayloadAction<SpMeta[]>) {
+      payload.forEach((meta) => {
+        state.spMeta[meta.SPAddress] = meta;
+      });
+    },
     setStorageProviders(
       state,
       {
@@ -81,7 +100,7 @@ export const spSlice = createSlice({
   },
 });
 
-export const { setStorageProviders, updateSps, filterSps } = spSlice.actions;
+export const { setStorageProviders, updateSps, filterSps, setSpMeta } = spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { sps: _sps } = getState().sp;
@@ -95,6 +114,11 @@ export const setupStorageProviders = () => async (dispatch: AppDispatch, getStat
     .map((i) => i.trim())
     .filter(Boolean);
   dispatch(setStorageProviders({ sps, faultySps, recommend }));
+};
+
+export const setupSpMeta = () => async (dispatch: AppDispatch) => {
+  const list = await getSpMeta();
+  dispatch(setSpMeta(list || []));
 };
 
 export default spSlice.reducer;

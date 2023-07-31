@@ -4,12 +4,14 @@ interface ApolloState {
   TOKEN_HUB_CONTRACT_ADDRESS: string;
   CROSS_CHAIN_CONTRACT_ADDRESS: string;
   RECOMMEND_SPS: string;
+  SP_RECOMMEND_META: string;
 }
 
 const initialState: ApolloState = {
   TOKEN_HUB_CONTRACT_ADDRESS: '',
   CROSS_CHAIN_CONTRACT_ADDRESS: '',
   RECOMMEND_SPS: '',
+  SP_RECOMMEND_META: '',
 };
 
 export const apolloSlice = createSlice({

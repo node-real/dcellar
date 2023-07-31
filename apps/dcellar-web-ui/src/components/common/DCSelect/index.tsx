@@ -20,11 +20,13 @@ import {
   InputProps,
 } from '@totejs/uikit';
 import React, { useEffect, useRef, useState } from 'react';
+import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 
 import noResultImage from '@/public/images/common/no-result.png';
 import { useKeyDown } from '@/hooks/useKeyDown';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import { GAClick } from '@/components/common/GATracker';
+import styled from '@emotion/styled';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -121,22 +123,8 @@ export function Select(props: DCSelectProps) {
         onEnter={onEnter}
       />
 
-      <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
-        {header && (
-          <Box
-            color="#2AA372"
-            fontSize={12}
-            lineHeight="15px"
-            bg="bg.bottom"
-            py={8}
-            px={24}
-            fontWeight={500}
-            borderBottom="1px solid readable.border"
-            {...headerProps}
-          >
-            {header}
-          </Box>
-        )}
+      <MenuList mt={5} border="1px solid readable.border" borderRadius={8} {...listProps}>
+        {header}
 
         <Box
           maxH={220}
@@ -158,8 +146,10 @@ export function Select(props: DCSelectProps) {
             return (
               <GAClick key={item.value} name={gaClickName}>
                 <MenuItem
-                  px={24}
-                  py={8}
+                  as="div"
+                  position="relative"
+                  px={0}
+                  py={0}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
@@ -172,7 +162,7 @@ export function Select(props: DCSelectProps) {
                   }}
                   {...restItemProps}
                 >
-                  {item.label}
+                  {isSelected && <Tick />} {item.label}
                 </MenuItem>
               </GAClick>
             );
@@ -258,3 +248,9 @@ const NoResult = () => {
     </Center>
   );
 };
+
+const Tick = styled(TickIcon)`
+  color: #00ba34;
+  position: absolute;
+  left: 8px;
+`;

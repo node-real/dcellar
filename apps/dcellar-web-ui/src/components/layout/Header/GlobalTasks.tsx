@@ -21,11 +21,13 @@ import axios from 'axios';
 import { headObject, queryLockFee } from '@/facade/object';
 import Long from 'long';
 import { formatLockFee } from '@/utils/object';
+import { setupSpMeta } from '@/store/slices/sp';
 
 interface GlobalTasksProps {}
 
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
+  const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
   const { primarySp } = useAppSelector((root) => root.object);
@@ -127,6 +129,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       setTimeout(() => setCounter((c) => c + 1), 500);
     }
   }, [sealQueue.join(''), counter]);
+
+  useAsyncEffect(async () => {
+    if (!loginAccount || !SP_RECOMMEND_META) return;
+    dispatch(setupSpMeta());
+  }, [loginAccount, SP_RECOMMEND_META]);
 
   return <></>;
 });
