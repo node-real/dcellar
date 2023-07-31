@@ -25,11 +25,13 @@ import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
+import { setupSpMeta } from '@/store/slices/sp';
 
 interface GlobalTasksProps {}
 
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
+  const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
   const { tmpAccount } = useAppSelector((root) => root.global);
@@ -228,6 +230,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       setTimeout(() => setCounter((c) => c + 1), 1500);
     }
   }, [sealQueue.join(''), counter]);
+
+  useAsyncEffect(async () => {
+    if (!loginAccount || !SP_RECOMMEND_META) return;
+    dispatch(setupSpMeta());
+  }, [loginAccount, SP_RECOMMEND_META]);
 
   return <></>;
 });
