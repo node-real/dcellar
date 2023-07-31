@@ -40,9 +40,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const queue = useAppSelector(selectUploadQueue(loginAccount));
   const upload = queue.filter((t) => t.status === 'UPLOAD');
   const ready = queue.filter((t) => t.status === 'READY');
-  const offset = 3 - upload.length;
+  const offset = 1 - upload.length;
 
-  const select3Task = useMemo(() => {
+  const select1Task = useMemo(() => {
     if (offset <= 0) return [];
     return ready.slice(0, offset).map((p) => p.id);
   }, [offset, ready]);
@@ -88,6 +88,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       resolve,
       createTxFault,
     );
+    console.log('createObjectTx', createObjectTx);
     if (_createError) {
       return dispatch(updateUploadTaskMsg({
         account: loginAccount,
@@ -144,11 +145,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   };
 
   useAsyncEffect(async () => {
-    if (!select3Task.length) return;
-    dispatch(updateUploadStatus({ ids: select3Task, status: 'UPLOAD', account: loginAccount }));
-    const tasks = queue.filter((t) => select3Task.includes(t.id));
+    if (!select1Task.length) return;
+    dispatch(updateUploadStatus({ ids: select1Task, status: 'UPLOAD', account: loginAccount }));
+    const tasks = queue.filter((t) => select1Task.includes(t.id));
     tasks.forEach(runUploadTask);
-  }, [select3Task.join('')]);
+  }, [select1Task.join('')]);
 
   useAsyncEffect(async () => {
     if (!sealQueue.length) return;
