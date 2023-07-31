@@ -42,7 +42,6 @@ import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
-import { preExecDeleteObject } from '@/facade/object';
 
 interface modalProps {
   refetch: () => void;

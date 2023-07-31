@@ -10,7 +10,7 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.16
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.17
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
@@ -62,7 +62,7 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.5
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.16
+      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.17
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
@@ -1622,15 +1622,14 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.16:
-    resolution: {integrity: sha512-IzEAd9b5NS5OIvKN84apSzBrnzbP0ow39t2T3dMj2cnVyPUWYTlazsdFWzyKzx2flC30fU1r57gy+yD3cQgYNA==}
+  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.17:
+    resolution: {integrity: sha512-6HIQzYRXlY/pvpf93ozu8tbG9ko3fpEUbxHrhrDT6x1OMG/1PZpZCtYo6SwH8aaBE0+SmttG+dJp6wtta6+fFQ==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
-      '@ethereumjs/util': 8.0.6
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/signing-key': 5.7.0
       '@ethersproject/strings': 5.7.0
