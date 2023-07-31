@@ -42,6 +42,8 @@ import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
+import { getListObjects } from '@/facade/object';
+import LoadingIcon from '@/public/images/icons/loading.svg';
 
 interface modalProps {
   refetch: () => void;
@@ -64,6 +66,7 @@ const renderFee = (
   key: string,
   bnbValue: string,
   exchangeRate: number,
+  loading?: boolean,
   keyIcon?: React.ReactNode,
 ) => {
   return (
@@ -78,9 +81,13 @@ const renderFee = (
           </Box>
         )}
       </Flex>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        ~{renderFeeValue(bnbValue, exchangeRate)}
-      </Text>
+      {loading ? (
+        <LoadingIcon color={'#76808F'} width={'20px'} height={'20px'} />
+      ) : (
+        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
+          ~{renderFeeValue(bnbValue, exchangeRate)}
+        </Text>
+      )}
     </Flex>
   );
 };
@@ -90,7 +97,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [lockFee, setLockFee] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDelete, bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
@@ -98,6 +105,9 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const isOpen = !!editDelete.objectName;
+  const isFolder = editDelete.objectName.endsWith('/');
+  const [isFolderCanDelete, setFolderCanDelete] = useState(true);
+
   const onClose = () => {
     dispatch(setEditDelete({} as ObjectItem));
     // todo fix it
@@ -130,7 +140,53 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     // }
     setLockFee(lockFeeInBNB);
   }, [isOpen]);
+  const isFolderEmpty = async (objectName: string) => {
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '2');
+    _query.append('prefix', `${objectName}`);
 
+    const params = {
+      address: primarySp.operatorAddress,
+      bucketName: bucketName,
+      prefix: objectName,
+      query: _query,
+      endpoint: primarySp.endpoint,
+      seedString: '',
+    };
+    const [res, error] = await getListObjects(params);
+    if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
+    const list = res.body!;
+    return list.key_count === '1' && list.objects[0].object_info.object_name === objectName;
+  };
+  useAsyncEffect(async () => {
+    if (!isFolder) return;
+    setLoading(true);
+    setButtonDisabled(true);
+    const folderEmpty = await isFolderEmpty(editDelete.objectName);
+    if (!folderEmpty) {
+      dispatch(
+        setStatusDetail({
+          icon: FOLDER_NOT_EMPTY_ICON,
+          title: FOLDER_TITLE_NOT_EMPTY,
+          desc: '',
+          buttonText: BUTTON_GOT_IT,
+          errorText: FOLDER_DESC_NOT_EMPTY,
+          buttonOnClick: () => {
+            dispatch(setStatusDetail({} as TStatusDetail));
+          },
+        }),
+      );
+      setFolderCanDelete(false);
+      onClose();
+      return;
+    } else {
+      setLoading(false);
+      setButtonDisabled(false);
+    }
+    dispatch(setStatusDetail({} as TStatusDetail));
+    setFolderCanDelete(true);
+  }, [isOpen, isFolder]);
   useEffect(() => {
     if (!simulateGasFee || Number(simulateGasFee) < 0) {
       setButtonDisabled(false);
@@ -144,8 +200,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance]);
   const filePath = editDelete.objectName.split('/');
-  const isFolder = editDelete.objectName.endsWith('/');
-  const isSavedSixMonths = getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
+  const isSavedSixMonths =
+    getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
   const showName = filePath[filePath.length - 1];
   const folderName = filePath[filePath.length - 2];
   const description = isFolder
@@ -168,58 +224,60 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   };
 
   return (
-    <DCModal
-      isOpen={isOpen}
-      onClose={onClose}
-      w="568px"
-      gaShowName="dc.file.delete_confirm.modal.show"
-      gaClickCloseName="dc.file.delete_confirm.close.click"
-    >
-      <ModalHeader>Confirm Delete</ModalHeader>
-      <ModalCloseButton />
-      {!isFolder && !isSavedSixMonths && (
-        <Text
-          fontSize="18px"
-          lineHeight={'22px'}
-          fontWeight={400}
-          textAlign={'center'}
-          marginTop="8px"
-          color={'readable.secondary'}
-          mb={'12px'}
+    <>
+      {isFolderCanDelete && (
+        <DCModal
+          isOpen={isOpen}
+          onClose={onClose}
+          w="568px"
+          gaShowName="dc.file.delete_confirm.modal.show"
+          gaClickCloseName="dc.file.delete_confirm.close.click"
         >
-          You’ve paid 6 months locked storage fee for this object, but this object has been stored
-          less than 6 months.{' '}
-          <Link
-            color="readable.normal"
-            textDecoration={'underline'}
-            cursor={'pointer'}
-            href="https://docs.nodereal.io/docs/dcellar-faq#fee-related "
-            target='_blank'
+          <ModalHeader>Confirm Delete</ModalHeader>
+          <ModalCloseButton />
+          {!isFolder && !isSavedSixMonths && (
+            <Text
+              fontSize="18px"
+              lineHeight={'22px'}
+              fontWeight={400}
+              textAlign={'center'}
+              marginTop="8px"
+              color={'readable.secondary'}
+              mb={'12px'}
+            >
+              You’ve paid 6 months locked storage fee for this object, but this object has been
+              stored less than 6 months.{' '}
+              <Link
+                color="readable.normal"
+                textDecoration={'underline'}
+                cursor={'pointer'}
+                href="https://docs.nodereal.io/docs/dcellar-faq#fee-related "
+                target="_blank"
+              >
+                Learn more
+              </Link>
+            </Text>
+          )}
+          <Text
+            fontSize="18px"
+            lineHeight={'22px'}
+            fontWeight={400}
+            textAlign={'center'}
+            marginTop="8px"
+            color={'readable.secondary'}
+            mb={'32px'}
           >
-            Learn more
-          </Link>
-        </Text>
-      )}
-      <Text
-        fontSize="18px"
-        lineHeight={'22px'}
-        fontWeight={400}
-        textAlign={'center'}
-        marginTop="8px"
-        color={'readable.secondary'}
-        mb={'32px'}
-      >
-        {description}
-      </Text>
-      <Flex
-        bg={'bg.secondary'}
-        padding={'16px'}
-        width={'100%'}
-        flexDirection={'column'}
-        borderRadius="12px"
-        gap={'4px'}
-      >
-        {/* {renderFee(
+            {description}
+          </Text>
+          <Flex
+            bg={'bg.secondary'}
+            padding={'16px'}
+            width={'100%'}
+            flexDirection={'column'}
+            borderRadius="12px"
+            gap={'4px'}
+          >
+            {/* {renderFee(
           'Unlocked storage fee',
           lockFee,
           exchangeRate,
@@ -240,108 +298,110 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             }
           />,
         )} */}
-        {renderFee('Gas Fee', simulateGasFee + '', exchangeRate)}
-      </Flex>
-      <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee + '', '0', availableBalance || '0', {
-            gaShowName: 'dc.file.delete_confirm.depost.show',
-            gaClickName: 'dc.file.delete_confirm.transferin.click',
-          })}
-        </Text>
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-          Available balance: {renderBalanceNumber(availableBalance || '0')}
-        </Text>
-      </Flex>
+            {renderFee('Gas Fee', simulateGasFee + '', exchangeRate, loading)}
+          </Flex>
+          <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
+            <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
+              {renderInsufficientBalance(simulateGasFee + '', '0', availableBalance || '0', {
+                gaShowName: 'dc.file.delete_confirm.depost.show',
+                gaClickName: 'dc.file.delete_confirm.transferin.click',
+              })}
+            </Text>
+            <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
+              Available balance: {renderBalanceNumber(availableBalance || '0')}
+            </Text>
+          </Flex>
 
-      <ModalFooter margin={0} flexDirection={'row'}>
-        <DCButton
-          variant={'dcGhost'}
-          flex={1}
-          onClick={onClose}
-          gaClickName="dc.file.delete_confirm.cancel.click"
-        >
-          Cancel
-        </DCButton>
-        <DCButton
-          gaClickName="dc.file.delete_confirm.delete.click"
-          variant={'dcDanger'}
-          flex={1}
-          onClick={async () => {
-            try {
-              setLoading(true);
-              onClose();
-              dispatch(
-                setStatusDetail({
-                  icon: FILE_DELETE_GIF,
-                  title: isFolder ? FOLDER_TITLE_DELETING : FILE_TITLE_DELETING,
-                  desc: FILE_STATUS_DELETING,
-                  buttonText: '',
-                  errorText: '',
-                }),
-              );
-              const client = await getClient();
-              const delObjTx = await client.object.deleteObject({
-                bucketName,
-                objectName: editDelete.objectName,
-                operator: address,
-              });
-              const simulateInfo = await delObjTx.simulate({
-                denom: 'BNB',
-              });
-              const [txRes, error] = await delObjTx
-                .broadcast({
-                  denom: 'BNB',
-                  gasLimit: Number(simulateInfo?.gasLimit),
-                  gasPrice: simulateInfo?.gasPrice || '5000000000',
-                  payer: address,
-                  granter: '',
-                  signTypedDataCallback: async (addr: string, message: string) => {
-                    const provider = await connector?.getProvider();
-                    return await signTypedDataV4(provider, addr, message);
-                  },
-                })
-                .then(resolve, broadcastFault);
-              if (txRes === null) {
-                dispatch(setStatusDetail({} as TStatusDetail));
-                return toast.error({ description: error || 'Delete object error.' });
-              }
-              if (txRes.code === 0) {
-                toast.success({
-                  description: isFolder
-                    ? 'Folder deleted successfully.'
-                    : 'Object deleted successfully.',
-                });
-                reportEvent({
-                  name: 'dc.toast.file_delete.success.show',
-                });
-              } else {
-                toast.error({ description: 'Delete object error.' });
-              }
-              refetch();
-              onClose();
-              dispatch(setStatusDetail({} as TStatusDetail));
-              setLoading(false);
-            } catch (error: any) {
-              setLoading(false);
-              const { code = '' } = error;
-              if (code && String(code) === E_USER_REJECT_STATUS_NUM) {
-                dispatch(setStatusDetail({} as TStatusDetail));
-                onClose();
-                return;
-              }
-              // eslint-disable-next-line no-console
-              console.error('Delete object error.', error);
-              setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
-            }
-          }}
-          colorScheme="danger"
-          isLoading={loading}
-          isDisabled={buttonDisabled}
-        >
-          Delete
-        </DCButton>
-      </ModalFooter>
-    </DCModal>
+          <ModalFooter margin={0} flexDirection={'row'}>
+            <DCButton
+              variant={'dcGhost'}
+              flex={1}
+              onClick={onClose}
+              gaClickName="dc.file.delete_confirm.cancel.click"
+            >
+              Cancel
+            </DCButton>
+            <DCButton
+              gaClickName="dc.file.delete_confirm.delete.click"
+              variant={'dcDanger'}
+              flex={1}
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  onClose();
+                  dispatch(
+                    setStatusDetail({
+                      icon: FILE_DELETE_GIF,
+                      title: isFolder ? FOLDER_TITLE_DELETING : FILE_TITLE_DELETING,
+                      desc: FILE_STATUS_DELETING,
+                      buttonText: '',
+                      errorText: '',
+                    }),
+                  );
+                  const client = await getClient();
+                  const delObjTx = await client.object.deleteObject({
+                    bucketName,
+                    objectName: editDelete.objectName,
+                    operator: address,
+                  });
+                  const simulateInfo = await delObjTx.simulate({
+                    denom: 'BNB',
+                  });
+                  const [txRes, error] = await delObjTx
+                    .broadcast({
+                      denom: 'BNB',
+                      gasLimit: Number(simulateInfo?.gasLimit),
+                      gasPrice: simulateInfo?.gasPrice || '5000000000',
+                      payer: address,
+                      granter: '',
+                      signTypedDataCallback: async (addr: string, message: string) => {
+                        const provider = await connector?.getProvider();
+                        return await signTypedDataV4(provider, addr, message);
+                      },
+                    })
+                    .then(resolve, broadcastFault);
+                  if (txRes === null) {
+                    dispatch(setStatusDetail({} as TStatusDetail));
+                    return toast.error({ description: error || 'Delete object error.' });
+                  }
+                  if (txRes.code === 0) {
+                    toast.success({
+                      description: isFolder
+                        ? 'Folder deleted successfully.'
+                        : 'Object deleted successfully.',
+                    });
+                    reportEvent({
+                      name: 'dc.toast.file_delete.success.show',
+                    });
+                  } else {
+                    toast.error({ description: 'Delete object error.' });
+                  }
+                  refetch();
+                  onClose();
+                  dispatch(setStatusDetail({} as TStatusDetail));
+                  setLoading(false);
+                } catch (error: any) {
+                  setLoading(false);
+                  const { code = '' } = error;
+                  if (code && String(code) === E_USER_REJECT_STATUS_NUM) {
+                    dispatch(setStatusDetail({} as TStatusDetail));
+                    onClose();
+                    return;
+                  }
+                  // eslint-disable-next-line no-console
+                  console.error('Delete object error.', error);
+                  setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
+                }
+              }}
+              colorScheme="danger"
+              isLoading={loading}
+              isDisabled={buttonDisabled}
+            >
+              Delete
+            </DCButton>
+          </ModalFooter>
+        </DCModal>
+      )}
+    </>
   );
 };

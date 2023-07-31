@@ -82,7 +82,7 @@ const NewBalance = (props: any) => {
                 flow rate based on your object size.
               </Box>
               <Link
-                href="https://docs.nodereal.io/docs/faq-1#question-what-is-flow-rate"
+                href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is-flow-rate"
                 target="_blank"
                 color="readable.primary"
                 textDecoration="underline"

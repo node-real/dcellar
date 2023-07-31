@@ -103,7 +103,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
                   equal to your account overall balance, which is shown at your wallet.
                 </Box>
                 <Link
-                  href="https://docs.nodereal.io/docs/faq-1#question-what-is-greenfield-available-balance"
+                  href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is-greenfield-available-balance"
                   target="_blank"
                   color="readable.primary"
                   textDecoration="underline"
