@@ -128,7 +128,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
 
   const filePath = editCancel.name.split('/');
   const showName = filePath[filePath.length - 1];
-  const description = `Are you sure you want to cancel uploading the file "${showName}"?`;
+  const description = `Are you sure you want to cancel uploading the object "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     setStatusDetail({
@@ -185,7 +185,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                   lineHeight={'150%'}
                   wordBreak={'break-word'}
                 >
-                  We will unlock the storage fee after you cancel the file.
+                  We will unlock the storage fee after you cancel the object.
                 </Box>
               </Box>
             }
@@ -263,7 +263,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                 return;
               }
               // eslint-disable-next-line no-console
-              console.error('Cancel file error.', error);
+              console.error('Cancel object error.', error);
 
               setFailedStatusModal(FILE_DESCRIPTION_CANCEL_ERROR, error);
             }

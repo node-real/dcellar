@@ -14,8 +14,8 @@ const NOT_ENOUGH_QUOTA_URL = `${assetPrefix}/images/files/not_enough_quota.svg`;
 const DELETE_ICON_URL = `${assetPrefix}/images/icons/delete.gif`;
 const UPLOAD_IMAGE_URL = `${assetPrefix}/images/files/upload.svg`;
 const FILE_INFO_IMAGE_URL = `${assetPrefix}/images/files/upload_file.svg`;
-const FOLDER_NOT_EMPTY_ICON = `${assetPrefix}/images/buckets/object_not_empty.svg`;
 const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
+const FOLDER_NOT_EMPTY_ICON = `${assetPrefix}/images/buckets/bucket-not-empty.svg`;
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';

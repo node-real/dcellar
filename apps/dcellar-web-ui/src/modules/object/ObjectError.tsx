@@ -22,14 +22,14 @@ export const OBJECT_ERROR_TYPES = {
     icon: UNKNOWN_ERROR_URL,
   },
   FILE_TOO_LARGE_URL: {
-    title: 'File is too large',
+    title: 'Object is too large',
     icon: FILE_TOO_LARGE_URL,
-    desc: 'File size exceeded the maximum allowed size (256MB).',
+    desc: 'Object size exceeded the maximum allowed size (256MB).',
   },
   FILE_IS_EMPTY: {
-    title: 'File is empty',
+    title: 'Object is empty',
     icon: FILE_EMPTY_URL,
-    desc: 'File size is zero, please check.',
+    desc: 'Object size is zero, please check.',
   },
   OBJECT_TOO_LARGE: {
     title: 'Object is too large',

@@ -321,7 +321,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
           lineHeight="22px"
           textAlign={'left'}
         >
-          Use folders to group files in your bucket. Folder names can't contain "/".
+          Use folders to group objects in your bucket. Folder names can't contain "/".
         </Text>
         <Flex mt={32} flexDirection="column" alignItems="center">
           <FormControl isInvalid={!!formErrors.length} w="100%">

@@ -26,6 +26,7 @@ type TGas = {
 export type TPreLockFeeParams = {
   spStorageStorePrice: string;
   secondarySpStorePrice: string;
+  validatorTaxRate: string;
   minChargeSize: number;
   redundantDataChunkNum: number;
   redundantParityChunkNum: number;
@@ -299,11 +300,12 @@ export const setupPreLockFeeObjects = (primarySpAddress: string) => async (dispa
     redundantParityChunkNum = 0,
   } = (storageParams && storageParams.versionedParams) || {};
   const { params: paymentParams } = await client.payment.params();
-  const { reserveTime } = paymentParams || {};
+  const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
 
   const lockFeeParamsPayload = {
     spStorageStorePrice: spStoragePrice?.storePrice || '',
     secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
+    validatorTaxRate,
     minChargeSize: minChargeSize.toNumber(),
     redundantDataChunkNum,
     redundantParityChunkNum,

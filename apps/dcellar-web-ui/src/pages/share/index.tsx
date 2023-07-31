@@ -24,6 +24,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
 import { SpItem } from '@/store/slices/sp';
+import { headObject } from '@/facade/object';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -53,6 +54,13 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
       seedString,
       address: loginAccount,
     }
+    if (!loginAccount) {
+      const objectInfo = await headObject(bucketName, objectName);
+      setObjectInfo(objectInfo);
+      setQuotaData({} as IQuotaProps);
+      return;
+    }
+
     const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(params);
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);

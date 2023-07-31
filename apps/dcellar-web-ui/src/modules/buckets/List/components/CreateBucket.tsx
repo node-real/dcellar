@@ -175,7 +175,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
         chargedReadQuota: '0',
       };
-      debugger;
       const createBucketTx = await genCreateBucketTx(createBucketParams);
 
       const simulateInfo = await createBucketTx.simulate({
@@ -211,6 +210,11 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         isLoading: false,
       };
       if (e?.message) {
+        if (e.message.includes('user public key is expired')) {
+          onClose();
+          setOpenAuthModal();
+          return;
+        }
         if (e.message.includes('Bucket already exists') || e.message.includes('repeated bucket')) {
           result['name'] = {
             available: false,

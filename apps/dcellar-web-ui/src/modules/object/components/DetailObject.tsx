@@ -274,7 +274,6 @@ export const DetailObject = (props: modalProps) => {
       objectInfo: objectInfo!,
       address: loginAccount,
     };
-    debugger;
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));

@@ -48,7 +48,8 @@ export const calPreLockFee = ({ size, preLockFeeObject }: { size: number; primar
     redundantDataChunkNum,
     redundantParityChunkNum,
     minChargeSize,
-    reserveTime
+    reserveTime,
+    validatorTaxRate
   } = preLockFeeObject;
 
   const chargeSize = size >= minChargeSize ? size : minChargeSize;
@@ -58,7 +59,9 @@ export const calPreLockFee = ({ size, preLockFeeObject }: { size: number; primar
         redundantDataChunkNum + redundantParityChunkNum,
       ),
     )
-    .times(BigNumber(chargeSize)).dividedBy(Math.pow(10, 18));
+    .times(BigNumber(chargeSize))
+    .times(BigNumber(validatorTaxRate).dividedBy(Math.pow(10, 18)))
+    .dividedBy(Math.pow(10, 18));
   const lockFeeInBNB = lockedFeeRate
     .times(BigNumber(reserveTime || 0))
     .dividedBy(Math.pow(10, 18));
