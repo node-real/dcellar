@@ -78,7 +78,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         placement="bottom-end"
         content={
           discontinue
-            ? 'Bucket in the discontinue status cannot upload files.'
+            ? 'Bucket in the discontinue status cannot upload objects.'
             : 'Folder does not exist.'
         }
         visibility={uploadDisabled ? 'visible' : 'hidden'}

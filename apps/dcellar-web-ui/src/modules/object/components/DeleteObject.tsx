@@ -150,7 +150,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const folderName = filePath[filePath.length - 2];
   const description = isFolder
     ? `Are you sure you want to delete folder "${folderName}"?`
-    : `Are you sure you want to delete file "${showName}"?`;
+    : `Are you sure you want to delete object "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(
@@ -304,19 +304,19 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 .then(resolve, broadcastFault);
               if (txRes === null) {
                 dispatch(setStatusDetail({} as TStatusDetail));
-                return toast.error({ description: error || 'Delete file error.' });
+                return toast.error({ description: error || 'Delete object error.' });
               }
               if (txRes.code === 0) {
                 toast.success({
                   description: isFolder
                     ? 'Folder deleted successfully.'
-                    : 'File deleted successfully.',
+                    : 'Object deleted successfully.',
                 });
                 reportEvent({
                   name: 'dc.toast.file_delete.success.show',
                 });
               } else {
-                toast.error({ description: 'Delete file error.' });
+                toast.error({ description: 'Delete object error.' });
               }
               refetch();
               onClose();
@@ -331,7 +331,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 return;
               }
               // eslint-disable-next-line no-console
-              console.error('Delete file error.', error);
+              console.error('Delete object error.', error);
               setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
             }
           }}

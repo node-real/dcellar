@@ -37,8 +37,8 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
                 placement={'bottom-start'}
                 tips={
                   <Box>
-                    Every file in BNB Greenfield is stored in a bucket. To upload files to BNB
-                    Greenfield, you'll need to create a bucket where the files will be stored.
+                    Every object in BNB Greenfield is stored in a bucket. To upload objects to BNB
+                    Greenfield, you'll need to create a bucket where the objects will be stored.
                   </Box>
                 }
               />

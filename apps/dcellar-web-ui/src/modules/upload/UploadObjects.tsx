@@ -138,7 +138,7 @@ export const UploadObjects = () => {
       setStatusDetail({
         title: FILE_TITLE_UPLOAD_FAILED,
         icon: FILE_FAILED_URL,
-        desc: 'Sorry, there’s something wrong when uploading the file.',
+        desc: 'Sorry, there’s something wrong when uploading the object.',
         buttonText: BUTTON_GOT_IT,
         buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
         errorText: 'Error message: ' + error,
@@ -272,7 +272,7 @@ export const UploadObjects = () => {
                   <AccessItem freeze={loading} value={visibility} onChange={setVisibility} />
                   <Box>
                     Total Upload: <strong>{formatBytes(selectedFile.size)}</strong> /{' '}
-                    <strong>1 Files</strong>
+                    <strong>1 Objects</strong>
                   </Box>
                 </Flex>
               </TabPanel>

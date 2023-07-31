@@ -25,11 +25,11 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
 
   const title = discontinue
     ? 'Discontinue Notice'
-    : `Upload your files to this ${lastItem} ${folders.length ? 'folder' : 'bucket'} right now!👏`;
+    : `Upload your objects to this ${lastItem} ${folders.length ? 'folder' : 'bucket'} right now!👏`;
 
   const subTitle = discontinue
     ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
-    : `(Please make sure your file is smaller than 256MB during testnet phase. \n Please be aware that data loss might occur during testnet phase.)`;
+    : `(Please make sure your object is smaller than 256MB during testnet phase. \n Please be aware that data loss might occur during testnet phase.)`;
 
   return (
     <Container>
