@@ -63,7 +63,6 @@ export const createTmpAccount = async ({address, bucketName, amount}: any): Prom
     return [null, simulateError];
   }
 
-  console.log('simuluateInfo', simulateInfo);
   const payload = {
     denom: 'BNB',
     gasLimit: Number(210000),
@@ -71,7 +70,6 @@ export const createTmpAccount = async ({address, bucketName, amount}: any): Prom
     payer: address,
     granter: '',
   }
-  console.log('payload', payload)
   const [res, error] = await txs.broadcast(payload).then(resolve, broadcastFault);
 
   if (res && res.code !== 0 || error) {

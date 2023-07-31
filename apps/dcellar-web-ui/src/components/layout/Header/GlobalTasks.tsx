@@ -73,6 +73,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const runUploadTask = async (task: UploadFile) => {
     // 1. get approval from sp
     const domain = getDomain();
+    debugger;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.file.name].join('/');
     const createObjectPayload: TCreateObject = {
@@ -117,7 +118,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      console.log('error', error)
+      console.log('error', error);
+      dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: error,
+      }));
       return;
     }
     const uploadOptions = await generatePutObjectOptions({

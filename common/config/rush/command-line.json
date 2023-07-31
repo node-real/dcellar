@@ -23,15 +23,15 @@
       "allowWarningsInSuccessfulBuild": true,
       "safeForSimultaneousRushProcesses": false
     },
-    {
-      "name": "lint-staged",
-      "commandKind": "bulk",
-      "summary": "Used by the pre-commit Git hook. This command invokes eslint to lint staged changes.",
-      "enableParallelism": false,
-      "ignoreMissingScript": true,
-      "ignoreDependencyOrder": true,
-      "allowWarningsInSuccessfulBuild": true
-    },
+    // {
+    //   "name": "lint-staged",
+    //   "commandKind": "bulk",
+    //   "summary": "Used by the pre-commit Git hook. This command invokes eslint to lint staged changes.",
+    //   "enableParallelism": false,
+    //   "ignoreMissingScript": true,
+    //   "ignoreDependencyOrder": true,
+    //   "allowWarningsInSuccessfulBuild": true
+    // },
     {
       "name": "lint",
       "commandKind": "bulk",

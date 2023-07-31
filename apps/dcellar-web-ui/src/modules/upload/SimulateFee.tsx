@@ -7,40 +7,45 @@ import {
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { Box, Fade, Flex, Slide, Text, useDisclosure, Link } from '@totejs/uikit';
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import { Box, Flex, Slide, Text, useDisclosure, Link } from '@totejs/uikit';
+import React, { useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
-import { setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
+import { WaitFile, setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
 import { calPreLockFee } from '@/utils/sp';
 import { MenuCloseIcon } from '@totejs/icons';
+import { useUpdateEffect } from 'react-use';
+import { setEditUpload } from '@/store/slices/object';
+import BigNumber from 'bignumber.js';
+import { DECIMAL_NUMBER } from '../wallet/constants';
 
-export const Fee = forwardRef((props, ref) => {
+export const Fee = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { hashQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
+  const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const { bucketName } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const isChecking =
-    hashQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
+  const isChecking = waitQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   const { isOpen, onToggle } = useDisclosure();
   const primarySp = primarySpInfo[bucketName];
   useAsyncEffect(async () => {
+    if (!primarySp?.operatorAddress) return;
     if (isEmpty(preLockFeeObjects[primarySp.operatorAddress])) {
       return await dispatch(setupPreLockFeeObjects(primarySp.operatorAddress));
     }
-  }, [primarySp.operatorAddress]);
+  }, [primarySp?.operatorAddress]);
 
   const lockFee = useMemo(() => {
+    if (!primarySp?.operatorAddress) return;
     const preLockFeeObject = preLockFeeObjects[primarySp.operatorAddress];
     if (isEmpty(preLockFeeObject) || isChecking) {
       return '-1';
     }
-    const size = hashQueue
+    const size = waitQueue
       .filter((item) => item.status !== 'ERROR')
       .reduce((acc, cur) => acc + cur.size, 0);
     const lockFee = calPreLockFee({
@@ -50,16 +55,22 @@ export const Fee = forwardRef((props, ref) => {
     });
 
     return lockFee;
-  }, [hashQueue, isChecking, preLockFeeObjects, primarySp?.operatorAddress]);
+  }, [waitQueue, isChecking, preLockFeeObjects, primarySp?.operatorAddress]);
 
   const gasFee = isChecking
     ? -1
-    : hashQueue.filter((item) => item.status !== 'ERROR').length * singleTxGasFee;
-  useImperativeHandle(ref, () => ({
-    isBalanceAvailable: Number(availableBalance) >= Number(gasFee) + Number(lockFee),
-    amount: String(Number(gasFee) + Number(lockFee)),
-    balance: availableBalance,
-  }));
+    : waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length * singleTxGasFee;
+
+  useUpdateEffect(() => {
+    if (gasFee && lockFee) {
+      dispatch(setEditUpload({
+        gasFee: BigNumber(gasFee).toString(DECIMAL_NUMBER),
+        preLockFee: BigNumber(lockFee).toString(DECIMAL_NUMBER),
+        totalFee: BigNumber(gasFee).plus(BigNumber(lockFee)).toString(DECIMAL_NUMBER),
+        isBalanceAvailable: BigNumber(availableBalance).minus(BigNumber(gasFee)).minus(BigNumber(lockFee)).isPositive(),
+      }))
+    }
+  }, [gasFee, lockFee]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(loginAccount));
   });
@@ -122,7 +133,7 @@ export const Fee = forwardRef((props, ref) => {
         <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
           {renderFee(
             'Pre-locked storage fee',
-            lockFee,
+            lockFee + '',
             +exchangeRate,
             <Tips
               iconSize={'14px'}
@@ -160,7 +171,7 @@ export const Fee = forwardRef((props, ref) => {
           {/*todo correct the error showing logics*/}
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
             {!isChecking &&
-              renderInsufficientBalance(gasFee + '', lockFee, availableBalance || '0', {
+              renderInsufficientBalance(gasFee + '', lockFee + '', availableBalance || '0', {
                 gaShowName: 'dc.file.upload_modal.transferin.show',
                 gaClickName: 'dc.file.upload_modal.transferin.click',
               })}
@@ -172,6 +183,6 @@ export const Fee = forwardRef((props, ref) => {
       </Box>
     </Flex>
   );
-});
+};
 
 export default Fee;
