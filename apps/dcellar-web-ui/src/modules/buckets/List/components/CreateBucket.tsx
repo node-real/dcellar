@@ -210,6 +210,11 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         isLoading: false,
       };
       if (e?.message) {
+        if (e.message.includes('user public key is expired')) {
+          onClose();
+          setOpenAuthModal();
+          return;
+        }
         if (e.message.includes('Bucket already exists') || e.message.includes('repeated bucket')) {
           result['name'] = {
             available: false,

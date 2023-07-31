@@ -1,4 +1,4 @@
-import { ErrorMsgMap } from "@/context/WalletConnectContext/error/error";
+import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
 
 export type ErrorMsg = string;
 
@@ -56,9 +56,14 @@ export const createTxFault = (e: any): ErrorResponse => {
   console.error('CreateTxFault', e);
   // todo refactor
   if (
-    code === -1 &&
-    (e as any).statusCode === 500 &&
-    ['Get create object approval error.', 'Get create bucket approval error.'].includes(message)
+    (code === -1 &&
+      (e as any).statusCode === 500 &&
+      [
+        'Get create object approval error.',
+        'Get create bucket approval error.',
+        'user public key is expired',
+      ].includes(message)) ||
+    ((e as any).statusCode === 400 && ['user public key is expired'].includes(message))
   ) {
     return [null, E_OFF_CHAIN_AUTH];
   }
@@ -96,4 +101,3 @@ export const commonFault = (e: any): ErrorResponse => {
   }
   return [null, E_UNKNOWN_ERROR];
 };
-

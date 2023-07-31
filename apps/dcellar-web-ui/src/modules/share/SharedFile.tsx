@@ -19,6 +19,7 @@ import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
 import { SpItem } from '@/store/slices/sp';
+import { VisibilityType } from '../file/type';
 
 interface SharedFileProps {
   fileName: string;
@@ -36,8 +37,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   loginAccount,
 }) {
   const dispatch = useAppDispatch();
-  const { oneSp, spInfo, allSps } = useAppSelector((root) => root.sp);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { allSps } = useAppSelector((root) => root.sp);
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
@@ -85,15 +85,18 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     if (!primarySp) return onError(E_SP_NOT_FOUND);
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
-    const [_, accessError] = await getCanObjectAccess(
-      bucketName,
-      objectName,
-      primarySpEndpoint,
-      loginAccount,
-      seedString,
-    );
-    const errType = accessError as ShareErrorType;
-    if (errType) return onError(errType);
+    const isPrivate = objectInfo.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
+    if (isPrivate) {
+      const [_, accessError] = await getCanObjectAccess(
+        bucketName,
+        objectName,
+        primarySpEndpoint,
+        loginAccount,
+        seedString,
+      );
+      const errType = accessError as ShareErrorType;
+      if (errType) return onError(errType);
+    }
     const params = {
       primarySp,
       objectInfo,
