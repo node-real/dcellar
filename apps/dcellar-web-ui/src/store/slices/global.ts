@@ -305,7 +305,7 @@ export const setupPreLockFeeObjects = (primarySpAddress: string) => async (dispa
   const lockFeeParamsPayload = {
     spStorageStorePrice: spStoragePrice?.storePrice || '',
     secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
-    validatorTaxRate,
+    validatorTaxRate: validatorTaxRate || '',
     minChargeSize: minChargeSize.toNumber(),
     redundantDataChunkNum,
     redundantParityChunkNum,
