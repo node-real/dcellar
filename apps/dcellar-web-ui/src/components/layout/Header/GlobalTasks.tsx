@@ -115,7 +115,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const objectInfo = await headObject(bucketName, objectName);
         if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
           dispatch(
-            updateUploadMsg({ id: task.id, msg: 'Something want wrong', account: loginAccount }),
+            updateUploadMsg({ id: task.id, msg: 'Something went wrong.', account: loginAccount }),
           );
           return -1;
         }

@@ -310,7 +310,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        isCurRow && !isFolder && operations.push('share');
+        isCurRow && !isFolder && isSealed && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
         return (
