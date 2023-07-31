@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
 import { SpItem } from '@/store/slices/sp';
 
 interface SharedFileProps {
@@ -49,7 +49,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   } = useDisclosure();
   const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
-  const endpoint = spInfo[oneSp].endpoint;
   const size = payloadSize.toString();
 
   const onError = (type: string) => {
@@ -74,25 +73,23 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           ? 'dc.shared_ui.preview.download.click'
           : 'dc.shared_ui.preview.view.click',
     });
-
+    debugger;
     let remainQuota = quotaRemains(quotaData, size);
     if (!remainQuota) return onError(E_NO_QUOTA);
 
     setAction(e);
-    const bucket = bucketInfo[bucketName];
-    if (!bucket) return onError(E_UNKNOWN);
-    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
-    if (familyResp === null) {
-      return VGerror;
+    const [primarySpEndpoint, error] = await getSpUrlByBucketName(bucketName);
+    if (!primarySpEndpoint) {
+      return error;
     }
-    const primarySp = allSps.find((item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId);
+    const primarySp = allSps.find((item: SpItem) => item.endpoint === primarySpEndpoint);
     if (!primarySp) return onError(E_SP_NOT_FOUND);
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const [_, accessError] = await getCanObjectAccess(
       bucketName,
       objectName,
-      endpoint,
+      primarySpEndpoint,
       loginAccount,
       seedString,
     );

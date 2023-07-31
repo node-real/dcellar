@@ -52,7 +52,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   useAsyncEffect(async () => {
     if (!hashTask) return;
     dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
+    const a = performance.now();
     const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
+    console.log('hashing time', performance.now() - a);
     if (isEmpty(res)) {
       dispatch(updateUploadMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
       return;

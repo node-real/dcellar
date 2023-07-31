@@ -23,7 +23,10 @@ import {
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
+  FOLDER_DESC_NOT_EMPTY,
+  FOLDER_NOT_EMPTY_ICON,
   FOLDER_TITLE_DELETING,
+  FOLDER_TITLE_NOT_EMPTY,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
@@ -111,21 +114,35 @@ export const DeleteObject = ({ refetch }: modalProps) => {
 
   useAsyncEffect(async () => {
     const lockFeeInBNB = await getLockFee(editDelete.payloadSize, primarySp.operatorAddress);
+    // const [data, error] = await preExecDeleteObject(bucketName, editDelete.objectName, address);
+    // if (error) {
+    //   if (error.toLowerCase().includes('not empty')) {
+    //     dispatch(setStatusDetail({
+    //       icon: FOLDER_NOT_EMPTY_ICON,
+    //       title: FOLDER_TITLE_NOT_EMPTY,
+    //       desc: FOLDER_DESC_NOT_EMPTY,
+    //       buttonText: BUTTON_GOT_IT,
+    //       buttonOnClick: () => {
+    //         dispatch(setStatusDetail({} as TStatusDetail));
+    //       }
+    //     }));
+    //   }
+    // }
     setLockFee(lockFeeInBNB);
   }, [isOpen]);
 
   useEffect(() => {
-    if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
+    if (!simulateGasFee || Number(simulateGasFee) < 0) {
       setButtonDisabled(false);
       return;
     }
     const currentBalance = Number(availableBalance);
-    if (currentBalance >= Number(simulateGasFee) + Number(lockFee)) {
+    if (currentBalance >= Number(simulateGasFee)) {
       setButtonDisabled(false);
       return;
     }
     setButtonDisabled(true);
-  }, [simulateGasFee, availableBalance, lockFee]);
+  }, [simulateGasFee, availableBalance]);
   const filePath = editDelete.objectName.split('/');
   const isFolder = editDelete.objectName.endsWith('/');
   const isSavedSixMonths = getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
@@ -160,7 +177,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     >
       <ModalHeader>Confirm Delete</ModalHeader>
       <ModalCloseButton />
-      {!isFolder && isSavedSixMonths && (
+      {!isFolder && !isSavedSixMonths && (
         <Text
           fontSize="18px"
           lineHeight={'22px'}
@@ -227,7 +244,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee + '', lockFee, availableBalance || '0', {
+          {renderInsufficientBalance(simulateGasFee + '', '0', availableBalance || '0', {
             gaShowName: 'dc.file.delete_confirm.depost.show',
             gaClickName: 'dc.file.delete_confirm.transferin.click',
           })}
