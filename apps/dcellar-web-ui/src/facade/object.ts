@@ -1,4 +1,12 @@
-import { IObjectResponse, IObjectResultType, TListObjects, IQuotaProps, TxResponse, ISimulateGasFee } from '@bnb-chain/greenfield-chain-sdk';
+import {
+  IObjectResponse,
+  IObjectResultType,
+  TListObjects,
+  IQuotaProps,
+  TxResponse,
+  ISimulateGasFee,
+  generateUrlByBucketName,
+} from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
@@ -28,7 +36,7 @@ import {
   saveFileByAxiosResponse,
   viewFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import { getDomain } from '@/utils/getDomain';
 import {
@@ -71,14 +79,14 @@ export const getCanObjectAccess = async (
   endpoint: string,
   loginAccount: string,
   seedString: string,
-): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]>  => {
+): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]> => {
   const params = {
     bucketName,
     objectName,
     endpoint,
     address: loginAccount,
     seedString,
-  }
+  };
   const [info, quota] = await getObjectInfoAndBucketQuota(params);
   if (!info) return [false, E_NOT_FOUND];
 
@@ -155,7 +163,7 @@ export const previewObject = async (
   }
 
   const [result, error] = await getObjectBytes(params, seedString);
-  console.log('result', result)
+  console.log('result', result);
   if (!result) return [false, error];
 
   viewFileByAxiosResponse(result);
@@ -287,17 +295,41 @@ export const putObjectPolicy = async (
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
-export const preExecDeleteObject = async (bucketName: string, objectName: string, address: string): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
+export const preExecDeleteObject = async (
+  bucketName: string,
+  objectName: string,
+  address: string,
+): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
   const client = await getClient();
   const deleteBucketTx = await client.object.deleteObject({
     bucketName,
     objectName,
     operator: address,
   });
-  const [data, error] = await deleteBucketTx.simulate({
-    denom: 'BNB',
-  }).then(resolve, simulateFault);
+  const [data, error] = await deleteBucketTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
 
   if (error) return [null, error];
   return [data!, null];
+};
+
+export const getObjectMeta = async (bucketName: string, objectName: string, endpoint: string) => {
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+    objectName,
+  )}?object-meta`;
+
+  const errorHandle = async () => {
+    return axios.get(url).catch(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(errorHandle());
+        }, 1000);
+      });
+    });
+  };
+
+  return axios.get(url).catch(errorHandle);
 };

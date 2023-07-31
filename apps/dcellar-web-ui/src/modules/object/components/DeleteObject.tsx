@@ -29,14 +29,19 @@ import {
   FOLDER_TITLE_NOT_EMPTY,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
-import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectItem, TStatusDetail, setEditDelete, setStatusDetail } from '@/store/slices/object';
+import {
+  ObjectItem,
+  TStatusDetail,
+  setEditDelete,
+  setStatusDetail,
+  addDeletedObject,
+} from '@/store/slices/object';
 import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
@@ -373,6 +378,12 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                     reportEvent({
                       name: 'dc.toast.file_delete.success.show',
                     });
+                    dispatch(
+                      addDeletedObject({
+                        path: [bucketName, editDelete.objectName].join('/'),
+                        ts: Date.now(),
+                      }),
+                    );
                   } else {
                     toast.error({ description: 'Delete object error.' });
                   }

@@ -414,5 +414,5 @@ export {
   saveFileByAxiosResponse,
   truncateFileName,
   renderPrelockedFeeValue,
-  getBuiltInLink
+  getBuiltInLink,
 };
