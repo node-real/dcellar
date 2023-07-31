@@ -73,7 +73,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           ? 'dc.shared_ui.preview.download.click'
           : 'dc.shared_ui.preview.view.click',
     });
-    debugger;
     let remainQuota = quotaRemains(quotaData, size);
     if (!remainQuota) return onError(E_NO_QUOTA);
 

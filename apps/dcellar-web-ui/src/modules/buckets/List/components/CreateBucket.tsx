@@ -175,7 +175,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
         chargedReadQuota: '0',
       };
-      debugger;
       const createBucketTx = await genCreateBucketTx(createBucketParams);
 
       const simulateInfo = await createBucketTx.simulate({
