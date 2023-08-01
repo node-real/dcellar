@@ -22,8 +22,7 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
-import { SpItem } from '@/store/slices/sp';
+import { getSpUrlByBucketName } from '@/facade/virtual-group';
 import { headObject } from '@/facade/object';
 
 const Container = styled.main`
@@ -46,14 +45,19 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
     if (!oneSp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
     const [primarySpEndpoint, error] = await getSpUrlByBucketName(bucketName);
-    if (!primarySpEndpoint) return;
+    if (!primarySpEndpoint) {
+      // bucket not exist
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
     const params = {
       bucketName,
       objectName,
       endpoint: primarySpEndpoint,
       seedString,
       address: loginAccount,
-    }
+    };
     if (!loginAccount) {
       const objectInfo = await headObject(bucketName, objectName);
       setObjectInfo(objectInfo);

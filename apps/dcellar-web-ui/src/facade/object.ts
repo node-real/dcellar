@@ -38,7 +38,6 @@ import {
 } from '@/modules/file/utils';
 import axios, { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
-import { getDomain } from '@/utils/getDomain';
 import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
