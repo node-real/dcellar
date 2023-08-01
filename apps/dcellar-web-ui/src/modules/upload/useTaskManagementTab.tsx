@@ -10,29 +10,30 @@ export type TTabKey = TUploadStatus;
 export const useTaskManagementTab = () => {
   const { uploadQueue } = useAppSelector((root) => root.global);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const queue = sortBy(uploadQueue[loginAccount] || [], [
-    (o) => {
-      switch (o.status) {
-        case 'SEAL':
-          return 0;
-        case 'UPLOAD':
-          return 1;
-        case 'HASH':
-          return 1;
-        case 'READY':
-          return 1;
-        case 'WAIT':
-          return 2;
-        case 'FINISH':
-          return 3;
-        case 'ERROR':
-          return 4;
-      }
-    },
-  ]);
+  // const queue = sortBy(uploadQueue[loginAccount] || [], [
+  //   (o) => {
+  //     switch (o.status) {
+  //       case 'SEAL':
+  //         return 0;
+  //       case 'UPLOAD':
+  //         return 1;
+  //       case 'HASH':
+  //         return 1;
+  //       case 'READY':
+  //         return 1;
+  //       case 'WAIT':
+  //         return 2;
+  //       case 'FINISH':
+  //         return 3;
+  //       case 'ERROR':
+  //         return 4;
+  //     }
+  //   },
+  // ]);
+  const queue = sortBy(uploadQueue[loginAccount] || [], (o) => o.file.time);
   const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
-    const uploadingQueue = queue?.filter((i) => i.status === 'UPLOAD' || i.status === 'FINISH');
-    const completeQueue = queue?.filter((i) => i.status === 'SEAL');
+    const uploadingQueue = queue?.filter((i) => ['HASH', 'UPLOAD', 'SEAL'].includes(i.status));
+    const completeQueue = queue?.filter((i) => i.status === 'FINISH');
     const errorQueue = queue?.filter((i) => i.status === 'ERROR');
     return {
       uploadingQueue,
@@ -43,7 +44,7 @@ export const useTaskManagementTab = () => {
 
   const tabOptions: {
     title: string;
-    key: TUploadStatus | 'ALL';
+    key: 'ALL' | 'HASH-UPLOAD-SEAL' | 'FINISH' | 'ERROR';
     icon?: React.ReactNode;
     data: UploadFile[];
   }[] = [
@@ -54,12 +55,12 @@ export const useTaskManagementTab = () => {
     },
     {
       title: 'Uploading',
-      key: 'UPLOAD',
+      key: 'HASH-UPLOAD-SEAL',
       data: uploadingQueue,
     },
     {
       title: 'Complete',
-      key: 'SEAL',
+      key: 'FINISH',
       data: completeQueue,
     },
     {

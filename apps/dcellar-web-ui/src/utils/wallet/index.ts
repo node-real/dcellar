@@ -67,7 +67,7 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
     const lockFeeInBNB = lockedFeeRate
       .times(BigNumber(reserveTime?.toString() || 0))
       .dividedBy(Math.pow(10, 18));
-    console.log('lockFeeInBNB', lockFeeInBNB.toString());
+
     return lockFeeInBNB.toString();
   } catch (error: any) {
     // eslint-disable-next-line no-console

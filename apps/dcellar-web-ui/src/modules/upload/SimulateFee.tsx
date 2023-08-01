@@ -120,7 +120,7 @@ export const Fee = () => {
         cursor={'pointer'}
       >
         <Text>Total Fees</Text>
-        <Text justifySelf={'flex-end'}>
+        <Text justifySelf={'flex-end'} fontWeight={'normal'}>
           {renderFeeValue(String(Number(gasFee) + Number(lockFee)), exchangeRate)}
           <MenuCloseIcon
             sx={{

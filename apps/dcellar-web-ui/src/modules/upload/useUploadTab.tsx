@@ -1,10 +1,9 @@
 import { useAppSelector } from '@/store';
-import { ColoredAlertIcon, ColoredErrorIcon } from '@totejs/icons';
 import { useMemo, useState } from 'react';
 
 export type TTabKey = 'ALL' | 'WAIT' | 'ERROR';
 
-export const useTab = () => {
+export const useUploadTab = () => {
   const { waitQueue } = useAppSelector((root) => root.global);
   const { allLen, waitLen, errorLen } = useMemo(() => {
     const allLen = waitQueue.length;
@@ -36,7 +35,7 @@ export const useTab = () => {
       title: 'Error',
       key: 'ERROR',
       len: errorLen,
-      icon: <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />
+      // icon: <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />
     },
   ];
   const [activeKey, setActiveKey] = useState(tabOptions[0].key);

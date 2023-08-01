@@ -16,6 +16,7 @@ const UPLOAD_IMAGE_URL = `${assetPrefix}/images/files/upload.svg`;
 const FILE_INFO_IMAGE_URL = `${assetPrefix}/images/files/upload_file.svg`;
 const UNKNOWN_ERROR_URL = `${assetPrefix}/images/files/unknown.svg`;
 const FOLDER_NOT_EMPTY_ICON = `${assetPrefix}/images/buckets/bucket-not-empty.svg`;
+const UPLOAD_TASK_EMPTY_ICON = `${assetPrefix}/images/objects/task-empty.svg`;
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
@@ -137,4 +138,5 @@ export {
   FOLDER_TITLE_NOT_EMPTY,
   FOLDER_NOT_EMPTY_ICON,
   FOLDER_DESC_NOT_EMPTY,
+  UPLOAD_TASK_EMPTY_ICON,
 };

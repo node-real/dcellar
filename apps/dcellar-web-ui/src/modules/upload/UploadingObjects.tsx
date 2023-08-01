@@ -18,16 +18,19 @@ import {
   Tabs,
   Text,
   CircularProgress,
+  CircularProgressLabel,
 } from '@totejs/uikit';
-import { FILE_UPLOAD_STATIC_URL } from '@/modules/file/constant';
+import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
 import { useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
-import { ColoredErrorIcon, ColoredSuccessIcon } from '@totejs/icons';
+import { ColoredErrorIcon, ColoredSuccessIcon, Icon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { useTaskManagementTab } from './useTaskManagementTab';
 import styled from '@emotion/styled';
+import { NameItem } from './NameItem';
+import { PathItem } from './PathItem';
 
 export const UploadingObjects = () => {
   const { bucketName } = useAppSelector((root) => root.object);
@@ -37,36 +40,38 @@ export const UploadingObjects = () => {
       case 'WAIT':
         return (
           <>
-            <Loading />
-            waiting
+            <Loading justifyContent={'flex-end'}/>
+            <Text marginLeft={'4px'}>waiting</Text>
           </>
         );
       case 'HASH':
         return (
           <>
-            <Loading />
-            hashing
+            <Loading justifyContent={'flex-end'}/>
+            <Text marginLeft={'4px'}>hashing</Text>
           </>
         );
       case 'READY':
         return (
           <>
-            <Loading />
-            ready
+            <CircularProgress size="20" value={0} color="#00BA34" marginRight={'4px'}>
+              <CircularProgressLabel>{0}%</CircularProgressLabel>
+            </CircularProgress>
           </>
         );
       case 'UPLOAD':
         return (
           <>
-            <CircularProgress size="20" value={task.progress} color="#00BA34" marginRight={'4px'} />
-            Uploading
+            <CircularProgress size="36" value={task.progress} color="#00BA34" marginRight={'4px'}>
+              <CircularProgressLabel fontSize={'8px'} color='readable.tertiary' fontWeight={'600'}>{task.progress || 0}%</CircularProgressLabel>
+            </CircularProgress>
           </>
         );
       case 'SEAL':
         return (
           <>
-            <Loading />
-            sealing
+            <Loading justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'}>sealing</Text>
           </>
         );
       case 'FINISH':
@@ -133,9 +138,16 @@ export const UploadingObjects = () => {
               <TabPanel key={item.key} panelKey={item.key}>
                 {item.data.length === 0 && (
                   <Empty>
-                    <EmptyIcon width={'100px'} />
+                    <Image
+                      alt="Empty"
+                      src={UPLOAD_TASK_EMPTY_ICON}
+                      width={'100px'}
+                      marginBottom={16}
+                    />
                     {/* <EmptyTitle>Title</EmptyTitle> */}
-                    <EmptyDescription>There are no objects in the list</EmptyDescription>
+                    <EmptyDescription color="readable.secondary">
+                      There are no objects in the list.
+                    </EmptyDescription>
                   </Empty>
                 )}
                 {item.data &&
@@ -155,7 +167,7 @@ export const UploadingObjects = () => {
                         alignItems={'center'}
                         justifyContent={'space-between'}
                       >
-                        <Box maxW="200px" flex={1}>
+                        {/* <Box maxW="200px" flex={1}>
                           <EllipsisText marginRight={'12px'} title={task.file.name}>
                             {task.file.name}
                           </EllipsisText>
@@ -166,10 +178,15 @@ export const UploadingObjects = () => {
                           ) : (
                             <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
                           )}
-                        </Box>
-                        <EllipsisText maxW="200px" textAlign={'center'} marginRight={'12px'}>
-                          {[bucketName, task.prefixFolders].join('/')}
-                        </EllipsisText>
+                        </Box> */}
+                        <NameItem
+                          name={task.file.name}
+                          size={task.file.size}
+                          msg={task.msg}
+                          maxW="200px"
+                          flex="1"
+                        />
+                        <PathItem path={[bucketName, task.prefixFolders].join('/')} />
                         <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>

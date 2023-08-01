@@ -1,14 +1,14 @@
-import {
-  Box,
-  Flex,
-  QListItem,
-} from '@totejs/uikit';
+import { Box, Empty, EmptyDescription, Flex, QListItem, Image } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import { formatBytes } from '../file/utils';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { CloseIcon } from '@totejs/icons';
 import { removeFromWaitQueue } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { UPLOAD_TASK_EMPTY_ICON } from '../file/constant';
+import { isEmpty, slice } from 'lodash-es';
+import { NameItem } from './NameItem';
+import { PathItem } from './PathItem';
 
 type ListItemProps = { path: string; type: 'ALL' | 'WAIT' | 'ERROR' };
 
@@ -31,8 +31,19 @@ export const ListItem = ({ path, type }: ListItemProps) => {
     }
   }, [selectedFiles, type]);
 
+  if (isEmpty(list)) {
+    return (
+      <Empty>
+        <Image alt="Empty" src={UPLOAD_TASK_EMPTY_ICON} width={'100px'} marginBottom={16} />
+        {/* <EmptyTitle>Title</EmptyTitle> */}
+        <EmptyDescription color="readable.secondary">
+          There are no objects in the list.
+        </EmptyDescription>
+      </Empty>
+    );
+  }
   return (
-    <Flex width='100%' flexDirection={'column'} alignItems={'center'} display={'flex'}>
+    <Flex width="100%" flexDirection={'column'} alignItems={'center'} display={'flex'}>
       {list &&
         list.map((selectedFile) => (
           <QListItem
@@ -45,19 +56,19 @@ export const ListItem = ({ path, type }: ListItemProps) => {
                 onClick={() => onRemoveClick(selectedFile.id)}
                 marginLeft={'8px'}
                 cursor={'pointer'}
+                color="readable.tertiary"
+                w="16px"
               />
             }
           >
             <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
-              <Box maxW={'300px'}>
-                <EllipsisText marginRight={'12px'}>{selectedFile.name}</EllipsisText>
-                {selectedFile.msg ? (
-                  <EllipsisText color={'red'}>{selectedFile.msg}</EllipsisText>
-                ) : (
-                  <EllipsisText>{formatBytes(selectedFile.size)}</EllipsisText>
-                )}
-              </Box>
-              <EllipsisText maxW="200px" textAlign={'right'} flex={1}>{`${path}/`}</EllipsisText>
+              <NameItem
+                maxW="300px"
+                name={selectedFile.name}
+                msg={selectedFile.msg}
+                size={selectedFile.size}
+              />
+              <PathItem path={`${path}/`} flex={1} textAlign="right" />
             </Flex>
           </QListItem>
         ))}

@@ -1,4 +1,4 @@
-import React, { use, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -39,7 +39,13 @@ import { isUTF8 } from '../file/utils/file';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { TEditUpload, TStatusDetail, setEditUpload, setEditUploadStatus, setStatusDetail } from '@/store/slices/object';
+import {
+  TEditUpload,
+  TStatusDetail,
+  setEditUpload,
+  setEditUploadStatus,
+  setStatusDetail,
+} from '@/store/slices/object';
 import {
   addTasksToUploadQueue,
   resetWaitQueue,
@@ -53,7 +59,7 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { isEmpty, round } from 'lodash-es';
 import { ListItem } from './ListItem';
-import { useTab } from './useUploadTab';
+import { useUploadTab } from './useUploadTab';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 
@@ -62,8 +68,8 @@ const MAX_SIZE = 256;
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
-  const { editUpload, bucketName, path, objects } = useAppSelector((root) => root.object);
-  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
@@ -72,12 +78,12 @@ export const UploadObjects = () => {
   );
   const selectedFiles = waitQueue;
   const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
-  const {uploadQueue} = useAppSelector((root) => root.global);
+  const { uploadQueue } = useAppSelector((root) => root.global);
   const [creating, setCreating] = useState(false);
-  const { tabOptions, activeKey, setActiveKey } = useTab();
+  const { tabOptions, activeKey, setActiveKey } = useUploadTab();
 
   const onClose = () => {
-    dispatch(setEditUploadStatus(false))
+    dispatch(setEditUploadStatus(false));
     dispatch(setEditUpload({} as TEditUpload));
     dispatch(resetWaitQueue());
   };
@@ -111,7 +117,14 @@ export const UploadObjects = () => {
       return E_OBJECT_NAME_CONTAINS_SLASH;
     }
     const objectListNames = objectList.map((item) => item.objectName);
-    const uploadingNames = (uploadQueue?.[loginAccount] || []).map((item) => item.file.name);
+    const uploadingNames = (uploadQueue?.[loginAccount] || [])
+      .map((item) => {
+        const curPrefix = folders.join('/');
+        const filePrefix = item.prefixFolders.join('/');
+        return curPrefix === filePrefix ? item.file.name : '';
+      })
+      .filter((item) => item);
+
     if ([...objectListNames, ...uploadingNames].includes(file.name)) {
       return E_OBJECT_NAME_EXISTS;
     }
@@ -142,7 +155,10 @@ export const UploadObjects = () => {
       }),
     );
     const { totalFee: amount } = editUpload;
-    const safeAmount = Number(amount) * 1.05 > Number(availableBalance) ? round(Number(availableBalance), 6) : round(Number(amount) * 1.05, 6);
+    const safeAmount =
+      Number(amount) * 1.05 > Number(availableBalance)
+        ? round(Number(availableBalance), 6)
+        : round(Number(amount) * 1.05, 6);
     const [tmpAccount, error] = await createTmpAccount({
       address: loginAccount,
       bucketName,
@@ -175,7 +191,7 @@ export const UploadObjects = () => {
 
   useUpdateEffect(() => {
     if (selectedFiles.length === 0) {
-      dispatch(setEditUploadStatus(false))
+      dispatch(setEditUploadStatus(false));
       dispatch(setEditUpload({} as TEditUpload));
     }
   }, [selectedFiles.length]);
@@ -184,7 +200,7 @@ export const UploadObjects = () => {
     return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects, selectedFiles]);
 
-  const hasSuccess = waitQueue.some((item) => item.status === 'WAIT');
+  const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
 
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
@@ -223,13 +239,13 @@ export const UploadObjects = () => {
             Total Upload:{' '}
             <strong>
               {formatBytes(
-                selectedFiles.reduce(
+                checkedQueue.filter(item => item.status === 'WAIT').reduce(
                   (accumulator, currentValue) => accumulator + currentValue.size,
                   0,
                 ),
               )}
             </strong>{' '}
-            / <strong>{selectedFiles.length} Files</strong>
+            / <strong>{checkedQueue.length} Files</strong>
           </Box>
         </Flex>
         <Fee />
@@ -238,11 +254,11 @@ export const UploadObjects = () => {
             w="100%"
             variant={'dcPrimary'}
             onClick={onUploadClick}
-            isDisabled={loading || creating || !hasSuccess || !editUpload.isBalanceAvailable}
+            isDisabled={loading || creating || !checkedQueue || !editUpload.isBalanceAvailable}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >
-            {(loading || creating) && !hasSuccess ? (
+            {(loading || creating) && !checkedQueue ? (
               <>
                 Loading
                 <DotLoading />

@@ -23,7 +23,7 @@ import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
-import { broadcastFault, createTxFault, simulateFault } from '@/facade/error';
+import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { isEmpty } from 'lodash-es';
 
 interface GlobalTasksProps {}
@@ -86,11 +86,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       signType: 'authTypeV1',
       privateKey: tmpAccount.privateKey,
     };
+    console.log('createObjectPayload', createObjectPayload);
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
       resolve,
       createTxFault,
     );
-    console.log('createObjectTx', createObjectTx);
+    console.log('createObjectTx', createObjectTx, _createError, task.id);
     if (_createError) {
       return dispatch(updateUploadTaskMsg({
         account: loginAccount,
@@ -100,10 +101,17 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     }
 
     const [simulateInfo, simulateError] = await createObjectTx!
-    .simulate({
-      denom: 'BNB',
-    })
-    .then(resolve, simulateFault);
+      .simulate({
+        denom: 'BNB',
+      })
+      .then(resolve, simulateFault);
+    if (!simulateInfo || simulateError) {
+      return dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: simulateError,
+      }));
+    }
 
     const broadcastPayload = {
       denom: 'BNB',
@@ -125,7 +133,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       }));
       return;
     }
-    const uploadOptions = await generatePutObjectOptions({
+    const [uploadOptions, gpooError] = await generatePutObjectOptions({
       bucketName: task.bucketName,
       objectName: [...task.prefixFolders, task.file.name].join('/'),
       body: task.file.file,
@@ -134,7 +142,15 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       userAddress: loginAccount,
       domain,
       seedString,
-    });
+    }).then(resolve, commonFault);
+
+    if (!uploadOptions || gpooError) {
+      return dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: gpooError,
+      }));
+    }
     const { url, headers } = uploadOptions;
     axios.put(url, task.file.file, {
       async onUploadProgress(progressEvent) {
@@ -148,7 +164,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
         'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
       },
-    });
+    }).catch(e => {
+      dispatch(updateUploadTaskMsg({
+        account: loginAccount,
+        id: task.id,
+        msg: e?.message || 'Upload error',
+      }));
+    })
   };
 
   useAsyncEffect(async () => {
@@ -169,7 +191,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const objectInfo = await headObject(bucketName, objectName);
         if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
           dispatch(
-            updateUploadMsg({ id: task.id, msg: 'Something went wrong.', account: loginAccount }),
+            updateUploadTaskMsg({ id: task.id, msg: 'Something went wrong.', account: loginAccount }),
           );
           return -1;
         }

@@ -81,6 +81,7 @@ export const ObjectsPage = () => {
           </Tooltip>
           {!!objectList.length && (
             <NewObject
+              showRefresh={true}
               gaFolderClickName="dc.file.list.create_folder.click"
               gaUploadClickName="dc.file.list.upload.click"
             />
