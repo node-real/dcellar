@@ -57,8 +57,8 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
       endpoint: primarySpEndpoint,
       seedString,
       address: loginAccount,
-    };
-    if (!loginAccount) {
+    }
+    if (!loginAccount || !isOwner) {
       const objectInfo = await headObject(bucketName, objectName);
       setObjectInfo(objectInfo);
       setQuotaData({} as IQuotaProps);

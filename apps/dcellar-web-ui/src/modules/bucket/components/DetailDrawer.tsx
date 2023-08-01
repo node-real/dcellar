@@ -171,7 +171,6 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   useAsyncEffect(async () => {
     if (!editDetail.bucket_name || editDetail.primary_sp_address) return;
     const client = await getClient();
-    // TODO 优化成从familyId获取，注意报错处理
     const endpoint = await client.sp.getSPUrlByBucket(editDetail.bucket_name);
     const primarySp = allSps.find((sp: SpItem) => sp.endpoint === endpoint) as SpItem;
     dispatch(setEditDetail({
