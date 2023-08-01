@@ -21,7 +21,13 @@ import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { ObjectItem, setEditCancel, setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import {
+  addDeletedObject,
+  ObjectItem,
+  setEditCancel,
+  setStatusDetail,
+  TStatusDetail,
+} from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
@@ -70,7 +76,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
     bnb: { price: bnbPrice },
     _availableBalance: availableBalance,
   } = useAppSelector((root) => root.global);
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, editCancel } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
@@ -248,6 +254,12 @@ export const CancelObject = ({ refetch }: modalProps) => {
               }
               if (txRes && txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
+                dispatch(
+                  addDeletedObject({
+                    path: [bucketName, editCancel.objectName].join('/'),
+                    ts: Date.now(),
+                  }),
+                );
                 refetch();
                 dispatch(setupBucketQuota(bucketName));
               } else {
