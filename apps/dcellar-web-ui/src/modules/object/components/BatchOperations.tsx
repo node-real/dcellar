@@ -20,11 +20,12 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName, objects, path, primarySp } = useAppSelector((root) => root.object);
-  const quotas = useAppSelector((root) => root.bucket.quotas);
+  const { bucketName, objects, path } = useAppSelector((root) => root.object);
+  const { quotas } = useAppSelector((root) => root.bucket);
   const quotaData = quotas[bucketName];
   const [isBatchDeleteOpen, setBatchDeleteOpen] = React.useState(false);
-
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const primarySp = primarySpInfo[bucketName];
   useMount(() => {
     dispatch(setupBucketQuota(bucketName));
   });
@@ -42,10 +43,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
 
   const onBatchDownload = async () => {
     const items = objects[path].filter((i) => selectedRowKeys.includes(i.objectName));
-    let remainQuota = quotaRemains(
-      quotaData,
-      items.reduce((x, y) => x + y.payloadSize, 0),
-    );
+    let remainQuota = quotaRemains(quotaData, String(items.reduce((x, y) => x + y.payloadSize, 0)));
     if (!remainQuota) return onError(E_NO_QUOTA);
     const operator = primarySp.operatorAddress;
     // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
@@ -55,8 +53,8 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const onBatchDelete = async () => {
     const items = objects[path].filter((i) => selectedRowKeys.includes(i.objectName));
     let remainQuota = quotaRemains(
-      quotaData,
-      items.reduce((x, y) => x + y.payloadSize, 0),
+      { readQuota: 2000000, freeQuota: 2000000, consumedQuota: 2000000 },
+      String(items.reduce((x, y) => x + y.payloadSize, 0)),
     );
     if (!remainQuota) return onError(E_NO_QUOTA);
     console.log(isBatchDeleteOpen, 'onBatchDelete');

@@ -204,53 +204,6 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       toast.error({ description: 'Delete file error.' });
     }
   };
-  const deleteObjectUseMulti = async (objectList: any[], tmpAccount: TTmpAccount) => {
-    const client = await getClient();
-    const multiMsg: any[] = await Promise.all(
-      objectList.map(async (objectName) => {
-        const delTx = await client.object.deleteObject({
-          bucketName,
-          objectName,
-          operator: tmpAccount.address,
-        });
-        return delTx;
-      }),
-    );
-
-    console.log(multiMsg, 'multiMsg');
-    const delObjTxs = await client.basic.multiTx(multiMsg);
-
-    console.log(delObjTxs, 'delObjTxs');
-
-    const simulateInfo = await delObjTxs.simulate({
-      denom: 'BNB',
-    });
-
-    const txRes = await delObjTxs.broadcast({
-      denom: 'BNB',
-      gasLimit: Number(simulateInfo?.gasLimit),
-      gasPrice: simulateInfo?.gasPrice || '5000000000',
-      payer: tmpAccount.address,
-      granter: loginAccount,
-      privateKey: tmpAccount.privateKey,
-    });
-    console.log(txRes, 'txRes');
-
-    if (txRes === null) {
-      dispatch(setStatusDetail({} as TStatusDetail));
-      return toast.error({ description: 'Delete object error.' });
-    }
-    if (txRes.code === 0) {
-      toast.success({
-        description: 'object deleted successfully.',
-      });
-      reportEvent({
-        name: 'dc.toast.file_delete.success.show',
-      });
-    } else {
-      toast.error({ description: 'Delete file error.' });
-    }
-  };
 
   const onConfirmDelete = async () => {
     try {
@@ -275,10 +228,17 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         return errorHandler(err);
       }
       dispatch(setTmpAccount(tmpAccount));
-      // deleteObjectUseMulti(selectedRowKeys, tmpAccount);
-      deleteObjects.map((obj) => {
-        deleteObject(obj.object_info.object_name, tmpAccount);
-      });
+
+      async function deleteInRow() {
+        if (!tmpAccount) return;
+        for (let obj of deleteObjects) {
+          await deleteObject(obj.object_info.object_name, tmpAccount);
+        }
+      }
+      deleteInRow();
+      // deleteObjects.map((obj) => {
+      //   deleteObject(obj.object_info.object_name, tmpAccount);
+      // });
       toast.info({ description: 'Objects deleting', icon: <ColoredWaitingIcon /> });
       refetch();
       onClose();

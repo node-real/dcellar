@@ -24,6 +24,7 @@ import {
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
   FOLDER_TITLE_DELETING,
+  NOT_EMPTY,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { Tips } from '@/components/common/Tips';
@@ -39,6 +40,7 @@ import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
+import { getListObjects } from '@/facade/object';
 
 interface modalProps {
   refetch: () => void;
@@ -87,7 +89,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [lockFee, setLockFee] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDelete, bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
@@ -128,13 +130,33 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   }, [simulateGasFee, availableBalance, lockFee]);
   const filePath = editDelete.objectName.split('/');
   const isFolder = editDelete.objectName.endsWith('/');
-  const isSavedSixMonths = getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
+  const isSavedSixMonths =
+    getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
   const showName = filePath[filePath.length - 1];
   const folderName = filePath[filePath.length - 2];
   const description = isFolder
     ? `Are you sure you want to delete folder "${folderName}"?`
     : `Are you sure you want to delete file "${showName}"?`;
 
+  const isFolderEmpty = async (record: ObjectItem) => {
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '2');
+    _query.append('prefix', `${record.objectName}`);
+
+    const params = {
+      address: primarySp.operatorAddress,
+      bucketName: bucketName,
+      prefix: record.objectName,
+      query: _query,
+      endpoint: primarySp.endpoint,
+      seedString: '',
+    };
+    const [res, error] = await getListObjects(params);
+    if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
+    const list = res.body!;
+    return list.key_count === '1' && list.objects[0].object_info.object_name === record.objectName;
+  };
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(
       setStatusDetail({
@@ -160,6 +182,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     >
       <ModalHeader>Confirm Delete</ModalHeader>
       <ModalCloseButton />
+      {/* {deleteFolderNotEmpty && <FolderNotEmpty />} */}
+
       {!isFolder && isSavedSixMonths && (
         <Text
           fontSize="18px"
@@ -177,7 +201,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             textDecoration={'underline'}
             cursor={'pointer'}
             href="https://docs.nodereal.io/docs/dcellar-faq#fee-related "
-            target='_blank'
+            target="_blank"
           >
             Learn more
           </Link>
@@ -254,6 +278,24 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             try {
               setLoading(true);
               onClose();
+              if (!isFolderEmpty) {
+                dispatch(
+                  setStatusDetail({
+                    icon: NOT_EMPTY,
+                    title: 'Folder Not Empty',
+                    desc: '',
+                    buttonText: BUTTON_GOT_IT,
+                    errorText:
+                      'Only empty folder can be deleted. Please delete all objects in this folder first',
+                    buttonOnClick: () => {
+                      dispatch(setStatusDetail({} as TStatusDetail));
+                    },
+                  }),
+                );
+                setLoading(false);
+                dispatch(setStatusDetail({} as TStatusDetail));
+                onClose();
+              }
               dispatch(
                 setStatusDetail({
                   icon: FILE_DELETE_GIF,

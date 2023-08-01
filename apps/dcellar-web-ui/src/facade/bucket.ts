@@ -3,10 +3,10 @@ import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { getDomain } from '@/utils/getDomain';
-import { commonFault, ErrorResponse, offChainAuthFault } from '@/facade/error';
+import { commonFault, ErrorResponse, offChainAuthFault, simulateFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
-import { IObjectResultType } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-chain-sdk';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -54,11 +54,24 @@ export const getBucketReadQuota = async ({
     signType: 'offChainAuth',
     domain: getDomain()
   };
-  console.log('invoke getBucketReadQuota')
   const [res, error] = await client.bucket
     .getBucketReadQuota(payload).then(resolve, offChainAuthFault);
   if (error) return [null, error];
 
   const quota = res?.body as IQuotaProps;
   return [quota, null];
+};
+
+export const preExecDeleteBucket = async (bucketName: string, address: string): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
+  const client = await getClient();
+  const deleteBucketTx = await client.bucket.deleteBucket({
+    bucketName,
+    operator: address,
+  });
+  const [data, error] = await deleteBucketTx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+
+  if (error) return [null, error];
+  return [data!, null];
 };

@@ -44,7 +44,6 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { FolderNotEmpty } from '@/modules/object/components/FolderNotEmpty';
 
 import {
   E_GET_QUOTA_FAILED,
@@ -53,7 +52,7 @@ import {
   E_OFF_CHAIN_AUTH,
   E_UNKNOWN,
 } from '@/facade/error';
-import { downloadObject } from '@/facade/object';
+import { downloadObject, getListObjects } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { UploadObjects } from '@/modules/upload/UploadObjects';
 import { OBJECT_SEALED_STATUS } from '@/modules/file/constant';
@@ -83,13 +82,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   } = useAppSelector((root) => root.persist);
 
   const [rowIndex, setRowIndex] = useState(-1);
-  const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
+  // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
     (root) => root.object,
   );
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { spInfo, primarySpInfo} = useAppSelector((root) => root.sp);
+  const { spInfo, primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -102,7 +101,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   useAsyncEffect(async () => {
     if (!primarySp) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const query = new URLSearchParams();
     const params = {
       seedString,
@@ -135,14 +136,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     const config = accounts[loginAccount] || {};
 
     if (config.directDownload) {
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
       const gParams = {
         bucketName,
         objectName: object.objectName,
         endpoint: primarySp.endpoint,
         seedString,
         address: loginAccount,
-      }
+      };
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
@@ -177,17 +180,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'detail':
         return dispatch(setEditDetail(record));
       case 'delete':
-        let isFolder = record.objectName.endsWith('/');
-        setDeleteFolderNotEmpty(false);
-        if (isFolder) {
-          let res = await isFolderEmpty(record);
-          if (!res) {
-            setDeleteFolderNotEmpty(true);
-          }
-          return dispatch(setEditDelete(record));
-        } else {
-          return dispatch(setEditDelete(record));
-        }
+        return dispatch(setEditDelete(record));
       case 'share':
         return dispatch(setEditShare(record));
       case 'download':
@@ -195,24 +188,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'cancel':
         return dispatch(setEditCancel(record));
     }
-  };
-  const isFolderEmpty = async (record: ObjectItem) => {
-    const _query = new URLSearchParams();
-    _query.append('delimiter', '/');
-    _query.append('maxKeys', '1000');
-    _query.append('prefix', `${record.objectName}`);
-
-    const params = {
-      address: primarySp.operatorAddress,
-      bucketName: bucketName,
-      prefix: record.objectName,
-      query: _query,
-      endpoint: primarySp.endpoint,
-      seedString: '',
-      maxKeys: 1000,
-    };
-    const [res] = await _getAllList(params);
-    return res?.objects?.length === 1;
   };
   const columns: ColumnProps<ObjectItem>[] = [
     {
@@ -371,7 +346,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const refetch = async (name?: string) => {
     if (!primarySp) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const query = new URLSearchParams();
     const params = {
       seedString,
@@ -392,8 +369,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   return (
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && !deleteFolderNotEmpty &&<DeleteObject refetch={refetch} />}
-      {deleteFolderNotEmpty && <FolderNotEmpty />}
+      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
       {editShare?.objectName && <ShareObject />}

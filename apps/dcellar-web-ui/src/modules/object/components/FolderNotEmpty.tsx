@@ -34,7 +34,7 @@ export const FolderNotEmpty = () => {
           lineHeight="150%"
           marginY={'16px'}
         >
-          Folder not Empty
+          Folder Not Empty
         </Text>
         <Text color="#474D57" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
           Only empty folder can be deleted. Please delete all objects in this folder first.
