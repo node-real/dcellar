@@ -57,6 +57,7 @@ import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/ob
 import { duplicateName } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { getObjectMeta } from '@/facade/object';
 
 interface modalProps {
   refetch: (name?: string) => void;
@@ -66,12 +67,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
-  const { bucketName, folders, objects, path} = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketName, folders, objects, path } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-  const { sps } = useAppSelector((root) => root.sp);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
@@ -211,6 +211,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       return;
     }
     const { transactionHash } = txRes;
+
+    // polling ensure create sealed
+    const fullPath = getPath(inputFolderName, folders);
+    await getObjectMeta(bucketName, fullPath, primarySp.endpoint);
+
     setLoading(false);
     showSuccessToast(transactionHash);
     dispatch(setStatusDetail({} as TStatusDetail));

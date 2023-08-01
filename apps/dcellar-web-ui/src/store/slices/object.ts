@@ -5,9 +5,6 @@ import { toast } from '@totejs/uikit';
 import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
-import { SpItem } from './sp';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { THashResult } from '@/modules/checksum/checksumWorkerV2';
 
 export type ObjectItem = {
   objectName: string;
@@ -20,12 +17,6 @@ export type ObjectItem = {
   objectStatus: number;
   removed: boolean;
 };
-export type TLayerAction = {
-  isOpen: boolean;
-  onToggle: () => void;
-  onClose: () => void;
-  onOpen: () => void;
-};
 
 export type TStatusDetail = {
   icon: string;
@@ -34,23 +25,6 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
-};
-
-export type TFileItem = {
-  name: string;
-  size: string;
-  type: string;
-  calHash?: THashResult;
-  status: 'WAIT_CHECKING' | 'WAIT_UPLOAD' | 'UPLOADING' | 'UPLOAD_SUCCESS' | 'UPLOAD_FAIL';
-  errorMsg?: string;
-  txnHash?: string;
-};
-
-export type TUploading = {
-  isOpen: boolean;
-  isLoading: boolean;
-  fileInfos: TFileItem[];
-  visibility: VisibilityType;
 };
 
 export type ObjectActionType = 'view' | 'download' | '';
@@ -80,7 +54,7 @@ export interface ObjectState {
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
   editUpload: TEditUpload;
-  uploading: TUploading;
+  deletedObjects: Record<string, number>;
 }
 
 const initialState: ObjectState = {
@@ -101,19 +75,17 @@ const initialState: ObjectState = {
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   editUpload: {} as TEditUpload,
-  uploading: {
-    visibility: 2,
-    isOpen: false,
-    fileInfos: [],
-    isLoading: false,
-  },
+  deletedObjects: {},
 };
-export const SINGLE_FILE_MAX_SIZE = 256 * 1024 * 1024;
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    addDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
+      const { path, ts } = payload;
+      state.deletedObjects[path] = ts;
+    },
     updateObjectVisibility(
       state,
       { payload }: PayloadAction<{ object: ObjectItem; visibility: number }>,
@@ -138,6 +110,9 @@ export const objectSlice = createSlice({
       const items = state.objects[path];
       if (items.some((i) => i.name === folder.name)) return;
       items.push(folder);
+      const [bucketName] = path.split('/');
+      const _path = [bucketName, folder.objectName].join('/');
+      state.deletedObjects[_path] = 0;
     },
     updateObjectStatus(
       state,
@@ -188,7 +163,7 @@ export const objectSlice = createSlice({
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setEditUploadStatus(state, {payload}: PayloadAction<boolean>) {
+    setEditUploadStatus(state, { payload }: PayloadAction<boolean>) {
       state.editUpload.isOpen = payload;
     },
     setEditUpload(state, { payload }: PayloadAction<TEditUploadContent>) {
@@ -200,12 +175,6 @@ export const objectSlice = createSlice({
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
     },
-    setUploading(state, { payload }: PayloadAction<Partial<TUploading>>) {
-      state.uploading = {
-        ...state.uploading,
-        ...payload,
-      };
-    },
     setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
       state.editShare = payload;
     },
@@ -214,18 +183,27 @@ export const objectSlice = createSlice({
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
       const { path, list } = payload;
+      const [bucketName] = path.split('/');
       // keep order
-      const folders = list.common_prefixes.reverse().map((i, index) => ({
-        objectName: i,
-        name: last(trimEnd(i, '/').split('/'))!,
-        payloadSize: 0,
-        createAt: Date.now() + index,
-        contentType: '',
-        folder: true,
-        visibility: 3,
-        objectStatus: 1,
-        removed: false,
-      }));
+      const folders = list.common_prefixes
+        .reverse()
+        .map((i, index) => ({
+          objectName: i,
+          name: last(trimEnd(i, '/').split('/'))!,
+          payloadSize: 0,
+          createAt: Date.now() + index,
+          contentType: '',
+          folder: true,
+          visibility: 3,
+          objectStatus: 1,
+          removed: false,
+        }))
+        .filter((f) => {
+          const path = [bucketName, f.objectName].join('/');
+          const ts = state.deletedObjects[path];
+          // manually update delete status when create new folder
+          return !ts;
+        });
 
       const objects = list.objects
         .map((i) => {
@@ -254,7 +232,12 @@ export const objectSlice = createSlice({
             removed: i.removed,
           };
         })
-        .filter((i) => !i.objectName.endsWith('/') && !i.removed);
+        .filter((i) => !i.objectName.endsWith('/') && !i.removed)
+        .filter((o) => {
+          const path = [bucketName, o.objectName].join('/');
+          const ts = state.deletedObjects[path];
+          return !ts || ts < o.createAt;
+        });
 
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
       state.objects[path] = folders.concat(objects as ObjectItem[]);
@@ -365,10 +348,10 @@ export const {
   setEditUpload,
   setEditUploadStatus,
   setEditCancel,
-  setUploading,
   updateObjectStatus,
   setDummyFolder,
   updateObjectVisibility,
+  addDeletedObject,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
