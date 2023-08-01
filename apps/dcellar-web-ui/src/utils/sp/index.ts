@@ -53,21 +53,15 @@ export const calPreLockFee = ({ size, preLockFeeObject }: { size: number; primar
   } = preLockFeeObject;
 
   const chargeSize = size >= minChargeSize ? size : minChargeSize;
-  const lockedFeeRate = BigNumber(spStorageStorePrice)
-    .plus(
-      BigNumber(secondarySpStorePrice).times(
-        redundantDataChunkNum + redundantParityChunkNum,
-      ),
-    )
-    .times(BigNumber(chargeSize))
-    .times(BigNumber(validatorTaxRate).dividedBy(Math.pow(10, 18)))
-    .dividedBy(Math.pow(10, 18));
-  const lockFeeInBNB = lockedFeeRate
-    .times(BigNumber(reserveTime || 0))
-    .dividedBy(Math.pow(10, 18));
+  const primarySpRate = BigNumber(spStorageStorePrice).dividedBy(Math.pow(10, 18)).times(BigNumber(chargeSize));
+  const secondarySpNum = redundantDataChunkNum + redundantParityChunkNum;
+  let secondarySpRate = BigNumber(secondarySpStorePrice).dividedBy(Math.pow(10, 18)).times(BigNumber(chargeSize));
+  secondarySpRate = secondarySpRate.times(secondarySpNum);
+  const validatorTax = BigNumber(validatorTaxRate).dividedBy(Math.pow(10, 18)).times(primarySpRate.plus(secondarySpRate));
+  const rate = primarySpRate.plus(secondarySpRate).plus(validatorTax);
+  const lockFeeInBNB = rate.times(BigNumber(reserveTime || 0)).dividedBy(Math.pow(10, 18));
 
   return lockFeeInBNB.toString()
-
 }
 const checkZkWasm = (attempts: number = 5): Promise<boolean>=> {
   return new Promise<boolean>((resolve) => {

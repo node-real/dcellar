@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { use, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Flex,
@@ -51,7 +51,6 @@ import {
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { duplicateName } from '@/utils/object';
 import { isEmpty, round } from 'lodash-es';
 import { ListItem } from './ListItem';
 import { useTab } from './useUploadTab';
@@ -73,6 +72,7 @@ export const UploadObjects = () => {
   );
   const selectedFiles = waitQueue;
   const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
+  const {uploadQueue} = useAppSelector((root) => root.global);
   const [creating, setCreating] = useState(false);
   const { tabOptions, activeKey, setActiveKey } = useTab();
 
@@ -110,7 +110,9 @@ export const UploadObjects = () => {
     if (file.name.includes('//')) {
       return E_OBJECT_NAME_CONTAINS_SLASH;
     }
-    if (duplicateName(file.name, objectList)) {
+    const objectListNames = objectList.map((item) => item.objectName);
+    const uploadingNames = (uploadQueue?.[loginAccount] || []).map((item) => item.file.name);
+    if ([...objectListNames, ...uploadingNames].includes(file.name)) {
       return E_OBJECT_NAME_EXISTS;
     }
     return '';

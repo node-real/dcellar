@@ -55,6 +55,7 @@ export interface ObjectState {
   statusDetail: TStatusDetail;
   editUpload: TEditUpload;
   deletedObjects: Record<string, number>;
+  refreshing: boolean;
 }
 
 const initialState: ObjectState = {
@@ -76,6 +77,7 @@ const initialState: ObjectState = {
   statusDetail: {} as TStatusDetail,
   editUpload: {} as TEditUpload,
   deletedObjects: {},
+  refreshing: false,
 };
 
 export const objectSlice = createSlice({
@@ -242,6 +244,9 @@ export const objectSlice = createSlice({
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
       state.objects[path] = folders.concat(objects as ObjectItem[]);
     },
+    setListRefreshing(state, { payload }: PayloadAction<boolean>) {
+      state.refreshing = payload;
+    }
   },
 });
 
@@ -296,10 +301,6 @@ export const setupListObjects =
 
       const { prefix, bucketName, path, restoreCurrent } = getState().object;
       const { loginAccount: address } = getState().persist;
-      dispatch(setRestoreCurrent(true));
-      if (!restoreCurrent) {
-        dispatch(setCurrentObjectPage({ path, current: 0 }));
-      }
       const _query = new URLSearchParams(params.query?.toString() || '');
       _query.append('max-keys', '1000');
       _query.append('delimiter', '/');
@@ -314,13 +315,18 @@ export const setupListObjects =
         return;
       }
       dispatch(setObjectList({ path: _path || path, list: res! }));
+      dispatch(setRestoreCurrent(true));
+      if (!restoreCurrent) {
+        dispatch(setCurrentObjectPage({ path, current: 0 }));
+      }
     };
+
 export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
   dispatch(setStatusDetail({} as TStatusDetail));
 };
 export const selectPathLoading = (root: AppState) => {
-  const { objects, path } = root.object;
-  return !(path in objects);
+  const { objects, path, refreshing } = root.object;
+  return !(path in objects) || refreshing;
 };
 
 export const selectPathCurrent = (root: AppState) => {
@@ -352,6 +358,7 @@ export const {
   setDummyFolder,
   updateObjectVisibility,
   addDeletedObject,
+  setListRefreshing,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

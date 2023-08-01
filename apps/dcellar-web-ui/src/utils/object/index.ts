@@ -6,10 +6,6 @@ export type TReverseVisibilityType = {
   [K in number]: TKey;
 };
 
-export const duplicateName = (name: string, objects: ObjectItem[]) => {
-  return objects.some((item) => item.name === name);
-}
-
 const StringIsNumber = (value: string) => isNaN(Number(value)) === false;
 
 export const convertVisibility = () => {

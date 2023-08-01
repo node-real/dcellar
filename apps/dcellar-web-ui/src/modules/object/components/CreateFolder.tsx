@@ -54,7 +54,6 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import { duplicateName } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getObjectMeta } from '@/facade/object';
@@ -235,7 +234,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     if (value.includes('/')) {
       errors.push('Cannot consist of slash(/).');
     }
-    if (duplicateName(value, folderList)) {
+    const folderNames = folderList.map((folder) => folder.name);
+    if (folderNames.includes(value)) {
       errors.push('Folder name already exists.');
     }
     setFormErrors(errors);

@@ -301,7 +301,6 @@ export const setupPreLockFeeObjects = (primarySpAddress: string) => async (dispa
   } = (storageParams && storageParams.versionedParams) || {};
   const { params: paymentParams } = await client.payment.params();
   const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
-
   const lockFeeParamsPayload = {
     spStorageStorePrice: spStoragePrice?.storePrice || '',
     secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',

@@ -1,13 +1,24 @@
 import React, { ChangeEvent, memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import { Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip } from '@totejs/uikit';
+import {
+  Box,
+  Button,
+  Flex,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+  Tooltip,
+} from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
-import { setEditCreate, setEditUploadStatus } from '@/store/slices/object';
+import { setEditCreate, setEditUploadStatus, setListRefreshing, setRestoreCurrent, setupListObjects } from '@/store/slices/object';
 import { addToWaitQueue } from '@/store/slices/global';
 import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-
+import RefreshIcon from '@/public/images/icons/refresh.svg';
+import { getSpOffChainData } from '@/store/slices/persist';
 interface NewObjectProps {
   gaFolderClickName?: string;
   gaUploadClickName?: string;
@@ -22,7 +33,10 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { folders, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
+  const { folders, prefix, path, objectsInfo, bucketName} = useAppSelector((root) => root.object);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const primarySp = primarySpInfo[bucketName];
   const onOpenCreateFolder = () => {
     if (disabled) return;
     dispatch(setEditCreate(true));
@@ -53,8 +67,27 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     e.target.value = '';
   };
 
+  const refreshList = async () => {
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
+    const query = new URLSearchParams();
+    const params = {
+      seedString,
+      query,
+      endpoint: primarySp.endpoint,
+    };
+    dispatch(setListRefreshing(true));
+    dispatch(setRestoreCurrent(false));
+    await dispatch(setupListObjects(params));
+    dispatch(setListRefreshing(false));
+  }
+
   return (
     <Flex gap={12}>
+      <Flex onClick={() => refreshList()} alignItems='center' height={40} marginRight={12} cursor='pointer'>
+        <RefreshIcon />
+      </Flex>
       <Tooltip
         content={
           invalidPath
