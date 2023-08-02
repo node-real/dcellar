@@ -40,22 +40,24 @@ export const UploadingObjects = () => {
       case 'WAIT':
         return (
           <>
-            <Loading justifyContent={'flex-end'}/>
+            <Loading justifyContent={'flex-end'} />
             <Text marginLeft={'4px'}>waiting</Text>
           </>
         );
       case 'HASH':
         return (
           <>
-            <Loading justifyContent={'flex-end'}/>
+            <Loading justifyContent={'flex-end'} />
             <Text marginLeft={'4px'}>hashing</Text>
           </>
         );
       case 'READY':
         return (
           <>
-            <CircularProgress size="20" value={0} color="#00BA34" marginRight={'4px'}>
-              <CircularProgressLabel>{0}%</CircularProgressLabel>
+            <CircularProgress size="36" value={0} color="#00BA34" marginRight={'4px'}>
+              <CircularProgressLabel fontSize={8} color="readable.tertiary" fontWeight={'600'}>
+                {0}%
+              </CircularProgressLabel>
             </CircularProgress>
           </>
         );
@@ -63,7 +65,9 @@ export const UploadingObjects = () => {
         return (
           <>
             <CircularProgress size="36" value={task.progress} color="#00BA34" marginRight={'4px'}>
-              <CircularProgressLabel fontSize={'8px'} color='readable.tertiary' fontWeight={'600'}>{task.progress || 0}%</CircularProgressLabel>
+              <CircularProgressLabel fontSize={'8px'} color="readable.tertiary" fontWeight={'600'}>
+                {task.progress || 0}%
+              </CircularProgressLabel>
             </CircularProgress>
           </>
         );
