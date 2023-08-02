@@ -437,7 +437,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
               </Box>
               <Flex flexDir="column" gap={12}>
                 <FormControl isInvalid={!isEmpty(errors?.bucketName)}>
-                  <FormLabel fontWeight={500} fontSize={14} mb={8} fontFamily="heading">
+                  <FormLabel fontWeight={500} fontSize={14} mb={8}>
                     Name
                   </FormLabel>
                   <InputGroup>
@@ -505,7 +505,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel fontSize={14} fontWeight={500} mb={8} fontFamily="heading">
+                  <FormLabel fontSize={14} fontWeight={500} mb={8}>
                     Primary Storage Provider
                   </FormLabel>
                   <SPSelector onChange={onChangeSP} />

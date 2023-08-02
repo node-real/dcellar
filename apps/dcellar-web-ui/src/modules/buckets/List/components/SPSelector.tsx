@@ -89,7 +89,7 @@ export function SPSelector(props: SPSelector) {
           <TH w={120}>
             Storage Fee{' '}
             <Tooltip content="BNB/GB/Month" placement="bottom-start">
-              <ColoredInfoIcon boxSize={16} cursor="pointer" />
+              <ColoredInfoIcon boxSize={16} />
             </Tooltip>
           </TH>
           <TH w={100}>Latency</TH>
