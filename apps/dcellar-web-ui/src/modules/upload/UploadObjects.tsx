@@ -63,6 +63,7 @@ import { ListItem } from './ListItem';
 import { useUploadTab } from './useUploadTab';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
+import { useAccount } from 'wagmi';
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
@@ -75,6 +76,7 @@ export const UploadObjects = () => {
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
+  const { connector } = useAccount();
   const selectedFiles = waitQueue;
   const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
   const { uploadQueue } = useAppSelector((root) => root.global);
@@ -162,7 +164,7 @@ export const UploadObjects = () => {
       address: loginAccount,
       bucketName,
       amount: parseEther(String(safeAmount)).toString(),
-    });
+    }, connector);
     if (!tmpAccount) {
       return errorHandler(error);
     }

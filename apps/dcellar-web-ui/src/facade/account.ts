@@ -1,5 +1,5 @@
 import { getClient } from '@/base/client';
-import { GRNToString, MsgCreateObjectTypeUrl, MsgDeleteObjectTypeUrl, PermissionTypes, newBucketGRN } from '@bnb-chain/greenfield-chain-sdk';
+import { GRNToString, MsgCreateObjectTypeUrl, PermissionTypes, newBucketGRN } from '@bnb-chain/greenfield-chain-sdk';
 import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coin';
 import { Wallet } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';
@@ -7,6 +7,7 @@ import { resolve } from './common';
 import { ErrorResponse, broadcastFault, commonFault, simulateFault } from './error';
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
+import { signTypedDataCallback } from './wallet';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -21,7 +22,7 @@ export const getAccountBalance = async ({
   return balance!;
 };
 
-export const createTmpAccount = async ({address, bucketName, amount}: any): Promise<ErrorResponse | [TTmpAccount, null]> => {
+export const createTmpAccount = async ({address, bucketName, amount}: any, connector: any): Promise<ErrorResponse | [TTmpAccount, null]> => {
   // 1. create temporary account
   const wallet = Wallet.createRandom();
   console.log('wallet', wallet.address, wallet.privateKey);
@@ -69,6 +70,7 @@ export const createTmpAccount = async ({address, bucketName, amount}: any): Prom
     gasPrice: '5000000000',
     payer: address,
     granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
   }
   const [res, error] = await txs.broadcast(payload).then(resolve, broadcastFault);
 

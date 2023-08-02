@@ -1,10 +1,7 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
-  Box,
   Empty,
   EmptyDescription,
-  EmptyIcon,
-  EmptyTitle,
   Flex,
   Image,
   QDrawerBody,
@@ -22,11 +19,9 @@ import {
 } from '@totejs/uikit';
 import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
 import { useAppSelector } from '@/store';
-import { formatBytes } from '../file/utils';
 import { ColoredErrorIcon, ColoredSuccessIcon, Icon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
-import { EllipsisText } from '@/components/common/EllipsisText';
 import { useTaskManagementTab } from './useTaskManagementTab';
 import styled from '@emotion/styled';
 import { NameItem } from './NameItem';
@@ -171,18 +166,6 @@ export const UploadingObjects = () => {
                         alignItems={'center'}
                         justifyContent={'space-between'}
                       >
-                        {/* <Box maxW="200px" flex={1}>
-                          <EllipsisText marginRight={'12px'} title={task.file.name}>
-                            {task.file.name}
-                          </EllipsisText>
-                          {task.msg ? (
-                            <EllipsisText color={'red'} title={task.msg}>
-                              {task.msg}
-                            </EllipsisText>
-                          ) : (
-                            <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
-                          )}
-                        </Box> */}
                         <NameItem
                           name={task.file.name}
                           size={task.file.size}

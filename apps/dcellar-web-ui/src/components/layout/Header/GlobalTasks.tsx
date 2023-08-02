@@ -203,7 +203,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     );
 
     if (_tasks.some((t) => t === 0)) {
-      setTimeout(() => setCounter((c) => c + 1), 500);
+      setTimeout(() => setCounter((c) => c + 1), 1500);
     }
   }, [sealQueue.join(''), counter]);
 
