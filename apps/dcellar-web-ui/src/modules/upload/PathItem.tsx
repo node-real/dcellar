@@ -7,7 +7,13 @@ type Props = {
 
 export const PathItem = ({ path, ...styleProps }: Props) => {
   return (
-    <EllipsisText color={'readable.tertiary'} maxW="200px" textAlign={'center'} marginRight={'12px'} {...styleProps}>
+    <EllipsisText
+      color={'readable.tertiary'}
+      maxW="150px"
+      textAlign={'center'}
+      marginRight={'12px'}
+      {...styleProps}
+    >
       {path}
     </EllipsisText>
   );

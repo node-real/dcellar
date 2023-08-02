@@ -1,8 +1,8 @@
-import { Box, Empty, EmptyDescription, Flex, QListItem, Image } from '@totejs/uikit';
+import { Empty, EmptyDescription, Flex, QListItem, Image } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import { formatBytes } from '../file/utils';
 import { EllipsisText } from '@/components/common/EllipsisText';
-import { CloseIcon } from '@totejs/icons';
+import { CloseIcon} from '@totejs/icons';
 import { removeFromWaitQueue } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { UPLOAD_TASK_EMPTY_ICON } from '../file/constant';

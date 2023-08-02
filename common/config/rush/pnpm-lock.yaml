@@ -27,7 +27,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.49.1
+      '@totejs/uikit': ~2.49.2
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -73,7 +73,7 @@ importers:
       '@tanstack/react-table': 8.9.2_react-dom@18.2.0+react@18.2.0
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.13.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.49.1_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.49.2_aa3274991927adc2766d9259998fdd18
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
       apollo-node-client: 1.4.3
@@ -3709,8 +3709,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/icons/2.14.0_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-k2rr3SJD4zqjjMYIroNvdSxoJyqlq8TajFiV3llQXEDXKaZEiC8oShmIUcdfSm+4jVUa5mAob2sTptNKQqZ0og==}
+  /@totejs/icons/2.15.0_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-S8KN5cT8xooH1K+/ukYmUTw14Hv0S2nlFhReLn/X5ou8AvHA38sUHtFaV/jZ2EpumCgAWr8OxuoBiSskE+xoqQ==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3753,8 +3753,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.49.1_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-ghOG/69Hjx0HjZSrBmK+N3VJAkqml9Ij9d6K3+mjRFOf3vyBsXElA7FzvHUEwo6PpbFFAzpw4yiouSJqhsWYPA==}
+  /@totejs/uikit/2.49.2_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-x586hutj35jO/boj9kpWvECMGkp7OhZYQObUZ6fMsC2PuHY0Yoh7XufYFm6ub8Aj3HlS+HZfFYq1p0TU7gpXaw==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3764,7 +3764,7 @@ packages:
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@popperjs/core': 2.11.8
-      '@totejs/icons': 2.14.0_aa3274991927adc2766d9259998fdd18
+      '@totejs/icons': 2.15.0_aa3274991927adc2766d9259998fdd18
       '@totejs/styled-system': 2.12.0_react-dom@18.2.0+react@18.2.0
       '@xobotyi/scrollbar-width': 1.9.5
       react: 18.2.0

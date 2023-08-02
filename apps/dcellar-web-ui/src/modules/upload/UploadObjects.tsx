@@ -40,6 +40,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import {
+  SINGLE_OBJECT_MAX_SIZE,
   TEditUpload,
   TStatusDetail,
   setEditUpload,
@@ -62,8 +63,6 @@ import { ListItem } from './ListItem';
 import { useUploadTab } from './useUploadTab';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
-
-const MAX_SIZE = 256;
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
@@ -98,7 +97,7 @@ export const UploadObjects = () => {
     if (!file) {
       return E_FILE_IS_EMPTY;
     }
-    if (file.size > MAX_SIZE * 1024 * 1024) {
+    if (file.size > SINGLE_OBJECT_MAX_SIZE) {
       return E_FILE_TOO_LARGE;
     }
     if (file.size <= 0) {

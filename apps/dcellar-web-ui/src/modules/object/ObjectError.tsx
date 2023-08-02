@@ -1,4 +1,6 @@
+import { SINGLE_OBJECT_MAX_SIZE } from "@/store/slices/object";
 import { FILE_EMPTY_URL, FILE_FAILED_URL, FILE_TITLE_DOWNLOAD_FAILED, FILE_TOO_LARGE_URL, NOT_ENOUGH_QUOTA_URL, UNKNOWN_ERROR_URL } from "../file/constant";
+import { formatBytes } from "../file/utils";
 
 export const OBJECT_ERROR_TYPES = {
   NO_QUOTA: {
@@ -24,7 +26,7 @@ export const OBJECT_ERROR_TYPES = {
   FILE_TOO_LARGE_URL: {
     title: 'Object is too large',
     icon: FILE_TOO_LARGE_URL,
-    desc: 'Object size exceeded the maximum allowed size (256MB).',
+    desc: `Object size exceeded the maximum allowed size (${formatBytes(SINGLE_OBJECT_MAX_SIZE)}.`,
   },
   FILE_IS_EMPTY: {
     title: 'Object is empty',
@@ -34,7 +36,7 @@ export const OBJECT_ERROR_TYPES = {
   OBJECT_TOO_LARGE: {
     title: 'Object is too large',
     icon: FILE_TOO_LARGE_URL,
-    desc: 'Object size exceeded the maximum allowed size (256MB).',
+    desc: `Object size exceeded the maximum allowed size (${formatBytes(SINGLE_OBJECT_MAX_SIZE)}).`,
   },
   OBJECT_NAME_EXISTS: {
     title: 'Object name already exists',

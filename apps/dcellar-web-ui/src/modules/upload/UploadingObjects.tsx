@@ -190,7 +190,7 @@ export const UploadingObjects = () => {
                           maxW="200px"
                           flex="1"
                         />
-                        <PathItem path={[bucketName, task.prefixFolders].join('/')} />
+                        <PathItem path={[task.bucketName, task.prefixFolders].join('/')} />
                         <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>

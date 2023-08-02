@@ -2,18 +2,14 @@ import React, { ChangeEvent, memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import {
-  Box,
-  Button,
   Flex,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Text,
   Tooltip,
+  toast,
 } from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import {
+  SELECT_OBJECT_NUM_LIMIT,
   setEditCreate,
   setEditUploadStatus,
   setListRefreshing,
@@ -64,6 +60,12 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     console.log(e);
     const files = e.target.files;
     if (!files || !files.length) return;
+    if (files.length > SELECT_OBJECT_NUM_LIMIT) {
+      return toast.error({
+        description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
+        isClosable: true,
+      })
+    }
     const uploadIds: number[] = [];
     Object.values(files).forEach((file: File) => {
       const time = getUtcZeroTimestamp();
@@ -136,9 +138,11 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         content={
           discontinue
             ? 'Bucket in the discontinue status cannot upload files.'
-            : 'Folder does not exist.'
+            : uploadDisabled
+            ? 'Folder does not exist.'
+            : 'Please limit object size to 128MB and upload a maximum of 10 objects at a time during testnet. '
         }
-        visibility={uploadDisabled ? 'visible' : 'hidden'}
+        // visibility={uploadDisabled ||  ? 'visible' : 'hidden'}
       >
         <GAClick name={gaUploadClickName}>
           <label htmlFor="file-upload" className="custom-file-upload">
@@ -153,7 +157,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               cursor={uploadDisabled ? 'default' : 'pointer'}
             >
               <UploadIcon color="#fff" w="24px" h="24px" alt="" />
-              <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px" marginLeft={8}>
+              <Text
+                color="readable.white"
+                fontWeight={500}
+                fontSize="16px"
+                lineHeight="20px"
+                marginLeft={8}
+              >
                 Upload
               </Text>
             </Flex>

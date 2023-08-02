@@ -6,6 +6,9 @@ import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 
+export const SINGLE_OBJECT_MAX_SIZE = 128 * 1024 * 1024;
+export const SELECT_OBJECT_NUM_LIMIT = 10;
+
 export type ObjectItem = {
   objectName: string;
   name: string;

@@ -6,6 +6,8 @@ import { useAppSelector } from '@/store';
 import { last } from 'lodash-es';
 import styled from '@emotion/styled';
 import { NewObject } from '@/modules/object/components/NewObject';
+import { formatBytes } from '@/modules/file/utils';
+import { SELECT_OBJECT_NUM_LIMIT, SINGLE_OBJECT_MAX_SIZE } from '@/store/slices/object';
 
 interface ListEmptyProps {
   empty: boolean;
@@ -25,11 +27,14 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
 
   const title = discontinue
     ? 'Discontinue Notice'
-    : `Upload your objects to this ${lastItem} ${folders.length ? 'folder' : 'bucket'} right now!👏`;
+    // : `Upload your objects to this ${lastItem} ${folders.length ? 'folder' : 'bucket'} right now!👏`;
+    : `Upload your objects right now!👏`;
 
   const subTitle = discontinue
     ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
-    : `(Please make sure your object is smaller than 256MB during testnet phase. \n Please be aware that data loss might occur during testnet phase.)`;
+    : `(Please make sure your object is smaller than  during testnet phase. \n Please be aware that data loss might occur during testnet phase.
+    Please limit object size to ${formatBytes(SINGLE_OBJECT_MAX_SIZE)} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. Note that data loss may occur during this phase.
+    )`;
 
   return (
     <Container>
