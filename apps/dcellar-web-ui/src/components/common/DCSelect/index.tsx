@@ -123,7 +123,7 @@ export function Select(props: DCSelectProps) {
         onEnter={onEnter}
       />
 
-      <MenuList mt={5} border="1px solid readable.border" borderRadius={8} {...listProps}>
+      <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
         {header}
 
         <Box
