@@ -192,6 +192,12 @@ const TH = styled(Box)`
     padding-left: 12px;
     padding-right: 12px;
   }
+  svg {
+    color: #aeb4bc;
+    :hover {
+      color: #76808f;
+    }
+  }
 `;
 
 const TD = styled(Box, transientOptions)<{ $dot?: number }>`
