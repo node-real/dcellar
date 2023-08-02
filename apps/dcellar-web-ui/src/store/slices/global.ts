@@ -39,7 +39,7 @@ type TPreLockFeeObjects = {
 
 export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
-export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'FINISH' | 'SEAL' | 'ERROR';
+export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'SEAL' | 'FINISH'  | 'ERROR' | 'CANCEL';
 
 export type TTmpAccount = {
   address: string;
@@ -109,19 +109,6 @@ export const globalSlice = createSlice({
     setTmpLockFee(state, { payload }: PayloadAction<string>) {
       state._lockFee = payload;
     },
-    updateUploadMsg(
-      state,
-      { payload }: PayloadAction<{ account: string; id: number; msg: string }>,
-    ) {
-      const { account, msg, id } = payload;
-      const task = find<UploadFile>(state.uploadQueue[account], (f) => f.id === id);
-      if (!task) return;
-      task.msg = msg;
-      if (msg) {
-        task.status = 'FINISH';
-        task.file.file = {} as any;
-      }
-    },
     updateUploadProgress(
       state,
       { payload }: PayloadAction<{ account: string; id: number; progress: number }>,
@@ -155,8 +142,6 @@ export const globalSlice = createSlice({
       task.status = 'READY';
       task.checksum = checksum;
       if (queue.length === 1) return;
-      // 为什么要移除啊？先不要移除，一定要以数据流动和管理进行思考
-      // queue.shift(); // shift first ready item
     },
     updateWaitTaskMsg(state, { payload }: PayloadAction<{ id: number; msg: string, }>) {
       const { id, msg } = payload;
@@ -238,6 +223,21 @@ export const globalSlice = createSlice({
     },
     setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
       state.tmpAccount = payload;
+    },
+    //TODO 当正在上传的时候，如果500了，objectList还是会展示sealing，需要更加精细化判断
+    resetUploadQueue(state, { payload }: PayloadAction<{ loginAccount: string }>) {
+      const { loginAccount } = payload;
+      if (!loginAccount) return;
+      let uploadQueue = state.uploadQueue?.[loginAccount];
+      console.log('uploadQueue', uploadQueue, loginAccount)
+      if (!uploadQueue) return;
+      uploadQueue = uploadQueue.filter((task) => task.status !== 'WAIT').map((task) => {
+        if (['HASH', 'READY'].includes(task.status)) {
+          task.status = 'CANCEL';
+          task.msg = 'Account switch or logout leads to cancellation of upload.';
+        }
+        return task;
+      });
     }
   },
 });
@@ -252,13 +252,13 @@ export const {
   addToUploadQueue,
   updateUploadStatus,
   updateUploadProgress,
-  updateUploadMsg,
   setTmpAvailableBalance,
   setTmpLockFee,
   setTaskManagement,
   removeFromWaitQueue,
   setTmpAccount,
   resetWaitQueue,
+  resetUploadQueue,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();

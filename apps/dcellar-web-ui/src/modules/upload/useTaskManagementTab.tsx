@@ -34,7 +34,7 @@ export const useTaskManagementTab = () => {
   const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
     const uploadingQueue = queue?.filter((i) => ['HASH', 'UPLOAD', 'SEAL'].includes(i.status));
     const completeQueue = queue?.filter((i) => i.status === 'FINISH');
-    const errorQueue = queue?.filter((i) => i.status === 'ERROR');
+    const errorQueue = queue?.filter((i) => ['ERROR', 'CANCEL'].includes(i.status));
     return {
       uploadingQueue,
       completeQueue,
@@ -44,7 +44,7 @@ export const useTaskManagementTab = () => {
 
   const tabOptions: {
     title: string;
-    key: 'ALL' | 'HASH-UPLOAD-SEAL' | 'FINISH' | 'ERROR';
+    key: 'ALL' | 'HASH-UPLOAD-SEAL' | 'FINISH' | 'ERROR-CANCEL';
     icon?: React.ReactNode;
     data: UploadFile[];
   }[] = [
@@ -65,7 +65,7 @@ export const useTaskManagementTab = () => {
     },
     {
       title: 'Failed',
-      key: 'ERROR',
+      key: 'ERROR-CANCEL',
       icon: <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />,
       data: errorQueue,
     },

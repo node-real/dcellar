@@ -5,7 +5,6 @@ import {
   selectHashTask,
   selectUploadQueue,
   updateUploadChecksum,
-  updateUploadMsg,
   updateUploadProgress,
   updateUploadStatus,
   updateUploadTaskMsg,
@@ -32,7 +31,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { bucketName } = useAppSelector((root) => root.object);
   const { tmpAccount } = useAppSelector((root) => root.global);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const checksumApi = useChecksumApi();
@@ -56,7 +54,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
     console.log('hashing time', performance.now() - a);
     if (isEmpty(res)) {
-      dispatch(updateUploadMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
+      dispatch(updateUploadTaskMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
       return;
     }
     const { expectCheckSums } = res!;
@@ -76,7 +74,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.file.name].join('/');
     const createObjectPayload: TCreateObject = {
-      bucketName,
+      bucketName: task.bucketName,
       objectName: finalName,
       creator: tmpAccount.address,
       visibility: reverseVisibilityType[task.visibility],

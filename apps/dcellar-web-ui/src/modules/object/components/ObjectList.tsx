@@ -16,7 +16,7 @@ import {
   setupDummyFolder,
   setupListObjects,
 } from '@/store/slices/object';
-import { chunk, reverse, sortBy } from 'lodash-es';
+import { chunk, find, reverse, sortBy } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
@@ -43,7 +43,6 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
@@ -60,6 +59,7 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { SpItem } from '@/store/slices/sp';
+import { UploadFile, selectUploadQueue } from '@/store/slices/global';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -89,6 +89,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
+  const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
     useAppSelector((root) => root.object);
 
@@ -270,6 +271,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
           fitActions = fitActions.filter((a) => ['cancel', 'detail'].includes(a.value));
+          //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
+          const file = find<UploadFile>(
+            uploadQueue,
+            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName
+          );
+          if (file) {
+            fitActions = fitActions.filter((a) => a.value !== 'cancel');
+          }
         }
         const key = path + '/' + record.name;
         const curObjectInfo = objectsInfo[key];

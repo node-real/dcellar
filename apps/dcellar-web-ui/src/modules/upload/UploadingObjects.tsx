@@ -28,7 +28,6 @@ import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
 
 export const UploadingObjects = () => {
-  const { bucketName } = useAppSelector((root) => root.object);
   const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
   const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
     switch (task.status) {
@@ -76,6 +75,8 @@ export const UploadingObjects = () => {
       case 'FINISH':
         return <ColoredSuccessIcon />;
       case 'ERROR':
+        return <ColoredErrorIcon />;
+      case 'CANCEL':
         return <ColoredErrorIcon />;
       default:
         return null;
@@ -170,6 +171,7 @@ export const UploadingObjects = () => {
                           name={task.file.name}
                           size={task.file.size}
                           msg={task.msg}
+                          status={task.status}
                           maxW="200px"
                           flex="1"
                         />
