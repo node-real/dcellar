@@ -7,7 +7,7 @@ type Props = {
   size: number;
   msg?: string;
   maxW: string;
-  status: string;
+  status?: string;
   [key: string]: any;
 };
 export const NameItem = ({ name, size, msg, maxW, status, ...styleProps }: Props) => {
@@ -35,7 +35,7 @@ export const NameItem = ({ name, size, msg, maxW, status, ...styleProps }: Props
       {icon}
       <Box w="calc(100% - 39px)">
         <EllipsisText marginRight={'12px'}>{name}</EllipsisText>
-        {['CANCEL', 'ERROR'].includes(status) ? (
+        {status && ['CANCEL', 'ERROR'].includes(status) || msg ? (
           <EllipsisText color={'red'}>{msg}</EllipsisText>
         ) : (
           <EllipsisText color="readable.tertiary">{formatBytes(size)}</EllipsisText>
