@@ -255,7 +255,7 @@ export const UploadObjects = () => {
             w="100%"
             variant={'dcPrimary'}
             onClick={onUploadClick}
-            isDisabled={loading || creating || !checkedQueue || !editUpload.isBalanceAvailable}
+            isDisabled={loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >

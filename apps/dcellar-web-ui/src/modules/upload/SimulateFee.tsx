@@ -40,6 +40,7 @@ export const Fee = () => {
   }, [primarySp?.operatorAddress]);
 
   const lockFee = useMemo(() => {
+
     if (!primarySp?.operatorAddress) return;
     const preLockFeeObject = preLockFeeObjects[primarySp.operatorAddress];
     if (isEmpty(preLockFeeObject) || isChecking) {
@@ -48,6 +49,9 @@ export const Fee = () => {
     const size = waitQueue
       .filter((item) => item.status !== 'ERROR')
       .reduce((acc, cur) => acc + cur.size, 0);
+
+    if (size === 0) return '0';
+
     const lockFee = calPreLockFee({
       size,
       primarySpAddress: primarySp.operatorAddress,
