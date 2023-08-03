@@ -203,16 +203,17 @@ export const UploadObjects = () => {
   }, [preLockFeeObjects, selectedFiles]);
 
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+  console.log(loading, creating, !checkedQueue?.length, !editUpload.isBalanceAvailable, editUpload)
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
       {!isEmpty(selectedFiles) && (
-        <QDrawerBody marginTop={'24px'}>
+        <QDrawerBody marginTop={'16px'}>
           <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
             <TabList>
               {tabOptions.map((item) => (
-                <Tab h="auto" key={item.key} tabKey={item.key} paddingBottom={'8px'}>
+                <Tab h="auto" key={item.key} fontWeight={500} tabKey={item.key} paddingBottom={'8px'}>
                   {item.icon}
                   {item.title}({item.len})
                 </Tab>
@@ -246,7 +247,7 @@ export const UploadObjects = () => {
                 ),
               )}
             </strong>{' '}
-            / <strong>{checkedQueue.length} Files</strong>
+            / <strong>{checkedQueue.length} Objects</strong>
           </Box>
         </Flex>
         <Fee />

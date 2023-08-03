@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { Box, Flex, Slide, Text, useDisclosure, Link } from '@totejs/uikit';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
 import { WaitFile, setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
@@ -65,7 +65,7 @@ export const Fee = () => {
     ? -1
     : waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length * singleTxGasFee;
 
-  useUpdateEffect(() => {
+  useEffect(() => {
     if (gasFee && lockFee) {
       dispatch(setEditUpload({
         gasFee: BigNumber(gasFee).toString(DECIMAL_NUMBER),
@@ -74,7 +74,7 @@ export const Fee = () => {
         isBalanceAvailable: BigNumber(availableBalance).minus(BigNumber(gasFee)).minus(BigNumber(lockFee)).isPositive(),
       }))
     }
-  }, [gasFee, lockFee]);
+  }, [availableBalance, dispatch, gasFee, lockFee]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(loginAccount));
   });

@@ -9,9 +9,10 @@ export const PathItem = ({ path, ...styleProps }: Props) => {
   return (
     <EllipsisText
       color={'readable.tertiary'}
-      maxW="150px"
-      textAlign={'center'}
+      w={126}
+      textAlign={'left'}
       marginRight={'12px'}
+      fontWeight={400}
       {...styleProps}
     >
       {path}

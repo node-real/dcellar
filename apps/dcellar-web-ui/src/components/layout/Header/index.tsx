@@ -91,7 +91,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         </Flex>
         <Flex alignItems="center" mt="16px">
           <Text color="readable.disabled" fontWeight="400" fontSize="12px" lineHeight="20px">
-            Available Balance
+            Greenfield Available Balance
           </Text>
           <Tips
             iconSize={'16px'}
