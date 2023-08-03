@@ -15,6 +15,7 @@ import BigNumber from 'bignumber.js';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
 import { sortBy } from 'lodash-es';
+import { DCTooltip } from '@/components/common/DCTooltip';
 
 interface SPSelector {
   onChange: (value: SpItem) => void;
@@ -88,9 +89,9 @@ export function SPSelector(props: SPSelector) {
           <TH w={100}>Free Quota</TH>
           <TH w={120}>
             Storage Fee{' '}
-            <Tooltip content="BNB/GB/Month" placement="bottom-start">
+            <DCTooltip title="BNB/GB/Month" placement="bottomLeft">
               <ColoredInfoIcon boxSize={16} />
-            </Tooltip>
+            </DCTooltip>
           </TH>
           <TH w={100}>Latency</TH>
         </Row>
@@ -147,7 +148,7 @@ function OptionItem(props: any) {
           </A>
         </Flex>
 
-        <Tooltip content={endpoint} placement="bottom-start">
+        <DCTooltip title={endpoint} placement="bottomLeft">
           <Text
             lineHeight="14px"
             wordBreak="break-all"
@@ -160,7 +161,7 @@ function OptionItem(props: any) {
           >
             {endpoint}
           </Text>
-        </Tooltip>
+        </DCTooltip>
       </TD>
       <TD w={100}>{meta ? formatBytes(meta.FreeReadQuota) : '--'}</TD>
       <TD w={120}>{meta ? Number(BigNumber(meta.StorePrice).toFixed(5)) : '--'}</TD>

@@ -11,4 +11,9 @@ export const theme: ThemeConfig = {
     colorTextHeading: '#76808F',
     fontFamily: 'Inter, sans-serif',
   },
+  components: {
+    Tooltip: {
+      zIndexPopup: 1600,
+    },
+  },
 };
