@@ -160,6 +160,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
       },
     }).catch(e => {
+      console.log('upload error', e);
       dispatch(updateUploadTaskMsg({
         account: loginAccount,
         id: task.id,
