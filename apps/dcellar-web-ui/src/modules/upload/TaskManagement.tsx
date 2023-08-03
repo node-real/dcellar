@@ -1,7 +1,6 @@
-import { Box, Flex, QDrawer, Text } from '@totejs/uikit';
-import React, { useState } from 'react';
+import { Box, Text } from '@totejs/uikit';
+import React from 'react';
 import { UploadingObjects } from './UploadingObjects';
-import { LoadingIcon } from '@/components/common/SvgIcon/LoadingIcon';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectUploadQueue, setTaskManagement } from '@/store/slices/global';
 import { DCButton } from '@/components/common/DCButton';
@@ -12,12 +11,15 @@ export const TaskManagement = () => {
   const dispatch = useAppDispatch();
   const { taskManagement } = useAppSelector((root) => root.global);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const queue = useAppSelector(selectUploadQueue(loginAccount));
+  const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const isOpen = taskManagement;
-  const setOpen = (boo: boolean) => {
-    dispatch(setTaskManagement(boo));
+  const onToggle = () => {
+    dispatch(setTaskManagement(!isOpen));
   };
-  const isUploading = queue.some((i) => i.status === 'UPLOAD');
+  const setClose = () => {
+    dispatch(setTaskManagement(false));
+  }
+  const isUploading = uploadQueue.some((i) => i.status === 'UPLOAD');
 
   const renderButton = () => {
     if (isUploading) {
@@ -25,7 +27,7 @@ export const TaskManagement = () => {
         <DCButton
           marginRight={'12px'}
           variant="ghost"
-          onClick={() => setOpen(true)}
+          onClick={() => onToggle()}
           alignItems={'center'}
           justifyContent={'center'}
         >
@@ -41,9 +43,7 @@ export const TaskManagement = () => {
         cursor={'pointer'}
         alignSelf={'center'}
         marginRight={'12px'}
-        onClick={() => {
-          setOpen(true);
-        }}
+        onClick={() => onToggle()}
       >
         <DCButton variant="ghost" fontWeight={'500'}>
           Task Management
@@ -55,7 +55,7 @@ export const TaskManagement = () => {
   return (
     <>
       {renderButton()}
-      <DCDrawer isOpen={isOpen} onClose={() => setOpen(false)}>
+      <DCDrawer isOpen={isOpen} onClose={() => setClose()}>
         <UploadingObjects />
       </DCDrawer>
     </>

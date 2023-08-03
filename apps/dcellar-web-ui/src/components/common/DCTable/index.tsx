@@ -57,60 +57,45 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
   );
 });
 
-export const UploadProgress = (props: { progress: number }) => {
-  let { progress = 0 } = props;
-  // As progress will stay put for a while in 100%, user might get confused,
-  // so we hold the progress to 99% at mostbg
-  if (progress < 0) {
-    progress = 0;
-  }
+export const SealLoading = () => {
   const loading = keyframes`
   0%,
   100% {
     transform: translateX(-10px);
-
   }
 
   50% {
     transform: translateX(70px);
   }
 `;
+  return (
+    <Flex
+      w={`30%`}
+      bg={'#1184EE'}
+      borderRadius={'28px'}
+      animation={`${loading} 1.5s linear infinite`}
+    />
+  );
+};
+
+export const UploadProgress = (props: { progress: number }) => {
+  let { progress = 0} = props;
+  if (progress < 0) {
+    progress = 0;
+  }
 
   return (
     <Flex alignItems={'center'}>
       <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
-        {progress > 99 ? (
-          <Flex
-            w={`30%`}
-            bg={'#1184EE'}
-            borderRadius={'28px'}
-            animation={`${loading} 1.5s linear infinite`}
-          />
-        ) : (
-          <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
-        )}
+        <Flex w={`${progress}%`} bg={'#1184EE'} borderRadius={'28px'} />
       </Flex>
-      {progress > 99 ? (
-        <Box
-          color={'readable.normal'}
-          ml={'4px'}
-          fontSize={'12px'}
-          lineHeight={'15px'}
-          fontWeight={400}
-          borderRadius={4}
-          padding={4}
-        >
-          Sealing...
-        </Box>
-      ) : (
-        <Text
-          color={'readable.normal'}
-          ml={'4px'}
-          fontSize={'12px'}
-          lineHeight={'15px'}
-          fontWeight={400}
-        >{`${progress}%`}</Text>
-      )}
+      <Text
+        color={'readable.normal'}
+        ml={'4px'}
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        fontWeight={400}
+      >{`${progress}%`}</Text>
     </Flex>
   );
 };
@@ -121,7 +106,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 
   const file = find<UploadFile>(
     queue,
-    (q) => [q.bucketName, ...q.folders, q.file.name].join('/') === object,
+    (q) => [q.bucketName, ...q.prefixFolders, q.file.name].join('/') === object,
   );
 
   const failed = (
@@ -142,7 +127,9 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 
   if (!file) return failed;
 
-  if (file.status !== 'FINISH') return <UploadProgress progress={file.progress} />;
+  if (file.status === 'UPLOAD') return <UploadProgress progress={file.progress} />;
+
+  if (file.status == 'SEAL') return <SealLoading />;
 
   if (file.msg) return failed;
 

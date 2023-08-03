@@ -53,6 +53,10 @@ const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number | string
   if (!bnbValue || Number(bnbValue) < 0) {
     return '--';
   }
+  if (Number(bnbValue) === 0) {
+    return '0 BNB ($0.00)';
+  }
+
   const bnbNum = renderBnb(bnbValue);
   const renderBnbvalue =
     Number(getNumInDigits(bnbNum, 8, true)) === 0 ? `≈${getNumInDigits(0, 8, true)}` : bnbNum;
@@ -414,5 +418,5 @@ export {
   saveFileByAxiosResponse,
   truncateFileName,
   renderPrelockedFeeValue,
-  getBuiltInLink
+  getBuiltInLink,
 };

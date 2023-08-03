@@ -13,7 +13,7 @@ export const ShareCTA = () => {
       <Text fontWeight={600} fontSize={16} lineHeight="19px" m={24}>
         Start your journey of BNB Greenfield decentralized data network with DCellar Now.🥳
       </Text>
-      <Link href="/" legacyBehavior passHref replace>
+      <Link href="/buckets" legacyBehavior passHref replace>
         <DCButton
           gaClickName="dc.shared_ui.preview.get_stated.click"
           variant="scene"

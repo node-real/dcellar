@@ -21,6 +21,7 @@ export interface SpState {
   sps: Array<SpItem>;
   allSps: Array<SpItem>; // include unstable
   spInfo: Record<string, SpItem>;
+  primarySpInfo: Record<string, SpItem>;
   oneSp: string;
 }
 
@@ -28,6 +29,7 @@ const initialState: SpState = {
   sps: [],
   allSps: [],
   spInfo: {},
+  primarySpInfo: {},
   oneSp: '', // operatorAddress
 };
 
@@ -69,6 +71,10 @@ export const spSlice = createSlice({
         state.oneSp = !len ? '' : state.sps[random(0, len - 1)]?.operatorAddress;
       }
     },
+    setPrimarySpInfo(state, { payload }: PayloadAction<{bucketName: string, sp: SpItem}>) {
+      const {bucketName, sp} = payload;
+      state.primarySpInfo[bucketName] = sp;
+    },
     updateSps(state, { payload }: PayloadAction<string[]>) {
       state.sps = state.sps.filter((sp) => payload.includes(sp.operatorAddress));
       // state.oneSp = payload[0];
@@ -81,7 +87,7 @@ export const spSlice = createSlice({
   },
 });
 
-export const { setStorageProviders, updateSps, filterSps } = spSlice.actions;
+export const { setStorageProviders, setPrimarySpInfo, updateSps, filterSps } = spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { sps: _sps } = getState().sp;

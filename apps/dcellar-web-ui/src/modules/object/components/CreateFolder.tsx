@@ -54,9 +54,9 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import { duplicateName } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { getObjectMeta } from '@/facade/object';
 
 interface modalProps {
   refetch: (name?: string) => void;
@@ -66,10 +66,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, primarySp } = useAppSelector((root) => root.object);
-  const { gasList = {} } = useAppSelector((root) => root.global.gasHub);
-  const { gasFee } = gasList?.[MsgCreateObjectTypeUrl] || {};
-  const { sps } = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketName, folders, objects, path } = useAppSelector((root) => root.object);
+  const primarySp = primarySpInfo[bucketName];
+  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
@@ -118,6 +119,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         gasLimit: Number(simulateInfo?.gasLimit),
         gasPrice: simulateInfo?.gasPrice || '5000000000',
         payer: address,
+        granter: '',
         signTypedDataCallback,
       })
       .then(resolve, broadcastFault);
@@ -208,6 +210,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       return;
     }
     const { transactionHash } = txRes;
+
+    // polling ensure create sealed
+    const fullPath = getPath(inputFolderName, folders);
+    await getObjectMeta(bucketName, fullPath, primarySp.endpoint);
+
     setLoading(false);
     showSuccessToast(transactionHash);
     dispatch(setStatusDetail({} as TStatusDetail));
@@ -227,7 +234,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     if (value.includes('/')) {
       errors.push('Cannot consist of slash(/).');
     }
-    if (duplicateName(value, folderList)) {
+    const folderNames = folderList.map((folder) => folder.name);
+    if (folderNames.includes(value)) {
       errors.push('Folder name already exists.');
     }
     setFormErrors(errors);
@@ -242,18 +250,8 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     const fullPath = getPath(folderName, folders);
     const file = new File([], fullPath, { type: 'text/plain' });
     const domain = getDomain();
-    //@ts-ignore TODO
     const { seedString } = await dispatch(getSpOffChainData(address, primarySp.operatorAddress));
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const secondarySpAddresses = sps
-      .filter((item: any) => item.operatorAddress !== primarySp.operatorAddress)
-      .map((item: any) => item.operatorAddress);
-    const spInfo = {
-      endpoint: primarySp?.endpoint,
-      primarySpAddress: primarySp?.operatorAddress,
-      sealAddress: primarySp?.sealAddress,
-      secondarySpAddresses,
-    };
     const createObjectPayload: TCreateObjectByOffChainAuth = {
       bucketName,
       objectName: fullPath,
@@ -262,7 +260,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       fileType: file.type,
       contentLength: file.size,
       expectCheckSums: hashResult?.expectCheckSums || [],
-      spInfo,
       signType: 'offChainAuth',
       domain,
       seedString,
@@ -329,7 +326,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
           lineHeight="22px"
           textAlign={'left'}
         >
-          Use folders to group files in your bucket. Folder names can't contain "/".
+          Use folders to group objects in your bucket. Folder names can't contain "/".
         </Text>
         <Flex mt={32} flexDirection="column" alignItems="center">
           <FormControl isInvalid={!!formErrors.length} w="100%">

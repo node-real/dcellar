@@ -28,9 +28,17 @@ export const generateGetObjectOptions = async (
     'X-Gnfd-User-Address': userAddress,
     'X-Gnfd-App-Domain': domain,
   });
+
+  const params = new URLSearchParams();
+  // params.append('authorization', body?.authorization || '');
+  // params.append('user-address', userAddress);
+  // params.append('app-domain', domain);
+  // params.append('view', '1');
+
   return {
     url,
     headers,
     method: 'get',
+    params,
   };
 };

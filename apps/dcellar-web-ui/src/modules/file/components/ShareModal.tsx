@@ -14,15 +14,15 @@ import { COPY_SUCCESS_ICON } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { IObjectProps } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse } from '@bnb-chain/greenfield-chain-sdk';
 // import { AccessItem } from '@/modules/file/components/AccessItem';
 import { encodeObjectName } from '@/utils/string';
 
 interface modalProps {
   onClose: () => void;
   isOpen: boolean;
-  shareObject: IObjectProps['object_info'];
-  onAccessChange: (shareObject: IObjectProps['object_info'], access: string) => void;
+  shareObject: IObjectResponse['object_info'];
+  onAccessChange: (shareObject: IObjectResponse['object_info'], access: string) => void;
 }
 
 export const ShareModal = (props: modalProps) => {

@@ -28,6 +28,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { preExecDeleteBucket } from '@/facade/bucket';
 
 export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) => {
   const dispatch = useAppDispatch();
@@ -41,6 +42,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const balance = BigNumber(availableBalance || 0);
   const { chain } = useNetwork();
+  const { gasObjects } = useAppSelector((root) => root.global.gasHub);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,19 +51,16 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
 
   const requestGetBucketFee = useCallback(async () => {
     setIsGasLoading(true);
-    let decimalGasFee = '0';
-    try {
-      decimalGasFee = await getDeleteBucketFee({ bucketName, address, chainId: chain?.id });
-      setGasFee(BigNumber(decimalGasFee));
-    } catch (e: any) {
-      if (e?.message.toLowerCase().includes('bucket is not empty')) {
+    const decimalGasFee = await getDeleteBucketFee(gasObjects);
+    const [data, error] = await preExecDeleteBucket(bucketName, address);
+    if (error) {
+      if (error.toLowerCase().includes('not empty')) {
         setStatus('notEmpty');
       }
-      // eslint-disable-next-line no-console
-      console.log('get Bucket fee', e);
     }
+    setGasFee(BigNumber(decimalGasFee));
     setIsGasLoading(false);
-  }, [address, bucketName, chain?.id]);
+  }, [address, bucketName, gasObjects]);
 
   useEffect(() => {
     if (isEmpty(chain)) return;

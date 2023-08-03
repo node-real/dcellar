@@ -16,7 +16,7 @@ import { useDebounceEffect, useMount } from 'ahooks';
 import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
-import { GasList } from './GasList';
+import { GasObjects } from './GasObjects';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
 
@@ -62,7 +62,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
     <>
       <GlobalTasks />
       <StreamBalance />
-      <GasList />
+      <GasObjects />
       <Flex
         w="340px"
         ref={ref}
@@ -103,7 +103,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
                   equal to your account overall balance, which is shown at your wallet.
                 </Box>
                 <Link
-                  href="https://docs.nodereal.io/docs/faq-1#question-what-is-greenfield-available-balance"
+                  href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is-greenfield-available-balance"
                   target="_blank"
                   color="readable.primary"
                   textDecoration="underline"
@@ -216,7 +216,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       >
         <Flex paddingLeft="24px" alignItems={'center'}>
           <GAClick name="dc.main.nav.logo.click">
-            <Logo href="/" />
+            <Logo href="/buckets" />
           </GAClick>
           <Box
             fontSize={'12px'}

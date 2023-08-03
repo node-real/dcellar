@@ -22,7 +22,7 @@ const init = async () => {
     go.run(result.instance);
     // Ensure hash-wasm initial success,
     // Otherwise, after the browser finishes loading the page,
-    // the user immediately uploads a large file,
+    // the user immediately uploads a large object,
     // and hash-wasm has a certain probability of initialization failure due to memory problems in chrome.
     await sha256('');
   }
