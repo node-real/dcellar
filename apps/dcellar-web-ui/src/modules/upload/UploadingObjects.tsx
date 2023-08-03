@@ -14,11 +14,8 @@ import {
   TabPanels,
   Tabs,
   Text,
-  CircularProgress,
-  CircularProgressLabel,
 } from '@totejs/uikit';
 import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
-import { useAppSelector } from '@/store';
 import { ColoredErrorIcon, ColoredSuccessIcon, Icon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
@@ -26,6 +23,7 @@ import { useTaskManagementTab } from './useTaskManagementTab';
 import styled from '@emotion/styled';
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
+import { UploadProgress } from './UploadProgress';
 
 export const UploadingObjects = () => {
   const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
@@ -46,25 +44,9 @@ export const UploadingObjects = () => {
           </>
         );
       case 'READY':
-        return (
-          <>
-            <CircularProgress size="36" value={0} color="#00BA34" marginRight={'4px'}>
-              <CircularProgressLabel fontSize={8} color="readable.tertiary" fontWeight={'600'}>
-                {0}%
-              </CircularProgressLabel>
-            </CircularProgress>
-          </>
-        );
+        return <UploadProgress value={0} />
       case 'UPLOAD':
-        return (
-          <>
-            <CircularProgress size="36" value={task.progress} color="#00BA34" marginRight={'4px'}>
-              <CircularProgressLabel fontSize={'8px'} color="readable.tertiary" fontWeight={'600'}>
-                {task.progress || 0}%
-              </CircularProgressLabel>
-            </CircularProgress>
-          </>
-        );
+        return<UploadProgress value={task.progress || 0} />
       case 'SEAL':
         return (
           <>

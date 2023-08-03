@@ -139,7 +139,7 @@ export const globalSlice = createSlice({
       const queue = queues[account]
       const task = find<UploadFile>(queue, (t) => t.id === id);
       if (!task) return;
-      task.status = 'READY';
+      task.status = task.status !== 'CANCEL' ? 'READY' : 'CANCEL';
       task.checksum = checksum;
       if (queue.length === 1) return;
     },

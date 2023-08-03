@@ -210,7 +210,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         isLoading: false,
       };
       if (e?.message) {
-        if (e.message.includes('user public key is expired')) {
+        if (e.message.includes('user public key is expired' || 'invalid signature')) {
           onClose();
           setOpenAuthModal();
           return;

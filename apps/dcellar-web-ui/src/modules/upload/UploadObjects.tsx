@@ -117,16 +117,17 @@ export const UploadObjects = () => {
     if (file.name.includes('//')) {
       return E_OBJECT_NAME_CONTAINS_SLASH;
     }
-    const objectListNames = objectList.map((item) => item.objectName);
+    const objectListNames = objectList.map((item) => item.name);
     const uploadingNames = (uploadQueue?.[loginAccount] || [])
       .map((item) => {
-        const curPrefix = folders.join('/');
-        const filePrefix = item.prefixFolders.join('/');
+        const curPrefix = [bucketName, ...folders].join('/');
+        const filePrefix = [item.bucketName, ...item.prefixFolders].join('/');
         return curPrefix === filePrefix ? item.file.name : '';
       })
       .filter((item) => item);
-
-    if ([...objectListNames, ...uploadingNames].includes(file.name)) {
+    const isExistObjectList = objectListNames.includes(file.name);
+    const isExistUploadList = uploadingNames.includes(file.name);
+    if ( isExistObjectList || isExistUploadList) {
       return E_OBJECT_NAME_EXISTS;
     }
     return '';
@@ -202,7 +203,7 @@ export const UploadObjects = () => {
   }, [preLockFeeObjects, selectedFiles]);
 
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-
+  console.log(loading, creating, !checkedQueue, !editUpload.isBalanceAvailable)
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
