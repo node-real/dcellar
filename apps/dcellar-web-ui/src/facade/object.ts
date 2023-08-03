@@ -164,7 +164,6 @@ export const previewObject = async (
   }
 
   const [result, error] = await getObjectBytes(params, seedString);
-  console.log('result', result);
   if (!result) return [false, error];
 
   viewFileByAxiosResponse(result);

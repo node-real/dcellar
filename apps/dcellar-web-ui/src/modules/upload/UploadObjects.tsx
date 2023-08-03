@@ -203,7 +203,6 @@ export const UploadObjects = () => {
   }, [preLockFeeObjects, selectedFiles]);
 
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-  console.log(loading, creating, !checkedQueue, !editUpload.isBalanceAvailable)
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />

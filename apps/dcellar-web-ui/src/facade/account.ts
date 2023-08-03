@@ -25,7 +25,6 @@ export const getAccountBalance = async ({
 export const createTmpAccount = async ({address, bucketName, amount}: any, connector: any): Promise<ErrorResponse | [TTmpAccount, null]> => {
   // 1. create temporary account
   const wallet = Wallet.createRandom();
-  console.log('wallet', wallet.address, wallet.privateKey);
 
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();

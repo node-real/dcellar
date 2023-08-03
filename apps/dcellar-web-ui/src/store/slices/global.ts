@@ -229,7 +229,6 @@ export const globalSlice = createSlice({
       const { loginAccount } = payload;
       if (!loginAccount) return;
       let uploadQueue = state.uploadQueue?.[loginAccount];
-      console.log('uploadQueue', uploadQueue, loginAccount)
       if (!uploadQueue) return;
       uploadQueue = uploadQueue.filter((task) => task.status !== 'WAIT').map((task) => {
         if (['HASH', 'READY'].includes(task.status)) {

@@ -84,12 +84,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       signType: 'authTypeV1',
       privateKey: tmpAccount.privateKey,
     };
-    console.log('createObjectPayload', createObjectPayload);
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
       resolve,
       createTxFault,
     );
-    console.log('createObjectTx', createObjectTx, _createError, task.id);
     if (_createError) {
       return dispatch(updateUploadTaskMsg({
         account: loginAccount,
@@ -123,7 +121,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      console.log('error', error);
       dispatch(updateUploadTaskMsg({
         account: loginAccount,
         id: task.id,
