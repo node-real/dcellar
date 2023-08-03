@@ -16,7 +16,7 @@ import {
   Text,
 } from '@totejs/uikit';
 import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
-import { ColoredErrorIcon, ColoredSuccessIcon, Icon } from '@totejs/icons';
+import { ColoredAlertIcon, ColoredSuccessIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
 import { useTaskManagementTab } from './useTaskManagementTab';
@@ -32,34 +32,40 @@ export const UploadingObjects = () => {
       case 'WAIT':
         return (
           <>
-            <Loading justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'}>waiting</Text>
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Waiting
+            </Text>
           </>
         );
       case 'HASH':
         return (
           <>
-            <Loading justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'}>hashing</Text>
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Hashing
+            </Text>
           </>
         );
       case 'READY':
-        return <UploadProgress value={0} />
+        return <UploadProgress value={0} />;
       case 'UPLOAD':
-        return<UploadProgress value={task.progress || 0} />
+        return <UploadProgress value={task.progress || 0} />;
       case 'SEAL':
         return (
           <>
-            <Loading justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'}>sealing</Text>
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Sealing
+            </Text>
           </>
         );
       case 'FINISH':
         return <ColoredSuccessIcon />;
       case 'ERROR':
-        return <ColoredErrorIcon />;
+        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
       case 'CANCEL':
-        return <ColoredErrorIcon />;
+        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
       default:
         return null;
     }
@@ -99,14 +105,15 @@ export const UploadingObjects = () => {
                 key={item.key}
                 tabKey={item.key}
                 paddingBottom={'8px'}
+                fontWeight={500}
                 _hover={{
                   color: 'readable.brand6',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   borderBottom: '3px solid readable.brand6',
                 }}
                 _selected={{
                   color: 'readable.brand6',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   borderBottom: '3px solid readable.brand6',
                 }}
               >
@@ -139,12 +146,11 @@ export const UploadingObjects = () => {
                       _hover={{}}
                       maxW={'520px'}
                       key={task.id}
-                      paddingX={'6px'}
+                      paddingX={'0'}
                       right={null}
                       display="block"
                     >
                       <Flex
-                        marginLeft={'12px'}
                         fontSize={'12px'}
                         alignItems={'center'}
                         justifyContent={'space-between'}
@@ -154,11 +160,10 @@ export const UploadingObjects = () => {
                           size={task.file.size}
                           msg={task.msg}
                           status={task.status}
-                          maxW="200px"
-                          flex="1"
+                          w={300}
                         />
                         <PathItem path={[task.bucketName, task.prefixFolders].join('/')} />
-                        <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
+                        <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>
                       </Flex>
