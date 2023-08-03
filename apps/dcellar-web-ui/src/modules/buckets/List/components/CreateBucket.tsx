@@ -46,6 +46,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { DCTooltip } from '@/components/common/DCTooltip';
 
 type Props = {
   isOpen: boolean;

@@ -13,22 +13,11 @@ import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
 import { formatBytes } from '@/modules/file/utils';
+import { theme } from '@/base/theme/antd';
 
 export type AlignType = 'left' | 'right' | 'center';
 
 export type FixedType = 'left' | 'right' | boolean;
-
-const theme: ThemeConfig = {
-  token: {
-    colorBorderSecondary: '#e6e8ea',
-    colorLink: '#00BA34',
-    colorLinkActive: '#00BA34',
-    colorLinkHover: '#00BA34',
-    colorText: '#1E2026',
-    colorTextHeading: '#76808F',
-    fontFamily: 'Inter, sans-serif',
-  },
-};
 
 interface DCTable extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
