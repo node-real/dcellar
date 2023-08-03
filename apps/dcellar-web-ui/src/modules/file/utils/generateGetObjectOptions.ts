@@ -30,9 +30,10 @@ export const generateGetObjectOptions = async (
   });
 
   const params = new URLSearchParams();
-  params.append('Authorization', body?.authorization || '');
-  params.append('X-Gnfd-User-Address', userAddress);
-  params.append('X-Gnfd-App-Domain', domain);
+  // params.append('authorization', body?.authorization || '');
+  // params.append('user-address', userAddress);
+  // params.append('app-domain', domain);
+  // params.append('view', '1');
 
   return {
     url,
