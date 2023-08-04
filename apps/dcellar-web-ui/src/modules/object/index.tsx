@@ -22,7 +22,7 @@ import { BatchOperations } from '@/modules/object/components/BatchOperations';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { allSps, primarySpInfo} = useAppSelector((root) => root.sp);
+  const { allSps, primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
@@ -45,11 +45,15 @@ export const ObjectsPage = () => {
     if (!bucket) return;
     const primarySp = primarySpInfo[bucketName];
     if (!primarySp) {
-      const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
-      const sp = allSps.find((item) => item.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
-      dispatch(setPrimarySpInfo({ bucketName, sp}));
+      const [data, error] = await getVirtualGroupFamily({
+        familyId: bucket.global_virtual_group_family_id,
+      });
+      const sp = allSps.find(
+        (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
+      ) as SpItem;
+      dispatch(setPrimarySpInfo({ bucketName, sp }));
     }
-  }, [bucketInfo, bucketName])
+  }, [bucketInfo, bucketName]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];

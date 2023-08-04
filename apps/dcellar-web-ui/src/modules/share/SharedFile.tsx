@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { getSpUrlByBucketName, getVirtualGroupFamily } from '@/facade/virtual-group';
+import { getSpUrlByBucketName } from '@/facade/virtual-group';
 import { SpItem } from '@/store/slices/sp';
 import { VisibilityType } from '../file/type';
 

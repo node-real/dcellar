@@ -293,7 +293,7 @@ const renderInsufficientBalance = (
   );
 };
 
-const directlyDownload = (url: string, name?: string) => {
+const directlyDownload = (url: string, target = '_self', name?: string) => {
   if (!url) {
     toast.error({
       description: 'Download url not existed. Please check.',
@@ -302,9 +302,20 @@ const directlyDownload = (url: string, name?: string) => {
   const link = document.createElement('a');
   link.href = url;
   link.download = name || '';
+  link.target = target;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+export const batchDownload = (url: string | string[]) => {
+  const urls = Array<string>().concat(url);
+  urls.forEach((url) => {
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  });
 };
 
 const getQuota = async (

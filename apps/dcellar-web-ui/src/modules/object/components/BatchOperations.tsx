@@ -5,11 +5,13 @@ import { Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
-import { setStatusDetail } from '@/store/slices/object';
+import { setSelectedRowKeys, setStatusDetail } from '@/store/slices/object';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { useMount } from 'ahooks';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { downloadObject } from '@/facade/object';
 
 interface BatchOperationsProps {}
 
@@ -20,8 +22,10 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { bucketName, objects, path } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const quotaData = quotas[bucketName];
+  const primarySp = primarySpInfo[bucketName];
 
   useMount(() => {
     dispatch(setupBucketQuota(bucketName));
@@ -45,10 +49,18 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
       items.reduce((x, y) => x + y.payloadSize, 0),
     );
     if (!remainQuota) return onError(E_NO_QUOTA);
-    // const operator = primarySp.operatorAddress;
-    // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
-    // const domain = getDomain();
-    // todo
+    const operator = primarySp.operatorAddress;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+
+    for (const item of items) {
+      const payload = {
+        primarySp,
+        objectInfo: item,
+        address: loginAccount,
+      };
+      await downloadObject(payload, seedString);
+    }
+    dispatch(setSelectedRowKeys([]));
   };
 
   return (

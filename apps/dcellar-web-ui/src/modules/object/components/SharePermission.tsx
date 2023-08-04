@@ -30,7 +30,7 @@ import {
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { CopyButton } from '@/modules/object/components/CopyButton';
-import { encodeObjectName } from '@/utils/string';
+import { encodeObjectName, getShareLink } from '@/utils/string';
 
 interface SharePermissionProps {}
 
@@ -109,8 +109,6 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
     );
   };
 
-  const params = [bucketName, encodeObjectName(editDetail.objectName)].join('/');
-
   return (
     <>
       <DCDrawer
@@ -184,7 +182,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
             />
           )}
           <Box my={8}>
-            <CopyButton text={`${location.origin}/share?file=${encodeURIComponent(params)}`}>
+            <CopyButton text={getShareLink(bucketName, editDetail.objectName)}>
               Copy Link
             </CopyButton>
           </Box>

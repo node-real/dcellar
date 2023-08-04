@@ -59,6 +59,8 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { UploadFile, selectUploadQueue } from '@/store/slices/global';
+import { copy, encodeObjectName, getShareLink } from '@/utils/string';
+import { toast } from '@totejs/uikit';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -86,7 +88,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   );
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { primarySpInfo} = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -181,7 +183,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
         return dispatch(setEditDelete(record));
       case 'share':
-        return dispatch(setEditShare(record));
+        copy(getShareLink(bucketName, record.objectName));
+        toast.success({ description: 'Successfully copied to your clipboard.' });
+        return;
       case 'download':
         return download(record);
       case 'cancel':
@@ -275,7 +279,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName
+            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName,
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');

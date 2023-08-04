@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -65,7 +65,10 @@ import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { useAccount } from 'wagmi';
 
-export const UploadObjects = () => {
+interface UploadObjectsProps {}
+
+// add memo avoid parent state change rerender
+export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const dispatch = useAppDispatch();
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
@@ -127,7 +130,7 @@ export const UploadObjects = () => {
       .filter((item) => item);
     const isExistObjectList = objectListNames.includes(file.name);
     const isExistUploadList = uploadingNames.includes(file.name);
-    if ( isExistObjectList || isExistUploadList) {
+    if (isExistObjectList || isExistUploadList) {
       return E_OBJECT_NAME_EXISTS;
     }
     return '';
@@ -161,11 +164,14 @@ export const UploadObjects = () => {
       Number(amount) * 1.05 > Number(availableBalance)
         ? round(Number(availableBalance), 6)
         : round(Number(amount) * 1.05, 6);
-    const [tmpAccount, error] = await createTmpAccount({
-      address: loginAccount,
-      bucketName,
-      amount: parseEther(String(safeAmount)).toString(),
-    }, connector);
+    const [tmpAccount, error] = await createTmpAccount(
+      {
+        address: loginAccount,
+        bucketName,
+        amount: parseEther(String(safeAmount)).toString(),
+      },
+      connector,
+    );
     if (!tmpAccount) {
       return errorHandler(error);
     }
@@ -203,7 +209,7 @@ export const UploadObjects = () => {
   }, [preLockFeeObjects, selectedFiles]);
 
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-  console.log(loading, creating, !checkedQueue?.length, !editUpload.isBalanceAvailable, editUpload)
+  // console.log(loading, creating, !checkedQueue?.length, !editUpload.isBalanceAvailable, editUpload);
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
@@ -213,7 +219,13 @@ export const UploadObjects = () => {
           <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
             <TabList>
               {tabOptions.map((item) => (
-                <Tab h="auto" key={item.key} fontWeight={500} tabKey={item.key} paddingBottom={'8px'}>
+                <Tab
+                  h="auto"
+                  key={item.key}
+                  fontWeight={500}
+                  tabKey={item.key}
+                  paddingBottom={'8px'}
+                >
                   {item.icon}
                   {item.title}({item.len})
                 </Tab>
@@ -241,10 +253,9 @@ export const UploadObjects = () => {
             Total Upload:{' '}
             <strong>
               {formatBytes(
-                checkedQueue.filter(item => item.status === 'WAIT').reduce(
-                  (accumulator, currentValue) => accumulator + currentValue.size,
-                  0,
-                ),
+                checkedQueue
+                  .filter((item) => item.status === 'WAIT')
+                  .reduce((accumulator, currentValue) => accumulator + currentValue.size, 0),
               )}
             </strong>{' '}
             / <strong>{checkedQueue.length} Objects</strong>
@@ -256,7 +267,9 @@ export const UploadObjects = () => {
             w="100%"
             variant={'dcPrimary'}
             onClick={onUploadClick}
-            isDisabled={loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable}
+            isDisabled={
+              loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable
+            }
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >
@@ -274,4 +287,4 @@ export const UploadObjects = () => {
       </QDrawerFooter>
     </DCDrawer>
   );
-};
+});

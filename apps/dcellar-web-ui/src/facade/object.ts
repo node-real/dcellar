@@ -10,7 +10,6 @@ import {
 import {
   broadcastFault,
   commonFault,
-  downloadPreviewFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
   E_PERMISSION_DENIED,
@@ -32,19 +31,16 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { quotaRemains } from '@/facade/bucket';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { encodeObjectName } from '@/utils/string';
-import {
-  downloadWithProgress,
-  saveFileByAxiosResponse,
-  viewFileByAxiosResponse,
-} from '@/modules/file/utils';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import BigNumber from 'bignumber.js';
+import { getDomain } from '@/utils/getDomain';
+import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
+import { batchDownload, directlyDownload } from '@/modules/file/utils';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -101,29 +97,30 @@ export const getCanObjectAccess = async (
 };
 
 export type DownloadPreviewParams = {
-  objectInfo: ObjectInfo;
+  objectInfo: { bucketName: string; objectName: string; visibility: number };
   primarySp: SpItem;
   address: string;
 };
 
-const getObjectBytes = async (
+export const getAuthorizedLink = async (
   params: DownloadPreviewParams,
   seedString: string,
-): Promise<[AxiosResponse | null, ErrorMsg?]> => {
+  view = 1,
+): Promise<[null, ErrorMsg] | [string]> => {
   const { address, primarySp, objectInfo } = params;
-  const { bucketName, objectName, payloadSize } = objectInfo;
-
-  const [result, error] = await downloadWithProgress({
+  const { bucketName, objectName } = objectInfo;
+  const domain = getDomain();
+  const [options, error] = await generateGetObjectOptions({
     bucketName,
     objectName,
-    primarySp,
-    payloadSize: payloadSize.toNumber(),
-    address,
+    endpoint: primarySp.endpoint,
+    userAddress: address,
+    domain,
     seedString,
-  }).then(resolve, downloadPreviewFault);
-  if (!result) return [null, error];
-
-  return [result];
+  }).then(resolve, commonFault);
+  if (error) return [null, error];
+  const { url, params: _params } = options!;
+  return [`${url}?${_params}&view=${view}`];
 };
 
 export const downloadObject = async (
@@ -137,14 +134,14 @@ export const downloadObject = async (
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`;
   if (!isPrivate) {
-    window.location.href = link;
+    batchDownload(link);
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params, seedString);
-  if (!result) return [false, error];
+  const [url, error] = await getAuthorizedLink(params, seedString, 0);
+  if (!url) return [false, error];
 
-  saveFileByAxiosResponse(result, objectName);
+  batchDownload(url);
   return [true];
 };
 
@@ -159,14 +156,14 @@ export const previewObject = async (
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/view/${bucketName}/${encodeObjectName(objectName)}`;
   if (!isPrivate) {
-    window.open(link, '_blank');
+    directlyDownload(link, '_blank');
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params, seedString);
-  if (!result) return [false, error];
+  const [url, error] = await getAuthorizedLink(params, seedString);
+  if (!url) return [false, error];
 
-  viewFileByAxiosResponse(result);
+  directlyDownload(url, '_blank');
   return [true];
 };
 
