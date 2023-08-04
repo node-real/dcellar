@@ -34,7 +34,7 @@ export const BucketNameItem = ({ info }: any) => {
       >
         {info.getValue()}
       </Text>
-      {isContinued && <DiscontinueNotice content={content} learnMore={'https://docs.nodereal.io/docs/faq-1#question-what-is-discontinue'} />}
+      {isContinued && <DiscontinueNotice content={content} learnMore={'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-discontinue'} />}
     </Flex>
   )
 }

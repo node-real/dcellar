@@ -1,8 +1,11 @@
 import {
-  IObjectProps,
+  IObjectResponse,
   IObjectResultType,
+  TListObjects,
   IQuotaProps,
   TxResponse,
+  ISimulateGasFee,
+  generateUrlByBucketName,
 } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
@@ -14,6 +17,7 @@ import {
   E_UNKNOWN,
   ErrorMsg,
   ErrorResponse,
+  queryLockFeeFault,
   simulateFault,
 } from '@/facade/error';
 import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
@@ -33,14 +37,14 @@ import {
   saveFileByAxiosResponse,
   viewFileByAxiosResponse,
 } from '@/modules/file/utils';
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { SpItem } from '@/store/slices/sp';
-import { getDomain } from '@/utils/getDomain';
 import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import BigNumber from 'bignumber.js';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -75,8 +79,16 @@ export const getCanObjectAccess = async (
   objectName: string,
   endpoint: string,
   loginAccount: string,
+  seedString: string,
 ): Promise<[boolean, ErrorMsg?, ObjectInfo?, IQuotaProps?]> => {
-  const [info, quota] = await getObjectInfoAndBucketQuota(bucketName, objectName, endpoint);
+  const params = {
+    bucketName,
+    objectName,
+    endpoint,
+    address: loginAccount,
+    seedString,
+  };
+  const [info, quota] = await getObjectInfoAndBucketQuota(params);
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
@@ -167,7 +179,7 @@ export type ListObjectsParams = {
 };
 
 export type IObjectList = {
-  objects: IObjectProps[];
+  objects: IObjectResponse[];
   key_count: string;
   max_keys: string;
   is_truncated: boolean;
@@ -180,11 +192,10 @@ export type IObjectList = {
 };
 
 export const getListObjects = async (
-  params: ListObjectsParams,
+  params: TListObjects,
 ): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
-  const domain = getDomain();
   const client = await getClient();
-  const payload = { domain, ...params };
+  const payload = params;
   const [list, error] = (await client.object
     .listObjects(payload)
     .then(resolve, commonFault)) as any;
@@ -249,8 +260,7 @@ export const cancelCreateObject = async (params: any, Connector: any): Promise<a
 
 export const queryLockFee = async (params: QueryLockFeeRequest) => {
   const client = await getClient();
-  const res = await client.storage.queryLockFee(params);
-  return await client.storage.queryLockFee(params).then(resolve, commonFault);
+  return await client.storage.queryLockFee(params).then(resolve, queryLockFeeFault);
 };
 
 export const headObject = async (bucketName: string, objectName: string) => {
@@ -282,4 +292,43 @@ export const putObjectPolicy = async (
     signTypedDataCallback: signTypedDataCallback(connector),
   };
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const preExecDeleteObject = async (
+  bucketName: string,
+  objectName: string,
+  address: string,
+): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
+  const client = await getClient();
+  const deleteBucketTx = await client.object.deleteObject({
+    bucketName,
+    objectName,
+    operator: address,
+  });
+  const [data, error] = await deleteBucketTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
+
+  if (error) return [null, error];
+  return [data!, null];
+};
+
+export const getObjectMeta = async (bucketName: string, objectName: string, endpoint: string) => {
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+    objectName,
+  )}?object-meta`;
+
+  const errorHandle = async () => {
+    return axios.get(url).catch(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(errorHandle());
+        }, 1000);
+      });
+    });
+  };
+
+  return axios.get(url).catch(errorHandle);
 };

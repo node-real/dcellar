@@ -5,20 +5,38 @@ import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/stor
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
 import { commonFault } from '@/facade/error';
+import { getDomain } from '@/utils/getDomain';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
-export const getObjectInfoAndBucketQuota = async (
-  bucketName: string,
-  objectName: string,
-  endpoint: string,
-): Promise<[ObjectInfo | null, IQuotaProps | null]> => {
+export const getObjectInfoAndBucketQuota = async ({
+  bucketName,
+  objectName,
+  endpoint,
+  address,
+  seedString,
+}: {
+  bucketName: string;
+  objectName: string;
+  endpoint: string;
+  address: string;
+  seedString: string;
+}): Promise<[ObjectInfo | null, IQuotaProps | null]> => {
   const client = await getClient();
   const [{ objectInfo }, { body }] = await Promise.all([
     client.object.headObject(bucketName, objectName).catch(() => ({} as QueryHeadObjectResponse)),
     client.bucket
-      .getBucketReadQuota({ bucketName, endpoint })
-      .catch(() => ({} as IObjectResultType<IQuotaProps>)),
+      .getBucketReadQuota({
+        bucketName,
+        endpoint,
+        signType: 'offChainAuth',
+        address,
+        seedString,
+        domain: getDomain(),
+      })
+      .catch((e) => {
+        return {} as IObjectResultType<IQuotaProps>
+      }),
   ]);
 
   return [objectInfo || null, body || null];

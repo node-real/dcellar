@@ -76,9 +76,8 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
     if (transType === EOperation.transfer_in) {
       return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || 0;
     }
-    return all.find((item) => item.chainId === chain?.id)?.availableBalance || 0;
-  }, [all, chain?.id, transType]);
-
+    return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || 0;
+  }, [all, transType]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));
   });

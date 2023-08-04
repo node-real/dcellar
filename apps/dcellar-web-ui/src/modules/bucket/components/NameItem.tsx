@@ -20,7 +20,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
     +delete_at * 1000 + 7 * 24 * 60 * 60 * 1000,
     'YYYY-MM-DD HH:mm:ss',
   );
-  const more = 'https://docs.nodereal.io/docs/faq-1#question-what-is-discontinue';
+  const more = 'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-discontinue';
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`;
   return (
     <Container>

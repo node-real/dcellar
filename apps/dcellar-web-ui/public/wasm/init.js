@@ -6,20 +6,6 @@
       return await WebAssembly.instantiate(source, importObject);
     };
   }
-
-  const go = new Go();
-
-  const { module: mod, instance: inst } = await WebAssembly.instantiateStreaming(
-    fetch(`${window.__ASSET_PREFIX}/wasm/zk-main.wasm`),
-    go.importObject,
-  );
-
-  async function run() {
-    await go.run(inst);
-    await WebAssembly.instantiate(mod, go.importObject); // reset instance
-  }
-
-  run();
 })();
 
 // for main.wasm

@@ -56,7 +56,7 @@ export const Nav = () => {
     >
       <Flex height={'64px'} paddingLeft="24px" alignItems={'center'}>
         <GAClick name="dc.main.nav.logo.click">
-          <Logo href="/" />
+          <Logo href="/buckets" />
         </GAClick>
         <Box
           fontSize={'12px'}

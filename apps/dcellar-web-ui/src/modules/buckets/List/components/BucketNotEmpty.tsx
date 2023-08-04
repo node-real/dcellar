@@ -22,7 +22,7 @@ export const BucketNotEmpty = ({ onClose }: { onClose: () => void }) => {
           Bucket not Empty
         </Text>
         <Text color="#474D57" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
-          Only empty bucket can be deleted. Please delete all files in this bucket first.
+          Only empty bucket can be deleted. Please delete all objects in this bucket first.
         </Text>
       </ModalBody>
       <ModalFooter>

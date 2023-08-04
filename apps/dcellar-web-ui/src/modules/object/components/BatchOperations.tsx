@@ -19,7 +19,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName, objects, path, primarySp } = useAppSelector((root) => root.object);
+  const { bucketName, objects, path } = useAppSelector((root) => root.object);
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const quotaData = quotas[bucketName];
 
@@ -45,7 +45,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
       items.reduce((x, y) => x + y.payloadSize, 0),
     );
     if (!remainQuota) return onError(E_NO_QUOTA);
-    const operator = primarySp.operatorAddress;
+    // const operator = primarySp.operatorAddress;
     // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     // const domain = getDomain();
     // todo
