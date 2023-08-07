@@ -24,14 +24,4 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
       connector?.off('change', onChange);
     };
   }, [address, connector, handlerRef]);
-
-  useEffect( () => {
-      window.trustWallet.request({ method: 'eth_requestAccounts' })
-      .then((accounts: string[]) => {
-        console.log('provider accounts', accounts)
-      })
-      .catch((err: unknown) => {
-        console.log('provider: ', err)
-      });
-  })
 }
