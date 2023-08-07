@@ -23,6 +23,7 @@ export class TrustWalletConnector extends WagmiMetaMaskConnector {
     const options = {
       name: 'Trust Wallet',
       shimDisconnect: true,
+      UNSTABLE_shimOnConnectSelectAccount: true,
       getProvider: () => {
         try {
           if (typeof window !== 'undefined' && typeof window?.trustWallet !== 'undefined') {

@@ -1,5 +1,4 @@
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { useAsyncEffect } from 'ahooks';
 import { useEffect } from 'react';
 import { ConnectorData, useAccount } from 'wagmi';
 
@@ -10,12 +9,8 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
 
   const handlerRef = useSaveFuncRef(handler);
 
-  console.log(connector, '===')
-
   useEffect(() => {
     const onChange = (data: ConnectorData) => {
-      console.log('useWalletSwitchAccount change', 'address: ', address, 'data: ', data)
-
       if (data.account && data.account !== address) {
         handlerRef.current?.(data);
       }
