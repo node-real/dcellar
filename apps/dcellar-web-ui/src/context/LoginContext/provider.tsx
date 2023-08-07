@@ -44,6 +44,8 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const { pathname } = useRouter();
   const { address: walletAddress, connector } = useAccount();
 
+  console.log(walletAddress, loginAccount,  connector)
+
   useEffect(() => {
     if (pathname === '/' || inline) return;
 
@@ -53,7 +55,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
     // Once the wallet is connected, we can get the address
     // but if wallet is locked, we can't get the connector from wagmi
-    // to avoid errors when using the connector, we treat this situation as not log in.
+    // to avoid errors when using the connector, we treat this situation as logout.
     const timer = setTimeout(() => {
       if (!connector) {
         logout()
