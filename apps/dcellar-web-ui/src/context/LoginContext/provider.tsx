@@ -25,6 +25,8 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   const logout = useCallback(
     (removeSpAuth = false) => {
+      console.log('logout === ')
+
       dispatch(resetUploadQueue({loginAccount}))
       dispatch(setLogout(removeSpAuth));
       disconnect();

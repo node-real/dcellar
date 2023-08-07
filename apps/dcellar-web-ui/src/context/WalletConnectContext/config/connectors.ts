@@ -1,6 +1,6 @@
 import { chains } from '@/context/WalletConnectContext/config/chains';
 import { InjectedConnector } from 'wagmi/connectors/injected';
-// import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
 
 function getTrustWalletProvider() {
@@ -28,26 +28,26 @@ const trustWalletConnector = new InjectedConnector({
   },
 });
 
-// const metaMaskConnector = new MetaMaskConnector({ chains });
+const metaMaskConnector = new MetaMaskConnector({ chains });
 
-const metaMaskConnector = new InjectedConnector({
-  chains,
-  options: {
-    name: 'MetaMask',
-    shimDisconnect: true,
-    getProvider: () => {
-      if (typeof window === 'undefined') {
-        return;
-      }
+// const metaMaskConnector = new InjectedConnector({
+//   chains,
+//   options: {
+//     name: 'MetaMask',
+//     shimDisconnect: true,
+//     getProvider: () => {
+//       if (typeof window === 'undefined') {
+//         return;
+//       }
 
-      // If trust wallet has already set as the default wallet, force using trust wallet
-      if (window.ethereum?.isTrustWallet) {
-        return getTrustWalletProvider()
-      }
+//       // If trust wallet has already set as the default wallet, force using trust wallet
+//       if (window.ethereum?.isTrustWallet) {
+//         return getTrustWalletProvider()
+//       }
 
-      return window.ethereum
-    }
-  },
-});
+//       return window.ethereum
+//     }
+//   },
+// });
 
 export const connectors = [trustWalletConnector, metaMaskConnector];
