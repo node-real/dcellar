@@ -19,4 +19,4 @@ function getMetaMaskConnector() {
 const trustWalletConnector = new TrustWalletConnector({ chains })
 const metaMaskConnector = getMetaMaskConnector()
 
-export const connectors = [trustWalletConnector, metaMaskConnector];
+export const connectors = [trustWalletConnector, trustWalletConnector];

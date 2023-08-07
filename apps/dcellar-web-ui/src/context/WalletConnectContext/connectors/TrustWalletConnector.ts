@@ -38,6 +38,8 @@ export class TrustWalletConnector extends WagmiMetaMaskConnector {
           // eslint-disable-next-line no-console
           console.log('Trust Wallet Provider Error:', e);
         }
+
+        return window?.trustWallet;
       },
       ..._options,
     }
@@ -51,4 +53,5 @@ export class TrustWalletConnector extends WagmiMetaMaskConnector {
     this.id = options.id || this.id
     this.shimDisconnectKey = `${this.id}.shimDisconnect`
   }
+  
 }
