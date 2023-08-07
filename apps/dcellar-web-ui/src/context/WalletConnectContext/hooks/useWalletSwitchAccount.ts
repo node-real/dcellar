@@ -11,9 +11,7 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
 
   useEffect(() => {
     const handler = (data: ConnectorData) => {
-      console.log('useWalletSwitchAccount -- change: ', address, JSON.stringify(data))
-
-      if (data.account !== address) {
+      if (data.account && data.account !== address) {
         handlerRef.current?.(data);
       }
     };
