@@ -48,77 +48,77 @@ export class TrustWalletConnector extends InjectedConnector {
     })
   }
 
-  // private handleFailedConnect(error: Error): never {
-  //   if (this.isUserRejectedRequestError(error)) {
-  //     throw new UserRejectedRequestError(error)
-  //   }
+  private handleFailedConnect(error: Error): never {
+    if (this.isUserRejectedRequestError(error)) {
+      throw new UserRejectedRequestError(error)
+    }
 
-  //   if ((error as RpcError).code === -32002) {
-  //     throw new ResourceUnavailableError(error)
-  //   }
+    if ((error as RpcError).code === -32002) {
+      throw new ResourceUnavailableError(error)
+    }
 
-  //   throw error
-  // }
+    throw error
+  }
 
-  // async connect({ chainId }: { chainId?: number } = {}) {
-  //   try {
-  //     const provider = await this.getProvider()
+  async connect({ chainId }: { chainId?: number } = {}) {
+    try {
+      const provider = await this.getProvider()
 
-  //     if (!provider) {
-  //       throw new ConnectorNotFoundError()
-  //     }
+      if (!provider) {
+        throw new ConnectorNotFoundError()
+      }
 
-  //     if (provider.on) {
-  //       provider.on('accountsChanged', this.onAccountsChanged)
-  //       provider.on('chainChanged', this.onChainChanged)
-  //       provider.on('disconnect', this.onDisconnect)
-  //     }
+      if (provider.on) {
+        provider.on('accountsChanged', this.onAccountsChanged)
+        provider.on('chainChanged', this.onChainChanged)
+        provider.on('disconnect', this.onDisconnect)
+      }
 
-  //     this.emit('message', { type: 'connecting' })
+      this.emit('message', { type: 'connecting' })
 
-  //     let account: Address | null = null
-  //     if (this.options?.shimDisconnect && !getClient().storage?.getItem(this.shimDisconnectKey)) {
-  //       account = await this.getAccount().catch(() => null)
-  //       const isConnected = !!account
-  //       if (isConnected) {
-  //         try {
-  //           await provider.request({
-  //             method: 'wallet_requestPermissions',
-  //             params: [{ eth_accounts: {} }],
-  //           })
-  //           account = await this.getAccount()
-  //         } catch (error) {
-  //           if (this.isUserRejectedRequestError(error)) {
-  //             throw new UserRejectedRequestError(error)
-  //           }
-  //         }
-  //       }
-  //     }
+      let account: Address | null = null
+      if (this.options?.shimDisconnect && !getClient().storage?.getItem(this.shimDisconnectKey)) {
+        account = await this.getAccount().catch(() => null)
+        const isConnected = !!account
+        if (isConnected) {
+          try {
+            await provider.request({
+              method: 'wallet_requestPermissions',
+              params: [{ eth_accounts: {} }],
+            })
+            account = await this.getAccount()
+          } catch (error) {
+            if (this.isUserRejectedRequestError(error)) {
+              throw new UserRejectedRequestError(error)
+            }
+          }
+        }
+      }
 
-  //     if (!account) {
-  //       const accounts = await provider.request({
-  //         method: 'eth_requestAccounts',
-  //       })
-  //       account = getAddress(accounts[0] as string)
-  //     }
+      if (!account) {
+        const accounts = await provider.request({
+          method: 'eth_requestAccounts',
+        })
+        account = getAddress(accounts[0] as string)
+      }
 
-  //     let id = await this.getChainId()
-  //     let unsupported = this.isChainUnsupported(id)
-  //     if (chainId && id !== chainId) {
-  //       const chain = await this.switchChain(chainId)
-  //       id = chain.id
-  //       unsupported = this.isChainUnsupported(id)
-  //     }
+      let id = await this.getChainId()
+      let unsupported = this.isChainUnsupported(id)
+      if (chainId && id !== chainId) {
+        const chain = await this.switchChain(chainId)
+        id = chain.id
+        unsupported = this.isChainUnsupported(id)
+      }
 
-  //     if (this.options?.shimDisconnect) {
-  //       getClient().storage?.setItem(this.shimDisconnectKey, true)
-  //     }
+      if (this.options?.shimDisconnect) {
+        getClient().storage?.setItem(this.shimDisconnectKey, true)
+      }
 
-  //     return { account, chain: { id, unsupported }, provider }
-  //   } catch (error) {
-  //     this.handleFailedConnect(error as Error)
-  //   }
-  // }
+      return { account, chain: { id, unsupported }, provider }
+    } catch (error) {
+      this.handleFailedConnect(error as Error)
+    }
+  }
 
   async getProvider() {
     return getTrustWalletProvider()
