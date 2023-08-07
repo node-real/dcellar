@@ -76,16 +76,16 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     }
   }, [walletAddress, connector, pathname, inline, loginAccount, logout])
 
-  useAsyncEffect(async () => {
-    console.log('async effect 1')
-    if (loginAccount === walletAddress) {
-      console.log('async effect 11')
-      // expire date less than 24h，remove sp auth & logout
-      const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
-      console.log('async effect 2', spMayExpired)
-      if (spMayExpired) logout(true);
-    }
-  }, [walletAddress]);
+  // useAsyncEffect(async () => {
+  //   console.log('async effect 1')
+  //   if (loginAccount === walletAddress) {
+  //     console.log('async effect 11')
+  //     // expire date less than 24h，remove sp auth & logout
+  //     const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
+  //     console.log('async effect 2', spMayExpired)
+  //     if (spMayExpired) logout(true);
+  //   }
+  // }, [walletAddress]);
 
   const { pass } = useLoginGuard(inline);
 
