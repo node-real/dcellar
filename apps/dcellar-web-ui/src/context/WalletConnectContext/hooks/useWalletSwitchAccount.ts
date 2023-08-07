@@ -10,6 +10,8 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
 
   const handlerRef = useSaveFuncRef(handler);
 
+  console.log(connector, '===')
+
   useEffect(() => {
     const onChange = (data: ConnectorData) => {
       console.log('useWalletSwitchAccount change', 'address: ', address, 'data: ', data)
