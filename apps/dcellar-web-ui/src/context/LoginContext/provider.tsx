@@ -25,8 +25,6 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   const logout = useCallback(
     (removeSpAuth = false) => {
-      console.log('LoginContextProvider: ','logout')
-
       dispatch(resetUploadQueue({loginAccount}))
       dispatch(setLogout(removeSpAuth));
       disconnect();
@@ -41,7 +39,6 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   }, [logout]);
 
   useWalletSwitchAccount(() => {
-    console.log('useWalletSwitchAccount ===++')
     logout();
   });
 
@@ -53,12 +50,9 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   console.log('login:', loginAccount)
 
   useEffect(() => {
-    console.log('effect 1')
     if (pathname === '/' || inline) return;
 
-    console.log('effect 2')
     if (!walletAddress || loginAccount !== walletAddress) {
-      console.log('effect 21')
       logout();
     }
 
@@ -74,27 +68,20 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     return () => {
       clearTimeout(timer)
     }
-  }, [walletAddress, connector, pathname, inline, loginAccount, logout])
+  }, [connector, inline, loginAccount, logout, pathname, walletAddress])
 
-  // useAsyncEffect(async () => {
-  //   console.log('async effect 1')
-  //   if (loginAccount === walletAddress) {
-  //     console.log('async effect 11')
-  //     // expire date less than 24h，remove sp auth & logout
-  //     const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
-  //     console.log('async effect 2', spMayExpired)
-  //     if (spMayExpired) logout(true);
-  //   }
-  // }, [walletAddress]);
+  useAsyncEffect(async () => {
+    if (loginAccount === walletAddress) {
+      // expire date less than 24h，remove sp auth & logout
+      const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
+      if (spMayExpired) logout(true);
+    }
+  }, [walletAddress]);
 
   const { pass } = useLoginGuard(inline);
 
   if (!pass) {
     return null;
-  }
-  
-  if (pathname !== '/') {
-    return null
   }
 
   return <LoginContext.Provider value={value}>{children}</LoginContext.Provider>;
