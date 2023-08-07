@@ -64,9 +64,11 @@ export const persistSlice = createSlice({
       state.bucketSortBy = payload;
     },
     setLogin(state, { payload }: PayloadAction<string>) {
+      console.log('login:', payload)
       state.loginAccount = payload;
     },
     setLogout(state, { payload = false }: PayloadAction<boolean>) {
+      console.log('logout:', payload)
       if (payload) {
         const account = state.loginAccount;
         const config = state.accounts[account];

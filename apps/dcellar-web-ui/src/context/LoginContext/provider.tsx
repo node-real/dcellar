@@ -19,6 +19,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const dispatch = useAppDispatch();
   const { children, inline = false } = props;
   const { loginAccount } = useAppSelector((root) => root.persist);
+  
 
   const { disconnect } = useDisconnect();
 
@@ -44,10 +45,13 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const { pathname } = useRouter();
   const { address: walletAddress, connector } = useAccount();
 
+  const persist = useAppSelector((root) => root.persist)
+
   console.log('=======================')
   console.log('wallet:', walletAddress)
   console.log('login:', loginAccount)
   console.log('connector',  connector)
+  console.log('persist', JSON.stringify(persist))
 
   useEffect(() => {
     console.log('effect 1')
