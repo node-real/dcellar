@@ -25,8 +25,6 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   const logout = useCallback(
     (removeSpAuth = true) => {
-      console.log('logout === ')
-
       dispatch(resetUploadQueue({loginAccount}))
       dispatch(setLogout(removeSpAuth));
       disconnect();
@@ -50,7 +48,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   console.log('=======================')
   console.log('wallet:', walletAddress)
   console.log('login:', loginAccount)
-  console.log('connector', connector)
+  // console.log('connector', connector)
 
   useEffect(() => {
     if (pathname === '/' || inline) return;

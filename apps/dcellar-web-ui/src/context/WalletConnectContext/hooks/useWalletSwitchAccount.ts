@@ -25,20 +25,13 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
     };
   }, [address, connector, handlerRef]);
 
-  useAsyncEffect(async () => {
-    const provider: any = await connector?.getProvider()
-    console.log(provider, '===')
-
-    if (provider) {
-      provider
-        .request({ method: 'eth_requestAccounts' })
-        .then((accounts: string[]) => {
-          console.log('provider accounts', accounts)
-        })
-        .catch((err: unknown) => {
-          console.log('provider: ', err)
-        });
-    }
-
+  useEffect( () => {
+      window.trustWallet.request({ method: 'eth_requestAccounts' })
+      .then((accounts: string[]) => {
+        console.log('provider accounts', accounts)
+      })
+      .catch((err: unknown) => {
+        console.log('provider: ', err)
+      });
   })
 }
