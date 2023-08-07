@@ -44,7 +44,10 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const { pathname } = useRouter();
   const { address: walletAddress, connector } = useAccount();
 
-  console.log(walletAddress, loginAccount,  connector)
+  console.log('=======================')
+  console.log('wallet:', walletAddress)
+  console.log('login:', loginAccount)
+  console.log('connector',  connector)
 
   useEffect(() => {
     if (pathname === '/' || inline) return;
