@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useMemo } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
 import { LoginContext } from '@/context/LoginContext/index';
 
@@ -42,21 +42,36 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   });
 
   const { pathname } = useRouter();
-  const { address: walletAddress } = useAccount();
+  const { address: walletAddress, connector } = useAccount();
 
-  useAsyncEffect(async () => {
+  useEffect(() => {
     if (pathname === '/' || inline) return;
 
     if (!walletAddress || loginAccount !== walletAddress) {
       logout();
     }
 
+    // Once the wallet is connected, we can get the address
+    // but if wallet is locked, we can't get the connector from wagmi
+    // to avoid errors when using the connector, we treat this situation as not log in.
+    const timer = setTimeout(() => {
+      if (!connector) {
+        logout()
+      }
+    }, 1000)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [walletAddress, connector, pathname, inline, loginAccount, logout])
+
+  useAsyncEffect(async () => {
     if (loginAccount === walletAddress) {
       // expire date less than 24h，remove sp auth & logout
       const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
       if (spMayExpired) logout(true);
     }
-  }, [walletAddress, pathname]);
+  }, [walletAddress]);
 
   const { pass } = useLoginGuard(inline);
 
