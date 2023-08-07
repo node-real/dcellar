@@ -25,6 +25,8 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   const logout = useCallback(
     (removeSpAuth = false) => {
+      console.log('LoginContextProvider: ','logout')
+
       dispatch(resetUploadQueue({loginAccount}))
       dispatch(setLogout(removeSpAuth));
       disconnect();
@@ -39,19 +41,16 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   }, [logout]);
 
   useWalletSwitchAccount(() => {
+    console.log('useWalletSwitchAccount ===++')
     logout();
   });
 
   const { pathname } = useRouter();
   const { address: walletAddress, connector } = useAccount();
 
-  const persist = useAppSelector((root) => root.persist)
-
   console.log('=======================')
   console.log('wallet:', walletAddress)
   console.log('login:', loginAccount)
-  console.log('connector',  connector)
-  console.log('persist', JSON.stringify(persist))
 
   useEffect(() => {
     console.log('effect 1')
@@ -66,11 +65,8 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     // Once the wallet is connected, we can get the address
     // but if wallet is locked, we can't get the connector from wagmi
     // to avoid errors when using the connector, we treat this situation as logout.
-
-    console.log('effect 3')
     const timer = setTimeout(() => {
       if (!connector) {
-        console.log('effect 31')
         logout()
       }
     }, 1000)
