@@ -1,4 +1,5 @@
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
+import { useAsyncEffect } from 'ahooks';
 import { useEffect } from 'react';
 import { ConnectorData, useAccount } from 'wagmi';
 
@@ -23,4 +24,21 @@ export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
       connector?.off('change', onChange);
     };
   }, [address, connector, handlerRef]);
+
+  useAsyncEffect(async () => {
+    const provider: any = await connector?.getProvider()
+    console.log(provider, '===')
+
+    if (provider) {
+      provider
+        .request({ method: 'eth_requestAccounts' })
+        .then((accounts: string[]) => {
+          console.log('provider accounts', accounts)
+        })
+        .catch((err: unknown) => {
+          console.log('provider: ', err)
+        });
+    }
+
+  })
 }
