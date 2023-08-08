@@ -156,7 +156,6 @@ export const downloadObject = async (
   params: DownloadPreviewParams,
   seedString: string,
   batch = false,
-  owner = true,
 ): Promise<[boolean, ErrorMsg?]> => {
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
@@ -165,7 +164,7 @@ export const downloadObject = async (
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`;
 
-  if (!isPrivate && owner) {
+  if (!isPrivate) {
     if (batch) batchDownload(link);
     else window.location.href = link;
     return [true];

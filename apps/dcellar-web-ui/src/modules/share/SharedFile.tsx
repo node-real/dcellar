@@ -103,7 +103,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       address: loginAccount,
     };
     const [success, opsError] = await (e === 'download'
-      ? downloadObject(params, seedString, false, loginAccount === objectInfo.owner)
+      ? downloadObject(params, seedString)
       : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
     dispatch(setupBucketQuota(bucketName));
