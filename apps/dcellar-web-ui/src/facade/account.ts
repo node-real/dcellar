@@ -51,6 +51,7 @@ export const createTmpAccount = async ({
 
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();
+  // MsgGrantAllowanceTypeUrl
   const grantAllowanceTx = await client.feegrant.grantAllowance({
     granter: address,
     grantee: wallet.address,
