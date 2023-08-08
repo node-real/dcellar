@@ -10,7 +10,6 @@ import {
   setEditDelete,
   setEditDetail,
   setEditDownload,
-  setEditShare,
   setRestoreCurrent,
   setSelectedRowKeys,
   setStatusDetail,
@@ -111,6 +110,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       query,
       endpoint: primarySp.endpoint,
     };
+    dispatch(setSelectedRowKeys([]));
     dispatch(setupListObjects(params));
     dispatch(setupBucketQuota(bucketName));
   }, [primarySp, prefix]);
@@ -350,7 +350,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     onSelect: onSelectChange,
     onSelectAll: onSelectAllChange,
     getCheckboxProps: (record: ObjectItem) => ({
-      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
+      disabled: record.folder, // Column configuration not to be checked
       name: record.name,
     }),
   };

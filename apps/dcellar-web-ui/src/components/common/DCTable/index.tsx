@@ -80,7 +80,7 @@ export const SealLoading = () => {
 };
 
 export const UploadProgress = (props: { progress: number }) => {
-  let { progress = 0} = props;
+  let { progress = 0 } = props;
   if (progress < 0) {
     progress = 0;
   }
@@ -204,6 +204,10 @@ const Container = styled.div`
   }
 
   .ant-table-ping-right:not(.ant-table-has-fix-right) .ant-table-container::after {
+    display: none;
+  }
+
+  .ant-checkbox-checked:after {
     display: none;
   }
 `;

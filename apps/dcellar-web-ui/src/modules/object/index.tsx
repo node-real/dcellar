@@ -4,21 +4,23 @@ import { useAsyncEffect } from 'ahooks';
 import { setBucketStatus, setupBucket } from '@/store/slices/bucket';
 import Head from 'next/head';
 import {
+  GoBack,
   ObjectContainer,
   ObjectName,
   PanelContainer,
   PanelContent,
+  SelectedText,
 } from '@/modules/object/objects.style';
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
-import { last } from 'lodash-es';
+import { dropRight, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Tooltip } from '@totejs/uikit';
+import { Tooltip, Flex } from '@totejs/uikit';
 import { selectObjectList, setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 import React, { useEffect } from 'react';
-import { BatchOperations } from '@/modules/object/components/BatchOperations';
+import { ForwardIcon } from '@totejs/icons';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -32,6 +34,7 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
+
   useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
 
@@ -72,6 +75,11 @@ export const ObjectsPage = () => {
 
   const selected = selectedRowKeys.length;
 
+  const goBack = () => {
+    const path = dropRight(items).map(encodeURIComponent).join('/');
+    router.push(`/buckets/${path}`);
+  };
+
   return (
     <ObjectContainer>
       <Head>
@@ -80,18 +88,24 @@ export const ObjectsPage = () => {
       <PanelContainer>
         <ObjectBreadcrumb />
         <PanelContent>
-          {selected > 0 ? (
-            <BatchOperations />
-          ) : (
-            <Tooltip
-              content={title}
-              placement="bottom-end"
-              visibility={title.length > 40 ? 'visible' : 'hidden'}
-            >
-              <ObjectName>{title}</ObjectName>
-            </Tooltip>
-          )}
-
+          <GoBack onClick={goBack}>
+            <ForwardIcon />
+          </GoBack>
+          <Flex flex={1}>
+            {selected > 0 ? (
+              <SelectedText>
+                {selected} File{selected > 1 && 's'} Selected
+              </SelectedText>
+            ) : (
+              <Tooltip
+                content={title}
+                placement="bottom-end"
+                visibility={title.length > 40 ? 'visible' : 'hidden'}
+              >
+                <ObjectName>{title}</ObjectName>
+              </Tooltip>
+            )}
+          </Flex>
           {!!objectList.length && (
             <NewObject
               showRefresh={true}

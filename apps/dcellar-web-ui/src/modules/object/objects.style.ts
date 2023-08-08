@@ -1,32 +1,33 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
+import { Box, Button, Text } from '@totejs/uikit';
 
 export const ObjectContainer = styled.div`
   margin: 24px;
 `;
 
 export const PanelContainer = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 `;
 
 export const PanelContent = styled.div`
   height: 40px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  margin-top: 4px;
+  margin-top: 16px;
 `;
 
 export const ObjectName = styled.h1`
   word-break: break-all;
   font-weight: 700;
   font-size: 24px;
-  line-height: 36px;
+  line-height: 29px;
   max-width: 700px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: Poppins, sans-serif;
+  font-family: Inter, sans-serif;
 `;
 
 export const StyledRow = styled.div<{ $disabled: boolean }>`
@@ -38,4 +39,37 @@ export const StyledRow = styled.div<{ $disabled: boolean }>`
         pointer-events: none;
       }
     `}
+`;
+
+export const GoBack = styled(Box)`
+  margin-right: 16px;
+  svg {
+    transform: rotate(180deg);
+  }
+  background: transparent;
+  border-radius: 100%;
+  cursor: pointer;
+  :hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+export const SelectedText = styled(Text)`
+  color: #1e2026;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 19px;
+`;
+
+export const GhostButton = styled(Button)`
+  height: 40px;
+  background: #fff;
+  border-color: #e6e8ea;
+  &[disabled],
+  &[disabled]:hover {
+    background: #fff;
+    opacity: 1;
+    color: #aeb4bc;
+  }
 `;
