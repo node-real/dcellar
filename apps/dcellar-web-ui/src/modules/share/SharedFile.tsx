@@ -86,7 +86,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const isPrivate = objectInfo.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-    if (isPrivate) {
+    if (isPrivate && loginAccount === objectInfo.owner) {
       const [_, accessError] = await getCanObjectAccess(
         bucketName,
         objectName,
@@ -103,7 +103,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       address: loginAccount,
     };
     const [success, opsError] = await (e === 'download'
-      ? downloadObject(params, seedString)
+      ? downloadObject(params, seedString, false, loginAccount === objectInfo.owner)
       : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
     dispatch(setupBucketQuota(bucketName));

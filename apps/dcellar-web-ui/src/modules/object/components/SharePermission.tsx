@@ -1,6 +1,17 @@
-import React, { memo, ReactNode, useState } from 'react';
+import React, { memo, ReactNode, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Box, Button, Divider, Flex, QDrawerBody, QDrawerHeader, Text, toast } from '@totejs/uikit';
+import {
+  Box,
+  Button,
+  Flex,
+  Image,
+  QDrawerBody,
+  QDrawerFooter,
+  QDrawerHeader,
+  Text,
+  toast,
+  useClipboard,
+} from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { VisibilityType } from '@/modules/file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
@@ -18,10 +29,11 @@ import {
 } from '@/store/slices/object';
 import { updateObjectInfo } from '@/facade/object';
 import { useAccount } from 'wagmi';
-import { ErrorMsg } from '@/facade/error';
+import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
 import {
   AUTH_EXPIRED,
   BUTTON_GOT_IT,
+  COPY_SUCCESS_ICON,
   FILE_ACCESS,
   FILE_ACCESS_URL,
   FILE_FAILED_URL,
@@ -30,7 +42,9 @@ import {
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { CopyButton } from '@/modules/object/components/CopyButton';
-import { encodeObjectName, getShareLink } from '@/utils/string';
+import { getShareLink } from '@/utils/string';
+import ComingSoon from '@/components/common/SvgIcon/ComingSoon.svg';
+import { DCButton } from '@/components/common/DCButton';
 
 interface SharePermissionProps {}
 
@@ -55,6 +69,11 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
   const [manageOpen, setManageOpen] = useState(false);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
+  const { hasCopied, onCopy, setValue } = useClipboard('');
+
+  useEffect(() => {
+    setValue(getShareLink(bucketName, editDetail.objectName));
+  }, [setValue, bucketName, editDetail.objectName]);
 
   if (!editDetail.name) return <></>;
 
@@ -63,6 +82,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
   const handleError = (msg: ErrorMsg) => {
     switch (msg) {
       case AUTH_EXPIRED:
+      case E_OFF_CHAIN_AUTH:
         setOpenAuthModal();
         return;
       default:
@@ -96,28 +116,15 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
     );
     const [_, error] = await updateObjectInfo(payload, connector!);
 
-    if (error) {
-      return handleError(error);
-    }
+    if (error) return handleError(error);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Access updated!' });
-    dispatch(
-      updateObjectVisibility({
-        object: item,
-        visibility,
-      }),
-    );
+    dispatch(updateObjectVisibility({ object: item, visibility }));
   };
 
   return (
     <>
-      <DCDrawer
-        overlayProps={{
-          style: { opacity: 0 },
-        }}
-        isOpen={manageOpen}
-        onClose={() => setManageOpen(false)}
-      >
+      <DCDrawer isOpen={manageOpen} onClose={() => setManageOpen(false)}>
         <QDrawerHeader alignItems="center">
           <BackIcon mr={8} cursor="pointer" onClick={() => setManageOpen(false)} />
           <Text
@@ -158,35 +165,45 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
           <Box mb={24}>
             <ViewerList />
           </Box>
+          <Flex flexDirection="column" alignItems="center" mt={116}>
+            <ComingSoon />
+            <Text fontWeight="400" color="#76808F" mt={20}>
+              Permission list will coming soon.
+            </Text>
+          </Flex>
         </QDrawerBody>
+        <QDrawerFooter>
+          <DCButton variant="dcPrimary" width={'100%'} onClick={onCopy}>
+            {hasCopied ? (
+              <>
+                <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />
+                <Text fontWeight={500}>Copied</Text>
+              </>
+            ) : (
+              <>
+                <Text fontWeight={500}>Copy Link</Text>
+              </>
+            )}
+          </DCButton>
+        </QDrawerFooter>
       </DCDrawer>
-      {editDetail.objectStatus === 1 && (
+      {editDetail.objectStatus === 1 && owner && (
         <Container>
-          {/*<Title>Share with</Title>*/}
-
-          {/*<AccessRow>*/}
-          {/*  <AccessType $bg={CurrentAccess.bg}>*/}
-          {/*    <span>{CurrentAccess.icon}</span>*/}
-          {/*    {CurrentAccess.text}*/}
-          {/*  </AccessType>*/}
-          {/*  <Divider orientation="vertical" h={43} mx={16} />*/}
-          {/*  <Flex gap={8} flex={1}>*/}
-          {/*    <Avatar0 />*/}
-          {/*  </Flex>*/}
-          {/*  <ManageAccess onClick={() => setManageOpen(true)}>Manage Access</ManageAccess>*/}
-          {/*</AccessRow>*/}
-          {owner && (
-            <AccessItem
-              value={editDetail.visibility}
-              onChange={(e) => onAccessChange(editDetail, e)}
-            />
-          )}
-          <Box my={8}>
+          <Title>Share with</Title>
+          <AccessRow>
+            <AccessType $bg={CurrentAccess.bg}>
+              <span>{CurrentAccess.icon}</span>
+              {CurrentAccess.text}
+            </AccessType>
+            <Flex gap={8} flex={1} />
+            <ManageAccess onClick={() => setManageOpen(true)}>Manage Access</ManageAccess>
+          </AccessRow>
+          <Tip>Only people with access can open with the link.</Tip>
+          <Box my={16}>
             <CopyButton text={getShareLink(bucketName, editDetail.objectName)}>
               Copy Link
             </CopyButton>
           </Box>
-          {/*<Tip>Only people with access can open with the link.</Tip>*/}
         </Container>
       )}
     </>

@@ -6,12 +6,15 @@ import {
   TxResponse,
   ISimulateGasFee,
   generateUrlByBucketName,
+  PermissionTypes,
 } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
+  createTxFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
+  E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
@@ -41,6 +44,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { getDomain } from '@/utils/getDomain';
 import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/file/utils';
+import { ActionType } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -70,6 +74,20 @@ export const updateObjectInfo = async (
   return updateInfoTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
+export const hasObjectPermission = async (
+  bucketName: string,
+  objectName: string,
+  actionType: ActionType,
+  loginAccount: string,
+) => {
+  const client = await getClient();
+  return client.object
+    .isObjectPermissionAllowed(bucketName, objectName, actionType, loginAccount)
+    .catch(() => ({
+      effect: PermissionTypes.Effect.EFFECT_DENY,
+    }));
+};
+
 export const getCanObjectAccess = async (
   bucketName: string,
   objectName: string,
@@ -88,7 +106,18 @@ export const getCanObjectAccess = async (
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
-  if (info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE && loginAccount !== info.owner)
+  // ACTION_GET_OBJECT
+  const res = await hasObjectPermission(
+    bucketName,
+    objectName,
+    PermissionTypes.ActionType.ACTION_GET_OBJECT,
+    loginAccount,
+  );
+  if (
+    info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE &&
+    loginAccount !== info.owner &&
+    res.effect !== PermissionTypes.Effect.EFFECT_ALLOW
+  )
     return [false, E_PERMISSION_DENIED];
 
   if (!quota) return [false, E_UNKNOWN];
@@ -126,6 +155,8 @@ export const getAuthorizedLink = async (
 export const downloadObject = async (
   params: DownloadPreviewParams,
   seedString: string,
+  batch = false,
+  owner = true,
 ): Promise<[boolean, ErrorMsg?]> => {
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
@@ -133,15 +164,18 @@ export const downloadObject = async (
 
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`;
-  if (!isPrivate) {
-    batchDownload(link);
+
+  if (!isPrivate && owner) {
+    if (batch) batchDownload(link);
+    else window.location.href = link;
     return [true];
   }
 
   const [url, error] = await getAuthorizedLink(params, seedString, 0);
   if (!url) return [false, error];
 
-  batchDownload(url);
+  if (batch) batchDownload(url);
+  else window.location.href = url;
   return [true];
 };
 
@@ -289,6 +323,36 @@ export const putObjectPolicy = async (
     signTypedDataCallback: signTypedDataCallback(connector),
   };
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const putObjectPolicies = async (
+  connector: Connector,
+  bucketName: string,
+  objectName: string,
+  srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>[],
+): BroadcastResponse => {
+  const client = await getClient();
+  const opts = await Promise.all(
+    srcMsg.map((msg) =>
+      client.object.putObjectPolicy(bucketName, objectName, msg).then(resolve, createTxFault),
+    ),
+  );
+  if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  const _opts = opts.map((opt) => opt[0] as TxResponse);
+  const txs = await client.basic.multiTx(_opts);
+  const [simulateInfo, simulateError] = await txs
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: srcMsg[0].operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return txs.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
 export const preExecDeleteObject = async (

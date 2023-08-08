@@ -62,7 +62,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
 
     for (const item of items) {
       const payload = { primarySp, objectInfo: item, address: loginAccount };
-      await downloadObject(payload, seedString);
+      await downloadObject(payload, seedString, items.length > 1);
     }
     dispatch(setSelectedRowKeys([]));
     dispatch(setupBucketQuota(bucketName));

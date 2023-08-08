@@ -16,7 +16,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import PrivateFileIcon from '@/public/images/icons/private_file.svg';
 import PublicFileIcon from '@/public/images/icons/public_file.svg';
 
-import { useLogin } from '@/hooks/useLogin';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import {
   BUTTON_GOT_IT,
@@ -57,7 +56,6 @@ import { SpItem } from '@/store/slices/sp';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { selectBalance } from '@/store/slices/balance';
 
 const renderFee = (
   key: string,

@@ -1,12 +1,24 @@
 import { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
-import { putObjectPolicy } from '@/facade/object';
-import { useAppSelector } from '@/store';
+import { putObjectPolicies } from '@/facade/object';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { useAccount } from 'wagmi';
-import { MsgPutPolicy } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import {
+  BUTTON_GOT_IT,
+  FILE_ACCESS,
+  FILE_ACCESS_URL,
+  FILE_FAILED_URL,
+  FILE_STATUS_ACCESS,
+} from '@/modules/file/constant';
+import { PermissionTypes } from '@bnb-chain/greenfield-chain-sdk';
+
+const MAX_COUNT = 20;
 
 interface ViewerListProps {}
 
@@ -15,25 +27,67 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const { connector } = useAccount();
   const { editDetail, bucketName } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const { setOpenAuthModal } = useOffChainAuth();
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
 
   const _onChange = (e: string[]) => {
     setValues(e.filter((i) => i.match(/0x[a-z0-9]{40}/i)));
   };
 
+  const inValid = values.length > MAX_COUNT;
+
+  const onError = (type: string) => {
+    switch (type) {
+      case E_OFF_CHAIN_AUTH:
+        setOpenAuthModal();
+        return;
+      default:
+        dispatch(
+          setStatusDetail({
+            title: FILE_ACCESS,
+            icon: FILE_FAILED_URL,
+            buttonText: BUTTON_GOT_IT,
+            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+            errorText: 'Error message: ' + type,
+          }),
+        );
+        return;
+    }
+  };
+
   const onInvite = async () => {
-    if (!values.length) return;
-    const msg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'> = {
+    if (!values.length || loading) return;
+    const payloads = values.map((value) => ({
       operator: loginAccount,
       // allow, get
-      statements: [{ effect: 1, actions: [6], resources: [''] }],
+      statements: [
+        {
+          effect: PermissionTypes.Effect.EFFECT_ALLOW,
+          actions: [PermissionTypes.ActionType.ACTION_GET_OBJECT],
+          resources: [''],
+        },
+      ],
       principal: {
-        // account
-        type: 1,
-        value: values[0],
+        /* account */ type: PermissionTypes.PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+        value,
       },
-    };
-    const [res, error] = await putObjectPolicy(connector!, bucketName, editDetail.objectName, msg);
-    console.log(values, res, error);
+    }));
+    setLoading(true);
+    dispatch(
+      setStatusDetail({ title: FILE_ACCESS, icon: FILE_ACCESS_URL, desc: FILE_STATUS_ACCESS }),
+    );
+    const [res, error] = await putObjectPolicies(
+      connector!,
+      bucketName,
+      editDetail.objectName,
+      payloads,
+    );
+    setLoading(false);
+    if (error) return onError(error);
+    dispatch(setStatusDetail({} as TStatusDetail));
+    setValues([]);
+    toast.success({ description: 'Access updated!' });
   };
 
   return (
@@ -53,10 +107,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
           />
           <Text>Viewer</Text>
         </Input>
-        <DCButton variant="dcPrimary" onClick={onInvite}>
+        <DCButton variant="dcPrimary" onClick={onInvite} w={90} h={48}>
           Invite
         </DCButton>
       </Flex>
+      {inValid && <Text color="#EE3911">Please enter less than 20 addresses. </Text>}
     </FormItem>
   );
 });

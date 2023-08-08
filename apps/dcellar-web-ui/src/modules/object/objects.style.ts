@@ -66,10 +66,16 @@ export const GhostButton = styled(Button)`
   height: 40px;
   background: #fff;
   border-color: #e6e8ea;
+  &:hover {
+    background: #1e2026;
+    color: #ffffff;
+    border-color: #1e2026;
+  }
   &[disabled],
   &[disabled]:hover {
     background: #fff;
     opacity: 1;
     color: #aeb4bc;
+    border-color: #e6e8ea;
   }
 `;
