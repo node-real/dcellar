@@ -1,16 +1,15 @@
 import { Chain } from 'wagmi'
 import { MetaMaskConnector as WagmiMetaMaskConnector  } from 'wagmi/connectors/metaMask';
+import {
+  getClient,
+} from '@wagmi/core'
 
 export type TrustWalletConnectorOptions = {
-  id?: string;
-  name?: string;
   shimDisconnect?: boolean
 }
 
 export class TrustWalletConnector extends WagmiMetaMaskConnector {
   readonly id: any = 'trustWallet';
-  readonly name: string = ''
-  protected shimDisconnectKey = `${this.id}.shimDisconnect`
 
   constructor({
     chains,
@@ -24,23 +23,7 @@ export class TrustWalletConnector extends WagmiMetaMaskConnector {
       name: 'Trust Wallet',
       shimDisconnect: true,
       UNSTABLE_shimOnConnectSelectAccount: true,
-      getProvider: () => {
-        try {
-          if (typeof window !== 'undefined' && typeof window?.trustWallet !== 'undefined') {
-            Object.defineProperty(window.trustWallet, 'removeListener', {
-              value: window.trustWallet.off,
-            });
-            return window?.trustWallet;
-          } else {
-            return null;
-          }
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.log('Trust Wallet Provider Error:', e);
-        }
-
-        return window?.trustWallet;
-      },
+      getProvider: getTrustWalletProvider,
       ..._options,
     }
 
@@ -48,10 +31,42 @@ export class TrustWalletConnector extends WagmiMetaMaskConnector {
       chains,
       options,
     })
-
-    this.name = options.name || this.name
-    this.id = options.id || this.id
-    this.shimDisconnectKey = `${this.id}.shimDisconnect`
   }
-  
+
+  async disconnect() {
+    super.disconnect()
+
+    const provider: any = await this.getProvider()
+    if (!provider?.off) return
+
+    provider.off('accountsChanged', this.onAccountsChanged)
+    provider.off('chainChanged', this.onChainChanged)
+    provider.off('disconnect', this.onDisconnect)
+
+    if (this.options.shimDisconnect) {
+      getClient().storage?.removeItem(this.shimDisconnectKey)
+    }
+  }
+}
+
+export function getTrustWalletProvider() {
+  const isTrustWallet = (ethereum: any) => {
+    return !!ethereum.isTrust
+  }
+
+  const injectedProviderExist = typeof window !== 'undefined' && typeof window.ethereum !== 'undefined'
+
+  if (!injectedProviderExist) {
+    return
+  }
+
+  if (isTrustWallet(window.ethereum)) {
+    return window.ethereum
+  }
+
+  if (window.ethereum?.providers) {
+    return window.ethereum.providers.find(isTrustWallet)
+  }
+
+  return window.trustWallet
 }

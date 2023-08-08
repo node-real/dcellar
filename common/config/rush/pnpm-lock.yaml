@@ -17,6 +17,7 @@ importers:
       '@commitlint/config-conventional': ^17.4.3
       '@emotion/react': ^11.10.5
       '@emotion/styled': ^11.10.5
+      '@ethersproject/address': ^5.0.0
       '@next/bundle-analyzer': ^13.1.6
       '@next/eslint-plugin-next': ^13.1.6
       '@reduxjs/toolkit': ^1.9.5
@@ -32,6 +33,7 @@ importers:
       '@types/node': 18.16.0
       '@types/react': 18.0.38
       '@types/react-dom': 18.0.11
+      '@wagmi/core': ^0.10.13
       ahooks: 3.7.7
       antd: 5.6.3
       apollo-node-client: 1.4.3
@@ -67,6 +69,7 @@ importers:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
+      '@ethersproject/address': 5.7.0
       '@next/bundle-analyzer': 13.4.5
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.1+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
@@ -74,6 +77,7 @@ importers:
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.13.0_aa3274991927adc2766d9259998fdd18
       '@totejs/uikit': 2.49.4_aa3274991927adc2766d9259998fdd18
+      '@wagmi/core': 0.10.13_ffa9e4b7c978105c4cdc523f3dd0562c
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
       apollo-node-client: 1.4.3
