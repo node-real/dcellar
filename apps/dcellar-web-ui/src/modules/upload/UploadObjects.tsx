@@ -164,14 +164,12 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
       Number(amount) * 1.05 > Number(availableBalance)
         ? round(Number(availableBalance), 6)
         : round(Number(amount) * 1.05, 6);
-    const [tmpAccount, error] = await createTmpAccount(
-      {
-        address: loginAccount,
-        bucketName,
-        amount: parseEther(String(safeAmount)).toString(),
-      },
+    const [tmpAccount, error] = await createTmpAccount({
+      address: loginAccount,
+      bucketName,
+      amount: parseEther(String(safeAmount)).toString(),
       connector,
-    );
+    });
     if (!tmpAccount) {
       return errorHandler(error);
     }
