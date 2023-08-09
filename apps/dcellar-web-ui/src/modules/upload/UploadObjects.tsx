@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -39,53 +39,54 @@ import { isUTF8 } from '../file/utils/file';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatBytes } from '../file/utils';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { TStatusDetail, setEditUpload, setStatusDetail } from '@/store/slices/object';
+import {
+  SINGLE_OBJECT_MAX_SIZE,
+  TEditUpload,
+  TStatusDetail,
+  setEditUpload,
+  setEditUploadStatus,
+  setStatusDetail,
+} from '@/store/slices/object';
 import {
   addTasksToUploadQueue,
-  resetHashQueue,
+  resetWaitQueue,
   setTaskManagement,
   setTmpAccount,
-  updateHashStatus,
-  updateHashTaskMsg,
+  updateWaitFileStatus,
+  updateWaitTaskMsg,
 } from '@/store/slices/global';
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { duplicateName } from '@/utils/object';
 import { isEmpty, round } from 'lodash-es';
 import { ListItem } from './ListItem';
-import { useTab } from './useUploadTab';
+import { useUploadTab } from './useUploadTab';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
-
-const MAX_SIZE = 256;
-
-type TSimulateFee = {
-  isBalanceAvailable: boolean;
-  amount: string;
-  balance: string;
-};
+import { useAccount } from 'wagmi';
 
 export const UploadObjects = () => {
   const dispatch = useAppDispatch();
-  const feeRef = useRef<TSimulateFee>();
-  const { editUpload, path, objects } = useAppSelector((root) => root.object);
-  const {primarySpInfo} = useAppSelector((root) => root.sp);
-  const { bucketName, folders } = useAppSelector((root) => root.object);
+  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { hashQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
+  const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
-  const selectedFiles = hashQueue;
+  const { connector } = useAccount();
+  const selectedFiles = waitQueue;
   const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
+  const { uploadQueue } = useAppSelector((root) => root.global);
   const [creating, setCreating] = useState(false);
-  const { tabOptions, activeKey, setActiveKey } = useTab();
+  const { tabOptions, activeKey, setActiveKey } = useUploadTab();
 
   const onClose = () => {
-    dispatch(setEditUpload(0));
-    dispatch(resetHashQueue());
+    dispatch(setEditUploadStatus(false));
+    dispatch(setEditUpload({} as TEditUpload));
+    dispatch(resetWaitQueue());
   };
 
   const getErrorMsg = (type: string) => {
@@ -98,7 +99,7 @@ export const UploadObjects = () => {
     if (!file) {
       return E_FILE_IS_EMPTY;
     }
-    if (file.size > MAX_SIZE * 1024 * 1024) {
+    if (file.size > SINGLE_OBJECT_MAX_SIZE) {
       return E_FILE_TOO_LARGE;
     }
     if (file.size <= 0) {
@@ -116,7 +117,17 @@ export const UploadObjects = () => {
     if (file.name.includes('//')) {
       return E_OBJECT_NAME_CONTAINS_SLASH;
     }
-    if (duplicateName(file.name, objectList)) {
+    const objectListNames = objectList.map((item) => item.name);
+    const uploadingNames = (uploadQueue?.[loginAccount] || [])
+      .map((item) => {
+        const curPrefix = [bucketName, ...folders].join('/');
+        const filePrefix = [item.bucketName, ...item.prefixFolders].join('/');
+        return curPrefix === filePrefix ? item.file.name : '';
+      })
+      .filter((item) => item);
+    const isExistObjectList = objectListNames.includes(file.name);
+    const isExistUploadList = uploadingNames.includes(file.name);
+    if ( isExistObjectList || isExistUploadList) {
       return E_OBJECT_NAME_EXISTS;
     }
     return '';
@@ -145,17 +156,16 @@ export const UploadObjects = () => {
         desc: FILE_STATUS_UPLOADING,
       }),
     );
-    const { amount, balance } = feeRef.current || {};
-    if (!amount || !balance) {
-      console.error('get total fee error', feeRef.current);
-      return;
-    }
-    const safeAmount = Number(amount) * 1.05 > Number(balance) ? round(Number(balance), 6) : round(Number(amount) * 1.05, 6);
+    const { totalFee: amount } = editUpload;
+    const safeAmount =
+      Number(amount) * 1.05 > Number(availableBalance)
+        ? round(Number(availableBalance), 6)
+        : round(Number(amount) * 1.05, 6);
     const [tmpAccount, error] = await createTmpAccount({
       address: loginAccount,
       bucketName,
       amount: parseEther(String(safeAmount)).toString(),
-    });
+    }, connector);
     if (!tmpAccount) {
       return errorHandler(error);
     }
@@ -174,17 +184,17 @@ export const UploadObjects = () => {
       const { file, id } = item;
       const error = basicValidate(file);
       if (!error) {
-        dispatch(updateHashStatus({ id, status: 'WAIT' }));
+        dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
         return;
       }
-      dispatch(updateHashTaskMsg({ id, msg: getErrorMsg(error).title }));
+      dispatch(updateWaitTaskMsg({ id, msg: getErrorMsg(error).title }));
     });
   }, [editUpload]);
 
   useUpdateEffect(() => {
     if (selectedFiles.length === 0) {
-      dispatch(setEditUpload(0));
-
+      dispatch(setEditUploadStatus(false));
+      dispatch(setEditUpload({} as TEditUpload));
     }
   }, [selectedFiles.length]);
 
@@ -192,18 +202,18 @@ export const UploadObjects = () => {
     return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects, selectedFiles]);
 
-  const hasSuccess = hashQueue.some((item) => item.status === 'WAIT');
-  console.log('disable status', loading, creating, !hasSuccess, !feeRef.current?.isBalanceAvailable)
+  const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+  console.log(loading, creating, !checkedQueue?.length, !editUpload.isBalanceAvailable, editUpload)
   return (
-    <DCDrawer isOpen={!!editUpload} onClose={onClose}>
+    <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
       {!isEmpty(selectedFiles) && (
-        <QDrawerBody marginTop={'24px'}>
+        <QDrawerBody marginTop={'16px'}>
           <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
             <TabList>
               {tabOptions.map((item) => (
-                <Tab h="auto" key={item.key} tabKey={item.key} paddingBottom={'8px'}>
+                <Tab h="auto" key={item.key} fontWeight={500} tabKey={item.key} paddingBottom={'8px'}>
                   {item.icon}
                   {item.title}({item.len})
                 </Tab>
@@ -231,26 +241,26 @@ export const UploadObjects = () => {
             Total Upload:{' '}
             <strong>
               {formatBytes(
-                selectedFiles.reduce(
+                checkedQueue.filter(item => item.status === 'WAIT').reduce(
                   (accumulator, currentValue) => accumulator + currentValue.size,
                   0,
                 ),
               )}
             </strong>{' '}
-            / <strong>{selectedFiles.length} Files</strong>
+            / <strong>{checkedQueue.length} Objects</strong>
           </Box>
         </Flex>
-        <Fee ref={feeRef} />
+        <Fee />
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"
             variant={'dcPrimary'}
             onClick={onUploadClick}
-            isDisabled={loading || creating || !hasSuccess || !feeRef.current?.isBalanceAvailable}
+            isDisabled={loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
           >
-            {(loading || creating) && !hasSuccess ? (
+            {(loading || creating) && !checkedQueue ? (
               <>
                 Loading
                 <DotLoading />

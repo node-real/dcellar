@@ -15,6 +15,7 @@ import { ErrorResponse, broadcastFault, commonFault, simulateFault } from './err
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { signTypedDataCallback } from './wallet';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 type ActionType = 'delete' | 'create';
@@ -48,7 +49,6 @@ export const createTmpAccount = async ({
 
   // 1. create temporary account
   const wallet = Wallet.createRandom();
-  console.log('wallet', wallet.address, wallet.privateKey);
 
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();

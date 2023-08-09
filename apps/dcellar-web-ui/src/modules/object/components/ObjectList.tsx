@@ -18,7 +18,7 @@ import {
   setupDummyFolder,
   setupListObjects,
 } from '@/store/slices/object';
-import { chunk, reverse, sortBy, uniq, without, xor } from 'lodash-es';
+import { chunk, find, reverse, sortBy, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
@@ -44,7 +44,6 @@ import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
@@ -61,6 +60,7 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { SpItem } from '@/store/slices/sp';
+import { UploadFile, selectUploadQueue } from '@/store/slices/global';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -82,16 +82,17 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   } = useAppSelector((root) => root.persist);
 
   const [rowIndex, setRowIndex] = useState(-1);
-  // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
+  // // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
     (root) => root.object,
   );
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { spInfo, primarySpInfo } = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
+  const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
     useAppSelector((root) => root.object);
 
@@ -266,13 +267,21 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
-        if (!isPublic) {
-          fitActions = Actions.filter((a) => a.value !== 'share');
-        }
+        // if (!isPublic) {
+        //   fitActions = Actions.filter((a) => a.value !== 'share');
+        // }
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
           fitActions = fitActions.filter((a) => ['cancel', 'detail'].includes(a.value));
+          //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
+          const file = find<UploadFile>(
+            uploadQueue,
+            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName
+          );
+          if (file) {
+            fitActions = fitActions.filter((a) => a.value !== 'cancel');
+          }
         }
         const key = path + '/' + record.name;
         const curObjectInfo = objectsInfo[key];
@@ -287,7 +296,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        isCurRow && !isFolder && isPublic && operations.push('share');
+        isCurRow && !isFolder && isSealed && operations.push('share');
         isCurRow && !isFolder && isSealed && operations.push('download');
 
         return (

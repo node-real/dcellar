@@ -20,7 +20,7 @@ export interface requestParamsType {
   url: string;
   headers: Headers;
   method: string;
-  params: URLSearchParams;
+  params?: URLSearchParams;
 }
 
 export interface putObjectPropsType {

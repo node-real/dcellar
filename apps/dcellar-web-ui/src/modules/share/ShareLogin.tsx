@@ -19,7 +19,7 @@ export const ShareLogin = () => {
       <Cube4 />
       <Image w={242} src={`${assetPrefix}/images/icons/logo.svg`} alt="Dcellar" />
       <Text mt={48} mb={4} fontSize={24} fontWeight={600}>
-        Connect wallet to view files in DCellar.
+        Connect wallet to view objects in DCellar.
       </Text>
       <ConnectWallet mt={53} />
     </Content>

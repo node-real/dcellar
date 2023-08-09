@@ -253,7 +253,7 @@ export const DetailObject = (props: modalProps) => {
 
   const onAction = async (e: ObjectActionType) => {
     if (action === e) return;
-    if (!allowDirectDownload) {
+    if (!allowDirectDownload && e === 'download') {
       return dispatch(setEditDownload({ ...editDetail, action: e }));
     }
     const objectName = editDetail.objectName;

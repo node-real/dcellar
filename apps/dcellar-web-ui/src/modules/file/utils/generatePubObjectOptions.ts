@@ -35,10 +35,12 @@ export const generatePutObjectOptions = async (
     'X-Gnfd-User-Address': userAddress,
     'X-Gnfd-App-Domain': domain,
   });
+  const params = new URLSearchParams();
 
   return {
     url,
     headers,
     method: 'put',
+    params,
   };
 };

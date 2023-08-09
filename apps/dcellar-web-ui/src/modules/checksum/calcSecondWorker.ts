@@ -2,7 +2,7 @@ import { sha256 } from 'hash-wasm';
 import { decodeBase64 } from '@/utils/base64';
 
 const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
-globalThis.importScripts(`${assetPrefix}/wasm/tinygo_wasm_exec.js`);
+globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -15,14 +15,14 @@ declare global {
 const init = async () => {
   const go = new Go();
   const result = await WebAssembly.instantiateStreaming(
-    fetch(`${assetPrefix}/wasm/hash.wasm`),
+    fetch(`${assetPrefix}/wasm/main.wasm`),
     go.importObject,
   );
   if (result) {
     go.run(result.instance);
     // Ensure hash-wasm initial success,
     // Otherwise, after the browser finishes loading the page,
-    // the user immediately uploads a large file,
+    // the user immediately uploads a large object,
     // and hash-wasm has a certain probability of initialization failure due to memory problems in chrome.
     await sha256('');
   }

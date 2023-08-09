@@ -12,12 +12,8 @@ import {
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Text, Tooltip } from '@totejs/uikit';
-import {
-  selectObjectList,
-  setFolders,
-  setSelectedRowKeys,
-} from '@/store/slices/object';
+import { selectObjectList, setFolders } from '@/store/slices/object';
+import { Text,Tooltip  } from '@totejs/uikit';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
@@ -48,9 +44,7 @@ export const ObjectsPage = () => {
     const bucket = bucketInfo[bucketName];
     if (!bucket) return;
     const primarySp = primarySpInfo[bucketName];
-      console.log('get primary sp before')
     if (!primarySp) {
-      console.log('get primary sp after')
       const [data, error] = await getVirtualGroupFamily({ familyId: bucket.global_virtual_group_family_id });
       const sp = allSps.find((item) => item.id === data?.globalVirtualGroupFamily?.primarySpId) as SpItem;
       dispatch(setPrimarySpInfo({ bucketName, sp}));
@@ -96,6 +90,7 @@ export const ObjectsPage = () => {
 
           {!!objectList.length && (
             <NewObject
+              showRefresh={true}
               gaFolderClickName="dc.file.list.create_folder.click"
               gaUploadClickName="dc.file.list.upload.click"
             />

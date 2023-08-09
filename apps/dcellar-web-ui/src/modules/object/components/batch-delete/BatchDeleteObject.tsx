@@ -25,16 +25,13 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  ObjectItem,
   TStatusDetail,
   setSelectedRowKeys,
   setStatusDetail,
+  addDeletedObject,
 } from '@/store/slices/object';
 import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { useAsyncEffect } from 'ahooks';
-import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance, setTmpAccount, TTmpAccount } from '@/store/slices/global';
-import { resolve } from '@/facade/common';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
@@ -118,26 +115,26 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
     dispatch(setupTmpAvailableBalance(loginAccount));
   }, [isOpen, dispatch, loginAccount]);
 
-  useAsyncEffect(async () => {
-    const totalPayloadSize = deleteObjects.reduce((acc, cur) => {
-      return acc + Number(cur.object_info.payload_size);
-    }, 0);
-    let lockFeeInBNB = await getLockFee(totalPayloadSize, primarySp.operatorAddress);
-    setLockFee(lockFeeInBNB);
-  }, [isOpen]);
+  // useAsyncEffect(async () => {
+  //   const totalPayloadSize = deleteObjects.reduce((acc, cur) => {
+  //     return acc + Number(cur.object_info.payload_size);
+  //   }, 0);
+  //   let lockFeeInBNB = await getLockFee(totalPayloadSize, primarySp.operatorAddress);
+  //   setLockFee(lockFeeInBNB);
+  // }, [isOpen]);
 
   useEffect(() => {
-    if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
+    if (!simulateGasFee || Number(simulateGasFee) < 0) {
       setButtonDisabled(false);
       return;
     }
     const currentBalance = Number(availableBalance);
-    if (currentBalance >= Number(simulateGasFee) + Number(lockFee)) {
+    if (currentBalance >= Number(simulateGasFee)) {
       setButtonDisabled(false);
       return;
     }
     setButtonDisabled(true);
-  }, [simulateGasFee, availableBalance, lockFee]);
+  }, [simulateGasFee, availableBalance]);
   const description = 'Are you sure you want to delete these objects?';
 
   const setFailedStatusModal = (description: string, error: any) => {
@@ -187,7 +184,6 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       granter: loginAccount,
       privateKey: tmpAccount.privateKey,
     });
-    console.log(txRes, 'txRes');
 
     if (txRes === null) {
       dispatch(setStatusDetail({} as TStatusDetail));
@@ -233,12 +229,15 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         if (!tmpAccount) return;
         for (let obj of deleteObjects) {
           await deleteObject(obj.object_info.object_name, tmpAccount);
+          dispatch(
+            addDeletedObject({
+              path: [bucketName, obj.object_info.object_name].join('/'),
+              ts: Date.now(),
+            }),
+          );
         }
       }
       deleteInRow();
-      // deleteObjects.map((obj) => {
-      //   deleteObject(obj.object_info.object_name, tmpAccount);
-      // });
       toast.info({ description: 'Objects deleting', icon: <ColoredWaitingIcon /> });
       refetch();
       onClose();
@@ -288,7 +287,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         borderRadius="12px"
         gap={'4px'}
       >
-        {renderFee(
+        {/* {renderFee(
           'Unlocked storage fee',
           lockFee,
           exchangeRate,
@@ -308,8 +307,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
               </Box>
             }
           />,
-        )}
-        {renderFee('Gas Fee', simulateGasFee + '', exchangeRate)}
+        )} */}
+        {renderFee('Gas Fee', simulateGasFee + '', exchangeRate, loading)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>

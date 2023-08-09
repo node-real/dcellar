@@ -1,4 +1,4 @@
-import { InferGetServerSidePropsType, NextPage, NextPageContext } from 'next';
+import { NextPage, NextPageContext } from 'next';
 import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
 import React, { ReactNode, useState } from 'react';
@@ -22,6 +22,8 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { getSpUrlByBucketName } from '@/facade/virtual-group';
+import { headObject } from '@/facade/object';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -29,8 +31,14 @@ const Container = styled.main`
   display: grid;
 `;
 
-const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = (props) => {
-  const { oneSp, spInfo } = useAppSelector((root) => root.sp);
+interface PageProps {
+  objectName: string;
+  fileName: string;
+  bucketName: string;
+}
+
+const SharePage: NextPage<PageProps> = (props) => {
+  const { oneSp } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
@@ -42,13 +50,27 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
   useAsyncEffect(async () => {
     if (!oneSp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    const [primarySpEndpoint, error] = await getSpUrlByBucketName(bucketName);
+    if (!primarySpEndpoint) {
+      // bucket not exist
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
     const params = {
       bucketName,
       objectName,
-      endpoint: spInfo[oneSp].endpoint,
+      endpoint: primarySpEndpoint,
       seedString,
       address: loginAccount,
     }
+    if (!loginAccount || !isOwner) {
+      const objectInfo = await headObject(bucketName, objectName);
+      setObjectInfo(objectInfo);
+      setQuotaData({} as IQuotaProps);
+      return;
+    }
+
     const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(params);
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
@@ -73,7 +95,14 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
           <Container>
             {walletConnected && <Header taskManagement={false} />}
             {!isPrivate && !walletConnected && (
-              <Logo zIndex={1} href="/" margin="20px 24px" position="absolute" left={0} top={0} />
+              <Logo
+                zIndex={1}
+                href="/buckets"
+                margin="20px 24px"
+                position="absolute"
+                left={0}
+                top={0}
+              />
             )}
             {quotaData === undefined || objectInfo === undefined ? (
               <Loading />
@@ -104,14 +133,15 @@ const SharePage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
   );
 };
 
-export const getServerSideProps = async (context: NextPageContext) => {
+// ref https://github.com/kirill-konshin/next-redux-wrapper/issues/545
+SharePage.getInitialProps = async (context: NextPageContext) => {
   const { query, res } = context;
   const { file } = query;
 
   const redirect = () => {
     res!.statusCode = 302;
     res!.setHeader('location', '/buckets');
-    return { props: { bucketName: '', fileName: '', objectName: '' } };
+    return { bucketName: '', fileName: '', objectName: '' };
   };
 
   if (!file) return redirect();
@@ -122,7 +152,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
 
   if (!fileName) return redirect();
 
-  return { props: { bucketName, fileName, objectName } };
+  return { bucketName, fileName, objectName };
 };
 
 (SharePage as any).getLayout = function getLayout(page: ReactNode) {

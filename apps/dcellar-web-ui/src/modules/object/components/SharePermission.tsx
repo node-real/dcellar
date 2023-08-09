@@ -162,33 +162,35 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
           </Box>
         </QDrawerBody>
       </DCDrawer>
-      <Container>
-        {/*<Title>Share with</Title>*/}
+      {editDetail.objectStatus === 1 && (
+        <Container>
+          {/*<Title>Share with</Title>*/}
 
-        {/*<AccessRow>*/}
-        {/*  <AccessType $bg={CurrentAccess.bg}>*/}
-        {/*    <span>{CurrentAccess.icon}</span>*/}
-        {/*    {CurrentAccess.text}*/}
-        {/*  </AccessType>*/}
-        {/*  <Divider orientation="vertical" h={43} mx={16} />*/}
-        {/*  <Flex gap={8} flex={1}>*/}
-        {/*    <Avatar0 />*/}
-        {/*  </Flex>*/}
-        {/*  <ManageAccess onClick={() => setManageOpen(true)}>Manage Access</ManageAccess>*/}
-        {/*</AccessRow>*/}
-        {owner && (
-          <AccessItem
-            value={editDetail.visibility}
-            onChange={(e) => onAccessChange(editDetail, e)}
-          />
-        )}
-        <Box my={8}>
-          <CopyButton text={`${location.origin}/share?file=${encodeURIComponent(params)}`}>
-            Copy Link
-          </CopyButton>
-        </Box>
-        {/*<Tip>Only people with access can open with the link.</Tip>*/}
-      </Container>
+          {/*<AccessRow>*/}
+          {/*  <AccessType $bg={CurrentAccess.bg}>*/}
+          {/*    <span>{CurrentAccess.icon}</span>*/}
+          {/*    {CurrentAccess.text}*/}
+          {/*  </AccessType>*/}
+          {/*  <Divider orientation="vertical" h={43} mx={16} />*/}
+          {/*  <Flex gap={8} flex={1}>*/}
+          {/*    <Avatar0 />*/}
+          {/*  </Flex>*/}
+          {/*  <ManageAccess onClick={() => setManageOpen(true)}>Manage Access</ManageAccess>*/}
+          {/*</AccessRow>*/}
+          {owner && (
+            <AccessItem
+              value={editDetail.visibility}
+              onChange={(e) => onAccessChange(editDetail, e)}
+            />
+          )}
+          <Box my={8}>
+            <CopyButton text={`${location.origin}/share?file=${encodeURIComponent(params)}`}>
+              Copy Link
+            </CopyButton>
+          </Box>
+          {/*<Tip>Only people with access can open with the link.</Tip>*/}
+        </Container>
+      )}
     </>
   );
 });

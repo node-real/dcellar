@@ -1,10 +1,7 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
-  Box,
   Empty,
   EmptyDescription,
-  EmptyIcon,
-  EmptyTitle,
   Flex,
   Image,
   QDrawerBody,
@@ -17,62 +14,58 @@ import {
   TabPanels,
   Tabs,
   Text,
-  CircularProgress,
 } from '@totejs/uikit';
-import { FILE_UPLOAD_STATIC_URL } from '@/modules/file/constant';
-import { useAppSelector } from '@/store';
-import { formatBytes } from '../file/utils';
-import { ColoredErrorIcon, ColoredSuccessIcon } from '@totejs/icons';
+import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
+import { ColoredAlertIcon, ColoredSuccessIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
-import { EllipsisText } from '@/components/common/EllipsisText';
 import { useTaskManagementTab } from './useTaskManagementTab';
 import styled from '@emotion/styled';
+import { NameItem } from './NameItem';
+import { PathItem } from './PathItem';
+import { UploadProgress } from './UploadProgress';
 
 export const UploadingObjects = () => {
-  const { bucketName } = useAppSelector((root) => root.object);
   const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
   const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
     switch (task.status) {
       case 'WAIT':
         return (
           <>
-            <Loading />
-            waiting
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Waiting
+            </Text>
           </>
         );
       case 'HASH':
         return (
           <>
-            <Loading />
-            hashing
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Hashing
+            </Text>
           </>
         );
       case 'READY':
-        return (
-          <>
-            <Loading />
-            ready
-          </>
-        );
+        return <UploadProgress value={0} />;
       case 'UPLOAD':
-        return (
-          <>
-            <CircularProgress size="20" value={task.progress} color="#00BA34" marginRight={'4px'} />
-            Uploading
-          </>
-        );
+        return <UploadProgress value={task.progress || 0} />;
       case 'SEAL':
         return (
           <>
-            <Loading />
-            sealing
+            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Text marginLeft={'4px'} fontWeight={400}>
+              Sealing
+            </Text>
           </>
         );
       case 'FINISH':
         return <ColoredSuccessIcon />;
       case 'ERROR':
-        return <ColoredErrorIcon />;
+        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
+      case 'CANCEL':
+        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
       default:
         return null;
     }
@@ -112,14 +105,15 @@ export const UploadingObjects = () => {
                 key={item.key}
                 tabKey={item.key}
                 paddingBottom={'8px'}
+                fontWeight={500}
                 _hover={{
                   color: 'readable.brand6',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   borderBottom: '3px solid readable.brand6',
                 }}
                 _selected={{
                   color: 'readable.brand6',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   borderBottom: '3px solid readable.brand6',
                 }}
               >
@@ -133,9 +127,16 @@ export const UploadingObjects = () => {
               <TabPanel key={item.key} panelKey={item.key}>
                 {item.data.length === 0 && (
                   <Empty>
-                    <EmptyIcon width={'100px'} />
+                    <Image
+                      alt="Empty"
+                      src={UPLOAD_TASK_EMPTY_ICON}
+                      width={'100px'}
+                      marginBottom={16}
+                    />
                     {/* <EmptyTitle>Title</EmptyTitle> */}
-                    <EmptyDescription>There are no objects in the list</EmptyDescription>
+                    <EmptyDescription color="readable.secondary">
+                      There are no objects in the list.
+                    </EmptyDescription>
                   </Empty>
                 )}
                 {item.data &&
@@ -145,32 +146,24 @@ export const UploadingObjects = () => {
                       _hover={{}}
                       maxW={'520px'}
                       key={task.id}
-                      paddingX={'6px'}
+                      paddingX={'0'}
                       right={null}
                       display="block"
                     >
                       <Flex
-                        marginLeft={'12px'}
                         fontSize={'12px'}
                         alignItems={'center'}
                         justifyContent={'space-between'}
                       >
-                        <Box maxW="200px" flex={1}>
-                          <EllipsisText marginRight={'12px'} title={task.file.name}>
-                            {task.file.name}
-                          </EllipsisText>
-                          {task.msg ? (
-                            <EllipsisText color={'red'} title={task.msg}>
-                              {task.msg}
-                            </EllipsisText>
-                          ) : (
-                            <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
-                          )}
-                        </Box>
-                        <EllipsisText maxW="200px" textAlign={'center'} marginRight={'12px'}>
-                          {[bucketName, task.prefixFolders].join('/')}
-                        </EllipsisText>
-                        <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
+                        <NameItem
+                          name={task.file.name}
+                          size={task.file.size}
+                          msg={task.msg}
+                          status={task.status}
+                          w={300}
+                        />
+                        <PathItem path={[task.bucketName, task.prefixFolders].join('/')} />
+                        <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>
                       </Flex>

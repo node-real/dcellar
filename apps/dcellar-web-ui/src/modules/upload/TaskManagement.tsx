@@ -42,10 +42,22 @@ export const TaskManagement = () => {
       <Box
         cursor={'pointer'}
         alignSelf={'center'}
-        marginRight={'12px'}
+        marginRight={24}
         onClick={() => onToggle()}
       >
-        <DCButton variant="ghost" fontWeight={'500'}>
+        <DCButton
+          variant="ghost"
+          fontWeight={500}
+          border='none'
+          fontSize={14}
+          paddingX={8}
+          borderRadius={4}
+          h={44}
+          color='readable.secondary'
+          _hover={{
+            bg: 'bg.bottom',
+          }}
+        >
           Task Management
         </DCButton>
       </Box>

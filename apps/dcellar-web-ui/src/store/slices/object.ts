@@ -5,7 +5,8 @@ import { toast } from '@totejs/uikit';
 import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
-import { SpItem } from './sp';
+export const SINGLE_OBJECT_MAX_SIZE = 128 * 1024 * 1024;
+export const SELECT_OBJECT_NUM_LIMIT = 10;
 import { Key } from 'react';
 
 export type ObjectItem = {
@@ -31,6 +32,13 @@ export type TStatusDetail = {
 
 export type ObjectActionType = 'view' | 'download' | '';
 
+export type TEditUploadContent = {
+  gasFee: string;
+  preLockFee: string;
+  totalFee: string;
+  isBalanceAvailable: boolean;
+}
+export type TEditUpload = TEditUploadContent & { isOpen: boolean; }
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -48,8 +56,10 @@ export interface ObjectState {
   editShare: ObjectItem;
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
-  editUpload: number;
+  editUpload: TEditUpload;
   selectedRowKeys: Key[];
+  deletedObjects: Record<string, number>;
+  refreshing: boolean;
 }
 
 const initialState: ObjectState = {
@@ -69,10 +79,11 @@ const initialState: ObjectState = {
   editShare: {} as ObjectItem,
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  editUpload: 0,
+  editUpload: {} as TEditUpload,
   selectedRowKeys: [],
+  deletedObjects: {},
+  refreshing: false,
 };
-export const SINGLE_FILE_MAX_SIZE = 256 * 1024 * 1024;
 
 export const objectSlice = createSlice({
   name: 'object',
@@ -80,6 +91,10 @@ export const objectSlice = createSlice({
   reducers: {
     setSelectedRowKeys(state, { payload }: PayloadAction<Key[]>) {
       state.selectedRowKeys = payload;
+    },
+    addDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
+      const { path, ts } = payload;
+      state.deletedObjects[path] = ts;
     },
     updateObjectVisibility(
       state,
@@ -105,6 +120,9 @@ export const objectSlice = createSlice({
       const items = state.objects[path];
       if (items.some((i) => i.name === folder.name)) return;
       items.push(folder);
+      const [bucketName] = path.split('/');
+      const _path = [bucketName, folder.objectName].join('/');
+      state.deletedObjects[_path] = 0;
     },
     updateObjectStatus(
       state,
@@ -155,8 +173,14 @@ export const objectSlice = createSlice({
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setEditUpload(state, { payload }: PayloadAction<number>) {
-      state.editUpload = payload;
+    setEditUploadStatus(state, { payload }: PayloadAction<boolean>) {
+      state.editUpload.isOpen = payload;
+    },
+    setEditUpload(state, { payload }: PayloadAction<TEditUploadContent>) {
+      state.editUpload = {
+        ...state.editUpload,
+        ...payload
+      };
     },
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
@@ -169,18 +193,27 @@ export const objectSlice = createSlice({
     },
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
       const { path, list } = payload;
+      const [bucketName] = path.split('/');
       // keep order
-      const folders = list.common_prefixes.reverse().map((i, index) => ({
-        objectName: i,
-        name: last(trimEnd(i, '/').split('/'))!,
-        payloadSize: 0,
-        createAt: Date.now() + index,
-        contentType: '',
-        folder: true,
-        visibility: 3,
-        objectStatus: 1,
-        removed: false,
-      }));
+      const folders = list.common_prefixes
+        .reverse()
+        .map((i, index) => ({
+          objectName: i,
+          name: last(trimEnd(i, '/').split('/'))!,
+          payloadSize: 0,
+          createAt: Date.now() + index,
+          contentType: '',
+          folder: true,
+          visibility: 3,
+          objectStatus: 1,
+          removed: false,
+        }))
+        .filter((f) => {
+          const path = [bucketName, f.objectName].join('/');
+          const ts = state.deletedObjects[path];
+          // manually update delete status when create new folder
+          return !ts;
+        });
 
       const objects = list.objects
         .map((i) => {
@@ -209,11 +242,19 @@ export const objectSlice = createSlice({
             removed: i.removed,
           };
         })
-        .filter((i) => !i.objectName.endsWith('/') && !i.removed);
+        .filter((i) => !i.objectName.endsWith('/') && !i.removed)
+        .filter((o) => {
+          const path = [bucketName, o.objectName].join('/');
+          const ts = state.deletedObjects[path];
+          return !ts || ts < o.createAt;
+        });
 
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
       state.objects[path] = folders.concat(objects as ObjectItem[]);
     },
+    setListRefreshing(state, { payload }: PayloadAction<boolean>) {
+      state.refreshing = payload;
+    }
   },
 });
 
@@ -264,35 +305,36 @@ export const setupDummyFolder =
   };
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
+    async (dispatch: AppDispatch, getState: GetState) => {
 
-    const { prefix, bucketName, path, restoreCurrent } = getState().object;
-    const { loginAccount: address } = getState().persist;
-    dispatch(setRestoreCurrent(true));
-    if (!restoreCurrent) {
-      dispatch(setCurrentObjectPage({ path, current: 0 }));
-    }
-    const _query = new URLSearchParams(params.query?.toString() || '');
-    _query.append('max-keys', '1000');
-    _query.append('delimiter', '/');
-    if (prefix) _query.append('prefix', prefix);
-    // support any path list objects, bucketName & _path
-    const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
-    // fix refresh then nav to other pages.
-    if (!bucketName) return;
-    const [res, error] = await _getAllList(payload);
-    if (error) {
-      toast.error({ description: error });
-      return;
-    }
-    dispatch(setObjectList({ path: _path || path, list: res! }));
-  };
+      const { prefix, bucketName, path, restoreCurrent } = getState().object;
+      const { loginAccount: address } = getState().persist;
+      const _query = new URLSearchParams(params.query?.toString() || '');
+      _query.append('max-keys', '1000');
+      _query.append('delimiter', '/');
+      if (prefix) _query.append('prefix', prefix);
+      // support any path list objects, bucketName & _path
+      const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
+      // fix refresh then nav to other pages.
+      if (!bucketName) return;
+      const [res, error] = await _getAllList(payload);
+      if (error) {
+        toast.error({ description: error });
+        return;
+      }
+      dispatch(setObjectList({ path: _path || path, list: res! }));
+      dispatch(setRestoreCurrent(true));
+      if (!restoreCurrent) {
+        dispatch(setCurrentObjectPage({ path, current: 0 }));
+      }
+    };
+
 export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
   dispatch(setStatusDetail({} as TStatusDetail));
 };
 export const selectPathLoading = (root: AppState) => {
-  const { objects, path } = root.object;
-  return !(path in objects);
+  const { objects, path, refreshing } = root.object;
+  return !(path in objects) || refreshing;
 };
 
 export const selectPathCurrent = (root: AppState) => {
@@ -318,10 +360,13 @@ export const {
   setStatusDetail,
   setEditShare,
   setEditUpload,
+  setEditUploadStatus,
   setEditCancel,
   updateObjectStatus,
   setDummyFolder,
   updateObjectVisibility,
+  addDeletedObject,
+  setListRefreshing,
   setSelectedRowKeys,
 } = objectSlice.actions;
 

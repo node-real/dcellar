@@ -22,7 +22,6 @@ export const getObjectInfoAndBucketQuota = async ({
   address: string;
   seedString: string;
 }): Promise<[ObjectInfo | null, IQuotaProps | null]> => {
-  console.log('invoke getObjectInfoAndBucketQuota')
   const client = await getClient();
   const [{ objectInfo }, { body }] = await Promise.all([
     client.object.headObject(bucketName, objectName).catch(() => ({} as QueryHeadObjectResponse)),
@@ -36,7 +35,6 @@ export const getObjectInfoAndBucketQuota = async ({
         domain: getDomain(),
       })
       .catch((e) => {
-        console.log('e')
         return {} as IObjectResultType<IQuotaProps>
       }),
   ]);

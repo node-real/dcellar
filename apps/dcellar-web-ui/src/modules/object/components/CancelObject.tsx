@@ -21,7 +21,13 @@ import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { ObjectItem, setEditCancel, setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import {
+  addDeletedObject,
+  ObjectItem,
+  setEditCancel,
+  setStatusDetail,
+  TStatusDetail,
+} from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 import { useAsyncEffect } from 'ahooks';
@@ -70,7 +76,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
     bnb: { price: bnbPrice },
     _availableBalance: availableBalance,
   } = useAppSelector((root) => root.global);
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, editCancel } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
@@ -128,7 +134,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
 
   const filePath = editCancel.name.split('/');
   const showName = filePath[filePath.length - 1];
-  const description = `Are you sure you want to cancel uploading the file "${showName}"?`;
+  const description = `Are you sure you want to cancel uploading the object "${showName}"?`;
 
   const setFailedStatusModal = (description: string, error: any) => {
     setStatusDetail({
@@ -185,7 +191,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                   lineHeight={'150%'}
                   wordBreak={'break-word'}
                 >
-                  We will unlock the storage fee after you cancel the file.
+                  We will unlock the storage fee after you cancel the object.
                 </Box>
               </Box>
             }
@@ -195,7 +201,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'32px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee, lockFee, availableBalance || '0')}
+          {renderInsufficientBalance(simulateGasFee, '0', availableBalance || '0')}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
           Available balance: {renderBalanceNumber(availableBalance || '0')}
@@ -248,6 +254,12 @@ export const CancelObject = ({ refetch }: modalProps) => {
               }
               if (txRes && txRes.code === 0) {
                 toast.success({ description: 'Uploading cancelled successfully.' });
+                dispatch(
+                  addDeletedObject({
+                    path: [bucketName, editCancel.objectName].join('/'),
+                    ts: Date.now(),
+                  }),
+                );
                 refetch();
                 dispatch(setupBucketQuota(bucketName));
               } else {
@@ -263,7 +275,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
                 return;
               }
               // eslint-disable-next-line no-console
-              console.error('Cancel file error.', error);
+              console.error('Cancel object error.', error);
 
               setFailedStatusModal(FILE_DESCRIPTION_CANCEL_ERROR, error);
             }
