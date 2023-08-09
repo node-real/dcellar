@@ -79,6 +79,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
       <Text as="div" fontWeight={500} alignItems="center" display="flex" gap={12}>
         {showDownload && (
           <Tooltip
+            trigger="hover"
             placement="bottom-start"
             visibility={remainQuota ? 'hidden' : 'visible'}
             content={
@@ -92,7 +93,12 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
             }
           >
             <div>
-              <GhostButton disabled={!downloadable} variant="ghost" onClick={onBatchDownload}>
+              <GhostButton
+                as={!downloadable ? 'span' : 'button'}
+                disabled={!downloadable}
+                variant="ghost"
+                onClick={onBatchDownload}
+              >
                 Download
               </GhostButton>
             </div>
