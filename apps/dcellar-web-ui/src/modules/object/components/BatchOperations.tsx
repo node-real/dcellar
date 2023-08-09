@@ -12,6 +12,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { downloadObject } from '@/facade/object';
 import { formatBytes } from '@/modules/file/utils';
 import { GhostButton } from '@/modules/object/objects.style';
+import { BatchDeleteObject } from '@/modules/object/components/batch-delete/BatchDeleteObject';
 
 interface BatchOperationsProps {}
 
@@ -23,6 +24,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const { bucketName, objects, path } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
+  const [isBatchDeleteOpen, setBatchDeleteOpen] = React.useState(false);
   const quotaData = quotas[bucketName] || {};
   const primarySp = primarySpInfo[bucketName];
 
@@ -68,14 +70,32 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     dispatch(setupBucketQuota(bucketName));
   };
 
+  const onBatchDelete = async () => {
+    const items = objects[path].filter((i) => selectedRowKeys.includes(i.objectName));
+    let remainQuota = quotaRemains(
+      { readQuota: 2000000, freeQuota: 2000000, consumedQuota: 2000000 },
+      String(items.reduce((x, y) => x + y.payloadSize, 0)),
+    );
+    if (!remainQuota) return onError(E_NO_QUOTA);
+    console.log(isBatchDeleteOpen, 'onBatchDelete');
+    setBatchDeleteOpen(true);
+  };
+
   const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
   const downloadable = remainQuota && showDownload && !!items.length;
   const remainQuotaBytes = formatBytes(
     quotaData.freeQuota + quotaData.readQuota - quotaData.consumedQuota,
   );
 
+  const refetch = async (name?: string) => {};
+
   return (
     <>
+      <BatchDeleteObject
+        refetch={refetch}
+        isOpen={isBatchDeleteOpen}
+        cancelFn={() => setBatchDeleteOpen(false)}
+      />
       <Text as="div" fontWeight={500} alignItems="center" display="flex" gap={12}>
         {showDownload && (
           <Tooltip

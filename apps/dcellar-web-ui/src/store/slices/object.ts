@@ -59,9 +59,9 @@ export interface ObjectState {
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
   editUpload: TEditUpload;
+  selectedRowKeys: Key[];
   deletedObjects: Record<string, number>;
   refreshing: boolean;
-  selectedRowKeys: Key[];
 }
 
 const initialState: ObjectState = {
@@ -82,9 +82,9 @@ const initialState: ObjectState = {
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   editUpload: {} as TEditUpload,
+  selectedRowKeys: [],
   deletedObjects: {},
   refreshing: false,
-  selectedRowKeys: [],
 };
 
 export const objectSlice = createSlice({

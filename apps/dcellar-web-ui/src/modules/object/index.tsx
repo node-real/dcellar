@@ -17,9 +17,9 @@ import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip, Flex } from '@totejs/uikit';
 import { selectObjectList, setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
+import React, { useEffect } from 'react';
 import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
-import React, { useEffect } from 'react';
 import { ForwardIcon } from '@totejs/icons';
 
 export const ObjectsPage = () => {
@@ -37,7 +37,6 @@ export const ObjectsPage = () => {
 
   useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
-
     return () => {
       dispatch(setFolders({ bucketName: '', folders: [] }));
     };
