@@ -15,6 +15,7 @@ import { ErrorResponse, broadcastFault } from './error';
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { escapeRegExp } from 'lodash-es';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 type ActionType = 'delete' | 'create';
@@ -61,7 +62,8 @@ export const createTmpAccount = async ({
   });
   const resources = isDelete
     ? objectList.map((objectName: string) => {
-        return GRNToString(newObjectGRN(bucketName, objectName));
+        // todo fix it escape
+        return GRNToString(newObjectGRN(bucketName, escapeRegExp(objectName)));
       })
     : [GRNToString(newBucketGRN(bucketName))];
   // 3. Put bucket policy so that the temporary account can create objects within this bucket
@@ -70,6 +72,7 @@ export const createTmpAccount = async ({
     actions: statementAction,
     resources: resources,
   };
+
   const putPolicyTx = await client.bucket.putBucketPolicy(bucketName, {
     operator: address,
     statements: [statement],
