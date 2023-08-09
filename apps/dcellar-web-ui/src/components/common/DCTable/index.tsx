@@ -70,12 +70,27 @@ export const SealLoading = () => {
   }
 `;
   return (
-    <Flex
-      w={`30%`}
-      bg={'#1184EE'}
-      borderRadius={'28px'}
-      animation={`${loading} 1.5s linear infinite`}
-    />
+    <Flex alignItems="center">
+      <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
+        <Flex
+          w={`30%`}
+          bg={'#1184EE'}
+          borderRadius={'28px'}
+          animation={`${loading} 1.5s linear infinite`}
+        />
+      </Flex>
+      <Box
+        color={'readable.normal'}
+        ml={'4px'}
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        fontWeight={400}
+        borderRadius={4}
+        padding={4}
+      >
+        Sealing...
+      </Box>
+    </Flex>
   );
 };
 
