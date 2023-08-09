@@ -13,8 +13,9 @@ export type TGetReadQuotaParams = {
   endpoint: string;
   seedString: string;
   address: string;
-}
-export const quotaRemains = (quota: IQuotaProps, payload: string) => {
+};
+
+export const quotaRemains = (quota: IQuotaProps, payload: string | number) => {
   const { freeQuota, readQuota, consumedQuota } = quota;
   return !BigNumber(freeQuota).plus(readQuota).minus(consumedQuota).minus(payload).isNegative();
 };
@@ -44,7 +45,7 @@ export const getBucketReadQuota = async ({
   endpoint,
   seedString,
   address,
-}: TGetReadQuotaParams):Promise<ErrorResponse | [IQuotaProps, null]> => {
+}: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
   const payload: TGetBucketReadQuota = {
     bucketName,
@@ -52,25 +53,31 @@ export const getBucketReadQuota = async ({
     seedString,
     address,
     signType: 'offChainAuth',
-    domain: getDomain()
+    domain: getDomain(),
   };
   const [res, error] = await client.bucket
-    .getBucketReadQuota(payload).then(resolve, offChainAuthFault);
+    .getBucketReadQuota(payload)
+    .then(resolve, offChainAuthFault);
   if (error) return [null, error];
 
   const quota = res?.body as IQuotaProps;
   return [quota, null];
 };
 
-export const preExecDeleteBucket = async (bucketName: string, address: string): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
+export const preExecDeleteBucket = async (
+  bucketName: string,
+  address: string,
+): Promise<ErrorResponse | [ISimulateGasFee, null]> => {
   const client = await getClient();
   const deleteBucketTx = await client.bucket.deleteBucket({
     bucketName,
     operator: address,
   });
-  const [data, error] = await deleteBucketTx.simulate({
-    denom: 'BNB',
-  }).then(resolve, simulateFault);
+  const [data, error] = await deleteBucketTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
 
   if (error) return [null, error];
   return [data!, null];

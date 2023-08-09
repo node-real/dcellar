@@ -23,6 +23,7 @@ export const E_OBJECT_NAME_NOT_UTF8 = 'OBJECT_NAME_NOT_UTF8';
 export const E_OBJECT_NAME_CONTAINS_SLASH = 'OBJECT_NAME_CONTAINS_SLASH';
 export const E_CAL_OBJECT_HASH = 'CAL_OBJECT_HASH';
 export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
+export const E_OBJECT_NOT_EXISTS = 'No such object';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export const E_NO_PERMISSION = 'NO_PERMISSION';
 export const E_SP_STORAGE_PRICE_FAILED = 'SP_STORAGE_PRICE_FAILED';
@@ -40,6 +41,9 @@ export const simulateFault = (e: any): ErrorResponse => {
   console.error('SimulateFault', e);
   if (e?.message.includes('static balance is not enough')) {
     return [null, E_GET_GAS_FEE_LACK_BALANCE_ERROR];
+  }
+  if (e?.message.includes('No such object')) {
+    return [null, E_OBJECT_NOT_EXISTS];
   }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };
@@ -66,7 +70,8 @@ export const createTxFault = (e: any): ErrorResponse => {
         'user public key is expired',
         'invalid signature',
       ].includes(message)) ||
-    ((e as any).statusCode === 400 && ['user public key is expired', 'invalid signature'].includes(message))
+    ((e as any).statusCode === 400 &&
+      ['user public key is expired', 'invalid signature'].includes(message))
   ) {
     return [null, E_OFF_CHAIN_AUTH];
   }
@@ -115,4 +120,4 @@ export const queryLockFeeFault = (e: any): ErrorResponse => {
   }
 
   return [null, E_UNKNOWN_ERROR];
-}
+};

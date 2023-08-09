@@ -20,6 +20,7 @@ export type FixedType = 'left' | 'right' | boolean;
 
 const theme: ThemeConfig = {
   token: {
+    colorPrimary: '#00BA34',
     colorBorderSecondary: '#e6e8ea',
     colorLink: '#00BA34',
     colorLinkActive: '#00BA34',
@@ -79,7 +80,7 @@ export const SealLoading = () => {
 };
 
 export const UploadProgress = (props: { progress: number }) => {
-  let { progress = 0} = props;
+  let { progress = 0 } = props;
   if (progress < 0) {
     progress = 0;
   }
@@ -184,6 +185,7 @@ const Container = styled.div`
     padding-top: 13px;
     padding-bottom: 13px;
   }
+  .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
     background: rgba(0, 186, 52, 0.1);
   }
@@ -202,6 +204,10 @@ const Container = styled.div`
   }
 
   .ant-table-ping-right:not(.ant-table-has-fix-right) .ant-table-container::after {
+    display: none;
+  }
+
+  .ant-checkbox-checked:after {
     display: none;
   }
 `;

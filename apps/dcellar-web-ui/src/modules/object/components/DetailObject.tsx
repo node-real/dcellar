@@ -222,12 +222,10 @@ export const DetailObject = (props: modalProps) => {
   const dispatch = useAppDispatch();
   const [action, setAction] = useState<ObjectActionType>('');
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
-  const { directDownload: allowDirectDownload } = accounts?.[loginAccount];
+  const { directDownload: allowDirectDownload } = accounts?.[loginAccount] || {};
   const { setOpenAuthModal } = useOffChainAuth();
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
-  const { editDetail, bucketName, objectsInfo, path } = useAppSelector(
-    (root) => root.object,
-  );
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { editDetail, bucketName, objectsInfo, path } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
@@ -259,7 +257,9 @@ export const DetailObject = (props: modalProps) => {
     const objectName = editDetail.objectName;
     const endpoint = primarySp.endpoint;
     setAction(e);
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const [_, accessError, objectInfo] = await getCanObjectAccess(
       bucketName,
       objectName,
@@ -281,6 +281,10 @@ export const DetailObject = (props: modalProps) => {
     setAction('');
     return success;
   };
+
+  if (!primarySp || !objectInfo) {
+    return <></>;
+  }
 
   return (
     <>

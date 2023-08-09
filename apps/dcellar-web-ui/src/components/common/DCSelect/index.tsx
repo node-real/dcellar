@@ -158,15 +158,16 @@ export function Select(props: DCSelectProps) {
             return (
               <GAClick key={item.value} name={gaClickName}>
                 <MenuItem
+                  as="div"
                   px={24}
                   py={8}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
                   _hover={{
-                    bg: isSelected ? undefined : 'bg.bottom',
+                    bg: isSelected || !item.access ? undefined : 'bg.bottom',
                   }}
-                  onClick={() => onSelectItem(item)}
+                  onClick={() => item.access && onSelectItem(item)}
                   _last={{
                     mb: 8,
                   }}

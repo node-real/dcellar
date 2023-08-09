@@ -46,3 +46,32 @@ export const formatId = (id: number) => {
   const value = `0x${hex.padStart(64, '0')}`;
   return value;
 };
+
+export const copy = (text: string) => {
+  const range = document.createRange();
+  const div = document.createElement('div');
+  div.innerText = text;
+  div.style.position = 'absolute';
+  div.style.left = '-99999px';
+  div.style.top = '-99999px';
+  document.body.appendChild(div);
+  range.selectNode(div);
+
+  const selection = document.getSelection()!;
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  document.execCommand('copy');
+  range.detach();
+  document.body.removeChild(div);
+};
+
+const getObjectPath = (bucketName: string, objectName: string) => {
+  return [bucketName, encodeObjectName(objectName)].join('/');
+};
+
+export const getShareLink = (bucketName: string, objectName: string) => {
+  return `${location.origin}/share?file=${encodeURIComponent(
+    getObjectPath(bucketName, objectName),
+  )}`;
+};

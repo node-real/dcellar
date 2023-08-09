@@ -10,22 +10,21 @@ import {
   setEditDelete,
   setEditDetail,
   setEditDownload,
-  setEditShare,
   setRestoreCurrent,
+  setSelectedRowKeys,
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
 } from '@/store/slices/object';
-import { chunk, find, reverse, sortBy } from 'lodash-es';
+import { chunk, find, reverse, sortBy, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
-  setAccountConfig,
   SorterType,
   updateObjectPageSize,
   updateObjectSorter,
 } from '@/store/slices/persist';
-import { AlignType, DCTable, UploadStatus, SortIcon, SortItem } from '@/components/common/DCTable';
+import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/object/components/ListEmpty';
@@ -50,7 +49,7 @@ import {
   E_OFF_CHAIN_AUTH,
   E_UNKNOWN,
 } from '@/facade/error';
-import { downloadObject, getListObjects } from '@/facade/object';
+import { downloadObject } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { UploadObjects } from '@/modules/upload/UploadObjects';
 import { OBJECT_SEALED_STATUS } from '@/modules/file/constant';
@@ -58,8 +57,9 @@ import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
-import { SpItem } from '@/store/slices/sp';
 import { UploadFile, selectUploadQueue } from '@/store/slices/global';
+import { copy, encodeObjectName, getShareLink } from '@/utils/string';
+import { toast } from '@totejs/uikit';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -82,10 +82,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const [rowIndex, setRowIndex] = useState(-1);
   // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
-  const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
+  const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
+    (root) => root.object,
+  );
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { primarySpInfo} = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
@@ -108,6 +110,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       query,
       endpoint: primarySp.endpoint,
     };
+    dispatch(setSelectedRowKeys([]));
     dispatch(setupListObjects(params));
     dispatch(setupBucketQuota(bucketName));
   }, [primarySp, prefix]);
@@ -180,7 +183,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
         return dispatch(setEditDelete(record));
       case 'share':
-        return dispatch(setEditShare(record));
+        copy(getShareLink(bucketName, record.objectName));
+        toast.success({ description: 'Successfully copied to your clipboard.' });
+        return;
       case 'download':
         return download(record);
       case 'cancel':
@@ -274,7 +279,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName
+            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName,
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');
@@ -322,6 +327,34 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     dispatch(updateObjectPageSize(pageSize));
   };
 
+  const onSelectChange = (item: ObjectItem) => {
+    dispatch(setSelectedRowKeys(xor(selectedRowKeys, [item.objectName])));
+  };
+
+  const onSelectAllChange = (
+    selected: boolean,
+    selectedRows: ObjectItem[],
+    changeRows: ObjectItem[],
+  ) => {
+    const _changeRows = changeRows.filter(Boolean).map((i) => i.objectName);
+    if (selected) {
+      dispatch(setSelectedRowKeys(uniq(selectedRowKeys.concat(_changeRows))));
+    } else {
+      dispatch(setSelectedRowKeys(without(selectedRowKeys, ..._changeRows)));
+    }
+  };
+
+  const rowSelection = {
+    checkStrictly: true,
+    selectedRowKeys,
+    onSelect: onSelectChange,
+    onSelectAll: onSelectAllChange,
+    getCheckboxProps: (record: ObjectItem) => ({
+      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
+      name: record.name,
+    }),
+  };
+
   const refetch = async (name?: string) => {
     if (!primarySp) return;
     const { seedString } = await dispatch(
@@ -362,6 +395,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         />
       )}
       <DCTable
+        rowSelection={owner ? rowSelection : undefined}
         loading={{ spinning: loading, indicator: <Loading /> }}
         rowKey="objectName"
         columns={columns}

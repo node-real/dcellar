@@ -212,7 +212,6 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const description = isFolder
     ? `Are you sure you want to delete folder "${folderName}"?`
     : `Are you sure you want to delete object "${showName}"?`;
-
   const setFailedStatusModal = (description: string, error: any) => {
     dispatch(
       setStatusDetail({
