@@ -97,7 +97,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       {showRefresh && (
         <>
           <Flex
-            onClick={() => refreshList()}
+            onClick={refreshList}
             alignItems="center"
             height={40}
             marginRight={12}

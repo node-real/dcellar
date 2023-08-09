@@ -350,7 +350,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     onSelect: onSelectChange,
     onSelectAll: onSelectAllChange,
     getCheckboxProps: (record: ObjectItem) => ({
-      disabled: record.folder, // Column configuration not to be checked
+      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
       name: record.name,
     }),
   };

@@ -3,7 +3,7 @@ import { Box, Text, Tooltip } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
-import { setSelectedRowKeys, setStatusDetail } from '@/store/slices/object';
+import { setSelectedRowKeys, setStatusDetail, setupListObjects } from '@/store/slices/object';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { useMount } from 'ahooks';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -71,13 +71,6 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   };
 
   const onBatchDelete = async () => {
-    const items = objects[path].filter((i) => selectedRowKeys.includes(i.objectName));
-    let remainQuota = quotaRemains(
-      { readQuota: 2000000, freeQuota: 2000000, consumedQuota: 2000000 },
-      String(items.reduce((x, y) => x + y.payloadSize, 0)),
-    );
-    if (!remainQuota) return onError(E_NO_QUOTA);
-    console.log(isBatchDeleteOpen, 'onBatchDelete');
     setBatchDeleteOpen(true);
   };
 
@@ -87,7 +80,19 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     quotaData.freeQuota + quotaData.readQuota - quotaData.consumedQuota,
   );
 
-  const refetch = async (name?: string) => {};
+  const refetch = async () => {
+    if (!primarySp || !loginAccount) return;
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
+    const query = new URLSearchParams();
+    const params = {
+      seedString,
+      query,
+      endpoint: primarySp.endpoint,
+    };
+    dispatch(setupListObjects(params));
+  };
 
   return (
     <>
@@ -124,7 +129,9 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
             </div>
           </Tooltip>
         )}
-        <GhostButton variant="ghost">Delete</GhostButton>
+        <GhostButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
+          Delete
+        </GhostButton>
       </Text>
     </>
   );

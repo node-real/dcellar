@@ -11,11 +11,10 @@ import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coi
 import { Wallet } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';
 import { resolve } from './common';
-import { ErrorResponse, broadcastFault, commonFault, simulateFault } from './error';
+import { ErrorResponse, broadcastFault } from './error';
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import { signTypedDataCallback } from './wallet';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 type ActionType = 'delete' | 'create';

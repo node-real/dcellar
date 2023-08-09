@@ -1,6 +1,6 @@
-import { ModalCloseButton, ModalHeader, ModalFooter, Text, Flex, toast, Box } from '@totejs/uikit';
+import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -14,28 +14,34 @@ import {
   FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
-  FOLDER_TITLE_DELETING,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
-import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import { reportEvent } from '@/utils/reportEvent';
 import { getClient } from '@/base/client';
-import { signTypedDataV4 } from '@/utils/signDataV4';
-import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
+import {
+  broadcastFault,
+  createTxFault,
+  E_OBJECT_NOT_EXISTS,
+  E_OFF_CHAIN_AUTH,
+  E_USER_REJECT_STATUS_NUM,
+  simulateFault,
+} from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  TStatusDetail,
+  addDeletedObject,
   setSelectedRowKeys,
   setStatusDetail,
-  addDeletedObject,
+  TStatusDetail,
 } from '@/store/slices/object';
 import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { setupTmpAvailableBalance, setTmpAccount, TTmpAccount } from '@/store/slices/global';
+import { setTmpAccount, setupTmpAvailableBalance, TTmpAccount } from '@/store/slices/global';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
+import { resolve } from '@/facade/common';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface modalProps {
   refetch: () => void;
@@ -88,16 +94,15 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const { bucketName, objectsInfo, path } = useAppSelector((root) => root.object);
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const [isModalOpen, setModalOpen] = useState(isOpen);
+  const { setOpenAuthModal } = useOffChainAuth();
 
   const deleteObjects = selectedRowKeys.map((key) => {
-    return objectsInfo[path + '/' + key];
+    return objectsInfo[bucketName + '/' + key];
   });
 
   const onClose = () => {
@@ -106,7 +111,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
     cancelFn();
   };
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-  const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
+  const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee * deleteObjects.length ?? 0;
   const { connector } = useAccount();
 
   useEffect(() => {
@@ -153,45 +158,56 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
   const errorHandler = (error: string) => {
     setLoading(false);
-    dispatch(
-      setStatusDetail({
-        title: FILE_TITLE_DELETE_FAILED,
-        icon: FILE_FAILED_URL,
-        desc: 'Sorry, there’s something wrong when signing with the wallet.',
-        buttonText: BUTTON_GOT_IT,
-        errorText: 'Error message: ' + error,
-        buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
-      }),
-    );
+    switch (error) {
+      case E_OFF_CHAIN_AUTH:
+        setOpenAuthModal();
+        return;
+      default:
+        dispatch(
+          setStatusDetail({
+            title: FILE_TITLE_DELETE_FAILED,
+            icon: FILE_FAILED_URL,
+            desc: 'Sorry, there’s something wrong when signing with the wallet.',
+            buttonText: BUTTON_GOT_IT,
+            errorText: 'Error message: ' + error,
+            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+          }),
+        );
+    }
   };
   const deleteObject = async (objectName: string, tmpAccount: TTmpAccount) => {
     const client = await getClient();
-    const delObjTx = await client.object.deleteObject({
-      bucketName,
-      objectName,
-      operator: tmpAccount.address,
-    });
+    const [delObjTx, delError] = await client.object
+      .deleteObject({
+        bucketName,
+        objectName,
+        operator: tmpAccount.address,
+      })
+      .then(resolve, createTxFault);
+    if (delError) return [false, delError];
 
-    const simulateInfo = await delObjTx.simulate({
-      denom: 'BNB',
-    });
+    const [simulateInfo, simulateError] = await delObjTx!
+      .simulate({
+        denom: 'BNB',
+      })
+      .then(resolve, simulateFault);
+    if (simulateError) return [false, simulateError];
 
-    const txRes = await delObjTx.broadcast({
-      denom: 'BNB',
-      gasLimit: Number(simulateInfo?.gasLimit),
-      gasPrice: simulateInfo?.gasPrice || '5000000000',
-      payer: tmpAccount.address,
-      granter: loginAccount,
-      privateKey: tmpAccount.privateKey,
-    });
+    const [txRes, error] = await delObjTx!
+      .broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo?.gasLimit),
+        gasPrice: simulateInfo?.gasPrice || '5000000000',
+        payer: tmpAccount.address,
+        granter: loginAccount,
+        privateKey: tmpAccount.privateKey,
+      })
+      .then(resolve, broadcastFault);
 
-    if (txRes === null) {
-      dispatch(setStatusDetail({} as TStatusDetail));
-      return toast.error({ description: 'Delete object error.' });
-    }
-    if (txRes.code === 0) {
+    if (error) return [false, error];
+    if (txRes!.code === 0) {
       toast.success({
-        description: 'object deleted successfully.',
+        description: `${objectName} deleted successfully.`,
       });
       reportEvent({
         name: 'dc.toast.file_delete.success.show',
@@ -199,6 +215,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
     } else {
       toast.error({ description: 'Delete file error.' });
     }
+    return [true, ''];
   };
 
   const onConfirmDelete = async () => {
@@ -227,8 +244,12 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
 
       async function deleteInRow() {
         if (!tmpAccount) return;
-        for (let obj of deleteObjects) {
-          await deleteObject(obj.object_info.object_name, tmpAccount);
+        for await (let obj of deleteObjects) {
+          const [success, error] = await deleteObject(obj.object_info.object_name, tmpAccount);
+          if (error && error !== E_OBJECT_NOT_EXISTS) {
+            errorHandler(error as string);
+            return false;
+          }
           dispatch(
             addDeletedObject({
               path: [bucketName, obj.object_info.object_name].join('/'),
@@ -236,13 +257,18 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
             }),
           );
         }
+        return true;
       }
-      deleteInRow();
+
       toast.info({ description: 'Objects deleting', icon: <ColoredWaitingIcon /> });
+      const success = await deleteInRow();
       refetch();
       onClose();
-      dispatch(setSelectedRowKeys([]));
-      dispatch(setStatusDetail({} as TStatusDetail));
+
+      if (success) {
+        dispatch(setSelectedRowKeys([]));
+        dispatch(setStatusDetail({} as TStatusDetail));
+      }
       setLoading(false);
     } catch (error: any) {
       setLoading(false);
