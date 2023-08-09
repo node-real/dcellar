@@ -1,6 +1,6 @@
 import { WagmiConfig, createClient } from 'wagmi';
-import { provider, webSocketProvider } from '@/context/WalletConnectContext/config/chains';
-import { connectors } from '@/context/WalletConnectContext/config/connectors';
+import { provider, webSocketProvider } from '@/context/WalletConnectContext/chains';
+import { connectors } from '@/context/WalletConnectContext/connectors';
 
 const client = createClient({
   autoConnect: true,
