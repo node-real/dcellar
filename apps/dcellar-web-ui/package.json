@@ -49,8 +49,7 @@
     "react-redux": "^8.1.1",
     "next-redux-wrapper": "^8.1.0",
     "redux-persist":  "^6.0.0",
-    "@wagmi/core": "^0.10.13",
-    "@ethersproject/address": "^5.0.0"
+    "@wagmi/core": "^0.10.13"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",
