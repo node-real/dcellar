@@ -120,16 +120,18 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     if (file.name.includes('//')) {
       return E_OBJECT_NAME_CONTAINS_SLASH;
     }
-    const objectListNames = objectList.map((item) => item.name);
-    const uploadingNames = (uploadQueue?.[loginAccount] || [])
+    // Validation only works to data within the current path.
+    const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
+    // Avoid add same file to the uploading queue.
+    const uploadingObjectNames = (uploadQueue?.[loginAccount] || [])
+      .filter((item) => ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(item.status))
       .map((item) => {
-        const curPrefix = [bucketName, ...folders].join('/');
-        const filePrefix = [item.bucketName, ...item.prefixFolders].join('/');
-        return curPrefix === filePrefix ? item.file.name : '';
-      })
-      .filter((item) => item);
-    const isExistObjectList = objectListNames.includes(file.name);
-    const isExistUploadList = uploadingNames.includes(file.name);
+        return [item.bucketName, ...item.prefixFolders, item.file.name].join('/');
+      });
+    const fullObjectName = [path, file.name].join('/');
+    const isExistObjectList = objectListObjectNames.includes(fullObjectName);
+    const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
+
     if (isExistObjectList || isExistUploadList) {
       return E_OBJECT_NAME_EXISTS;
     }
@@ -207,7 +209,6 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   }, [preLockFeeObjects, selectedFiles]);
 
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-  // console.log(loading, creating, !checkedQueue?.length, !editUpload.isBalanceAvailable, editUpload);
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
