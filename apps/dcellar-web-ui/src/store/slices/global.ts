@@ -41,7 +41,7 @@ type TPreLockFeeObjects = {
 
 export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
-export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'SEAL' | 'FINISH'  | 'ERROR' | 'CANCEL';
+export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'SEAL' | 'FINISH' | 'ERROR' | 'CANCEL';
 
 export type TTmpAccount = {
   address: string;
@@ -57,7 +57,8 @@ export type WaitFile = {
   type: string;
   size: number;
   name: string;
-  lockFee: string;
+  lockFee?: string;
+  relativePath: string;
 };
 
 export type UploadFile = {
@@ -65,7 +66,7 @@ export type UploadFile = {
   prefixFolders: string[];
   id: number;
   spAddress: string;
-  file: WaitFile;
+  waitFile: WaitFile;
   checksum: string[];
   status: TUploadStatus;
   visibility: VisibilityType;
@@ -121,7 +122,7 @@ export const globalSlice = createSlice({
       task.progress = progress;
       if (progress >= 100) {
         task.status = 'SEAL';
-        task.file.file = {} as any;
+        task.waitFile.file = {} as any;
       }
     },
     updateUploadStatus(
@@ -171,6 +172,8 @@ export const globalSlice = createSlice({
     },
     addToWaitQueue(state, { payload }: PayloadAction<{ id: number; file: File; time: number; }>) {
       const { id, file, time } = payload;
+      const parts = file.webkitRelativePath?.split('/');
+      const relativePath = parts && parts.length > 1 ? parts.slice(0, -1).join('/') : '';
       const task: WaitFile = {
         file,
         status: 'CHECK',
@@ -180,6 +183,7 @@ export const globalSlice = createSlice({
         type: file.type,
         size: file.size,
         name: file.name,
+        relativePath,
         lockFee: '',
       };
       state.waitQueue.push(task);
@@ -188,9 +192,65 @@ export const globalSlice = createSlice({
       state.waitQueue = [];
     },
     removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
-      const { id } = payload;
-      state.waitQueue = state.waitQueue.filter((task) => task.id !== id);
+      // 1. When deleting a file, check if the parent folder is empty. If it is, delete it and recursively delete empty parent folders; otherwise, no action is required.
+      // 2. When deleting a folder, delete all subfolders and subfiles; And like delete a file to recursively delete empty parent folders.
+      const { waitQueue } = state;
+      // group by common path
+      const waitQueueInfos: { [key: string]: WaitFile[] } = {};
+      // quick get folder info
+      const folderQueueInfos: { [key: string]: WaitFile } = {};
+      waitQueue.forEach((t) => {
+        const isFolder = t.name.endsWith('/');
+        // add it to waitQueueInfos
+        const commonPath = isFolder ? t.name : t.relativePath + '/';
+        if (!waitQueueInfos[commonPath]) {
+          waitQueueInfos[commonPath] = []
+        }
+        if (!isFolder) {
+          waitQueueInfos[commonPath].push(t);
+        }
+
+        // add it to folderQueueInfos
+        if (isFolder) {
+          folderQueueInfos[t.name] = t;
+        }
+      });
+
+      const ids = [payload.id];
+      const deleteObject = waitQueue.find((task) => task.id === payload.id);
+      if (!deleteObject) return;
+      const isFolder = deleteObject?.name.endsWith('/');
+      if (isFolder) {
+        const commonPath = deleteObject.name;
+        const childIds = waitQueue.filter((t) => {
+          if (t.name.endsWith('/')) {
+            return t.name.startsWith(commonPath);
+          }
+          return (t.relativePath + '/').startsWith(commonPath);
+        }).map(t => t.id);
+        ids.push(...childIds);
+      }
+      const deleteParent = (queue: WaitFile[], deleteObject?: WaitFile) => {
+        console.log('deleteObject', deleteObject);
+        if (!deleteObject) return;
+        const isFolder = deleteObject.name.endsWith('/');
+        const deletePath = isFolder ? deleteObject.name : deleteObject.relativePath + '/';
+        // If there are other files in the parent folder, do not delete.
+        if (waitQueueInfos[deletePath] || waitQueueInfos[deletePath].length > 2) {
+          return;
+        }
+        ids.push(folderQueueInfos[deletePath].id);
+        // file/folder => parentFolder is 1:1
+        const newParentObject = queue.find((t: WaitFile) => {
+          const isFolder = t.name.endsWith('/');
+          return isFolder && deletePath.startsWith(t.name) && deletePath.replace(new RegExp(t.name + '$'), '').split('/').length === 2;
+        });
+        deleteParent(queue, newParentObject);
+      }
+      deleteParent(waitQueue, deleteObject);
+      state.waitQueue = state.waitQueue.filter((task) => !ids.includes(task.id));
     },
+
     addToUploadQueue(state, { payload }: PayloadAction<{ account: string, tasks: UploadFile[] }>) {
       const { account, tasks } = payload;
       const existTasks = state.uploadQueue[account] || [];
@@ -247,6 +307,22 @@ export const globalSlice = createSlice({
         }
         return task;
       });
+    },
+    cancelUploadFolder(state, { payload }: PayloadAction<{ account: string, folderName: string }>) {
+      const { account } = payload;
+      if (!account) return;
+      let uploadQueue = state.uploadQueue?.[account];
+      if (!uploadQueue) return;
+      uploadQueue = uploadQueue.map((task) => {
+        const isFolder = task.waitFile.name.endsWith('/');
+        const commonPath = isFolder ? task.waitFile.name : task.waitFile.relativePath + '/';
+        const isSubTask = payload.folderName !== commonPath && commonPath.startsWith(payload.folderName);
+        if (isSubTask) {
+          task.status = 'CANCEL';
+          task.msg = "The object's parent path failed to be created, please check.";
+        }
+        return task;
+      });
     }
   },
 });
@@ -268,6 +344,7 @@ export const {
   setTmpAccount,
   resetWaitQueue,
   resetUploadQueue,
+  cancelUploadFolder,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
@@ -351,7 +428,7 @@ export const uploadQueueAndRefresh =
       updateObjectStatus({
         bucketName: task.bucketName,
         folders: task.prefixFolders,
-        name: task.file.name,
+        name: task.waitFile.name,
         objectStatus: 1,
       }),
     );
@@ -379,7 +456,7 @@ export const addTasksToUploadQueue =
         prefixFolders: folders,
         spAddress,
         id: task.id,
-        file: task,
+        waitFile: task,
         msg: '',
         status: 'WAIT',
         progress: 0,
@@ -405,5 +482,11 @@ export const setupTmpLockFee =
     const balance = balances[address] || defaultBalance;
     dispatch(setTmpLockFee(_lockFee || balance.lockFee));
   };
+
+export const setupUploadTaskErrorMsg = ({ account, task, errorMsg }: { account: string, task: UploadFile, errorMsg: string }) => async (dispatch: AppDispatch) => {
+  const isFolder = task.waitFile.name.endsWith('/');
+  dispatch(updateUploadTaskMsg({ account, id: task.id, msg: errorMsg || "The object failed to be created." }));
+  isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+}
 
 export default globalSlice.reducer;

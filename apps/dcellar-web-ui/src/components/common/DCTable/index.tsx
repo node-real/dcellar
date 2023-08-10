@@ -122,7 +122,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 
   const file = find<UploadFile>(
     queue,
-    (q) => [q.bucketName, ...q.prefixFolders, q.file.name].join('/') === object,
+    (q) => [q.bucketName, ...q.prefixFolders, q.waitFile.name].join('/') === object,
   );
 
   const failed = (

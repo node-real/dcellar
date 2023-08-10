@@ -31,7 +31,7 @@ export const useTaskManagementTab = () => {
   //     }
   //   },
   // ]);
-  const queue = sortBy(uploadQueue[loginAccount] || [], (o) => o.file.time);
+  const queue = sortBy(uploadQueue[loginAccount] || [], (o) => o.waitFile.time);
   const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
     const uploadingQueue = queue?.filter((i) => ['HASH', 'UPLOAD', 'SEAL'].includes(i.status));
     const completeQueue = queue?.filter((i) => i.status === 'FINISH');

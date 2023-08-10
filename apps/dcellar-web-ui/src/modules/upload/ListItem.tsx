@@ -67,7 +67,7 @@ export const ListItem = ({ path, type }: ListItemProps) => {
                 msg={selectedFile.msg}
                 size={selectedFile.size}
               />
-              <PathItem path={`${path}/`} textAlign="left" />
+              <PathItem path={`${path}/${selectedFile.relativePath ? selectedFile.relativePath : '/'}`} textAlign="left" />
             </Flex>
           </QListItem>
         ))}

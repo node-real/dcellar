@@ -156,13 +156,13 @@ export const UploadingObjects = () => {
                         justifyContent={'space-between'}
                       >
                         <NameItem
-                          name={task.file.name}
-                          size={task.file.size}
+                          name={task.waitFile.name}
+                          size={task.waitFile.size}
                           msg={task.msg}
                           status={task.status}
                           w={300}
                         />
-                        <PathItem path={[task.bucketName, task.prefixFolders].join('/')} />
+                        <PathItem path={[task.bucketName, ...task.prefixFolders].filter(item => !!item).join('/')} />
                         <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>
@@ -173,46 +173,6 @@ export const UploadingObjects = () => {
             ))}
           </TabPanels>
         </Tabs>
-        {/* {queue.map((task) => {
-          const prefix = `${[task.bucketName, ...task.prefixFolders].join('/')}/`;
-          return (
-            <QListItem
-              cursor={'default'}
-              _hover={{}}
-              maxW={'520px'}
-              key={task.id}
-              paddingX={'6px'}
-              right={null}
-              display="block"
-            >
-              <Flex
-                marginLeft={'12px'}
-                fontSize={'12px'}
-                alignItems={'center'}
-                justifyContent={'space-between'}
-              >
-                <Box maxW="200px" flex={1}>
-                  <EllipsisText marginRight={'12px'} title={task.file.name}>
-                    {task.file.name}
-                  </EllipsisText>
-                  {task.msg ? (
-                    <EllipsisText color={'red'} title={task.msg}>
-                      {task.msg}
-                    </EllipsisText>
-                  ) : (
-                    <EllipsisText>{formatBytes(task.file.size)}</EllipsisText>
-                  )}
-                </Box>
-                <EllipsisText maxW="200px" textAlign={'center'} marginRight={'12px'} title={prefix}>
-                  {prefix}
-                </EllipsisText>
-                <Flex width={'100px'} justifyContent={'flex-end'} alignItems={'center'}>
-                  <FileStatus task={task} />
-                </Flex>
-              </Flex>
-            </QListItem>
-          );
-        })} */}
       </QDrawerBody>
     </>
   );

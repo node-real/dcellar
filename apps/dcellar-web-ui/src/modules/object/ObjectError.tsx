@@ -42,6 +42,10 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Object name already exists',
     icon: FILE_FAILED_URL
   },
+  FOLDER_NAME_EXISTS: {
+    title: 'Folder name already exists',
+    icon: FILE_FAILED_URL,
+  },
   ACCOUNT_BALANCE_NOT_ENOUGH: {
     title: 'Account balance is not enough',
     icon: FILE_FAILED_URL,

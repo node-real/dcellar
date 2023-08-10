@@ -1,10 +1,22 @@
 import React, { ChangeEvent, memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import { Flex, Text, Tooltip, toast } from '@totejs/uikit';
+import {
+  Button,
+  Flex,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+  Tooltip,
+  toast,
+} from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import {
+  ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,
+  selectObjectList,
   setEditCreate,
   setEditUploadStatus,
   setListRefreshing,
@@ -18,6 +30,7 @@ import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
+import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -38,6 +51,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
+  const objectList = useAppSelector(selectObjectList);
   const onOpenCreateFolder = () => {
     if (disabled) return;
     dispatch(setEditCreate(true));
@@ -63,15 +77,82 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         isClosable: true,
       });
     }
-    const uploadIds: number[] = [];
     Object.values(files).forEach((file: File) => {
       const time = getUtcZeroTimestamp();
       const id = parseInt(String(time * Math.random()));
-      uploadIds.push(id);
       dispatch(addToWaitQueue({ id, file, time }));
     });
     dispatch(setEditUploadStatus(true));
     e.target.value = '';
+  };
+
+  /**
+   * 1. Determine if it is an empty folder.
+   * 2. Determine if the root folder exists in the current directory.
+   * 3. Determine the maximum folder depth less than 10.
+   */
+  const handlerFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !files.length) {
+      return toast.error({
+        description: 'You can only upload folders that contain objects.',
+        isClosable: true,
+      });
+    }
+    if (files.length > SELECT_OBJECT_NUM_LIMIT) {
+      return toast.error({
+        description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
+        isClosable: true,
+      });
+    }
+    const relativeRootFolder = files[0].webkitRelativePath.split('/')[0];
+    const uploadFolderPath = [...folders, relativeRootFolder].join('/') + '/';
+    const isFolderExist = objectList.some(
+      (object: ObjectItem) => object.objectName === uploadFolderPath,
+    );
+    if (isFolderExist) {
+      return toast.error({
+        description: 'The folder already exists in the current path.',
+        isClosable: true,
+      });
+    }
+    // validate folder depth
+    for (let i = 0; i < files.length; i++) {
+      const webkitRelativePath = files[i].webkitRelativePath;
+      const parts = webkitRelativePath.split('/');
+      const folders = parts.slice(0, parts.length - 1);
+      console.log('prefix', prefix.split('/'), prefix.split('/').filter((item) => !item).length);
+      const depth = folders.length + prefix.split('/').filter((item) => !!item).length || 0;
+      if (depth > 10) {
+        debugger;
+        return toast.error({
+          description: `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`,
+          isClosable: true,
+        });
+      }
+    }
+
+    const infos: { [key: string]: File } = {};
+    Object.values(files).forEach((file: File) => {
+      const folders = file.webkitRelativePath.split('/').slice(0, -1);
+      let relativePath = '';
+      folders.forEach((folder) => {
+        relativePath += folder + '/';
+        if (!infos[relativePath] && relativePath) {
+          // folder object
+          infos[relativePath] = new File([], relativePath, { type: 'text/plain' });
+        }
+      });
+      // file object
+      infos[file.webkitRelativePath] = file;
+    });
+    console.log('infos', infos);
+    Object.values(infos).forEach((file: File) => {
+      const time = getUtcZeroTimestamp();
+      const id = parseInt(String(time * Math.random()));
+      dispatch(addToWaitQueue({ id, file, time }));
+    });
+    dispatch(setEditUploadStatus(true));
   };
 
   const refreshList = async () => {
@@ -135,60 +216,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           </Flex>
         </GAClick>
       </Tooltip>
-      <Tooltip
-        placement="bottom-end"
-        content={
-          discontinue
-            ? 'Bucket in the discontinue status cannot upload files.'
-            : uploadDisabled
-            ? 'Folder does not exist.'
-            : 'Please limit object size to 128MB and upload a maximum of 10 objects at a time during testnet. '
-        }
-        // visibility={uploadDisabled ||  ? 'visible' : 'hidden'}
-      >
-        <GAClick name={gaUploadClickName}>
-          <label htmlFor="file-upload" className="custom-file-upload">
-            <Flex
-              bgColor={uploadDisabled ? '#AEB4BC' : 'readable.brand6'}
-              _hover={{ bg: uploadDisabled ? '#AEB4BC' : '#2EC659' }}
-              position="relative"
-              paddingX="16px"
-              paddingY="8px"
-              alignItems="center"
-              borderRadius={'8px'}
-              cursor={uploadDisabled ? 'default' : 'pointer'}
-            >
-              <UploadIcon color="#fff" w="24px" h="24px" alt="" />
-              <Text
-                color="readable.white"
-                fontWeight={500}
-                fontSize="16px"
-                lineHeight="20px"
-                marginLeft={8}
-              >
-                Upload
-              </Text>
-            </Flex>
-            {!uploadDisabled && (
-              <input
-                type="file"
-                id="file-upload"
-                onChange={handleFilesChange}
-                multiple
-                style={{
-                  visibility: 'hidden',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                }}
-              />
-            )}
-          </label>
-        </GAClick>
-      </Tooltip>
-      {/* <Menu>
+      <Menu>
         {({ isOpen }) => (
           <>
             <Tooltip
@@ -255,6 +283,10 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             </Tooltip>
             {!uploadDisabled && (
               <MenuList>
+                {/* <Tooltip
+                  placement="bottom-end"
+                  content={`Please limit object size to 128MB and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. `}
+                > */}
                 <MenuItem
                   _hover={{
                     color: 'readable.brand7',
@@ -262,7 +294,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                   }}
                 >
                   <GAClick name={gaUploadClickName}>
-                    <label htmlFor="files-upload" className="custom-file-upload">
+                    <label htmlFor="files-upload">
                       <Flex cursor="pointer">
                         <Text fontSize="14px" lineHeight="20px">
                           Upload Object(s)
@@ -285,11 +317,56 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                     </label>
                   </GAClick>
                 </MenuItem>
+                {/* </Tooltip> */}
+                {/* <Tooltip
+                  placement="bottom-end"
+                  content={
+                    disabled
+                      ? `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
+                      : `The maximum supported folder depth is ${MAX_FOLDER_LEVEL}`
+                  }
+                > */}
+                <MenuItem
+                  _hover={{
+                    color: 'readable.brand7',
+                    backgroundColor: 'rgba(0, 186, 52, 0.10)',
+                  }}
+                  isDisabled={disabled}
+                >
+                  <GAClick name={gaUploadClickName}>
+                    <label htmlFor="folder-picker">
+                      <Flex cursor="pointer">
+                        <Text fontSize="14px" lineHeight="20px">
+                          Upload Folder
+                        </Text>
+                      </Flex>
+                      <input
+                        type="file"
+                        id="folder-picker"
+                        name="folder-upload"
+                        // @ts-ignore
+                        webkitdirectory="true"
+                        directory="true"
+                        multiple
+                        onChange={handlerFolderChange}
+                        style={{
+                          visibility: 'hidden',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      />
+                    </label>
+                  </GAClick>
+                </MenuItem>
+                {/* </Tooltip> */}
               </MenuList>
             )}
           </>
         )}
-      </Menu> */}
+      </Menu>
     </Flex>
   );
 });

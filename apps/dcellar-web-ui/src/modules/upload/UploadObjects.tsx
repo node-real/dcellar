@@ -48,6 +48,7 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import {
+  WaitFile,
   addTasksToUploadQueue,
   resetWaitQueue,
   setTaskManagement,
@@ -98,7 +99,20 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
   };
 
-  const basicValidate = (file: File) => {
+  const validateFolder = (waitFile: WaitFile) => {
+    const { file: folder } = waitFile;
+    if (!folder.name) {
+      return E_FILE_IS_EMPTY;
+    }
+    if (folder.size > 70) {
+      return 'Must be between 1 to 70 characters long.';
+    }
+    // Validation only works to data within the current path. The root folder has been validated when selected files. So there is no need to validate it again.
+    return '';
+  };
+
+  const validateFile = (waitFile: WaitFile) => {
+    const { relativePath, file } = waitFile;
     if (!file) {
       return E_FILE_IS_EMPTY;
     }
@@ -122,13 +136,17 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     }
     // Validation only works to data within the current path.
     const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
-    // Avoid add same file to the uploading queue.
-    const uploadingObjectNames = (uploadQueue?.[loginAccount] || [])
-      .filter((item) => ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(item.status))
-      .map((item) => {
-        return [item.bucketName, ...item.prefixFolders, item.file.name].join('/');
-      });
-    const fullObjectName = [path, file.name].join('/');
+    const uploadingObjectNames = (uploadQueue?.[loginAccount] || []).map((item) => {
+      return [
+        item.bucketName,
+        ...item.prefixFolders,
+        item.waitFile.relativePath,
+        item.waitFile.name,
+      ]
+        .filter((item) => !!item)
+        .join('/');
+    });
+    const fullObjectName = [path, relativePath, file.name].filter((item) => !!item).join('/');
     const isExistObjectList = objectListObjectNames.includes(fullObjectName);
     const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
@@ -144,7 +162,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
       setStatusDetail({
         title: FILE_TITLE_UPLOAD_FAILED,
         icon: FILE_FAILED_URL,
-        desc: 'Sorry, there’s something wrong when signing with the wallet.',
+        desc: "Sorry, there's something wrong when signing with the wallet.",
         buttonText: BUTTON_GOT_IT,
         buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
         errorText: 'Error message: ' + error,
@@ -188,7 +206,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     if (isEmpty(selectedFiles)) return;
     selectedFiles.forEach((item) => {
       const { file, id } = item;
-      const error = basicValidate(file);
+      const isFolder = file.name.endsWith('/');
+      const error = isFolder ? validateFolder(item) : validateFile(item);
       if (!error) {
         dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
         return;
@@ -207,7 +226,6 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const loading = useMemo(() => {
     return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects, selectedFiles]);
-
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
