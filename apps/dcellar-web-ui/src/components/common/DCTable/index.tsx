@@ -225,4 +225,20 @@ const Container = styled.div`
   .ant-checkbox-checked:after {
     display: none;
   }
+  .ant-checkbox-checked:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
+    background-color: #2ec659;
+    border-color: transparent;
+  }
+  .ant-checkbox-indeterminate .ant-checkbox-inner {
+    background-color: #00ba34;
+    border-color: #00ba34;
+    &:after {
+      background-color: #fff;
+      height: 2px;
+    }
+  }
+  .ant-checkbox-indeterminate:hover .ant-checkbox-inner {
+    background-color: #2ec659;
+    border-color: #2ec659;
+  }
 `;

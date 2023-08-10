@@ -6,6 +6,7 @@ import { find, last, omit, trimEnd } from 'lodash-es';
 import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
+import { getMillisecond } from '@/utils/time';
 
 export const SINGLE_OBJECT_MAX_SIZE = 128 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -238,6 +239,7 @@ export const objectSlice = createSlice({
             objectName: object_name,
             name: last(object_name.split('/'))!,
             payloadSize: Number(payload_size),
+            // todo fix it *second*
             createAt: Number(create_at),
             contentType: content_type,
             folder: false,
@@ -250,7 +252,7 @@ export const objectSlice = createSlice({
         .filter((o) => {
           const path = [bucketName, o.objectName].join('/');
           const ts = state.deletedObjects[path];
-          return !ts || ts < o.createAt;
+          return !ts || ts < getMillisecond(o.createAt);
         });
 
       state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);

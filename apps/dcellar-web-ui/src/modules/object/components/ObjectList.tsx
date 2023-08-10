@@ -58,7 +58,7 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { UploadFile, selectUploadQueue } from '@/store/slices/global';
-import { copy, encodeObjectName, getShareLink } from '@/utils/string';
+import { copy, getShareLink } from '@/utils/string';
 import { toast } from '@totejs/uikit';
 
 const Actions: ActionMenuItem[] = [

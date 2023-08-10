@@ -51,13 +51,17 @@ export const createTmpAccount = async ({
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();
   // MsgGrantAllowanceTypeUrl
-  const grantAllowanceTx = await client.feegrant.grantAllowance({
-    granter: address,
-    grantee: wallet.address,
-    allowedMessages: grantAllowedMessage,
-    amount: parseEther(amount <= 0 ? '0.1' : amount).toString(),
-    denom: 'BNB',
-  });
+  const [grantAllowanceTx, allowError] = await client.feegrant
+    .grantAllowance({
+      granter: address,
+      grantee: wallet.address,
+      allowedMessages: grantAllowedMessage,
+      amount: parseEther(amount <= 0 ? '0.1' : amount).toString(),
+      denom: 'BNB',
+    })
+    .then(resolve, createTxFault);
+
+  if (allowError) return [null, allowError];
 
   const resources = isDelete
     ? [GRNToString(newObjectGRN(bucketName, '*'))]
@@ -83,7 +87,7 @@ export const createTmpAccount = async ({
   if (createTxError) return [null, createTxError];
 
   // 4. broadcast txs include 2 msg
-  const txs = await client.basic.multiTx([grantAllowanceTx, putPolicyTx!]);
+  const txs = await client.basic.multiTx([grantAllowanceTx!, putPolicyTx!]);
 
   const [simulateInfo, simulateError] = await txs
     .simulate({
