@@ -235,7 +235,6 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         amount: parseEther(round(Number(lockFee), 6).toString()).toString(),
         connector,
         actionType: 'delete',
-        objectList: selectedRowKeys,
       });
       if (!tmpAccount) {
         return errorHandler(err);
