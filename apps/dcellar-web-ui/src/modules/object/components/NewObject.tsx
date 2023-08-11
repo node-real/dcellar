@@ -87,9 +87,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   };
 
   /**
-   * 1. Determine if it is an empty folder.
-   * 2. Determine if the root folder exists in the current directory.
-   * 3. Determine the maximum folder depth less than 10.
+   * 1. Validate if it is an empty folder.
+   * 2. Validate if the root folder exists in the current directory.
+   * 3. Validate the maximum folder depth less than 10.
    */
   const handlerFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -146,7 +146,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       // file object
       infos[file.webkitRelativePath] = file;
     });
-    console.log('infos', infos);
+
     Object.values(infos).forEach((file: File) => {
       const time = getUtcZeroTimestamp();
       const id = parseInt(String(time * Math.random()));
@@ -217,115 +217,104 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         </GAClick>
       </Tooltip>
       <Menu>
-        {({ isOpen }) => (
-          <>
-            <Tooltip
-              placement="bottom-end"
-              content={
-                discontinue
-                  ? 'Bucket in the discontinue status cannot upload files'
-                  : 'Path invalid'
-              }
-              visibility={uploadDisabled ? 'visible' : 'hidden'}
+        <Tooltip
+          placement="bottom-end"
+          content={
+            discontinue ? 'Bucket in the discontinue status cannot upload files' : 'Path invalid'
+          }
+          visibility={uploadDisabled ? 'visible' : 'hidden'}
+        >
+          <MenuButton
+            as={Button}
+            height={'40px'}
+            bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
+            _hover={{ bg: uploadDisabled ? 'readable.tertiary' : '#2EC659' }}
+            _disabled={{
+              bg: 'readable.tertiary',
+              cursor: 'default',
+              _hover: { bg: 'readable.tertiary' },
+            }}
+            position="relative"
+            paddingRight={'0'}
+            alignItems="center"
+            borderRadius={'8px'}
+            paddingLeft={'16px'}
+            disabled={uploadDisabled}
+            _expanded={{
+              '.ui-icon': {
+                transform: 'rotate(-180deg)',
+              },
+            }}
+          >
+            <UploadIcon color="#fff" w="24px" h="24px" alt="" />{' '}
+            <Text
+              color="readable.white"
+              fontWeight={500}
+              fontSize="16px"
+              lineHeight="20px"
+              marginLeft={'8px'}
             >
-              <MenuButton
-                as={Button}
-                height={'40px'}
-                bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
-                _hover={{ bg: uploadDisabled ? 'readable.tertiary' : '#2EC659' }}
-                _disabled={{
-                  bg: 'readable.tertiary',
-                  cursor: 'default',
-                  _hover: { bg: 'readable.tertiary' },
-                }}
-                position="relative"
-                paddingRight={'0'}
-                alignItems="center"
-                borderRadius={'8px'}
-                paddingLeft={'16px'}
-                rightIcon={
-                  !uploadDisabled && isOpen ? (
-                    <Flex
-                      paddingX={'4px'}
-                      marginLeft={'8px'}
-                      height={'40px'}
-                      borderRightRadius={'8px'}
-                      alignItems={'center'}
-                      bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand7'}
-                    >
-                      <MenuOpenIcon />
-                    </Flex>
-                  ) : (
-                    <Flex
-                      paddingX={'4px'}
-                      marginLeft={'8px'}
-                      height={'40px'}
-                      borderRightRadius={'8px'}
-                      alignItems={'center'}
-                      bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand7'}
-                    >
-                      <MenuCloseIcon />
-                    </Flex>
-                  )
-                }
-              >
-                <UploadIcon color="#fff" w="24px" h="24px" alt="" />{' '}
-                <Text
-                  color="readable.white"
-                  fontWeight={500}
-                  fontSize="16px"
-                  lineHeight="20px"
-                  marginLeft={'8px'}
-                >
-                  Upload
-                </Text>
-              </MenuButton>
-            </Tooltip>
-            {!uploadDisabled && (
-              <MenuList>
-                {/* <Tooltip
-                  placement="bottom-end"
-                  content={`Please limit object size to 128MB and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. `}
-                > */}
+              Upload
+            </Text>
+            <Flex
+              paddingX={'4px'}
+              marginLeft={'8px'}
+              height={'40px'}
+              borderRightRadius={'8px'}
+              alignItems={'center'}
+              bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand7'}
+            >
+              <MenuCloseIcon />
+            </Flex>
+          </MenuButton>
+        </Tooltip>
+        {!uploadDisabled && (
+          <MenuList>
+            {/* <Tooltip
+              placement="bottom-end"
+              content={`Please limit object size to 128MB and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. `}
+            > */}
+            <label htmlFor="files-upload">
+              <GAClick name={gaUploadClickName}>
                 <MenuItem
                   _hover={{
                     color: 'readable.brand7',
                     backgroundColor: 'rgba(0, 186, 52, 0.10)',
                   }}
                 >
-                  <GAClick name={gaUploadClickName}>
-                    <label htmlFor="files-upload">
-                      <Flex cursor="pointer">
-                        <Text fontSize="14px" lineHeight="20px">
-                          Upload Object(s)
-                        </Text>
-                      </Flex>
-                      <input
-                        type="file"
-                        id="files-upload"
-                        multiple
-                        onChange={handleFilesChange}
-                        style={{
-                          visibility: 'hidden',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                        }}
-                      />
-                    </label>
-                  </GAClick>
+                  <Flex cursor="pointer">
+                    <Text fontSize="14px" lineHeight="20px">
+                      Upload Object(s)
+                    </Text>
+                  </Flex>
+                  <input
+                    type="file"
+                    id="files-upload"
+                    multiple
+                    onChange={handleFilesChange}
+                    style={{
+                      visibility: 'hidden',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  />
                 </MenuItem>
-                {/* </Tooltip> */}
-                {/* <Tooltip
-                  placement="bottom-end"
-                  content={
-                    disabled
-                      ? `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
-                      : `The maximum supported folder depth is ${MAX_FOLDER_LEVEL}`
-                  }
-                > */}
+              </GAClick>
+            </label>
+            {/* </Tooltip> */}
+            {/* <Tooltip
+              placement="bottom-end"
+              content={
+                disabled
+                  ? `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
+                  : `The maximum supported folder depth is ${MAX_FOLDER_LEVEL}`
+              }
+            > */}
+            <label htmlFor="folder-picker">
+              <GAClick name={gaUploadClickName}>
                 <MenuItem
                   _hover={{
                     color: 'readable.brand7',
@@ -333,38 +322,34 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                   }}
                   isDisabled={disabled}
                 >
-                  <GAClick name={gaUploadClickName}>
-                    <label htmlFor="folder-picker">
-                      <Flex cursor="pointer">
-                        <Text fontSize="14px" lineHeight="20px">
-                          Upload Folder
-                        </Text>
-                      </Flex>
-                      <input
-                        type="file"
-                        id="folder-picker"
-                        name="folder-upload"
-                        // @ts-ignore
-                        webkitdirectory="true"
-                        directory="true"
-                        multiple
-                        onChange={handlerFolderChange}
-                        style={{
-                          visibility: 'hidden',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                        }}
-                      />
-                    </label>
-                  </GAClick>
+                  <Flex cursor="pointer">
+                    <Text fontSize="14px" lineHeight="20px">
+                      Upload Folder
+                    </Text>
+                  </Flex>
+                  <input
+                    type="file"
+                    id="folder-picker"
+                    name="folder-upload"
+                    // @ts-ignore
+                    webkitdirectory="true"
+                    directory="true"
+                    multiple
+                    onChange={handlerFolderChange}
+                    style={{
+                      visibility: 'hidden',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  />
                 </MenuItem>
-                {/* </Tooltip> */}
-              </MenuList>
-            )}
-          </>
+              </GAClick>
+            </label>
+            {/* </Tooltip> */}
+          </MenuList>
         )}
       </Menu>
     </Flex>

@@ -8,7 +8,6 @@ import {
   updateUploadChecksum,
   updateUploadProgress,
   updateUploadStatus,
-  updateUploadTaskMsg,
   UploadFile,
   uploadQueueAndRefresh,
 } from '@/store/slices/global';
@@ -42,12 +41,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const upload = queue.filter((t) => t.status === 'UPLOAD');
   const ready = queue.filter((t) => {
     const isFolder = t.waitFile.name.endsWith('/');
-    const parentPaths = isFolder ? t.waitFile.name.split('/').slice(0, -1).join('/') + '/' : t.waitFile.relativePath + '/';
-    if (!folderInfos[parentPaths]) {
+    const parentFolder = isFolder ? t.waitFile.name.split('/').slice(0, -1).join('/') + '/' : t.waitFile.relativePath + '/';
+    if (!folderInfos[parentFolder]) {
       return t.status === 'READY';
     }
-    if (t.waitFile.relativePath && folderInfos[parentPaths]) {
-      return folderInfos[parentPaths].status === 'FINISH' && t.status === 'READY';
+    if (t.waitFile.relativePath && folderInfos[parentFolder]) {
+      return folderInfos[parentFolder].status === 'FINISH' && t.status === 'READY';
     }
   });
   const offset = 1 - upload.length;

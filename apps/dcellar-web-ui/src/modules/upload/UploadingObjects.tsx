@@ -162,7 +162,7 @@ export const UploadingObjects = () => {
                           status={task.status}
                           w={300}
                         />
-                        <PathItem path={[task.bucketName, ...task.prefixFolders].filter(item => !!item).join('/')} />
+                        <PathItem path={[task.bucketName, ...task.prefixFolders].filter(item => !!item).join('/') + '/'} />
                         <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
                           <FileStatus task={task} />
                         </Flex>
