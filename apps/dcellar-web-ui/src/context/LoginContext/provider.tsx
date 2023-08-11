@@ -19,13 +19,12 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   const dispatch = useAppDispatch();
   const { children, inline = false } = props;
   const { loginAccount } = useAppSelector((root) => root.persist);
-  
 
   const { disconnect } = useDisconnect();
 
   const logout = useCallback(
-    (removeSpAuth = true) => {
-      dispatch(resetUploadQueue({loginAccount}))
+    (removeSpAuth = false) => {
+      dispatch(resetUploadQueue({ loginAccount }));
       dispatch(setLogout(removeSpAuth));
       disconnect();
     },
@@ -57,14 +56,14 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     // to avoid errors when using the connector, we treat this situation as logout.
     const timer = setTimeout(() => {
       if (!connector) {
-        logout()
+        logout();
       }
-    }, 1000)
+    }, 1000);
 
     return () => {
-      clearTimeout(timer)
-    }
-  }, [connector, inline, loginAccount, logout, pathname, walletAddress])
+      clearTimeout(timer);
+    };
+  }, [connector, inline, loginAccount, logout, pathname, walletAddress]);
 
   useAsyncEffect(async () => {
     if (loginAccount === walletAddress) {
