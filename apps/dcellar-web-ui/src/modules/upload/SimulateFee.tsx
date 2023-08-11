@@ -6,15 +6,14 @@ import {
   renderPrelockedFeeValue,
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
-import { Box, Flex, Slide, Text, useDisclosure, Link } from '@totejs/uikit';
+import { MsgCreateObjectTypeUrl, MsgGrantAllowanceTypeUrl, MsgPutPolicyTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { Box, Flex, Text, useDisclosure, Link } from '@totejs/uikit';
 import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
 import { WaitFile, setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
 import { calPreLockFee } from '@/utils/sp';
 import { MenuCloseIcon } from '@totejs/icons';
-import { useUpdateEffect } from 'react-use';
 import { setEditUpload } from '@/store/slices/object';
 import BigNumber from 'bignumber.js';
 import { DECIMAL_NUMBER } from '../wallet/constants';
@@ -39,8 +38,14 @@ export const Fee = () => {
     }
   }, [primarySp?.operatorAddress]);
 
-  const lockFee = useMemo(() => {
+  const createTmpAccountGasFee = useMemo(() => {
+    const grantAllowTxFee = BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1));
+    const putPolicyTxFee = BigNumber(gasObjects[MsgPutPolicyTypeUrl].gasFee);
 
+    return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
+  }, [gasObjects]);
+
+  const lockFee = useMemo(() => {
     if (!primarySp?.operatorAddress) return;
     const preLockFeeObject = preLockFeeObjects[primarySp.operatorAddress];
     if (isEmpty(preLockFeeObject) || isChecking) {
@@ -63,7 +68,7 @@ export const Fee = () => {
 
   const gasFee = isChecking
     ? -1
-    : waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length * singleTxGasFee;
+    : BigNumber(waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length).times(singleTxGasFee).plus(BigNumber(createTmpAccountGasFee).toString(DECIMAL_NUMBER)).toString(DECIMAL_NUMBER);
 
   useEffect(() => {
     if (gasFee && lockFee) {

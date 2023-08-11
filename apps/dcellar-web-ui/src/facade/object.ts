@@ -6,13 +6,15 @@ import {
   TxResponse,
   ISimulateGasFee,
   generateUrlByBucketName,
+  PermissionTypes,
 } from '@bnb-chain/greenfield-chain-sdk';
 import {
   broadcastFault,
   commonFault,
-  downloadPreviewFault,
+  createTxFault,
   E_NO_QUOTA,
   E_NOT_FOUND,
+  E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
@@ -32,19 +34,17 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { quotaRemains } from '@/facade/bucket';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { encodeObjectName } from '@/utils/string';
-import {
-  downloadWithProgress,
-  saveFileByAxiosResponse,
-  viewFileByAxiosResponse,
-} from '@/modules/file/utils';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { SpItem } from '@/store/slices/sp';
 import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { signTypedDataV4 } from '@/utils/signDataV4';
-import BigNumber from 'bignumber.js';
+import { getDomain } from '@/utils/getDomain';
+import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
+import { batchDownload, directlyDownload } from '@/modules/file/utils';
+import { ActionType } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -74,6 +74,20 @@ export const updateObjectInfo = async (
   return updateInfoTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
+export const hasObjectPermission = async (
+  bucketName: string,
+  objectName: string,
+  actionType: ActionType,
+  loginAccount: string,
+) => {
+  const client = await getClient();
+  return client.object
+    .isObjectPermissionAllowed(bucketName, objectName, actionType, loginAccount)
+    .catch(() => ({
+      effect: PermissionTypes.Effect.EFFECT_DENY,
+    }));
+};
+
 export const getCanObjectAccess = async (
   bucketName: string,
   objectName: string,
@@ -92,7 +106,18 @@ export const getCanObjectAccess = async (
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
-  if (info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE && loginAccount !== info.owner)
+  // ACTION_GET_OBJECT
+  const res = await hasObjectPermission(
+    bucketName,
+    objectName,
+    PermissionTypes.ActionType.ACTION_GET_OBJECT,
+    loginAccount,
+  );
+  if (
+    info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE &&
+    loginAccount !== info.owner &&
+    res.effect !== PermissionTypes.Effect.EFFECT_ALLOW
+  )
     return [false, E_PERMISSION_DENIED];
 
   if (!quota) return [false, E_UNKNOWN];
@@ -101,34 +126,36 @@ export const getCanObjectAccess = async (
 };
 
 export type DownloadPreviewParams = {
-  objectInfo: ObjectInfo;
+  objectInfo: { bucketName: string; objectName: string; visibility: number };
   primarySp: SpItem;
   address: string;
 };
 
-const getObjectBytes = async (
+export const getAuthorizedLink = async (
   params: DownloadPreviewParams,
   seedString: string,
-): Promise<[AxiosResponse | null, ErrorMsg?]> => {
+  view = 1,
+): Promise<[null, ErrorMsg] | [string]> => {
   const { address, primarySp, objectInfo } = params;
-  const { bucketName, objectName, payloadSize } = objectInfo;
-
-  const [result, error] = await downloadWithProgress({
+  const { bucketName, objectName } = objectInfo;
+  const domain = getDomain();
+  const [options, error] = await generateGetObjectOptions({
     bucketName,
     objectName,
-    primarySp,
-    payloadSize: payloadSize.toNumber(),
-    address,
+    endpoint: primarySp.endpoint,
+    userAddress: address,
+    domain,
     seedString,
-  }).then(resolve, downloadPreviewFault);
-  if (!result) return [null, error];
-
-  return [result];
+  }).then(resolve, commonFault);
+  if (error) return [null, error];
+  const { url, params: _params } = options!;
+  return [`${url}?${_params}&view=${view}`];
 };
 
 export const downloadObject = async (
   params: DownloadPreviewParams,
   seedString: string,
+  batch = false,
 ): Promise<[boolean, ErrorMsg?]> => {
   const { primarySp, objectInfo } = params;
   const { endpoint } = primarySp;
@@ -136,15 +163,18 @@ export const downloadObject = async (
 
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`;
+
   if (!isPrivate) {
-    window.location.href = link;
+    if (batch) batchDownload(link);
+    else window.location.href = link;
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params, seedString);
-  if (!result) return [false, error];
+  const [url, error] = await getAuthorizedLink(params, seedString, 0);
+  if (!url) return [false, error];
 
-  saveFileByAxiosResponse(result, objectName);
+  if (batch) batchDownload(url);
+  else window.location.href = url;
   return [true];
 };
 
@@ -159,14 +189,14 @@ export const previewObject = async (
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const link = `${endpoint}/view/${bucketName}/${encodeObjectName(objectName)}`;
   if (!isPrivate) {
-    window.open(link, '_blank');
+    directlyDownload(link, '_blank');
     return [true];
   }
 
-  const [result, error] = await getObjectBytes(params, seedString);
-  if (!result) return [false, error];
+  const [url, error] = await getAuthorizedLink(params, seedString);
+  if (!url) return [false, error];
 
-  viewFileByAxiosResponse(result);
+  directlyDownload(url, '_blank');
   return [true];
 };
 
@@ -292,6 +322,36 @@ export const putObjectPolicy = async (
     signTypedDataCallback: signTypedDataCallback(connector),
   };
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const putObjectPolicies = async (
+  connector: Connector,
+  bucketName: string,
+  objectName: string,
+  srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>[],
+): BroadcastResponse => {
+  const client = await getClient();
+  const opts = await Promise.all(
+    srcMsg.map((msg) =>
+      client.object.putObjectPolicy(bucketName, objectName, msg).then(resolve, createTxFault),
+    ),
+  );
+  if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  const _opts = opts.map((opt) => opt[0] as TxResponse);
+  const txs = await client.basic.multiTx(_opts);
+  const [simulateInfo, simulateError] = await txs
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: srcMsg[0].operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return txs.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
 export const preExecDeleteObject = async (

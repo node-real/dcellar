@@ -24,6 +24,7 @@ import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { isEmpty } from 'lodash-es';
+import { parseErrorXml } from '@/utils/common';
 
 interface GlobalTasksProps {}
 
@@ -159,12 +160,12 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
         'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
       },
-    }).catch(e => {
-      console.log('upload error', e);
+    }).catch(async (e: Response) => {
+      const {code, message} = await parseErrorXml(e)
       dispatch(updateUploadTaskMsg({
         account: loginAccount,
         id: task.id,
-        msg: e?.message || 'Upload error',
+        msg: message || 'Upload error',
       }));
     })
   };

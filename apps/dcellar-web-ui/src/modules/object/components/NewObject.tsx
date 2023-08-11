@@ -1,12 +1,7 @@
 import React, { ChangeEvent, memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import {
-  Flex,
-  Text,
-  Tooltip,
-  toast,
-} from '@totejs/uikit';
+import { Flex, Text, Tooltip, toast } from '@totejs/uikit';
 import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import {
   SELECT_OBJECT_NUM_LIMIT,
@@ -14,13 +9,15 @@ import {
   setEditUploadStatus,
   setListRefreshing,
   setRestoreCurrent,
+  setSelectedRowKeys,
   setupListObjects,
 } from '@/store/slices/object';
 import { addToWaitQueue } from '@/store/slices/global';
 import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { BatchOperations } from '@/modules/object/components/BatchOperations';
+import { setupBucketQuota } from '@/store/slices/bucket';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -64,7 +61,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       return toast.error({
         description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
         isClosable: true,
-      })
+      });
     }
     const uploadIds: number[] = [];
     Object.values(files).forEach((file: File) => {
@@ -87,6 +84,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       query,
       endpoint: primarySp.endpoint,
     };
+    dispatch(setSelectedRowKeys([]));
+    dispatch(setupBucketQuota(bucketName));
     dispatch(setListRefreshing(true));
     dispatch(setRestoreCurrent(false));
     await dispatch(setupListObjects(params));
@@ -96,15 +95,18 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   return (
     <Flex gap={12}>
       {showRefresh && (
-        <Flex
-          onClick={() => refreshList()}
-          alignItems="center"
-          height={40}
-          marginRight={12}
-          cursor="pointer"
-        >
-          <RefreshIcon />
-        </Flex>
+        <>
+          <Flex
+            onClick={refreshList}
+            alignItems="center"
+            height={40}
+            marginRight={12}
+            cursor="pointer"
+          >
+            <RefreshIcon />
+          </Flex>
+          <BatchOperations />
+        </>
       )}
       <Tooltip
         content={

@@ -19,7 +19,7 @@ const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" w={16} h={16} />,
     label: 'Private',
-    desc: 'Only me can open with the link.',
+    desc: 'Only people with access can open with the link.',
     value: 2,
     bg: '#E6E8EA',
   },

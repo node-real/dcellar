@@ -23,7 +23,8 @@ import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getSpUrlByBucketName } from '@/facade/virtual-group';
-import { headObject } from '@/facade/object';
+import { hasObjectPermission, headObject } from '@/facade/object';
+import { PermissionTypes } from '@bnb-chain/greenfield-chain-sdk';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -46,6 +47,7 @@ const SharePage: NextPage<PageProps> = (props) => {
   const title = `${bucketName} - ${fileName}`;
   const { loginAccount } = useAppSelector((root) => root.persist);
   const dispatch = useAppDispatch();
+  const [getPermission, setGetPermission] = useState(true);
 
   useAsyncEffect(async () => {
     if (!oneSp) return;
@@ -63,7 +65,7 @@ const SharePage: NextPage<PageProps> = (props) => {
       endpoint: primarySpEndpoint,
       seedString,
       address: loginAccount,
-    }
+    };
     if (!loginAccount || !isOwner) {
       const objectInfo = await headObject(bucketName, objectName);
       setObjectInfo(objectInfo);
@@ -75,6 +77,17 @@ const SharePage: NextPage<PageProps> = (props) => {
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
   }, [oneSp]);
+
+  useAsyncEffect(async () => {
+    if (!loginAccount) return;
+    const res = await hasObjectPermission(
+      bucketName,
+      objectName,
+      PermissionTypes.ActionType.ACTION_GET_OBJECT,
+      loginAccount,
+    );
+    setGetPermission(res.effect === PermissionTypes.Effect.EFFECT_ALLOW);
+  }, [bucketName, objectName, loginAccount]);
 
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const walletConnected = !!loginAccount;
@@ -112,7 +125,7 @@ const SharePage: NextPage<PageProps> = (props) => {
               <ShareLogin />
             ) : (
               <>
-                {isPrivate && !isOwner ? (
+                {isPrivate && !isOwner && !getPermission ? (
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (
                   <SharedFile

@@ -9,12 +9,14 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
     gasLimit: number;
     msgTypeUrl: string;
     gasFee: number;
+    perItemFee: number;
   };
 };
 
@@ -201,12 +203,20 @@ export const globalSlice = createSlice({
       const { gasPrice } = state.gasHub;
       const gasObjects = keyBy(
         payload.msgGasParams.map((item) => {
-          const gasLimit = item.fixedType?.fixedGas.low || 0;
-          const gasFee = gasPrice * gasLimit;
+          let gasLimit = item.fixedType?.fixedGas.low || 0;
+          let gasFee = gasPrice * gasLimit;
+          let perItemFee = 0;
+          if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
+            gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
+            gasFee = gasPrice * gasLimit;
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * gasPrice;
+          }
+
           return {
             msgTypeUrl: item.msgTypeUrl,
             gasLimit,
             gasFee,
+            perItemFee,
           };
         }),
         'msgTypeUrl',

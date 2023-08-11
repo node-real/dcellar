@@ -5,20 +5,20 @@ import { ConnectorData, useAccount } from 'wagmi';
 export type WalletSwitchAccountHandler = (data: ConnectorData) => void;
 
 export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
-  const { connector } = useAccount();
+  const {address, connector } = useAccount();
 
   const handlerRef = useSaveFuncRef(handler);
 
   useEffect(() => {
-    const handler = (data: ConnectorData) => {
-      if (data.account) {
+    const onChange = (data: ConnectorData) => {
+      if (data.account && data.account !== address) {
         handlerRef.current?.(data);
       }
     };
 
-    connector?.on('change', handler);
+    connector?.on('change', onChange);
     return () => {
-      connector?.off('change', handler);
+      connector?.off('change', onChange);
     };
-  }, [connector, handlerRef]);
+  }, [address, connector, handlerRef]);
 }

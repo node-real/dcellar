@@ -20,6 +20,7 @@ export type FixedType = 'left' | 'right' | boolean;
 
 const theme: ThemeConfig = {
   token: {
+    colorPrimary: '#00BA34',
     colorBorderSecondary: '#e6e8ea',
     colorLink: '#00BA34',
     colorLinkActive: '#00BA34',
@@ -69,17 +70,32 @@ export const SealLoading = () => {
   }
 `;
   return (
-    <Flex
-      w={`30%`}
-      bg={'#1184EE'}
-      borderRadius={'28px'}
-      animation={`${loading} 1.5s linear infinite`}
-    />
+    <Flex alignItems="center">
+      <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
+        <Flex
+          w={`30%`}
+          bg={'#1184EE'}
+          borderRadius={'28px'}
+          animation={`${loading} 1.5s linear infinite`}
+        />
+      </Flex>
+      <Box
+        color={'readable.normal'}
+        ml={'4px'}
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        fontWeight={400}
+        borderRadius={4}
+        padding={4}
+      >
+        Sealing...
+      </Box>
+    </Flex>
   );
 };
 
 export const UploadProgress = (props: { progress: number }) => {
-  let { progress = 0} = props;
+  let { progress = 0 } = props;
   if (progress < 0) {
     progress = 0;
   }
@@ -184,6 +200,7 @@ const Container = styled.div`
     padding-top: 13px;
     padding-bottom: 13px;
   }
+  .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
     background: rgba(0, 186, 52, 0.1);
   }
@@ -203,5 +220,25 @@ const Container = styled.div`
 
   .ant-table-ping-right:not(.ant-table-has-fix-right) .ant-table-container::after {
     display: none;
+  }
+
+  .ant-checkbox-checked:after {
+    display: none;
+  }
+  .ant-checkbox-checked:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
+    background-color: #2ec659;
+    border-color: transparent;
+  }
+  .ant-checkbox-indeterminate .ant-checkbox-inner {
+    background-color: #00ba34;
+    border-color: #00ba34;
+    &:after {
+      background-color: #fff;
+      height: 2px;
+    }
+  }
+  .ant-checkbox-indeterminate:hover .ant-checkbox-inner {
+    background-color: #2ec659;
+    border-color: #2ec659;
   }
 `;
