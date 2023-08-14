@@ -18,7 +18,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
 import { headObject } from '@/facade/object';
-import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
@@ -55,7 +55,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
     console.log('hashing time', performance.now() - a);
     if (isEmpty(res)) {
-      dispatch(updateUploadTaskMsg({ id: hashTask.id, msg: 'calculating hash error', account: loginAccount }));
+      dispatch(
+        updateUploadTaskMsg({
+          id: hashTask.id,
+          msg: 'calculating hash error',
+          account: loginAccount,
+        }),
+      );
       return;
     }
     const { expectCheckSums } = res!;
@@ -90,11 +96,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       createTxFault,
     );
     if (_createError) {
-      return dispatch(updateUploadTaskMsg({
-        account: loginAccount,
-        id: task.id,
-        msg: _createError,
-      }))
+      return dispatch(
+        updateUploadTaskMsg({
+          account: loginAccount,
+          id: task.id,
+          msg: _createError,
+        }),
+      );
     }
 
     const [simulateInfo, simulateError] = await createObjectTx!
@@ -103,11 +111,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       })
       .then(resolve, simulateFault);
     if (!simulateInfo || simulateError) {
-      return dispatch(updateUploadTaskMsg({
-        account: loginAccount,
-        id: task.id,
-        msg: simulateError,
-      }));
+      return dispatch(
+        updateUploadTaskMsg({
+          account: loginAccount,
+          id: task.id,
+          msg: simulateError,
+        }),
+      );
     }
 
     const broadcastPayload = {
@@ -122,11 +132,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      dispatch(updateUploadTaskMsg({
-        account: loginAccount,
-        id: task.id,
-        msg: error,
-      }));
+      dispatch(
+        updateUploadTaskMsg({
+          account: loginAccount,
+          id: task.id,
+          msg: error,
+        }),
+      );
       return;
     }
     const [uploadOptions, gpooError] = await generatePutObjectOptions({
@@ -141,33 +153,41 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     }).then(resolve, commonFault);
 
     if (!uploadOptions || gpooError) {
-      return dispatch(updateUploadTaskMsg({
-        account: loginAccount,
-        id: task.id,
-        msg: gpooError,
-      }));
+      return dispatch(
+        updateUploadTaskMsg({
+          account: loginAccount,
+          id: task.id,
+          msg: gpooError,
+        }),
+      );
     }
     const { url, headers } = uploadOptions;
-    axios.put(url, task.file.file, {
-      async onUploadProgress(progressEvent) {
-        const progress = Math.round((progressEvent.loaded / (progressEvent.total as number)) * 100);
-        await dispatch(progressFetchList(task));
-        dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
-      },
-      headers: {
-        Authorization: headers.get('Authorization'),
-        'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-        'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-        'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
-      },
-    }).catch(async (e: Response) => {
-      const {code, message} = await parseErrorXml(e)
-      dispatch(updateUploadTaskMsg({
-        account: loginAccount,
-        id: task.id,
-        msg: message || 'Upload error',
-      }));
-    })
+    axios
+      .put(url, task.file.file, {
+        async onUploadProgress(progressEvent) {
+          const progress = Math.round(
+            (progressEvent.loaded / (progressEvent.total as number)) * 100,
+          );
+          await dispatch(progressFetchList(task));
+          dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
+        },
+        headers: {
+          Authorization: headers.get('Authorization'),
+          'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
+          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
+          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+        },
+      })
+      .catch(async (e: Response) => {
+        const { code, message } = await parseErrorXml(e);
+        dispatch(
+          updateUploadTaskMsg({
+            account: loginAccount,
+            id: task.id,
+            msg: message || 'Upload error',
+          }),
+        );
+      });
   };
 
   useAsyncEffect(async () => {
@@ -188,7 +208,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const objectInfo = await headObject(bucketName, objectName);
         if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
           dispatch(
-            updateUploadTaskMsg({ id: task.id, msg: 'Something went wrong.', account: loginAccount }),
+            updateUploadTaskMsg({
+              id: task.id,
+              msg: 'Something went wrong.',
+              account: loginAccount,
+            }),
           );
           return -1;
         }

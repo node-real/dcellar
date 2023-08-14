@@ -16,9 +16,15 @@ import {
   FILE_FAILED_URL,
   FILE_STATUS_ACCESS,
 } from '@/modules/file/constant';
-import { PermissionTypes } from '@bnb-chain/greenfield-chain-sdk';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { useMount } from 'ahooks';
+import { selectGroupList, setupGroups } from '@/store/slices/group';
 
 const MAX_COUNT = 20;
+
+export const ADDRESS_RE = /0x[a-z0-9]{40}/i;
+
+export const GROUP_ID = /[1-9][0-9]{0,10}/;
 
 interface ViewerListProps {}
 
@@ -27,12 +33,13 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const { connector } = useAccount();
   const { editDetail, bucketName } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
 
   const _onChange = (e: string[]) => {
-    setValues(e.filter((i) => i.match(/0x[a-z0-9]{40}/i)));
+    setValues(e.filter((i) => i.match(ADDRESS_RE) || i.match(GROUP_ID)));
   };
 
   const inValid = values.length > MAX_COUNT;
@@ -57,7 +64,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   };
 
   const onInvite = async () => {
-    if (!values.length || loading) return;
+    if (!values.length || loading || inValid) return;
     const payloads = values.map((value) => ({
       operator: loginAccount,
       // allow, get
@@ -69,7 +76,9 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
         },
       ],
       principal: {
-        /* account */ type: PermissionTypes.PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+        /* account */ type: value.match(ADDRESS_RE)
+          ? PermissionTypes.PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT
+          : PermissionTypes.PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP,
         value,
       },
     }));
@@ -90,23 +99,30 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
     toast.success({ description: 'Access updated!' });
   };
 
+  useMount(() => {
+    dispatch(setupGroups(loginAccount));
+  });
+
+  const options = groupList.map((g) => ({ label: g.groupName, value: g.id }));
+
   return (
     <FormItem>
       <FormLabel>People with Access</FormLabel>
       <Flex gap={12}>
-        <Input>
-          <DCComboBox
-            maxTagCount={20}
-            value={values}
-            onChange={_onChange}
-            tokenSeparators={[',']}
-            placeholder="Add address, comma separated"
-            bordered={false}
-            suffixIcon={null}
-            mode="tags"
-          />
-          <Text>Viewer</Text>
-        </Input>
+        <DCComboBox
+          value={values}
+          onChange={_onChange}
+          tokenSeparators={[',']}
+          placeholder="Add address, comma separated"
+          bordered={false}
+          suffixIcon={
+            <Text color="#1E2026" fontSize={14}>
+              Viewer
+            </Text>
+          }
+          mode="tags"
+          options={!options.length ? undefined : options}
+        />
         <DCButton variant="dcPrimary" onClick={onInvite} w={90} h={48}>
           Invite
         </DCButton>
@@ -115,39 +131,6 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
     </FormItem>
   );
 });
-
-const Input = styled(Flex)`
-  min-width: 0;
-  padding: 8px;
-  flex: 1;
-  align-items: center;
-  gap: 8px;
-  border-radius: 8px;
-  border: 1px solid #00ba34;
-  background: #fff;
-  > div:first-of-type {
-    flex: 1;
-    min-width: 0;
-    .ant-select-selector {
-      padding-right: 0;
-      padding-inline-end: 0;
-      padding-left: 0;
-    }
-  }
-  .ant-select-selection-placeholder {
-    color: #76808f;
-    font-family: Inter, sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: normal;
-  }
-  .ant-select-selection-search-input,
-  .ant-select-selection-item-content {
-    font-size: 12px;
-    font-family: Inter, sans-serif;
-    line-height: 24px;
-  }
-`;
 
 const FormItem = styled.div``;
 

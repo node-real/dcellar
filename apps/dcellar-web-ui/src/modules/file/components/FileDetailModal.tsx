@@ -46,7 +46,7 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { DCButton } from '@/components/common/DCButton';
 import { useRouter } from 'next/router';
 import { getDomain } from '@/utils/getDomain';
-import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { generatePutObjectOptions } from '../utils/generatePubObjectOptions';
 import { signTypedDataV4 } from '@/utils/signDataV4';

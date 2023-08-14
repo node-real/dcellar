@@ -42,7 +42,7 @@ import {
   setStatusDetail,
   addDeletedObject,
 } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { getLockFee } from '@/utils/wallet';
 import { setupTmpAvailableBalance } from '@/store/slices/global';

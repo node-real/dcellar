@@ -43,7 +43,7 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
-import ComingSoon from '@/components/common/SvgIcon/ComingSoon.svg';
+import ComingSoon from '@/components/common/SvgIcon/members.svg';
 import { DCButton } from '@/components/common/DCButton';
 
 interface SharePermissionProps {}

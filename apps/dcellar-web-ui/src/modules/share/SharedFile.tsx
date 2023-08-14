@@ -5,7 +5,7 @@ import { Flex, Image, Text, useDisclosure } from '@totejs/uikit';
 import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';

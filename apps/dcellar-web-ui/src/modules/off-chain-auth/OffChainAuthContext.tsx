@@ -6,7 +6,7 @@ import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { getDomain } from '@/utils/getDomain';
-import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
+import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/base/client';
 import { isEmpty } from 'lodash-es';
 import { useAppDispatch, useAppSelector } from '@/store';

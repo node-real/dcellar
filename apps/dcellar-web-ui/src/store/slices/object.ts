@@ -3,7 +3,7 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
 import { find, last, omit, trimEnd } from 'lodash-es';
-import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';

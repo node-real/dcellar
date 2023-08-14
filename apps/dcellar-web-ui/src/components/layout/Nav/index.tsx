@@ -4,7 +4,9 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 import BucketsIcon from '@/public/images/icons/buckets.svg';
+import GroupsIcon from '@/public/images/icons/groups.svg';
 import WalletIcon from '@/public/images/icons/wallet.svg';
+import GroupsFilledIcon from '@/public/images/icons/groups-filled.svg';
 import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
 import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
 import { Logo } from '../Logo';
@@ -22,6 +24,14 @@ const MENU_LIST = [
     path: '/buckets',
     enablePrefix: true,
     gaClickName: 'dc.main.nav.bucket.click',
+  },
+  {
+    icon: () => <GroupsIcon color="readable.normal" />,
+    selectedIcon: () => <GroupsFilledIcon color={'#00BA34'} />,
+    text: 'Groups',
+    path: '/groups',
+    enablePrefix: true,
+    gaClickName: 'dc.main.nav.groups.click',
   },
   {
     icon: () => <WalletIcon color="readable.normal" />,
