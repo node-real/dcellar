@@ -63,6 +63,8 @@ export const OBJECT_ERROR_TYPES = {
   },
   FOLDER_NAME_TOO_LONG: {
     title: 'Must be between 1 to 70 characters long.',
+    icon: FILE_TOO_LARGE_URL,
+    desc: 'Folder name must be between 1 to 70 characters long.',
   }
 }
 
