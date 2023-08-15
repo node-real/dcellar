@@ -28,6 +28,7 @@ import AccessItem from './AccessItem';
 import {
   E_FILE_IS_EMPTY,
   E_FILE_TOO_LARGE,
+  E_FOLDER_NAME_TOO_LONG,
   E_OBJECT_NAME_CONTAINS_SLASH,
   E_OBJECT_NAME_EMPTY,
   E_OBJECT_NAME_EXISTS,
@@ -104,8 +105,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     if (!folder.name) {
       return E_FILE_IS_EMPTY;
     }
-    if (folder.size > 70) {
-      return 'Must be between 1 to 70 characters long.';
+    if (folder.name.length > 70) {
+      return E_FOLDER_NAME_TOO_LONG;
     }
     // Validation only works to data within the current path. The root folder has been validated when selected files. So there is no need to validate it again.
     return '';

@@ -100,6 +100,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       });
     }
     if (files.length > SELECT_OBJECT_NUM_LIMIT) {
+      e.target.value = '';
       return toast.error({
         description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
         isClosable: true,
@@ -111,6 +112,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       (object: ObjectItem) => object.objectName === uploadFolderPath,
     );
     if (isFolderExist) {
+      e.target.value = '';
       return toast.error({
         description: 'The folder already exists in the current path.',
         isClosable: true,
@@ -121,10 +123,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       const webkitRelativePath = files[i].webkitRelativePath;
       const parts = webkitRelativePath.split('/');
       const folders = parts.slice(0, parts.length - 1);
-      console.log('prefix', prefix.split('/'), prefix.split('/').filter((item) => !item).length);
       const depth = folders.length + prefix.split('/').filter((item) => !!item).length || 0;
       if (depth > 10) {
-        debugger;
+        e.target.value = '';
         return toast.error({
           description: `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`,
           isClosable: true,
@@ -153,6 +154,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       dispatch(addToWaitQueue({ id, file, time }));
     });
     dispatch(setEditUploadStatus(true));
+    e.target.value = '';
   };
 
   const refreshList = async () => {

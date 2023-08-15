@@ -374,7 +374,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   };
   const isEnoughBalance = useMemo(() => {
     if (
-      balance.comparedTo(MIN_AMOUNT) > 0 ||
+      (!validateNameAndGas.gas.value && balance.comparedTo(MIN_AMOUNT) >= 0) ||
       (validateNameAndGas.gas.value && balance.comparedTo(validateNameAndGas.gas.value) >= 0)
     ) {
       return true;
@@ -382,7 +382,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
 
     return false;
   }, [balance, validateNameAndGas.gas.value]);
-
   const onChangeSP = useCallback(
     (sp: SpItem) => {
       selectedSpRef.current = sp;

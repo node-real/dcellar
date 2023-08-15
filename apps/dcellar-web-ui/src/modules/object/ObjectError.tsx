@@ -60,6 +60,9 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Get storage price failed',
     icon: FILE_FAILED_URL,
     desc: 'Get storage price failed, please select another SP.',
+  },
+  FOLDER_NAME_TOO_LONG: {
+    title: 'Must be between 1 to 70 characters long.',
   }
 }
 
