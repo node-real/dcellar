@@ -107,6 +107,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       });
     }
     const relativeRootFolder = files[0].webkitRelativePath.split('/')[0];
+    const isRootFolderNameToLong = relativeRootFolder.length > MAX_FOLDER_NAME_LEN;
+    if (isRootFolderNameToLong) {
+      return toast.error({
+        description: `The folder name cannot exceed ${MAX_FOLDER_NAME_LEN} characters.`,
+        isClosable: true,
+      })
+    }
     const uploadFolderPath = [...folders, relativeRootFolder].join('/') + '/';
     const isFolderExist = objectList.some(
       (object: ObjectItem) => object.objectName === uploadFolderPath,

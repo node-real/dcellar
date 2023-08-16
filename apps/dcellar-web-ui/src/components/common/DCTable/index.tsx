@@ -120,9 +120,13 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
   const { loginAccount } = useAppSelector((root) => root.persist);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
 
+
   const file = find<UploadFile>(
     queue,
-    (q) => [q.bucketName, ...q.prefixFolders, q.waitFile.name].join('/') === object,
+    (q) => {
+      const objectInList = [q.bucketName, ...q.prefixFolders, (q.waitFile.relativePath || ''), q.waitFile.name].filter(item => !!item).join('/');
+      return  objectInList === object
+    }
   );
 
   const failed = (

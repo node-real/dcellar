@@ -54,6 +54,7 @@ import {
   resetWaitQueue,
   setTaskManagement,
   setTmpAccount,
+  setupWaitTaskErrorMsg,
   updateWaitFileStatus,
   updateWaitTaskMsg,
 } from '@/store/slices/global';
@@ -207,13 +208,15 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     if (isEmpty(selectedFiles)) return;
     selectedFiles.forEach((item) => {
       const { file, id } = item;
+      const task = waitQueue.find((item) => item.id === id);
+      if (!task) return;
       const isFolder = file.name.endsWith('/');
       const error = isFolder ? validateFolder(item) : validateFile(item);
       if (!error) {
-        dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
+        task.status === 'CHECK' && dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
         return;
       }
-      dispatch(updateWaitTaskMsg({ id, msg: getErrorMsg(error).title }));
+      dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));
     });
   }, [editUpload]);
 

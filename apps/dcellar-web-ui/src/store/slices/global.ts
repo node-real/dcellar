@@ -152,7 +152,6 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = 'ERROR';
       task.msg = msg;
-
     },
     updateUploadTaskMsg(state, { payload }: PayloadAction<{ account: string, id: number, msg: string }>) {
       const { id, msg } = payload;
@@ -231,7 +230,6 @@ export const globalSlice = createSlice({
         ids.push(...childIds);
       }
       const deleteParent = (queue: WaitFile[], deleteObject?: WaitFile) => {
-        console.log('deleteObject', deleteObject);
         if (!deleteObject) return;
         const isFolder = deleteObject.name.endsWith('/');
         const deletePath = isFolder ? deleteObject.name : deleteObject.relativePath + '/';
@@ -315,10 +313,34 @@ export const globalSlice = createSlice({
       if (!uploadQueue) return;
       uploadQueue = uploadQueue.map((task) => {
         const isFolder = task.waitFile.name.endsWith('/');
+        // Only cancel subfolders and subfiles
+        if (isFolder && payload.folderName === task.waitFile.name) {
+          return task;
+        }
         const commonPath = isFolder ? task.waitFile.name : task.waitFile.relativePath + '/';
-        const isSubTask = payload.folderName !== commonPath && commonPath.startsWith(payload.folderName);
+        const isSubTask = commonPath.startsWith(payload.folderName);
         if (isSubTask) {
           task.status = 'CANCEL';
+          task.msg = "The object's parent path failed to be created, please check.";
+        }
+        return task;
+      });
+    },
+    cancelWaitUploadFolder(state, { payload }: PayloadAction<{ folderName: string }>) {
+      const { folderName } = payload;
+      if (!folderName) return;
+      let waitQueue = state.waitQueue;
+      if (!waitQueue) return;
+      waitQueue = waitQueue.map((task) => {
+        const isFolder = task.name.endsWith('/');
+        // Only cancel subfolders and subfiles
+        if (isFolder && folderName === task.name) {
+          return task;
+        }
+        const commonPath = isFolder ? task.name : task.relativePath + '/';
+        const isSubTask = commonPath.startsWith(folderName);
+        if (isSubTask) {
+          task.status = 'ERROR';
           task.msg = "The object's parent path failed to be created, please check.";
         }
         return task;
@@ -345,6 +367,7 @@ export const {
   resetWaitQueue,
   resetUploadQueue,
   cancelUploadFolder,
+  cancelWaitUploadFolder,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
@@ -487,6 +510,15 @@ export const setupUploadTaskErrorMsg = ({ account, task, errorMsg }: { account: 
   const isFolder = task.waitFile.name.endsWith('/');
   dispatch(updateUploadTaskMsg({ account, id: task.id, msg: errorMsg || "The object failed to be created." }));
   isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+}
+
+export const setupWaitTaskErrorMsg = ({ id, errorMsg }: { id: number, errorMsg: string }) => async (dispatch: AppDispatch, getState: GetState) => {
+  const {waitQueue} = getState().global;
+  const task = waitQueue.find(t => t.id === id);
+  if (!task) return;
+  const isFolder = task.name.endsWith('/');
+  dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || "The object failed to be created." }));
+  isFolder && dispatch(cancelWaitUploadFolder({folderName: task.name}))
 }
 
 export default globalSlice.reducer;

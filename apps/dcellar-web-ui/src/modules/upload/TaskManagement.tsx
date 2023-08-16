@@ -6,6 +6,7 @@ import { selectUploadQueue, setTaskManagement } from '@/store/slices/global';
 import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { useThrottleFn } from 'ahooks';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();
@@ -13,13 +14,15 @@ export const TaskManagement = () => {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const isOpen = taskManagement;
-  const onToggle = () => {
-    dispatch(setTaskManagement(!isOpen));
-  };
+  const { run: onToggle } = useThrottleFn(() => dispatch(setTaskManagement(!isOpen)), {
+    wait: 200,
+  });
   const setClose = () => {
     dispatch(setTaskManagement(false));
-  }
-  const isUploading = uploadQueue.some((i) => ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(i.status));
+  };
+  const isUploading = uploadQueue.some((i) =>
+    ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(i.status),
+  );
 
   const renderButton = () => {
     if (isUploading) {
@@ -39,21 +42,16 @@ export const TaskManagement = () => {
       );
     }
     return (
-      <Box
-        cursor={'pointer'}
-        alignSelf={'center'}
-        marginRight={24}
-        onClick={() => onToggle()}
-      >
+      <Box cursor={'pointer'} alignSelf={'center'} marginRight={24} onClick={() => onToggle()}>
         <DCButton
           variant="ghost"
           fontWeight={500}
-          border='none'
+          border="none"
           fontSize={14}
           paddingX={8}
           borderRadius={4}
           h={44}
-          color='readable.secondary'
+          color="readable.secondary"
           _hover={{
             bg: 'bg.bottom',
           }}
