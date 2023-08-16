@@ -230,7 +230,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             as={Button}
             height={'40px'}
             bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
-            _hover={{ bg: uploadDisabled ? 'readable.tertiary' : '#2EC659' }}
+            _hover={{ bg: uploadDisabled ? 'readable.tertiary' : 'readable.brand5' }}
             _disabled={{
               bg: 'readable.tertiary',
               cursor: 'default',
@@ -246,6 +246,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               '.ui-icon': {
                 transform: 'rotate(-180deg)',
               },
+              '.ui-icon__container': {
+                bgColor: 'readable.brand7'
+              }
             }}
           >
             <UploadIcon color="#fff" w="24px" h="24px" alt="" />{' '}
@@ -259,12 +262,15 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               Upload
             </Text>
             <Flex
+              className="ui-icon__container"
               paddingX={'4px'}
               marginLeft={'8px'}
               height={'40px'}
               borderRightRadius={'8px'}
               alignItems={'center'}
-              bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand7'}
+              bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
+              borderLeft={uploadDisabled ? '1px solid readable.tertiary' :
+                '1px solid #5ED47F'}
             >
               <MenuCloseIcon />
             </Flex>

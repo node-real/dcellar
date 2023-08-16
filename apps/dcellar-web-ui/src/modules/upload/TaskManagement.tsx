@@ -19,7 +19,7 @@ export const TaskManagement = () => {
   const setClose = () => {
     dispatch(setTaskManagement(false));
   }
-  const isUploading = uploadQueue.some((i) => i.status === 'UPLOAD');
+  const isUploading = uploadQueue.some((i) => ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(i.status));
 
   const renderButton = () => {
     if (isUploading) {
