@@ -78,6 +78,7 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
     },
     {
       key: 'id',
+      width: 200,
       title: (
         <SortItem onClick={() => updateSorter('id', 'descend')}>
           Group ID{sortName === 'id' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
@@ -112,7 +113,7 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
     {
       key: 'Action',
       width: 200,
-      align: 'right' as AlignType,
+      align: 'center' as AlignType,
       title: <></>,
       render: (_: string, record: GroupInfo) => (
         <ActionMenu menus={Actions} operations={['add']} onChange={(e) => onMenuClick(e, record)} />

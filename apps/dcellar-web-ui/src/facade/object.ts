@@ -47,6 +47,7 @@ import {
   ActionType,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
+import { GROUP_ID } from '@/utils/regex';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -371,6 +372,10 @@ export const putObjectPolicies = async (
 
   // todo
   for await (const group of groups) {
+    if (!group.value.match(GROUP_ID)) {
+      ids.push(group.value);
+      continue;
+    }
     const [s, e] = await group.tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
     if (e?.includes('No such group')) {
       ids.push(group.value);

@@ -56,7 +56,10 @@ export interface ObjectState {
   editDelete: ObjectItem;
   editCreate: boolean;
   editDownload: ObjectItem & { action?: ObjectActionType };
-  editShare: ObjectItem;
+  editShare: {
+    record: ObjectItem;
+    from: string;
+  };
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
   editUpload: TEditUpload;
@@ -79,7 +82,10 @@ const initialState: ObjectState = {
   editDelete: {} as ObjectItem,
   editCreate: false,
   editDownload: {} as ObjectItem & { action?: ObjectActionType },
-  editShare: {} as ObjectItem,
+  editShare: {
+    record: {} as ObjectItem,
+    from: 'menu',
+  },
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   editUpload: {} as TEditUpload,
@@ -188,8 +194,12 @@ export const objectSlice = createSlice({
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
     },
-    setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
-      state.editShare = payload;
+    setEditShare(state, { payload }: PayloadAction<{ record: ObjectItem; from: string }>) {
+      const { record, from } = payload;
+      state.editShare = {
+        record,
+        from,
+      };
     },
     setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;

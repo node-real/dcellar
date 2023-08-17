@@ -86,7 +86,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       key: 'Action',
       width: 200,
       align: 'center' as AlignType,
-      title: 'Action',
+      title: <></>,
       render: (_: string, record: BucketItem) => (
         <ActionMenu menus={Actions} onChange={(e) => onMenuClick(e, record)} />
       ),

@@ -10,6 +10,7 @@ import {
   setEditDelete,
   setEditDetail,
   setEditDownload,
+  setEditShare,
   setRestoreCurrent,
   setSelectedRowKeys,
   setStatusDetail,
@@ -36,7 +37,6 @@ import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMe
 import { DeleteObject } from './DeleteObject';
 import { StatusDetail } from './StatusDetail';
 import { DetailObject } from './DetailObject';
-import { ShareObject } from './ShareObject';
 import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
@@ -60,6 +60,7 @@ import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { copy, getShareLink } from '@/utils/string';
 import { toast } from '@totejs/uikit';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -180,9 +181,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
         return dispatch(setEditDelete(record));
       case 'share':
-        copy(getShareLink(bucketName, record.objectName));
-        toast.success({ description: 'Successfully copied to your clipboard.' });
-        return;
+        // copy(getShareLink(bucketName, record.objectName));
+        // toast.success({ description: 'Successfully copied to your clipboard.' });
+        return dispatch(setEditShare({ record, from: 'menu' }));
       case 'download':
         return download(record);
       case 'cancel':
@@ -257,7 +258,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       key: 'Action',
       width: 100,
       align: 'center' as AlignType,
-      title: 'Action',
+      title: <></>,
       render: (_: string, record: ObjectItem) => {
         let fitActions = Actions;
         let operations: string[] = [];
@@ -369,7 +370,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       {editDelete?.objectName && <DeleteObject refetch={refetch} />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
-      {editShare?.objectName && <ShareObject />}
+      <ShareDrawer />
       {editDownload?.objectName && <DownloadObject />}
       {editCancel.objectName && <CancelObject refetch={refetch} />}
       <UploadObjects />

@@ -24,7 +24,7 @@ import GroupIcon from '@/public/images/icons/group_icon.svg';
 import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 import { without } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
-import { ADDRESS_RE, GROUP_ID } from '@/utils/regex';
+import { ADDRESS_RE } from '@/utils/regex';
 
 const MAX_COUNT = 20;
 
@@ -44,9 +44,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const [invalidIds, setInvalidIds] = useState<string[]>([]);
 
   const _onChange = (e: string[]) => {
-    const newValues = e.filter((i) => i.match(ADDRESS_RE) || i.match(GROUP_ID));
-    setValues(newValues);
-    setInvalidIds((ids) => ids.filter((id) => newValues.includes(id)));
+    setValues(e);
+    setInvalidIds((ids) => ids.filter((id) => e.includes(id)));
     setSearchValue('');
   };
 
@@ -137,7 +136,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
           value={values}
           onChange={_onChange}
           tokenSeparators={[',']}
-          placeholder="Enter addresses / group ID, comma separated"
+          placeholder="Enter addresses / group IDs, comma separated"
           bordered={false}
           options={options}
           searchValue={searchValue}
@@ -245,8 +244,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
       {inValid && (
         <Text color="#EE3911">
           {!invalidIds.length
-            ? 'Please enter less than 20 addresses.'
-            : 'Invalid group address. Please enter a valid one.'}
+            ? `Please enter less than ${MAX_COUNT} addresses.`
+            : 'Invalid addresses or group IDs.\n'}
         </Text>
       )}
     </FormItem>

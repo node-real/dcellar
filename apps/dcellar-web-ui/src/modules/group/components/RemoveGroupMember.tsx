@@ -38,6 +38,7 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
+  const [invalidIds, setInvalidIds] = useState<string[]>([]);
 
   const onClose = () => {
     dispatch(setRemoveGroupMember({} as GroupInfo));
@@ -63,14 +64,17 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
   };
 
   const _onChange = (e: string[]) => {
-    const values = e.filter((i) => i.match(ADDRESS_RE));
-    setValues(values);
-    if (values.length > MAX_COUNT) {
+    setValues(e);
+    const invalid = e.filter((i) => !i.match(ADDRESS_RE));
+    setInvalidIds(invalid);
+    if (e.length > MAX_COUNT) {
       setError(`Please enter less than ${MAX_COUNT} addresses. `);
     } else {
       setError('');
     }
   };
+
+  const invalid = !!error || invalidIds.length > 0;
 
   const _onSelected = (s: string) => {
     const newValues = values.includes(s) ? without(values, s) : [...values, s];
@@ -78,7 +82,7 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
   };
 
   const onRemoveMember = async () => {
-    if (!values.length || loading || !!error) return;
+    if (!values.length || loading || invalid) return;
     setLoading(true);
     dispatch(
       setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
@@ -104,6 +108,7 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
     if (removeGroupMember.groupName) return;
     setError('');
     setValues([]);
+    setInvalidIds([]);
   }, [removeGroupMember.groupName]);
 
   return (
@@ -120,13 +125,17 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
             suffixIcon={null}
             mode="tags"
             onChange={_onChange}
-            tagRender={(props) => <RenderItem value={props} onSelect={_onSelected} />}
+            tagRender={(props) => (
+              <RenderItem invalidIds={invalidIds} value={props} onSelect={_onSelected} />
+            )}
           />
           <DCButton variant="dcPrimary" w={90} h={48} onClick={onRemoveMember}>
             Confirm
           </DCButton>
         </Flex>
-        {error && <Text color="#EE3911">{error}</Text>}
+        {invalid && (
+          <Text color="#EE3911">{!invalidIds.length ? error : 'Invalid addresses.'}</Text>
+        )}
         <Flex flexDirection="column" alignItems="center" mt={116}>
           <ComingSoon />
           <Text fontWeight="400" color="#76808F" mt={20}>

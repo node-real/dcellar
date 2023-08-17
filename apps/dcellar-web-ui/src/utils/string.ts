@@ -66,7 +66,7 @@ export const copy = (text: string) => {
   document.body.removeChild(div);
 };
 
-const getObjectPath = (bucketName: string, objectName: string) => {
+const getObjectPath = (bucketName = '', objectName = '') => {
   return [bucketName, encodeObjectName(objectName)].join('/');
 };
 
