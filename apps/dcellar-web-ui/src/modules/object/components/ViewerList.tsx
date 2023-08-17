@@ -47,6 +47,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
     const newValues = e.filter((i) => i.match(ADDRESS_RE) || i.match(GROUP_ID));
     setValues(newValues);
     setInvalidIds((ids) => ids.filter((id) => newValues.includes(id)));
+    setSearchValue('');
   };
 
   const _onSelected = (s: string) => {
@@ -143,10 +144,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
           onSearch={setSearchValue}
           open={open && !!_options.length}
           onFocus={() => setOpen(true)}
-          onBlur={() => {
-            setOpen(false);
-            setSearchValue('');
-          }}
+          onBlur={() => setOpen(false)}
           suffixIcon={
             <Text color="#1E2026" fontSize={14}>
               Viewer
