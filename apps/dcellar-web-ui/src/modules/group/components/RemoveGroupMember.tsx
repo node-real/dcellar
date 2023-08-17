@@ -9,7 +9,6 @@ import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import {
   BUTTON_GOT_IT,
   FILE_FAILED_URL,
-  FILE_TITLE_DELETE_FAILED,
   GROUP_ICON,
   GROUP_UPDATE_EXTRA,
   UNKNOWN_ERROR,
@@ -22,6 +21,9 @@ import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import ComingSoon from '@/components/common/SvgIcon/members.svg';
 import { removeMemberFromGroup } from '@/facade/group';
+import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
+import { without } from 'lodash-es';
+import { ADDRESS_RE } from '@/utils/regex';
 
 const MAX_COUNT = 20;
 
@@ -49,7 +51,7 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
       default:
         dispatch(
           setStatusDetail({
-            title: FILE_TITLE_DELETE_FAILED,
+            title: 'Update Failed',
             icon: FILE_FAILED_URL,
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
@@ -61,13 +63,18 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
   };
 
   const _onChange = (e: string[]) => {
-    const values = e.filter((i) => i.match(/0x[a-z0-9]{40}/i));
+    const values = e.filter((i) => i.match(ADDRESS_RE));
     setValues(values);
     if (values.length > MAX_COUNT) {
-      setError('Please enter less than 20 addresses. ');
+      setError(`Please enter less than ${MAX_COUNT} addresses. `);
     } else {
       setError('');
     }
+  };
+
+  const _onSelected = (s: string) => {
+    const newValues = values.includes(s) ? without(values, s) : [...values, s];
+    _onChange(newValues);
   };
 
   const onRemoveMember = async () => {
@@ -113,6 +120,7 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
             suffixIcon={null}
             mode="tags"
             onChange={_onChange}
+            tagRender={(props) => <RenderItem value={props} onSelect={_onSelected} />}
           />
           <DCButton variant="dcPrimary" w={90} h={48} onClick={onRemoveMember}>
             Confirm

@@ -10,7 +10,6 @@ import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
   FILE_FAILED_URL,
-  FILE_TITLE_DELETE_FAILED,
   GROUP_DELETE,
   UNKNOWN_ERROR,
   WALLET_CONFIRM,
@@ -65,7 +64,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
       default:
         dispatch(
           setStatusDetail({
-            title: FILE_TITLE_DELETE_FAILED,
+            title: 'Update Failed',
             icon: FILE_FAILED_URL,
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,

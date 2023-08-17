@@ -27,7 +27,6 @@ import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import {
   BUTTON_GOT_IT,
   FILE_FAILED_URL,
-  FILE_TITLE_DELETE_FAILED,
   GROUP_ICON,
   GROUP_UPDATE_EXTRA,
   UNKNOWN_ERROR,
@@ -55,17 +54,9 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
   };
 
   const validateForm = (values: Record<'name' | 'desc', string>) => {
-    const { name, desc } = values;
+    const { desc } = values;
     const _error = { ...error };
-    const nlen = name.length;
-    if (!nlen) {
-      _error.name = 'Please enter the group name.';
-    } else if (nlen < 3 || nlen > 63) {
-      _error.name = 'Must be between 3 to 63 characters long.';
-    } else {
-      _error.name = '';
-    }
-    if (desc.length >= 500) {
+    if (new Blob([desc]).size >= 500) {
       _error.desc = 'Must be less than 500 characters long.';
     } else {
       _error.desc = '';
@@ -88,7 +79,7 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
       default:
         dispatch(
           setStatusDetail({
-            title: FILE_TITLE_DELETE_FAILED,
+            title: 'Update Failed',
             icon: FILE_FAILED_URL,
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
@@ -113,6 +104,12 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
       groupOwner: loginAccount,
       extra: form.desc,
     };
+    if (form.desc === editGroup.extra) {
+      setLoading(false);
+      dispatch(setEditGroup({} as GroupInfo));
+      toast.success({ description: 'Group updated successfully!' });
+      return;
+    }
     dispatch(
       setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
     );

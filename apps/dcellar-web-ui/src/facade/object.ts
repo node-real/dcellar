@@ -43,7 +43,10 @@ import {
 import { getDomain } from '@/utils/getDomain';
 import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/file/utils';
-import { ActionType } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
+import {
+  ActionType,
+  PrincipalType,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -343,7 +346,7 @@ export const putObjectPolicies = async (
   bucketName: string,
   objectName: string,
   srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>[],
-): BroadcastResponse => {
+): Promise<ErrorResponse | [DeliverResponse, null] | [null, null, string[]]> => {
   const client = await getClient();
 
   const opts = await Promise.all(
@@ -351,8 +354,33 @@ export const putObjectPolicies = async (
       client.object.putObjectPolicy(bucketName, objectName, msg).then(resolve, createTxFault),
     ),
   );
+
   if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
   const _opts = opts.map((opt) => opt[0] as TxResponse);
+
+  const groups = srcMsg
+    .map((i, index) => ({
+      type: i.principal!.type,
+      value: i.principal!.value,
+      index,
+      tx: _opts[index],
+    }))
+    .filter((i) => i.type === PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP);
+
+  const ids = [];
+
+  // todo
+  for await (const group of groups) {
+    const [s, e] = await group.tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+    if (e?.includes('No such group')) {
+      ids.push(group.value);
+    }
+  }
+
+  if (ids.length) {
+    return [null, null, ids];
+  }
+
   const txs = await client.basic.multiTx(_opts);
   const [simulateInfo, simulateError] = await txs
     .simulate({ denom: 'BNB' })

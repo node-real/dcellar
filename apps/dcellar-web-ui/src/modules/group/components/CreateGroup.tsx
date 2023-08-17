@@ -27,7 +27,6 @@ import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import {
   BUTTON_GOT_IT,
   FILE_FAILED_URL,
-  FILE_TITLE_DELETE_FAILED,
   GROUP_CREATE,
   GROUP_ICON,
   UNKNOWN_ERROR,
@@ -57,7 +56,7 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
   const validateForm = (values: Record<'name' | 'desc', string>) => {
     const { name, desc } = values;
     const _error = { ...error };
-    const nlen = name.length;
+    const nlen = new Blob([name]).size;
     if (!nlen) {
       _error.name = 'Please enter the group name.';
     } else if (nlen < 3 || nlen > 63) {
@@ -67,7 +66,7 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
     } else {
       _error.name = '';
     }
-    if (desc.length >= 500) {
+    if (new Blob([desc]).size >= 500) {
       _error.desc = 'Must be less than 500 characters long.';
     } else {
       _error.desc = '';
@@ -90,7 +89,7 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
       default:
         dispatch(
           setStatusDetail({
-            title: FILE_TITLE_DELETE_FAILED,
+            title: 'Create Failed',
             icon: FILE_FAILED_URL,
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
