@@ -6,7 +6,7 @@ import {
   renderPrelockedFeeValue,
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { MsgCreateObjectTypeUrl, MsgGrantAllowanceTypeUrl, MsgPutPolicyTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgCreateObjectTypeUrl, MsgGrantAllowanceTypeUrl, MsgPutPolicyTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { Box, Flex, Text, useDisclosure, Link } from '@totejs/uikit';
 import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';

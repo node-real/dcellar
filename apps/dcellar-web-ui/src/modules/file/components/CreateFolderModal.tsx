@@ -32,7 +32,7 @@ import {
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
-import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { getUtcZeroTimestamp } from '@/utils/time';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';

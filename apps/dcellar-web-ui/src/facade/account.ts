@@ -6,7 +6,7 @@ import {
   PermissionTypes,
   newBucketGRN,
   newObjectGRN,
-} from '@bnb-chain/greenfield-chain-sdk';
+} from '@bnb-chain/greenfield-js-sdk';
 import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coin';
 import { Wallet } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';

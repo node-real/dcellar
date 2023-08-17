@@ -32,7 +32,7 @@ import { DotLoading } from '@/components/common/DotLoading';
 import {
   MsgCreateObjectTypeUrl,
   TCreateObjectByOffChainAuth,
-} from '@bnb-chain/greenfield-chain-sdk';
+} from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';

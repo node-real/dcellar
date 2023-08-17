@@ -34,7 +34,7 @@ import {
   setStatusDetail,
   TStatusDetail,
 } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { setTmpAccount, setupTmpAvailableBalance, TTmpAccount } from '@/store/slices/global';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
