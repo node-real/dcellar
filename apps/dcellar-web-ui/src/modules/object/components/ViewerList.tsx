@@ -16,7 +16,7 @@ import {
   FILE_FAILED_URL,
   FILE_STATUS_ACCESS,
 } from '@/modules/file/constant';
-import { PermissionTypes } from '@bnb-chain/greenfield-chain-sdk';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 
 const MAX_COUNT = 20;
 

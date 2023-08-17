@@ -1,6 +1,6 @@
 import { parseError } from '../utils/parseError';
 import { getClient } from '@/base/client';
-import { MsgDeleteBucketTypeUrl, TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgDeleteBucketTypeUrl, TCreateBucket } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import axios from 'axios';
 import { TGasList } from '@/store/slices/global';

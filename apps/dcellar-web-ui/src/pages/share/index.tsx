@@ -3,7 +3,7 @@ import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
 import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex } from '@totejs/uikit';
@@ -24,7 +24,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getSpUrlByBucketName } from '@/facade/virtual-group';
 import { hasObjectPermission, headObject } from '@/facade/object';
-import { PermissionTypes } from '@bnb-chain/greenfield-chain-sdk';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);

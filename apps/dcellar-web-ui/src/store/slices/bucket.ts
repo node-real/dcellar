@@ -3,10 +3,10 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
-import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
+import { BucketProps } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
 import { omit } from 'lodash-es';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { SpItem } from './sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 

@@ -81,7 +81,7 @@ import { useRouter } from 'next/router';
 import { encodeObjectName } from '@/utils/string';
 import { ChainVisibilityEnum, VisibilityType } from '../type';
 import { convertObjectInfo } from '../utils/convertObjectInfo';
-import { IObjectResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse } from '@bnb-chain/greenfield-js-sdk';
 import { updateObjectInfo } from '@/facade/object';
 import { E_USER_REJECT_STATUS_NUM, ErrorMsg } from '@/facade/error';
 import { SpItem } from '@/store/slices/sp';

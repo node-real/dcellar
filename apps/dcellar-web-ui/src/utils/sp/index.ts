@@ -1,7 +1,7 @@
 import { getClient } from '@/base/client';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { TPreLockFeeParams } from '@/store/slices/global';
-import { IReturnOffChainAuthKeyPairAndUpload, getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
+import { IReturnOffChainAuthKeyPairAndUpload, getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import { BigNumber } from 'bignumber.js';
 
 const getStorageProviders = async () => {

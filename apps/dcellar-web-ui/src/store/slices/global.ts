@@ -9,7 +9,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 export type TGasList = {
   [msgTypeUrl: string]: {

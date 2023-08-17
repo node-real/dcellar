@@ -1,4 +1,4 @@
-import { isValidUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { isValidUrl } from '@bnb-chain/greenfield-js-sdk';
 import {
   generateUrlByBucketName,
   putObjectPropsType,

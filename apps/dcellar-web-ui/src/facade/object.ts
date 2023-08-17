@@ -7,7 +7,7 @@ import {
   ISimulateGasFee,
   generateUrlByBucketName,
   PermissionTypes,
-} from '@bnb-chain/greenfield-chain-sdk';
+} from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,
   commonFault,
