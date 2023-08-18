@@ -14,7 +14,7 @@ import { COPY_SUCCESS_ICON } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { IObjectResponse } from '@bnb-chain/greenfield-chain-sdk';
+import { IObjectResponse } from '@bnb-chain/greenfield-js-sdk';
 // import { AccessItem } from '@/modules/file/components/AccessItem';
 import { encodeObjectName } from '@/utils/string';
 
@@ -26,7 +26,7 @@ interface modalProps {
 }
 
 export const ShareModal = (props: modalProps) => {
-  const { shareObject, onAccessChange, onClose, isOpen } = props;
+  const { shareObject, onClose, isOpen } = props;
   const objectName = shareObject.object_name || '';
   const title = last(objectName.split('/'));
   const params = [shareObject.bucket_name, encodeObjectName(objectName)].join('/');

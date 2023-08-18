@@ -18,7 +18,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
 import { headObject } from '@/facade/object';
-import { TCreateObject } from '@bnb-chain/greenfield-chain-sdk';
+import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';

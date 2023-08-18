@@ -37,7 +37,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
-import { TCreateBucket } from '@bnb-chain/greenfield-chain-sdk';
+import { TCreateBucket } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';

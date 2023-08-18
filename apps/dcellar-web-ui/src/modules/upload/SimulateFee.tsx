@@ -10,7 +10,7 @@ import {
   MsgCreateObjectTypeUrl,
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
-} from '@bnb-chain/greenfield-chain-sdk';
+} from '@bnb-chain/greenfield-js-sdk';
 import { Box, Flex, Text, useDisclosure, Link } from '@totejs/uikit';
 import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
@@ -138,7 +138,7 @@ export const Fee = () => {
   };
 
   return (
-    <Flex flexDirection={'column'} w="100%" padding={'8px'} bg={'bg.secondary'} borderRadius="12px">
+    <Flex flexDirection={'column'} w="100%" padding={'8px'} bg={'bg.secondary'} borderRadius="4px">
       <Flex
         paddingBottom={'4px'}
         fontSize={'14px'}

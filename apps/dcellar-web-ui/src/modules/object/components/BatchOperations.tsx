@@ -44,7 +44,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   };
 
   const items = useMemo(
-    () => objects[path].filter((i) => selectedRowKeys.includes(i.objectName)),
+    () => objects[path]?.filter((i) => selectedRowKeys.includes(i.objectName)) || [],
     [objects, path, selectedRowKeys],
   );
 

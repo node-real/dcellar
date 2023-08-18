@@ -15,7 +15,7 @@ import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { dropRight, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
 import { Tooltip, Flex } from '@totejs/uikit';
-import { selectObjectList, setFolders } from '@/store/slices/object';
+import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
@@ -28,7 +28,6 @@ export const ObjectsPage = () => {
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
-  const objectList = useAppSelector(selectObjectList);
   const router = useRouter();
   const { path } = router.query;
   const items = path as string[];
@@ -105,13 +104,11 @@ export const ObjectsPage = () => {
               </Tooltip>
             )}
           </Flex>
-          {!!objectList.length && (
-            <NewObject
-              showRefresh={true}
-              gaFolderClickName="dc.file.list.create_folder.click"
-              gaUploadClickName="dc.file.list.upload.click"
-            />
-          )}
+          <NewObject
+            showRefresh={true}
+            gaFolderClickName="dc.file.list.create_folder.click"
+            gaUploadClickName="dc.file.list.upload.click"
+          />
         </PanelContent>
       </PanelContainer>
       <ObjectList />

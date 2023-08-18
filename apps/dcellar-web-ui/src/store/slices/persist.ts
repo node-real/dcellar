@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-chain-sdk';
+import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
 import { updateSps } from '@/store/slices/sp';
 import { getUtcZeroTimestamp } from '@/utils/time';
 import { find } from 'lodash-es';
@@ -33,6 +33,8 @@ export interface PersistState {
   faultySps: Array<string>;
   bucketSortBy: SorterType;
   objectSortBy: SorterType;
+  groupSortBy: SorterType;
+  groupPageSize: number;
   objectPageSize: number;
   bucketPageSize: number;
 }
@@ -45,12 +47,20 @@ const initialState: PersistState = {
   bucketPageSize: 50,
   objectSortBy: ['createAt', 'descend'],
   objectPageSize: 50,
+  groupSortBy: ['id', 'descend'],
+  groupPageSize: 20,
 };
 
 export const persistSlice = createSlice({
   name: 'persist',
   initialState,
   reducers: {
+    updateGroupSorter(state, { payload }: PayloadAction<SorterType>) {
+      state.groupSortBy = payload;
+    },
+    updateGroupPageSize(state, { payload }: PayloadAction<number>) {
+      state.groupPageSize = payload;
+    },
     updateObjectPageSize(state, { payload }: PayloadAction<number>) {
       state.objectPageSize = payload;
     },
@@ -179,6 +189,8 @@ export const {
   updateBucketPageSize,
   updateObjectSorter,
   updateObjectPageSize,
+  updateGroupSorter,
+  updateGroupPageSize,
 } = persistSlice.actions;
 
 export default persistSlice.reducer;

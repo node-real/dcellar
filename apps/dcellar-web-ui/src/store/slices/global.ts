@@ -9,7 +9,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -33,15 +33,24 @@ export type TPreLockFeeParams = {
   redundantDataChunkNum: number;
   redundantParityChunkNum: number;
   reserveTime: string;
-}
+};
 
 type TPreLockFeeObjects = {
-  [key: string]: TPreLockFeeParams
+  [key: string]: TPreLockFeeParams;
 };
 
 export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
-export type TUploadStatus = 'WAIT' | 'HASH' | 'READY' | 'UPLOAD' | 'SEAL' | 'FINISH' | 'ERROR' | 'CANCEL';
+
+export type TUploadStatus =
+  | 'WAIT'
+  | 'HASH'
+  | 'READY'
+  | 'UPLOAD'
+  | 'SEAL'
+  | 'FINISH'
+  | 'ERROR'
+  | 'CANCEL';
 
 export type TTmpAccount = {
   address: string;
@@ -135,25 +144,28 @@ export const globalSlice = createSlice({
     },
     updateUploadChecksum(
       state,
-      { payload }: PayloadAction<{ account: string; id: number; checksum: string[]; }>,
+      { payload }: PayloadAction<{ account: string; id: number; checksum: string[] }>,
     ) {
       const { account, id, checksum } = payload;
       const queues = state.uploadQueue;
-      const queue = queues[account]
+      const queue = queues[account];
       const task = find<UploadFile>(queue, (t) => t.id === id);
       if (!task) return;
       task.status = task.status !== 'CANCEL' ? 'READY' : 'CANCEL';
       task.checksum = checksum;
       if (queue.length === 1) return;
     },
-    updateWaitTaskMsg(state, { payload }: PayloadAction<{ id: number; msg: string, }>) {
+    updateWaitTaskMsg(state, { payload }: PayloadAction<{ id: number; msg: string }>) {
       const { id, msg } = payload;
       const task = find<WaitFile>(state.waitQueue, (t) => t.id === id);
       if (!task) return;
       task.status = 'ERROR';
       task.msg = msg;
     },
-    updateUploadTaskMsg(state, { payload }: PayloadAction<{ account: string, id: number, msg: string }>) {
+    updateUploadTaskMsg(
+      state,
+      { payload }: PayloadAction<{ account: string; id: number; msg: string }>,
+    ) {
       const { id, msg } = payload;
       const task = find<UploadFile>(state.uploadQueue[payload.account], (t) => t.id === id);
       if (!task) return;
@@ -169,7 +181,7 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = status;
     },
-    addToWaitQueue(state, { payload }: PayloadAction<{ id: number; file: File; time: number; }>) {
+    addToWaitQueue(state, { payload }: PayloadAction<{ id: number; file: File; time: number }>) {
       const { id, file, time } = payload;
       const parts = file.webkitRelativePath?.split('/');
       const relativePath = parts && parts.length > 1 ? parts.slice(0, -1).join('/') : '';
@@ -248,8 +260,7 @@ export const globalSlice = createSlice({
       deleteParent(waitQueue, deleteObject);
       state.waitQueue = state.waitQueue.filter((task) => !ids.includes(task.id));
     },
-
-    addToUploadQueue(state, { payload }: PayloadAction<{ account: string, tasks: UploadFile[] }>) {
+    addToUploadQueue(state, { payload }: PayloadAction<{ account: string; tasks: UploadFile[] }>) {
       const { account, tasks } = payload;
       const existTasks = state.uploadQueue[account] || [];
       state.uploadQueue[account] = [...existTasks, ...tasks];
@@ -285,7 +296,10 @@ export const globalSlice = createSlice({
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
     },
-    setPreLockFeeObjects(state, { payload }: PayloadAction<{ primarySpAddress: string, lockFeeParams: TPreLockFeeParams }>) {
+    setPreLockFeeObjects(
+      state,
+      { payload }: PayloadAction<{ primarySpAddress: string; lockFeeParams: TPreLockFeeParams }>,
+    ) {
       const { primarySpAddress, lockFeeParams } = payload;
       state.preLockFeeObjects[primarySpAddress] = lockFeeParams;
     },
@@ -384,7 +398,7 @@ export const selectHashTask = (address: string) => (root: AppState) => {
   const res = !!hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
 
   return res;
-}
+};
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
@@ -398,31 +412,35 @@ export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   dispatch(globalSlice.actions.setGasObjects(res));
 };
 
-export const setupPreLockFeeObjects = (primarySpAddress: string) => async (dispatch: AppDispatch) => {
-  const client = await getClient();
-  const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
-  const secondarySpStoragePrice = await client.sp.getSecondarySpStorePrice();
-  const { params: storageParams } = await client.storage.params();
-  const {
-    minChargeSize = new Long(0),
-    redundantDataChunkNum = 0,
-    redundantParityChunkNum = 0,
-  } = (storageParams && storageParams.versionedParams) || {};
-  const { params: paymentParams } = await client.payment.params();
-  const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
-  const lockFeeParamsPayload = {
-    spStorageStorePrice: spStoragePrice?.storePrice || '',
-    secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
-    validatorTaxRate: validatorTaxRate || '',
-    minChargeSize: minChargeSize.toNumber(),
-    redundantDataChunkNum,
-    redundantParityChunkNum,
-    reserveTime: reserveTime?.toString() || '',
+export const setupPreLockFeeObjects =
+  (primarySpAddress: string) => async (dispatch: AppDispatch) => {
+    const client = await getClient();
+    const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
+    const secondarySpStoragePrice = await client.sp.getSecondarySpStorePrice();
+    const { params: storageParams } = await client.storage.params();
+    const {
+      minChargeSize = new Long(0),
+      redundantDataChunkNum = 0,
+      redundantParityChunkNum = 0,
+    } = (storageParams && storageParams.versionedParams) || {};
+    const { params: paymentParams } = await client.payment.params();
+    const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
+    const lockFeeParamsPayload = {
+      spStorageStorePrice: spStoragePrice?.storePrice || '',
+      secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
+      validatorTaxRate: validatorTaxRate || '',
+      minChargeSize: minChargeSize.toNumber(),
+      redundantDataChunkNum,
+      redundantParityChunkNum,
+      reserveTime: reserveTime?.toString() || '',
+    };
+    dispatch(
+      globalSlice.actions.setPreLockFeeObjects({
+        primarySpAddress,
+        lockFeeParams: lockFeeParamsPayload,
+      }),
+    );
   };
-  dispatch(globalSlice.actions.setPreLockFeeObjects({
-    primarySpAddress, lockFeeParams: lockFeeParamsPayload
-  }))
-}
 
 export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -467,7 +485,8 @@ export const progressFetchList =
     await dispatch(refreshTaskFolder(task));
   };
 export const addTasksToUploadQueue =
-  (spAddress: string, visibility: VisibilityType) => async (dispatch: AppDispatch, getState: GetState) => {
+  (spAddress: string, visibility: VisibilityType) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
     const { waitQueue } = getState().global;
     const { bucketName, folders } = getState().object;
     const { loginAccount } = getState().persist;
@@ -486,7 +505,7 @@ export const addTasksToUploadQueue =
         checksum: [],
         visibility,
         createHash: '',
-      }
+      };
       return uploadTask;
     });
     dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));

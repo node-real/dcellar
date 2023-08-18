@@ -1,28 +1,15 @@
 import React, { memo, ReactNode, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import {
-  Box,
-  Button,
-  Flex,
-  Image,
-  QDrawerBody,
-  QDrawerFooter,
-  QDrawerHeader,
-  Text,
-  toast,
-  useClipboard,
-} from '@totejs/uikit';
+import { Box, Button, Flex, Text, toast, useClipboard } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { VisibilityType } from '@/modules/file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { transientOptions } from '@/utils/transientOptions';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
-import { DCDrawer } from '@/components/common/DCDrawer';
-import { BackIcon } from '@totejs/icons';
-import { AccessItem } from '@/modules/object/components/AccessItem';
 import {
   ObjectItem,
+  setEditShare,
   setStatusDetail,
   TStatusDetail,
   updateObjectVisibility,
@@ -33,18 +20,14 @@ import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
 import {
   AUTH_EXPIRED,
   BUTTON_GOT_IT,
-  COPY_SUCCESS_ICON,
   FILE_ACCESS,
   FILE_ACCESS_URL,
   FILE_FAILED_URL,
   FILE_STATUS_ACCESS,
 } from '@/modules/file/constant';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { ViewerList } from '@/modules/object/components/ViewerList';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
-import ComingSoon from '@/components/common/SvgIcon/ComingSoon.svg';
-import { DCButton } from '@/components/common/DCButton';
 
 interface SharePermissionProps {}
 
@@ -63,130 +46,15 @@ const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
 
 export const SharePermission = memo<SharePermissionProps>(function SharePermission() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { editDetail, bucketName } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
-  const [manageOpen, setManageOpen] = useState(false);
-  const { connector } = useAccount();
-  const { setOpenAuthModal } = useOffChainAuth();
-  const { hasCopied, onCopy, setValue } = useClipboard('');
-
-  useEffect(() => {
-    setValue(getShareLink(bucketName, editDetail.objectName));
-  }, [setValue, bucketName, editDetail.objectName]);
 
   if (!editDetail.name) return <></>;
 
   const CurrentAccess = Access[editDetail.visibility] ? Access[editDetail.visibility] : Access[2];
 
-  const handleError = (msg: ErrorMsg) => {
-    switch (msg) {
-      case AUTH_EXPIRED:
-      case E_OFF_CHAIN_AUTH:
-        setOpenAuthModal();
-        return;
-      default:
-        dispatch(
-          setStatusDetail({
-            title: FILE_ACCESS,
-            icon: FILE_FAILED_URL,
-            buttonText: BUTTON_GOT_IT,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
-            errorText: 'Error message: ' + msg,
-          }),
-        );
-        return;
-    }
-  };
-
-  const onAccessChange = async (item: ObjectItem, visibility: number) => {
-    const payload = {
-      operator: loginAccount,
-      bucketName,
-      objectName: item.objectName,
-      visibility,
-    };
-
-    dispatch(
-      setStatusDetail({
-        icon: FILE_ACCESS_URL,
-        title: FILE_ACCESS,
-        desc: FILE_STATUS_ACCESS,
-      }),
-    );
-    const [_, error] = await updateObjectInfo(payload, connector!);
-
-    if (error) return handleError(error);
-    dispatch(setStatusDetail({} as TStatusDetail));
-    toast.success({ description: 'Access updated!' });
-    dispatch(updateObjectVisibility({ object: item, visibility }));
-  };
-
   return (
     <>
-      <DCDrawer isOpen={manageOpen} onClose={() => setManageOpen(false)}>
-        <QDrawerHeader alignItems="center">
-          <BackIcon mr={8} cursor="pointer" onClick={() => setManageOpen(false)} />
-          <Text
-            flex={1}
-            minW={0}
-            as="div"
-            fontSize={24}
-            lineHeight="32px"
-            fontWeight={600}
-            alignItems="center"
-            color={'readable.normal'}
-            display="flex"
-          >
-            Share “
-            {
-              <Text
-                fontWeight={600}
-                as="div"
-                flex={1}
-                maxW="max-Content"
-                whiteSpace="nowrap"
-                overflow="hidden"
-                textOverflow="ellipsis"
-              >
-                {editDetail.name}
-              </Text>
-            }
-            ”
-          </Text>
-        </QDrawerHeader>
-        <QDrawerBody>
-          <Box mt={8} mb={24}>
-            <AccessItem
-              value={editDetail.visibility}
-              onChange={(e) => onAccessChange(editDetail, e)}
-            />
-          </Box>
-          <Box mb={24}>
-            <ViewerList />
-          </Box>
-          <Flex flexDirection="column" alignItems="center" mt={116}>
-            <ComingSoon />
-            <Text fontWeight="400" color="#76808F" mt={20}>
-              Permission list will coming soon.
-            </Text>
-          </Flex>
-        </QDrawerBody>
-        <QDrawerFooter>
-          <DCButton variant="dcPrimary" width={'100%'} onClick={onCopy}>
-            {hasCopied ? (
-              <>
-                <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />
-                <Text fontWeight={500}>Copied</Text>
-              </>
-            ) : (
-              <>
-                <Text fontWeight={500}>Copy Link</Text>
-              </>
-            )}
-          </DCButton>
-        </QDrawerFooter>
-      </DCDrawer>
       {editDetail.objectStatus === 1 && owner && (
         <Container>
           <Title>Share with</Title>
@@ -196,7 +64,11 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
               {CurrentAccess.text}
             </AccessType>
             <Flex gap={8} flex={1} />
-            <ManageAccess onClick={() => setManageOpen(true)}>Manage Access</ManageAccess>
+            <ManageAccess
+              onClick={() => dispatch(setEditShare({ record: editDetail, from: 'drawer' }))}
+            >
+              Manage Access
+            </ManageAccess>
           </AccessRow>
           <Tip>Only people with access can open with the link.</Tip>
           <Box my={16}>

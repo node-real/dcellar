@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
@@ -10,13 +10,14 @@ import {
   setEditDelete,
   setEditDetail,
   setEditDownload,
+  setEditShare,
   setRestoreCurrent,
   setSelectedRowKeys,
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
 } from '@/store/slices/object';
-import { chunk, find, reverse, sortBy, uniq, without, xor } from 'lodash-es';
+import { find, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
 import {
   getSpOffChainData,
@@ -28,7 +29,7 @@ import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/componen
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/modules/object/components/ListEmpty';
-import { useAsyncEffect, useCreation } from 'ahooks';
+import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
 import { NameItem } from '@/modules/object/components/NameItem';
@@ -36,8 +37,6 @@ import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMe
 import { DeleteObject } from './DeleteObject';
 import { StatusDetail } from './StatusDetail';
 import { DetailObject } from './DetailObject';
-import { VisibilityType } from '@/modules/file/type';
-import { ShareObject } from './ShareObject';
 import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
@@ -57,9 +56,11 @@ import { CancelObject } from './CancelObject';
 import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
-import { UploadFile, selectUploadQueue } from '@/store/slices/global';
+import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { copy, getShareLink } from '@/utils/string';
 import { toast } from '@totejs/uikit';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -73,14 +74,9 @@ interface ObjectListProps {}
 
 export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const dispatch = useAppDispatch();
-  const {
-    loginAccount,
-    objectPageSize,
-    objectSortBy: [sortName, dir],
-    accounts,
-  } = useAppSelector((root) => root.persist);
-
-  const [rowIndex, setRowIndex] = useState(-1);
+  const { loginAccount, objectPageSize, objectSortBy, accounts } = useAppSelector(
+    (root) => root.persist,
+  );
   // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
     (root) => root.object,
@@ -95,8 +91,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
     useAppSelector((root) => root.object);
 
-  const ascend = sortBy(objectList, sortName);
-  const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
+  const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
+    list: objectList,
+    sorter: objectSortBy,
+    pageSize: objectPageSize,
+    currentPage,
+  });
+
   const primarySp = primarySpInfo[bucketName];
 
   useAsyncEffect(async () => {
@@ -148,13 +149,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         address: loginAccount,
       };
       const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
-      if (objectInfo === null) {
-        return onError(E_UNKNOWN);
-      }
-      if (quotaData === null) {
+      if (!quotaData) {
         return onError(E_GET_QUOTA_FAILED);
       }
-      if (objectInfo === null) {
+      if (!objectInfo) {
         return onError(E_OBJECT_NAME_EXISTS);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
@@ -183,9 +181,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
         return dispatch(setEditDelete(record));
       case 'share':
-        copy(getShareLink(bucketName, record.objectName));
-        toast.success({ description: 'Successfully copied to your clipboard.' });
-        return;
+        // copy(getShareLink(bucketName, record.objectName));
+        // toast.success({ description: 'Successfully copied to your clipboard.' });
+        return dispatch(setEditShare({ record, from: 'menu' }));
       case 'download':
         return download(record);
       case 'cancel':
@@ -260,18 +258,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       key: 'Action',
       width: 100,
       align: 'center' as AlignType,
-      title: 'Action',
-      render: (_: string, record: ObjectItem, index: number) => {
+      title: <></>,
+      render: (_: string, record: ObjectItem) => {
         let fitActions = Actions;
         let operations: string[] = [];
-        const isCurRow = rowIndex === index;
         const isFolder = record.objectName.endsWith('/');
-        const isPublic = record.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ;
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
-        // if (!isPublic) {
-        //   fitActions = Actions.filter((a) => a.value !== 'share');
-        // }
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
@@ -298,8 +291,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        isCurRow && !isFolder && isSealed && operations.push('share');
-        isCurRow && !isFolder && isSealed && operations.push('download');
+        !isFolder && isSealed && operations.push('share');
+        !isFolder && isSealed && operations.push('download');
 
         return (
           <ActionMenu
@@ -312,12 +305,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
-  const chunks = useCreation(() => chunk(sortedList, objectPageSize), [sortedList, objectPageSize]);
-  const pages = chunks.length;
-  const current = currentPage >= pages ? 0 : currentPage;
-  const page = chunks[current];
-  const canNext = current < pages - 1;
-  const canPrev = current > 0;
 
   const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
     if (prev || next) {
@@ -383,7 +370,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       {editDelete?.objectName && <DeleteObject refetch={refetch} />}
       {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
-      {editShare?.objectName && <ShareObject />}
+      <ShareDrawer />
       {editDownload?.objectName && <DownloadObject />}
       {editCancel.objectName && <CancelObject refetch={refetch} />}
       <UploadObjects />
@@ -405,16 +392,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record, index) => ({
+        onRow={(record) => ({
           onClick: () => {
             const isFolder = record.objectName.endsWith('/');
             !isFolder && onMenuClick('detail', record);
-          },
-          onMouseEnter: () => {
-            setRowIndex(Number(index));
-          },
-          onMouseLeave: () => {
-            setRowIndex(-1);
           },
         })}
         scroll={{ x: 800 }}

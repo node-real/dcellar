@@ -5,12 +5,23 @@ import { Flex, Image, Text, useDisclosure } from '@totejs/uikit';
 import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
-import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
+import {
+  downloadObject,
+  getCanObjectAccess,
+  hasObjectPermission,
+  previewObject,
+} from '@/facade/object';
 import { quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
+import {
+  E_NO_QUOTA,
+  E_OFF_CHAIN_AUTH,
+  E_PERMISSION_DENIED,
+  E_SP_NOT_FOUND,
+  E_UNKNOWN,
+} from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -20,6 +31,7 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getSpUrlByBucketName } from '@/facade/virtual-group';
 import { SpItem } from '@/store/slices/sp';
 import { VisibilityType } from '../file/type';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 
 interface SharedFileProps {
   fileName: string;
@@ -86,16 +98,28 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const operator = primarySp.operatorAddress;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
     const isPrivate = objectInfo.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-    if (isPrivate && loginAccount === objectInfo.owner) {
-      const [_, accessError] = await getCanObjectAccess(
-        bucketName,
-        objectName,
-        primarySpEndpoint,
-        loginAccount,
-        seedString,
-      );
-      const errType = accessError as ShareErrorType;
-      if (errType) return onError(errType);
+    if (isPrivate) {
+      if (loginAccount === objectInfo.owner) {
+        const [_, accessError] = await getCanObjectAccess(
+          bucketName,
+          objectName,
+          primarySpEndpoint,
+          loginAccount,
+          seedString,
+        );
+        const errType = accessError as ShareErrorType;
+        if (errType) return onError(errType);
+      } else {
+        const res = await hasObjectPermission(
+          bucketName,
+          objectName,
+          PermissionTypes.ActionType.ACTION_GET_OBJECT,
+          loginAccount,
+        );
+        if (res.effect !== PermissionTypes.Effect.EFFECT_ALLOW) {
+          return onError(E_PERMISSION_DENIED);
+        }
+      }
     }
     const params = {
       primarySp,

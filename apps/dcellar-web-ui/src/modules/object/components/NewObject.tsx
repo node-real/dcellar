@@ -25,7 +25,7 @@ import {
   setupListObjects,
 } from '@/store/slices/object';
 import { addToWaitQueue } from '@/store/slices/global';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-chain-sdk';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';

@@ -10,8 +10,8 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.18
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.5
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -64,8 +64,8 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.10
-      '@bnb-chain/greenfield-chain-sdk': 0.2.2-alpha.18
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.5
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@next/bundle-analyzer': 13.4.13
@@ -1570,11 +1570,19 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-chain-sdk/0.2.2-alpha.18:
-    resolution: {integrity: sha512-NRc9ZInXmjxipxZJJwLaKVcML+1imSrrXGPjHfa3I0GYPUsBZE2P3u9CnwtftNWph8O64GXhV07NfGEywBporw==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.18:
+    resolution: {integrity: sha512-UOdpZ8NCZZhJ5j7q5SUGW2TjgbBhnPjMG5beNk6QYQs7SjnY45ljFf3e9KicW77WvLCQDqUCpQLIgGE+y99AdQ==}
+    dependencies:
+      long: 4.0.0
+      protobufjs: 6.11.3
+    dev: false
+
+  /@bnb-chain/greenfield-js-sdk/0.2.4-alpha.5:
+    resolution: {integrity: sha512-vpH8HGy9dMPhO0MTV6sk5FkYELzGhkJKedNXD4wu8fGSwIFqfskxOJ76qSAC2UPRatDYXQKNLHYjqJSFHADLqg==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
+      '@bnb-chain/greenfield-zk-crypto': 0.0.2-alpha.3
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
@@ -1587,6 +1595,7 @@ packages:
       dayjs: 1.11.9
       dotenv: 16.3.1
       ethereum-cryptography: 2.1.2
+      lodash.clonedeep: 4.5.0
       lodash.mapvalues: 4.6.0
       lodash.sortby: 4.7.0
       long: 5.2.3
@@ -1599,11 +1608,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.18:
-    resolution: {integrity: sha512-UOdpZ8NCZZhJ5j7q5SUGW2TjgbBhnPjMG5beNk6QYQs7SjnY45ljFf3e9KicW77WvLCQDqUCpQLIgGE+y99AdQ==}
-    dependencies:
-      long: 4.0.0
-      protobufjs: 6.11.3
+  /@bnb-chain/greenfield-zk-crypto/0.0.2-alpha.3:
+    resolution: {integrity: sha512-k6CketiuZnxNWgrpq8+HXUaUuL3ZZ6KHj0rKt3TwSQH3W1bP/toUHMLR72+BjjZCf192E+vf6cUUwnBh/p7N4A==}
     dev: false
 
   /@builder.io/partytown/0.7.6:
@@ -7215,6 +7221,10 @@ packages:
 
   /lodash.camelcase/4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
+
+  /lodash.clonedeep/4.5.0:
+    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
+    dev: false
 
   /lodash.debounce/4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}

@@ -1,12 +1,15 @@
-import { IQuotaProps, TGetBucketReadQuota } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import {
+  IQuotaProps,
+  TGetBucketReadQuota,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { getDomain } from '@/utils/getDomain';
 import { commonFault, ErrorResponse, offChainAuthFault, simulateFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
-import { BucketProps } from '@bnb-chain/greenfield-chain-sdk/dist/cjs/types';
-import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-chain-sdk';
+import { BucketProps } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
+import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
 
 export type TGetReadQuotaParams = {
   bucketName: string;

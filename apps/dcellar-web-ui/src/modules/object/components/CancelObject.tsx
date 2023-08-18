@@ -29,7 +29,7 @@ import {
   TStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-chain-sdk';
+import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';

@@ -6,7 +6,7 @@ import {
   PermissionTypes,
   newBucketGRN,
   newObjectGRN,
-} from '@bnb-chain/greenfield-chain-sdk';
+} from '@bnb-chain/greenfield-js-sdk';
 import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coin';
 import { Wallet } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';
@@ -18,7 +18,6 @@ import { signTypedDataCallback } from '@/facade/wallet';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
-type ActionType = 'delete' | 'create';
 
 export const getAccountBalance = async ({
   address,
@@ -121,11 +120,5 @@ export const createTmpAccount = async ({
     return [null, error || UNKNOWN_ERROR];
   }
 
-  return [
-    {
-      address: wallet.address,
-      privateKey: wallet.privateKey,
-    },
-    null,
-  ];
+  return [{ address: wallet.address, privateKey: wallet.privateKey }, null];
 };
