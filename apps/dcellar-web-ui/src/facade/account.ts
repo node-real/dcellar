@@ -15,6 +15,7 @@ import { ErrorResponse, broadcastFault, simulateFault, createTxFault } from './e
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataCallback } from '@/facade/wallet';
+import { signTypedDataV4 } from '@/utils/signDataV4';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -104,8 +105,16 @@ export const createTmpAccount = async ({
     granter: '',
     signTypedDataCallback: signTypedDataCallback(connector),
   };
-
-  const [res, error] = await txs.broadcast(payload).then(resolve, broadcastFault);
+  const payloadParam = isDelete
+    ? {
+        ...payload,
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
+        },
+      }
+    : payload;
+  const [res, error] = await txs.broadcast(payloadParam).then(resolve, broadcastFault);
 
   if ((res && res.code !== 0) || error) {
     return [null, error || UNKNOWN_ERROR];

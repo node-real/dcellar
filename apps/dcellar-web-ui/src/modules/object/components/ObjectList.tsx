@@ -272,7 +272,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.file.name].join('/') === record.objectName,
+            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');

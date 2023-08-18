@@ -27,7 +27,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.10.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.49.4
+      '@totejs/uikit': ~2.50.2
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -74,7 +74,7 @@ importers:
       '@tanstack/react-table': 8.9.3_react-dom@18.2.0+react@18.2.0
       '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.15.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.49.4_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.50.2_aa3274991927adc2766d9259998fdd18
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
@@ -3609,8 +3609,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.49.4_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-t54IRHjIyJl71ecCpbnB7dqYZYhp6y6XLzoZqZiYQoEryWpgMD0VHovp9lwMulyJt7YR9rCDHFekD3dRwDwgGg==}
+  /@totejs/uikit/2.50.2_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-uvwBss+gI0J/gbpX/VplTUig5VH47dydJBMZIqDIsXVQACmLV9pf/1IPSbV+TgufyPQ4XlAOJrL2klHWNYn+3g==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'

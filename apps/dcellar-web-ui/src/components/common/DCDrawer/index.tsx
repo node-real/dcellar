@@ -27,8 +27,7 @@ export const DCDrawer = (props: DCDrawerProps) => {
         w={568}
         padding="16px 24px"
         onClose={onBeforeClose}
-
-        // rootProps={{ top: 68 }}
+        rootProps={{ top: 64.5 }}
         {...restProps}
       >
         {children}

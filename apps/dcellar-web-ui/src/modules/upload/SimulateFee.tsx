@@ -58,19 +58,24 @@ export const Fee = () => {
     if (isEmpty(preLockFeeObject) || isChecking) {
       return '-1';
     }
-    const size = waitQueue
+    const calRes = waitQueue
       .filter((item) => item.status !== 'ERROR')
-      .reduce((acc, cur) => acc + cur.size, 0);
+      .reduce(
+        (sum, obj) =>
+          sum.plus(
+            BigNumber(
+              calPreLockFee({
+                size: obj.size || 0,
+                primarySpAddress: primarySp.operatorAddress,
+                preLockFeeObject: preLockFeeObject,
+              }),
+            ),
+          ),
+        BigNumber(0),
+      )
+      .toString();
 
-    if (size === 0) return '0';
-
-    const lockFee = calPreLockFee({
-      size,
-      primarySpAddress: primarySp.operatorAddress,
-      preLockFeeObject: preLockFeeObject,
-    });
-
-    return lockFee;
+    return calRes;
   }, [waitQueue, isChecking, preLockFeeObjects, primarySp?.operatorAddress]);
 
   const gasFee = isChecking

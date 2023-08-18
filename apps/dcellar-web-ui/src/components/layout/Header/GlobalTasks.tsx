@@ -4,10 +4,10 @@ import {
   progressFetchList,
   selectHashTask,
   selectUploadQueue,
+  setupUploadTaskErrorMsg,
   updateUploadChecksum,
   updateUploadProgress,
   updateUploadStatus,
-  updateUploadTaskMsg,
   UploadFile,
   uploadQueueAndRefresh,
 } from '@/store/slices/global';
@@ -23,8 +23,8 @@ import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
-import { isEmpty } from 'lodash-es';
 import { parseErrorXml } from '@/utils/common';
+import { isEmpty, keyBy } from 'lodash-es';
 
 interface GlobalTasksProps {}
 
@@ -37,8 +37,18 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
+  const folderInfos = keyBy(queue.filter((q) => q.waitFile.name.endsWith('/')), 'name');
   const upload = queue.filter((t) => t.status === 'UPLOAD');
-  const ready = queue.filter((t) => t.status === 'READY');
+  const ready = queue.filter((t) => {
+    const isFolder = t.waitFile.name.endsWith('/');
+    const parentFolder = isFolder ? t.waitFile.name.split('/').slice(0, -1).join('/') + '/' : t.waitFile.relativePath + '/';
+    if (!folderInfos[parentFolder]) {
+      return t.status === 'READY';
+    }
+    if (t.waitFile.relativePath && folderInfos[parentFolder]) {
+      return folderInfos[parentFolder].status === 'FINISH' && t.status === 'READY';
+    }
+  });
   const offset = 1 - upload.length;
 
   const select1Task = useMemo(() => {
@@ -52,17 +62,14 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     if (!hashTask) return;
     dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
     const a = performance.now();
-    const res = await checksumApi?.generateCheckSumV2(hashTask.file.file);
+    const res = await checksumApi?.generateCheckSumV2(hashTask.waitFile.file);
     console.log('hashing time', performance.now() - a);
     if (isEmpty(res)) {
-      dispatch(
-        updateUploadTaskMsg({
-          id: hashTask.id,
-          msg: 'calculating hash error',
-          account: loginAccount,
-        }),
-      );
-      return;
+      return dispatch(setupUploadTaskErrorMsg({
+        account: loginAccount,
+        task: hashTask,
+        errorMsg: 'calculating hash error',
+      }))
     }
     const { expectCheckSums } = res!;
     dispatch(
@@ -78,15 +85,16 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const runUploadTask = async (task: UploadFile) => {
     // 1. get approval from sp
     const domain = getDomain();
+    const isFolder = task.waitFile.name.endsWith('/');
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
-    const finalName = [...task.prefixFolders, task.file.name].join('/');
+    const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name].filter(item => !!item).join('/');
     const createObjectPayload: TCreateObject = {
       bucketName: task.bucketName,
       objectName: finalName,
       creator: tmpAccount.address,
       visibility: reverseVisibilityType[task.visibility],
-      fileType: task.file.type || 'application/octet-stream',
-      contentLength: task.file.size,
+      fileType: task.waitFile.type || 'application/octet-stream',
+      contentLength: task.waitFile.size,
       expectCheckSums: task.checksum,
       signType: 'authTypeV1',
       privateKey: tmpAccount.privateKey,
@@ -96,13 +104,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       createTxFault,
     );
     if (_createError) {
-      return dispatch(
-        updateUploadTaskMsg({
-          account: loginAccount,
-          id: task.id,
-          msg: _createError,
-        }),
-      );
+      return dispatch(setupUploadTaskErrorMsg({
+        account: loginAccount,
+        task,
+        errorMsg: _createError,
+      }))
     }
 
     const [simulateInfo, simulateError] = await createObjectTx!
@@ -111,13 +117,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       })
       .then(resolve, simulateFault);
     if (!simulateInfo || simulateError) {
-      return dispatch(
-        updateUploadTaskMsg({
-          account: loginAccount,
-          id: task.id,
-          msg: simulateError,
-        }),
-      );
+      return dispatch(setupUploadTaskErrorMsg({
+        account: loginAccount,
+        task,
+        errorMsg: simulateError,
+      }))
     }
 
     const broadcastPayload = {
@@ -132,42 +136,43 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      dispatch(
-        updateUploadTaskMsg({
-          account: loginAccount,
-          id: task.id,
-          msg: error,
-        }),
-      );
-      return;
+      return dispatch(setupUploadTaskErrorMsg({
+        account: loginAccount,
+        task,
+        errorMsg: error,
+      }))
     }
-    const [uploadOptions, gpooError] = await generatePutObjectOptions({
+    const fullObjectName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name].filter(item => !!item).join('/');
+    const payload = {
       bucketName: task.bucketName,
-      objectName: [...task.prefixFolders, task.file.name].join('/'),
-      body: task.file.file,
+      objectName: fullObjectName,
+      body: task.waitFile.file,
       endpoint: spInfo[task.spAddress].endpoint,
       txnHash: res.transactionHash,
       userAddress: loginAccount,
       domain,
       seedString,
-    }).then(resolve, commonFault);
+    }
+    const [uploadOptions, gpooError] = await generatePutObjectOptions(payload).then(resolve, commonFault);
 
     if (!uploadOptions || gpooError) {
-      return dispatch(
-        updateUploadTaskMsg({
-          account: loginAccount,
-          id: task.id,
-          msg: gpooError,
-        }),
-      );
+      return dispatch(setupUploadTaskErrorMsg({
+        account: loginAccount,
+        task,
+        errorMsg: gpooError,
+      }))
     }
     const { url, headers } = uploadOptions;
-    axios
-      .put(url, task.file.file, {
+    if (isFolder) {
+      dispatch(updateUploadStatus({
+        account: loginAccount,
+        ids: [task.id],
+        status: 'SEAL',
+      }));
+    } else {
+      axios.put(url, task.waitFile.file, {
         async onUploadProgress(progressEvent) {
-          const progress = Math.round(
-            (progressEvent.loaded / (progressEvent.total as number)) * 100,
-          );
+          const progress = Math.round((progressEvent.loaded / (progressEvent.total as number)) * 100);
           await dispatch(progressFetchList(task));
           dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
         },
@@ -177,19 +182,16 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
           'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
         },
+      }).catch(async (e: Response | any) => {
+        const {message} = await parseErrorXml(e)
+        dispatch(setupUploadTaskErrorMsg({
+          account: loginAccount,
+          task,
+          errorMsg: message || e?.message || 'upload error',
+        }))
       })
-      .catch(async (e: Response) => {
-        const { code, message } = await parseErrorXml(e);
-        dispatch(
-          updateUploadTaskMsg({
-            account: loginAccount,
-            id: task.id,
-            msg: message || 'Upload error',
-          }),
-        );
-      });
-  };
-
+    };
+  }
   useAsyncEffect(async () => {
     if (!select1Task.length) return;
     dispatch(updateUploadStatus({ ids: select1Task, status: 'UPLOAD', account: loginAccount }));
@@ -203,17 +205,16 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
 
     const _tasks = await Promise.all(
       tasks.map(async (task) => {
-        const { bucketName, prefixFolders, file } = task;
-        const objectName = [...prefixFolders, file.name].join('/');
+        const { bucketName, prefixFolders, waitFile } = task;
+        const objectName = [...prefixFolders, waitFile.relativePath, waitFile.name].filter(item => !!item).join('/');
         const objectInfo = await headObject(bucketName, objectName);
+
         if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
-          dispatch(
-            updateUploadTaskMsg({
-              id: task.id,
-              msg: 'Something went wrong.',
-              account: loginAccount,
-            }),
-          );
+          dispatch(setupUploadTaskErrorMsg({
+            account: loginAccount,
+            task,
+            errorMsg: 'Something went wrong.',
+          }))
           return -1;
         }
         if (objectInfo.objectStatus === 1) {
