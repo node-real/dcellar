@@ -11,7 +11,7 @@ import {
   Text,
   toast,
 } from '@totejs/uikit';
-import { InputItem } from '@/modules/file/components/InputItem';
+import { InputItem } from '@/components/formitems/InputItem';
 import { GasFeeItem } from '@/modules/file/components/GasFeeItem';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
@@ -29,10 +29,7 @@ import {
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
-import {
-  MsgCreateObjectTypeUrl,
-  TCreateObjectByOffChainAuth,
-} from '@bnb-chain/greenfield-js-sdk';
+import { MsgCreateObjectTypeUrl, TCreateObjectByOffChainAuth } from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';

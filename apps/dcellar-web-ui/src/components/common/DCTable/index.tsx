@@ -13,23 +13,11 @@ import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
 import { formatBytes } from '@/modules/file/utils';
+import { theme } from '@/base/theme/antd';
 
 export type AlignType = 'left' | 'right' | 'center';
 
 export type FixedType = 'left' | 'right' | boolean;
-
-const theme: ThemeConfig = {
-  token: {
-    colorPrimary: '#00BA34',
-    colorBorderSecondary: '#e6e8ea',
-    colorLink: '#00BA34',
-    colorLinkActive: '#00BA34',
-    colorLinkHover: '#00BA34',
-    colorText: '#1E2026',
-    colorTextHeading: '#76808F',
-    fontFamily: 'Inter, sans-serif',
-  },
-};
 
 interface DCTable extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
@@ -120,9 +108,13 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
   const { loginAccount } = useAppSelector((root) => root.persist);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
 
+
   const file = find<UploadFile>(
     queue,
-    (q) => [q.bucketName, ...q.prefixFolders, q.file.name].join('/') === object,
+    (q) => {
+      const objectInList = [q.bucketName, ...q.prefixFolders, (q.waitFile.relativePath || ''), q.waitFile.name].filter(item => !!item).join('/');
+      return  objectInList === object
+    }
   );
 
   const failed = (
@@ -240,5 +232,17 @@ const Container = styled.div`
   .ant-checkbox-indeterminate:hover .ant-checkbox-inner {
     background-color: #2ec659;
     border-color: #2ec659;
+  }
+
+  .ant-table-cell {
+    .btn-action {
+      visibility: hidden;
+    }
+
+    &-row-hover {
+      .btn-action {
+        visibility: visible;
+      }
+    }
   }
 `;

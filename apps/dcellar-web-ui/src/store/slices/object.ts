@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
-import { find, last, omit, trimEnd } from 'lodash-es';
+import { find, get, last, omit, trimEnd } from 'lodash-es';
 import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
@@ -56,7 +56,10 @@ export interface ObjectState {
   editDelete: ObjectItem;
   editCreate: boolean;
   editDownload: ObjectItem & { action?: ObjectActionType };
-  editShare: ObjectItem;
+  editShare: {
+    record: ObjectItem;
+    from: string;
+  };
   editCancel: ObjectItem;
   statusDetail: TStatusDetail;
   editUpload: TEditUpload;
@@ -79,7 +82,10 @@ const initialState: ObjectState = {
   editDelete: {} as ObjectItem,
   editCreate: false,
   editDownload: {} as ObjectItem & { action?: ObjectActionType },
-  editShare: {} as ObjectItem,
+  editShare: {
+    record: {} as ObjectItem,
+    from: 'menu',
+  },
   editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
   editUpload: {} as TEditUpload,
@@ -111,6 +117,9 @@ export const objectSlice = createSlice({
       );
       if (state.editDetail.objectName === object.objectName) {
         state.editDetail.visibility = visibility;
+      }
+      if (get(state.editShare, 'record.objectName') === object.objectName) {
+        state.editShare.record.visibility = visibility;
       }
       if (!item) return;
       item.visibility = visibility;
@@ -188,8 +197,12 @@ export const objectSlice = createSlice({
     setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
       state.editCancel = payload;
     },
-    setEditShare(state, { payload }: PayloadAction<ObjectItem>) {
-      state.editShare = payload;
+    setEditShare(state, { payload }: PayloadAction<{ record: ObjectItem; from: string }>) {
+      const { record, from } = payload;
+      state.editShare = {
+        record,
+        from,
+      };
     },
     setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;

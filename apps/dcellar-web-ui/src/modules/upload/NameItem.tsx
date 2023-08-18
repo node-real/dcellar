@@ -9,7 +9,7 @@ type Props = {
   status?: string;
   [key: string]: any;
 };
-export const NameItem = ({ name, size, msg,  status, ...styleProps }: Props) => {
+export const NameItem = ({ name, size, msg, status, ...styleProps }: Props) => {
   const fileType = contentIconTypeToExtension(name);
   const icon = (
     <Flex
@@ -34,10 +34,14 @@ export const NameItem = ({ name, size, msg,  status, ...styleProps }: Props) => 
       {icon}
       <Box w="calc(100% - 39px)">
         <EllipsisText marginRight={'12px'}>{name}</EllipsisText>
-        {status && ['CANCEL', 'ERROR'].includes(status) || msg ? (
-          <EllipsisText fontWeight={400} color={'red'}>{msg}</EllipsisText>
+        {(status && ['CANCEL', 'ERROR'].includes(status)) || msg ? (
+          <EllipsisText fontWeight={400} color={'red'}>
+            {msg}
+          </EllipsisText>
         ) : (
-          <EllipsisText fontWeight={400} color="readable.tertiary">{formatBytes(size)}</EllipsisText>
+          <EllipsisText fontWeight={400} color="readable.tertiary">
+            {size ? formatBytes(size) : '--'}
+          </EllipsisText>
         )}
       </Box>
     </Flex>

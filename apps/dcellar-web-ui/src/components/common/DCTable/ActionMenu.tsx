@@ -6,6 +6,7 @@ import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
 import { isEmpty } from 'lodash-es';
 import ShareIcon from '@/public/images/icons/share.svg';
+import AddMember from '@/public/images/icons/add_member.svg';
 import { DownloadIcon } from '@totejs/icons';
 import { ActionButton } from '@/modules/file/components/FileTable';
 
@@ -28,23 +29,48 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
     <Flex justifyContent={justifyContent || 'center'}>
       {operations.map((m) => {
         switch (m) {
+          case 'add':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.group.add_member.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <AddMember />
+              </ActionButton>
+            );
           case 'download':
-            return <ActionButton key={m} gaClickName="dc.file.download_btn.0.click" marginRight={'8px'}  onClick={() => (onChange(m))}>
-              <DownloadIcon size="md" color="readable.brand6" />
-            </ActionButton>;
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.file.download_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <DownloadIcon size="md" color="readable.brand6" />
+              </ActionButton>
+            );
           case 'share':
-            return <ActionButton marginRight={'8px'} key={m} gaClickName="dc.file.share_btn.0.click" onClick={() => (onChange(m))}>
-              <ShareIcon />
-            </ActionButton>;
+            return (
+              <ActionButton
+                marginRight={'8px'}
+                key={m}
+                gaClickName="dc.file.share_btn.0.click"
+                onClick={() => onChange(m)}
+              >
+                <ShareIcon />
+              </ActionButton>
+            );
         }
       })}
-      <Menu placement="bottom-end" trigger="hover" strategy='fixed'>
+      <Menu placement="bottom-end" trigger="hover" strategy="fixed">
         {({ isOpen }) => (
           <>
             <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
               <MenuIcon />
             </StyledMenuButton>
-            <MenuList w={120}>
+            <MenuList minW={120}>
               <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
               {menus.map((m) => (
                 <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>

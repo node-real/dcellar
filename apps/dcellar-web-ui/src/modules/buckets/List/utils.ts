@@ -67,10 +67,9 @@ export const getBucketMeta = async (params: {
 }) => {
   const { bucketName, endpoint } = params;
   const url = `${endpoint}/${bucketName}?bucket-meta`;
-  const res = await axios.get(url)
-    .catch((e) => {
-      return e.response;
-    });
+  const res = await axios.get(url).catch((e) => {
+    return e.response;
+  });
   return res;
 };
 // TODO This is a temp solution

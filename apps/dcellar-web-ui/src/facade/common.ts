@@ -35,7 +35,7 @@ export const getObjectInfoAndBucketQuota = async ({
         domain: getDomain(),
       })
       .catch((e) => {
-        return {} as IObjectResultType<IQuotaProps>
+        return {} as IObjectResultType<IQuotaProps>;
       }),
   ]);
 

@@ -6,7 +6,11 @@ import {
   renderPrelockedFeeValue,
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { MsgCreateObjectTypeUrl, MsgGrantAllowanceTypeUrl, MsgPutPolicyTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import {
+  MsgCreateObjectTypeUrl,
+  MsgGrantAllowanceTypeUrl,
+  MsgPutPolicyTypeUrl,
+} from '@bnb-chain/greenfield-js-sdk';
 import { Box, Flex, Text, useDisclosure, Link } from '@totejs/uikit';
 import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect, useMount } from 'ahooks';
@@ -28,7 +32,8 @@ export const Fee = () => {
   const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const { bucketName } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const isChecking = waitQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
+  const isChecking =
+    waitQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   const { isOpen, onToggle } = useDisclosure();
   const primarySp = primarySpInfo[bucketName];
   useAsyncEffect(async () => {
@@ -39,7 +44,9 @@ export const Fee = () => {
   }, [primarySp?.operatorAddress]);
 
   const createTmpAccountGasFee = useMemo(() => {
-    const grantAllowTxFee = BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1));
+    const grantAllowTxFee = BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(
+      BigNumber(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
+    );
     const putPolicyTxFee = BigNumber(gasObjects[MsgPutPolicyTypeUrl].gasFee);
 
     return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
@@ -51,33 +58,46 @@ export const Fee = () => {
     if (isEmpty(preLockFeeObject) || isChecking) {
       return '-1';
     }
-    const size = waitQueue
+    const calRes = waitQueue
       .filter((item) => item.status !== 'ERROR')
-      .reduce((acc, cur) => acc + cur.size, 0);
+      .reduce(
+        (sum, obj) =>
+          sum.plus(
+            BigNumber(
+              calPreLockFee({
+                size: obj.size || 0,
+                primarySpAddress: primarySp.operatorAddress,
+                preLockFeeObject: preLockFeeObject,
+              }),
+            ),
+          ),
+        BigNumber(0),
+      )
+      .toString();
 
-    if (size === 0) return '0';
-
-    const lockFee = calPreLockFee({
-      size,
-      primarySpAddress: primarySp.operatorAddress,
-      preLockFeeObject: preLockFeeObject,
-    });
-
-    return lockFee;
+    return calRes;
   }, [waitQueue, isChecking, preLockFeeObjects, primarySp?.operatorAddress]);
 
   const gasFee = isChecking
     ? -1
-    : BigNumber(waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length).times(singleTxGasFee).plus(BigNumber(createTmpAccountGasFee).toString(DECIMAL_NUMBER)).toString(DECIMAL_NUMBER);
+    : BigNumber(waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length)
+        .times(singleTxGasFee)
+        .plus(BigNumber(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
+        .toString(DECIMAL_NUMBER);
 
   useEffect(() => {
     if (gasFee && lockFee) {
-      dispatch(setEditUpload({
-        gasFee: BigNumber(gasFee).toString(DECIMAL_NUMBER),
-        preLockFee: BigNumber(lockFee).toString(DECIMAL_NUMBER),
-        totalFee: BigNumber(gasFee).plus(BigNumber(lockFee)).toString(DECIMAL_NUMBER),
-        isBalanceAvailable: BigNumber(availableBalance).minus(BigNumber(gasFee)).minus(BigNumber(lockFee)).isPositive(),
-      }))
+      dispatch(
+        setEditUpload({
+          gasFee: BigNumber(gasFee).toString(DECIMAL_NUMBER),
+          preLockFee: BigNumber(lockFee).toString(DECIMAL_NUMBER),
+          totalFee: BigNumber(gasFee).plus(BigNumber(lockFee)).toString(DECIMAL_NUMBER),
+          isBalanceAvailable: BigNumber(availableBalance)
+            .minus(BigNumber(gasFee))
+            .minus(BigNumber(lockFee))
+            .isPositive(),
+        }),
+      );
     }
   }, [availableBalance, dispatch, gasFee, lockFee]);
   useMount(() => {
@@ -118,7 +138,7 @@ export const Fee = () => {
   };
 
   return (
-    <Flex flexDirection={'column'} w="100%" padding={'8px'} bg={'bg.secondary'} borderRadius="12px">
+    <Flex flexDirection={'column'} w="100%" padding={'8px'} bg={'bg.secondary'} borderRadius="4px">
       <Flex
         paddingBottom={'4px'}
         fontSize={'14px'}

@@ -1,12 +1,12 @@
 import {
+  generateUrlByBucketName,
   IObjectResponse,
   IObjectResultType,
-  TListObjects,
   IQuotaProps,
-  TxResponse,
   ISimulateGasFee,
-  generateUrlByBucketName,
   PermissionTypes,
+  TListObjects,
+  TxResponse,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,
@@ -40,15 +40,18 @@ import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { signTypedDataV4 } from '@/utils/signDataV4';
 import { getDomain } from '@/utils/getDomain';
 import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/file/utils';
-import { ActionType } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
+import {
+  ActionType,
+  PrincipalType,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
+import { GROUP_ID } from '@/utils/regex';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
-type BroadcastResponse = Promise<ErrorResponse | [DeliverResponse, null]>;
+export type BroadcastResponse = Promise<ErrorResponse | [DeliverResponse, null]>;
 
 export const updateObjectInfo = async (
   msg: MsgUpdateObjectInfo,
@@ -113,6 +116,7 @@ export const getCanObjectAccess = async (
     PermissionTypes.ActionType.ACTION_GET_OBJECT,
     loginAccount,
   );
+
   if (
     info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE &&
     loginAccount !== info.owner &&
@@ -120,9 +124,12 @@ export const getCanObjectAccess = async (
   )
     return [false, E_PERMISSION_DENIED];
 
-  if (!quota) return [false, E_UNKNOWN];
-  if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
-  return [true, '', info, quota];
+  // only own can get bucket quota
+  if (loginAccount === info.owner) {
+    if (!quota) return [false, E_UNKNOWN];
+    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
+  }
+  return [true, '', info, quota!];
 };
 
 export type DownloadPreviewParams = {
@@ -225,67 +232,82 @@ export const getListObjects = async (
   params: TListObjects,
 ): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
   const client = await getClient();
-  const payload = params;
-  const [list, error] = (await client.object
-    .listObjects(payload)
-    .then(resolve, commonFault)) as any;
+  const [list, error] = (await client.object.listObjects(params).then(resolve, commonFault)) as any;
   if (error) return [null, error];
   return [list! as IObjectResultType<IObjectList>, null];
 };
 
-export const deleteObject = async (params: any, Connector: any): Promise<any> => {
-  const { bucketName, objectName, address } = params;
-  const client = await getClient();
-  const delObjTx = await client.object.deleteObject({
-    bucketName,
-    objectName,
-    operator: address,
-  });
-  const [simulateInfo, simulateError] = await delObjTx
-    .simulate({
-      denom: 'BNB',
-    })
-    .then(resolve, simulateFault);
-  if (simulateError) return [null, simulateError];
-  const broadcastPayload = {
-    denom: 'BNB',
-    gasLimit: Number(simulateInfo?.gasLimit),
-    gasPrice: simulateInfo?.gasPrice || '5000000000',
-    payer: address,
-    granter: '',
-    signTypedDataCallback: async (addr: string, message: string) => {
-      const provider = await Connector?.getProvider();
-      return await signTypedDataV4(provider, addr, message);
-    },
-  };
-
-  return await delObjTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+export type CancelDeleteParams = {
+  bucketName: string;
+  objectName: string;
+  loginAccount?: string;
+  operator: string;
+  connector: Connector;
+  privateKey?: string;
 };
 
-export const cancelCreateObject = async (params: any, Connector: any): Promise<any> => {
-  const { bucketName, objectName, address } = params;
+export const deleteObject = async ({
+  bucketName,
+  objectName,
+  operator,
+  loginAccount = '',
+  connector,
+  privateKey,
+}: CancelDeleteParams): BroadcastResponse => {
   const client = await getClient();
-  const cancelObjectTx = await client.object.cancelCreateObject({
-    bucketName,
-    objectName,
-    operator: address,
-  });
-  const [simulateInfo, simulateError] = await cancelObjectTx
-    .simulate({
-      denom: 'BNB',
-    })
+  const [delObjTx, error1] = await client.object
+    .deleteObject({ bucketName, objectName, operator })
+    .then(resolve, createTxFault);
+  if (!delObjTx) return [null, error1];
+
+  const [simulateInfo, error2] = await delObjTx
+    .simulate({ denom: 'BNB' })
     .then(resolve, simulateFault);
-  if (simulateError) return [null, simulateError];
-  const broadcastPayload = {
+  if (!simulateInfo) return [null, error2];
+
+  const payload = {
     denom: 'BNB',
     gasLimit: Number(simulateInfo?.gasLimit),
     gasPrice: simulateInfo?.gasPrice || '5000000000',
-    payer: address,
-    granter: '',
-    signTypedDataCallback: signTypedDataCallback(Connector),
+    payer: operator,
+    granter: privateKey ? loginAccount : '', // currently only grant to login user,
+    privateKey,
+    signTypedDataCallback: signTypedDataCallback(connector),
   };
 
-  return await cancelObjectTx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+  return delObjTx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const cancelCreateObject = async ({
+  bucketName,
+  objectName,
+  loginAccount = '',
+  operator,
+  connector,
+  privateKey,
+}: CancelDeleteParams): BroadcastResponse => {
+  const client = await getClient();
+  const [cancelObjectTx, error1] = await client.object
+    .cancelCreateObject({ bucketName, objectName, operator })
+    .then(resolve, createTxFault);
+  if (!cancelObjectTx) return [null, error1];
+
+  const [simulateInfo, error2] = await cancelObjectTx
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+  if (!simulateInfo) return [null, error2];
+
+  const payload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: operator,
+    granter: privateKey ? loginAccount : '', // currently only grant to login user
+    privateKey,
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+
+  return cancelObjectTx.broadcast(payload).then(resolve, broadcastFault);
 };
 
 export const queryLockFee = async (params: QueryLockFeeRequest) => {
@@ -329,15 +351,45 @@ export const putObjectPolicies = async (
   bucketName: string,
   objectName: string,
   srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>[],
-): BroadcastResponse => {
+): Promise<ErrorResponse | [DeliverResponse, null] | [null, null, string[]]> => {
   const client = await getClient();
+
   const opts = await Promise.all(
     srcMsg.map((msg) =>
       client.object.putObjectPolicy(bucketName, objectName, msg).then(resolve, createTxFault),
     ),
   );
+
   if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
   const _opts = opts.map((opt) => opt[0] as TxResponse);
+
+  const groups = srcMsg
+    .map((i, index) => ({
+      type: i.principal!.type,
+      value: i.principal!.value,
+      index,
+      tx: _opts[index],
+    }))
+    .filter((i) => i.type === PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP);
+
+  const ids = [];
+
+  // todo
+  for await (const group of groups) {
+    if (!group.value.match(GROUP_ID)) {
+      ids.push(group.value);
+      continue;
+    }
+    const [s, e] = await group.tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+    if (e?.includes('No such group')) {
+      ids.push(group.value);
+    }
+  }
+
+  if (ids.length) {
+    return [null, null, ids];
+  }
+
   const txs = await client.basic.multiTx(_opts);
   const [simulateInfo, simulateError] = await txs
     .simulate({ denom: 'BNB' })

@@ -42,6 +42,10 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Object name already exists',
     icon: FILE_FAILED_URL
   },
+  FOLDER_NAME_EXISTS: {
+    title: 'Folder name already exists',
+    icon: FILE_FAILED_URL,
+  },
   ACCOUNT_BALANCE_NOT_ENOUGH: {
     title: 'Account balance is not enough',
     icon: FILE_FAILED_URL,
@@ -56,6 +60,11 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Get storage price failed',
     icon: FILE_FAILED_URL,
     desc: 'Get storage price failed, please select another SP.',
+  },
+  FOLDER_NAME_TOO_LONG: {
+    title: 'Must be between 1 to 70 characters long.',
+    icon: FILE_TOO_LARGE_URL,
+    desc: 'Folder name must be between 1 to 70 characters long.',
   }
 }
 

@@ -11,7 +11,7 @@ import {
   toast,
 } from '@totejs/uikit';
 import { DCModal } from '@/components/common/DCModal';
-import { InputItem } from '@/modules/file/components/InputItem';
+import { InputItem } from '@/components/formitems/InputItem';
 import { GasFeeItem } from '@/modules/file/components/GasFeeItem';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';

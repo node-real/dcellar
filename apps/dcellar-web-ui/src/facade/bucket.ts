@@ -1,4 +1,7 @@
-import { IQuotaProps, TGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
+import {
+  IQuotaProps,
+  TGetBucketReadQuota,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';

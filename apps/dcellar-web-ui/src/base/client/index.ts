@@ -9,7 +9,7 @@ export const getSingleton = function () {
       client = Client.create(GREENFIELD_CHAIN_RPC_URL, String(GREENFIELD_CHAIN_ID));
     }
     return client;
-  }
+  };
 };
 
 export const getClient = getSingleton();

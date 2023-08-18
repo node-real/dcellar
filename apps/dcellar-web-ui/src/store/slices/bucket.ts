@@ -72,7 +72,7 @@ export const bucketSlice = createSlice({
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
     },
-    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo}>) {
+    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo }>) {
       const { address, bucket } = payload;
       if (!address) return;
       const bucketName = bucket.bucketName;
@@ -127,34 +127,34 @@ export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket}));
+    dispatch(setBucketInfo({ address, bucket }));
   };
 
 export const setupBuckets =
   (address: string, forceLoading = false) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { oneSp, spInfo, allSps } = getState().sp;
-      const { buckets } = getState().bucket;
-      const sp = spInfo[oneSp];
-      if (!(address in buckets) || forceLoading) {
-        dispatch(setLoading(true));
-      }
-      const [res, error] = await getUserBuckets(address, sp.endpoint);
-      dispatch(setLoading(false));
-      if (error || !res || res.code !== 0) {
-        toast.error({ description: error || res?.message });
-        return;
-      }
-      const bucketList = res.body?.map((bucket) => {
-        return {
-          ...bucket,
-          bucket_info: {
-            ...bucket.bucket_info,
-          },
-        }
-      })
-      dispatch(setBucketList({ address, buckets: bucketList || [] }));
-    };
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { oneSp, spInfo } = getState().sp;
+    const { buckets } = getState().bucket;
+    const sp = spInfo[oneSp];
+    if (!(address in buckets) || forceLoading) {
+      dispatch(setLoading(true));
+    }
+    const [res, error] = await getUserBuckets(address, sp.endpoint);
+    dispatch(setLoading(false));
+    if (error || !res || res.code !== 0) {
+      toast.error({ description: error || res?.message });
+      return;
+    }
+    const bucketList = res.body?.map((bucket) => {
+      return {
+        ...bucket,
+        bucket_info: {
+          ...bucket.bucket_info,
+        },
+      };
+    });
+    dispatch(setBucketList({ address, buckets: bucketList || [] }));
+  };
 
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -168,14 +168,16 @@ export const setupBucketQuota =
     if (familyResp === null) {
       return VGerror;
     }
-    const sp = allSps.find((item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId);
+    const sp = allSps.find(
+      (item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId,
+    );
     if (!sp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
       endpoint: sp.endpoint,
       seedString,
-      address: loginAccount
+      address: loginAccount,
     });
     if (quota === null) {
       return toast.error({ description: error || 'Get bucket read quota error' });

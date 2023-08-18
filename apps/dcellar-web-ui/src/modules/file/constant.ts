@@ -19,6 +19,11 @@ const FOLDER_NOT_EMPTY_ICON = `${assetPrefix}/images/buckets/bucket-not-empty.sv
 const UPLOAD_TASK_EMPTY_ICON = `${assetPrefix}/images/objects/task-empty.svg`;
 const NOT_EMPTY = `${assetPrefix}/images/buckets/bucket-not-empty.svg`;
 
+const GROUP_ICON = `${assetPrefix}/images/group/create.svg`;
+const GROUP_CREATE = 'Creating Group';
+const GROUP_UPDATE_EXTRA = 'Updating Group';
+const GROUP_DELETE = 'Deleting Group';
+
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
 const OBJECT_TITLE_CREATING = 'Creating Object';
@@ -57,7 +62,8 @@ const FILE_DESCRIPTION_CANCEL_ERROR = `Sorry, there’s something wrong when can
 const NOT_ENOUGH_QUOTA_ERROR = `Sorry, you don’t have enough download quota to download this file now.`;
 const FOLDER_DESCRIPTION_CREATE_ERROR = `Sorry, there’s something wrong when creating the folder.`;
 const BUTTON_GOT_IT = 'Got It';
-const FOLDER_DESC_NOT_EMPTY = 'Only empty folder can be deleted. Please delete all objects in this folder first.';
+const FOLDER_DESC_NOT_EMPTY =
+  'Only empty folder can be deleted. Please delete all objects in this folder first.';
 
 // file status
 const OBJECT_SEALED_STATUS = 1;
@@ -74,6 +80,7 @@ const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`
 const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 const AUTH_EXPIRED = 'Authentication Expired';
+const WALLET_CONFIRM = 'Confirm this transaction in your wallet.';
 
 export {
   FILE_BOX_IMAGE_URL,
@@ -140,5 +147,10 @@ export {
   FOLDER_NOT_EMPTY_ICON,
   FOLDER_DESC_NOT_EMPTY,
   UPLOAD_TASK_EMPTY_ICON,
-  NOT_EMPTY
+  NOT_EMPTY,
+  GROUP_ICON,
+  GROUP_CREATE,
+  WALLET_CONFIRM,
+  GROUP_UPDATE_EXTRA,
+  GROUP_DELETE,
 };

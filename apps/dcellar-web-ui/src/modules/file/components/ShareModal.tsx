@@ -26,7 +26,7 @@ interface modalProps {
 }
 
 export const ShareModal = (props: modalProps) => {
-  const { shareObject, onAccessChange, onClose, isOpen } = props;
+  const { shareObject, onClose, isOpen } = props;
   const objectName = shareObject.object_name || '';
   const title = last(objectName.split('/'));
   const params = [shareObject.bucket_name, encodeObjectName(objectName)].join('/');
