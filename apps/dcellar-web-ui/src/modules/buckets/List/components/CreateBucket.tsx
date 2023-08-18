@@ -46,6 +46,8 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
+import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
 
 type Props = {
   isOpen: boolean;
@@ -79,9 +81,11 @@ const initValidateNameAndGas = {
 export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { isLoadingDetail } = useAppSelector((root) => root.accounts);
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
   const selectedSpRef = useRef<SpItem>(globalSP);
+  const selectedPaRef = useRef<TAccount>({} as TAccount);
   const { connector } = useAccount();
   const { _availableBalance } = useAppSelector((root) => root.global);
   const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
@@ -163,6 +167,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
+      // TODO add payment account field
       const createBucketParams: TCreateBucket = {
         creator: address,
         bucketName,
@@ -243,7 +248,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
               : 'Unknown error, please try again later.';
         }
       } else {
-        types['validateBalanceAndName'] = 'Something is wrong.';
+        types['validateBalanceAndName'] = 'Something went wrong.';
       }
 
       Object.values(types).length > 0 ? setError('bucketName', { types }) : clearErrors();
@@ -369,7 +374,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           !validateNameAndGas.name.available)) ||
       isEmpty(bucketName) ||
       !isEmpty(errors?.bucketName) ||
-      !isEnoughBalance
+      !isEnoughBalance ||
+      isLoadingDetail === selectedPaRef.current.address
     );
   };
   const isEnoughBalance = useMemo(() => {
@@ -393,7 +399,17 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     },
     [checkGasFee, validateNameAndGas.name],
   );
-
+  const onChangePA = useCallback(
+    async (pa: TAccount) => {
+      selectedPaRef.current = pa;
+      await dispatch(setupAccountsInfo(pa.address));
+      const { value, available } = validateNameAndGas.name;
+      if (available && value) {
+        checkGasFee(value);
+      }
+    },
+    [checkGasFee, dispatch, validateNameAndGas.name],
+  );
   const gaOptions = getGAOptions(status);
 
   return (
@@ -493,6 +509,12 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                     Primary Storage Provider
                   </FormLabel>
                   <SPSelector onChange={onChangeSP} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel fontSize={14} fontWeight={500} mb={8} fontFamily='heading'>
+                    Payment Account
+                  </FormLabel>
+                  <PaymentAccountSelector onChange={onChangePA} />
                 </FormControl>
               </Flex>
               <GasFee

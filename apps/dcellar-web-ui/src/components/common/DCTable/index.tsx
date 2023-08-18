@@ -29,6 +29,7 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
   pageChange,
   canNext,
   canPrev,
+  pagination = true,
   ...props
 }) {
   return (
@@ -36,12 +37,12 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
       <ConfigProvider renderEmpty={renderEmpty} theme={theme}>
         <Table {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
-      <SimplePagination
+      {pagination && <SimplePagination
         pageSize={pageSize}
         canNext={canNext}
         canPrev={canPrev}
         pageChange={pageChange}
-      />
+      />}
     </Container>
   );
 });

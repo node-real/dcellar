@@ -1,4 +1,4 @@
-import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
+import { TCreateObject } from "@bnb-chain/greenfield-js-sdk";
 
 export type TCreateObjectData = { CreateObjectTx: any; configParam: TCreateObject };
 

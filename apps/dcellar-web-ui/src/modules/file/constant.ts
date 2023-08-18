@@ -82,6 +82,8 @@ const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 const AUTH_EXPIRED = 'Authentication Expired';
 const WALLET_CONFIRM = 'Confirm this transaction in your wallet.';
 
+// account
+const SET_ACCOUNT_NON_REFUNDABLE_ICON = `${assetPrefix}/images/accounts/disable-account.svg`;
 export {
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,
@@ -153,4 +155,5 @@ export {
   WALLET_CONFIRM,
   GROUP_UPDATE_EXTRA,
   GROUP_DELETE,
+  SET_ACCOUNT_NON_REFUNDABLE_ICON,
 };

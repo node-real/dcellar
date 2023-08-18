@@ -1,6 +1,5 @@
 import { MenuCloseIcon, SearchIcon } from '@totejs/icons';
 import {
-  Image,
   Box,
   BoxProps,
   Input,
@@ -8,20 +7,17 @@ import {
   InputRightElement,
   Menu,
   MenuButton,
-  Text,
   MenuItem,
   MenuItemProps,
   MenuList,
   MenuListProps,
   MenuProps,
   rgba,
-  Center,
   useDisclosure,
   InputProps,
 } from '@totejs/uikit';
 import React, { useEffect, useRef, useState } from 'react';
 
-import noResultImage from '@/public/images/common/no-result.png';
 import { useKeyDown } from '@/hooks/useKeyDown';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import { GAClick } from '@/components/common/GATracker';
@@ -41,6 +37,7 @@ export interface DCSelectProps extends MenuProps {
   Footer?: () => JSX.Element;
   value?: string;
   text: string;
+  placeholder?: string;
   options?: Array<IDCSelectOption>;
   headerProps?: BoxProps;
   listProps?: MenuListProps;
@@ -50,10 +47,11 @@ export interface DCSelectProps extends MenuProps {
   onSearch?: (result: Array<IDCSelectOption>) => void;
 }
 
-export function Select(props: DCSelectProps) {
+export function DCInputSelect(props: DCSelectProps) {
   const {
     value,
     text,
+    placeholder,
     options = [],
     listProps,
     itemProps,
@@ -76,7 +74,7 @@ export function Select(props: DCSelectProps) {
       setResultOptions(options);
       saveOnSearchRef.current?.(options);
     }
-  }, [isOpen, options, saveOnSearchRef]);
+  }, [ isOpen, options, saveOnSearchRef]);
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -91,7 +89,6 @@ export function Select(props: DCSelectProps) {
 
   const onChangeKeyword = (value: string) => {
     const result: Array<IDCSelectOption> = value ? [] : options;
-
     if (value) {
       options.forEach((item) => {
         if (onSearchFilter?.(value, item)) {
@@ -99,7 +96,7 @@ export function Select(props: DCSelectProps) {
         }
       });
     }
-
+    onChange?.(value);
     setResultOptions(result);
     onSearch?.(result);
   };
@@ -118,12 +115,12 @@ export function Select(props: DCSelectProps) {
         as={SelectInput}
         requestFocus={isOpen}
         onClick={onOpen}
-        placeholder={text}
+        placeholder={placeholder}
+        text={text}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
       />
-
-      <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
+      {!!resultOptions?.length && <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
         {header && (
           <Box
             color="#2AA372"
@@ -139,7 +136,6 @@ export function Select(props: DCSelectProps) {
             {header}
           </Box>
         )}
-
         <Box
           maxH={220}
           overflowY="scroll"
@@ -160,16 +156,15 @@ export function Select(props: DCSelectProps) {
             return (
               <GAClick key={item.value} name={gaClickName}>
                 <MenuItem
-                  as="div"
                   px={24}
                   py={8}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
                   _hover={{
-                    bg: isSelected || !item.access ? undefined : 'bg.bottom',
+                    bg: isSelected ? undefined : 'bg.bottom',
                   }}
-                  onClick={() => item.access && onSelectItem(item)}
+                  onClick={() => onSelectItem(item)}
                   _last={{
                     mb: 8,
                   }}
@@ -181,10 +176,10 @@ export function Select(props: DCSelectProps) {
             );
           })}
 
-          {!resultOptions?.length && <NoResult />}
+          {/* {!resultOptions?.length && <NoResult />} */}
         </Box>
         {Footer && <Footer />}
-      </MenuList>
+      </MenuList>}
     </Menu>
   );
 }
@@ -192,11 +187,13 @@ export function Select(props: DCSelectProps) {
 interface SelectInputProps extends InputProps {
   onChangeKeyword: (value: string) => void;
   requestFocus: boolean;
+  text: string;
+  placeholder: string;
   onEnter: () => void;
 }
 
 const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
-  const { requestFocus, placeholder = '', onChangeKeyword, onEnter, ...restProps } = props;
+  const { requestFocus, placeholder = '', text, onChangeKeyword, onEnter, ...restProps } = props;
 
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -219,8 +216,8 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
   }, [requestFocus]);
 
   useEffect(() => {
-    setValue(requestFocus ? '' : placeholder);
-  }, [placeholder, requestFocus]);
+    setValue(text);
+  }, [text, requestFocus]);
 
   useKeyDown({
     key: 'Enter',
@@ -251,14 +248,3 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
     </InputGroup>
   );
 });
-
-const NoResult = () => {
-  return (
-    <Center flexDir="column" pt={21} minH={220} justifyContent="flex-start">
-      <Image boxSize={120} src={noResultImage.src} alt="" />
-      <Text mt={12} color="readable.tertiary" fontSize={12} fontWeight={500} lineHeight="15px">
-        No Result
-      </Text>
-    </Center>
-  );
-};

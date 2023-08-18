@@ -9,6 +9,11 @@ import ShareIcon from '@/public/images/icons/share.svg';
 import AddMember from '@/public/images/icons/add_member.svg';
 import { DownloadIcon } from '@totejs/icons';
 import { ActionButton } from '@/modules/file/components/FileTable';
+import TransferInIcon from '@/public/images/icons/transfer-in.svg';
+import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
+import SendIcon from '@/public/images/icons/send.svg';
+import DepositIcon from '@/public/images/icons/deposit.svg';
+import WithdrawIcon from '@/public/images/icons/withdraw.svg';
 
 export type ActionMenuItem = { label: string; value: string };
 
@@ -62,6 +67,63 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 <ShareIcon />
               </ActionButton>
             );
+          // owner account list
+          case 'transfer_in':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.accounts.transfer_in_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <TransferInIcon />
+              </ActionButton>
+            );
+          case 'transfer_out':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.accounts.owner_account.transfer_out_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <TransferOutIcon />
+              </ActionButton>
+            );
+          case 'send':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.accounts.owner_account.send_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <SendIcon />
+              </ActionButton>
+            );
+          // payment account list
+          case 'deposit':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.accounts.payment_account.deposit_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <DepositIcon />
+              </ActionButton>
+            );
+          case 'withdraw':
+            return (
+              <ActionButton
+                key={m}
+                gaClickName="dc.accounts.payment_account.withdraw_btn.0.click"
+                marginRight={'8px'}
+                onClick={() => onChange(m)}
+              >
+                <WithdrawIcon />
+              </ActionButton>
+            );
         }
       })}
       <Menu placement="bottom-end" trigger="hover" strategy="fixed">
@@ -70,7 +132,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
               <MenuIcon />
             </StyledMenuButton>
-            <MenuList minW={120}>
+            <MenuList>
               <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
               {menus.map((m) => (
                 <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>

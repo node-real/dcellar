@@ -19,6 +19,7 @@ import { useLogin } from '@/hooks/useLogin';
 import { GasObjects } from './GasObjects';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
+import { PaymentAccounts } from './PaymentAccounts';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -63,6 +64,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       <GlobalTasks />
       <StreamBalance />
       <GasObjects />
+      <PaymentAccounts />
       <Flex
         w="340px"
         ref={ref}

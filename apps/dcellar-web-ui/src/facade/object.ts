@@ -1,5 +1,4 @@
 import {
-  generateUrlByBucketName,
   IObjectResponse,
   IObjectResultType,
   IQuotaProps,
@@ -7,6 +6,7 @@ import {
   PermissionTypes,
   TListObjects,
   TxResponse,
+  generateUrlByBucketName,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,

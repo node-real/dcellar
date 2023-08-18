@@ -29,6 +29,7 @@ import { InternalRoutePaths } from '@/constants/paths';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 
 export const TransferIn = () => {
   const {
@@ -44,6 +45,7 @@ export const TransferIn = () => {
   const { data: signer } = useSigner();
   const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
   const [isGasLoading, setIsGasLoading] = useState(false);
+  const { all } = useChainsBalance();
   const {
     handleSubmit,
     register,
@@ -62,7 +64,9 @@ export const TransferIn = () => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
   const inputAmount = getValues('amount');
-
+  const balance = useMemo(() => {
+    return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || '';
+  }, [all]);
   const getFee = useCallback(
     async ({ amountIn, type = 'content_value' }: { amountIn: string; type?: TCalculateGas }) => {
       if (signer && amountIn) {
@@ -193,6 +197,7 @@ export const TransferIn = () => {
       </Flex>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Amount
+          balance={balance}
           errors={errors}
           register={register}
           disabled={isSubmitting}

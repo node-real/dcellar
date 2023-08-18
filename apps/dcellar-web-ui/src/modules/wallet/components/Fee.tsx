@@ -116,7 +116,6 @@ export const Fee = ({
           {transType !== 'send' && (
             <Tips
               containerWidth={'308px'}
-              iconSize={'16px'}
               tips={TipContent}
               placement="top"
               gaShowName={gaShowTipsName}

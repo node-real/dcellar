@@ -6,6 +6,7 @@ import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storag
 import { get } from '@/base/http';
 import { commonFault } from '@/facade/error';
 import { getDomain } from '@/utils/getDomain';
+import { MsgData } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/abci/v1beta1/abci';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 

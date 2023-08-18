@@ -401,6 +401,12 @@ export const selectHashTask = (address: string) => (root: AppState) => {
 };
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
+export const selectGasFee = (type: string) => (state: AppState) => {
+  const { gasObjects } = state.global.gasHub;
+  const gasObject = gasObjects[type];
+  return gasObject ? gasObject.gasFee : 0;
+};
+
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();
   dispatch(setBnbInfo(res));

@@ -42,6 +42,7 @@ type AmountProps = {
   setValue: UseFormSetValue<TWalletFromValues>;
   getGasFee?: GetFeeType;
   maxDisabled?: boolean;
+  balance: string;
 };
 
 const AmountErrors = {
@@ -58,7 +59,8 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-export const Amount = ({ register, errors, disabled, watch, feeData, setValue }: AmountProps) => {
+// 分为两种balance，支付账户的balance，和gas fee的支付者。
+export const Amount = ({ register, errors, disabled, watch, balance, feeData, setValue }: AmountProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -66,18 +68,12 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { isLoading, all } = useChainsBalance();
+  const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
 
-  const balance = useMemo(() => {
-    if (transType === EOperation.transfer_in) {
-      return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || 0;
-    }
-    return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || 0;
-  }, [all, transType]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));
   });
@@ -181,7 +177,6 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
                 validateBalance: (val: string) => {
                   let totalAmount = BigNumber(0);
                   const balanceVal = BigNumber(balance || 0);
-                  // TODO temp limit
                   if (transType === EOperation.send) {
                     totalAmount =
                       gasFee.toString() === '0'
@@ -193,8 +188,8 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
                         ? BigNumber(val).plus(BigNumber(defaultFee))
                         : BigNumber(val).plus(gasFee).plus(relayerFee);
                   }
-
-                  return !balance ? true : totalAmount.comparedTo(balanceVal) <= 0;
+                  console.log('balance', balance, totalAmount.toString(), balanceVal.toString());
+                  return totalAmount.comparedTo(balanceVal) <= 0;
                 },
                 validateNum: (val: string) => {
                   const precisionStr = val.split('.')[1];
