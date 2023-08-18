@@ -57,7 +57,7 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
     const { desc } = values;
     const _error = { ...error };
     if (new Blob([desc]).size >= 500) {
-      _error.desc = 'Must be less than 500 characters long.';
+      _error.desc = 'Please enter less than 500 characters.';
     } else {
       _error.desc = '';
     }

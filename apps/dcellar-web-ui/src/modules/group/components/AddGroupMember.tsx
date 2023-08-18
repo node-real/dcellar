@@ -22,7 +22,6 @@ import { DCButton } from '@/components/common/DCButton';
 import ComingSoon from '@/components/common/SvgIcon/members.svg';
 import { addMemberToGroup } from '@/facade/group';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
-import { without } from 'lodash-es';
 import { ADDRESS_RE } from '@/utils/regex';
 
 const MAX_COUNT = 20;
@@ -76,11 +75,6 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
 
   const invalid = !!error || invalidIds.length > 0;
 
-  const _onSelected = (s: string) => {
-    const newValues = values.includes(s) ? without(values, s) : [...values, s];
-    _onChange(newValues);
-  };
-
   const onAddMember = async () => {
     if (!values.length || loading || invalid) return;
     setLoading(true);
@@ -125,9 +119,7 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
             suffixIcon={null}
             mode="tags"
             onChange={_onChange}
-            tagRender={(props) => (
-              <RenderItem invalidIds={invalidIds} value={props} onSelect={_onSelected} />
-            )}
+            tagRender={(props) => <RenderItem invalidIds={invalidIds} value={props} />}
           />
           <DCButton variant="dcPrimary" w={90} h={48} onClick={onAddMember}>
             Add

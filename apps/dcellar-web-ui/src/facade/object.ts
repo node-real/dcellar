@@ -116,6 +116,7 @@ export const getCanObjectAccess = async (
     PermissionTypes.ActionType.ACTION_GET_OBJECT,
     loginAccount,
   );
+
   if (
     info.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE &&
     loginAccount !== info.owner &&
@@ -123,9 +124,12 @@ export const getCanObjectAccess = async (
   )
     return [false, E_PERMISSION_DENIED];
 
-  if (!quota) return [false, E_UNKNOWN];
-  if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
-  return [true, '', info, quota];
+  // only own can get bucket quota
+  if (loginAccount === info.owner) {
+    if (!quota) return [false, E_UNKNOWN];
+    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
+  }
+  return [true, '', info, quota!];
 };
 
 export type DownloadPreviewParams = {

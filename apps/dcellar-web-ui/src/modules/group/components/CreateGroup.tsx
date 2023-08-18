@@ -67,7 +67,7 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
       _error.name = '';
     }
     if (new Blob([desc]).size >= 500) {
-      _error.desc = 'Must be less than 500 characters long.';
+      _error.desc = 'Please enter less than 500 characters.';
     } else {
       _error.desc = '';
     }

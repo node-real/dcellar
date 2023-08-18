@@ -154,7 +154,6 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
               invalidIds={invalidIds}
               group={options.some((i) => i.value === props.value)}
               value={props}
-              onSelect={_onSelected}
             />
           )}
           dropdownRender={() =>

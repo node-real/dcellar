@@ -18,13 +18,11 @@ interface RenderItemProps {
   group?: boolean;
   value: CustomTagProps;
   invalidIds?: string[];
-  onSelect: (e: string) => void;
 }
 
 export const RenderItem = memo<RenderItemProps>(function RenderItem({
-  value: { value, label },
+  value: { value, label, onClose },
   group = false,
-  onSelect,
   invalidIds = [],
 }) {
   const address = value.match(ADDRESS_RE);
@@ -60,7 +58,7 @@ export const RenderItem = memo<RenderItemProps>(function RenderItem({
       {group && <GroupItemIcon width={16} />}
       {address ? label : trimLongStr(label as string, 20, 20, 0)}
       <CloseIcon
-        onClick={() => onSelect(value)}
+        onClick={onClose as any}
         cursor="pointer"
         width={12}
         color={valid ? '#76808F' : '#EE3911'}
