@@ -46,35 +46,12 @@ const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
 
 export const SharePermission = memo<SharePermissionProps>(function SharePermission() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { editDetail, bucketName } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
-  const { connector } = useAccount();
-  const { setOpenAuthModal } = useOffChainAuth();
 
   if (!editDetail.name) return <></>;
 
   const CurrentAccess = Access[editDetail.visibility] ? Access[editDetail.visibility] : Access[2];
-
-  const handleError = (msg: ErrorMsg) => {
-    switch (msg) {
-      case AUTH_EXPIRED:
-      case E_OFF_CHAIN_AUTH:
-        setOpenAuthModal();
-        return;
-      default:
-        dispatch(
-          setStatusDetail({
-            title: FILE_ACCESS,
-            icon: FILE_FAILED_URL,
-            buttonText: BUTTON_GOT_IT,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
-            errorText: 'Error message: ' + msg,
-          }),
-        );
-        return;
-    }
-  };
 
   return (
     <>

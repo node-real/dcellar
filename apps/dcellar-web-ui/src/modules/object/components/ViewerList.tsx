@@ -34,7 +34,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const { connector } = useAccount();
-  const { editDetail, bucketName } = useAppSelector((root) => root.object);
+  const { editShare, bucketName } = useAppSelector((root) => root.object);
+  const { record: editDetail } = editShare;
   const { loginAccount } = useAppSelector((root) => root.persist);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
