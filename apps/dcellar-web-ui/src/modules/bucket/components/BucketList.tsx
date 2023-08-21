@@ -21,6 +21,7 @@ import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMe
 import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
 import { DeleteBucket } from '@/modules/bucket/components/DeleteBucket';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { BucketDrawer } from '@/modules/bucket/components/BucketDrawer';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -105,6 +106,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   return (
     <>
+      <BucketDrawer />
       <DetailDrawer />
       <DeleteBucket />
       {discontinue && (
