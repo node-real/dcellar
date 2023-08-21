@@ -30,7 +30,7 @@ import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
+import { MenuCloseIcon } from '@totejs/icons';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -112,7 +112,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       return toast.error({
         description: `The folder name cannot exceed ${MAX_FOLDER_NAME_LEN} characters.`,
         isClosable: true,
-      })
+      });
     }
     const uploadFolderPath = [...folders, relativeRootFolder].join('/') + '/';
     const isFolderExist = objectList.some(
@@ -254,8 +254,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 transform: 'rotate(-180deg)',
               },
               '.ui-icon__container': {
-                bgColor: 'readable.brand7'
-              }
+                bgColor: 'readable.brand7',
+              },
             }}
           >
             <UploadIcon color="#fff" w="24px" h="24px" alt="" />{' '}
@@ -276,8 +276,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               borderRightRadius={'8px'}
               alignItems={'center'}
               bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
-              borderLeft={uploadDisabled ? '1px solid readable.tertiary' :
-                '1px solid #5ED47F'}
+              borderLeft={uploadDisabled ? '1px solid readable.tertiary' : '1px solid #5ED47F'}
             >
               <MenuCloseIcon />
             </Flex>
