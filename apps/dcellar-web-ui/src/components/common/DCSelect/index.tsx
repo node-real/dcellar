@@ -167,9 +167,9 @@ export function Select(props: DCSelectProps) {
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
                   _hover={{
-                    bg: isSelected || !item.access ? undefined : 'bg.bottom',
+                    bg: isSelected ? undefined : 'bg.bottom',
                   }}
-                  onClick={() => item.access && onSelectItem(item)}
+                  onClick={() => onSelectItem(item)}
                   _last={{
                     mb: 8,
                   }}
