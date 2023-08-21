@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { CreateBucketButton } from '@/modules/bucket/bucket.style';
 import { AddIcon } from '@totejs/icons';
-import { BucketDrawer } from '@/modules/bucket/components/BucketDrawer';
 import { useAppDispatch } from '@/store';
 import { setEditCreate } from '@/store/slices/bucket';
 
@@ -12,7 +11,6 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket() {
 
   return (
     <>
-      <BucketDrawer />
       <CreateBucketButton
         variant="dcPrimary"
         leftIcon={<AddIcon />}
