@@ -35,7 +35,6 @@ import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
 import { NameItem } from '@/modules/object/components/NameItem';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { DeleteObject } from './DeleteObject';
-import { StatusDetail } from './StatusDetail';
 import { DetailObject } from './DetailObject';
 import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -57,8 +56,6 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
-import { copy, getShareLink } from '@/utils/string';
-import { toast } from '@totejs/uikit';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 
@@ -88,8 +85,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
-    useAppSelector((root) => root.object);
+  const { editDelete, editDetail, editDownload, editCancel, editCreate } = useAppSelector(
+    (root) => root.object,
+  );
 
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
     list: objectList,
@@ -272,7 +270,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName
+            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName,
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');

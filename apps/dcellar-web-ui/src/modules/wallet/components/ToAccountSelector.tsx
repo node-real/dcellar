@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
-import { IDCSelectOption, Select } from '@/components/common/DCSelect';
+import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
@@ -15,7 +15,7 @@ type TProps = {
   to: string;
 };
 
-export function ToAccountSelector({ onChange, to}: TProps) {
+export function ToAccountSelector({ onChange, to }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { PAList } = useAppSelector((root) => root.accounts);
@@ -33,9 +33,9 @@ export function ToAccountSelector({ onChange, to}: TProps) {
 
   useMount(() => {
     if (!len) return;
-    const initialAccount = accountList.find(item => item.address === to);
+    const initialAccount = accountList.find((item) => item.address === to);
     setTotal(len);
-    setAccount(initialAccount || {name: 'Custom Account', address: ''});
+    setAccount(initialAccount || { name: 'Custom Account', address: '' });
   });
 
   useEffect(() => {
@@ -44,10 +44,12 @@ export function ToAccountSelector({ onChange, to}: TProps) {
   }, [account]);
 
   const onChangeSP = (value: string) => {
-    setAccount(keyAccountList[value] || {
-      name: 'Custom Account',
-      address: value
-    });
+    setAccount(
+      keyAccountList[value] || {
+        name: 'Custom Account',
+        address: value,
+      },
+    );
   };
 
   const onSearch = (result: IDCSelectOption[]) => {
@@ -96,7 +98,7 @@ export function ToAccountSelector({ onChange, to}: TProps) {
     <DCInputSelect
       value={account?.address}
       text={account?.address}
-      placeholder='Choose or enter addresses'
+      placeholder="Choose or enter addresses"
       options={options}
       header={`Accounts (${total})`}
       onChange={onChangeSP}

@@ -52,7 +52,7 @@ export interface DCSelectProps extends MenuProps {
   onSearch?: (result: Array<IDCSelectOption>) => void;
 }
 
-export function Select(props: DCSelectProps) {
+export function DCSelect(props: DCSelectProps) {
   const {
     value,
     text,
@@ -126,7 +126,20 @@ export function Select(props: DCSelectProps) {
       />
 
       <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
-        {header}
+        {header && (
+          <Box
+            fontSize={12}
+            lineHeight="15px"
+            bg="bg.bottom"
+            py={8}
+            px={24}
+            fontWeight={500}
+            borderBottom="1px solid readable.border"
+            {...headerProps}
+          >
+            {header}
+          </Box>
+        )}
 
         <Box
           maxH={220}
@@ -143,6 +156,8 @@ export function Select(props: DCSelectProps) {
         >
           {resultOptions?.map((item) => {
             const isSelected = value === item.value;
+            // not disabled
+            const { access = true } = item;
             const { gaClickName, ...restItemProps } = itemProps ?? {};
 
             return (
@@ -150,15 +165,15 @@ export function Select(props: DCSelectProps) {
                 <MenuItem
                   as="div"
                   position="relative"
-                  px={0}
-                  py={0}
+                  px={24}
+                  py={8}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
                   _hover={{
-                    bg: isSelected ? undefined : 'bg.bottom',
+                    bg: isSelected || !access ? undefined : 'bg.bottom',
                   }}
-                  onClick={() => onSelectItem(item)}
+                  onClick={() => access && onSelectItem(item)}
                   _last={{
                     mb: 8,
                   }}

@@ -1,21 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text, Tooltip } from '@totejs/uikit';
-import { IDCSelectOption, Select } from '@/components/common/DCSelect';
+import { Box, Flex, Text } from '@totejs/uikit';
+import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
 import { SpItem } from '@/store/slices/sp';
 import { ExternalLinkIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
-import { ColoredInfoIcon } from '@totejs/icons';
 import RefLink from '@/components/common/SvgIcon/RefLink.svg';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { formatBytes } from '@/modules/file/utils';
 import BigNumber from 'bignumber.js';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
 import { sortBy } from 'lodash-es';
 import { DCTooltip } from '@/components/common/DCTooltip';
+import { formatBytes } from '@/modules/file/utils';
 
 interface SPSelector {
   onChange: (value: SpItem) => void;
@@ -26,14 +25,12 @@ export function SPSelector(props: SPSelector) {
   const { faultySps } = useAppSelector((root) => root.persist);
   const len = allSps.length;
   const [sp, setSP] = useState({} as SpItem);
-  const [total, setTotal] = useState(0);
   const { onChange } = props;
   const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
   useMount(() => {
     if (!len) return;
-    setTotal(len);
     setSP(spInfo[oneSp]);
   });
 
@@ -46,9 +43,7 @@ export function SPSelector(props: SPSelector) {
     setSP(spInfo[value]);
   };
 
-  const onSearch = (result: IDCSelectOption[]) => {
-    setTotal(result.length);
-  };
+  const onSearch = (result: IDCSelectOption[]) => {};
 
   const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
     const tmpKeyword = keyword.toLowerCase();
@@ -59,10 +54,13 @@ export function SPSelector(props: SPSelector) {
 
   const options = useMemo(
     () =>
-      sortBy(allSps, [(i) => (faultySps.includes(i.operatorAddress) ? 1 : 0), (sp) => {
-        const meta = spMeta[sp.operatorAddress];
-        return meta ? meta.Latency : Infinity;
-      },]).map((item) => {
+      sortBy(allSps, [
+        (i) => (faultySps.includes(i.operatorAddress) ? 1 : 0),
+        (sp) => {
+          const meta = spMeta[sp.operatorAddress];
+          return meta ? meta.Latency : Infinity;
+        },
+      ]).map((item) => {
         const { operatorAddress, moniker: name, endpoint } = item;
         const access = !faultySps.includes(operatorAddress);
         return {
@@ -79,28 +77,30 @@ export function SPSelector(props: SPSelector) {
   );
 
   return (
-    <Select
+    <DCSelect
       value={sp.operatorAddress}
       text={renderItem(sp.moniker, sp.operatorAddress)}
       options={options}
       header={
-        <Row>
-          <TH w={200}>SP list</TH>
-          <TH w={100}>Free Quota</TH>
-          <TH w={120}>
-            Storage Fee{' '}
-            <DCTooltip title="BNB/GB/Month" placement="bottomLeft">
-              <ColoredInfoIcon boxSize={16} />
-            </DCTooltip>
-          </TH>
-          <TH w={100}>Latency</TH>
-        </Row>
+        <>
+          <TH w={280}>SP list</TH>
+          <TH w={120}>Free Quota</TH>
+          <TH w={120}>Latency</TH>
+        </>
       }
+      headerProps={{
+        px: 0,
+        py: 0,
+        display: 'flex',
+        alignItems: 'center',
+      }}
       onChange={onChangeSP}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
+        px: 0,
+        py: 0,
       }}
     />
   );
@@ -115,15 +115,51 @@ function OptionItem(props: any) {
   const { address, name, endpoint, access } = props;
   const meta = spMeta[address];
 
+  const link = !access ? (
+    <DCTooltip title="Check reasons in documentations" placement="bottomLeft">
+      <Text
+        as="a"
+        target="_blank"
+        href="https://docs.nodereal.io/docs/dcellar-faq#storage-provider-related"
+        w={64}
+        h={18}
+        whiteSpace="nowrap"
+        ml={4}
+        bgColor="#FDEBE7"
+        borderRadius={'360px'}
+        color="#F15D3C"
+        fontWeight={400}
+        lineHeight="18px"
+        cursor="pointer"
+        _hover={{
+          color: '#EE3911',
+        }}
+      >
+        <Box as="span" transform="scale(.8)" display="inline-flex" alignItems="center">
+          SP Error <ExternalLinkIcon boxSize={12} ml={2} />
+        </Box>
+      </Text>
+    </DCTooltip>
+  ) : (
+    <A
+      href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`}
+      target="_blank"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <RefLink />
+    </A>
+  );
+
   return (
-    <Flex key={address} alignItems="center">
+    <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
       <TD
-        w={200}
+        w={280}
         key={address}
         display="flex"
         flexDir="column"
         alignItems="flex-start"
         whiteSpace="normal"
+        color={access ? '#474D57' : '#AEB4BC'}
       >
         <Flex alignItems="center" w="100%">
           <Text
@@ -134,18 +170,12 @@ function OptionItem(props: any) {
             fontSize={14}
             fontWeight={400}
             w="100%"
-            color="readable.top.secondary"
+            color={access ? '#474D57' : '#AEB4BC'}
             noOfLines={1}
           >
             {name}
           </Text>
-          <A
-            href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`}
-            target="_blank"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <RefLink />
-          </A>
+          {link}
         </Flex>
 
         <DCTooltip title={endpoint} placement="bottomLeft">
@@ -156,16 +186,19 @@ function OptionItem(props: any) {
             transformOrigin="0 50%"
             transform={'scale(0.85)'}
             fontWeight={400}
-            color="#76808F"
+            color={access ? '#76808F' : '#AEB4BC'}
             noOfLines={1}
           >
             {endpoint}
           </Text>
         </DCTooltip>
       </TD>
-      <TD w={100}>{meta ? formatBytes(meta.FreeReadQuota) : '--'}</TD>
-      <TD w={120}>{meta ? Number(BigNumber(meta.StorePrice).toFixed(5)) : '--'}</TD>
-      <TD $dot={meta?.Latency}>{meta ? meta.Latency + 'ms' : '--'}</TD>
+      <TD w={120} color={access ? '#474D57' : '#AEB4BC'}>
+        {meta ? formatBytes(meta.FreeReadQuota) : '--'}
+      </TD>
+      <TD $dot={meta?.Latency} color={access ? '#474D57' : '#AEB4BC'}>
+        {meta ? meta.Latency + 'ms' : '--'}
+      </TD>
     </Flex>
   );
 }
@@ -177,18 +210,8 @@ const A = styled.a`
   margin-left: 4px;
 `;
 
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #e6e8ea;
-  background: #f5f5f5;
-`;
-
 const TH = styled(Box)`
   padding: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  height: 32px;
   &:first-of-type {
     padding-left: 12px;
     padding-right: 12px;
@@ -205,7 +228,6 @@ const TD = styled(Box, transientOptions)<{ $dot?: number }>`
   position: relative;
   padding: 8px;
   font-size: 14px;
-  color: #474d57;
   font-weight: 400;
   &:first-of-type {
     padding-left: 32px;

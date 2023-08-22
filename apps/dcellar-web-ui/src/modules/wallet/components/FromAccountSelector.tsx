@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
-import { IDCSelectOption, Select } from '@/components/common/DCSelect';
+import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
@@ -33,7 +33,7 @@ export function FromAccountSelector(props: TAccountSelector) {
   useMount(() => {
     if (!len) return;
     setTotal(len);
-    const initialAccount = accountList.find(item => item.address === from);
+    const initialAccount = accountList.find((item) => item.address === from);
     setAccount(initialAccount || accountList[0]);
     saveOnChangeRef.current?.(account);
   });
@@ -91,7 +91,7 @@ export function FromAccountSelector(props: TAccountSelector) {
   );
 
   return (
-    <Select
+    <DCSelect
       value={account?.address}
       text={renderItem(account?.name, account?.address)}
       options={options}
