@@ -89,7 +89,7 @@ export const ObjectsPage = () => {
           <GoBack onClick={goBack}>
             <ForwardIcon />
           </GoBack>
-          <Flex flex={1}>
+          <Flex flex={1} minW={0}>
             {selected > 0 ? (
               <SelectedText>
                 {selected} File{selected > 1 && 's'} Selected

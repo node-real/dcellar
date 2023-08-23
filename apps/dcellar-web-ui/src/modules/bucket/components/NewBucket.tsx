@@ -1,16 +1,30 @@
 import { memo } from 'react';
 import { CreateBucketButton } from '@/modules/bucket/bucket.style';
 import { AddIcon } from '@totejs/icons';
-import { useAppDispatch } from '@/store';
-import { setEditCreate } from '@/store/slices/bucket';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setEditCreate, setupBuckets } from '@/store/slices/bucket';
+import { Flex } from '@totejs/uikit';
+import RefreshIcon from '@/public/images/icons/refresh.svg';
 
-interface NewBucketProps {}
+interface NewBucketProps {
+  showRefresh?: boolean;
+}
 
-export const NewBucket = memo<NewBucketProps>(function NewBucket() {
+export const NewBucket = memo<NewBucketProps>(function NewBucket({ showRefresh = true }) {
   const dispatch = useAppDispatch();
+  const { loginAccount } = useAppSelector((root) => root.persist);
+
+  const onRefresh = () => {
+    dispatch(setupBuckets(loginAccount, true));
+  };
 
   return (
-    <>
+    <Flex gap={12}>
+      {showRefresh && (
+        <Flex onClick={onRefresh} alignItems="center" height={40} mr={12} cursor="pointer">
+          <RefreshIcon />
+        </Flex>
+      )}
       <CreateBucketButton
         variant="dcPrimary"
         leftIcon={<AddIcon />}
@@ -19,6 +33,6 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket() {
       >
         New Bucket
       </CreateBucketButton>
-    </>
+    </Flex>
   );
 });

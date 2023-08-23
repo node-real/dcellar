@@ -44,7 +44,7 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
               />
             </Flex>
 
-            <NewBucket />
+            <NewBucket showRefresh={false} />
           </Flex>
         )}
       </Content>
