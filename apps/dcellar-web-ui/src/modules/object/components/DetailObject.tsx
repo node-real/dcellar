@@ -287,121 +287,128 @@ export const DetailObject = (props: modalProps) => {
   }
 
   return (
-    <DCDrawer
-      isOpen={isOpen}
-      onClose={onClose}
-      gaShowName="dc.file.f_detail_pop.0.show"
-      gaClickCloseName="dc.file.f_detail_pop.close.click"
-    >
-      <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
-        Object Detail
-      </QDrawerHeader>
-      <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
-      <QDrawerBody>
-        <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
-          <Flex w="100%" overflow="hidden">
-            <Image src={FILE_INFO_IMAGE_URL} boxSize={48} mr={'24px'} alt="" />
-            <Flex flex={1} flexDirection={'column'}>
-              <Text
-                fontSize={18}
-                fontWeight={600}
-                lineHeight="normal"
-                wordBreak={'break-all'}
-                color={'readable.normal'}
-                mb="8px"
-                w={'100%'}
-              >
-                {editDetail.name}
-              </Text>
-              <Text
-                fontSize={14}
-                lineHeight="normal"
-                fontWeight={500}
-                wordBreak={'break-all'}
-                color={'readable.tertiary'}
-                w={'100%'}
-                as="div"
-              >
-                {formatBytes(editDetail.payloadSize)}
-              </Text>
+    <>
+      <DCDrawer
+        isOpen={isOpen}
+        onClose={onClose}
+        gaShowName="dc.file.f_detail_pop.0.show"
+        gaClickCloseName="dc.file.f_detail_pop.close.click"
+      >
+        <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
+          Object Detail
+        </QDrawerHeader>
+        <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
+        <QDrawerBody>
+          <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
+            <Flex w="100%" overflow="hidden">
+              <Image src={FILE_INFO_IMAGE_URL} boxSize={48} mr={'24px'} alt="" />
+              <Flex flex={1} flexDirection={'column'}>
+                <Text
+                  fontSize={18}
+                  fontWeight={600}
+                  lineHeight="normal"
+                  wordBreak={'break-all'}
+                  color={'readable.normal'}
+                  mb="8px"
+                  w={'100%'}
+                >
+                  {editDetail.name}
+                </Text>
+                <Text
+                  fontSize={14}
+                  lineHeight="normal"
+                  fontWeight={500}
+                  wordBreak={'break-all'}
+                  color={'readable.tertiary'}
+                  w={'100%'}
+                  as="div"
+                >
+                  {formatBytes(editDetail.payloadSize)}
+                </Text>
+              </Flex>
             </Flex>
           </Flex>
-        </Flex>
-        <Divider />
-        <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-          {renderPropRow('Date Created', formatFullTime(+objectInfo.object_info.create_at * 1000))}
-          {renderAddressLink(
-            'Object ID',
-            formatId(Number(objectInfo.object_info?.id)),
-            'dc.file.f_detail_pop.id.click',
-            'dc.file.f_detail_pop.copy_id.click',
-            'object',
-          )}
-          {renderAddressLink(
-            'Primary SP address',
-            primarySp.operatorAddress,
-            'dc.file.f_detail_pop.spadd.click',
-            'dc.file.f_detail_pop.copy_spadd.click',
-          )}
-          {renderAddressLink(
-            'Primary SP seal address',
-            primarySp.operatorAddress,
-            'dc.file.f_detail_pop.seal.click',
-            'dc.file.f_detail_pop.copy_seal.click',
-          )}
-          {renderAddressLink(
-            'Create transaction hash',
-            objectInfo.create_tx_hash,
-            'dc.object.f_detail_pop.create_tx_hash.click',
-            'dc.object.f_detail_pop.copy_create_tx_hash.click',
-            'tx',
-          )}
-          {renderAddressLink(
-            'Seal transaction hash',
-            objectInfo.seal_tx_hash,
-            'dc.object.f_detail_pop.seal_tx_hash.click',
-            'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-            'tx',
-          )}
-          {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
-            renderPropRow(
-              'Universal link',
-              renderUrlWithLink(
-                `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(editDetail.name)}`,
-                true,
-                32,
-                'dc.file.f_detail_pop.universal.click',
-                'dc.file.f_detail_pop.copy_universal.click',
-              ),
+          <Divider />
+          <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
+            {renderPropRow(
+              'Date Created',
+              formatFullTime(+objectInfo.object_info.create_at * 1000),
             )}
-        </Flex>
-        <Divider />
-        <SharePermission />
-      </QDrawerBody>
-      {editDetail.objectStatus === 1 && (
-        <QDrawerFooter flexDirection={'column'}>
-          <Flex w={'100%'}>
-            <DCButton
-              variant={'dcGhost'}
-              flex={1}
-              mr={'16px'}
-              borderColor={'readable.normal'}
-              gaClickName="dc.file.f_detail_pop.share.click"
-              onClick={() => onAction('view')}
-            >
-              Preview
-            </DCButton>
-            <DCButton
-              variant={'dcPrimary'}
-              flex={1}
-              gaClickName="dc.file.f_detail_pop.download.click"
-              onClick={() => onAction('download')}
-            >
-              Download
-            </DCButton>
+            {renderAddressLink(
+              'Object ID',
+              formatId(Number(objectInfo.object_info?.id)),
+              'dc.file.f_detail_pop.id.click',
+              'dc.file.f_detail_pop.copy_id.click',
+              'object',
+            )}
+            {renderAddressLink(
+              'Primary SP address',
+              primarySp.operatorAddress,
+              'dc.file.f_detail_pop.spadd.click',
+              'dc.file.f_detail_pop.copy_spadd.click',
+            )}
+            {renderAddressLink(
+              'Primary SP seal address',
+              primarySp.operatorAddress,
+              'dc.file.f_detail_pop.seal.click',
+              'dc.file.f_detail_pop.copy_seal.click',
+            )}
+            {renderAddressLink(
+              'Create transaction hash',
+              objectInfo.create_tx_hash,
+              'dc.object.f_detail_pop.create_tx_hash.click',
+              'dc.object.f_detail_pop.copy_create_tx_hash.click',
+              'tx',
+            )}
+            {renderAddressLink(
+              'Seal transaction hash',
+              objectInfo.seal_tx_hash,
+              'dc.object.f_detail_pop.seal_tx_hash.click',
+              'dc.object.f_detail_pop.copy_seal_tx_hash.click',
+              'tx',
+            )}
+            {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
+              renderPropRow(
+                'Universal link',
+                renderUrlWithLink(
+                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
+                    editDetail.objectName,
+                  )}`,
+                  true,
+                  32,
+                  'dc.file.f_detail_pop.universal.click',
+                  'dc.file.f_detail_pop.copy_universal.click',
+                ),
+              )}
           </Flex>
-        </QDrawerFooter>
-      )}
-    </DCDrawer>
+          <Divider />
+          <SharePermission />
+        </QDrawerBody>
+        {editDetail.objectStatus === 1 && (
+          <QDrawerFooter flexDirection={'column'}>
+            <Flex w={'100%'}>
+              <DCButton
+                variant={'dcGhost'}
+                flex={1}
+                mr={'16px'}
+                borderColor={'readable.normal'}
+                gaClickName="dc.file.f_detail_pop.share.click"
+                onClick={() => onAction('view')}
+              >
+                Preview
+              </DCButton>
+              <DCButton
+                variant={'dcPrimary'}
+                flex={1}
+                gaClickName="dc.file.f_detail_pop.download.click"
+                onClick={() => onAction('download')}
+              >
+                Download
+              </DCButton>
+            </Flex>
+          </QDrawerFooter>
+        )}
+      </DCDrawer>
+    </>
   );
 };
