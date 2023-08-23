@@ -371,7 +371,9 @@ export const DetailObject = (props: modalProps) => {
               renderPropRow(
                 'Universal link',
                 renderUrlWithLink(
-                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(editDetail.name)}`,
+                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
+                    editDetail.objectName,
+                  )}`,
                   true,
                   32,
                   'dc.file.f_detail_pop.universal.click',
