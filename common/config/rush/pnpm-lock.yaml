@@ -10,8 +10,8 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
-      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.5
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.14
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -44,6 +44,7 @@ importers:
       eslint: 8.39.0
       eslint-config-next: 13.3.4
       ethers: ^5.7.2
+      fast-xml-parser: ~4.2.7
       hash-wasm: 4.9.0
       husky: ^8.0.3
       lint-staged: ^13.1.1
@@ -64,8 +65,8 @@ importers:
       wagmi: ^0.12.9
     dependencies:
       '@babel/core': 7.22.10
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
-      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.5
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.14
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@next/bundle-analyzer': 13.4.18
@@ -86,6 +87,7 @@ importers:
       dayjs: 1.11.9
       eslint-config-next: 13.3.4_eslint@8.39.0+typescript@5.0.4
       ethers: 5.7.2
+      fast-xml-parser: 4.2.7
       hash-wasm: 4.9.0
       lodash-es: 4.17.21
       long: 5.2.3
@@ -1570,19 +1572,19 @@ packages:
       '@babel/helper-validator-identifier': 7.22.5
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.18:
-    resolution: {integrity: sha512-UOdpZ8NCZZhJ5j7q5SUGW2TjgbBhnPjMG5beNk6QYQs7SjnY45ljFf3e9KicW77WvLCQDqUCpQLIgGE+y99AdQ==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.22:
+    resolution: {integrity: sha512-j1UQRaw1sHzq+6x+l2dH1zP0bYAYySfJBgGtxgByl5tCWoNxRxuEOZ0JWrmO9w0dZwgzCKaIsGRqFyjmMliP+A==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.4
     dev: false
 
-  /@bnb-chain/greenfield-js-sdk/0.2.4-alpha.5:
-    resolution: {integrity: sha512-vpH8HGy9dMPhO0MTV6sk5FkYELzGhkJKedNXD4wu8fGSwIFqfskxOJ76qSAC2UPRatDYXQKNLHYjqJSFHADLqg==}
+  /@bnb-chain/greenfield-js-sdk/0.2.4-alpha.14:
+    resolution: {integrity: sha512-g06ffz9iXybZgIJavCSNociNXVwd7HCHM+WqFIqX9fDanAOW9tE5Z0SLxW6spqSFo5Qz09j8uLvGjETC12E4FA==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.18
-      '@bnb-chain/greenfield-zk-crypto': 0.0.2-alpha.3
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
+      '@bnb-chain/greenfield-zk-crypto': 0.0.2-alpha.4
       '@cosmjs/proto-signing': 0.30.1
       '@cosmjs/stargate': 0.30.1
       '@cosmjs/tendermint-rpc': 0.30.1
@@ -1595,6 +1597,7 @@ packages:
       dayjs: 1.11.9
       dotenv: 16.3.1
       ethereum-cryptography: 2.1.2
+      fast-xml-parser: 4.2.7
       lodash.clonedeep: 4.5.0
       lodash.mapvalues: 4.6.0
       lodash.sortby: 4.7.0
@@ -1608,8 +1611,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@bnb-chain/greenfield-zk-crypto/0.0.2-alpha.3:
-    resolution: {integrity: sha512-k6CketiuZnxNWgrpq8+HXUaUuL3ZZ6KHj0rKt3TwSQH3W1bP/toUHMLR72+BjjZCf192E+vf6cUUwnBh/p7N4A==}
+  /@bnb-chain/greenfield-zk-crypto/0.0.2-alpha.4:
+    resolution: {integrity: sha512-v9C+12ZT64znApLrbZjVwDG6xHfTQLXJkRJx7nWk/nMclQdrajWvcToRMnL5oGYJf6c8Ic2q7+JgYAIPd0OFOQ==}
     dev: false
 
   /@builder.io/partytown/0.7.6:
@@ -6192,6 +6195,13 @@ packages:
     resolution: {integrity: sha512-wpYMUmFu5f00Sm0cj2pfivpmawLZ0NKdviQ4w9zJeR8JVtOpOxHmLaJuj0vxvGqMJQWyP/COUkF75/57OKyRag==}
     dev: false
 
+  /fast-xml-parser/4.2.7:
+    resolution: {integrity: sha512-J8r6BriSLO1uj2miOk1NW0YVm8AGOOu3Si2HQp/cSmo6EA4m3fcwu2WKjJ4RK9wMLBtg69y1kS8baDiQBR41Ig==}
+    hasBin: true
+    dependencies:
+      strnum: 1.0.5
+    dev: false
+
   /fastest-stable-stringify/2.0.2:
     resolution: {integrity: sha512-bijHueCGd0LqqNK9b5oCMHc0MluJAx0cwqASgbWMvkO01lCYgIhacVRLcaDz3QnyYIRNJRDwMb41VuT6pHJ91Q==}
     dev: false
@@ -9318,6 +9328,10 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
     dev: true
+
+  /strnum/1.0.5:
+    resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
+    dev: false
 
   /styled-jsx/5.1.1_@babel+core@7.22.10+react@18.2.0:
     resolution: {integrity: sha512-pW7uC1l4mBZ8ugbiZrcIsiIvVx1UmTfw7UkC3Um2tmfUq9Bhk8IiyEIPl6F8agHgjzku6j0xQEZbfA5uSgSaCw==}
