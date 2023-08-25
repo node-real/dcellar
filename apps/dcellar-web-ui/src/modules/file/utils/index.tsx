@@ -318,38 +318,6 @@ export const batchDownload = (url: string | string[]) => {
   });
 };
 
-const getQuota = async (
-  bucketName: string,
-  endpoint: string,
-): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
-  try {
-    const client = await getClient();
-    const { code, body } = await client.bucket.getBucketReadQuota({
-      bucketName,
-      endpoint,
-    });
-    if (code !== 0 || !body) {
-      toast.error({
-        description: 'Get bucket read quota met error.',
-      });
-      console.error(`Get bucket read quota met error. Error code: ${code}`);
-      return null;
-    }
-    const { freeQuota, readQuota, consumedQuota } = body;
-    return {
-      freeQuota,
-      readQuota,
-      consumedQuota,
-    };
-  } catch (error) {
-    toast.error({
-      description: 'Get bucket read quota met error.',
-    });
-    // eslint-disable-next-line no-console
-    console.error('get bucket read quota error', error);
-    return null;
-  }
-};
 
 const transformVisibility = (visibility: ChainVisibilityEnum) => {
   switch (visibility) {
@@ -422,7 +390,6 @@ export {
   renderBalanceNumber,
   renderInsufficientBalance,
   directlyDownload,
-  getQuota,
   transformVisibility,
   downloadWithProgress,
   viewFileByAxiosResponse,

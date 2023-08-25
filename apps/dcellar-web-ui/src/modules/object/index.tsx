@@ -21,6 +21,7 @@ import React, { useEffect } from 'react';
 import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 import { ForwardIcon } from '@totejs/icons';
+import { setupAccountsInfo } from '@/store/slices/accounts';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -45,23 +46,27 @@ export const ObjectsPage = () => {
     const bucket = bucketInfo[bucketName];
     if (!bucket) return;
     const primarySp = primarySpInfo[bucketName];
+    // 1. set global primary sp info
     if (!primarySp) {
       const [data, error] = await getVirtualGroupFamily({
-        familyId: bucket.global_virtual_group_family_id,
+        familyId: +bucket.GlobalVirtualGroupFamilyId,
       });
       const sp = allSps.find(
         (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
       ) as SpItem;
       dispatch(setPrimarySpInfo({ bucketName, sp }));
     }
+    // 2. set payment account infos
+    dispatch(setupAccountsInfo(bucket.PaymentAddress))
   }, [bucketInfo, bucketName]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];
     if (bucket) {
+      const Owner = bucket.Owner;
       const payload = {
-        discontinue: bucket.bucket_status === 1,
-        owner: bucket.owner === loginAccount,
+        discontinue: bucket.BucketStatus === '1',
+        owner: Owner === loginAccount,
       };
       dispatch(setBucketStatus(payload));
       return;

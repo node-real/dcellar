@@ -6,16 +6,16 @@ export type TNameFieldValue = {
 export type TCreateBucketFromValues = TNameFieldValue;
 
 export interface IApprovalCreateBucket {
-  bucket_name: string;
+  BucketName: string;
   creator: string;
   visibility: ChainVisibilityEnum;
-  primary_sp_address: string;
+  PrimarySpAddress: string;
   primary_sp_approval: {
     expired_height: string;
     sig: string;
   };
-  charged_read_quota: number;
-  redundancy_type: string;
+  ChargedReadQuota: number;
+  RedundancyType: string;
 }
 
 export interface IRawSPInfo {

@@ -279,7 +279,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const key = path + '/' + record.name;
         const curObjectInfo = objectsInfo[key];
         // if this object is not yours, you only can download it
-        if (curObjectInfo?.object_info?.owner !== loginAccount) {
+        if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
         //if this folder is yours, you only can delete it

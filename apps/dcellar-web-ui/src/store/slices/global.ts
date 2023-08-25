@@ -9,7 +9,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
 import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { getUtcZeroTimestamp, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -414,15 +414,23 @@ export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
 
 export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   const client = await getClient();
-  const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [] });
+
+  const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [], pagination: {
+    countTotal: true,
+    key: Uint8Array.from([]),
+    limit: Long.fromInt(1000),
+    offset: Long.fromInt(0),
+    reverse: false,
+  }});
   dispatch(globalSlice.actions.setGasObjects(res));
 };
 
 export const setupPreLockFeeObjects =
   (primarySpAddress: string) => async (dispatch: AppDispatch) => {
     const client = await getClient();
-    const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
-    const secondarySpStoragePrice = await client.sp.getSecondarySpStorePrice();
+    const now = Math.floor(getUtcZeroTimestamp()/1000);
+    const globalSpStoragePrice = await client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(now) });
+    console.log('globalSpStoragePrice', globalSpStoragePrice)
     const { params: storageParams } = await client.storage.params();
     const {
       minChargeSize = new Long(0),
@@ -432,8 +440,8 @@ export const setupPreLockFeeObjects =
     const { params: paymentParams } = await client.payment.params();
     const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
     const lockFeeParamsPayload = {
-      spStorageStorePrice: spStoragePrice?.storePrice || '',
-      secondarySpStorePrice: secondarySpStoragePrice?.storePrice || '',
+      spStorageStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
+      secondarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.secondaryStorePrice || '',
       validatorTaxRate: validatorTaxRate || '',
       minChargeSize: minChargeSize.toNumber(),
       redundantDataChunkNum,

@@ -1,8 +1,9 @@
 import {
-  IObjectResponse,
+  GfSPListObjectsByBucketNameResponse,
   IObjectResultType,
   IQuotaProps,
   ISimulateGasFee,
+  ListObjectsByBucketNameResponse,
   PermissionTypes,
   TListObjects,
   TxResponse,
@@ -215,26 +216,14 @@ export type ListObjectsParams = {
   query: URLSearchParams;
 };
 
-export type IObjectList = {
-  objects: IObjectResponse[];
-  key_count: string;
-  max_keys: string;
-  is_truncated: boolean;
-  next_continuation_token: string;
-  name: string;
-  prefix: string;
-  delimiter: string;
-  common_prefixes: string[];
-  continuation_token: number;
-};
-
 export const getListObjects = async (
   params: TListObjects,
-): Promise<[IObjectResultType<IObjectList>, null] | ErrorResponse> => {
+): Promise<[IObjectResultType<ListObjectsByBucketNameResponse>, null] | ErrorResponse> => {
   const client = await getClient();
-  const [list, error] = (await client.object.listObjects(params).then(resolve, commonFault)) as any;
-  if (error) return [null, error];
-  return [list! as IObjectResultType<IObjectList>, null];
+  const [res, error] = await client.object.listObjects(params).then(resolve, commonFault);
+  if (!res || error) return [null, error];
+
+  return [res, null];
 };
 
 export type CancelDeleteParams = {

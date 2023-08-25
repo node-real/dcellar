@@ -161,8 +161,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     };
     const [res, error] = await getListObjects(params);
     if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
-    const list = res.body!;
-    return list.key_count === '1' && list.objects[0].object_info.object_name === objectName;
+    const {GfSpListObjectsByBucketNameResponse} = res.body!;
+    return GfSpListObjectsByBucketNameResponse.KeyCount === '1' && GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName;
   };
   useAsyncEffect(async () => {
     if (!isFolder) return;

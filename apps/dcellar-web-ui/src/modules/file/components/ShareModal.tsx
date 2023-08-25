@@ -14,22 +14,22 @@ import { COPY_SUCCESS_ICON } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { IObjectResponse } from '@bnb-chain/greenfield-js-sdk';
 // import { AccessItem } from '@/modules/file/components/AccessItem';
 import { encodeObjectName } from '@/utils/string';
+import { ObjectInfo } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 
 interface modalProps {
   onClose: () => void;
   isOpen: boolean;
-  shareObject: IObjectResponse['object_info'];
-  onAccessChange: (shareObject: IObjectResponse['object_info'], access: string) => void;
+  shareObject: ObjectInfo;
+  onAccessChange: (shareObject: ObjectInfo, access: string) => void;
 }
 
 export const ShareModal = (props: modalProps) => {
   const { shareObject, onClose, isOpen } = props;
-  const objectName = shareObject.object_name || '';
+  const objectName = shareObject.ObjectName || '';
   const title = last(objectName.split('/'));
-  const params = [shareObject.bucket_name, encodeObjectName(objectName)].join('/');
+  const params = [shareObject.BucketName, encodeObjectName(objectName)].join('/');
   const { hasCopied, onCopy, setValue } = useClipboard('');
 
   useEffect(() => {

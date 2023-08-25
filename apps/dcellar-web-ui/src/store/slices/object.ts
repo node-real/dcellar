@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { getListObjects, IObjectList, ListObjectsParams } from '@/facade/object';
+import { getListObjects, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
-import { find, get, last, omit, trimEnd } from 'lodash-es';
-import { IObjectResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
+import { find, get, last, trimEnd } from 'lodash-es';
+import { GfSPListObjectsByBucketNameResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
+import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 128 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -48,8 +49,7 @@ export interface ObjectState {
   prefix: string;
   path: string;
   objects: Record<string, ObjectItem[]>;
-  objectsMeta: Record<string, Omit<IObjectList, 'objects' | 'common_prefixes'>>;
-  objectsInfo: Record<string, IObjectResponse>;
+  objectsInfo: Record<string, TObject>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
   editDetail: ObjectItem;
@@ -74,7 +74,6 @@ const initialState: ObjectState = {
   prefix: '',
   path: '',
   objects: {},
-  objectsMeta: {},
   objectsInfo: {},
   currentPage: {},
   restoreCurrent: true,
@@ -125,7 +124,7 @@ export const objectSlice = createSlice({
       item.visibility = visibility;
       const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
       if (!info) return;
-      info.object_info.visibility = visibility;
+      info.ObjectInfo.Visibility = visibility + '';
     },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
       const { path, folder } = payload;
@@ -157,7 +156,7 @@ export const objectSlice = createSlice({
       }
       const info = state.objectsInfo[path];
       if (!info) return;
-      info.object_info.object_status = objectStatus as any; // number
+      info.ObjectInfo.ObjectStatus = objectStatus as any; // number
     },
     setRestoreCurrent(state, { payload }: PayloadAction<boolean>) {
       state.restoreCurrent = payload;
@@ -207,12 +206,11 @@ export const objectSlice = createSlice({
     setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;
     },
-    setObjectList(state, { payload }: PayloadAction<{ path: string; list: IObjectList }>) {
+    setObjectList(state, { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>) {
       const { path, list } = payload;
       const [bucketName] = path.split('/');
       // keep order
-      const folders = list.common_prefixes
-        .reverse()
+      const folders = list?.CommonPrefixes.reverse()
         .map((i, index) => ({
           bucketName,
           objectName: i,
@@ -232,33 +230,33 @@ export const objectSlice = createSlice({
           return !ts;
         });
 
-      const objects = list.objects
+      const objects = list.Objects
         .map((i) => {
           const {
-            bucket_name,
-            object_name,
-            object_status,
-            create_at,
-            payload_size,
-            visibility,
-            content_type,
-          } = i.object_info;
+            BucketName,
+            ObjectName,
+            ObjectStatus,
+            CreateAt,
+            PayloadSize,
+            Visibility,
+            ContentType,
+          } = i.ObjectInfo;
 
-          const path = [bucket_name, object_name].join('/');
+          const path = [BucketName, ObjectName].join('/');
           state.objectsInfo[path] = i;
 
           return {
-            bucketName: bucket_name,
-            objectName: object_name,
-            name: last(object_name.split('/'))!,
-            payloadSize: Number(payload_size),
+            bucketName: BucketName,
+            objectName: ObjectName,
+            name: last(ObjectName.split('/'))!,
+            payloadSize: Number(PayloadSize),
             // todo fix it *second*
-            createAt: Number(create_at),
-            contentType: content_type,
+            createAt: Number(CreateAt),
+            contentType: ContentType,
             folder: false,
-            objectStatus: Number(object_status),
-            visibility,
-            removed: i.removed,
+            objectStatus: Number(ObjectStatus),
+            visibility: Visibility,
+            removed: i.Removed,
           };
         })
         .filter((i) => !i.objectName.endsWith('/') && !i.removed)
@@ -268,8 +266,8 @@ export const objectSlice = createSlice({
           return !ts || ts < getMillisecond(o.createAt);
         });
 
-      state.objectsMeta[path] = omit(list, ['objects', 'common_prefixes']);
-      state.objects[path] = folders.concat(objects as ObjectItem[]);
+      // TODO
+      state.objects[path] = folders.concat(objects as any[]);
     },
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {
       state.refreshing = payload;
@@ -279,22 +277,23 @@ export const objectSlice = createSlice({
 
 export const _getAllList = async (
   params: TListObjects,
-): Promise<[IObjectList, null] | ErrorResponse> => {
+): Promise<[GfSPListObjectsByBucketNameResponse, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
-  const list = res.body!;
-  const token = list.next_continuation_token;
+  const data = res.body!;
+  const list = data.GfSpListObjectsByBucketNameResponse;
+  const token = list.NextContinuationToken;
   if (token) {
     params.query?.set('continuation-token', token);
     const [res, error] = await _getAllList(params);
     if (error) return [null, error];
     const newList = res!;
-    const _res: IObjectList = {
+    const _res: GfSPListObjectsByBucketNameResponse = {
       ...list,
       ...newList,
-      common_prefixes: list.common_prefixes.concat(newList.common_prefixes),
-      key_count: String(Number(list.key_count) + Number(newList.key_count)),
-      objects: list.objects.concat(newList.objects),
+      CommonPrefixes: (list.CommonPrefixes || []).concat(newList.CommonPrefixes || []),
+      KeyCount: String(Number(list.KeyCount) + Number(newList.KeyCount)),
+      Objects: list.Objects.concat(newList.Objects),
     };
     return [_res, null];
   }
@@ -337,7 +336,7 @@ export const setupListObjects =
     // fix refresh then nav to other pages.
     if (!bucketName) return;
     const [res, error] = await _getAllList(payload);
-    if (error) {
+    if (!res || error) {
       toast.error({ description: error });
       return;
     }

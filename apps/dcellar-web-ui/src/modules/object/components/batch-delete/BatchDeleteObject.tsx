@@ -92,7 +92,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
-    (pre, cur) => pre + (cur.object_info.object_status === 1 ? deleteFee : cancelFee),
+    (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === '1' ? deleteFee : cancelFee),
     0,
   );
   const { connector } = useAccount();
@@ -162,7 +162,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       if (!tmpAccount) return;
       const { privateKey, address: operator } = tmpAccount;
       for await (let obj of deleteObjects) {
-        const { object_name: objectName, object_status } = obj.object_info;
+        const { ObjectName: objectName, ObjectStatus } = obj.ObjectInfo;
         const payload = {
           bucketName,
           objectName,
@@ -171,7 +171,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
           connector: connector!,
           privateKey,
         };
-        const [txRes, error] = await (object_status === 1
+        const [txRes, error] = await (ObjectStatus === '1'
           ? deleteObject(payload)
           : cancelCreateObject(payload));
         if (error && error !== E_OBJECT_NOT_EXISTS) {
@@ -181,7 +181,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         toast.success({ description: `${objectName} deleted successfully.` });
         dispatch(
           addDeletedObject({
-            path: [bucketName, obj.object_info.object_name].join('/'),
+            path: [bucketName, obj.ObjectInfo.ObjectName].join('/'),
             ts: Date.now(),
           }),
         );

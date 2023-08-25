@@ -159,7 +159,7 @@ export const ConfirmViewModal = (props: modalProps) => {
               if (visibility === ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ || !isCurrentUser) {
                 window.open(viewLink, '_blank');
               } else {
-                // viewFile({ bucketName, objectName: object_name, endpoint });
+                // viewFile({ bucketName, objectName: ObjectName, endpoint });
                 // preview file
                 try {
                   const { seedString } = await dispatch(

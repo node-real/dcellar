@@ -231,6 +231,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects, selectedFiles]);
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />

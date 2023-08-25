@@ -86,7 +86,7 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = BigNumber(balance).times(BigNumber(bnbPrice));
+    const usdPrice = BigNumber(balance || 0).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
@@ -188,7 +188,6 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
                         ? BigNumber(val).plus(BigNumber(defaultFee))
                         : BigNumber(val).plus(gasFee).plus(relayerFee);
                   }
-                  console.log('balance', balance, totalAmount.toString(), balanceVal.toString());
                   return totalAmount.comparedTo(balanceVal) <= 0;
                 },
                 validateNum: (val: string) => {

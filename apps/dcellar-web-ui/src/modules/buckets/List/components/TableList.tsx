@@ -45,13 +45,13 @@ export const TableList = memo(() => {
   const columns = React.useMemo<ColumnDef<any>[]>(
     () => [
       {
-        accessorKey: 'bucket_name',
+        accessorKey: 'BucketName',
         header: 'Name',
         size: 360,
         cell: (info: any) => <BucketNameItem info={info} />,
       },
       {
-        accessorKey: 'create_at',
+        accessorKey: 'CreateAt',
         cell: (info) => (
           <Text color={'readable.normal'} _hover={{ color: 'readable.normal' }}>
             {formatTime(getMillisecond(info.getValue() as number)) as ReactNode}
@@ -96,7 +96,7 @@ export const TableList = memo(() => {
   };
 
   const hasContinuedBucket = useMemo(() => {
-    return data?.some((item: any) => item.originalData.bucket_info.bucket_status === 1);
+    return data?.some((item: any) => item.originalData.BucketInfo.BucketStatus === 1);
   }, [data]);
 
   const tableFullHeight = useMemo(() => {
@@ -234,7 +234,7 @@ export const TableList = memo(() => {
                     backgroundColor: isLoading ? 'transparent' : 'rgba(0, 186, 52, 0.1)',
                     color: 'readable.brand7',
                   }}
-                  onClick={() => router.push(`/buckets/${row.original.bucket_name}`)}
+                  onClick={() => router.push(`/buckets/${row.original.BucketName}`)}
                   borderBottom="1px solid #E6E8EA"
                 >
                   {row.getVisibleCells().map((cell) => {
@@ -263,9 +263,9 @@ export const TableList = memo(() => {
           refetch={() => refetch()}
           isOpen={isOpen}
           onClose={onClose}
-          bucketName={rowData.bucket_name}
+          bucketName={rowData.BucketName}
           sp={{
-            address: rowData.originalData.bucket_info.primary_sp_address,
+            address: rowData.originalData.BucketInfo.PrimarySpAddress,
             endpoint: rowData.spEndpoint,
           }}
         />

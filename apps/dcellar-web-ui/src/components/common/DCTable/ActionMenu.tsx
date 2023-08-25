@@ -8,12 +8,12 @@ import { isEmpty } from 'lodash-es';
 import ShareIcon from '@/public/images/icons/share.svg';
 import AddMember from '@/public/images/icons/add_member.svg';
 import { DownloadIcon } from '@totejs/icons';
-import { ActionButton } from '@/modules/file/components/FileTable';
 import TransferInIcon from '@/public/images/icons/transfer-in.svg';
 import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
 import SendIcon from '@/public/images/icons/send.svg';
 import DepositIcon from '@/public/images/icons/deposit.svg';
 import WithdrawIcon from '@/public/images/icons/withdraw.svg';
+import { ActionButton } from './ActionButton';
 
 export type ActionMenuItem = { label: string; value: string };
 

@@ -4,8 +4,10 @@ import {
   MsgCreateObjectTypeUrl,
   MsgDeleteObjectTypeUrl,
   PermissionTypes,
+  getUtcZeroTimestamp,
   newBucketGRN,
   newObjectGRN,
+  toTimestamp,
 } from '@bnb-chain/greenfield-js-sdk';
 import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coin';
 import { Wallet, ethers } from 'ethers';
@@ -16,11 +18,13 @@ import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { signTypedDataCallback } from './wallet';
-import { QueryGetPaymentAccountResponse, QueryGetPaymentAccountsByOwnerResponse, QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
+import { QueryGetStreamRecordResponse, QueryPaymentAccountResponse, QueryPaymentAccountsByOwnerResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import { Connector } from 'wagmi';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
+// 1 hours
+const expirationTime = 1 * 60 * 60;
 export const getAccountBalance = async ({
   address,
   denom = 'BNB',
@@ -53,6 +57,9 @@ export const createTmpAccount = async ({
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();
   // MsgGrantAllowanceTypeUrl
+  const curTimeStamp = await getUtcZeroTimestamp();
+  const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
+  const expirationDate = new Date(expirationTimestamp);
   const [grantAllowanceTx, allowError] = await client.feegrant
     .grantAllowance({
       granter: address,
@@ -60,6 +67,7 @@ export const createTmpAccount = async ({
       allowedMessages: grantAllowedMessage,
       amount: parseEther(amount <= 0 ? '0.1' : amount).toString(),
       denom: 'BNB',
+      expirationTime: toTimestamp(expirationDate),
     })
     .then(resolve, createTxFault);
 
@@ -201,7 +209,7 @@ export const disablePaymentAccountRefund = async ({ address, paymentAccount }: {
   return [res, null];
 }
 
-export const getPaymentAccountsByOwner = async (address: string): Promise<ErrorResponse | [QueryGetPaymentAccountsByOwnerResponse, null]> => {
+export const getPaymentAccountsByOwner = async (address: string): Promise<ErrorResponse | [QueryPaymentAccountsByOwnerResponse, null]> => {
   const client = await getClient();
   return await client.payment.getPaymentAccountsByOwner({
     owner: address,
@@ -319,7 +327,7 @@ export const withdrawFromPaymentAccount = async ({ creator, fromAddress, amount 
   return [res, null];
 }
 
-export const getPaymentAccount = async (address: string): Promise<ErrorResponse | [QueryGetPaymentAccountResponse, null]> => {
+export const getPaymentAccount = async (address: string): Promise<ErrorResponse | [QueryPaymentAccountResponse, null]> => {
   const client = await getClient();
   return await client.payment.paymentAccount({addr: address}).then(resolve, commonFault);
 }

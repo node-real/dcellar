@@ -264,7 +264,12 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       domain,
       seedString,
     };
-    const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload).then(
+    const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload, {
+      type: 'EDDSA',
+      domain: window.location.origin,
+      seed: seedString,
+      address,
+    }).then(
       resolve,
       createTxFault,
     );

@@ -1,6 +1,7 @@
 import Long from 'long';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -44,8 +45,12 @@ const getNumInDigits = (
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
     const client = await getClient();
-    const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
-    const secondarySpStorePrice = await client.sp.getSecondarySpStorePrice();
+    const now = Math.floor(getUtcZeroTimestamp()/1000);
+    const globalSpStorePrice = await client.sp.getQueryGlobalSpStorePriceByTime({
+      timestamp: Long.fromNumber(now),
+    });
+    const spStoragePrice = globalSpStorePrice?.globalSpStorePrice.primaryStorePrice;
+    const secondarySpStorePrice = globalSpStorePrice?.globalSpStorePrice.secondaryStorePrice;
     const { params } = await client.storage.params();
     const {
       minChargeSize = new Long(0),

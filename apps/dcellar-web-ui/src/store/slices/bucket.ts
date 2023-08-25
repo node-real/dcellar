@@ -3,22 +3,24 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
-import { BucketProps } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
 import { omit } from 'lodash-es';
-import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { SpItem } from './sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { GetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk';
+import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { SourceType, VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
-export type BucketItem = Omit<BucketProps, 'bucket_info'> & {
-  bucket_name: string;
-  create_at: number;
-  bucket_status: number;
+export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
+export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
+  BucketName: string;
+  CreateAt: number;
+  BucketStatus: number;
 };
 
-export type TEditDetailItem = BucketItem & { primary_sp_address?: string };
+export type TEditDetailItem = BucketItem & { PrimarySpAddress?: string };
 export interface BucketState {
-  bucketInfo: Record<string, BucketProps['bucket_info']>;
+  bucketInfo: Record<string, BucketProps['BucketInfo']>;
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
@@ -77,40 +79,37 @@ export const bucketSlice = createSlice({
       if (!address) return;
       const bucketName = bucket.bucketName;
       const info = state.bucketInfo[bucketName];
-      // todo refactor
       const newInfo = {
         ...info,
-        owner: bucket.owner,
-        bucket_name: bucket.bucketName,
-        visibility: bucket.visibility,
-        id: bucket.id,
-        source_type: bucket.sourceType.toString(),
-        create_at: bucket.createAt.toString(),
-        payment_address: bucket.paymentAddress,
-        bucket_status: bucket.bucketStatus,
-        global_virtual_group_family_id: bucket.globalVirtualGroupFamilyId,
-        charged_read_quota: bucket.chargedReadQuota.toString(),
-        // billing_info
+        Owner: bucket.owner,
+        BucketName: bucket.bucketName,
+        Visibility: VisibilityType[bucket.visibility],
+        Id: bucket.id,
+        SourceType: SourceType[bucket.sourceType],
+        CreateAt: bucket.createAt.toString(),
+        PaymentAddress: bucket.paymentAddress,
+        BucketStatus: String(bucket.bucketStatus),
+        GlobalVirtualGroupFamilyId: String(bucket.globalVirtualGroupFamilyId),
+        ChargedReadQuota: bucket.chargedReadQuota.toString(),
       };
       state.bucketInfo[bucketName] = newInfo;
-      state.owner = address === newInfo.owner;
-      state.discontinue = newInfo.bucket_status === 1;
+      state.owner = address === newInfo.Owner;
+      state.discontinue = newInfo.BucketStatus === '1';
     },
     setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
-      const all = buckets
+      state.buckets[address] = buckets
         .map((bucket) => {
-          const { bucket_name, create_at, bucket_status } = bucket.bucket_info;
-          state.bucketInfo[bucket_name] = bucket.bucket_info;
+          const { BucketName, CreateAt, BucketStatus } = bucket.BucketInfo;
+          state.bucketInfo[BucketName] = bucket.BucketInfo;
           return {
-            ...omit(bucket, 'bucket_info'),
-            bucket_name,
-            create_at: Number(create_at),
-            bucket_status,
+            ...omit(bucket, 'BucketInfo'),
+            BucketName,
+            CreateAt: Number(CreateAt),
+            BucketStatus: Number(BucketStatus)
           };
         })
-        .sort((a, b) => b.create_at - a.create_at);
-      state.buckets[address] = all.filter((u) => !u.removed);
+        .sort((a, b) => b.CreateAt - a.CreateAt);
     },
   },
 });
@@ -121,11 +120,12 @@ export const selectBucketList = (address: string) => (root: AppState) => {
 };
 
 export const selectHasDiscontinue = (address: string) => (root: AppState) =>
-  (root.bucket.buckets[address] || defaultBucketList).some((i) => i.bucket_status === 1);
+  (root.bucket.buckets[address] || defaultBucketList).some((i) => i.BucketStatus === 1);
 
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
+
     if (!bucket) return 'Bucket no exist';
     dispatch(setBucketInfo({ address, bucket }));
   };
@@ -145,11 +145,12 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    const bucketList = res.body?.map((bucket) => {
+    // @ts-ignore
+    const bucketList = res.body?.map((bucket: GfSPGetUserBucketsResponse.Buckets) => {
       return {
         ...bucket,
-        bucket_info: {
-          ...bucket.bucket_info,
+        BucketInfo: {
+          ...bucket.BucketInfo,
         },
       };
     });
@@ -163,8 +164,8 @@ export const setupBucketQuota =
     const { bucketInfo } = getState().bucket;
     const info = bucketInfo[bucketName];
     if (!info) return;
-    const familyId = bucketInfo[bucketName].global_virtual_group_family_id;
-    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId });
+    const familyId = bucketInfo[bucketName].GlobalVirtualGroupFamilyId;
+    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId: +familyId });
     if (familyResp === null) {
       return VGerror;
     }

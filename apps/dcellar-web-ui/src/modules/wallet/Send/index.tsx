@@ -1,8 +1,7 @@
-import React, { ReactElement, use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
-import { ethers } from 'ethers';
 import {
   Box,
   Divider,
@@ -17,7 +16,6 @@ import {
 
 import Amount from '../components/Amount';
 import { Head } from '../components/Head';
-import { Address } from '../components/Address';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -245,15 +243,11 @@ export const Send = () => {
             color="#76808F"
           >
             Balance on:{' '}
-            {fromAccount ? (
-              isLoadingDetail === fromAccount.address ? (
-                <SmallLoading />
-              ) : (
-                accountsInfo[fromAccount.address]?.staticBalance || 0
-              )
-            ) : (
-              0
-            )}{' '}
+            {isLoadingDetail === fromAccount.address ? (
+              <SmallLoading />
+            ): (
+              accountsInfo[fromAccount.address]?.staticBalance || 0
+            )}
             BNB
           </FormHelperText>
         </FormControl>

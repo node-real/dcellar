@@ -164,12 +164,13 @@ export const setupPAList = () => async (dispatch: any, getState: GetState) => {
 }
 
 export const setupAccountsInfo = (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  if (!address) return;
   const { PAList } = getState().accounts;
   const  { loginAccount } = getState().persist;
   const accountList = [...PAList, {address:loginAccount, name: 'Owner Account' }]
   dispatch(setLoadingDetail(address));
-  const [PARes, aError] = await getPaymentAccount(address);
-  const [SRRes, error] = await getAccountStreamRecord(address);
+  const [PARes, PAError] = await getPaymentAccount(address);
+  const [SRRes, SRError] = await getAccountStreamRecord(address);
   dispatch(setLoadingDetail(''))
   const paymentAccountName =
     accountList.find((item) => item.address === address)?.name || '';

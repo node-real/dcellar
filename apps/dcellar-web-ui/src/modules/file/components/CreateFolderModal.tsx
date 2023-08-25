@@ -140,14 +140,14 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     const { configParam } = createObjectData;
 
     return {
-      bucket_name: bucketName,
-      object_name: objectName,
+      BucketName: bucketName,
+      ObjectName: objectName,
       owner: address,
       content_type: '',
-      payload_size: '0',
-      object_status: FOLDER_STATUS_CREATING,
+      PayloadSize: '0',
+      ObjectStatus: FOLDER_STATUS_CREATING,
       checksums: configParam.expectCheckSums,
-      create_at: getUtcZeroTimestamp(),
+      CreateAt: getUtcZeroTimestamp(),
       visibility: configParam.visibility,
     };
   };
@@ -202,7 +202,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setListObjects((list) =>
       list.map((row) => ({
         ...row,
-        object_status: objectName === row?.object_name ? status : row.object_status,
+        ObjectStatus: objectName === row?.ObjectName ? status : row.ObjectStatus,
       })),
     );
   };
@@ -221,7 +221,7 @@ export const CreateFolderModal = memo<modalProps>(function CreateFolderModal(pro
     setCreatingModalStatus();
     const createFolderPayload = getCreateFolderPayload(objectName);
 
-    if (!listObjects.some((item) => item.object_name === createFolderPayload.object_name)) {
+    if (!listObjects.some((item) => item.ObjectName === createFolderPayload.ObjectName)) {
       const fileUploadingLists = [createFolderPayload, ...listObjects];
       setListObjects(fileUploadingLists);
     }

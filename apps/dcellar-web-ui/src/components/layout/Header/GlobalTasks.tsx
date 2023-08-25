@@ -15,7 +15,7 @@ import { useChecksumApi } from '@/modules/checksum';
 import { useAsyncEffect } from 'ahooks';
 import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { generatePutObjectOptions } from '@/modules/file/utils/generatePubObjectOptions';
+import { TMakePutObjectHeaders, makePutObjectHeaders } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
 import { headObject } from '@/facade/object';
 import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
@@ -26,6 +26,7 @@ import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/fac
 import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/spclient';
 
 interface GlobalTasksProps {}
 
@@ -101,7 +102,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       signType: 'authTypeV1',
       privateKey: tmpAccount.privateKey,
     };
-    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload).then(
+    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
+      type: 'ECDSA',
+      privateKey: tmpAccount.privateKey,
+    }).then(
       resolve,
       createTxFault,
     );
@@ -145,17 +149,20 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       }))
     }
     const fullObjectName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name].filter(item => !!item).join('/');
-    const payload = {
+    const payload: TMakePutObjectHeaders = {
       bucketName: task.bucketName,
       objectName: fullObjectName,
       body: task.waitFile.file,
       endpoint: spInfo[task.spAddress].endpoint,
       txnHash: res.transactionHash,
-      userAddress: loginAccount,
-      domain,
-      seedString,
     }
-    const [uploadOptions, gpooError] = await generatePutObjectOptions(payload).then(resolve, commonFault);
+    const authType = {
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address: loginAccount,
+    } as AuthType;
+    const [uploadOptions, gpooError] = await makePutObjectHeaders(payload, authType).then(resolve, commonFault);
 
     if (!uploadOptions || gpooError) {
       return dispatch(setupUploadTaskErrorMsg({
@@ -178,19 +185,27 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           await dispatch(progressFetchList(task));
           dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
         },
+
         headers: {
           Authorization: headers.get('Authorization'),
-          'X-Gnfd-Txn-hash': headers.get('X-Gnfd-Txn-hash'),
-          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
+          'content-type': headers.get('content-type'),
+          'x-gnfd-app-domain': headers.get('x-gnfd-app-domain'),
+          'x-gnfd-content-sha256': headers.get('x-gnfd-content-sha256'),
+          'x-gnfd-date': headers.get('x-gnfd-date'),
+          'x-gnfd-expiry-timestamp': headers.get('x-gnfd-expiry-timestamp'),
+          'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
+          'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
         },
       }).catch(async (e: Response | any) => {
-        const {message} = await parseErrorXml(e)
-        dispatch(setupUploadTaskErrorMsg({
-          account: loginAccount,
-          task,
-          errorMsg: message || e?.message || 'upload error',
-        }))
+        console.log('upload error', e);
+        const { message } = await parseErrorXml(e);
+        setTimeout(() => {
+          dispatch(setupUploadTaskErrorMsg({
+            account: loginAccount,
+            task,
+            errorMsg: message || e?.message || 'upload error',
+          }))
+        }, 200);
       })
     };
   }

@@ -1,15 +1,13 @@
 import {
   IQuotaProps,
-  TGetBucketReadQuota,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { getDomain } from '@/utils/getDomain';
 import { commonFault, ErrorResponse, offChainAuthFault, simulateFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
-import { BucketProps } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
-import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
+import { TBaseGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
+import { GetUserBucketsResponse, IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -34,32 +32,32 @@ export const headBucket = async (bucketName: string) => {
 export const getUserBuckets = async (
   address: string,
   endpoint: string,
-): Promise<ErrorResponse | [IObjectResultType<BucketProps[]>, null]> => {
+): Promise<ErrorResponse | [IObjectResultType<GetUserBucketsResponse>, null]> => {
   const client = await getClient();
   const [res, error] = await client.bucket
     .getUserBuckets({ address, endpoint })
     .then(resolve, commonFault);
+
   if (error) return [null, error];
   return [res!, null];
 };
 
 export const getBucketReadQuota = async ({
   bucketName,
-  endpoint,
   seedString,
   address,
 }: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
-  const payload: TGetBucketReadQuota = {
+  const payload: TBaseGetBucketReadQuota = {
     bucketName,
-    endpoint,
-    seedString,
-    address,
-    signType: 'offChainAuth',
-    domain: getDomain(),
   };
   const [res, error] = await client.bucket
-    .getBucketReadQuota(payload)
+    .getBucketReadQuota(payload, {
+        type: 'EDDSA',
+        seed: seedString,
+        domain: window.location.origin,
+        address,
+    })
     .then(resolve, offChainAuthFault);
   if (error) return [null, error];
 

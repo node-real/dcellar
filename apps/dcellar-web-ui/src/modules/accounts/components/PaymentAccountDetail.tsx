@@ -6,18 +6,18 @@ import {
   setupAccountsInfo,
 } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
-import { useAsyncEffect } from 'ahooks';
-import React from 'react';
+import { useAsyncEffect, useInterval } from 'ahooks';
+import React, { useEffect } from 'react';
 import { AccountDetail } from './AccountDetail';
 import { useRouter } from 'next/router';
 
+// TODO 做一个throttle结果, 当有值的时候减少，没有就算了
 export const PaymentAccountDetail = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editPaymentDetail, isLoadingDetail, accountsInfo, PAList, ownerAccount } = useAppSelector(
+  const { editPaymentDetail, isLoadingDetail, accountsInfo } = useAppSelector(
     (state) => state.accounts,
   );
-  const allAccounts = [...PAList, ownerAccount];
   const isOpen = !!editPaymentDetail;
   const router = useRouter();
   const onClose = () => {
@@ -36,6 +36,13 @@ export const PaymentAccountDetail = () => {
       return router.push(`/wallet?type=send&from=${loginAccount}&to=${editPaymentDetail}`);
     }
   };
+
+  const clear = useInterval(() => {
+  }, 1000);
+
+  useEffect(() => {
+    return () => clear();
+  })
   return (
     <DCDrawer
       isOpen={isOpen}

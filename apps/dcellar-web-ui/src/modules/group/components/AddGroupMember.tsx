@@ -23,6 +23,7 @@ import ComingSoon from '@/components/common/SvgIcon/members.svg';
 import { addMemberToGroup } from '@/facade/group';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { ADDRESS_RE } from '@/utils/regex';
+import { getUtcZeroTimestamp, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
 
 const MAX_COUNT = 20;
 
@@ -81,13 +82,23 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
     dispatch(
       setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
     );
+    // TODO
+    const curTimeStamp = await getUtcZeroTimestamp();
+    const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
+    const expirationDate = new Date(expirationTimestamp);
+    const membersToAdd = values.map(item => ({
+      member: item,
+      expirationTime: toTimestamp(expirationDate),
+    }))
+
     const payload = {
       operator: loginAccount,
       groupOwner: loginAccount,
       groupName: addGroupMember.groupName,
-      membersToAdd: values,
+      membersToAdd,
       membersToDelete: [],
     };
+
     const [txRes, txError] = await addMemberToGroup(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);

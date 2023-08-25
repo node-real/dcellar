@@ -45,7 +45,7 @@ const initialState: PersistState = {
   accounts: {},
   loginAccount: '',
   faultySps: [],
-  bucketSortBy: ['create_at', 'descend'],
+  bucketSortBy: ['CreateAt', 'descend'],
   bucketPageSize: 50,
   objectSortBy: ['createAt', 'descend'],
   objectPageSize: 50,

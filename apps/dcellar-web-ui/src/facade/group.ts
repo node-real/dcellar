@@ -17,12 +17,20 @@ import {
 import { BroadcastResponse, DeliverResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { Connector } from 'wagmi';
+import Long from 'long';
 
 export const getGroups = async (account: string): Promise<ErrorResponse | [GroupInfo[], null]> => {
   const client = await getClient();
   const [res, error] = await client.group
     .listGroup({
       groupOwner: account,
+      // @ts-ignore todo fix it
+      pagination: {
+        key: Uint8Array.from([]),
+        limit: Long.fromInt(200),
+        offset: Long.fromInt(0),
+        reverse: false,
+      }
     })
     .then(resolve, commonFault);
   if (!res) return [null, error];
@@ -82,7 +90,7 @@ export const addMemberToGroup = async (
   // todo fix it
   for await (const member of msg.membersToAdd) {
     const [res, error] = await client.group
-      .headGroupMember(msg.groupName, msg.groupOwner, member)
+      .headGroupMember(msg.groupName, msg.groupOwner, member.member)
       .then(resolve, commonFault);
     if (!res) {
       members.push(member);

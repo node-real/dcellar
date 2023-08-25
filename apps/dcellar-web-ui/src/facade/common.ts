@@ -29,11 +29,11 @@ export const getObjectInfoAndBucketQuota = async ({
     client.bucket
       .getBucketReadQuota({
         bucketName,
-        endpoint,
-        signType: 'offChainAuth',
+      }, {
+        type: 'EDDSA',
+        seed: seedString,
+        domain: window.location.origin,
         address,
-        seedString,
-        domain: getDomain(),
       })
       .catch((e) => {
         return {} as IObjectResultType<IQuotaProps>;
