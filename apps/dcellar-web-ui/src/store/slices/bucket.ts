@@ -145,8 +145,7 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    // @ts-ignore
-    const bucketList = res.body?.map((bucket: GfSPGetUserBucketsResponse.Buckets) => {
+    const bucketList = res.body?.map((bucket: GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0]) => {
       return {
         ...bucket,
         BucketInfo: {

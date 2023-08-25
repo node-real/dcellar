@@ -375,52 +375,6 @@ export const DetailObject = (props: modalProps) => {
                 'dc.file.f_detail_pop.copy_universal.click',
               ),
             )}
-            {renderAddressLink(
-              'Object ID',
-              formatId(Number(objectInfo.ObjectInfo?.Id)),
-              'dc.file.f_detail_pop.id.click',
-              'dc.file.f_detail_pop.copy_id.click',
-              'object',
-            )}
-            {renderAddressLink(
-              'Primary SP address',
-              primarySp.operatorAddress,
-              'dc.file.f_detail_pop.spadd.click',
-              'dc.file.f_detail_pop.copy_spadd.click',
-            )}
-            {renderAddressLink(
-              'Primary SP seal address',
-              primarySp.operatorAddress,
-              'dc.file.f_detail_pop.seal.click',
-              'dc.file.f_detail_pop.copy_seal.click',
-            )}
-            {renderAddressLink(
-              'Create transaction hash',
-              objectInfo.CreateTxHash,
-              'dc.object.f_detail_pop.CreateTxHash.click',
-              'dc.object.f_detail_pop.copy_create_tx_hash.click',
-              'tx',
-            )}
-            {renderAddressLink(
-              'Seal transaction hash',
-              objectInfo.SealTxHash,
-              'dc.object.f_detail_pop.SealTxHash.click',
-              'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-              'tx',
-            )}
-            {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
-              renderPropRow(
-                'Universal link',
-                renderUrlWithLink(
-                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
-                    editDetail.objectName,
-                  )}`,
-                  true,
-                  32,
-                  'dc.file.f_detail_pop.universal.click',
-                  'dc.file.f_detail_pop.copy_universal.click',
-                ),
-              )}
           </Flex>
           <Divider />
           <SharePermission />

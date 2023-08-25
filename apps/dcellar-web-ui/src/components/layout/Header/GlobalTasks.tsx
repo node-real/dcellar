@@ -18,7 +18,6 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { TMakePutObjectHeaders, makePutObjectHeaders } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
 import { headObject } from '@/facade/object';
-import { TCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
@@ -26,7 +25,8 @@ import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/fac
 import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/spclient';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
+import { TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
 
 interface GlobalTasksProps {}
 
@@ -91,7 +91,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const isFolder = task.waitFile.name.endsWith('/');
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name].filter(item => !!item).join('/');
-    const createObjectPayload: TCreateObject = {
+    const createObjectPayload: TBaseGetCreateObject = {
       bucketName: task.bucketName,
       objectName: finalName,
       creator: tmpAccount.address,
@@ -99,8 +99,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       fileType: task.waitFile.type || 'application/octet-stream',
       contentLength: task.waitFile.size,
       expectCheckSums: task.checksum,
-      signType: 'authTypeV1',
-      privateKey: tmpAccount.privateKey,
     };
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',

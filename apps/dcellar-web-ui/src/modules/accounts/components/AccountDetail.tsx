@@ -21,9 +21,15 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
+import { getNumInDigits } from '@/utils/wallet';
+import { selectBalance } from '@/store/slices/balance';
 
 export const AccountDetail = ({ loading, title, accountDetail }: any) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
+  const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
+  const { availableBalance = 0 } = useAppSelector(selectBalance(accountDetail?.address));
+  const balance = isOwnerAccount ? BigNumber(accountDetail?.staticBalance || 0).plus(BigNumber(availableBalance)).toString(DECIMAL_NUMBER) : BigNumber(accountDetail?.staticBalance || 0).toString(DECIMAL_NUMBER);
+
   const detailItems = [
     {
       label: title,
@@ -56,15 +62,15 @@ export const AccountDetail = ({ loading, title, accountDetail }: any) => {
       label: 'Balance',
       value: (
         <Flex marginBottom={8}>
-          <LoadingAdaptor loading={loading} empty={accountDetail?.staticBalance === undefined}>
+          <LoadingAdaptor loading={loading} empty={balance === undefined}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {accountDetail?.staticBalance} BNB
+                {getNumInDigits(balance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
                 (
                 {currencyFormatter(
-                  BigNumber(accountDetail?.staticBalance)
+                  BigNumber(balance)
                     .times(BigNumber(bnbPrice))
                     .toString(DECIMAL_NUMBER),
                 )}{' '}

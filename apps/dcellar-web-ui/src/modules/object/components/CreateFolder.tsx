@@ -31,6 +31,7 @@ import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
 import {
   MsgCreateObjectTypeUrl,
+  TBaseGetCreateObject,
   TCreateObjectByOffChainAuth,
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
@@ -252,7 +253,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     const domain = getDomain();
     const { seedString } = await dispatch(getSpOffChainData(address, primarySp.operatorAddress));
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const createObjectPayload: TCreateObjectByOffChainAuth = {
+    const createObjectPayload: TBaseGetCreateObject = {
       bucketName,
       objectName: fullPath,
       creator: address,
@@ -260,9 +261,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       fileType: file.type,
       contentLength: file.size,
       expectCheckSums: hashResult?.expectCheckSums || [],
-      signType: 'offChainAuth',
-      domain,
-      seedString,
     };
     const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'EDDSA',

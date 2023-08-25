@@ -4,8 +4,8 @@ import { GetUserBucketsResponse, IBaseGetCreateBucket, MsgDeleteBucketTypeUrl } 
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import axios from 'axios';
 import { TGasList } from '@/store/slices/global';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/spclient';
 import { XMLParser } from 'fast-xml-parser';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
 export const pollingCreateAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>

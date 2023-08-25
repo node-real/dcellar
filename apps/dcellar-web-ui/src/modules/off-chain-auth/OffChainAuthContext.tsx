@@ -54,7 +54,6 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           domain,
           expirationMs: EXPIRATION_MS,
         };
-
         const client = await getClient();
         const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(
           configParam,
