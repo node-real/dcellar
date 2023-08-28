@@ -12,7 +12,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 import { StreamBalance } from '@/components/layout/Header/StreamBalance';
-import { useDebounceEffect, useMount } from 'ahooks';
+import { useDebounceEffect } from 'ahooks';
 import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
@@ -20,6 +20,7 @@ import { GasObjects } from './GasObjects';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
 import { PaymentAccounts } from './PaymentAccounts';
+import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 32 : 36;
@@ -61,6 +62,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
 
   return (
     <>
+      <ManageQuotaDrawer />
       <GlobalTasks />
       <StreamBalance />
       <GasObjects />
@@ -234,6 +236,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         </Flex>
         <Flex flex={1} />
         {taskManagement && <TaskManagement />}
+
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex

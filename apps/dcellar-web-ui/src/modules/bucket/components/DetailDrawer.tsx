@@ -1,6 +1,5 @@
 import React, { memo, useEffect, useMemo } from 'react';
 import {
-  QDrawerCloseButton,
   QDrawerHeader,
   QDrawerBody,
   Flex,
@@ -8,9 +7,10 @@ import {
   Link,
   Box,
   Divider,
+  QDrawerFooter,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { BucketItem, setEditDetail, setupBucketQuota } from '@/store/slices/bucket';
+import { BucketItem, setEditDetail, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { formatId } from '@/utils/string';
 import { formatAddress } from '@/modules/buckets/utils/formatAddress';
@@ -24,6 +24,8 @@ import { DCDrawer } from '@/components/common/DCDrawer';
 import { getClient } from '@/base/client';
 import { SpItem } from '@/store/slices/sp';
 import { useAsyncEffect } from 'ahooks';
+import dayjs from 'dayjs';
+import { DCButton } from '@/components/common/DCButton';
 
 interface DetailDrawerProps {}
 
@@ -34,6 +36,25 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const isOpen = !!editDetail.BucketName;
   const quota = quotas[editDetail.BucketName];
   const bucket = bucketInfo[editDetail.BucketName] || {};
+  const endDate = dayjs().utc().endOf('month').format('D MMM, YYYY');
+
+  const transformedRemainingQuota = useMemo(() => {
+    if (!quota)
+      return {
+        remain: 0,
+        text: '--',
+        free: '--',
+        read: '--',
+      };
+    const { freeQuota, readQuota, consumedQuota } = quota;
+    const remainingQuota = readQuota + freeQuota - consumedQuota;
+    return {
+      free: formatBytes(freeQuota, true).replace(' ', ''),
+      read: !readQuota ? '0G' : formatBytes(readQuota, true).replace(' ', ''),
+      remain: (remainingQuota / (freeQuota + readQuota)) * 100,
+      text: `${formatBytes(remainingQuota, true)} / ${formatBytes(freeQuota + readQuota)}`,
+    };
+  }, [quota]);
   const getContent = () => {
     if (!isOpen) return;
     const CreateAt = getMillisecond(editDetail.CreateAt);
@@ -78,7 +99,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
         value: editDetail.CreateTxHash,
         display: formatAddress(editDetail.CreateTxHash),
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_create_tx_hash.click',
-        gaClickName: 'dc.bucket.b_detail_pop.CreateTxHash.click',
+        gaClickName: 'dc.bucket.b_detail_pop.create_tx_hash.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
       },
       // {
@@ -151,16 +172,43 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
               </Flex>
             </Flex>
           ))}
+
+        <Flex
+          justifyContent={'space-between'}
+          color="readable.tertiary"
+          alignItems="center"
+          h={28}
+          _notLast={{
+            mb: 3,
+          }}
+        >
+          <Label>Free quota (one-time)</Label>
+          <Flex>
+            <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
+              {transformedRemainingQuota.free}
+            </Text>
+          </Flex>
+        </Flex>
+        <Flex
+          justifyContent={'space-between'}
+          color="readable.tertiary"
+          alignItems="flex-start"
+          my={6}
+          _notLast={{
+            mb: 3,
+          }}
+        >
+          <Label>Monthly quota</Label>
+          <Flex flexDirection={'column'} alignItems="flex-end">
+            <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
+              {transformedRemainingQuota.read}/mo
+            </Text>
+            <Text>Expire date: {endDate}</Text>
+          </Flex>
+        </Flex>
       </>
     );
   };
-
-  const transformedRemainingQuota = useMemo(() => {
-    if (!quota) return '--';
-    const { freeQuota, readQuota, consumedQuota } = quota;
-    const remainingQuota = readQuota + freeQuota - consumedQuota;
-    return `${formatBytes(remainingQuota, true)} / ${formatBytes(freeQuota + readQuota)}`;
-  }, [quota]);
 
   useEffect(() => {
     if (!editDetail.BucketName) return;
@@ -172,19 +220,24 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
     const client = await getClient();
     const endpoint = await client.sp.getSPUrlByBucket(editDetail.BucketName);
     const primarySp = allSps.find((sp: SpItem) => sp.endpoint === endpoint) as SpItem;
-    dispatch(setEditDetail({
-      ...editDetail,
-      PrimarySpAddress: primarySp.operatorAddress
-    }));
+    dispatch(
+      setEditDetail({
+        ...editDetail,
+        PrimarySpAddress: primarySp.operatorAddress,
+      }),
+    );
   }, [editDetail]);
 
   const onClose = () => {
     dispatch(setEditDetail({} as BucketItem));
   };
 
+  const manageQuota = () => {
+    dispatch(setEditQuota([editDetail.BucketName, 'drawer']));
+  };
+
   return (
     <DCDrawer isOpen={isOpen} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
       <QDrawerBody>
         <Flex my={32}>
@@ -199,14 +252,43 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             <Text color="readable.tertiary" fontSize={'12px'} marginBottom="4px" marginTop="8px">
               Remaining Quota
             </Text>
-            <Text fontSize={'14px'} fontWeight={500} wordBreak="break-all">
-              {transformedRemainingQuota}
+            <Box bg="#F5F5F5" height={8} my={4}>
+              <Box bg="#00BA34" height={8} w={`${transformedRemainingQuota.remain}%`} />
+            </Box>
+            <Text
+              display="flex"
+              justifyContent="space-between"
+              fontSize={'14px'}
+              fontWeight={500}
+              wordBreak="break-all"
+            >
+              {transformedRemainingQuota.text}{' '}
+              <Text
+                as="span"
+                color="#00BA34"
+                _hover={{ color: '#2EC659' }}
+                cursor="pointer"
+                onClick={manageQuota}
+              >
+                Increase Quota
+              </Text>
             </Text>
           </Box>
         </Flex>
         <Divider marginBottom={16} />
         {getContent()}
       </QDrawerBody>
+      <QDrawerFooter>
+        <DCButton
+          variant="dcPrimary"
+          backgroundColor={'readable.brand6'}
+          height={'48px'}
+          width={'100%'}
+          onClick={manageQuota}
+        >
+          Manage Quota
+        </DCButton>
+      </QDrawerFooter>
     </DCDrawer>
   );
 });

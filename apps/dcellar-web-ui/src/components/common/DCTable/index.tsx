@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Table, ConfigProvider, TableProps, ThemeConfig } from 'antd';
+import { Table, ConfigProvider, TableProps } from 'antd';
 import { ConfigProviderProps } from 'antd/es/config-provider';
 import styled from '@emotion/styled';
 import {
@@ -37,12 +37,14 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
       <ConfigProvider renderEmpty={renderEmpty} theme={theme}>
         <Table {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
-      {pagination && <SimplePagination
-        pageSize={pageSize}
-        canNext={canNext}
-        canPrev={canPrev}
-        pageChange={pageChange}
-      />}
+      {pagination && (
+        <SimplePagination
+          pageSize={pageSize}
+          canNext={canNext}
+          canPrev={canPrev}
+          pageChange={pageChange}
+        />
+      )}
     </Container>
   );
 });
@@ -109,14 +111,17 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
   const { loginAccount } = useAppSelector((root) => root.persist);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
 
-
-  const file = find<UploadFile>(
-    queue,
-    (q) => {
-      const objectInList = [q.bucketName, ...q.prefixFolders, (q.waitFile.relativePath || ''), q.waitFile.name].filter(item => !!item).join('/');
-      return  objectInList === object
-    }
-  );
+  const file = find<UploadFile>(queue, (q) => {
+    const objectInList = [
+      q.bucketName,
+      ...q.prefixFolders,
+      q.waitFile.relativePath || '',
+      q.waitFile.name,
+    ]
+      .filter((item) => !!item)
+      .join('/');
+    return objectInList === object;
+  });
 
   const failed = (
     <Flex

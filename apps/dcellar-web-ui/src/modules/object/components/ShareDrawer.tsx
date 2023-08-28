@@ -4,7 +4,6 @@ import {
   Flex,
   Image,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -109,8 +108,7 @@ export const ShareDrawer = memo<ShareDrawerProps>(function ShareDrawer() {
 
   return (
     <>
-      <DCDrawer isOpen={open} onClose={onClose}>
-        {from !== 'drawer' && <QDrawerCloseButton color="#76808F" />}
+      <DCDrawer isOpen={open} onClose={onClose} showCloseBtn={from !== 'drawer'}>
         <QDrawerHeader alignItems="center">
           {from === 'drawer' && <BackIcon mr={8} cursor="pointer" onClick={onClose} />}
           <Text

@@ -16,7 +16,7 @@ import {
 } from '@/modules/file/constant';
 import { useUnmount, useUpdateEffect } from 'ahooks';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { Flex, QDrawerBody, QDrawerCloseButton, QDrawerHeader, Text, toast } from '@totejs/uikit';
+import { Flex, QDrawerBody, QDrawerHeader, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import ComingSoon from '@/components/common/SvgIcon/members.svg';
@@ -107,7 +107,6 @@ export const RemoveGroupMember = memo<RemoveGroupMemberProps>(function RemoveGro
 
   return (
     <DCDrawer isOpen={!!removeGroupMember.groupName} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader flexDirection="column">Remove Members</QDrawerHeader>
       <QDrawerBody>
         <Flex gap={12}>

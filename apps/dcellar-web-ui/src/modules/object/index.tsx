@@ -18,14 +18,12 @@ import { Tooltip, Flex } from '@totejs/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
-import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
-import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
-import { setupAccountsInfo } from '@/store/slices/accounts';
+import { QuotaCard } from '@/modules/object/components/QuotaCard';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { allSps, primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
@@ -34,6 +32,7 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
+  const bucket = bucketInfo[bucketName];
 
   useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
@@ -43,22 +42,9 @@ export const ObjectsPage = () => {
   }, [bucketName, dispatch, folders]);
 
   useAsyncEffect(async () => {
-    const bucket = bucketInfo[bucketName];
     if (!bucket) return;
-    const primarySp = primarySpInfo[bucketName];
-    // 1. set global primary sp info
-    if (!primarySp) {
-      const [data, error] = await getVirtualGroupFamily({
-        familyId: +bucket.GlobalVirtualGroupFamilyId,
-      });
-      const sp = allSps.find(
-        (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
-      ) as SpItem;
-      dispatch(setPrimarySpInfo({ bucketName, sp }));
-    }
-    // 2. set payment account infos
-    dispatch(setupAccountsInfo(bucket.PaymentAddress))
-  }, [bucketInfo, bucketName]);
+    await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+  }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];
@@ -89,7 +75,10 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <ObjectBreadcrumb />
+        <Flex justifyContent="space-between">
+          <ObjectBreadcrumb />
+          <QuotaCard />
+        </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>
             <ForwardIcon />

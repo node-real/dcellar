@@ -5,7 +5,6 @@ import {
   FormControl,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -31,8 +30,7 @@ import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
 import {
   MsgCreateObjectTypeUrl,
-  TBaseGetCreateObject,
-  TCreateObjectByOffChainAuth,
+  TBaseGetCreateObject
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
@@ -317,7 +315,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       gaShowName="dc.file.create_folder_m.0.show"
       gaClickCloseName="dc.file.create_folder_m.close.click"
     >
-      <QDrawerCloseButton />
       <QDrawerHeader>Create a Folder</QDrawerHeader>
       <QDrawerBody>
         <Text

@@ -4,7 +4,6 @@ import {
   Image,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -297,7 +296,6 @@ export const DetailObject = (props: modalProps) => {
         <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
           Object Detail
         </QDrawerHeader>
-        <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
         <QDrawerBody>
           <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
             <Flex w="100%" overflow="hidden">

@@ -1,5 +1,6 @@
 import {
   Box,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
@@ -8,7 +9,6 @@ import {
   InputRightElement,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -48,6 +48,8 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
+import { QuotaItem } from '@/components/formitems/QuotaItem';
+import { G_BYTES } from '@/utils/constant';
 
 type Props = {
   isOpen: boolean;
@@ -90,6 +92,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const { _availableBalance } = useAppSelector((root) => root.global);
   const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
+  const [chargeQuota, setChargeQuota] = useState(0);
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
@@ -172,7 +175,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         bucketName,
         creator: address,
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-        chargedReadQuota: '0',
+        chargedReadQuota: String(chargeQuota * G_BYTES),
         spInfo: {
           primarySpAddress: sp.operatorAddress,
         },
@@ -311,11 +314,12 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           creator: address,
           paymentAddress: selectedPaAddress,
           visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-          chargedReadQuota: '0',
+          chargedReadQuota: String(chargeQuota * G_BYTES),
           spInfo: {
             primarySpAddress: selectedSpRef.current.operatorAddress,
           },
         };
+
         const createBucketTx = await genCreateBucketTx(createBucketPayload, {
           type: 'EDDSA',
           domain: window.location.origin,
@@ -424,7 +428,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
       )}
       <DCDrawer isOpen={isOpen} onClose={onClose}>
-        <QDrawerCloseButton />
         <QDrawerHeader>Create a Bucket</QDrawerHeader>
         <QDrawerBody mt={0}>
           <Box>
@@ -522,6 +525,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   <PaymentAccountSelector onChange={onChangePA} />
                 </FormControl>
               </Flex>
+              <Divider my={32} />
+              <QuotaItem value={chargeQuota} onChange={setChargeQuota} />
               <GasFee
                 gasFee={validateNameAndGas.gas.value}
                 hasError={!isEmpty(errors.bucketName)}

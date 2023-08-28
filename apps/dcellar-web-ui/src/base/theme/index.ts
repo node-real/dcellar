@@ -22,6 +22,11 @@ export const theme = {
           top: 65,
           maxW: '500px',
         },
+        '.ui-drawer .ui-drawer-body': {
+          width: 'calc(100% + 48px)',
+          marginLeft: -24,
+          padding: '0 24px',
+        },
       },
     },
   },

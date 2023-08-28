@@ -15,7 +15,6 @@ import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
-import { getSpOffChainData } from '@/store/slices/persist';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {

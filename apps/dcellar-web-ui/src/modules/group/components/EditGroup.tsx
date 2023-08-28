@@ -5,7 +5,6 @@ import {
   FormControl,
   FormLabel,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -135,7 +134,6 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
 
   return (
     <DCDrawer isOpen={!!editGroup.groupName} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader flexDirection="column">Edit Description</QDrawerHeader>
       <QDrawerBody>
         <FormControl mb={16} isInvalid={!!error.name}>
