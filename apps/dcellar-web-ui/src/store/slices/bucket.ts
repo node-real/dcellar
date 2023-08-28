@@ -9,7 +9,10 @@ import { SpItem } from './sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 import { GetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { SourceType, VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import {
+  SourceType,
+  VisibilityType,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
@@ -83,9 +86,9 @@ export const bucketSlice = createSlice({
         ...info,
         Owner: bucket.owner,
         BucketName: bucket.bucketName,
-        Visibility: VisibilityType[bucket.visibility],
+        Visibility: VisibilityType[bucket.visibility] as keyof typeof VisibilityType,
         Id: bucket.id,
-        SourceType: SourceType[bucket.sourceType],
+        SourceType: SourceType[bucket.sourceType] as keyof typeof SourceType,
         CreateAt: bucket.createAt.toString(),
         PaymentAddress: bucket.paymentAddress,
         BucketStatus: String(bucket.bucketStatus),
@@ -106,7 +109,7 @@ export const bucketSlice = createSlice({
             ...omit(bucket, 'BucketInfo'),
             BucketName,
             CreateAt: Number(CreateAt),
-            BucketStatus: Number(BucketStatus)
+            BucketStatus: Number(BucketStatus),
           };
         })
         .sort((a, b) => b.CreateAt - a.CreateAt);
@@ -145,7 +148,7 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    const bucketList = res.body?.map((bucket: GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0]) => {
+    const bucketList = res.body?.map((bucket) => {
       return {
         ...bucket,
         BucketInfo: {

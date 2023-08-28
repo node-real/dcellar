@@ -1,7 +1,3 @@
-import { TCreateObject } from "@bnb-chain/greenfield-js-sdk";
-
-export type TCreateObjectData = { CreateObjectTx: any; configParam: TCreateObject };
-
 // Same as VisibilityType in @bnb-chain/greenfield-cosmos-types/greenfield/storage/common
 export enum VisibilityType {
   VISIBILITY_TYPE_UNSPECIFIED = 0,

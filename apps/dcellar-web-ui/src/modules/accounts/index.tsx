@@ -13,7 +13,7 @@ export const Accounts = () => {
   const dispatch = useAppDispatch();
   const refreshPAList = () => {
     dispatch(setupPAList());
-  }
+  };
   return (
     <>
       <NonRefundableModal refreshList={refreshPAList} />

@@ -1,13 +1,16 @@
-import {
-  IQuotaProps,
-} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { commonFault, ErrorResponse, offChainAuthFault, simulateFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { TBaseGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
-import { GetUserBucketsResponse, IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
+import {
+  GetUserBucketsResponse,
+  IObjectResultType,
+  ISimulateGasFee,
+} from '@bnb-chain/greenfield-js-sdk';
+import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -32,7 +35,7 @@ export const headBucket = async (bucketName: string) => {
 export const getUserBuckets = async (
   address: string,
   endpoint: string,
-): Promise<ErrorResponse | [IObjectResultType<GetUserBucketsResponse>, null]> => {
+): Promise<ErrorResponse | [IObjectResultType<GfSPGetUserBucketsResponse['Buckets']>, null]> => {
   const client = await getClient();
   const [res, error] = await client.bucket
     .getUserBuckets({ address, endpoint })
@@ -53,10 +56,10 @@ export const getBucketReadQuota = async ({
   };
   const [res, error] = await client.bucket
     .getBucketReadQuota(payload, {
-        type: 'EDDSA',
-        seed: seedString,
-        domain: window.location.origin,
-        address,
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address,
     })
     .then(resolve, offChainAuthFault);
   if (error) return [null, error];

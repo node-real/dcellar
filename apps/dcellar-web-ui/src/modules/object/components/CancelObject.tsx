@@ -37,7 +37,7 @@ import { setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import Long from 'long';
-import { MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types/constants/typeUrl';
+import { MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 interface modalProps {
   refetch: () => void;

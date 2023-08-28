@@ -1,9 +1,9 @@
 import { Box, Flex, Link } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
-import { DCTable } from '@/components/common/DCTable';
+import { AlignType, DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TFullAccount, setEditOwnerDetail } from '@/store/slices/accounts';
+import { TFullAccount, setEditOwnerDetail, TAccount } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
@@ -21,7 +21,7 @@ export const OwnerAccount = () => {
   const dispatch = useAppDispatch();
   const [rowIndex, setRowIndex] = useState(-1);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const data = [ownerAccount];
+  const data = ownerAccount?.address ? [ownerAccount] : [];
   const router = useRouter();
   const onMenuClick = (e: string, record: TFullAccount) => {
     if (e === 'detail') {
@@ -32,18 +32,18 @@ export const OwnerAccount = () => {
     }
   };
   const ownerAccountLoading = isEmpty(ownerAccount);
-  const columns: ColumnProps<any>[] = [
+  const columns: ColumnProps<TAccount>[] = [
     {
       key: 'name',
       title: 'Name',
-      render: (_: string, record: TFullAccount) => {
+      render: (_: string, record: TAccount) => {
         return <Box>{record.name}</Box>;
       },
     },
     {
       key: 'address',
       title: 'Account Address',
-      render: (_: string, record: TFullAccount) => {
+      render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
           <Flex>
@@ -69,9 +69,9 @@ export const OwnerAccount = () => {
     {
       key: 'Operation',
       title: 'Operation',
-      align: 'center',
+      align: 'center' as AlignType,
       width: 200,
-      render: (_: string, record: TFullAccount, index: number) => {
+      render: (_: string, record: TAccount, index: number) => {
         const isCurRow = rowIndex === index;
         const operations = isCurRow ? ['transfer_in', 'transfer_out', 'send'] : [];
         return (
@@ -84,13 +84,15 @@ export const OwnerAccount = () => {
         );
       },
     },
-  ];
+  ].map((col) => ({ ...col, dataIndex: col.key }));
+
   return (
     <Box marginBottom={32}>
       <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
         Owner Account
       </Box>
       <DCTable
+        rowKey="address"
         columns={columns}
         dataSource={data}
         canNext={false}

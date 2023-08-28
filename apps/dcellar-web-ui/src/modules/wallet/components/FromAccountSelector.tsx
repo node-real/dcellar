@@ -3,7 +3,6 @@ import { Box, Flex, Text } from '@totejs/uikit';
 import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
-import { useMount } from 'ahooks';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
 import { TAccount } from '@/store/slices/accounts';
@@ -30,13 +29,13 @@ export function FromAccountSelector(props: TAccountSelector) {
   const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
-  useMount(() => {
+  useEffect(() => {
     if (!len) return;
     setTotal(len);
     const initialAccount = accountList.find((item) => item.address === from);
     setAccount(initialAccount || accountList[0]);
     saveOnChangeRef.current?.(account);
-  });
+  }, [from, accountList]);
 
   useEffect(() => {
     if (!account) return;

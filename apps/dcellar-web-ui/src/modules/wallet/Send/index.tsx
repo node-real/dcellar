@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
@@ -41,6 +41,7 @@ import { selectBalance } from '@/store/slices/balance';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
+  const initFormRef = useRef(false);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { availableBalance } = useAppSelector(selectBalance(loginAccount));
   const { accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
@@ -68,6 +69,7 @@ export const Send = () => {
     initialFromAccount && dispatch(setFromAccount(initialFromAccount));
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || { name: 'Initial Account', address: '' }));
+    initFormRef.current = true;
   }, [PAList, dispatch, from, ownerAccount, to]);
 
   const {
@@ -215,6 +217,8 @@ export const Send = () => {
     return errors;
   }, [isLoadingDetail, toAccount, toJsErrors]);
 
+  if (!initFormRef.current) return <></>;
+
   return (
     <Container>
       <Head />
@@ -245,7 +249,7 @@ export const Send = () => {
             Balance on:{' '}
             {isLoadingDetail === fromAccount.address ? (
               <SmallLoading />
-            ): (
+            ) : (
               accountsInfo[fromAccount.address]?.staticBalance || 0
             )}
             BNB

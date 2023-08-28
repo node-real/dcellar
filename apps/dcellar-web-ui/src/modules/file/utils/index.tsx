@@ -15,7 +15,6 @@ import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
-import { getSpOffChainData } from '@/store/slices/persist';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -96,67 +95,8 @@ const downloadWithProgress = async ({
   address: string;
   seedString: string;
 }) => {
-  try {
-    const domain = getDomain();
-    const uploadOptions = await generateGetObjectOptions({
-      bucketName,
-      objectName,
-      endpoint: primarySp.endpoint,
-      userAddress: address,
-      domain,
-      seedString,
-    });
-    const { url, headers } = uploadOptions;
-    const toastId = toast.info({
-      description: ``,
-      render: () => {
-        return (
-          <ProgressBarToast
-            progress={0}
-            fileName={objectName}
-            closeToast={() => {
-              toast.close(toastId);
-            }}
-          />
-        );
-      },
-      duration: -1,
-    });
-    const result = await axios
-      .get(url, {
-        onDownloadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
-          toast.update(toastId, {
-            description: ``,
-            render: () => {
-              return (
-                <ProgressBarToast
-                  progress={progress}
-                  fileName={objectName}
-                  closeToast={() => {
-                    toast.close(toastId);
-                  }}
-                />
-              );
-            },
-          });
-        },
-        headers: {
-          Authorization: headers.get('Authorization'),
-          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
-        },
-        responseType: 'blob',
-      })
-      .catch((e) => {
-        toast.close(toastId);
-        throw e;
-      });
-    toast.close(toastId);
-    return result;
-  } catch (error: any) {
-    throw error;
-  }
+  // deprecated
+  throw 'Deprecated methods';
 };
 const getBuiltInLink = (
   primarySp: string,
@@ -317,7 +257,6 @@ export const batchDownload = (url: string | string[]) => {
     document.body.appendChild(iframe);
   });
 };
-
 
 const transformVisibility = (visibility: ChainVisibilityEnum) => {
   switch (visibility) {

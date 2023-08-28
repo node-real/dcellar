@@ -1,13 +1,14 @@
 import { Box, Flex, Link, Loading } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
-import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   TFullAccount,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
   setEditPaymentDetail,
+  TAccount,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
@@ -29,7 +30,9 @@ export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
   const [rowIndex, setRowIndex] = useState(-1);
   const router = useRouter();
-  const { PAList, isLoadingPAList, currentPAPage } = useAppSelector((root) => root.accounts);
+  const { PAList, isLoadingPAList, currentPAPage, ownerAccount } = useAppSelector(
+    (root) => root.accounts,
+  );
   const {
     PAPageSize,
     paymentAccountSortBy: [sortName, dir],
@@ -49,13 +52,13 @@ export const PaymentAccounts = () => {
       dispatch(setEditDisablePaymentAccount(record.address));
     }
     if (e === 'deposit') {
-      router.push(`/wallet?type=send`);
+      router.push(`/wallet?type=send&from=${ownerAccount.address}&to=${record.address}`);
     }
     if (e === 'withdraw') {
-      router.push('/wallet?type=send');
+      router.push(`/wallet?type=send&from=${record.address}&to=${ownerAccount.address}`);
     }
   };
-  const columns: ColumnProps<any>[] = [
+  const columns: ColumnProps<TAccount>[] = [
     {
       key: 'name',
       title: (
@@ -63,7 +66,7 @@ export const PaymentAccounts = () => {
           Name{sortName === 'name' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TFullAccount) => {
+      render: (_: string, record: TAccount) => {
         return <Box>{record.name}</Box>;
       },
     },
@@ -75,7 +78,7 @@ export const PaymentAccounts = () => {
           {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TFullAccount) => {
+      render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
           <Flex>
@@ -101,7 +104,7 @@ export const PaymentAccounts = () => {
     {
       key: 'Operation',
       title: 'Operation',
-      align: 'center',
+      align: 'center' as AlignType,
       width: 200,
       render: (_: string, record: TFullAccount, index: number) => {
         const isCurRow = rowIndex === index;
@@ -116,7 +119,8 @@ export const PaymentAccounts = () => {
         );
       },
     },
-  ];
+  ].map((col) => ({ ...col, dataIndex: col.key }));
+
   const chunks = useMemo(() => chunk(sortedList, PAPageSize), [sortedList, PAPageSize]);
   const pages = chunks.length;
   const current = currentPAPage >= pages ? 0 : currentPAPage;
@@ -134,14 +138,14 @@ export const PaymentAccounts = () => {
 
   return (
     <>
-
       <Flex justifyContent={'space-between'} marginBottom={16}>
         <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
           Payment Account
         </Box>
-        <NewPA/>
+        <NewPA />
       </Flex>
       <DCTable
+        rowKey="address"
         loading={{
           spinning: isLoadingPAList,
           indicator: <Loading />,

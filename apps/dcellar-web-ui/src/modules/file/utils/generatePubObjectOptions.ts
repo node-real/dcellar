@@ -1,12 +1,20 @@
-import { METHOD_PUT, SpMetaInfo, TBasePutObject, isValidBucketName, isValidObjectName } from '@bnb-chain/greenfield-js-sdk';
+import {
+  METHOD_PUT,
+  SpMetaInfo,
+  TBasePutObject,
+  isValidBucketName,
+  isValidObjectName,
+} from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/base/client';
-import { encodeObjectName } from '@/utils/string';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
 export type TMakePutObjectHeaders = TBasePutObject & {
   endpoint: string;
-}
-export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, authType: AuthType) => {
+};
+export const makePutObjectHeaders = async (
+  configParam: TMakePutObjectHeaders,
+  authType: AuthType,
+) => {
   const client = await getClient();
   const { bucketName, objectName, txnHash, body, duration = 30000 } = configParam;
   if (!isValidBucketName(bucketName)) {
@@ -27,7 +35,7 @@ export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, a
     txnHash,
     contentType: body.type || 'text/plain',
     body,
-  }
+  };
   const { reqMeta, url } = await SpMetaInfo.getPutObjectMetaInfo(endpoint, payload);
   const headers = await client.spClient.signHeaders(reqMeta, authType);
 
@@ -36,5 +44,5 @@ export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, a
     headers,
     method,
     params,
-  }
-}
+  };
+};
