@@ -108,7 +108,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const isOpen = !!editDelete.objectName;
   const isFolder = editDelete.objectName.endsWith('/');
   const [isFolderCanDelete, setFolderCanDelete] = useState(true);

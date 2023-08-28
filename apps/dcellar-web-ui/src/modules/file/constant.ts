@@ -24,6 +24,8 @@ const GROUP_CREATE = 'Creating Group';
 const GROUP_UPDATE_EXTRA = 'Updating Group';
 const GROUP_DELETE = 'Deleting Group';
 
+const GAS_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
+
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
 const OBJECT_TITLE_CREATING = 'Creating Object';
@@ -156,4 +158,5 @@ export {
   GROUP_UPDATE_EXTRA,
   GROUP_DELETE,
   SET_ACCOUNT_NON_REFUNDABLE_ICON,
+  GAS_FEE_DOC,
 };

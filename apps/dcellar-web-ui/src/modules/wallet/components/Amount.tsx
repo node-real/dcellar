@@ -59,7 +59,6 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-// 分为两种balance，支付账户的balance，和gas fee的支付者。
 export const Amount = ({ register, errors, disabled, watch, balance, feeData, setValue }: AmountProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);

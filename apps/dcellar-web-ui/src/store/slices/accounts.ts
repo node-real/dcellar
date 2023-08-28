@@ -8,44 +8,63 @@ export type TAccount = {
   name: string;
   address: string;
 }
-export type TFullAccount = {
+export type TAccountInfo = {
   name: string;
   address: string;
-  bufferBalance?: string;
-  frozenNetflowRate?: string;
-  lockBalance?: string;
-  netflowRate?: string;
-  staticBalance?: string;
-  crudTimestamp?: number;
-  outFlowCount?: number;
-  settleTimestamp?: number;
-  status?: number;
-  // only payment account have this field.
+  bufferBalance: string;
+  frozenNetflowRate: string;
+  netflowRate: string;
+  staticBalance: string;
+  crudTimestamp: number;
+  outFlowCount: number;
+  settleTimestamp: number;
+  status: number;
+  lockBalance: string;
   refundable?: boolean;
 };
-
+export type TBalance = {
+  bankBalance: string;
+  staticBalance: string;
+}
 interface AccountsState {
   isLoadingPAList: boolean;
   isLoadingDetail: string;
   ownerAccount: TAccount;
   PAList: TAccount[];
   currentPAPage: number;
-  accountsInfo: Record<string, TFullAccount>;
+  accountsInfo: Record<string, TAccountInfo>;
   editOwnerDetail: string;
   editPaymentDetail: string;
   editDisablePaymentAccount: string;
+  bankBalance: string;
 }
+export const getDefaultBalance = () => ({
+  amount: '0',
+  denom: 'BNB',
+  bufferBalance: '0',
+  frozenNetflowRate: '0',
+  netflowRate: '0',
+  staticBalance: '0',
+  lockBalance: '0',
+  crudTimestamp: 0,
+  outFlowCount: 0,
+  settleTimestamp: 0,
+  status: 0,
+  refundable: true,
+  bankBalance: {},
+});
 
 const initialState: AccountsState = {
   isLoadingDetail: '',
   isLoadingPAList: false,
   currentPAPage: 0,
-  ownerAccount: {} as TFullAccount,
+  ownerAccount: {} as TAccountInfo,
   PAList: [],
   accountsInfo: {},
   editOwnerDetail: '',
   editPaymentDetail: '',
   editDisablePaymentAccount: '',
+  bankBalance: '',
 };
 
 export const paymentAccountSlice = createSlice({
@@ -53,9 +72,7 @@ export const paymentAccountSlice = createSlice({
   initialState: () => {
     return { ...initialState };
   },
-
   reducers: {
-    // TODO ownerAccount的static balance为0，跟实际获取到的balance不一致；
     setOAList: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
@@ -87,6 +104,7 @@ export const paymentAccountSlice = createSlice({
       if (!address) return;
       if (!streamRecord) {
         state.accountsInfo[address] = {
+          ...getDefaultBalance(),
           name,
           address,
           refundable: payload.refundable,
@@ -126,6 +144,9 @@ export const paymentAccountSlice = createSlice({
     setCurrentPAPage(state, { payload }: PayloadAction<number>) {
       state.currentPAPage = payload;
     },
+    setBankBalance(state, { payload }: PayloadAction<string>) {
+      state.bankBalance = payload;
+    }
   },
 });
 
@@ -135,12 +156,16 @@ export const {
   setOAList,
   setPAList,
   setPAInfos,
+  setBankBalance,
   setAccountsInfo,
   setEditOwnerDetail,
   setEditPaymentDetail,
   setEditDisablePaymentAccount,
   setCurrentPAPage,
 } = paymentAccountSlice.actions;
+
+export const selectAccount = (address: string) => (state: any) => state.accounts.accountsInfo[address];
+export const selectBankBalance = (address: string) => (state: any) => state.accounts.bankBalances[address];
 
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;

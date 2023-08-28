@@ -23,8 +23,6 @@ import { Connector } from 'wagmi';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
-// 1 hours
-const expirationTime = 1 * 60 * 60;
 export const getAccountBalance = async ({
   address,
   denom = 'BNB',

@@ -74,7 +74,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [isModalOpen, setModalOpen] = useState(isOpen);
   const { setOpenAuthModal } = useOffChainAuth();
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);

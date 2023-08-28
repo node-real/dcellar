@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 
@@ -13,6 +13,7 @@ import {
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
+import { GAS_FEE_DOC } from '@/modules/file/constant';
 
 type FeeProps = {
   amount: string;
@@ -112,7 +113,7 @@ export const Fee = ({
     <>
       <Flex justifyContent={'space-between'} mb="8px" alignItems={'center'}>
         <Flex>
-          <Text color="readable.tertiary">Fee</Text>
+          {transType !== 'send' && <Text color="readable.tertiary">{'Fee'}</Text>}
           {transType !== 'send' && (
             <Tips
               containerWidth={'308px'}
@@ -120,6 +121,14 @@ export const Fee = ({
               placement="top"
               gaShowName={gaShowTipsName}
             ></Tips>
+          )}
+          {transType === 'send' && (
+            <Text color="readable.tertiary">
+              Gas fee {' '}
+              (<Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+                Pay by Owner Account
+              </Link>)
+            </Text>
           )}
         </Flex>
 

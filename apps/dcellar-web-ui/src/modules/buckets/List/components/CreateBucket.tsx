@@ -87,7 +87,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const selectedSpRef = useRef<SpItem>(globalSP);
   const selectedPaRef = useRef<TAccount>({} as TAccount);
   const { connector } = useAccount();
-  const { _availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
   const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);

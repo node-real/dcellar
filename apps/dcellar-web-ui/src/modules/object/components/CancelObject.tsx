@@ -36,8 +36,7 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
-import Long from 'long';
-import { MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 interface modalProps {
   refetch: () => void;
@@ -75,8 +74,8 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
   const {
     bnb: { price: bnbPrice },
-    _availableBalance: availableBalance,
   } = useAppSelector((root) => root.global);
+  const {bankBalance: availableBalance} = useAppSelector((root) => root.accounts);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, editCancel } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];

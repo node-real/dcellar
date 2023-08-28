@@ -44,6 +44,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   if (!bnbValue || Number(bnbValue) < 0) {
     return '--';
   }
+  
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
 const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number | string) => {

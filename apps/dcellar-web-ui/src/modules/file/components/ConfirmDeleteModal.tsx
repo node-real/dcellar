@@ -95,7 +95,7 @@ export const ConfirmDeleteModal = (props: modalProps) => {
   const exchangeRate = Number(bnbPrice);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const {
     title = 'Confirm Delete',
     onClose,

@@ -73,8 +73,10 @@ interface UploadObjectsProps {}
 // add memo avoid parent state change rerender
 export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const dispatch = useAppDispatch();
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  // 需要进行区分
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
@@ -89,6 +91,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const [creating, setCreating] = useState(false);
   const { tabOptions, activeKey, setActiveKey } = useUploadTab();
 
+  const { PaymentAddress } = bucketInfo[bucketName] || {};
+  console.log('bucketInfo[bucketName]', bucketInfo[bucketName])
   const onClose = () => {
     dispatch(setEditUploadStatus(false));
     dispatch(setEditUpload({} as TEditUpload));
@@ -183,8 +187,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     );
     const { totalFee: amount } = editUpload;
     const safeAmount =
-      Number(amount) * 1.05 > Number(availableBalance)
-        ? round(Number(availableBalance), 6)
+      Number(amount) * 1.05 > Number(bankBalance)
+        ? round(Number(bankBalance), 6)
         : round(Number(amount) * 1.05, 6);
     const [tmpAccount, error] = await createTmpAccount({
       address: loginAccount,

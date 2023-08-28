@@ -78,7 +78,7 @@ export const ConfirmCancelModal = (props: modalProps) => {
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
 
   const {
     title = 'Cancel Uploading',

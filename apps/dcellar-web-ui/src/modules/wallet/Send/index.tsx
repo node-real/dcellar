@@ -43,7 +43,7 @@ export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { availableBalance } = useAppSelector(selectBalance(loginAccount));
+  const { bankBalance} = useAppSelector(root => root.accounts);
   const { accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
     (root) => root.accounts,
   );
@@ -57,10 +57,10 @@ export const Send = () => {
   const balance = useMemo(() => {
     if (isEmpty(fromAccount)) return '';
     if (fromAccount.name.toLowerCase().includes('owner account')) {
-      return availableBalance;
+      return bankBalance;
     }
     return accountsInfo[fromAccount?.address]?.staticBalance || '';
-  }, [accountsInfo, availableBalance, fromAccount]);
+  }, [accountsInfo, bankBalance, fromAccount]);
 
   useEffect(() => {
     if (isEmpty(PAList) || isEmpty(ownerAccount)) return;

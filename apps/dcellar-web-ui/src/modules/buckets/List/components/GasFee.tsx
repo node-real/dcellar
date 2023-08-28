@@ -1,4 +1,4 @@
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import React, { useMemo } from 'react';
 import { currencyFormatter } from '@/utils/currencyFormatter';
@@ -11,6 +11,7 @@ import LoadingIcon from '@/public/images/icons/loading.svg';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useMount } from 'ahooks';
+import { GAS_FEE_DOC } from '@/modules/file/constant';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -21,7 +22,7 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
   const balance = BigNumber(_availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =
@@ -57,7 +58,14 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
         color="#76808F"
         alignItems="flex-start"
       >
-        <Box mt="4px">Gas fee</Box>
+        <Box mt="4px" w={260}>
+          Gas fee{' '}
+          <Text display={'inline-block'} color={'readable.disabled'}>
+          (<Link href={GAS_FEE_DOC} textDecoration={'underline'} color='readable.disabled'>
+              Pay by Owner Account
+            </Link>)
+          </Text>
+        </Box>
         <Box textAlign={'right'}>
           <Flex
             fontSize={'14px'}

@@ -95,6 +95,7 @@ export const bucketSlice = createSlice({
         GlobalVirtualGroupFamilyId: String(bucket.globalVirtualGroupFamilyId),
         ChargedReadQuota: bucket.chargedReadQuota.toString(),
       };
+      // @ts-ignore sdk will upgrade type
       state.bucketInfo[bucketName] = newInfo;
       state.owner = address === newInfo.Owner;
       state.discontinue = newInfo.BucketStatus === '1';

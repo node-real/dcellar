@@ -4,7 +4,6 @@ import React, { useMemo, useState } from 'react';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  TFullAccount,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
   setEditPaymentDetail,
@@ -44,7 +43,7 @@ export const PaymentAccounts = () => {
     dispatch(updatePASorter([name, newSort] as SorterType));
   };
 
-  const onMenuClick = (e: string, record: TFullAccount) => {
+  const onMenuClick = (e: string, record: TAccount) => {
     if (e === 'detail') {
       dispatch(setEditPaymentDetail(record.address));
     }
@@ -106,7 +105,7 @@ export const PaymentAccounts = () => {
       title: 'Operation',
       align: 'center' as AlignType,
       width: 200,
-      render: (_: string, record: TFullAccount, index: number) => {
+      render: (_: string, record: TAccount, index: number) => {
         const isCurRow = rowIndex === index;
         const operations = isCurRow ? ['deposit', 'withdraw'] : [];
         return (
@@ -157,7 +156,7 @@ export const PaymentAccounts = () => {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record: TFullAccount, index) => ({
+        onRow={(record: TAccount, index) => ({
           onClick: () => {
             dispatch(setEditPaymentDetail(record.address));
           },

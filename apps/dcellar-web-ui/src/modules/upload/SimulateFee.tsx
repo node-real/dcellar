@@ -25,7 +25,8 @@ import { DECIMAL_NUMBER } from '../wallet/constants';
 export const Fee = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  // TODO根据payment account进行不同预算
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);

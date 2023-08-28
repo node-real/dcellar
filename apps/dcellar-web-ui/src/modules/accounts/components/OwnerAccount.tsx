@@ -3,7 +3,7 @@ import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
 import { AlignType, DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TFullAccount, setEditOwnerDetail, TAccount } from '@/store/slices/accounts';
+import { TAccount, setEditOwnerDetail } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
@@ -23,7 +23,7 @@ export const OwnerAccount = () => {
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const data = ownerAccount?.address ? [ownerAccount] : [];
   const router = useRouter();
-  const onMenuClick = (e: string, record: TFullAccount) => {
+  const onMenuClick = (e: string, record: TAccount) => {
     if (e === 'detail') {
       return dispatch(setEditOwnerDetail(record.address));
     }
@@ -100,7 +100,7 @@ export const OwnerAccount = () => {
         pageSize={10}
         pagination={false}
         loading={ownerAccountLoading}
-        onRow={(record: TFullAccount, index) => ({
+        onRow={(record: TAccount, index) => ({
           onClick: () => {
             dispatch(setEditOwnerDetail(record.address));
           },
