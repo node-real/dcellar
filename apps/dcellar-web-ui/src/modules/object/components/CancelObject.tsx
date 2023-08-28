@@ -1,6 +1,6 @@
 import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
@@ -29,14 +29,15 @@ import {
   TStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
-import bucket, { setupBucketQuota } from '@/store/slices/bucket';
+import { setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
+import Long from 'long';
+import { MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types/constants/typeUrl';
 
 interface modalProps {
   refetch: () => void;

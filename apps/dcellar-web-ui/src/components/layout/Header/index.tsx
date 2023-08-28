@@ -12,7 +12,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 import { StreamBalance } from '@/components/layout/Header/StreamBalance';
-import { useDebounceEffect, useMount } from 'ahooks';
+import { useDebounceEffect } from 'ahooks';
 import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
