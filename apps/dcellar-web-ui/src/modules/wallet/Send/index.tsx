@@ -37,14 +37,12 @@ import {
 import { isAddress } from 'ethers/lib/utils.js';
 import { Tips } from '@/components/common/Tips';
 import { setFromAccount, setToAccount } from '@/store/slices/wallet';
-import { selectBalance } from '@/store/slices/balance';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance} = useAppSelector(root => root.accounts);
-  const { accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
+  const { bankBalance, accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
     (root) => root.accounts,
   );
   const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
@@ -250,9 +248,9 @@ export const Send = () => {
             {isLoadingDetail === fromAccount.address ? (
               <SmallLoading />
             ) : (
-              accountsInfo[fromAccount.address]?.staticBalance || 0
+              balance
             )}
-            BNB
+            {" "}BNB
           </FormHelperText>
         </FormControl>
         {!isHideToAccount && (
