@@ -5,17 +5,13 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/paths';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import React from 'react';
-import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { getDomain } from '@/utils/getDomain';
 import { getClient } from '@/base/client';
-import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
 import BigNumber from 'bignumber.js';
-import { GasFee } from '@/modules/buckets/List/components/GasFee';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {

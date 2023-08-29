@@ -167,7 +167,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      // TODO add payment account field
       const createBucketPayload: IBaseGetCreateBucket = {
         bucketName,
         creator: address,
