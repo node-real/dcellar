@@ -21,6 +21,7 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
 };
 
 export type TEditDetailItem = BucketItem & { PrimarySpAddress?: string };
+
 export interface BucketState {
   bucketInfo: Record<string, BucketProps['BucketInfo']>;
   buckets: Record<string, BucketItem[]>;
@@ -90,18 +91,19 @@ export const bucketSlice = createSlice({
         ...info,
         Owner: bucket.owner,
         BucketName: bucket.bucketName,
-        Visibility: VisibilityType[bucket.visibility],
+        Visibility: VisibilityType[bucket.visibility] as keyof typeof VisibilityType,
         Id: bucket.id,
-        SourceType: SourceType[bucket.sourceType],
-        CreateAt: bucket.createAt.toString(),
+        SourceType: SourceType[bucket.sourceType] as keyof typeof SourceType,
+        CreateAt: bucket.createAt.toNumber(),
         PaymentAddress: bucket.paymentAddress,
-        BucketStatus: String(bucket.bucketStatus),
-        GlobalVirtualGroupFamilyId: String(bucket.globalVirtualGroupFamilyId),
-        ChargedReadQuota: bucket.chargedReadQuota.toString(),
+        BucketStatus: Number(bucket.bucketStatus),
+        GlobalVirtualGroupFamilyId: bucket.globalVirtualGroupFamilyId,
+        ChargedReadQuota: bucket.chargedReadQuota.toNumber(),
       };
+      // @ts-ignore
       state.bucketInfo[bucketName] = newInfo;
       state.owner = address === newInfo.Owner;
-      state.discontinue = newInfo.BucketStatus === '1';
+      state.discontinue = newInfo.BucketStatus === 1;
     },
     setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
@@ -152,7 +154,7 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    const bucketList = res.body?.map((bucket: GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0]) => {
+    const bucketList = res.body?.map((bucket) => {
       return {
         ...bucket,
         BucketInfo: {

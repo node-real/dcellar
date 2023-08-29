@@ -33,8 +33,47 @@ export const isAddress = (address = '') => {
   return address.startsWith('0x');
 };
 
-export const encodeObjectName = (obj: string) => {
-  return obj.split('/').map(encodeURIComponent).join('/');
+// encodeURIComponent() uses the same encoding algorithm as described in encodeURI(). It escapes all characters except:
+// A–Z a–z 0–9 - _ . ! ~ * ' ( )
+export const encodeObjectName = (pathName: string) => {
+  const reservedNames = /^[a-zA-Z0-9-_.~/]+$/;
+  if (reservedNames.test(pathName)) {
+    return pathName;
+  }
+
+  let encodedPathName = '';
+  for (let i = 0; i < pathName.length; i++) {
+    const s = pathName[i];
+
+    // soft characters
+    if (('A' <= s && s <= 'Z') || ('a' <= s && s <= 'z') || ('0' <= s && s <= '9')) {
+      encodedPathName += s;
+      continue;
+    }
+
+    switch (s) {
+      // special characters are allowed
+      case '-':
+      case '_':
+      case '.':
+      case '~':
+      case '/':
+        encodedPathName += s;
+        continue;
+
+      // others characters need to be encoded
+      default:
+        const length = encodeURIComponent(s).length;
+        if (length < 0) {
+          // if encodeURIComponent cannot convert return the same string as is
+          return pathName;
+        }
+
+        const hexStr = s.charCodeAt(0).toString(16);
+        encodedPathName += '%' + hexStr.toUpperCase();
+    }
+  }
+  return encodedPathName;
 };
 
 export const decodeObjectName = (obj: string) => {

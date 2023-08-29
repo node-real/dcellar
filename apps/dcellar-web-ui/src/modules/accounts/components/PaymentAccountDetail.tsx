@@ -1,29 +1,29 @@
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  setEditPaymentDetail,
-  setupAccountsInfo,
-} from '@/store/slices/accounts';
+import { selectAccount, setEditPaymentDetail, setupAccountsInfo } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
-import { useAsyncEffect, useInterval } from 'ahooks';
+import { useAsyncEffect, useInterval, useThrottleEffect } from 'ahooks';
 import React, { useEffect } from 'react';
 import { AccountDetail } from './AccountDetail';
 import { useRouter } from 'next/router';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
+import BigNumber from 'bignumber.js';
+import { setBalance } from '@/store/slices/balance';
 
-// TODO 做一个throttle结果, 当有值的时候减少，没有就算了
 export const PaymentAccountDetail = () => {
   const dispatch = useAppDispatch();
+  const [lockFee, setLockFee] = React.useState('0');
   const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editPaymentDetail, isLoadingDetail, accountsInfo } = useAppSelector(
+  const { editPaymentDetail, isLoadingDetail } = useAppSelector(
     (state) => state.accounts,
   );
+  const paymentAccount = useAppSelector(selectAccount(editPaymentDetail));
   const isOpen = !!editPaymentDetail;
   const router = useRouter();
   const onClose = () => {
     dispatch(setEditPaymentDetail(''));
   };
-  const paymentAccount = accountsInfo[editPaymentDetail];
   useAsyncEffect(async () => {
     if (!editPaymentDetail) return;
     dispatch(setupAccountsInfo(editPaymentDetail));
@@ -38,11 +38,18 @@ export const PaymentAccountDetail = () => {
   };
 
   const clear = useInterval(() => {
+    if (!paymentAccount) return;
+    const { netflowRate, bufferBalance, crudTimestamp } = paymentAccount;
+    const ts = Math.floor(getUtcZeroTimestamp() / 1000);
+    const costLockFee = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
+    const lockFee = BigNumber(bufferBalance).plus(costLockFee).toString();
+    setLockFee(lockFee);
   }, 1000);
 
   useEffect(() => {
     return () => clear();
-  })
+  }, [clear]);
+
   return (
     <DCDrawer
       isOpen={isOpen}
@@ -54,6 +61,7 @@ export const PaymentAccountDetail = () => {
         loading={isLoadingDetail}
         title="Payment Account Detail"
         accountDetail={paymentAccount}
+        lockFee={lockFee}
       />
       <QDrawerFooter>
         <Flex w={'100%'}>

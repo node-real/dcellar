@@ -9,11 +9,11 @@ const slashSeparator = '/';
 export interface getObjectPropsType {
   bucketName: string;
   objectName: string;
-  endpoint?: string;
   duration?: number;
-  userAddress: string;
-  domain: string;
+  endpoint?: string;
+  address: string;
   seedString: string;
+  view?: '0' | '1';
 }
 
 export interface requestParamsType {

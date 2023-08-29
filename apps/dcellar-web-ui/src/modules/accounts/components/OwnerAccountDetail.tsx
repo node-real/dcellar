@@ -1,25 +1,29 @@
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditOwnerDetail, setupAccountsInfo } from '@/store/slices/accounts';
+import { selectAccount, setEditOwnerDetail, setupAccountsInfo } from '@/store/slices/accounts';
 import {
   Flex,
   QDrawerFooter,
 } from '@totejs/uikit';
-import React from 'react';
-import { useAsyncEffect } from 'ahooks';
+import React, { use, useEffect } from 'react';
+import { useAsyncEffect, useInterval } from 'ahooks';
 import { AccountDetail } from './AccountDetail';
 import { useRouter } from 'next/router';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
+import BigNumber from 'bignumber.js';
 
 export const OwnerAccountDetail = () => {
   const dispatch = useAppDispatch();
+  const [lockFee, setLockFee] = React.useState('0');
   const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editOwnerDetail, accountsInfo, isLoadingDetail } = useAppSelector((state) => state.accounts);
+  const { editOwnerDetail, isLoadingDetail } = useAppSelector((state) => state.accounts);
   const isOpen = !!editOwnerDetail;
   const router = useRouter();
   const onClose = () => {
     dispatch(setEditOwnerDetail(''));
   };
+  const ownerAccount = useAppSelector(selectAccount(editOwnerDetail));
   const onAction = (e: string) => {
     if (['transfer_in', 'transfer_out', 'send'].includes(e)) {
       return router.push(`/wallet?type=${e}`);
@@ -29,7 +33,19 @@ export const OwnerAccountDetail = () => {
     if (!loginAccount) return;
     dispatch(setupAccountsInfo(loginAccount));
   }, [loginAccount]);
-  const ownerAccount = accountsInfo[editOwnerDetail]
+
+  const clear = useInterval(() => {
+    if (!ownerAccount) return;
+    const { netflowRate, bufferBalance, crudTimestamp } = ownerAccount;
+    const ts = Math.floor(getUtcZeroTimestamp() / 1000);
+    const costLockFee = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
+    const lockFee = BigNumber(bufferBalance).plus(costLockFee).toString();
+    setLockFee(lockFee);
+  }, 1000);
+
+  useEffect(() => {
+    return () => clear();
+  }, [clear]);
 
   return (
     <DCDrawer

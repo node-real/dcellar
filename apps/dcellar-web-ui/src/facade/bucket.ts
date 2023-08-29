@@ -1,6 +1,4 @@
-import {
-  IQuotaProps,
-} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
 import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
@@ -14,11 +12,12 @@ import {
 } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { TBaseGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
-import { GetUserBucketsResponse, IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
+import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
+import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -43,7 +42,7 @@ export const headBucket = async (bucketName: string) => {
 export const getUserBuckets = async (
   address: string,
   endpoint: string,
-): Promise<ErrorResponse | [IObjectResultType<GetUserBucketsResponse>, null]> => {
+): Promise<ErrorResponse | [IObjectResultType<GfSPGetUserBucketsResponse['Buckets']>, null]> => {
   const client = await getClient();
   const [res, error] = await client.bucket
     .getUserBuckets({ address, endpoint })
@@ -54,20 +53,20 @@ export const getUserBuckets = async (
 };
 
 export const getBucketReadQuota = async ({
-  bucketName,
-  seedString,
-  address,
-}: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
+                                           bucketName,
+                                           seedString,
+                                           address,
+                                         }: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
   const payload: TBaseGetBucketReadQuota = {
     bucketName,
   };
   const [res, error] = await client.bucket
     .getBucketReadQuota(payload, {
-        type: 'EDDSA',
-        seed: seedString,
-        domain: window.location.origin,
-        address,
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address,
     })
     .then(resolve, offChainAuthFault);
   if (error) return [null, error];

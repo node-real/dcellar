@@ -74,7 +74,7 @@ export function DCInputSelect(props: DCSelectProps) {
       setResultOptions(options);
       saveOnSearchRef.current?.(options);
     }
-  }, [ isOpen, options, saveOnSearchRef]);
+  }, [isOpen, options, saveOnSearchRef]);
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -120,66 +120,68 @@ export function DCInputSelect(props: DCSelectProps) {
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
       />
-      {!!resultOptions?.length && <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
-        {header && (
+      {!!resultOptions?.length && (
+        <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
+          {header && (
+            <Box
+              color="#2AA372"
+              fontSize={12}
+              lineHeight="15px"
+              bg="bg.bottom"
+              py={8}
+              px={24}
+              fontWeight={500}
+              borderBottom="1px solid readable.border"
+              {...headerProps}
+            >
+              {header}
+            </Box>
+          )}
           <Box
-            color="#2AA372"
-            fontSize={12}
-            lineHeight="15px"
-            bg="bg.bottom"
-            py={8}
-            px={24}
-            fontWeight={500}
-            borderBottom="1px solid readable.border"
-            {...headerProps}
+            maxH={220}
+            overflowY="scroll"
+            sx={{
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'readable.disabled',
+                borderRadius: '4px',
+              },
+            }}
           >
-            {header}
+            {resultOptions?.map((item) => {
+              const isSelected = value === item.value;
+              const { gaClickName, ...restItemProps } = itemProps ?? {};
+
+              return (
+                <GAClick key={item.value} name={gaClickName}>
+                  <MenuItem
+                    px={24}
+                    py={8}
+                    transitionDuration="normal"
+                    transitionProperty="colors"
+                    bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
+                    _hover={{
+                      bg: isSelected ? undefined : 'bg.bottom',
+                    }}
+                    onClick={() => onSelectItem(item)}
+                    _last={{
+                      mb: 8,
+                    }}
+                    {...restItemProps}
+                  >
+                    {item.label}
+                  </MenuItem>
+                </GAClick>
+              );
+            })}
+
+            {/* {!resultOptions?.length && <NoResult />} */}
           </Box>
-        )}
-        <Box
-          maxH={220}
-          overflowY="scroll"
-          sx={{
-            '&::-webkit-scrollbar': {
-              width: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: 'readable.disabled',
-              borderRadius: '4px',
-            },
-          }}
-        >
-          {resultOptions?.map((item) => {
-            const isSelected = value === item.value;
-            const { gaClickName, ...restItemProps } = itemProps ?? {};
-
-            return (
-              <GAClick key={item.value} name={gaClickName}>
-                <MenuItem
-                  px={24}
-                  py={8}
-                  transitionDuration="normal"
-                  transitionProperty="colors"
-                  bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
-                  _hover={{
-                    bg: isSelected ? undefined : 'bg.bottom',
-                  }}
-                  onClick={() => onSelectItem(item)}
-                  _last={{
-                    mb: 8,
-                  }}
-                  {...restItemProps}
-                >
-                  {item.label}
-                </MenuItem>
-              </GAClick>
-            );
-          })}
-
-          {/* {!resultOptions?.length && <NoResult />} */}
-        </Box>
-        {Footer && <Footer />}
-      </MenuList>}
+          {Footer && <Footer />}
+        </MenuList>
+      )}
     </Menu>
   );
 }
@@ -193,50 +195,25 @@ interface SelectInputProps extends InputProps {
 }
 
 const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
-  const { requestFocus, placeholder = '', text, onChangeKeyword, onEnter, ...restProps } = props;
-
-  const [value, setValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    let raf: any;
-    const onForceFocus = () => {
-      if (requestFocus) {
-        inputRef.current?.focus();
-        raf = window.requestAnimationFrame(onForceFocus);
-      } else {
-        inputRef.current?.blur();
-      }
-    };
-    raf = window.requestAnimationFrame(onForceFocus);
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-    };
-  }, [requestFocus]);
-
-  useEffect(() => {
-    setValue(text);
-  }, [text, requestFocus]);
-
-  useKeyDown({
-    key: 'Enter',
-    ref: inputRef,
-    handler: onEnter,
-  });
+  const {
+    requestFocus,
+    placeholder = '',
+    text = '',
+    onChangeKeyword,
+    onEnter,
+    ...restProps
+  } = props;
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const trimValue = event.target.value.trim();
-    setValue(trimValue);
     onChangeKeyword?.(trimValue);
   };
 
   return (
-    <InputGroup ref={ref} {...restProps}>
+    <InputGroup {...restProps}>
       <Input
-        ref={inputRef}
         h={52}
-        value={value}
+        value={text}
         onChange={onChange}
         placeholder={placeholder}
         cursor={requestFocus ? 'auto' : 'pointer'}

@@ -14,13 +14,14 @@ import {
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { dropRight, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Tooltip, Flex } from '@totejs/uikit';
+import { Flex, Tooltip } from '@totejs/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
+import { setupAccountsInfo } from '@/store/slices/accounts';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -43,7 +44,10 @@ export const ObjectsPage = () => {
 
   useAsyncEffect(async () => {
     if (!bucket) return;
-    await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    // 1. set global primary sp info
+    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    // 2. set payment account infos
+    dispatch(setupAccountsInfo(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
@@ -51,7 +55,8 @@ export const ObjectsPage = () => {
     if (bucket) {
       const Owner = bucket.Owner;
       const payload = {
-        discontinue: bucket.BucketStatus === '1',
+        // @ts-ignore
+        discontinue: bucket.BucketStatus === 1,
         owner: Owner === loginAccount,
       };
       dispatch(setBucketStatus(payload));

@@ -39,7 +39,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
   const { setOpenAuthModal } = useOffChainAuth();
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [loading, setLoading] = useState(false);
   const isOpen = !!removeGroup.groupName;
   const [open, setOpen] = useState(isOpen); // for modal close animation

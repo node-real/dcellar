@@ -7,9 +7,10 @@ import { GfSPListObjectsByBucketNameResponse, TListObjects } from '@bnb-chain/gr
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
-import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
+// import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 
-export const SINGLE_OBJECT_MAX_SIZE = 128 * 1024 * 1024;
+export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
 
 export type ObjectItem = {
@@ -49,7 +50,7 @@ export interface ObjectState {
   prefix: string;
   path: string;
   objects: Record<string, ObjectItem[]>;
-  objectsInfo: Record<string, TObject>;
+  objectsInfo: Record<string, ObjectMeta>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
   editDetail: ObjectItem;
@@ -124,7 +125,8 @@ export const objectSlice = createSlice({
       item.visibility = visibility;
       const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
       if (!info) return;
-      info.ObjectInfo.Visibility = visibility + '';
+      // @ts-ignore
+      info.ObjectInfo.Visibility = visibility;
     },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
       const { path, folder } = payload;
@@ -360,6 +362,13 @@ export const selectPathCurrent = (root: AppState) => {
   return currentPage[path] || 0;
 };
 
+export const selectPayLockFeeAccount = (root: AppState) => {
+  const { bucketInfo } = root.bucket;
+  const { bucketName } = root.object;
+  const { PaymentAddress } = bucketInfo[bucketName] || {};
+  const { accountsInfo } = root.accounts;
+  return accountsInfo[PaymentAddress];
+}
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
   const { objects, path } = root.object;

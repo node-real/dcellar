@@ -74,7 +74,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [isModalOpen, setModalOpen] = useState(isOpen);
   const { setOpenAuthModal } = useOffChainAuth();
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
@@ -92,7 +92,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
-    (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === '1' ? deleteFee : cancelFee),
+  // @ts-ignore
+    (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
     0,
   );
   const { connector } = useAccount();
@@ -171,7 +172,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
           connector: connector!,
           privateKey,
         };
-        const [txRes, error] = await (ObjectStatus === '1'
+        // @ts-ignore
+        const [txRes, error] = await (ObjectStatus === 1
           ? deleteObject(payload)
           : cancelCreateObject(payload));
         if (error && error !== E_OBJECT_NOT_EXISTS) {

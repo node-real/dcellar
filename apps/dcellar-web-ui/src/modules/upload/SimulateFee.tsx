@@ -2,7 +2,7 @@ import { Tips } from '@/components/common/Tips';
 import {
   renderBalanceNumber,
   renderFeeValue,
-  renderInsufficientBalance,
+  renderPaymentInsufficientBalance,
   renderPrelockedFeeValue,
 } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -18,20 +18,23 @@ import { WaitFile, setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/st
 import { isEmpty } from 'lodash-es';
 import { calPreLockFee } from '@/utils/sp';
 import { MenuCloseIcon } from '@totejs/icons';
-import { setEditUpload } from '@/store/slices/object';
+import { selectPayLockFeeAccount, setEditUpload } from '@/store/slices/object';
 import BigNumber from 'bignumber.js';
 import { DECIMAL_NUMBER } from '../wallet/constants';
 
 export const Fee = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
   const { bucketName } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const payLockFeeAccount = useAppSelector(selectPayLockFeeAccount);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const isOwnerAccount = payLockFeeAccount.address === loginAccount;
+  const availableBalance = isOwnerAccount ? BigNumber(bankBalance).plus(payLockFeeAccount.staticBalance).toString() : payLockFeeAccount.staticBalance;
   const isChecking =
     waitQueue.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
   const { isOpen, onToggle } = useDisclosure();
@@ -84,6 +87,16 @@ export const Fee = () => {
         .times(singleTxGasFee)
         .plus(BigNumber(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
         .toString(DECIMAL_NUMBER);
+  const isBalanceAvailable = useMemo(() => {
+    if (isOwnerAccount) {
+      return BigNumber(bankBalance)
+        .minus(BigNumber(gasFee))
+        .isPositive()
+        && BigNumber(bankBalance).minus(BigNumber(gasFee)).plus(payLockFeeAccount.staticBalance).minus(BigNumber(lockFee || 0)).isPositive();
+    } else {
+      return BigNumber(bankBalance).minus(BigNumber(gasFee)).isPositive() && BigNumber(payLockFeeAccount.staticBalance).minus(BigNumber(lockFee || 0)).isPositive();
+    }
+  }, [bankBalance, gasFee, isOwnerAccount, lockFee, payLockFeeAccount.staticBalance]);
 
   useEffect(() => {
     if (gasFee && lockFee) {
@@ -92,14 +105,11 @@ export const Fee = () => {
           gasFee: BigNumber(gasFee).toString(DECIMAL_NUMBER),
           preLockFee: BigNumber(lockFee).toString(DECIMAL_NUMBER),
           totalFee: BigNumber(gasFee).plus(BigNumber(lockFee)).toString(DECIMAL_NUMBER),
-          isBalanceAvailable: BigNumber(availableBalance)
-            .minus(BigNumber(gasFee))
-            .minus(BigNumber(lockFee))
-            .isPositive(),
+          isBalanceAvailable: isBalanceAvailable
         }),
       );
     }
-  }, [availableBalance, dispatch, gasFee, lockFee]);
+  }, [availableBalance, dispatch, gasFee, isBalanceAvailable, lockFee]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(loginAccount));
   });
@@ -200,10 +210,17 @@ export const Fee = () => {
           {/*todo correct the error showing logics*/}
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
             {!isChecking &&
-              renderInsufficientBalance(gasFee + '', lockFee + '', availableBalance || '0', {
+              renderPaymentInsufficientBalance({
+                gasFee: gasFee + '',
+                lockFee: lockFee + '',
+                payGasFeeBalance: bankBalance,
+                payLockFeeBalance: payLockFeeAccount.staticBalance,
+                payAccount: payLockFeeAccount.address,
+                ownerAccount: loginAccount,
+                gaOptions: {
                 gaShowName: 'dc.file.upload_modal.transferin.show',
                 gaClickName: 'dc.file.upload_modal.transferin.click',
-              })}
+              }})}
           </Text>
           <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
             Available balance: {renderBalanceNumber(availableBalance || '0')}

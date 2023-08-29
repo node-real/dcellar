@@ -1,5 +1,4 @@
 import {
-  GfSPListObjectsByBucketNameResponse,
   IObjectResultType,
   IQuotaProps,
   ISimulateGasFee,
@@ -41,7 +40,6 @@ import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { getDomain } from '@/utils/getDomain';
 import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/file/utils';
 import {
@@ -142,22 +140,20 @@ export type DownloadPreviewParams = {
 export const getAuthorizedLink = async (
   params: DownloadPreviewParams,
   seedString: string,
-  view = 1,
+  view?: '0' | '1',
 ): Promise<[null, ErrorMsg] | [string]> => {
-  const { address, primarySp, objectInfo } = params;
+  const { address, objectInfo, primarySp } = params;
   const { bucketName, objectName } = objectInfo;
-  const domain = getDomain();
-  const [options, error] = await generateGetObjectOptions({
+  const [url, error] = await generateGetObjectOptions({
     bucketName,
     objectName,
-    endpoint: primarySp.endpoint,
-    userAddress: address,
-    domain,
+    address,
+    view,
     seedString,
+    endpoint: primarySp.endpoint,
   }).then(resolve, commonFault);
-  if (error) return [null, error];
-  const { url, params: _params } = options!;
-  return [`${url}?${_params}&view=${view}`];
+  if (!url) return [null, error!];
+  return [url];
 };
 
 export const downloadObject = async (
@@ -178,7 +174,7 @@ export const downloadObject = async (
     return [true];
   }
 
-  const [url, error] = await getAuthorizedLink(params, seedString, 0);
+  const [url, error] = await getAuthorizedLink(params, seedString, '0');
   if (!url) return [false, error];
 
   if (batch) batchDownload(url);

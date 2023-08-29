@@ -76,7 +76,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <TransferInIcon />
+                <TransferInIcon color="#00BA34" />
               </ActionButton>
             );
           case 'transfer_out':
@@ -87,7 +87,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <TransferOutIcon />
+                <TransferOutIcon color="#00BA34" />
               </ActionButton>
             );
           case 'send':
@@ -98,7 +98,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <SendIcon />
+                <SendIcon color="#00BA34" />
               </ActionButton>
             );
           // payment account list

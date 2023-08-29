@@ -1,14 +1,22 @@
-import { METHOD_PUT, SpMetaInfo, TBasePutObject, isValidBucketName, isValidObjectName } from '@bnb-chain/greenfield-js-sdk';
+import {
+  METHOD_PUT,
+  SpMetaInfo,
+  TBasePutObject,
+  isValidBucketName,
+  isValidObjectName,
+} from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/base/client';
-import { encodeObjectName } from '@/utils/string';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
 export type TMakePutObjectHeaders = TBasePutObject & {
   endpoint: string;
-}
-export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, authType: AuthType) => {
+};
+export const makePutObjectHeaders = async (
+  configParam: TMakePutObjectHeaders,
+  authType: AuthType,
+) => {
   const client = await getClient();
-  const { bucketName, objectName, txnHash, body, duration = 30000 } = configParam;
+  const { bucketName, objectName, txnHash, body, endpoint } = configParam;
   if (!isValidBucketName(bucketName)) {
     throw new Error('Error bucket name');
   }
@@ -18,7 +26,6 @@ export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, a
   if (!txnHash) {
     throw new Error('Transaction hash is empty, please check.');
   }
-  const endpoint = await client.sp.getSPUrlByBucket(bucketName);
   const method = METHOD_PUT;
   const params = new URLSearchParams();
   const payload = {
@@ -27,7 +34,7 @@ export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, a
     txnHash,
     contentType: body.type || 'text/plain',
     body,
-  }
+  };
   const { reqMeta, url } = await SpMetaInfo.getPutObjectMetaInfo(endpoint, payload);
   const headers = await client.spClient.signHeaders(reqMeta, authType);
 
@@ -36,5 +43,5 @@ export const makePutObjectHeaders = async (configParam: TMakePutObjectHeaders, a
     headers,
     method,
     params,
-  }
-}
+  };
+};

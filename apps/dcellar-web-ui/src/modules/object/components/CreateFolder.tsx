@@ -1,4 +1,4 @@
-import { ChangeEvent, memo, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, memo, useCallback, useEffect, useState, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 import {
   Flex,
@@ -11,7 +11,7 @@ import {
   toast,
 } from '@totejs/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
-import { GasFeeItem } from '@/modules/file/components/GasFeeItem';
+import { Fees } from '@/modules/file/components/Fees';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import {
@@ -53,9 +53,13 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getObjectMeta } from '@/facade/object';
+import { useAsyncEffect } from 'ahooks';
+import { isEmpty } from 'lodash-es';
+import { calPreLockFee } from '@/utils/sp';
+import { selectAccount } from '@/store/slices/accounts';
 
 interface modalProps {
   refetch: (name?: string) => void;
@@ -64,6 +68,8 @@ interface modalProps {
 export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refetch }) {
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
+
+  const { preLockFeeObjects } = useAppSelector((root) => root.global);
   const checksumWorkerApi = useChecksumApi();
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, folders, objects, path } = useAppSelector((root) => root.object);
@@ -71,8 +77,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const {bucketInfo} = useAppSelector((root) => root.bucket);
   const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
+  const { PaymentAddress } = bucketInfo[bucketName];
+  const accountBalance = useAppSelector(selectAccount(PaymentAddress))
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
@@ -95,6 +104,21 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     if (!isOpen) return;
     dispatch(setupTmpAvailableBalance(address));
   }, [isOpen, dispatch, address]);
+  useAsyncEffect(async () => {
+    if (!primarySp?.operatorAddress) return;
+    if (isEmpty(preLockFeeObjects[primarySp.operatorAddress])) {
+      return await dispatch(setupPreLockFeeObjects(primarySp.operatorAddress));
+    }
+  }, [primarySp?.operatorAddress]);
+  const preLockFeeObject = preLockFeeObjects[primarySp.operatorAddress];
+  const loadingFee = useMemo(() => {
+    return isEmpty(preLockFeeObjects);
+  }, [preLockFeeObjects]);
+  const preLockFee = !isEmpty(preLockFeeObject) && calPreLockFee({
+    size: 0,
+    primarySpAddress: primarySp.operatorAddress,
+    preLockFeeObject: preLockFeeObject,
+  }).toString() || '0';
 
   const getPath = useCallback((name: string, folders: string[]) => {
     const parentFolderName = folders && folders[folders.length - 1];
@@ -265,10 +289,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       domain: window.location.origin,
       seed: seedString,
       address,
-    }).then(
-      resolve,
-      createTxFault,
-    );
+    }).then(resolve, createTxFault);
 
     if (createError) {
       return [null, createError];
@@ -295,11 +316,14 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
 
   useEffect(() => {
     const fee = BigNumber(gasFee);
-    const balance = BigNumber(availableBalance || 0);
+    const balance = BigNumber(bankBalance || 0);
     if (fee.gte(0) && fee.gt(balance)) {
       setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
     }
-  }, [gasFee, availableBalance]);
+    if (BigNumber(preLockFee).gt(BigNumber(accountBalance.staticBalance || 0))) {
+      setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+    }
+  }, [gasFee, bankBalance, preLockFee, accountBalance?.staticBalance]);
 
   useEffect(() => {
     setFormErrors([]);
@@ -340,28 +364,28 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
             />
             {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
           </FormControl>
-          <GasFeeItem gasFee={gasFee + ''} />
-          {lackGasFee && (
-            <Flex w="100%" justifyContent="space-between" mt={8}>
-              <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
-                <GAShow name={'dc.file.create_folder_m.transferin.show'}>
-                  Insufficient balance.&nbsp;
-                  <GAClick name={'dc.file.create_folder_m.transferin.click'}>
-                    <Link
-                      href={InternalRoutePaths.transfer_in}
-                      style={{ textDecoration: 'underline' }}
-                      color="#EE3911"
-                    >
-                      Transfer in
-                    </Link>
-                  </GAClick>
-                </GAShow>
-              </Text>
-            </Flex>
-          )}
         </Flex>
       </QDrawerBody>
-      <QDrawerFooter w="100%">
+      <QDrawerFooter w="100%" flexDirection={'column'}>
+        <Fees gasFee={gasFee + ''} lockFee={preLockFee || '0'} />
+        {lackGasFee && (
+          <Flex w="100%" justifyContent="space-between" mt={8}>
+            <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
+              <GAShow name={'dc.file.create_folder_m.transferin.show'}>
+                Insufficient balance.&nbsp;
+                <GAClick name={'dc.file.create_folder_m.transferin.click'}>
+                  <Link
+                    href={InternalRoutePaths.transfer_in}
+                    style={{ textDecoration: 'underline' }}
+                    color="#EE3911"
+                  >
+                    Transfer in
+                  </Link>
+                </GAClick>
+              </GAShow>
+            </Text>
+          </Flex>
+        )}
         <Flex w="100%" flexDirection="column">
           <DCButton
             w="100%"
