@@ -210,7 +210,7 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
   };
 
   return (
-    <InputGroup {...restProps}>
+    <InputGroup ref={ref} {...restProps}>
       <Input
         h={52}
         value={text}
