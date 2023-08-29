@@ -1,22 +1,17 @@
-import Link from 'next/link';
-import { toast } from '@totejs/uikit';
+import { Flex, Link, toast } from '@totejs/uikit';
 import { getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/paths';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import React from 'react';
-import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { getDomain } from '@/utils/getDomain';
 import { getClient } from '@/base/client';
-import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
 import BigNumber from 'bignumber.js';
-import { GasFee } from '@/modules/buckets/List/components/GasFee';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -330,7 +325,7 @@ const renderPaymentInsufficientBalance = ({
   payAccount,
   gaOptions,
 }:{
-  gasFee: string,
+  gasFee: string | number,
   lockFee: string,
   payGasFeeBalance: string,
   payLockFeeBalance: string,
@@ -357,8 +352,9 @@ const renderPaymentInsufficientBalance = ({
       });
     }
     if (!BigNumber(payLockFeeBalance).gt(BigNumber(lockFee))) {
+      const link = `${InternalRoutePaths.send}&from=${ownerAccount}&to=${payAccount}`
       items.push({
-        link: InternalRoutePaths.send,
+        link: link,
         text: 'Deposit',
       });
     }
@@ -366,22 +362,24 @@ const renderPaymentInsufficientBalance = ({
   if (items.length === 0) return <></>;
 
   return (
-    <>
+    <Flex color={'#EE3911'}>
       {items.map((item, index) => (
         <GAShow key={index} name={gaOptions?.gaShowName}>
           Insufficient balance.&nbsp;
           <GAClick name={gaOptions?.gaClickName}>
             <Link
-              href={InternalRoutePaths.transfer_in}
+              display={'inline'}
+              href={item.link}
               style={{ textDecoration: 'underline' }}
               color="#EE3911"
+              _hover={{color: '#EE3911'}}
             >
-              Transfer in
+              {item.text}
             </Link>
           </GAClick>
         </GAShow>
       ))}
-    </>
+    </Flex>
   );
 };
 export {

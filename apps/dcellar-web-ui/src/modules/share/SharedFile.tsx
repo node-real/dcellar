@@ -23,8 +23,8 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { SpItem } from '@/store/slices/sp';
-import { VisibilityType } from '../file/type';
 import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface SharedFileProps {
   fileName: string;

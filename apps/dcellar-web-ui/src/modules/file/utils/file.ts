@@ -85,23 +85,7 @@ const validateBucketName = (bucketName?: string) => {
     );
   }
 };
-const validateObjectName = (objectName?: string) => {
-  if (!objectName) {
-    throw new Error('Object name is empty, please check.');
-  }
-  if (objectName.length > 1024) {
-    throw new Error('Object name is limited to 1024 at most, please check.');
-  }
-  if (hasBadPathComponent(objectName)) {
-    throw new Error('Object name error, please check.');
-  }
-  if (!isUTF8(objectName)) {
-    throw new Error('Object name is not in UTF-8 format, please check.');
-  }
-  if (objectName.includes(`//`)) {
-    throw new Error(`Object name that contains a "//" is not supported`);
-  }
-};
+
 const generateUrlByBucketName = (endpoint = '', bucketName: string) => {
   if (!isValidUrl(endpoint)) {
     throw new Error('Invalid endpoint');
@@ -113,7 +97,6 @@ const generateUrlByBucketName = (endpoint = '', bucketName: string) => {
 export {
   generateUrlByBucketName,
   validateBucketName,
-  validateObjectName,
   isUTF8,
   hasBadPathComponent,
 };

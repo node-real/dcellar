@@ -39,8 +39,6 @@ import { updateBucketInfo } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import Long from 'long';
-import { VisibilityToChain } from '@/modules/file/utils/visibility';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface ManageQuotaProps {
   onClose: () => void;
@@ -147,9 +145,10 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
       // @ts-ignore
       visibility: bucket.Visibility,
       paymentAddress: bucket.PaymentAddress,
-      chargedReadQuota: { value: new Long(newChargedQuota * G_BYTES) },
+      chargedReadQuota: { value: Long.fromNumber(newChargedQuota * G_BYTES) },
     };
 
+    console.log(payload);
     const [txRes, txError] = await updateBucketInfo(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);

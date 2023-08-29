@@ -72,7 +72,6 @@ interface UploadObjectsProps {}
 // add memo avoid parent state change rerender
 export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const dispatch = useAppDispatch();
-  // 需要进行区分
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
   const { bucketInfo } = useAppSelector((root) => root.bucket);

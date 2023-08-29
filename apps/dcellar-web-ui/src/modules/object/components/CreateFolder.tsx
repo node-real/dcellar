@@ -23,6 +23,7 @@ import {
   FOLDER_CREATING,
   FOLDER_DESCRIPTION_CREATE_ERROR,
   GET_GAS_FEE_LACK_BALANCE_ERROR,
+  LOCK_FEE_LACK_BALANCE_ERROR,
   PENDING_ICON_URL,
   UNKNOWN_ERROR,
 } from '@/modules/file/constant';
@@ -59,6 +60,8 @@ import {
 } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getObjectMeta } from '@/facade/object';
+import { renderFeeValue, renderPaymentInsufficientBalance } from '@/modules/file/utils';
+import { MenuCloseIcon } from '@totejs/icons';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
 import { calPreLockFee } from '@/utils/sp';
@@ -79,14 +82,15 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const primarySp = primarySpInfo[bucketName];
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const folderList = objects[path]?.filter((item) => item.objectName.endsWith('/')) || [];
-  const { PaymentAddress } = bucketInfo[bucketName];
-  const accountBalance = useAppSelector(selectAccount(PaymentAddress));
+  const { PaymentAddress } = bucketInfo?.[bucketName] || {};
+  const payLockFeeAccount = useAppSelector(selectAccount(PaymentAddress));
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const { setOpenAuthModal } = useOffChainAuth();
+  const isOwnerAccount = payLockFeeAccount.address === loginAccount;
   const onClose = () => {
     dispatch(setEditCreate(false));
     // todo fix it
@@ -103,10 +107,10 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    dispatch(setupTmpAvailableBalance(address));
-  }, [isOpen, dispatch, address]);
+  // useEffect(() => {
+  //   if (!isOpen) return;
+  //   dispatch(setupTmpAvailableBalance(loginAccount));
+  // }, [isOpen, dispatch, address]);
   useAsyncEffect(async () => {
     if (!primarySp?.operatorAddress) return;
     if (isEmpty(preLockFeeObjects[primarySp.operatorAddress])) {
@@ -147,7 +151,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         denom: 'BNB',
         gasLimit: Number(simulateInfo?.gasLimit),
         gasPrice: simulateInfo?.gasPrice || '5000000000',
-        payer: address,
+        payer: loginAccount,
         granter: '',
         signTypedDataCallback,
       })
@@ -278,13 +282,12 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   ) => {
     const fullPath = getPath(folderName, folders);
     const file = new File([], fullPath, { type: 'text/plain' });
-    const domain = getDomain();
-    const { seedString } = await dispatch(getSpOffChainData(address, primarySp.operatorAddress));
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
     const createObjectPayload: TBaseGetCreateObject = {
       bucketName,
       objectName: fullPath,
-      creator: address,
+      creator: loginAccount,
       visibility,
       fileType: file.type,
       contentLength: file.size,
@@ -294,7 +297,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       type: 'EDDSA',
       domain: window.location.origin,
       seed: seedString,
-      address,
+      address: loginAccount,
     }).then(resolve, createTxFault);
 
     if (createError) {
@@ -310,6 +313,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   };
 
   const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
+  const lackLockFee = formErrors.includes(LOCK_FEE_LACK_BALANCE_ERROR);
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
@@ -321,15 +325,23 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   };
 
   useEffect(() => {
-    const fee = BigNumber(gasFee);
-    const balance = BigNumber(bankBalance || 0);
-    if (fee.gte(0) && fee.gt(balance)) {
-      setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+    if (isEmpty(preLockFeeObject)) {
+      return
     }
-    if (BigNumber(preLockFee).gt(BigNumber(accountBalance.staticBalance || 0))) {
-      setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]);
+    const nGasFee = BigNumber(gasFee);
+    console.log('isOwnerAccount', isOwnerAccount, preLockFee, payLockFeeAccount.staticBalance, bankBalance)
+    if (isOwnerAccount) {
+      if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance).plus(bankBalance))) {
+        setTimeout(() => setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]), 100);
+      }
+    } else {
+      if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance)) || nGasFee.gt(BigNumber(bankBalance))) {
+        console.log('2131232131221')
+        setTimeout(() => setFormErrors([LOCK_FEE_LACK_BALANCE_ERROR]), 100);
+      }
     }
-  }, [gasFee, bankBalance, preLockFee, accountBalance?.staticBalance]);
+
+  }, [gasFee, bankBalance, preLockFee, payLockFeeAccount.staticBalance, preLockFeeObject,  loginAccount, isOwnerAccount]);
 
   useEffect(() => {
     setFormErrors([]);
@@ -374,7 +386,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
         <Fees gasFee={gasFee + ''} lockFee={preLockFee || '0'} />
-        {lackGasFee && (
+        {/* {lackGasFee && (
           <Flex w="100%" justifyContent="space-between" mt={8}>
             <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
               <GAShow name={'dc.file.create_folder_m.transferin.show'}>
@@ -391,7 +403,15 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
               </GAShow>
             </Text>
           </Flex>
-        )}
+        )} */}
+        {renderPaymentInsufficientBalance({
+          gasFee,
+          lockFee: preLockFee,
+          payGasFeeBalance: bankBalance,
+          payLockFeeBalance: payLockFeeAccount.staticBalance,
+          ownerAccount: loginAccount,
+          payAccount: payLockFeeAccount.address,
+        })}
         <Flex w="100%" flexDirection="column">
           <DCButton
             w="100%"

@@ -170,7 +170,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      // TODO add payment account field
       const createBucketPayload: IBaseGetCreateBucket = {
         bucketName,
         creator: address,
@@ -295,84 +294,81 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     [checkGasFee, clearErrors, setError, setValue, validateNameRules],
   );
 
-  const onSubmit = useCallback(
-    async (data: any) => {
-      try {
-        setStatus('operating');
-        const { seedString } = await dispatch(
-          getSpOffChainData(address, selectedSpRef.current.operatorAddress),
-        );
-        if (!seedString) {
-          onClose();
-          setOpenAuthModal();
-          return;
-        }
-        const bucketName = data.bucketName;
-        const selectedPaAddress = selectedPaRef.current.address;
-        const createBucketPayload: IBaseGetCreateBucket = {
-          bucketName,
-          creator: address,
-          paymentAddress: selectedPaAddress,
-          visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-          chargedReadQuota: String(chargeQuota * G_BYTES),
-          spInfo: {
-            primarySpAddress: selectedSpRef.current.operatorAddress,
-          },
-        };
-
-        const createBucketTx = await genCreateBucketTx(createBucketPayload, {
-          type: 'EDDSA',
-          domain: window.location.origin,
-          seed: seedString,
-          address,
-        });
-        const simulateInfo = await createBucketTx.simulate({
-          denom: 'BNB',
-        });
-        const txRes = await createBucketTx.broadcast({
-          denom: 'BNB',
-          gasLimit: Number(simulateInfo?.gasLimit),
-          gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: createBucketPayload.creator,
-          granter: '',
-          signTypedDataCallback: async (addr: string, message: string) => {
-            const provider = await connector?.getProvider();
-            return await signTypedDataV4(provider, addr, message);
-          },
-        });
-        // todo refactor
-        await pollingGetBucket({
-          address: createBucketPayload.creator,
-          endpoint: globalSP.endpoint,
-          bucketName: createBucketPayload.bucketName,
-        });
-
-        if (txRes.code === 0) {
-          onClose();
-          typeof refetch === 'function' && refetch();
-          toast.success({
-            description: `Bucket created successfully!`,
-          });
-          setTimeout(() => {
-            setStatus('pending');
-          }, 200);
-          reportEvent({
-            name: 'dc.toast.bucket_create.success.show',
-          });
-        } else {
-          throw txRes;
-        }
-      } catch (e: any) {
-        setStatus('failed');
-        // handle chain and storage error
-        const errorMsg = e?.message;
-        errorMsg && setSubmitErrorMsg(errorMsg);
-        // eslint-disable-next-line no-console
-        console.log('submit error', e);
+  const onSubmit = async (data: any) => {
+    try {
+      setStatus('operating');
+      const { seedString } = await dispatch(
+        getSpOffChainData(address, selectedSpRef.current.operatorAddress),
+      );
+      if (!seedString) {
+        onClose();
+        setOpenAuthModal();
+        return;
       }
-    },
-    [address, connector, dispatch, globalSP?.endpoint, onClose, refetch, setOpenAuthModal],
-  );
+      const bucketName = data.bucketName;
+      const selectedPaAddress = selectedPaRef.current.address;
+      const createBucketPayload: IBaseGetCreateBucket = {
+        bucketName,
+        creator: address,
+        paymentAddress: selectedPaAddress,
+        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+        chargedReadQuota: String(chargeQuota * G_BYTES),
+        spInfo: {
+          primarySpAddress: selectedSpRef.current.operatorAddress,
+        },
+      };
+
+      const createBucketTx = await genCreateBucketTx(createBucketPayload, {
+        type: 'EDDSA',
+        domain: window.location.origin,
+        seed: seedString,
+        address,
+      });
+      const simulateInfo = await createBucketTx.simulate({
+        denom: 'BNB',
+      });
+      const txRes = await createBucketTx.broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo?.gasLimit),
+        gasPrice: simulateInfo?.gasPrice || '5000000000',
+        payer: createBucketPayload.creator,
+        granter: '',
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
+        },
+      });
+      // todo refactor
+      await pollingGetBucket({
+        address: createBucketPayload.creator,
+        endpoint: globalSP.endpoint,
+        bucketName: createBucketPayload.bucketName,
+      });
+
+      if (txRes.code === 0) {
+        onClose();
+        typeof refetch === 'function' && refetch();
+        toast.success({
+          description: `Bucket created successfully!`,
+        });
+        setTimeout(() => {
+          setStatus('pending');
+        }, 200);
+        reportEvent({
+          name: 'dc.toast.bucket_create.success.show',
+        });
+      } else {
+        throw txRes;
+      }
+    } catch (e: any) {
+      setStatus('failed');
+      // handle chain and storage error
+      const errorMsg = e?.message;
+      errorMsg && setSubmitErrorMsg(errorMsg);
+      // eslint-disable-next-line no-console
+      console.log('submit error', e);
+    }
+  };
 
   const disableCreateButton = () => {
     return (

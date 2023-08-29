@@ -22,7 +22,6 @@ import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
 import { getNumInDigits } from '@/utils/wallet';
-import { selectBalance } from '@/store/slices/balance';
 
 export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
@@ -90,7 +89,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
               {trimFloatZero(
                 BigNumber(lockFee || 0)
                   .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-                  .toString(DECIMAL_NUMBER),
+                  .toString(),
               )}{' '}
               BNB
             </Text>

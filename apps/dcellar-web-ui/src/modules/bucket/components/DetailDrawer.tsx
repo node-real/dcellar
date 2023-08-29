@@ -12,7 +12,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import { BucketItem, setEditDetail, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
-import { formatId } from '@/utils/string';
+import { formatId, trimAddress } from '@/utils/string';
 import { formatAddress } from '@/modules/buckets/utils/formatAddress';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { GAClick } from '@/components/common/GATracker';
@@ -55,9 +55,14 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       text: `${formatBytes(remainingQuota, true)} / ${formatBytes(freeQuota + readQuota)}`,
     };
   }, [quota]);
+  const { spInfo } = useAppSelector((root) => root.sp);
+  const { accountsInfo } = useAppSelector((root) => root.accounts);
+
   const getContent = () => {
-    if (!isOpen) return;
+    if (!isOpen || !editDetail) return;
     const CreateAt = getMillisecond(editDetail.CreateAt);
+    const spName = editDetail.PrimarySpAddress && spInfo[editDetail.PrimarySpAddress]?.moniker;
+    const payAccountName = bucket.PaymentAddress && accountsInfo[bucket.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,
@@ -68,18 +73,10 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       },
       {
         canCopy: true,
-        label: 'Bucket ID',
-        value: formatId(Number(bucket.Id)),
-        display: formatAddress(formatId(Number(bucket.Id))),
-        copyGaClickName: 'dc.bucket.b_detail_pop.id_copy.click',
-        gaClickName: 'dc.bucket.b_detail_pop.id.click',
-        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/bucket`,
-      },
-      {
-        canCopy: true,
         label: 'Primary SP address',
+        name: spName,
         value: editDetail?.PrimarySpAddress || '--',
-        display: editDetail?.PrimarySpAddress ? formatAddress(editDetail.PrimarySpAddress) : '--',
+        display: editDetail?.PrimarySpAddress ? trimAddress(editDetail.PrimarySpAddress) : '--',
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
         gaClickName: 'dc.bucket.b_detail_pop.spadd.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
@@ -87,11 +84,21 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       {
         canCopy: true,
         label: 'Payment address',
+        name: payAccountName,
         value: bucket.PaymentAddress,
-        display: formatAddress(bucket.PaymentAddress),
+        display: `${trimAddress(bucket.PaymentAddress)}`,
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
         gaClickName: 'dc.bucket.b_detail_pop.payment.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
+      },
+      {
+        canCopy: true,
+        label: 'Bucket ID',
+        value: formatId(Number(bucket.Id)),
+        display: formatAddress(formatId(Number(bucket.Id))),
+        copyGaClickName: 'dc.bucket.b_detail_pop.id_copy.click',
+        gaClickName: 'dc.bucket.b_detail_pop.id.click',
+        href: `${GREENFIELD_CHAIN_EXPLORER_URL}/bucket`,
       },
       {
         canCopy: true,
@@ -136,22 +143,26 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
                 )}
                 {item.label !== 'Date Created' &&
                   (item.canCopy ? (
-                    <GAClick name={item.gaClickName}>
-                      <Link
-                        target="_blank"
-                        color="#1184EE"
-                        cursor={'pointer'}
-                        textDecoration={'underline'}
-                        _hover={{
-                          color: '#3C9AF1',
-                        }}
-                        href={`${item.href}/${item.value}`}
-                        fontSize={'14px'}
-                        fontWeight={500}
-                      >
-                        {item.display}
-                      </Link>
-                    </GAClick>
+                    <>
+                      {item.name ? `${item.name} |` : ''}
+                      &nbsp;
+                      <GAClick name={item.gaClickName}>
+                        <Link
+                          target="_blank"
+                          color="#1184EE"
+                          cursor={'pointer'}
+                          textDecoration={'underline'}
+                          _hover={{
+                            color: '#3C9AF1',
+                          }}
+                          href={`${item.href}/${item.value}`}
+                          fontSize={'14px'}
+                          fontWeight={500}
+                        >
+                          {item.display}
+                        </Link>
+                      </GAClick>
+                    </>
                   ) : (
                     <Link
                       target="_blank"

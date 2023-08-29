@@ -29,12 +29,12 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { VisibilityType } from '@/modules/file/type';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface modalProps {}
 

@@ -2,7 +2,6 @@ import React, { memo, ReactNode, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { Box, Button, Flex, Text, toast, useClipboard } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { VisibilityType } from '@/modules/file/type';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { transientOptions } from '@/utils/transientOptions';
@@ -28,6 +27,7 @@ import {
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface SharePermissionProps {}
 
