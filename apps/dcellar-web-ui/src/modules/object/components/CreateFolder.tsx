@@ -119,7 +119,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
     size: 0,
     primarySpAddress: primarySp.operatorAddress,
     preLockFeeObject: preLockFeeObject,
-  }).toString();
+  }).toString() || '0';
 
   const getPath = useCallback((name: string, folders: string[]) => {
     const parentFolderName = folders && folders[folders.length - 1];
