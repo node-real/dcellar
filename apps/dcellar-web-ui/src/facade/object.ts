@@ -142,7 +142,7 @@ export const getAuthorizedLink = async (
   seedString: string,
   view?: '0' | '1',
 ): Promise<[null, ErrorMsg] | [string]> => {
-  const { address, objectInfo } = params;
+  const { address, objectInfo, primarySp } = params;
   const { bucketName, objectName } = objectInfo;
   const [url, error] = await generateGetObjectOptions({
     bucketName,
@@ -150,6 +150,7 @@ export const getAuthorizedLink = async (
     address,
     view,
     seedString,
+    endpoint: primarySp.endpoint,
   }).then(resolve, commonFault);
   if (!url) return [null, error!];
   return [url];

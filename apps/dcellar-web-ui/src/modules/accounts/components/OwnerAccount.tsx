@@ -1,7 +1,7 @@
 import { Box, Flex, Link } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
-import { AlignType, DCTable } from '@/components/common/DCTable';
+import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TAccount, setEditOwnerDetail } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
@@ -19,7 +19,6 @@ const actions: ActionMenuItem[] = [
 
 export const OwnerAccount = () => {
   const dispatch = useAppDispatch();
-  const [rowIndex, setRowIndex] = useState(-1);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const data = ownerAccount?.address ? [ownerAccount] : [];
   const router = useRouter();
@@ -68,12 +67,10 @@ export const OwnerAccount = () => {
     },
     {
       key: 'Operation',
-      title: 'Operation',
-      align: 'center' as AlignType,
+      title: <></>,
       width: 200,
-      render: (_: string, record: TAccount, index: number) => {
-        const isCurRow = rowIndex === index;
-        const operations = isCurRow ? ['transfer_in', 'transfer_out', 'send'] : [];
+      render: (_: string, record: TAccount) => {
+        const operations = ['transfer_in', 'transfer_out', 'send'];
         return (
           <ActionMenu
             operations={operations}
@@ -103,12 +100,6 @@ export const OwnerAccount = () => {
         onRow={(record: TAccount, index) => ({
           onClick: () => {
             dispatch(setEditOwnerDetail(record.address));
-          },
-          onMouseEnter: () => {
-            setRowIndex(Number(index));
-          },
-          onMouseLeave: () => {
-            setRowIndex(-1);
           },
         })}
       ></DCTable>

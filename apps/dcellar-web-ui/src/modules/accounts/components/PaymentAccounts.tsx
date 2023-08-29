@@ -27,7 +27,6 @@ const actions: ActionMenuItem[] = [
 
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
-  const [rowIndex, setRowIndex] = useState(-1);
   const router = useRouter();
   const { PAList, isLoadingPAList, currentPAPage, ownerAccount } = useAppSelector(
     (root) => root.accounts,
@@ -102,12 +101,10 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'Operation',
-      title: 'Operation',
-      align: 'center' as AlignType,
+      title: <></>,
       width: 200,
-      render: (_: string, record: TAccount, index: number) => {
-        const isCurRow = rowIndex === index;
-        const operations = isCurRow ? ['deposit', 'withdraw'] : [];
+      render: (_: string, record: TAccount) => {
+        const operations = ['deposit', 'withdraw'];
         return (
           <ActionMenu
             operations={operations}
@@ -159,12 +156,6 @@ export const PaymentAccounts = () => {
         onRow={(record: TAccount, index) => ({
           onClick: () => {
             dispatch(setEditPaymentDetail(record.address));
-          },
-          onMouseEnter: () => {
-            setRowIndex(Number(index));
-          },
-          onMouseLeave: () => {
-            setRowIndex(-1);
           },
         })}
       ></DCTable>

@@ -92,7 +92,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const { tabOptions, activeKey, setActiveKey } = useUploadTab();
 
   const { PaymentAddress } = bucketInfo[bucketName] || {};
-  console.log('bucketInfo[bucketName]', bucketInfo[bucketName])
+  console.log('bucketInfo[bucketName]', bucketInfo[bucketName]);
   const onClose = () => {
     dispatch(setEditUploadStatus(false));
     dispatch(setEditUpload({} as TEditUpload));
@@ -240,8 +240,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
       <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
-      {!isEmpty(selectedFiles) && (
-        <QDrawerBody marginTop={'16px'}>
+      <QDrawerBody marginTop={'16px'}>
+        {!isEmpty(selectedFiles) && (
           <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
             <TabList>
               {tabOptions.map((item) => (
@@ -265,8 +265,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
               ))}
             </TabPanels>
           </Tabs>
-        </QDrawerBody>
-      )}
+        )}
+      </QDrawerBody>
       <QDrawerFooter
         flexDirection={'column'}
         marginTop={'12px'}

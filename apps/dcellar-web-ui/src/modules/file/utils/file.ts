@@ -10,6 +10,7 @@ export interface getObjectPropsType {
   bucketName: string;
   objectName: string;
   duration?: number;
+  endpoint?: string;
   address: string;
   seedString: string;
   view?: '0' | '1';

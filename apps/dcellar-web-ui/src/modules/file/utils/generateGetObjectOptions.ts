@@ -13,6 +13,7 @@ export const generateGetObjectOptions = async (
     seedString,
     view = '1',
     duration = 24 * 60 * 60,
+    endpoint,
   } = configParam;
   const client = await getClient();
   const auth: AuthType = {
@@ -27,5 +28,5 @@ export const generateGetObjectOptions = async (
     'X-Gnfd-App-Domain': window.location.origin,
     'X-Gnfd-Expiry-Timestamp': dayjs().add(duration, 'second').toISOString(),
   };
-  return client.object.getObjectPreviewUrl({ bucketName, objectName, queryMap }, auth);
+  return client.object.getObjectPreviewUrl({ bucketName, objectName, queryMap, endpoint }, auth);
 };

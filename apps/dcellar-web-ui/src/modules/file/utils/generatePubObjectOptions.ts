@@ -16,7 +16,7 @@ export const makePutObjectHeaders = async (
   authType: AuthType,
 ) => {
   const client = await getClient();
-  const { bucketName, objectName, txnHash, body, duration = 30000 } = configParam;
+  const { bucketName, objectName, txnHash, body, endpoint } = configParam;
   if (!isValidBucketName(bucketName)) {
     throw new Error('Error bucket name');
   }
@@ -26,7 +26,6 @@ export const makePutObjectHeaders = async (
   if (!txnHash) {
     throw new Error('Transaction hash is empty, please check.');
   }
-  const endpoint = await client.sp.getSPUrlByBucket(bucketName);
   const method = METHOD_PUT;
   const params = new URLSearchParams();
   const payload = {

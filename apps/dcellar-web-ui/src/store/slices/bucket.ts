@@ -5,8 +5,7 @@ import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket'
 import { toast } from '@totejs/uikit';
 import { omit } from 'lodash-es';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
-import { SpItem } from './sp';
-import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { getPrimarySpInfo } from './sp';
 import { GetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
@@ -22,6 +21,7 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
 };
 
 export type TEditDetailItem = BucketItem & { PrimarySpAddress?: string };
+
 export interface BucketState {
   bucketInfo: Record<string, BucketProps['BucketInfo']>;
   buckets: Record<string, BucketItem[]>;
@@ -162,19 +162,11 @@ export const setupBuckets =
 
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { allSps } = getState().sp;
     const { loginAccount } = getState().persist;
     const { bucketInfo } = getState().bucket;
     const info = bucketInfo[bucketName];
     if (!info) return;
-    const familyId = bucketInfo[bucketName].GlobalVirtualGroupFamilyId;
-    const [familyResp, VGerror] = await getVirtualGroupFamily({ familyId: +familyId });
-    if (familyResp === null) {
-      return VGerror;
-    }
-    const sp = allSps.find(
-      (item: SpItem) => item.id === familyResp.globalVirtualGroupFamily?.primarySpId,
-    );
+    const sp = await dispatch(getPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
     if (!sp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
