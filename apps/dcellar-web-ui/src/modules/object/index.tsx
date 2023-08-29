@@ -64,8 +64,9 @@ export const ObjectsPage = () => {
     const bucket = bucketInfo[bucketName];
     if (bucket) {
       const Owner = bucket.Owner;
+      console.log('bucket', bucket)
       const payload = {
-        discontinue: bucket.BucketStatus === '1',
+        discontinue: bucket.BucketStatus === 1,
         owner: Owner === loginAccount,
       };
       dispatch(setBucketStatus(payload));

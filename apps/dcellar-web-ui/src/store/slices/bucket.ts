@@ -82,6 +82,7 @@ export const bucketSlice = createSlice({
       if (!address) return;
       const bucketName = bucket.bucketName;
       const info = state.bucketInfo[bucketName];
+      console.log('bucket-1111', bucket)
       const newInfo = {
         ...info,
         Owner: bucket.owner,
@@ -89,16 +90,16 @@ export const bucketSlice = createSlice({
         Visibility: VisibilityType[bucket.visibility] as keyof typeof VisibilityType,
         Id: bucket.id,
         SourceType: SourceType[bucket.sourceType] as keyof typeof SourceType,
-        CreateAt: bucket.createAt.toString(),
+        CreateAt: bucket.createAt.toNumber(),
         PaymentAddress: bucket.paymentAddress,
-        BucketStatus: String(bucket.bucketStatus),
-        GlobalVirtualGroupFamilyId: String(bucket.globalVirtualGroupFamilyId),
-        ChargedReadQuota: bucket.chargedReadQuota.toString(),
+        BucketStatus: bucket.bucketStatus,
+        GlobalVirtualGroupFamilyId: bucket.globalVirtualGroupFamilyId,
+        ChargedReadQuota: bucket.chargedReadQuota.toNumber(),
       };
-      // @ts-ignore sdk will upgrade type
+      // @ts-ignore
       state.bucketInfo[bucketName] = newInfo;
       state.owner = address === newInfo.Owner;
-      state.discontinue = newInfo.BucketStatus === '1';
+      state.discontinue = newInfo.BucketStatus === 1;
     },
     setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
