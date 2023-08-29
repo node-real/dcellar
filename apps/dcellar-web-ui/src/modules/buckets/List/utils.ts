@@ -47,11 +47,11 @@ export const pollingDeleteAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
     async (...args: T): Promise<any> => {
       await new Promise((resolve) => setTimeout(resolve, interval));
-      debugger;
+
       while (true) {
         try {
           const res = (await fn(...args)) as any;
-          debugger;
+
           if (res.response.status === 500 || res.response.status === 404) {
             return;
           }

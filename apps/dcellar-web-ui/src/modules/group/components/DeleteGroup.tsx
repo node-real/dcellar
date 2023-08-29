@@ -10,12 +10,13 @@ import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
   FILE_FAILED_URL,
+  GAS_FEE_DOC,
   GROUP_DELETE,
   UNKNOWN_ERROR,
   WALLET_CONFIRM,
 } from '@/modules/file/constant';
 import { useUnmount } from 'ahooks';
-import { Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, Link, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { DCModal } from '@/components/common/DCModal';
 import {
   renderBalanceNumber,
@@ -146,7 +147,11 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
               fontWeight={400}
               color={'readable.tertiary'}
             >
-              Gas Fee
+              Gas Fee (
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+                Pay by Owner Account
+              </Link>
+              )
             </Text>
           </Flex>
           <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>

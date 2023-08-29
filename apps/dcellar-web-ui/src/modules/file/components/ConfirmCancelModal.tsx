@@ -24,6 +24,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { selectBalance } from '@/store/slices/balance';
+import { renderFee } from '@/modules/object/components/CancelObject';
 
 interface modalProps {
   title?: string;
@@ -46,31 +47,6 @@ interface modalProps {
   outsideLoading: boolean;
   setStatusModalErrorText: React.Dispatch<React.SetStateAction<string>>;
 }
-
-const renderFee = (
-  key: string,
-  bnbValue: string,
-  exchangeRate: number | string,
-  keyIcon?: React.ReactNode,
-) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Flex alignItems="center" mb="4px">
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key}
-        </Text>
-        {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
-            {keyIcon}
-          </Box>
-        )}
-      </Flex>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
-      </Text>
-    </Flex>
-  );
-};
 
 export const ConfirmCancelModal = (props: modalProps) => {
   const dispatch = useAppDispatch();

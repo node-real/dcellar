@@ -85,7 +85,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, editDetail, editDownload, editCancel, editCreate } = useAppSelector(
+  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload} = useAppSelector(
     (root) => root.object,
   );
 
@@ -370,7 +370,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       <ShareDrawer />
       {editDownload?.objectName && <DownloadObject />}
       {editCancel.objectName && <CancelObject refetch={refetch} />}
-      <UploadObjects />
+      {editUpload.isOpen && <UploadObjects />}
       {discontinue && (
         <DiscontinueBanner
           content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "

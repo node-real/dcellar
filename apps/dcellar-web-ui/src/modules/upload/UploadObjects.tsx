@@ -85,7 +85,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   );
   const { connector } = useAccount();
   const selectedFiles = waitQueue;
-  const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/'));
+  const objectList = objects[path]?.filter((item) => !item.objectName.endsWith('/')) || [];
   const { uploadQueue } = useAppSelector((root) => root.global);
   const [creating, setCreating] = useState(false);
   const { tabOptions, activeKey, setActiveKey } = useUploadTab();
@@ -174,6 +174,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     );
   };
 
+  // todo recheck files
   const onUploadClick = async () => {
     setCreating(true);
     dispatch(

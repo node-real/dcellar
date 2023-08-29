@@ -1,4 +1,13 @@
-import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import {
+  Box,
+  Flex,
+  Link,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  Text,
+  toast,
+} from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
@@ -13,6 +22,7 @@ import {
   FILE_STATUS_CANCELING,
   FILE_TITLE_CANCEL_FAILED,
   FILE_TITLE_CANCELING,
+  GAS_FEE_DOC,
   PENDING_ICON_URL,
 } from '@/modules/file/constant';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
@@ -42,10 +52,10 @@ interface modalProps {
   refetch: () => void;
 }
 
-const renderFee = (
+export const renderFee = (
   key: string,
   bnbValue: string,
-  exchangeRate: number,
+  exchangeRate: number | string,
   keyIcon?: React.ReactNode,
 ) => {
   return (
@@ -53,6 +63,15 @@ const renderFee = (
       <Flex alignItems="center" mb="4px">
         <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
           {key}
+          {key.toLowerCase() === 'gas fee' && (
+            <>
+              {' '}(
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+                Pay by Owner Account
+              </Link>
+              )
+            </>
+          )}
         </Text>
         {keyIcon && (
           <Box ml="6px" mt={'-5px'}>
@@ -75,7 +94,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const {
     bnb: { price: bnbPrice },
   } = useAppSelector((root) => root.global);
-  const {bankBalance: availableBalance} = useAppSelector((root) => root.accounts);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, editCancel } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];

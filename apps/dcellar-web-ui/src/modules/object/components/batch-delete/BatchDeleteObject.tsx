@@ -3,7 +3,6 @@ import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
-  renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/file/utils';
 import {
@@ -32,37 +31,13 @@ import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { cancelCreateObject, deleteObject } from '@/facade/object';
+import { renderFee } from '../CancelObject';
 
 interface modalProps {
   refetch: () => void;
   isOpen: boolean;
   cancelFn: () => void;
 }
-
-const renderFee = (
-  key: string,
-  bnbValue: string,
-  exchangeRate: number,
-  keyIcon?: React.ReactNode,
-) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Flex alignItems="center" mb="4px">
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key}
-        </Text>
-        {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
-            {keyIcon}
-          </Box>
-        )}
-      </Flex>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
-      </Text>
-    </Flex>
-  );
-};
 
 export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => {
   const dispatch = useAppDispatch();

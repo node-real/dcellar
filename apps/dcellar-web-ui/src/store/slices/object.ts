@@ -232,6 +232,7 @@ export const objectSlice = createSlice({
           return !ts;
         });
 
+
       const objects = list.Objects
         .map((i) => {
           const {
@@ -261,7 +262,10 @@ export const objectSlice = createSlice({
             removed: i.Removed,
           };
         })
-        .filter((i) => !i.objectName.endsWith('/') && !i.removed)
+        .filter((i) => {
+          console.log('!i.objectNam && !i.removed', i.objectName.endsWith('/') , i.removed)
+          return !i.objectName.endsWith('/') && !i.removed
+        })
         .filter((o) => {
           const path = [bucketName, o.objectName].join('/');
           const ts = state.deletedObjects[path];
@@ -342,6 +346,7 @@ export const setupListObjects =
       toast.error({ description: error });
       return;
     }
+
     dispatch(setObjectList({ path: _path || path, list: res! }));
     dispatch(setRestoreCurrent(true));
     if (!restoreCurrent) {

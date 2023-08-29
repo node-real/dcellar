@@ -36,7 +36,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const isOpen = !!editDetail.BucketName;
   const quota = quotas[editDetail.BucketName];
   const bucket = bucketInfo[editDetail.BucketName] || {};
-  const endDate = dayjs()?.utc().endOf('month').format('D MMM, YYYY');
+  const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
 
   const transformedRemainingQuota = useMemo(() => {
     if (!quota)

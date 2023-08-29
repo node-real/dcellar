@@ -47,7 +47,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { folders, prefix, path, objectsInfo, bucketName } = useAppSelector((root) => root.object);
+  const { folders, prefix, path, objectsInfo, bucketName, objects } = useAppSelector(
+    (root) => root.object,
+  );
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
@@ -64,8 +66,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;
   const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
 
-  const disabled = maxFolderDepth || discontinue;
-  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL;
+  const loading = !objects[path];
+  const disabled = maxFolderDepth || discontinue || loading;
+  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading;
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     console.log(e);
@@ -205,7 +208,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             : `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
         }
         placement={'bottom-start'}
-        visibility={maxFolderDepth ? 'visible' : 'hidden'}
+        visibility={maxFolderDepth && !loading ? 'visible' : 'hidden'}
       >
         <GAClick name={gaFolderClickName}>
           <Flex
@@ -231,7 +234,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           content={
             discontinue ? 'Bucket in the discontinue status cannot upload files' : 'Path invalid'
           }
-          visibility={uploadDisabled ? 'visible' : 'hidden'}
+          visibility={uploadDisabled && !loading ? 'visible' : 'hidden'}
         >
           <MenuButton
             as={Button}
