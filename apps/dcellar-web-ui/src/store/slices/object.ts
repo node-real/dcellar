@@ -211,8 +211,9 @@ export const objectSlice = createSlice({
     setObjectList(state, { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>) {
       const { path, list } = payload;
       const [bucketName] = path.split('/');
+      const CommonPrefixes = Array.isArray(list?.CommonPrefixes) ? list?.CommonPrefixes :  [list?.CommonPrefixes]
       // keep order
-      const folders = list?.CommonPrefixes.reverse()
+      const folders = CommonPrefixes.reverse()
         .map((i, index) => ({
           bucketName,
           objectName: i,

@@ -49,6 +49,7 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
 import LoadingIcon from '@/public/images/icons/loading.svg';
+import { renderFee } from './CancelObject';
 
 interface modalProps {
   refetch: () => void;
@@ -63,36 +64,6 @@ const renderQuota = (key: string, value: string) => {
       <Text fontSize={'14px'} lineHeight={'17px'} fontWeight={400} color={'readable.tertiary'}>
         {value}
       </Text>
-    </Flex>
-  );
-};
-
-const renderFee = (
-  key: string,
-  bnbValue: string,
-  exchangeRate: number,
-  loading?: boolean,
-  keyIcon?: React.ReactNode,
-) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Flex alignItems="center" mb="4px">
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key}
-        </Text>
-        {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
-            {keyIcon}
-          </Box>
-        )}
-      </Flex>
-      {loading ? (
-        <LoadingIcon color={'#76808F'} width={'20px'} height={'20px'} />
-      ) : (
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          ~{renderFeeValue(bnbValue, exchangeRate)}
-        </Text>
-      )}
     </Flex>
   );
 };

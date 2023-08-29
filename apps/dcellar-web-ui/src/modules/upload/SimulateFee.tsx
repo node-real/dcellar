@@ -21,6 +21,7 @@ import { MenuCloseIcon } from '@totejs/icons';
 import { selectPayLockFeeAccount, setEditUpload } from '@/store/slices/object';
 import BigNumber from 'bignumber.js';
 import { DECIMAL_NUMBER } from '../wallet/constants';
+import { GAS_FEE_DOC } from '../file/constant';
 
 export const Fee = () => {
   const dispatch = useAppDispatch();
@@ -130,7 +131,15 @@ export const Fee = () => {
             color={'readable.tertiary'}
             as="p"
           >
-            {key}
+            {key}{key.toLowerCase() === 'gas fee' && (
+            <>
+              {' '}(
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+                Pay by Owner Account
+              </Link>
+              )
+            </>
+          )}
           </Text>
           {keyIcon && (
             <Box ml="6px" mt={'-1px'}>
