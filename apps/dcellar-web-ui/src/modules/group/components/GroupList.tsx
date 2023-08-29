@@ -152,6 +152,11 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
+        onRow={(record: GroupInfo) => ({
+          onClick: () => {
+            dispatch(setEditGroup(record));
+          },
+        })}
       />
     </>
   );
