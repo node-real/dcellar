@@ -430,7 +430,6 @@ export const setupPreLockFeeObjects =
     const client = await getClient();
     const now = Math.floor(getUtcZeroTimestamp()/1000);
     const globalSpStoragePrice = await client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(now) });
-    console.log('globalSpStoragePrice', globalSpStoragePrice)
     const { params: storageParams } = await client.storage.params();
     const {
       minChargeSize = new Long(0),

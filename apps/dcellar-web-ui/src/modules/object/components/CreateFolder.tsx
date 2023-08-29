@@ -69,8 +69,7 @@ interface modalProps {
 export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refetch }) {
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
-  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure();
-  const exchangeRate = useAppSelector(selectBnbPrice);
+
   const { preLockFeeObjects } = useAppSelector((root) => root.global);
   const checksumWorkerApi = useChecksumApi();
   const { primarySpInfo } = useAppSelector((root) => root.sp);
@@ -116,7 +115,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const loadingFee = useMemo(() => {
     return isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects]);
-  const preLockFee = calPreLockFee({
+  const preLockFee = !isEmpty(preLockFeeObject) && calPreLockFee({
     size: 0,
     primarySpAddress: primarySp.operatorAddress,
     preLockFeeObject: preLockFeeObject,
@@ -370,25 +369,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         </Flex>
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
-        <Flex
-          paddingBottom={'4px'}
-          fontSize={'14px'}
-          fontWeight={600}
-          onClick={onToggleFees}
-          justifyContent={'space-between'}
-          alignItems={'center'}
-          cursor={'pointer'}
-        >
-          <Text>Total Fees</Text>
-          <Text justifySelf={'flex-end'} fontWeight={'normal'}>
-            {renderFeeValue(preLockFee.toString(), exchangeRate)}
-            <MenuCloseIcon
-              sx={{
-                transform: isOpenFees ? 'rotate(180deg)' : 'rotate(0deg)',
-              }}
-            />
-          </Text>
-        </Flex>
         <Fees gasFee={gasFee + ''} lockFee={preLockFee || '0'} />
         {lackGasFee && (
           <Flex w="100%" justifyContent="space-between" mt={8}>

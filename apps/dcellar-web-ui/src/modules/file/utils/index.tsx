@@ -15,6 +15,8 @@ import { getClient } from '@/base/client';
 import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
+import BigNumber from 'bignumber.js';
+import { GasFee } from '@/modules/buckets/List/components/GasFee';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -44,7 +46,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   if (!bnbValue || Number(bnbValue) < 0) {
     return '--';
   }
-  
+
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
 const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number | string) => {
@@ -319,6 +321,69 @@ const truncateFileName = (fileName: string) => {
   )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
 };
 
+const renderPaymentInsufficientBalance = ({
+  gasFee,
+  lockFee,
+  payGasFeeBalance,
+  payLockFeeBalance,
+  ownerAccount,
+  payAccount,
+  gaOptions,
+}:{
+  gasFee: string,
+  lockFee: string,
+  payGasFeeBalance: string,
+  payLockFeeBalance: string,
+  ownerAccount: string,
+  payAccount: string,
+  gaOptions?: { gaClickName: string; gaShowName: string },
+}) => {
+  if (!gasFee || Number(gasFee) < 0 || !lockFee || Number(lockFee) < 0) return <></>;
+  const items = [];
+  const isOwnerAccount = ownerAccount === payAccount;
+  if (isOwnerAccount) {
+    if (!BigNumber(payGasFeeBalance).gt(BigNumber(gasFee))
+      && BigNumber(payGasFeeBalance).minus(BigNumber(gasFee)).plus(BigNumber(payLockFeeBalance)).gt(BigNumber(lockFee))) {
+      items.push({
+        link: InternalRoutePaths.transfer_in,
+        text: 'Transfer in',
+      });
+    }
+  } else {
+    if (!BigNumber(payGasFeeBalance).gt(BigNumber(gasFee))) {
+      items.push({
+        link: InternalRoutePaths.transfer_in,
+        text: 'Transfer in',
+      });
+    }
+    if (!BigNumber(payLockFeeBalance).gt(BigNumber(lockFee))) {
+      items.push({
+        link: InternalRoutePaths.send,
+        text: 'Deposit',
+      });
+    }
+  }
+  if (items.length === 0) return <></>;
+
+  return (
+    <>
+      {items.map((item, index) => (
+        <GAShow key={index} name={gaOptions?.gaShowName}>
+          Insufficient balance.&nbsp;
+          <GAClick name={gaOptions?.gaClickName}>
+            <Link
+              href={InternalRoutePaths.transfer_in}
+              style={{ textDecoration: 'underline' }}
+              color="#EE3911"
+            >
+              Transfer in
+            </Link>
+          </GAClick>
+        </GAShow>
+      ))}
+    </>
+  );
+};
 export {
   formatBytes,
   getObjectInfo,
@@ -337,4 +402,5 @@ export {
   truncateFileName,
   renderPrelockedFeeValue,
   getBuiltInLink,
+  renderPaymentInsufficientBalance,
 };

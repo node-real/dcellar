@@ -362,6 +362,13 @@ export const selectPathCurrent = (root: AppState) => {
   return currentPage[path] || 0;
 };
 
+export const selectPayLockFeeAccount = (root: AppState) => {
+  const { bucketInfo } = root.bucket;
+  const { bucketName } = root.object;
+  const { PaymentAddress } = bucketInfo[bucketName] || {};
+  const { accountsInfo } = root.accounts;
+  return accountsInfo[PaymentAddress];
+}
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
   const { objects, path } = root.object;

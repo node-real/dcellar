@@ -92,7 +92,6 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const { tabOptions, activeKey, setActiveKey } = useUploadTab();
 
   const { PaymentAddress } = bucketInfo[bucketName] || {};
-  console.log('bucketInfo[bucketName]', bucketInfo[bucketName]);
   const onClose = () => {
     dispatch(setEditUploadStatus(false));
     dispatch(setEditUpload({} as TEditUpload));
