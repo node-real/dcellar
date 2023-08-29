@@ -82,7 +82,6 @@ export const bucketSlice = createSlice({
       if (!address) return;
       const bucketName = bucket.bucketName;
       const info = state.bucketInfo[bucketName];
-      console.log('bucket-1111', bucket)
       const newInfo = {
         ...info,
         Owner: bucket.owner,
@@ -92,7 +91,7 @@ export const bucketSlice = createSlice({
         SourceType: SourceType[bucket.sourceType] as keyof typeof SourceType,
         CreateAt: bucket.createAt.toNumber(),
         PaymentAddress: bucket.paymentAddress,
-        BucketStatus: bucket.bucketStatus,
+        BucketStatus: Number(bucket.bucketStatus),
         GlobalVirtualGroupFamilyId: bucket.globalVirtualGroupFamilyId,
         ChargedReadQuota: bucket.chargedReadQuota.toNumber(),
       };

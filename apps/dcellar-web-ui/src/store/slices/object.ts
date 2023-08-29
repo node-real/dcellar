@@ -7,7 +7,8 @@ import { GfSPListObjectsByBucketNameResponse, TListObjects } from '@bnb-chain/gr
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
-import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
+// import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -49,7 +50,7 @@ export interface ObjectState {
   prefix: string;
   path: string;
   objects: Record<string, ObjectItem[]>;
-  objectsInfo: Record<string, TObject>;
+  objectsInfo: Record<string, ObjectMeta>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
   editDetail: ObjectItem;
@@ -124,7 +125,8 @@ export const objectSlice = createSlice({
       item.visibility = visibility;
       const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
       if (!info) return;
-      info.ObjectInfo.Visibility = visibility + '';
+      // @ts-ignore
+      info.ObjectInfo.Visibility = visibility;
     },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
       const { path, folder } = payload;
