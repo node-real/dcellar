@@ -52,7 +52,11 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import { selectBnbPrice, setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
+import {
+  selectBnbPrice,
+  setupPreLockFeeObjects,
+  setupTmpAvailableBalance,
+} from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getObjectMeta } from '@/facade/object';
 import { renderFeeValue } from '@/modules/file/utils';
@@ -79,10 +83,10 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { bankBalance } = useAppSelector((root) => root.accounts);
-  const {bucketInfo} = useAppSelector((root) => root.bucket);
-  const folderList = objects[path].filter((item) => item.objectName.endsWith('/'));
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const folderList = objects[path]?.filter((item) => item.objectName.endsWith('/')) || [];
   const { PaymentAddress } = bucketInfo[bucketName];
-  const accountBalance = useAppSelector(selectAccount(PaymentAddress))
+  const accountBalance = useAppSelector(selectAccount(PaymentAddress));
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const { setOpenAuthModal } = useOffChainAuth();
   const onClose = () => {
@@ -115,11 +119,14 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const loadingFee = useMemo(() => {
     return isEmpty(preLockFeeObjects);
   }, [preLockFeeObjects]);
-  const preLockFee = !isEmpty(preLockFeeObject) && calPreLockFee({
-    size: 0,
-    primarySpAddress: primarySp.operatorAddress,
-    preLockFeeObject: preLockFeeObject,
-  }).toString() || '0';
+  const preLockFee =
+    (!isEmpty(preLockFeeObject) &&
+      calPreLockFee({
+        size: 0,
+        primarySpAddress: primarySp.operatorAddress,
+        preLockFeeObject: preLockFeeObject,
+      }).toString()) ||
+    '0';
 
   const getPath = useCallback((name: string, folders: string[]) => {
     const parentFolderName = folders && folders[folders.length - 1];
