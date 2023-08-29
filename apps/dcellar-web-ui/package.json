@@ -18,7 +18,7 @@
     "ahooks": "3.7.7",
     "hash-wasm": "4.9.0",
     "@babel/core": "^7.20.12",
-    "@bnb-chain/greenfield-js-sdk": "0.2.4-alpha.22",
+    "@bnb-chain/greenfield-js-sdk": "0.2.4-alpha.23",
     "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.22",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
