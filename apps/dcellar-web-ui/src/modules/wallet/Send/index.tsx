@@ -5,6 +5,7 @@ import { isEmpty } from 'lodash-es';
 import {
   Box,
   Divider,
+  Flex,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -42,9 +43,8 @@ export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
-    (root) => root.accounts,
-  );
+  const { bankBalance, accountsInfo, isLoadingDetail, PAList, ownerAccount, isLoadingPAList } =
+    useAppSelector((root) => root.accounts);
   const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -61,14 +61,18 @@ export const Send = () => {
   }, [accountsInfo, bankBalance, fromAccount]);
 
   useEffect(() => {
-    if (isEmpty(PAList) || isEmpty(ownerAccount)) return;
+    if (isLoadingPAList || isEmpty(ownerAccount)) return;
+    if (isEmpty(PAList)) {
+      initFormRef.current = true;
+      return;
+    }
     const allList = [...PAList, ownerAccount];
     const initialFromAccount = from && allList.find((item) => item.address === from);
     initialFromAccount && dispatch(setFromAccount(initialFromAccount));
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || { name: 'Initial Account', address: '' }));
     initFormRef.current = true;
-  }, [PAList, dispatch, from, ownerAccount, to]);
+  }, [PAList, dispatch, from, ownerAccount, to, isLoadingPAList]);
 
   const {
     handleSubmit,
@@ -215,7 +219,12 @@ export const Send = () => {
     return errors;
   }, [isLoadingDetail, toAccount, toJsErrors]);
 
-  if (!initFormRef.current) return <></>;
+  if (!initFormRef.current)
+    return (
+      <Flex justifyContent="center" my={50}>
+        <Loading />
+      </Flex>
+    );
 
   return (
     <Container>
@@ -244,13 +253,7 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on:{' '}
-            {isLoadingDetail === fromAccount.address ? (
-              <SmallLoading />
-            ) : (
-              balance
-            )}
-            {" "}BNB
+            Balance on: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : balance} BNB
           </FormHelperText>
         </FormControl>
         {!isHideToAccount && (

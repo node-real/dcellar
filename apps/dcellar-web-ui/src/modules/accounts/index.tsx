@@ -8,13 +8,19 @@ import { NonRefundableModal } from './components/NonRefundableModal';
 
 import { setupPAList } from '@/store/slices/accounts';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { useMount } from 'ahooks';
 
 export const Accounts = () => {
   const dispatch = useAppDispatch();
-  const {editPaymentDetail, editOwnerDetail} = useAppSelector((state) => state.accounts);
+  const { editPaymentDetail, editOwnerDetail } = useAppSelector((state) => state.accounts);
   const refreshPAList = () => {
-    dispatch(setupPAList());
+    dispatch(setupPAList(true));
   };
+
+  useMount(() => {
+    dispatch(setupPAList());
+  });
+
   return (
     <>
       <NonRefundableModal refreshList={refreshPAList} />
