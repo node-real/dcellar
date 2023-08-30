@@ -28,7 +28,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { POPPINS_FONT } from '../constants';
 import { FromAccountSelector } from '../components/FromAccountSelector';
-import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts, setupAccountsInfo } from '@/store/slices/accounts';
 import { ToAccountSelector } from '../components/ToAccountSelector';
 import {
   depositToPaymentAccount,
@@ -43,8 +43,9 @@ export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountsInfo, isLoadingDetail, PAList, ownerAccount, isLoadingPAList } =
+  const { bankBalance, accountsInfo, isLoadingDetail, ownerAccount, isLoadingPaymentAccounts } =
     useAppSelector((root) => root.accounts);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -61,18 +62,18 @@ export const Send = () => {
   }, [accountsInfo, bankBalance, fromAccount]);
 
   useEffect(() => {
-    if (isLoadingPAList || isEmpty(ownerAccount)) return;
-    if (isEmpty(PAList)) {
+    if (isLoadingPaymentAccounts || isEmpty(ownerAccount)) return;
+    if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
     }
-    const allList = [...PAList, ownerAccount];
+    const allList = [...(paymentAccounts || []), ownerAccount];
     const initialFromAccount = from && allList.find((item) => item.address === from);
     initialFromAccount && dispatch(setFromAccount(initialFromAccount));
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || { name: 'Initial Account', address: '' }));
     initFormRef.current = true;
-  }, [PAList, dispatch, from, ownerAccount, to, isLoadingPAList]);
+  }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
 
   const {
     handleSubmit,

@@ -5,7 +5,7 @@ import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { TAccount } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 
 type TAccountSelector = {
   onChange: (value: TAccount) => void;
@@ -15,11 +15,10 @@ type TAccountSelector = {
 export function FromAccountSelector(props: TAccountSelector) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { PAList } = useAppSelector((root) => root.accounts);
-
+  const paymentAccounts= useAppSelector(selectPaymentAccounts(loginAccount));
   const accountList = useMemo(
-    () => [{ name: 'Owner Account', address: loginAccount }, ...PAList],
-    [loginAccount, PAList],
+    () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
+    [loginAccount, paymentAccounts],
   );
   const keyAccountList = keyBy(accountList, 'address');
   const len = accountList?.length;

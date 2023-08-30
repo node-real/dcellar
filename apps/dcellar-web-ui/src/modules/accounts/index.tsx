@@ -6,7 +6,7 @@ import { PaymentAccountDetail } from './components/PaymentAccountDetail';
 import { OwnerAccountDetail } from './components/OwnerAccountDetail';
 import { NonRefundableModal } from './components/NonRefundableModal';
 
-import { setupPAList } from '@/store/slices/accounts';
+import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
 
@@ -14,11 +14,11 @@ export const Accounts = () => {
   const dispatch = useAppDispatch();
   const { editPaymentDetail, editOwnerDetail } = useAppSelector((state) => state.accounts);
   const refreshPAList = () => {
-    dispatch(setupPAList(true));
+    dispatch(setupPaymentAccounts(true));
   };
 
   useMount(() => {
-    dispatch(setupPAList());
+    dispatch(setupPaymentAccounts());
   });
 
   return (

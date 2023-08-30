@@ -139,7 +139,7 @@ export function DCInputSelect(props: DCSelectProps) {
           )}
           <Box
             maxH={220}
-            overflowY="scroll"
+            overflowY="auto"
             sx={{
               '&::-webkit-scrollbar': {
                 width: '4px',
@@ -166,9 +166,9 @@ export function DCInputSelect(props: DCSelectProps) {
                       bg: isSelected ? undefined : 'bg.bottom',
                     }}
                     onClick={() => onSelectItem(item)}
-                    _last={{
-                      mb: 8,
-                    }}
+                    // _last={{
+                    //   mb: 8,
+                    // }}
                     {...restItemProps}
                   >
                     {item.label}

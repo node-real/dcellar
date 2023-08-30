@@ -2,7 +2,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { createPaymentAccount } from '@/facade/account';
 import { FILE_FAILED_URL, PENDING_ICON_URL } from '@/modules/file/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupPAList } from '@/store/slices/accounts';
+import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import React from 'react';
 import { useAccount } from 'wagmi';
@@ -12,7 +12,7 @@ export const NewPA = () => {
   const { connector } = useAccount();
   const { loginAccount } = useAppSelector((state) => state.persist);
   const refreshPAList = () => {
-    dispatch(setupPAList());
+    dispatch(setupPaymentAccounts());
   }
   const onCreatePaymentClick = async () => {
     dispatch(

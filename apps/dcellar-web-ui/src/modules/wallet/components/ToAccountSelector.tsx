@@ -7,7 +7,7 @@ import { useMount } from 'ahooks';
 import { SpItem } from '@/store/slices/sp';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { TAccount } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 
 type TProps = {
@@ -18,11 +18,11 @@ type TProps = {
 export function ToAccountSelector({ onChange, to }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { PAList } = useAppSelector((root) => root.accounts);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
 
   const accountList = useMemo(
-    () => [{ name: 'Owner Account', address: loginAccount }, ...PAList],
-    [loginAccount, PAList],
+    () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
+    [loginAccount, paymentAccounts],
   );
   const keyAccountList = keyBy(accountList, 'address');
   const len = accountList?.length;

@@ -329,13 +329,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       return;
     }
     const nGasFee = BigNumber(gasFee);
-    console.log(
-      'isOwnerAccount',
-      isOwnerAccount,
-      preLockFee,
-      payLockFeeAccount.staticBalance,
-      bankBalance,
-    );
     if (isOwnerAccount) {
       if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance).plus(bankBalance))) {
         setTimeout(() => setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]), 100);
@@ -345,7 +338,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance)) ||
         nGasFee.gt(BigNumber(bankBalance))
       ) {
-        console.log('2131232131221');
         setTimeout(() => setFormErrors([LOCK_FEE_LACK_BALANCE_ERROR]), 100);
       }
     }

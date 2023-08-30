@@ -31,10 +31,10 @@ export type TBalance = {
   staticBalance: string;
 };
 interface AccountsState {
-  isLoadingPAList: boolean;
+  isLoadingPaymentAccounts: boolean;
   isLoadingDetail: string;
   ownerAccount: TAccount;
-  PAList: TAccount[];
+  paymentAccounts: Record<string, TAccount[]>;
   currentPAPage: number;
   accountsInfo: Record<string, TAccountInfo>;
   editOwnerDetail: string;
@@ -60,10 +60,10 @@ export const getDefaultBalance = () => ({
 
 const initialState: AccountsState = {
   isLoadingDetail: '',
-  isLoadingPAList: false,
+  isLoadingPaymentAccounts: false,
   currentPAPage: 0,
   ownerAccount: {} as TAccountInfo,
-  PAList: [],
+  paymentAccounts: {},
   accountsInfo: {},
   editOwnerDetail: '',
   editPaymentDetail: '',
@@ -77,21 +77,23 @@ export const paymentAccountSlice = createSlice({
     return { ...initialState };
   },
   reducers: {
-    setOAList: (state, { payload }: PayloadAction<TAccount>) => {
+    setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
-    setPAList: (state, { payload }: PayloadAction<{ paymentAccounts: string[] }>) => {
-      const { paymentAccounts } = payload;
-      state.PAList = (paymentAccounts || []).map((account, index) => {
+    setPaymentAccounts: (state, { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>) => {
+      const { loginAccount, paymentAccounts } = payload;
+      state.paymentAccounts[loginAccount] = (paymentAccounts || []).map((account, index) => {
         return {
           name: `Payment Account ${index + 1}`,
           address: account,
         };
       });
     },
-    setPAInfos: (state) => {
-      const { PAList } = state;
-      PAList.map((account, index) => {
+    setPAInfos: (state, { payload }: PayloadAction<{ loginAccount: string }>) => {
+      const { loginAccount } = payload;
+      const { paymentAccounts } = state;
+      const list = paymentAccounts[loginAccount];
+      list.map((account, index) => {
         state.accountsInfo[account.address] = {
           ...state.accountsInfo[account.address],
           ...account,
@@ -146,8 +148,8 @@ export const paymentAccountSlice = createSlice({
     setLoadingDetail: (state, { payload }: PayloadAction<string>) => {
       state.isLoadingDetail = payload;
     },
-    setLoadingPAList: (state, { payload }: PayloadAction<boolean>) => {
-      state.isLoadingPAList = payload;
+    setLoadingPaymentAccounts: (state, { payload }: PayloadAction<boolean>) => {
+      state.isLoadingPaymentAccounts = payload;
     },
     setCurrentPAPage(state, { payload }: PayloadAction<number>) {
       state.currentPAPage = payload;
@@ -160,9 +162,9 @@ export const paymentAccountSlice = createSlice({
 
 export const {
   setLoadingDetail,
-  setLoadingPAList,
-  setOAList,
-  setPAList,
+  setLoadingPaymentAccounts,
+  setOwnerAccount,
+  setPaymentAccounts,
   setPAInfos,
   setBankBalance,
   setAccountsInfo,
@@ -176,6 +178,7 @@ export const selectAccount = (address: string) => (state: any) =>
   state.accounts.accountsInfo[address];
 export const selectBankBalance = (address: string) => (state: any) =>
   state.accounts.bankBalances[address];
+export const selectPaymentAccounts = (address: string) => (state: any) => state.accounts.paymentAccounts[address];
 
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
@@ -183,33 +186,33 @@ export const setupOAList = () => async (dispatch: AppDispatch, getState: GetStat
     address: loginAccount,
     name: 'Owner Account',
   };
-  dispatch(setOAList(account));
+  dispatch(setOwnerAccount(account));
   dispatch(setAccountsInfo(account));
 };
 
-export const setupPAList =
+export const setupPaymentAccounts =
   (forceLoading = false) =>
-  async (dispatch: any, getState: GetState) => {
-    const { loginAccount } = getState().persist;
-    const { PAList, isLoadingPAList } = getState().accounts;
-    if (isLoadingPAList) return;
-    if (!PAList.length || forceLoading) {
-      dispatch(setLoadingPAList(true));
-    }
-    const [data, error] = await getPaymentAccountsByOwner(loginAccount);
-    dispatch(setLoadingPAList(false));
-    if (!data) return;
-    const paymentAccounts = data.paymentAccounts;
-    dispatch(setPAList({ paymentAccounts }));
-    dispatch(setPAInfos());
+    async (dispatch: any, getState: GetState) => {
+      const { loginAccount } = getState().persist;
+      const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+      if (isLoadingPaymentAccounts) return;
+      if (!paymentAccounts.length || forceLoading) {
+        dispatch(setLoadingPaymentAccounts(true));
+      }
+      const [data, error] = await getPaymentAccountsByOwner(loginAccount);
+      dispatch(setLoadingPaymentAccounts(false));
+      if (!data) return;
+      const newData = data.paymentAccounts;
+      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
+      dispatch(setPAInfos({loginAccount}));
   };
 
 export const setupAccountsInfo =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
     if (!address) return;
-    const { PAList } = getState().accounts;
     const { loginAccount } = getState().persist;
-    const accountList = [...PAList, { address: loginAccount, name: 'Owner Account' }];
+    const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
+    const accountList = [...(paymentAccounts || []), { address: loginAccount, name: 'Owner Account' }];
     dispatch(setLoadingDetail(address));
     const [PARes, PAError] = await getPaymentAccount(address);
     const [SRRes, SRError] = await getAccountStreamRecord(address);
