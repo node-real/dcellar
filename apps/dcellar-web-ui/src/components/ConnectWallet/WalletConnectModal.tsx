@@ -32,10 +32,10 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
     if (err instanceof ConnectorNotFoundError) {
       const { connector } = args;
 
-      if (connector instanceof MetaMaskConnector) {
-        window.open(METAMASK_DOWNLOAD_URL, '_blank');
-      } else if (connector instanceof InjectedConnector && connector.name === 'Trust Wallet') {
+      if (connector instanceof InjectedConnector && connector.name === 'Trust Wallet') {
         window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
+      } else if (connector instanceof MetaMaskConnector) {
+        window.open(METAMASK_DOWNLOAD_URL, '_blank');
       }
     }
   }, []);
