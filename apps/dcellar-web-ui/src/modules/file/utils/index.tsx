@@ -1,21 +1,17 @@
-import Link from 'next/link';
-import { toast } from '@totejs/uikit';
+import { Flex, Link, toast } from '@totejs/uikit';
 import { getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/paths';
-import axios, { AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import React from 'react';
-import ProgressBarToast from '@/modules/file/components/ProgressBarToast';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { getDomain } from '@/utils/getDomain';
 import { getClient } from '@/base/client';
-import { generateGetObjectOptions } from './generateGetObjectOptions';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
-import { getSpOffChainData } from '@/store/slices/persist';
+import BigNumber from 'bignumber.js';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -45,6 +41,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   if (!bnbValue || Number(bnbValue) < 0) {
     return '--';
   }
+
   return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
 };
 const renderPrelockedFeeValue = (bnbValue: string, exchangeRate: number | string) => {
@@ -96,67 +93,8 @@ const downloadWithProgress = async ({
   address: string;
   seedString: string;
 }) => {
-  try {
-    const domain = getDomain();
-    const uploadOptions = await generateGetObjectOptions({
-      bucketName,
-      objectName,
-      endpoint: primarySp.endpoint,
-      userAddress: address,
-      domain,
-      seedString,
-    });
-    const { url, headers } = uploadOptions;
-    const toastId = toast.info({
-      description: ``,
-      render: () => {
-        return (
-          <ProgressBarToast
-            progress={0}
-            fileName={objectName}
-            closeToast={() => {
-              toast.close(toastId);
-            }}
-          />
-        );
-      },
-      duration: -1,
-    });
-    const result = await axios
-      .get(url, {
-        onDownloadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded / payloadSize) * 100);
-          toast.update(toastId, {
-            description: ``,
-            render: () => {
-              return (
-                <ProgressBarToast
-                  progress={progress}
-                  fileName={objectName}
-                  closeToast={() => {
-                    toast.close(toastId);
-                  }}
-                />
-              );
-            },
-          });
-        },
-        headers: {
-          Authorization: headers.get('Authorization'),
-          'X-Gnfd-User-Address': headers.get('X-Gnfd-User-Address'),
-          'X-Gnfd-App-Domain': headers.get('X-Gnfd-App-Domain'),
-        },
-        responseType: 'blob',
-      })
-      .catch((e) => {
-        toast.close(toastId);
-        throw e;
-      });
-    toast.close(toastId);
-    return result;
-  } catch (error: any) {
-    throw error;
-  }
+  // deprecated
+  throw 'Deprecated methods';
 };
 const getBuiltInLink = (
   primarySp: string,
@@ -318,39 +256,6 @@ export const batchDownload = (url: string | string[]) => {
   });
 };
 
-const getQuota = async (
-  bucketName: string,
-  endpoint: string,
-): Promise<{ freeQuota: number; readQuota: number; consumedQuota: number } | null> => {
-  try {
-    const client = await getClient();
-    const { code, body } = await client.bucket.getBucketReadQuota({
-      bucketName,
-      endpoint,
-    });
-    if (code !== 0 || !body) {
-      toast.error({
-        description: 'Get bucket read quota met error.',
-      });
-      console.error(`Get bucket read quota met error. Error code: ${code}`);
-      return null;
-    }
-    const { freeQuota, readQuota, consumedQuota } = body;
-    return {
-      freeQuota,
-      readQuota,
-      consumedQuota,
-    };
-  } catch (error) {
-    toast.error({
-      description: 'Get bucket read quota met error.',
-    });
-    // eslint-disable-next-line no-console
-    console.error('get bucket read quota error', error);
-    return null;
-  }
-};
-
 const transformVisibility = (visibility: ChainVisibilityEnum) => {
   switch (visibility) {
     case ChainVisibilityEnum.VISIBILITY_TYPE_UNSPECIFIED:
@@ -411,6 +316,72 @@ const truncateFileName = (fileName: string) => {
   )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
 };
 
+const renderPaymentInsufficientBalance = ({
+  gasFee,
+  lockFee,
+  payGasFeeBalance,
+  payLockFeeBalance,
+  ownerAccount,
+  payAccount,
+  gaOptions,
+}:{
+  gasFee: string | number,
+  lockFee: string,
+  payGasFeeBalance: string,
+  payLockFeeBalance: string,
+  ownerAccount: string,
+  payAccount: string,
+  gaOptions?: { gaClickName: string; gaShowName: string },
+}) => {
+  if (!gasFee || Number(gasFee) < 0 || !lockFee || Number(lockFee) < 0) return <></>;
+  const items = [];
+  const isOwnerAccount = ownerAccount === payAccount;
+  if (isOwnerAccount) {
+    if (!BigNumber(payGasFeeBalance).gt(BigNumber(gasFee))
+      && BigNumber(payGasFeeBalance).minus(BigNumber(gasFee)).plus(BigNumber(payLockFeeBalance)).gt(BigNumber(lockFee))) {
+      items.push({
+        link: InternalRoutePaths.transfer_in,
+        text: 'Transfer In',
+      });
+    }
+  } else {
+    if (!BigNumber(payGasFeeBalance).gt(BigNumber(gasFee))) {
+      items.push({
+        link: InternalRoutePaths.transfer_in,
+        text: 'Transfer In',
+      });
+    }
+    if (!BigNumber(payLockFeeBalance).gt(BigNumber(lockFee))) {
+      const link = `${InternalRoutePaths.send}&from=${ownerAccount}&to=${payAccount}`
+      items.push({
+        link: link,
+        text: 'Deposit',
+      });
+    }
+  }
+  if (items.length === 0) return <></>;
+
+  return (
+    <Flex color={'#EE3911'}>
+      {items.map((item, index) => (
+        <GAShow key={index} name={gaOptions?.gaShowName}>
+          Insufficient balance.&nbsp;
+          <GAClick name={gaOptions?.gaClickName}>
+            <Link
+              display={'inline'}
+              href={item.link}
+              style={{ textDecoration: 'underline' }}
+              color="#EE3911"
+              _hover={{color: '#EE3911'}}
+            >
+              {item.text}
+            </Link>
+          </GAClick>
+        </GAShow>
+      ))}
+    </Flex>
+  );
+};
 export {
   formatBytes,
   getObjectInfo,
@@ -422,7 +393,6 @@ export {
   renderBalanceNumber,
   renderInsufficientBalance,
   directlyDownload,
-  getQuota,
   transformVisibility,
   downloadWithProgress,
   viewFileByAxiosResponse,
@@ -430,4 +400,5 @@ export {
   truncateFileName,
   renderPrelockedFeeValue,
   getBuiltInLink,
+  renderPaymentInsufficientBalance,
 };

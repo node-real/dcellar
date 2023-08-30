@@ -63,7 +63,6 @@ export const calPreLockFee = ({
     reserveTime,
     validatorTaxRate,
   } = preLockFeeObject;
-
   const chargeSize = size >= minChargeSize ? size : minChargeSize;
   const primarySpRate = BigNumber(spStorageStorePrice)
     .dividedBy(Math.pow(10, 18))
@@ -81,6 +80,7 @@ export const calPreLockFee = ({
 
   return lockFeeInBNB.toString();
 };
+
 const checkZkWasm = (attempts: number = 5): Promise<boolean> => {
   return new Promise<boolean>((resolve) => {
     if (typeof window.eddsaSign === 'function') {

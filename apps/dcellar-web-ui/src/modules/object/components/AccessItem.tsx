@@ -36,7 +36,7 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
   value,
   onChange = () => {},
 }) {
-  const valueOption = find(options, (o) => o.value === value) || options[0];
+  const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
 
   return (
     <FormItem>
@@ -56,22 +56,25 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
                   </StyledButton>
                 </GAClick>
                 <StyledMenuList w={456}>
-                  {options.map((option) => (
-                    <StyledItem
-                      $active={option.value === value}
-                      key={option.value}
-                      onClick={() => {
-                        if (option.value === value) return;
-                        onChange(option.value);
-                      }}
-                    >
-                      <OptionTitle>
-                        {option.value === value && <SelectedIcon />}
-                        {option.label}
-                      </OptionTitle>
-                      <OptionDesc>{option.desc}</OptionDesc>
-                    </StyledItem>
-                  ))}
+                  {options.map((option) => {
+                    const active = String(option.value) === String(value);
+                    return (
+                      <StyledItem
+                        $active={active}
+                        key={option.value}
+                        onClick={() => {
+                          if (active) return;
+                          onChange(option.value);
+                        }}
+                      >
+                        <OptionTitle>
+                          {active && <SelectedIcon />}
+                          {option.label}
+                        </OptionTitle>
+                        <OptionDesc>{option.desc}</OptionDesc>
+                      </StyledItem>
+                    );
+                  })}
                 </StyledMenuList>
               </>
             )}

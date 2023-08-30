@@ -20,11 +20,13 @@ import {
   InputProps,
 } from '@totejs/uikit';
 import React, { useEffect, useRef, useState } from 'react';
+import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 
 import noResultImage from '@/public/images/common/no-result.png';
 import { useKeyDown } from '@/hooks/useKeyDown';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import { GAClick } from '@/components/common/GATracker';
+import styled from '@emotion/styled';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -38,6 +40,7 @@ export interface IDCSelectOption {
 
 export interface DCSelectProps extends MenuProps {
   header?: React.ReactNode;
+  Footer?: () => JSX.Element;
   value?: string;
   text: string;
   options?: Array<IDCSelectOption>;
@@ -49,7 +52,7 @@ export interface DCSelectProps extends MenuProps {
   onSearch?: (result: Array<IDCSelectOption>) => void;
 }
 
-export function Select(props: DCSelectProps) {
+export function DCSelect(props: DCSelectProps) {
   const {
     value,
     text,
@@ -58,6 +61,7 @@ export function Select(props: DCSelectProps) {
     itemProps,
     headerProps,
     header,
+    Footer,
     onChange,
     onSearchFilter,
     onSearch,
@@ -124,7 +128,6 @@ export function Select(props: DCSelectProps) {
       <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
         {header && (
           <Box
-            color="#2AA372"
             fontSize={12}
             lineHeight="15px"
             bg="bg.bottom"
@@ -140,7 +143,7 @@ export function Select(props: DCSelectProps) {
 
         <Box
           maxH={220}
-          overflowY="scroll"
+          overflowY="auto"
           sx={{
             '&::-webkit-scrollbar': {
               width: '4px',
@@ -153,27 +156,30 @@ export function Select(props: DCSelectProps) {
         >
           {resultOptions?.map((item) => {
             const isSelected = value === item.value;
+            // not disabled
+            const { access = true } = item;
             const { gaClickName, ...restItemProps } = itemProps ?? {};
 
             return (
               <GAClick key={item.value} name={gaClickName}>
                 <MenuItem
                   as="div"
+                  position="relative"
                   px={24}
                   py={8}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
                   _hover={{
-                    bg: isSelected || !item.access ? undefined : 'bg.bottom',
+                    bg: isSelected || !access ? undefined : 'bg.bottom',
                   }}
-                  onClick={() => item.access && onSelectItem(item)}
-                  _last={{
-                    mb: 8,
-                  }}
+                  onClick={() => access && onSelectItem(item)}
+                  // _last={{
+                  //   mb: 8,
+                  // }}
                   {...restItemProps}
                 >
-                  {item.label}
+                  {isSelected && <Tick />} {item.label}
                 </MenuItem>
               </GAClick>
             );
@@ -181,6 +187,7 @@ export function Select(props: DCSelectProps) {
 
           {!resultOptions?.length && <NoResult />}
         </Box>
+        {Footer && <Footer />}
       </MenuList>
     </Menu>
   );
@@ -259,3 +266,9 @@ const NoResult = () => {
     </Center>
   );
 };
+
+const Tick = styled(TickIcon)`
+  color: #00ba34;
+  position: absolute;
+  left: 8px;
+`;

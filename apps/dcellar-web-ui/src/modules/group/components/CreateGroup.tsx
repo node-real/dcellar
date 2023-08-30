@@ -5,7 +5,6 @@ import {
   FormControl,
   FormLabel,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -136,7 +135,6 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
 
   return (
     <DCDrawer isOpen={creatingGroup} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader flexDirection="column">
         Create a Group
         <Text fontSize={14} lineHeight="17px" fontWeight={400} color="#76808F">

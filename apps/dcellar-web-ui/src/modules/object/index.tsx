@@ -14,17 +14,16 @@ import {
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { dropRight, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Tooltip, Flex } from '@totejs/uikit';
+import { Flex, Tooltip } from '@totejs/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
-import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
-import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
+import { setupAccountsInfo } from '@/store/slices/accounts';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { allSps, primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
@@ -33,6 +32,7 @@ export const ObjectsPage = () => {
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
+  const bucket = bucketInfo[bucketName];
 
   useEffect(() => {
     dispatch(setFolders({ bucketName, folders }));
@@ -42,26 +42,21 @@ export const ObjectsPage = () => {
   }, [bucketName, dispatch, folders]);
 
   useAsyncEffect(async () => {
-    const bucket = bucketInfo[bucketName];
     if (!bucket) return;
-    const primarySp = primarySpInfo[bucketName];
-    if (!primarySp) {
-      const [data, error] = await getVirtualGroupFamily({
-        familyId: bucket.global_virtual_group_family_id,
-      });
-      const sp = allSps.find(
-        (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
-      ) as SpItem;
-      dispatch(setPrimarySpInfo({ bucketName, sp }));
-    }
-  }, [bucketInfo, bucketName]);
+    // 1. set global primary sp info
+    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    // 2. set payment account infos
+    dispatch(setupAccountsInfo(bucket.PaymentAddress));
+  }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
     const bucket = bucketInfo[bucketName];
     if (bucket) {
+      const Owner = bucket.Owner;
       const payload = {
-        discontinue: bucket.bucket_status === 1,
-        owner: bucket.owner === loginAccount,
+        // @ts-ignore
+        discontinue: bucket.BucketStatus === 1,
+        owner: Owner === loginAccount,
       };
       dispatch(setBucketStatus(payload));
       return;

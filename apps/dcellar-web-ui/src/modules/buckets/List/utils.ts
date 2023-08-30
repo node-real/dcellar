@@ -1,51 +1,71 @@
 import { parseError } from '../utils/parseError';
 import { getClient } from '@/base/client';
-import { MsgDeleteBucketTypeUrl, TCreateBucket } from '@bnb-chain/greenfield-js-sdk';
+import { GetUserBucketsResponse, IBaseGetCreateBucket, MsgDeleteBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import axios from 'axios';
 import { TGasList } from '@/store/slices/global';
+import { XMLParser } from 'fast-xml-parser';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
 export const pollingCreateAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
-  async (...args: T): Promise<any> => {
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, interval));
-      try {
-        const result = (await fn(...args)) as any;
-        const { data } = result;
-        if (data) {
-          const newBucket = data.bucket;
-          if (newBucket?.bucket_info?.bucket_name === args[0].bucketName) {
-            return;
+    async (...args: T): Promise<any> => {
+      while (true) {
+        await new Promise((resolve) => setTimeout(resolve, interval));
+        try {
+          const result = (await fn(...args)) as any;
+          const xmlParser = new XMLParser({
+            isArray: (tagName: string) => {
+              if (tagName === 'Buckets') return true;
+              return false;
+            },
+            numberParseOptions: {
+              hex: false,
+              leadingZeros: true,
+              skipLike: undefined,
+              eNotation: false,
+            },
+          });
+          const xmlData = await result.data;
+          const data = xmlParser.parse(xmlData) as GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
+          if (data) {
+            const newBucketInfo = data.BucketInfo;
+            if (newBucketInfo?.BucketName === args[0].BucketName) {
+              return;
+            }
+          }
+        } catch (e: any) {
+          const { code } = parseError(e?.message);
+          if (+code !== 6) {
+            throw e;
           }
         }
-      } catch (e: any) {
-        const { code } = parseError(e?.message);
-        if (+code !== 6) {
-          throw e;
-        }
       }
-    }
-  };
+    };
 
 export const pollingDeleteAsync =
   <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
-  async (...args: T): Promise<any> => {
-    await new Promise((resolve) => setTimeout(resolve, interval));
-    while (true) {
-      const res = (await fn(...args)) as any;
-      try {
-        if (res.status === 500) {
-          return;
-        }
-      } catch (e: any) {
-        const { code } = parseError(e?.message);
-        if (+code !== 6) {
-          throw e;
+    async (...args: T): Promise<any> => {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+
+      while (true) {
+        try {
+          const res = (await fn(...args)) as any;
+
+          if (res.response.status === 500 || res.response.status === 404) {
+            return;
+          }
+        } catch (e: any) {
+          if (e?.response?.status === 500 || e?.response?.status === 404) {
+            return;
+          }
+          const { code } = parseError(e?.response.message);
+          if (+code !== 6) {
+            throw e;
+          }
         }
       }
-    }
-  };
+    };
 
 export const getBucketInfo = async (bucketName: string): Promise<any> => {
   const client = await getClient();
@@ -67,10 +87,8 @@ export const getBucketMeta = async (params: {
 }) => {
   const { bucketName, endpoint } = params;
   const url = `${endpoint}/${bucketName}?bucket-meta`;
-  const res = await axios.get(url).catch((e) => {
-    return e.response;
-  });
-  return res;
+
+  return axios.get(url);
 };
 // TODO This is a temp solution
 export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
@@ -81,9 +99,9 @@ export const getDeleteBucketFee = async (gasList: TGasList) => {
   return String(gasList[MsgDeleteBucketTypeUrl]?.gasFee ?? 0);
 };
 
-export const genCreateBucketTx = async (configParam: TCreateBucket) => {
+export const genCreateBucketTx = async (configParam: IBaseGetCreateBucket, authType: AuthType) => {
   const client = await getClient();
-  const createBucketTx = await client.bucket.createBucket(configParam);
+  const createBucketTx = await client.bucket.createBucket(configParam, authType);
 
   return createBucketTx;
 };
@@ -116,17 +134,9 @@ export const deleteBucket = async ({ address, bucketName, sp, provider }: Delete
     },
   });
 
-  // @ts-ignore
   await pollingDeleteBucket({ bucketName, address, endpoint: sp.endpoint });
 
   return txRes;
-};
-
-export const getSpStoragePriceByTime = async (spAddress: string) => {
-  const client = await getClient();
-  const res = await client.sp.getStoragePriceByTime(spAddress);
-
-  return res;
 };
 
 export const bucketHasFile = async (fileList: any[]) => {

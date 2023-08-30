@@ -42,6 +42,7 @@ type AmountProps = {
   setValue: UseFormSetValue<TWalletFromValues>;
   getGasFee?: GetFeeType;
   maxDisabled?: boolean;
+  balance: string;
 };
 
 const AmountErrors = {
@@ -58,7 +59,7 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-export const Amount = ({ register, errors, disabled, watch, feeData, setValue }: AmountProps) => {
+export const Amount = ({ register, errors, disabled, watch, balance, feeData, setValue }: AmountProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -66,18 +67,13 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { isLoading, all } = useChainsBalance();
+  const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
+  const isSendPage = transType === 'send';
 
-  const balance = useMemo(() => {
-    if (transType === EOperation.transfer_in) {
-      return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || 0;
-    }
-    return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || 0;
-  }, [all, transType]);
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));
   });
@@ -90,7 +86,7 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = BigNumber(balance).times(BigNumber(bnbPrice));
+    const usdPrice = BigNumber(balance || 0).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
@@ -181,7 +177,6 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
                 validateBalance: (val: string) => {
                   let totalAmount = BigNumber(0);
                   const balanceVal = BigNumber(balance || 0);
-                  // TODO temp limit
                   if (transType === EOperation.send) {
                     totalAmount =
                       gasFee.toString() === '0'
@@ -193,8 +188,7 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
                         ? BigNumber(val).plus(BigNumber(defaultFee))
                         : BigNumber(val).plus(gasFee).plus(relayerFee);
                   }
-
-                  return !balance ? true : totalAmount.comparedTo(balanceVal) <= 0;
+                  return totalAmount.comparedTo(balanceVal) <= 0;
                 },
                 validateNum: (val: string) => {
                   const precisionStr = val.split('.')[1];
@@ -216,9 +210,9 @@ export const Amount = ({ register, errors, disabled, watch, feeData, setValue }:
           {/* @ts-ignore */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
-        <FormHelperText textAlign={'right'} color="#76808F">
+        {!isSendPage && <FormHelperText textAlign={'right'} color="#76808F">
           <Balance />
-        </FormHelperText>
+        </FormHelperText>}
       </FormControl>
     </>
   );

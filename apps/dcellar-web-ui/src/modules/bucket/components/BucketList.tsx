@@ -60,26 +60,26 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   const columns: ColumnProps<BucketItem>[] = [
     {
-      key: 'bucket_name',
+      key: 'BucketName',
       title: (
-        <SortItem onClick={() => updateSorter('bucket_name', 'ascend')}>
-          Name{sortName === 'bucket_name' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
+        <SortItem onClick={() => updateSorter('BucketName', 'ascend')}>
+          Name{sortName === 'BucketName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
       render: (_: string, record: BucketItem) => <NameItem item={record} />,
     },
     {
-      key: 'created_at',
+      key: 'CreateAt',
       width: 200,
       title: (
-        <SortItem onClick={() => updateSorter('create_at', 'descend')}>
+        <SortItem onClick={() => updateSorter('CreateAt', 'descend')}>
           Date Created
-          {sortName === 'create_at' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
+          {sortName === 'CreateAt' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
       render: (_: string, record: BucketItem) => (
         <Text color={'readable.normal'} _hover={{ color: 'readable.normal' }}>
-          {formatTime(getMillisecond(record.create_at))}
+          {formatTime(getMillisecond(record.CreateAt))}
         </Text>
       ),
     },
@@ -121,7 +121,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
           spinning: loading,
           indicator: <Loading />,
         }}
-        rowKey="bucket_name"
+        rowKey="BucketName"
         columns={columns}
         dataSource={page}
         renderEmpty={() => <ListEmpty empty={empty} />}

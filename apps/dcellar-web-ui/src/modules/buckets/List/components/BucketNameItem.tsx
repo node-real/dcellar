@@ -10,13 +10,13 @@ export const BucketNameItem = ({ info }: any) => {
     row: { original },
   } = info;
   const {
-    delete_at,
-    bucket_info: {
-      bucket_status
+    DeleteAt,
+    BucketInfo: {
+      BucketStatus
     }
   } = original.originalData;
-  const isContinued = bucket_status === 1;
-  const estimateTime = formatFullTime(+delete_at * 1000 + 7 * 24 * 60 * 60 * 1000, 'YYYY-MM-DD HH:mm:ss');
+  const isContinued = BucketStatus === 1;
+  const estimateTime = formatFullTime(+DeleteAt * 1000 + 7 * 24 * 60 * 60 * 1000, 'YYYY-MM-DD HH:mm:ss');
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`
 
   return (

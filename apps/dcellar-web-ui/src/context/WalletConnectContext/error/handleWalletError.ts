@@ -1,8 +1,6 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
 import { toast } from '@totejs/uikit';
 import { ConnectorNotFoundError } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
 export function handleWalletError(err: any, args: any, context: unknown) {
   let text = '';
@@ -10,9 +8,9 @@ export function handleWalletError(err: any, args: any, context: unknown) {
   switch (true) {
     case err instanceof ConnectorNotFoundError:
       const { connector } = args;
-      if (connector instanceof MetaMaskConnector) {
+      if (connector.id === 'metaMask') {
         text = `Metamask not installed. Please install and reconnect.`;
-      } else if (connector instanceof InjectedConnector && connector.name === 'Trust Wallet') {
+      } else if (connector.id === 'trust') {
         text = `Trust wallet not installed. Please install and reconnect.`;
       } else {
         text = `Wallet not installed. Please install and reconnect.`;

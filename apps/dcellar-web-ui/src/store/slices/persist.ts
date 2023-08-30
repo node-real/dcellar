@@ -37,18 +37,22 @@ export interface PersistState {
   groupPageSize: number;
   objectPageSize: number;
   bucketPageSize: number;
+  PAPageSize: number;
+  paymentAccountSortBy: SorterType;
 }
 
 const initialState: PersistState = {
   accounts: {},
   loginAccount: '',
   faultySps: [],
-  bucketSortBy: ['create_at', 'descend'],
+  bucketSortBy: ['CreateAt', 'descend'],
   bucketPageSize: 50,
   objectSortBy: ['createAt', 'descend'],
   objectPageSize: 50,
   groupSortBy: ['id', 'descend'],
   groupPageSize: 20,
+  paymentAccountSortBy: ['name', 'ascend'],
+  PAPageSize: 20,
 };
 
 export const persistSlice = createSlice({
@@ -67,8 +71,14 @@ export const persistSlice = createSlice({
     updateObjectSorter(state, { payload }: PayloadAction<SorterType>) {
       state.objectSortBy = payload;
     },
+    updatePASorter(state, { payload }: PayloadAction<SorterType>) {
+      state.paymentAccountSortBy = payload;
+    },
     updateBucketPageSize(state, { payload }: PayloadAction<number>) {
       state.bucketPageSize = payload;
+    },
+    updatePAPageSize(state, { payload }: PayloadAction<number>) {
+      state.PAPageSize = payload;
     },
     updateBucketSorter(state, { payload }: PayloadAction<SorterType>) {
       state.bucketSortBy = payload;
@@ -186,6 +196,8 @@ export const {
   setOffchain,
   setAccountSps,
   setFaultySps,
+  updatePASorter,
+  updatePAPageSize,
   updateBucketPageSize,
   updateObjectSorter,
   updateObjectPageSize,

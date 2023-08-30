@@ -4,7 +4,6 @@ import {
   Image,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -30,12 +29,12 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { VisibilityType } from '@/modules/file/type';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface modalProps {}
 
@@ -297,7 +296,6 @@ export const DetailObject = (props: modalProps) => {
         <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
           Object Detail
         </QDrawerHeader>
-        <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
         <QDrawerBody>
           <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
             <Flex w="100%" overflow="hidden">
@@ -330,13 +328,10 @@ export const DetailObject = (props: modalProps) => {
           </Flex>
           <Divider />
           <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-            {renderPropRow(
-              'Date Created',
-              formatFullTime(+objectInfo.object_info.create_at * 1000),
-            )}
+            {renderPropRow('Date Created', formatFullTime(+objectInfo.ObjectInfo.CreateAt * 1000))}
             {renderAddressLink(
               'Object ID',
-              formatId(Number(objectInfo.object_info?.id)),
+              formatId(Number(objectInfo.ObjectInfo?.Id)),
               'dc.file.f_detail_pop.id.click',
               'dc.file.f_detail_pop.copy_id.click',
               'object',
@@ -355,15 +350,15 @@ export const DetailObject = (props: modalProps) => {
             )}
             {renderAddressLink(
               'Create transaction hash',
-              objectInfo.create_tx_hash,
-              'dc.object.f_detail_pop.create_tx_hash.click',
+              objectInfo.CreateTxHash,
+              'dc.object.f_detail_pop.CreateTxHash.click',
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
               'tx',
             )}
             {renderAddressLink(
               'Seal transaction hash',
-              objectInfo.seal_tx_hash,
-              'dc.object.f_detail_pop.seal_tx_hash.click',
+              objectInfo.SealTxHash,
+              'dc.object.f_detail_pop.SealTxHash.click',
               'dc.object.f_detail_pop.copy_seal_tx_hash.click',
               'tx',
             )}
@@ -371,9 +366,7 @@ export const DetailObject = (props: modalProps) => {
               renderPropRow(
                 'Universal link',
                 renderUrlWithLink(
-                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
-                    editDetail.objectName,
-                  )}`,
+                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(editDetail.name)}`,
                   true,
                   32,
                   'dc.file.f_detail_pop.universal.click',

@@ -35,7 +35,6 @@ import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
 import { NameItem } from '@/modules/object/components/NameItem';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { DeleteObject } from './DeleteObject';
-import { StatusDetail } from './StatusDetail';
 import { DetailObject } from './DetailObject';
 import { DownloadObject } from './DownloadObject';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -57,8 +56,6 @@ import { CreateFolder } from './CreateFolder';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
-import { copy, getShareLink } from '@/utils/string';
-import { toast } from '@totejs/uikit';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 
@@ -88,8 +85,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const objectList = useAppSelector(selectObjectList);
   const { setOpenAuthModal } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, statusDetail, editDetail, editShare, editDownload, editCancel, editCreate } =
-    useAppSelector((root) => root.object);
+  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload} = useAppSelector(
+    (root) => root.object,
+  );
 
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
     list: objectList,
@@ -272,7 +270,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName
+            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName,
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');
@@ -281,7 +279,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const key = path + '/' + record.name;
         const curObjectInfo = objectsInfo[key];
         // if this object is not yours, you only can download it
-        if (curObjectInfo?.object_info?.owner !== loginAccount) {
+        if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
           fitActions = fitActions.filter((a) => a.value === 'download');
         }
         //if this folder is yours, you only can delete it
@@ -368,12 +366,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
       {editDelete?.objectName && <DeleteObject refetch={refetch} />}
-      {statusDetail.title && <StatusDetail />}
       {editDetail?.objectName && <DetailObject />}
       <ShareDrawer />
       {editDownload?.objectName && <DownloadObject />}
       {editCancel.objectName && <CancelObject refetch={refetch} />}
-      <UploadObjects />
+      {editUpload.isOpen && <UploadObjects />}
       {discontinue && (
         <DiscontinueBanner
           content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "

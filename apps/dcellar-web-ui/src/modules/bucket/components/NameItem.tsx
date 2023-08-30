@@ -14,10 +14,10 @@ interface NameItemProps {
 
 export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const dispatch = useAppDispatch();
-  const { delete_at, bucket_status, bucket_name } = item;
-  const discontinue = bucket_status === 1;
+  const { DeleteAt, BucketStatus, BucketName } = item;
+  const discontinue = BucketStatus === 1;
   const estimateTime = formatFullTime(
-    +delete_at * 1000 + 7 * 24 * 60 * 60 * 1000,
+    +DeleteAt * 1000 + 7 * 24 * 60 * 60 * 1000,
     'YYYY-MM-DD HH:mm:ss',
   );
   const more = 'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-discontinue';
@@ -25,13 +25,13 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   return (
     <Container>
       <Link
-        href={`/buckets/${bucket_name}`}
+        href={`/buckets/${BucketName}`}
         onClick={(e) => {
           e.stopPropagation();
-          dispatch(setCurrentObjectPage({ path: bucket_name, current: 0 }));
+          dispatch(setCurrentObjectPage({ path: BucketName, current: 0 }));
         }}
       >
-        <FileIcon /> <span title={item.bucket_name}>{item.bucket_name}</span>
+        <FileIcon /> <span title={item.BucketName}>{item.BucketName}</span>
       </Link>
       {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
     </Container>

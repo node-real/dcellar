@@ -3,7 +3,6 @@ import { useAccount } from 'wagmi';
 import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
-  renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/file/utils';
 import {
@@ -32,37 +31,13 @@ import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { cancelCreateObject, deleteObject } from '@/facade/object';
+import { renderFee } from '../CancelObject';
 
 interface modalProps {
   refetch: () => void;
   isOpen: boolean;
   cancelFn: () => void;
 }
-
-const renderFee = (
-  key: string,
-  bnbValue: string,
-  exchangeRate: number,
-  keyIcon?: React.ReactNode,
-) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Flex alignItems="center" mb="4px">
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key}
-        </Text>
-        {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
-            {keyIcon}
-          </Box>
-        )}
-      </Flex>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {renderFeeValue(bnbValue, exchangeRate)}
-      </Text>
-    </Flex>
-  );
-};
 
 export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => {
   const dispatch = useAppDispatch();
@@ -74,7 +49,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [isModalOpen, setModalOpen] = useState(isOpen);
   const { setOpenAuthModal } = useOffChainAuth();
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
@@ -92,7 +67,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
-    (pre, cur) => pre + (cur.object_info.object_status === 1 ? deleteFee : cancelFee),
+  // @ts-ignore
+    (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
     0,
   );
   const { connector } = useAccount();
@@ -162,7 +138,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       if (!tmpAccount) return;
       const { privateKey, address: operator } = tmpAccount;
       for await (let obj of deleteObjects) {
-        const { object_name: objectName, object_status } = obj.object_info;
+        const { ObjectName: objectName, ObjectStatus } = obj.ObjectInfo;
         const payload = {
           bucketName,
           objectName,
@@ -171,7 +147,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
           connector: connector!,
           privateKey,
         };
-        const [txRes, error] = await (object_status === 1
+        // @ts-ignore
+        const [txRes, error] = await (ObjectStatus === 1
           ? deleteObject(payload)
           : cancelCreateObject(payload));
         if (error && error !== E_OBJECT_NOT_EXISTS) {
@@ -181,7 +158,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         toast.success({ description: `${objectName} deleted successfully.` });
         dispatch(
           addDeletedObject({
-            path: [bucketName, obj.object_info.object_name].join('/'),
+            path: [bucketName, obj.ObjectInfo.ObjectName].join('/'),
             ts: Date.now(),
           }),
         );

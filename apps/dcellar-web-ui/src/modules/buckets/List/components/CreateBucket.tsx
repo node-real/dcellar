@@ -8,7 +8,6 @@ import {
   InputRightElement,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -37,7 +36,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
-import { TCreateBucket } from '@bnb-chain/greenfield-js-sdk';
+import { IBaseGetCreateBucket } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -46,6 +45,8 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
+import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
 
 type Props = {
   isOpen: boolean;
@@ -79,11 +80,13 @@ const initValidateNameAndGas = {
 export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { isLoadingDetail } = useAppSelector((root) => root.accounts);
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
   const selectedSpRef = useRef<SpItem>(globalSP);
+  const selectedPaRef = useRef<TAccount>({} as TAccount);
   const { connector } = useAccount();
-  const { _availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
   const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
   const nonceRef = useRef(0);
@@ -163,19 +166,22 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      const createBucketParams: TCreateBucket = {
-        creator: address,
+      const createBucketPayload: IBaseGetCreateBucket = {
         bucketName,
+        creator: address,
+        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+        chargedReadQuota: '0',
         spInfo: {
           primarySpAddress: sp.operatorAddress,
         },
-        signType: 'offChainAuth',
-        domain,
-        seedString,
-        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-        chargedReadQuota: '0',
+        paymentAddress: address,
       };
-      const createBucketTx = await genCreateBucketTx(createBucketParams);
+      const createBucketTx = await genCreateBucketTx(createBucketPayload, {
+        type: 'EDDSA',
+        domain: window.location.origin,
+        seed: seedString,
+        address,
+      });
 
       const simulateInfo = await createBucketTx.simulate({
         denom: 'BNB',
@@ -243,7 +249,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
               : 'Unknown error, please try again later.';
         }
       } else {
-        types['validateBalanceAndName'] = 'Something is wrong.';
+        types['validateBalanceAndName'] = 'Something went wrong.';
       }
 
       Object.values(types).length > 0 ? setError('bucketName', { types }) : clearErrors();
@@ -297,21 +303,23 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           return;
         }
         const bucketName = data.bucketName;
-        const domain = getDomain();
-        const spInfo = {
-          primarySpAddress: selectedSpRef.current.operatorAddress,
-        };
-        const createBucketParams: TCreateBucket = {
-          creator: address,
+        const selectedPaAddress = selectedPaRef.current.address;
+        const createBucketPayload: IBaseGetCreateBucket = {
           bucketName,
-          spInfo,
-          signType: 'offChainAuth',
-          domain,
-          seedString,
+          creator: address,
+          paymentAddress: selectedPaAddress,
           visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
           chargedReadQuota: '0',
+          spInfo: {
+            primarySpAddress: selectedSpRef.current.operatorAddress,
+          },
         };
-        const createBucketTx = await genCreateBucketTx(createBucketParams);
+        const createBucketTx = await genCreateBucketTx(createBucketPayload, {
+          type: 'EDDSA',
+          domain: window.location.origin,
+          seed: seedString,
+          address,
+        });
         const simulateInfo = await createBucketTx.simulate({
           denom: 'BNB',
         });
@@ -319,7 +327,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           denom: 'BNB',
           gasLimit: Number(simulateInfo?.gasLimit),
           gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: createBucketParams.creator,
+          payer: createBucketPayload.creator,
           granter: '',
           signTypedDataCallback: async (addr: string, message: string) => {
             const provider = await connector?.getProvider();
@@ -328,9 +336,9 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         });
         // todo refactor
         await pollingGetBucket({
-          address: createBucketParams.creator,
+          address: createBucketPayload.creator,
           endpoint: globalSP.endpoint,
-          bucketName: createBucketParams.bucketName,
+          bucketName: createBucketPayload.bucketName,
         });
 
         if (txRes.code === 0) {
@@ -369,7 +377,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           !validateNameAndGas.name.available)) ||
       isEmpty(bucketName) ||
       !isEmpty(errors?.bucketName) ||
-      !isEnoughBalance
+      !isEnoughBalance ||
+      isLoadingDetail === selectedPaRef.current.address
     );
   };
   const isEnoughBalance = useMemo(() => {
@@ -393,7 +402,17 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     },
     [checkGasFee, validateNameAndGas.name],
   );
-
+  const onChangePA = useCallback(
+    async (pa: TAccount) => {
+      selectedPaRef.current = pa;
+      await dispatch(setupAccountsInfo(pa.address));
+      const { value, available } = validateNameAndGas.name;
+      if (available && value) {
+        checkGasFee(value);
+      }
+    },
+    [checkGasFee, dispatch, validateNameAndGas.name],
+  );
   const gaOptions = getGAOptions(status);
 
   return (
@@ -403,7 +422,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
       )}
       <DCDrawer isOpen={isOpen} onClose={onClose}>
-        <QDrawerCloseButton />
         <QDrawerHeader>Create a Bucket</QDrawerHeader>
         <QDrawerBody mt={0}>
           <Box>
@@ -421,7 +439,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
               </Box>
               <Flex flexDir="column" gap={12}>
                 <FormControl isInvalid={!isEmpty(errors?.bucketName)}>
-                  <FormLabel fontWeight={500} fontSize={14} mb={8} fontFamily="heading">
+                  <FormLabel fontWeight={500} fontSize={14} mb={8}>
                     Name
                   </FormLabel>
                   <InputGroup>
@@ -489,10 +507,16 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel fontSize={14} fontWeight={500} mb={8} fontFamily="heading">
+                  <FormLabel fontSize={14} fontWeight={500} mb={8}>
                     Primary Storage Provider
                   </FormLabel>
                   <SPSelector onChange={onChangeSP} />
+                </FormControl>
+                <FormControl>
+                  <FormLabel fontSize={14} fontWeight={500} mb={8}>
+                    Payment Account
+                  </FormLabel>
+                  <PaymentAccountSelector onChange={onChangePA} />
                 </FormControl>
               </Flex>
               <GasFee

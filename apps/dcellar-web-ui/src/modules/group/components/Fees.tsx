@@ -25,7 +25,7 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { isOpen, onToggle } = useDisclosure();
 

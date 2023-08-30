@@ -1,4 +1,4 @@
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import React, { useMemo } from 'react';
 import { currencyFormatter } from '@/utils/currencyFormatter';
@@ -11,6 +11,7 @@ import LoadingIcon from '@/public/images/icons/loading.svg';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useMount } from 'ahooks';
+import { GAS_FEE_DOC } from '@/modules/file/constant';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -21,7 +22,7 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
   const balance = BigNumber(_availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =
@@ -47,17 +48,27 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   }, [gasFee, hasError, strGasFee, usdGasFee]);
 
   return (
-    <>
-      <Flex
-        backgroundColor={'#FAFAFA'}
-        borderRadius={'8px'}
-        padding="14px 16px 12px"
-        justifyContent={'space-between'}
-        marginTop="32px"
-        color="#76808F"
-        alignItems="flex-start"
-      >
-        <Box mt="4px">Gas fee</Box>
+    <Flex
+      backgroundColor={'#FAFAFA'}
+      borderRadius={'8px'}
+      padding="14px 16px 12px"
+      justifyContent={'space-between'}
+      marginTop="32px"
+      color="#76808F"
+      alignItems="flex-start"
+      flexDirection={'column'}
+    >
+      <Flex justifyContent={'space-between'} w={'100%'} h={24}>
+        <Box mt="4px" w={260}>
+          Gas fee{' '}
+          <Text display={'inline-block'} color={'readable.disabled'}>
+            (
+            <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
+              Pay by Owner Account
+            </Link>
+            )
+          </Text>
+        </Box>
         <Box textAlign={'right'}>
           <Flex
             fontSize={'14px'}
@@ -72,17 +83,20 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
               feeDisplay
             )}
           </Flex>
-          <Box
-            fontSize={'12px'}
-            lineHeight={'15px'}
-            wordBreak={'break-all'}
-            marginTop={'4px'}
-            color={'readable.disabled'}
-          >
-            {`Available balance: ${strBalance} BNB (${usdBalance})`}
-          </Box>
         </Box>
       </Flex>
-    </>
+      <Box
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        wordBreak={'break-all'}
+        marginTop={'4px'}
+        color={'readable.disabled'}
+        justifyContent={'flex-end'}
+        width={'100%'}
+        textAlign={'right'}
+      >
+        {`Available balance: ${strBalance} BNB (${usdBalance})`}
+      </Box>
+    </Flex>
   );
 };

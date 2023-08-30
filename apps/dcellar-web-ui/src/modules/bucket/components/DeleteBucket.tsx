@@ -11,7 +11,7 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
-  const isOpen = !!editDelete.bucket_name;
+  const isOpen = !!editDelete.BucketName;
   const [open, setOpen] = useState(isOpen); // for modal close animation
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const DeleteBucket = memo<DeleteBucketProps>(function DeleteBucket() {
 
   return isOpen ? (
     <LegacyDeleteBucket
-      bucketName={editDelete.bucket_name || ''}
+      bucketName={editDelete.BucketName || ''}
       isOpen={open}
       onClose={onClose}
       refetch={refetch}

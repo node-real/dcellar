@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getStorageProviders } from '@/facade/sp';
+import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import {
   Description,
   StorageProvider,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
 import { AppDispatch, GetState } from '@/store';
 import { find, omit, random, sortBy } from 'lodash-es';
+import { getVirtualGroupFamily } from '@/facade/virtual-group';
 
 const defaultDescription = (): Description => ({
   moniker: '',
@@ -17,12 +18,25 @@ const defaultDescription = (): Description => ({
 
 export type SpItem = Omit<StorageProvider, 'description'> & Description;
 
+export type SpMeta = {
+  Description: string;
+  Endpoint: string;
+  FreeReadQuota: number;
+  Latency: number;
+  ReadPrice: string;
+  SPAddress: string;
+  StakedBnb: string;
+  Status: string;
+  StorePrice: string;
+};
+
 export interface SpState {
   sps: Array<SpItem>;
   allSps: Array<SpItem>; // include unstable
   spInfo: Record<string, SpItem>;
   primarySpInfo: Record<string, SpItem>;
   oneSp: string;
+  spMeta: Record<string, SpMeta>;
 }
 
 const initialState: SpState = {
@@ -31,12 +45,18 @@ const initialState: SpState = {
   spInfo: {},
   primarySpInfo: {},
   oneSp: '', // operatorAddress
+  spMeta: {},
 };
 
 export const spSlice = createSlice({
   name: 'sp',
   initialState,
   reducers: {
+    setSpMeta(state, { payload }: PayloadAction<SpMeta[]>) {
+      payload.forEach((meta) => {
+        state.spMeta[meta.SPAddress] = meta;
+      });
+    },
     setStorageProviders(
       state,
       {
@@ -71,8 +91,8 @@ export const spSlice = createSlice({
         state.oneSp = !len ? '' : state.sps[random(0, len - 1)]?.operatorAddress;
       }
     },
-    setPrimarySpInfo(state, { payload }: PayloadAction<{bucketName: string, sp: SpItem}>) {
-      const {bucketName, sp} = payload;
+    setPrimarySpInfo(state, { payload }: PayloadAction<{ bucketName: string; sp: SpItem }>) {
+      const { bucketName, sp } = payload;
       state.primarySpInfo[bucketName] = sp;
     },
     updateSps(state, { payload }: PayloadAction<string[]>) {
@@ -87,7 +107,8 @@ export const spSlice = createSlice({
   },
 });
 
-export const { setStorageProviders, setPrimarySpInfo, updateSps, filterSps } = spSlice.actions;
+export const { setStorageProviders, setPrimarySpInfo, updateSps, filterSps, setSpMeta } =
+  spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { sps: _sps } = getState().sp;
@@ -102,5 +123,25 @@ export const setupStorageProviders = () => async (dispatch: AppDispatch, getStat
     .filter(Boolean);
   dispatch(setStorageProviders({ sps, faultySps, recommend }));
 };
+
+export const setupSpMeta = () => async (dispatch: AppDispatch) => {
+  const list = await getSpMeta();
+  dispatch(setSpMeta(list || []));
+};
+
+export const getPrimarySpInfo =
+  (bucketName: string, familyId: number) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { allSps, primarySpInfo } = getState().sp;
+    const primarySp = primarySpInfo[bucketName];
+    if (primarySp) return primarySp;
+    const [data, error] = await getVirtualGroupFamily({ familyId });
+    if (error) return null;
+    const sp = allSps.find(
+      (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
+    ) as SpItem;
+    if (!sp) return null;
+    dispatch(setPrimarySpInfo({ bucketName, sp }));
+    return sp;
+  };
 
 export default spSlice.reducer;

@@ -36,9 +36,11 @@ export function CopyText(props: CopyTextProps) {
       lineHeight="20px"
       fontWeight={500}
       {...restProps}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
     >
       <Box>{children}</Box>
-
       <Tooltip
         content={
           hasCopied ? (

@@ -39,7 +39,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
   const [status, setStatus] = useState('pending');
   const { connector } = useAccount();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const balance = BigNumber(availableBalance || 0);
   const { chain } = useNetwork();
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);

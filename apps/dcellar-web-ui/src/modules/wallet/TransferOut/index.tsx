@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
@@ -23,6 +23,7 @@ import { GAClick } from '@/components/common/GATracker';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { useAppSelector } from '@/store';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 
 export const TransferOut = () => {
   const { chain } = useNetwork();
@@ -32,6 +33,10 @@ export const TransferOut = () => {
   const [status, setStatus] = useState<any>('success');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { feeData, isLoading } = useTransferOutFee();
+  const { all } = useChainsBalance();
+  const balance = useMemo(() => {
+    return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || '';
+  }, [all]);
   const {
     handleSubmit,
     register,
@@ -112,6 +117,7 @@ export const TransferOut = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <FormControl isInvalid={!isEmpty(errors)}>
           <Amount
+            balance={balance}
             watch={watch}
             errors={errors}
             register={register}

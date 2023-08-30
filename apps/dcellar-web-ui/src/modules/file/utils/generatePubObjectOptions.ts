@@ -1,46 +1,47 @@
-import { isValidUrl } from '@bnb-chain/greenfield-js-sdk';
 import {
-  generateUrlByBucketName,
-  putObjectPropsType,
-  requestParamsType,
-  validateBucketName,
-  validateObjectName,
-} from './file';
+  METHOD_PUT,
+  SpMetaInfo,
+  TBasePutObject,
+  isValidBucketName,
+  isValidObjectName,
+} from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/base/client';
-import { encodeObjectName } from '@/utils/string';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
-// Function to download object
-export const generatePutObjectOptions = async (
-  configParam: putObjectPropsType,
-): Promise<requestParamsType> => {
-  const { bucketName, objectName, txnHash, endpoint, domain, userAddress, seedString } =
-    configParam;
-  if (!isValidUrl(endpoint)) {
-    throw new Error('Invalid endpoint');
+export type TMakePutObjectHeaders = TBasePutObject & {
+  endpoint: string;
+};
+export const makePutObjectHeaders = async (
+  configParam: TMakePutObjectHeaders,
+  authType: AuthType,
+) => {
+  const client = await getClient();
+  const { bucketName, objectName, txnHash, body, endpoint } = configParam;
+  if (!isValidBucketName(bucketName)) {
+    throw new Error('Error bucket name');
   }
-  validateBucketName(bucketName);
-  validateObjectName(objectName);
+  if (!isValidObjectName(objectName)) {
+    throw new Error('Error object name');
+  }
   if (!txnHash) {
     throw new Error('Transaction hash is empty, please check.');
   }
-  const url = generateUrlByBucketName(endpoint, bucketName) + '/' + encodeObjectName(objectName);
-  const client = await getClient();
-  const { code, body } = await client.offchainauth.sign(seedString);
-  if (code !== 0) {
-    throw new Error('Failed to sign');
-  }
-  const headers = new Headers({
-    Authorization: body?.authorization || '',
-    'X-Gnfd-Txn-hash': txnHash,
-    'X-Gnfd-User-Address': userAddress,
-    'X-Gnfd-App-Domain': domain,
-  });
+  const method = METHOD_PUT;
   const params = new URLSearchParams();
+  const payload = {
+    objectName,
+    bucketName,
+    txnHash,
+    contentType: body.type || 'text/plain',
+    body,
+  };
+  const { reqMeta, url } = await SpMetaInfo.getPutObjectMetaInfo(endpoint, payload);
+  const headers = await client.spClient.signHeaders(reqMeta, authType);
 
   return {
     url,
     headers,
-    method: 'put',
+    method,
     params,
   };
 };
