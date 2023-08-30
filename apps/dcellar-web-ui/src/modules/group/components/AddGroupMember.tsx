@@ -16,7 +16,7 @@ import {
 } from '@/modules/file/constant';
 import { useUnmount, useUpdateEffect } from 'ahooks';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { Flex, QDrawerBody, QDrawerCloseButton, QDrawerHeader, Text, toast } from '@totejs/uikit';
+import { Flex, QDrawerBody, QDrawerHeader, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import ComingSoon from '@/components/common/SvgIcon/members.svg';
@@ -86,10 +86,10 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
     const curTimeStamp = await getUtcZeroTimestamp();
     const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
     const expirationDate = new Date(expirationTimestamp);
-    const membersToAdd = values.map(item => ({
+    const membersToAdd = values.map((item) => ({
       member: item,
       expirationTime: toTimestamp(expirationDate),
-    }))
+    }));
 
     const payload = {
       operator: loginAccount,
@@ -118,7 +118,6 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
 
   return (
     <DCDrawer isOpen={!!addGroupMember.groupName} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader flexDirection="column">Add Members</QDrawerHeader>
       <QDrawerBody>
         <Flex gap={12}>

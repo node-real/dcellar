@@ -1,15 +1,5 @@
 import { useAppSelector } from '@/store';
-import {
-  Box,
-  Divider,
-  Flex,
-  Image,
-  Link,
-  QDrawerBody,
-  QDrawerCloseButton,
-  QDrawerHeader,
-  Text,
-} from '@totejs/uikit';
+import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import React from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
 import { trimAddress } from '@/utils/string';
@@ -26,7 +16,7 @@ import { getNumInDigits } from '@/utils/wallet';
 export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
-  const {bankBalance} = useAppSelector(root=> root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const balance = isOwnerAccount
     ? BigNumber(accountDetail?.staticBalance || 0)
         .plus(BigNumber(bankBalance))
@@ -120,7 +110,6 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
         {title}
       </QDrawerHeader>
-      <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
       <QDrawerBody>
         <Flex alignItems={'flex-start'}>
           <Image

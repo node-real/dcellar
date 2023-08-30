@@ -191,7 +191,8 @@ export const setupPAList =
   (forceLoading = false) =>
   async (dispatch: any, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { PAList } = getState().accounts;
+    const { PAList, isLoadingPAList } = getState().accounts;
+    if (isLoadingPAList) return;
     if (!PAList.length || forceLoading) {
       dispatch(setLoadingPAList(true));
     }

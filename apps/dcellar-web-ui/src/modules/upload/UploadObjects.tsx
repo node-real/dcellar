@@ -3,7 +3,6 @@ import {
   Box,
   Flex,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Tab,
@@ -237,7 +236,6 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
 
   return (
     <DCDrawer isOpen={!!editUpload.isOpen} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader>Upload Objects</QDrawerHeader>
       <QDrawerBody marginTop={'16px'}>
         {!isEmpty(selectedFiles) && (

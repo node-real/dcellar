@@ -1,14 +1,5 @@
 import React, { memo, useEffect, useMemo } from 'react';
-import {
-  QDrawerCloseButton,
-  QDrawerHeader,
-  QDrawerBody,
-  Flex,
-  Text,
-  Link,
-  Box,
-  Divider,
-} from '@totejs/uikit';
+import { QDrawerHeader, QDrawerBody, Flex, Text, Link, Box, Divider } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { BucketItem, setEditDetail, setupBucketQuota } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
@@ -197,7 +188,6 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
 
   return (
     <DCDrawer isOpen={isOpen} onClose={onClose}>
-      <QDrawerCloseButton />
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
       <QDrawerBody>
         <Flex my={32}>

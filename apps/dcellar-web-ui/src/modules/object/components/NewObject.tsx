@@ -1,4 +1,4 @@
-import React, { ChangeEvent, memo } from 'react';
+import React, { ChangeEvent, memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import {
@@ -31,6 +31,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { MenuCloseIcon } from '@totejs/icons';
+import { debounce } from 'lodash-es';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -167,23 +168,26 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     e.target.value = '';
   };
 
-  const refreshList = async () => {
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
-    const query = new URLSearchParams();
-    const params = {
-      seedString,
-      query,
-      endpoint: primarySp.endpoint,
-    };
-    dispatch(setSelectedRowKeys([]));
-    dispatch(setupBucketQuota(bucketName));
-    dispatch(setListRefreshing(true));
-    dispatch(setRestoreCurrent(false));
-    await dispatch(setupListObjects(params));
-    dispatch(setListRefreshing(false));
-  };
+  const refreshList = useCallback(
+    debounce(async () => {
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
+      const query = new URLSearchParams();
+      const params = {
+        seedString,
+        query,
+        endpoint: primarySp.endpoint,
+      };
+      dispatch(setSelectedRowKeys([]));
+      dispatch(setupBucketQuota(bucketName));
+      dispatch(setListRefreshing(true));
+      dispatch(setRestoreCurrent(false));
+      await dispatch(setupListObjects(params));
+      dispatch(setListRefreshing(false));
+    }, 300),
+    [loginAccount, primarySp?.operatorAddress, bucketName],
+  );
 
   return (
     <Flex gap={12}>

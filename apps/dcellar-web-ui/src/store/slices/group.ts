@@ -17,7 +17,7 @@ interface GroupState {
 
 const initialState: GroupState = {
   groups: {},
-  loading: true,
+  loading: false,
   currentPage: 0,
   creatingGroup: false,
   editGroup: {} as GroupInfo,
@@ -77,7 +77,8 @@ export const selectGroupList = (address: string) => (root: AppState) => {
 export const setupGroups =
   (loginAccount: string, forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    const { groups } = getState().group;
+    const { groups, loading } = getState().group;
+    if (loading) return;
     if (!(loginAccount in groups) || forceLoading) {
       dispatch(setLoading(true));
     }

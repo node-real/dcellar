@@ -40,7 +40,7 @@ const initialState: BucketState = {
   buckets: {},
   bucketInfo: {},
   quotas: {},
-  loading: true,
+  loading: false,
   currentPage: 0,
   discontinue: false,
   owner: true,
@@ -138,8 +138,9 @@ export const setupBuckets =
   (address: string, forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const { oneSp, spInfo } = getState().sp;
-    const { buckets } = getState().bucket;
+    const { buckets, loading } = getState().bucket;
     const sp = spInfo[oneSp];
+    if (loading) return;
     if (!(address in buckets) || forceLoading) {
       dispatch(setLoading(true));
     }

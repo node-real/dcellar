@@ -8,7 +8,6 @@ import {
   InputRightElement,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
@@ -423,7 +422,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         <CreateBucketFailed errorMsg={submitErrorMsg} onClose={() => setStatus('pending')} />
       )}
       <DCDrawer isOpen={isOpen} onClose={onClose}>
-        <QDrawerCloseButton />
         <QDrawerHeader>Create a Bucket</QDrawerHeader>
         <QDrawerBody mt={0}>
           <Box>

@@ -5,12 +5,10 @@ import {
   FormControl,
   Link,
   QDrawerBody,
-  QDrawerCloseButton,
   QDrawerFooter,
   QDrawerHeader,
   Text,
   toast,
-  useDisclosure,
 } from '@totejs/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
 import { Fees } from '@/modules/file/components/Fees';
@@ -282,7 +280,9 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   ) => {
     const fullPath = getPath(folderName, folders);
     const file = new File([], fullPath, { type: 'text/plain' });
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
     const createObjectPayload: TBaseGetCreateObject = {
       bucketName,
@@ -326,22 +326,30 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
 
   useEffect(() => {
     if (isEmpty(preLockFeeObject)) {
-      return
+      return;
     }
     const nGasFee = BigNumber(gasFee);
-    console.log('isOwnerAccount', isOwnerAccount, preLockFee, payLockFeeAccount.staticBalance, bankBalance)
+    console.log(
+      'isOwnerAccount',
+      isOwnerAccount,
+      preLockFee,
+      payLockFeeAccount.staticBalance,
+      bankBalance,
+    );
     if (isOwnerAccount) {
       if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance).plus(bankBalance))) {
         setTimeout(() => setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]), 100);
       }
     } else {
-      if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance)) || nGasFee.gt(BigNumber(bankBalance))) {
-        console.log('2131232131221')
+      if (
+        BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance)) ||
+        nGasFee.gt(BigNumber(bankBalance))
+      ) {
+        console.log('2131232131221');
         setTimeout(() => setFormErrors([LOCK_FEE_LACK_BALANCE_ERROR]), 100);
       }
     }
-
-  }, [gasFee, bankBalance, preLockFee, payLockFeeAccount.staticBalance, preLockFeeObject,  loginAccount, isOwnerAccount]);
+  }, [gasFee, bankBalance, preLockFee, payLockFeeAccount.staticBalance, preLockFeeObject, loginAccount, isOwnerAccount]);
 
   useEffect(() => {
     setFormErrors([]);
@@ -357,7 +365,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       gaShowName="dc.file.create_folder_m.0.show"
       gaClickCloseName="dc.file.create_folder_m.close.click"
     >
-      <QDrawerCloseButton />
       <QDrawerHeader>Create a Folder</QDrawerHeader>
       <QDrawerBody>
         <Text
