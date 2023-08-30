@@ -59,6 +59,28 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     if (disabled) return;
     dispatch(setEditCreate(true));
   };
+
+  const refreshList = useCallback(
+    debounce(async () => {
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
+      const query = new URLSearchParams();
+      const params = {
+        seedString,
+        query,
+        endpoint: primarySp.endpoint,
+      };
+      dispatch(setSelectedRowKeys([]));
+      dispatch(setupBucketQuota(bucketName));
+      dispatch(setListRefreshing(true));
+      dispatch(setRestoreCurrent(false));
+      await dispatch(setupListObjects(params));
+      dispatch(setListRefreshing(false));
+    }, 150),
+    [loginAccount, primarySp?.operatorAddress, bucketName],
+  );
+
   if (!owner) return <></>;
 
   const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
@@ -167,27 +189,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     dispatch(setEditUploadStatus(true));
     e.target.value = '';
   };
-
-  const refreshList = useCallback(
-    debounce(async () => {
-      const { seedString } = await dispatch(
-        getSpOffChainData(loginAccount, primarySp.operatorAddress),
-      );
-      const query = new URLSearchParams();
-      const params = {
-        seedString,
-        query,
-        endpoint: primarySp.endpoint,
-      };
-      dispatch(setSelectedRowKeys([]));
-      dispatch(setupBucketQuota(bucketName));
-      dispatch(setListRefreshing(true));
-      dispatch(setRestoreCurrent(false));
-      await dispatch(setupListObjects(params));
-      dispatch(setListRefreshing(false));
-    }, 150),
-    [loginAccount, primarySp?.operatorAddress, bucketName],
-  );
 
   return (
     <Flex gap={12}>

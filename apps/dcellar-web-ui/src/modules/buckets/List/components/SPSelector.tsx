@@ -9,7 +9,6 @@ import { ExternalLinkIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
 import RefLink from '@/components/common/SvgIcon/RefLink.svg';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import BigNumber from 'bignumber.js';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
 import { sortBy } from 'lodash-es';
