@@ -62,7 +62,7 @@ export const Send = () => {
   }, [accountsInfo, bankBalance, fromAccount]);
 
   useEffect(() => {
-    if (isLoadingPaymentAccounts || isEmpty(ownerAccount)) return;
+    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -196,6 +196,11 @@ export const Send = () => {
 
   const isHideToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
 
+  useEffect(() => {
+    if (!isHideToAccount || isEmpty(ownerAccount)) return;
+    dispatch(setToAccount(ownerAccount));
+  }, [isHideToAccount, ownerAccount]);
+
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
     if (isLoadingDetail || isEmpty(fromAccount)) return errors;
@@ -257,43 +262,45 @@ export const Send = () => {
             Balance on: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : balance} BNB
           </FormHelperText>
         </FormControl>
-        {!isHideToAccount && (
-          <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
-            <FormLabel
-              marginBottom={'8px'}
-              fontWeight={500}
-              fontSize="14px"
-              lineHeight="150%"
-              htmlFor="text"
-              display={'flex'}
-              fontFamily={POPPINS_FONT}
-            >
-              To
-              <Tips
-                tips={
-                  'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
-                }
-              />
-            </FormLabel>
-            <ToAccountSelector to={to} onChange={(e) => onChangeAccount(e, 'to')} />
-            <FormErrorMessage textAlign={'left'}>
-              {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
-            </FormErrorMessage>
-            <FormHelperText textAlign={'right'} color="#76808F">
-              Balance on:{' '}
-              {toAccount ? (
-                toAccount.address && isLoadingDetail === toAccount.address ? (
-                  <SmallLoading />
-                ) : (
-                  accountsInfo[toAccount.address]?.staticBalance || 0
-                )
+        <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
+          <FormLabel
+            marginBottom={'8px'}
+            fontWeight={500}
+            fontSize="14px"
+            lineHeight="150%"
+            htmlFor="text"
+            display={'flex'}
+            fontFamily={POPPINS_FONT}
+          >
+            To
+            <Tips
+              tips={
+                'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
+              }
+            />
+          </FormLabel>
+          <ToAccountSelector
+            disabled={isHideToAccount}
+            to={to}
+            onChange={(e) => onChangeAccount(e, 'to')}
+          />
+          <FormErrorMessage textAlign={'left'}>
+            {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
+          </FormErrorMessage>
+          <FormHelperText textAlign={'right'} color="#76808F">
+            Balance on:{' '}
+            {toAccount ? (
+              toAccount.address && isLoadingDetail === toAccount.address ? (
+                <SmallLoading />
               ) : (
-                0
-              )}{' '}
-              BNB
-            </FormHelperText>
-          </FormControl>
-        )}
+                accountsInfo[toAccount.address]?.staticBalance || 0
+              )
+            ) : (
+              0
+            )}{' '}
+            BNB
+          </FormHelperText>
+        </FormControl>
         <Amount
           balance={balance}
           errors={errors}

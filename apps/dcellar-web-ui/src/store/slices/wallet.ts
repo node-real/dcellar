@@ -33,16 +33,18 @@ export const walletSlice = createSlice({
     },
     setFromAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.fromAccount = payload;
+      state.from = payload.address;
     },
     setToAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.toAccount = payload;
+      state.to = payload.address;
     },
     setTo: (state, { payload }: PayloadAction<string>) => {
       state.to = payload;
     },
     setFrom: (state, { payload }: PayloadAction<string>) => {
       state.from = payload;
-    }
+    },
   },
 });
 

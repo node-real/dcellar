@@ -9,6 +9,7 @@ import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMe
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
+import styled from '@emotion/styled';
 
 const actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -84,7 +85,7 @@ export const OwnerAccount = () => {
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
   return (
-    <Box marginBottom={32}>
+    <Container>
       <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
         Owner Account
       </Box>
@@ -103,6 +104,13 @@ export const OwnerAccount = () => {
           },
         })}
       ></DCTable>
-    </Box>
+    </Container>
   );
 };
+
+const Container = styled(Box)`
+  margin-bottom: 32px;
+  .ant-table-wrapper .ant-table-tbody > tr > td {
+    border-bottom: none;
+  }
+`;
