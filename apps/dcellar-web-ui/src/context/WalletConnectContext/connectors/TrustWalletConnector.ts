@@ -9,7 +9,7 @@ export type TrustWalletConnectorOptions = {
 }
 
 export class TrustWalletConnector extends WagmiMetaMaskConnector {
-  readonly id: any = 'trustWallet';
+  readonly id: any = 'trust';
 
   constructor({
     chains,
