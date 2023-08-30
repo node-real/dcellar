@@ -12,7 +12,14 @@ import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
 
-export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) => {
+type Props = {
+  loading: boolean;
+  title: string;
+  accountDetail: any;
+  availableBalance: string;
+}
+BigNumber.config({ EXPONENTIAL_AT: 10 });
+export const AccountDetail = ({ loading, title, accountDetail, availableBalance }: Props) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
   const { bankBalance } = useAppSelector((root) => root.accounts);
@@ -49,7 +56,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       ),
     },
     {
-      label: 'Balance',
+      label: 'Available balance',
       value: (
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>
@@ -60,7 +67,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
               <Text color="readable.tertiary" fontSize={12}>
                 &nbsp;(
                 {currencyFormatter(
-                  BigNumber(balance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
+                  BigNumber(availableBalance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
                 )}
                 )
               </Text>
@@ -75,7 +82,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>
             <Text fontSize={14} fontWeight={500}>
-              {BigNumber(lockFee || 0)
+              {BigNumber(accountDetail.bufferBalance || 0)
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
                 .toString()}{' '}
               BNB

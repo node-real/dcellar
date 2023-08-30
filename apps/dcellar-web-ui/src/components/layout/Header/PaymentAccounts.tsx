@@ -37,6 +37,10 @@ export const PaymentAccounts = () => {
   }, [asPath, refetch]);
 
   useThrottleEffect(() => {
+    dispatch(setBankBalance(metamaskValue));
+  }, [metamaskValue])
+
+  useThrottleEffect(() => {
     const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;
     paymentAddress && dispatch(setupAccountsInfo(paymentAddress));
   }, [asPath]);

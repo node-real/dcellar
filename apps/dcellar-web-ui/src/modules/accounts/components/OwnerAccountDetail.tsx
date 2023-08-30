@@ -15,9 +15,9 @@ import BigNumber from 'bignumber.js';
 
 export const OwnerAccountDetail = () => {
   const dispatch = useAppDispatch();
-  const [lockFee, setLockFee] = React.useState('0');
+  const [availableBalance, setAvailableBalance] = React.useState('0');
   const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editOwnerDetail, isLoadingDetail } = useAppSelector((state) => state.accounts);
+  const { editOwnerDetail, isLoadingDetail, bankBalance } = useAppSelector((state) => state.accounts);
   const isOpen = !!editOwnerDetail;
   const router = useRouter();
   const onClose = () => {
@@ -36,11 +36,11 @@ export const OwnerAccountDetail = () => {
 
   const clear = useInterval(() => {
     if (!ownerAccount) return;
-    const { netflowRate, bufferBalance, crudTimestamp } = ownerAccount;
+    const { netflowRate, staticBalance, crudTimestamp } = ownerAccount;
     const ts = Math.floor(getUtcZeroTimestamp() / 1000);
-    const costLockFee = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
-    const lockFee = BigNumber(bufferBalance).plus(costLockFee).toString();
-    setLockFee(lockFee);
+    const needSettleRate = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
+    const availableBalance = BigNumber(staticBalance).plus(bankBalance).plus(needSettleRate).toString();
+    setAvailableBalance(availableBalance);
   }, 1000);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export const OwnerAccountDetail = () => {
       gaShowName="dc.accounts.detail.show"
       gaClickCloseName="dc.accounts.detail.close.click"
     >
-      <AccountDetail loading={isLoadingDetail} title="Owner Account Detail" accountDetail={ownerAccount} />
+      <AccountDetail loading={!!isLoadingDetail} title="Owner Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
           <DCButton

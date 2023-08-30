@@ -6,7 +6,14 @@ import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { Link, Tooltip } from '@totejs/uikit';
+import {
+  Box,
+  Link,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
+} from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -47,30 +54,43 @@ export const NewPA = () => {
   };
 
   return (
-    <Tooltip
-      visibility={hasBankBalance ? 'hidden' : 'visible'}
-      content={
-        <>
-          Insufficient balance in Owner account.{' '}
-          <Link
-            textDecoration={'underline'}
-            onClick={() => router.push(InternalRoutePaths.transfer_in)}
+    <Popover trigger={'hover'}>
+      <PopoverTrigger>
+        <Box>
+          <DCButton
+            h={40}
+            width={'fit-content'}
+            variant={'dcPrimary'}
+            gaClickName="dc.file.f_detail_pop.download.click"
+            onClick={() => onCreatePaymentClick()}
+            disabled={!hasBankBalance}
           >
-            Transfer In
-          </Link>
-        </>
-      }
-    >
-      <DCButton
-        h={40}
-        width={'fit-content'}
-        variant={'dcPrimary'}
-        gaClickName="dc.file.f_detail_pop.download.click"
-        onClick={() => onCreatePaymentClick()}
-        disabled={!hasBankBalance}
+            Create Payment Account
+          </DCButton>
+        </Box>
+      </PopoverTrigger>
+      <PopoverContent
+        bg="#fff"
+        padding="8px"
+        color={'readable.normal'}
+        border={'1px solid readable.border'}
+        borderRadius={4}
       >
-        Create Payment Account
-      </DCButton>
-    </Tooltip>
+        <PopoverBody>
+          <Box w={232} textAlign={'left'}>
+            Insufficient balance in Owner account.{' '}
+            <Link
+              textDecoration={'underline'}
+              onClick={() => router.push(InternalRoutePaths.transfer_in)}
+              _hover={{
+                textDecoration: 'underline',
+              }}
+            >
+              Transfer In
+            </Link>
+          </Box>
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
   );
 };

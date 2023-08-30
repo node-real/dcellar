@@ -12,7 +12,7 @@ import BigNumber from 'bignumber.js';
 
 export const PaymentAccountDetail = () => {
   const dispatch = useAppDispatch();
-  const [lockFee, setLockFee] = React.useState('0');
+  const [availableBalance, setAvailableBalance] = React.useState('0');
   const { loginAccount } = useAppSelector((state) => state.persist);
   const { editPaymentDetail, isLoadingDetail } = useAppSelector(
     (state) => state.accounts,
@@ -41,11 +41,12 @@ export const PaymentAccountDetail = () => {
 
   const clear = useInterval(() => {
     if (!paymentAccount) return;
-    const { netflowRate, bufferBalance, crudTimestamp } = paymentAccount;
+    const { netflowRate, staticBalance, crudTimestamp } = paymentAccount;
+    debugger;
     const ts = Math.floor(getUtcZeroTimestamp() / 1000);
-    const costLockFee = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
-    const lockFee = BigNumber(bufferBalance).plus(costLockFee).toString();
-    setLockFee(lockFee);
+    const needSettleRate = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
+    const availableBalance = BigNumber(staticBalance).plus(needSettleRate).toString();
+    setAvailableBalance(availableBalance);
   }, 1000);
 
   useEffect(() => {
@@ -60,10 +61,10 @@ export const PaymentAccountDetail = () => {
       gaClickCloseName="dc.payment-accounts.detail.close.click"
     >
       <AccountDetail
-        loading={isLoadingDetail}
+        loading={!!isLoadingDetail}
         title="Payment account detail"
         accountDetail={paymentAccount}
-        lockFee={lockFee}
+        availableBalance={availableBalance}
       />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
