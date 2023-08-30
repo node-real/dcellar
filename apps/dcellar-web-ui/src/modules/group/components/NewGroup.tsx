@@ -17,7 +17,7 @@ export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = tr
   const onRefresh = useCallback(
     debounce(() => {
       dispatch(setupGroups(loginAccount, true));
-    }, 300),
+    }, 150),
     [loginAccount],
   );
 

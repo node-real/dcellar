@@ -185,7 +185,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       dispatch(setRestoreCurrent(false));
       await dispatch(setupListObjects(params));
       dispatch(setListRefreshing(false));
-    }, 300),
+    }, 150),
     [loginAccount, primarySp?.operatorAddress, bucketName],
   );
 

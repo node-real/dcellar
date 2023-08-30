@@ -18,7 +18,7 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket({ showRefresh =
   const onRefresh = useCallback(
     debounce(() => {
       dispatch(setupBuckets(loginAccount, true));
-    }, 300),
+    }, 150),
     [loginAccount],
   );
 
