@@ -38,10 +38,13 @@ import {
 import { isAddress } from 'ethers/lib/utils.js';
 import { Tips } from '@/components/common/Tips';
 import { setFromAccount, setToAccount } from '@/store/slices/wallet';
+import { renderFee } from '@/utils/common';
+import { selectBnbPrice } from '@/store/slices/global';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
+  const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { bankBalance, accountsInfo, isLoadingDetail, ownerAccount, isLoadingPaymentAccounts } =
     useAppSelector((root) => root.accounts);
@@ -99,7 +102,7 @@ export const Send = () => {
       return 'withdraw_from_payment_account';
     }
     if (
-      toAccount.name.toLowerCase() === 'owner account' &&
+      fromAccount.name.toLowerCase() === 'owner account' &&
       !toAccount.name.toLowerCase().includes('payment account')
     ) {
       return 'send_to_owner_account';
@@ -259,7 +262,7 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : balance} BNB
+            Balance on: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : renderFee(balance, exchangeRate + '' )}
           </FormHelperText>
         </FormControl>
         <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
@@ -293,10 +296,10 @@ export const Send = () => {
               toAccount.address && isLoadingDetail === toAccount.address ? (
                 <SmallLoading />
               ) : (
-                accountsInfo[toAccount.address]?.staticBalance || 0
+                renderFee(accountsInfo[toAccount.address]?.staticBalance || 0, exchangeRate)
               )
             ) : (
-              0
+              renderFee(0, exchangeRate)
             )}{' '}
             BNB
           </FormHelperText>

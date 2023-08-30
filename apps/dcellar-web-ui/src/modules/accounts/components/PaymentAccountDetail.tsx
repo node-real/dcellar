@@ -1,7 +1,7 @@
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount, setEditPaymentDetail, setupAccountsInfo } from '@/store/slices/accounts';
+import { selectAccount, setEditDisablePaymentAccount, setEditPaymentDetail, setupAccountsInfo } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
 import { useAsyncEffect, useInterval } from 'ahooks';
 import React, { useEffect } from 'react';
@@ -34,6 +34,9 @@ export const PaymentAccountDetail = () => {
     if (e === 'deposit') {
       return router.push(`/wallet?type=send&from=${loginAccount}&to=${editPaymentDetail}`);
     }
+    if (e === 'set_non-refundable') {
+      return dispatch(setEditDisablePaymentAccount(editPaymentDetail));
+    }
   };
 
   const clear = useInterval(() => {
@@ -63,24 +66,34 @@ export const PaymentAccountDetail = () => {
         lockFee={lockFee}
       />
       <QDrawerFooter>
-        <Flex w={'100%'}>
+        <Flex w={'100%'} gap={16}>
           <DCButton
-            variant={'dcGhost'}
+            variant={'dcPrimary'}
             flex={1}
-            mr={'16px'}
-            borderColor={'readable.normal'}
             gaClickName="dc.file.f_detail_pop.share.click"
             onClick={() => onAction('withdraw')}
           >
             Withdraw
           </DCButton>
           <DCButton
-            variant={'dcPrimary'}
+            variant={'dcGhost'}
             flex={1}
+            borderColor='#e6e8ea'
             gaClickName="dc.file.f_detail_pop.download.click"
             onClick={() => onAction('deposit')}
           >
             Deposit
+          </DCButton>
+          <DCButton
+            variant={'dcGhost'}
+            width={'170px'}
+            paddingX={0}
+            mr={'16px'}
+            borderColor='#e6e8ea'
+            gaClickName="dc.file.f_detail_pop.share.click"
+            onClick={() => onAction('set_non-refundable')}
+          >
+            Set non-refundable
           </DCButton>
         </Flex>
       </QDrawerFooter>

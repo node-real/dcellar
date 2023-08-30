@@ -243,7 +243,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             borderRadius="8px"
             _hover={{ bg: 'bg.bottom' }}
           >
-            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="" />
+            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="accounts icon" />
             <Text color="readable.normal" fontWeight={500} fontSize="16px">
               Accounts
             </Text>

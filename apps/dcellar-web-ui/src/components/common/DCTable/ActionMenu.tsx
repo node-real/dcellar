@@ -41,6 +41,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.group.add_member.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
+                title='Add'
               >
                 <AddMember />
               </ActionButton>
@@ -49,6 +50,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title="Download"
                 gaClickName="dc.file.download_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -61,6 +63,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
               <ActionButton
                 marginRight={'8px'}
                 key={m}
+                title="Share"
                 gaClickName="dc.file.share_btn.0.click"
                 onClick={() => onChange(m)}
               >
@@ -72,6 +75,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title="Transfer In"
                 gaClickName="dc.accounts.transfer_in_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -83,6 +87,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title='Transfer Out'
                 gaClickName="dc.accounts.owner_account.transfer_out_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -94,6 +99,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title="Send"
                 gaClickName="dc.accounts.owner_account.send_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -106,6 +112,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title="Deposit"
                 gaClickName="dc.accounts.payment_account.deposit_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -117,6 +124,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
+                title="Withdraw"
                 gaClickName="dc.accounts.payment_account.withdraw_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}

@@ -10,6 +10,7 @@ import GroupsFilledIcon from '@/public/images/icons/groups-filled.svg';
 import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
 import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
 import AccountsIcon from '@/public/images/icons/accounts.svg';
+import AccountsFilledIcon from '@/public/images/icons/accounts_filled.svg';
 import { Logo } from '../Logo';
 import { isActivePath } from '@/utils/isActivePath';
 import { GAClick } from '@/components/common/GATracker';
@@ -36,7 +37,7 @@ const MENU_LIST = [
   },
   {
     icon: () => <AccountsIcon color="readable.normal" />,
-    selectedIcon: () => <AccountsIcon color="#00BA34" />,
+    selectedIcon: () => <AccountsFilledIcon color="#00BA34" />,
     text: 'Accounts',
     path: `/accounts`,
     gaClickName: 'dc.main.nav.accounts.click',

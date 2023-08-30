@@ -11,7 +11,6 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
-import { getNumInDigits } from '@/utils/wallet';
 
 export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
@@ -56,10 +55,10 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {getNumInDigits(balance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB {" "}
+                {BigNumber(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
-                (
+                &nbsp;(
                 {currencyFormatter(
                   BigNumber(balance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
                 )}
@@ -76,11 +75,9 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>
             <Text fontSize={14} fontWeight={500}>
-              {trimFloatZero(
-                BigNumber(lockFee || 0)
-                  .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-                  .toString(),
-              )}{' '}
+              {BigNumber(lockFee || 0)
+                .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+                .toString()}{' '}
               BNB
             </Text>
           </LoadingAdaptor>

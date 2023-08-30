@@ -114,8 +114,9 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
                 {item.label !== 'Date Created' &&
                   (item.canCopy ? (
                     <>
-                      {item.name ? `${item.name} |` : ''}
-                      &nbsp;
+                      <Text color={'readable.normal'} fontSize={'14px'} fontWeight={500}>
+                        {item.name ? `${item.name} |` : ''}&nbsp;
+                      </Text>
                       <GAClick name={item.gaClickName}>
                         <Link
                           target="_blank"

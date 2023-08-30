@@ -63,7 +63,7 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
           Gas fee{' '}
           <Text display={'inline-block'} color={'readable.disabled'}>
             (
-            <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+            <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
               Pay by Owner Account
             </Link>
             )

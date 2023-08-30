@@ -51,7 +51,7 @@ const initialState: PersistState = {
   objectPageSize: 50,
   groupSortBy: ['id', 'descend'],
   groupPageSize: 20,
-  paymentAccountSortBy: ['name', 'descend'],
+  paymentAccountSortBy: ['name', 'ascend'],
   PAPageSize: 20,
 };
 

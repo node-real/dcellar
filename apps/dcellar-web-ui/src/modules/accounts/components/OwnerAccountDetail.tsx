@@ -56,11 +56,10 @@ export const OwnerAccountDetail = () => {
     >
       <AccountDetail loading={isLoadingDetail} title="Owner Account Detail" accountDetail={ownerAccount} />
       <QDrawerFooter>
-        <Flex w={'100%'}>
+        <Flex w={'100%'} gap={16}>
           <DCButton
-            variant={'dcGhost'}
+            variant={'dcPrimary'}
             flex={1}
-            mr={'16px'}
             borderColor={'readable.normal'}
             gaClickName="dc.file.f_detail_pop.share.click"
             onClick={() => onAction('transfer_in')}
@@ -68,12 +67,22 @@ export const OwnerAccountDetail = () => {
             Transfer In
           </DCButton>
           <DCButton
-            variant={'dcPrimary'}
+            variant={'dcGhost'}
             flex={1}
+            borderColor='#e6e8ea'
             gaClickName="dc.file.f_detail_pop.download.click"
             onClick={() => onAction('transfer_out')}
           >
             Transfer Out
+          </DCButton>
+          <DCButton
+            variant={'dcGhost'}
+            flex={1}
+            borderColor='#e6e8ea'
+            gaClickName="dc.file.f_detail_pop.download.click"
+            onClick={() => onAction('send')}
+          >
+            Send
           </DCButton>
         </Flex>
       </QDrawerFooter>

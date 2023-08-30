@@ -341,14 +341,14 @@ const renderPaymentInsufficientBalance = ({
       && BigNumber(payGasFeeBalance).minus(BigNumber(gasFee)).plus(BigNumber(payLockFeeBalance)).gt(BigNumber(lockFee))) {
       items.push({
         link: InternalRoutePaths.transfer_in,
-        text: 'Transfer in',
+        text: 'Transfer In',
       });
     }
   } else {
     if (!BigNumber(payGasFeeBalance).gt(BigNumber(gasFee))) {
       items.push({
         link: InternalRoutePaths.transfer_in,
-        text: 'Transfer in',
+        text: 'Transfer In',
       });
     }
     if (!BigNumber(payLockFeeBalance).gt(BigNumber(lockFee))) {

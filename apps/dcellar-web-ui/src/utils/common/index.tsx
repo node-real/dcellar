@@ -1,3 +1,7 @@
+import BigNumber from "bignumber.js";
+import { currencyFormatter } from "../currencyFormatter";
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from "@/modules/wallet/constants";
+
 export const parseErrorXml = async (result: Response) => {
   try {
     const xmlText = await result.text();
@@ -15,3 +19,10 @@ export const parseErrorXml = async (result: Response) => {
     };
   }
 };
+
+export const renderFee = (amount: string | number, usdPrice: string | number, symbol = 'BNB') => {
+  const amountFormat = BigNumber(amount || 0).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
+  const fiatValue = currencyFormatter(BigNumber(amount).times(BigNumber(usdPrice)).toString());
+
+  return `${amountFormat} ${symbol} (${fiatValue})`
+}

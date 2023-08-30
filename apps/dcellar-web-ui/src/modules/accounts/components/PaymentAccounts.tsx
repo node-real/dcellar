@@ -1,7 +1,7 @@
 import { Box, Flex, Link, Loading } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useMemo, useState } from 'react';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import React, { useMemo } from 'react';
+import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectPaymentAccounts,

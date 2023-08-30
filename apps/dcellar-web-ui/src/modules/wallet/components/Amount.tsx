@@ -72,6 +72,7 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
+  const isSendPage = transType === 'send';
 
   useMount(() => {
     dispatch(setupTmpAvailableBalance(address));
@@ -209,9 +210,9 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
           {/* @ts-ignore */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
-        <FormHelperText textAlign={'right'} color="#76808F">
+        {!isSendPage && <FormHelperText textAlign={'right'} color="#76808F">
           <Balance />
-        </FormHelperText>
+        </FormHelperText>}
       </FormControl>
     </>
   );
