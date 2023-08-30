@@ -11,7 +11,7 @@ importers:
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
-      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.24
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.25
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -66,7 +66,7 @@ importers:
     dependencies:
       '@babel/core': 7.22.10
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
-      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.24
+      '@bnb-chain/greenfield-js-sdk': 0.2.4-alpha.25
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@next/bundle-analyzer': 13.4.18
@@ -1579,8 +1579,8 @@ packages:
       protobufjs: 6.11.4
     dev: false
 
-  /@bnb-chain/greenfield-js-sdk/0.2.4-alpha.24:
-    resolution: {integrity: sha512-F73HJgbO/hqkZCj5cKTJSs05aSKMM3fojnEsN4m0Kz/kRjp8763uz7+f0cZBf/GMFCDv0k6TR4lmuy8DcQwuhA==}
+  /@bnb-chain/greenfield-js-sdk/0.2.4-alpha.25:
+    resolution: {integrity: sha512-AkaQZQ1xmDt/m1verjQRBkn8SoITbHp87+kum4/ltB85bHLZH577EiDX0+pmd6VmnWityW/0Zc7xXRScyrInMg==}
     engines: {npm: please use pnpm, yarn: please use pnpm}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.22
@@ -1597,13 +1597,13 @@ packages:
       dayjs: 1.11.9
       dotenv: 16.3.1
       ethereum-cryptography: 2.1.2
+      fast-xml-parser: 4.2.7
       lodash.clonedeep: 4.5.0
       lodash.mapvalues: 4.6.0
       lodash.sortby: 4.7.0
       long: 5.2.3
       reflect-metadata: 0.1.13
       tsyringe: 4.8.0
-      xml2js: 0.6.2
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -8963,10 +8963,6 @@ packages:
     engines: {node: '>=10'}
     dev: false
 
-  /sax/1.2.4:
-    resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
-    dev: false
-
   /scheduler/0.23.0:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
@@ -10004,19 +10000,6 @@ packages:
     dependencies:
       bufferutil: 4.0.7
       utf-8-validate: 5.0.10
-    dev: false
-
-  /xml2js/0.6.2:
-    resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
-    engines: {node: '>=4.0.0'}
-    dependencies:
-      sax: 1.2.4
-      xmlbuilder: 11.0.1
-    dev: false
-
-  /xmlbuilder/11.0.1:
-    resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
-    engines: {node: '>=4.0'}
     dev: false
 
   /xstream/11.14.0:

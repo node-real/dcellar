@@ -53,10 +53,10 @@ export const getUserBuckets = async (
 };
 
 export const getBucketReadQuota = async ({
-                                           bucketName,
-                                           seedString,
-                                           address,
-                                         }: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
+  bucketName,
+  seedString,
+  address,
+}: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
   const payload: TBaseGetBucketReadQuota = {
     bucketName,
@@ -75,8 +75,12 @@ export const getBucketReadQuota = async ({
   return [quota, null];
 };
 
+export type UpdateBucketInfoPayload = Omit<MsgUpdateBucketInfo, 'chargedReadQuota'> & {
+  chargedReadQuota?: string;
+};
+
 export const updateBucketInfo = async (
-  msg: MsgUpdateBucketInfo,
+  msg: UpdateBucketInfoPayload,
   connector: Connector,
 ): BroadcastResponse => {
   const client = await getClient();

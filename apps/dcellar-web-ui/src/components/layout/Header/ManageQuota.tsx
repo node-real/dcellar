@@ -35,10 +35,9 @@ import {
   WALLET_CONFIRM,
 } from '@/modules/file/constant';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { updateBucketInfo } from '@/facade/bucket';
+import { updateBucketInfo, UpdateBucketInfoPayload } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import Long from 'long';
 
 interface ManageQuotaProps {
   onClose: () => void;
@@ -139,13 +138,13 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
     );
 
     // todo
-    const payload: MsgUpdateBucketInfo = {
+    const payload: UpdateBucketInfoPayload = {
       operator: loginAccount,
       bucketName: bucket.BucketName,
-      // @ts-ignore
-      visibility: bucket.Visibility,
+      // @ts-ignore number
+      visibility: +bucket.Visibility,
       paymentAddress: bucket.PaymentAddress,
-      chargedReadQuota: { value: Long.fromNumber(newChargedQuota * G_BYTES) },
+      chargedReadQuota: String(newChargedQuota * G_BYTES),
     };
 
     console.log(payload);
