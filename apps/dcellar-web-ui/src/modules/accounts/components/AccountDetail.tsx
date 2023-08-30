@@ -56,7 +56,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {getNumInDigits(balance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB
+                {getNumInDigits(balance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB {" "}
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
                 (
@@ -71,7 +71,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       ),
     },
     {
-      label: 'Locked Storage fee',
+      label: 'Prepaid fee',
       value: (
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>
@@ -88,7 +88,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       ),
     },
     {
-      label: 'Flow Rate',
+      label: 'Flow rate',
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>

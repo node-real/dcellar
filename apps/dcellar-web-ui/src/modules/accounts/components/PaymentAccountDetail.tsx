@@ -3,13 +3,12 @@ import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount, setEditPaymentDetail, setupAccountsInfo } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
-import { useAsyncEffect, useInterval, useThrottleEffect } from 'ahooks';
+import { useAsyncEffect, useInterval } from 'ahooks';
 import React, { useEffect } from 'react';
 import { AccountDetail } from './AccountDetail';
 import { useRouter } from 'next/router';
 import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import BigNumber from 'bignumber.js';
-import { setBalance } from '@/store/slices/balance';
 
 export const PaymentAccountDetail = () => {
   const dispatch = useAppDispatch();
@@ -59,7 +58,7 @@ export const PaymentAccountDetail = () => {
     >
       <AccountDetail
         loading={isLoadingDetail}
-        title="Payment Account Detail"
+        title="Payment account detail"
         accountDetail={paymentAccount}
         lockFee={lockFee}
       />
