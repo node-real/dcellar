@@ -56,7 +56,7 @@ export function SPSelector(props: SPSelector) {
       sortBy(allSps, [
         (i) => (faultySps.includes(i.operatorAddress) ? 1 : 0),
         (sp) => {
-          const meta = spMeta[sp.operatorAddress];
+          const meta = spMeta[sp.endpoint];
           return meta ? meta.Latency : Infinity;
         },
       ]).map((item) => {
@@ -112,7 +112,7 @@ const renderItem = (moniker: string, address: string) => {
 function OptionItem(props: any) {
   const { spMeta } = useAppSelector((root) => root.sp);
   const { address, name, endpoint, access } = props;
-  const meta = spMeta[address];
+  const meta = spMeta[endpoint];
 
   const link = !access ? (
     <DCTooltip title="Check reasons in documentations" placement="bottomLeft">

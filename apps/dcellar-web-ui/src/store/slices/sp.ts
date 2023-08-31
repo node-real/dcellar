@@ -54,7 +54,7 @@ export const spSlice = createSlice({
   reducers: {
     setSpMeta(state, { payload }: PayloadAction<SpMeta[]>) {
       payload.forEach((meta) => {
-        state.spMeta[meta.SPAddress] = meta;
+        state.spMeta[meta.Endpoint] = meta;
       });
     },
     setStorageProviders(
