@@ -30,8 +30,8 @@ export default function Document() {
             __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec.js?v1`}></script>
-        <script defer src={`${assetPrefix}/wasm/tinygo_init.js?v1`}></script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec.js?v2`}></script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_init.js?v2`}></script>
         <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm"/>
       </Head>
       <body>
