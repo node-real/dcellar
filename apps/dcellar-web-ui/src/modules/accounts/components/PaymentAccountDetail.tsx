@@ -42,7 +42,6 @@ export const PaymentAccountDetail = () => {
   const clear = useInterval(() => {
     if (!paymentAccount) return;
     const { netflowRate, staticBalance, crudTimestamp } = paymentAccount;
-    debugger;
     const ts = Math.floor(getUtcZeroTimestamp() / 1000);
     const needSettleRate = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
     const availableBalance = BigNumber(staticBalance).plus(needSettleRate).toString();
