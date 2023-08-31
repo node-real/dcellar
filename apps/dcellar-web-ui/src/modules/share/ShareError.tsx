@@ -8,7 +8,7 @@ import React, { memo } from 'react';
 export const SHARE_ERROR_TYPES = {
   NO_QUOTA: {
     title: 'No Enough Quota',
-    desc: 'This bucket where this file is stored don’t have enough download quota, contact the file owner to increase the download quota.',
+    desc: 'This bucket where this object is stored don’t have enough download quota, contact the object owner to increase the download quota.',
     icon: NOT_ENOUGH_QUOTA_URL,
   },
   PERMISSION_DENIED: {
@@ -17,7 +17,7 @@ export const SHARE_ERROR_TYPES = {
     icon: FILE_FAILED_URL,
   },
   NOT_FOUND: {
-    title: 'File Not Exist or Deleted',
+    title: 'Object Not Exist or Deleted',
     desc: 'This item might not exist or is no longer available. Contact the owner of this item for more information.',
     icon: FILE_FAILED_URL,
   },
@@ -40,14 +40,14 @@ export const ShareError = memo<{ type: ShareErrorType }>(function ShareError({ t
 
   return (
     <Content>
-      <Image src={errorData.icon} alt="File not found" />
+      <Image src={errorData.icon} alt="Object not found" />
       <Heading fontWeight={600} fontSize={24} lineHeight="36px" mt={10} mb={16}>
         {errorData.title}
       </Heading>
       <Text fontSize={16} lineHeight="19px" color="readable.secondary" maxW={434} mb={32}>
         {errorData.desc}
       </Text>
-      <Link href="/" legacyBehavior passHref replace>
+      <Link href="/buckets" legacyBehavior passHref replace>
         <DCButton variant="dcPrimary" w={188} h={48} as="a" mb={40} fontSize={16}>
           Back to Home
         </DCButton>

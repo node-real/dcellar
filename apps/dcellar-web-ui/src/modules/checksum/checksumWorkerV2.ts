@@ -8,9 +8,11 @@ export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;
 }
 
-export type THashResult =
-  | { contentLength: number; expectCheckSums: string[]; fileChunks: number }
-  | undefined;
+export type THashResult = {
+  contentLength: number;
+  expectCheckSums: string[];
+  fileChunks: number;
+};
 
 const segmentSize = 16 * 1024 * 1024;
 const dataBlocks = 4;
@@ -86,7 +88,7 @@ secondWorkers = _initSecondWorkers({
 });
 
 export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
-  if (!file) return;
+  if (!file) return {} as THashResult;
 
   const taskId = Date.now();
   let checkSumRes: THashResult;
@@ -156,7 +158,7 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
     console.log('check sum error', e);
   }
 
-  return checkSumRes;
+  return checkSumRes!;
 };
 
 Comlink.expose({

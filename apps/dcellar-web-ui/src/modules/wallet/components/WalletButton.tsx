@@ -1,13 +1,12 @@
 import React from 'react';
 import { useMemo } from 'react';
 import { useNetwork } from 'wagmi';
-
 import { isRightChain } from '../utils/isRightChain';
 import { WalletOperationInfos } from '../constants';
-import { OperationTypeContext } from '..';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
+import { useAppSelector } from '@/store';
 
 type Props = {
   isSubmitting: boolean;
@@ -24,9 +23,8 @@ export const WalletButton = ({
   gaClickSubmitName,
   gaClickSwitchName,
 }: Props) => {
-  const contextVals = React.useContext(OperationTypeContext);
-
-  const curInfo = WalletOperationInfos[contextVals.type];
+  const { transType } = useAppSelector((root) => root.wallet);
+  const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
   const { switchNetwork } = useWalletSwitchNetWork();
 

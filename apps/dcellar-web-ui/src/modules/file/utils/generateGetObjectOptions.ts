@@ -1,36 +1,32 @@
-import { generateUrlByBucketName, isValidUrl } from '@bnb-chain/greenfield-chain-sdk';
-import {
-  getObjectPropsType,
-  requestParamsType,
-  validateBucketName,
-  validateObjectName,
-} from './file';
+import { getObjectPropsType } from './file';
 import { getClient } from '@/base/client';
-import { encodeObjectName } from '@/utils/string';
+import dayjs from 'dayjs';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
 export const generateGetObjectOptions = async (
   configParam: getObjectPropsType,
-): Promise<requestParamsType> => {
-  const { bucketName, objectName, endpoint, userAddress, domain, seedString } = configParam;
-  if (!isValidUrl(endpoint)) {
-    throw new Error('Invalid endpoint');
-  }
-  validateBucketName(bucketName);
-  validateObjectName(objectName);
-  const url = generateUrlByBucketName(endpoint, bucketName) + '/' + encodeObjectName(objectName);
+): Promise<string> => {
+  const {
+    bucketName,
+    objectName,
+    address,
+    seedString,
+    view = '1',
+    duration = 24 * 60 * 60,
+    endpoint,
+  } = configParam;
   const client = await getClient();
-  const { code, body } = await client.offchainauth.sign(seedString);
-  if (code !== 0) {
-    throw new Error('Failed to sign');
-  }
-  const headers = new Headers({
-    Authorization: body?.authorization || '',
-    'X-Gnfd-User-Address': userAddress,
-    'X-Gnfd-App-Domain': domain,
-  });
-  return {
-    url,
-    headers,
-    method: 'get',
+  const auth: AuthType = {
+    type: 'EDDSA',
+    address: address,
+    domain: window.location.origin,
+    seed: seedString,
   };
+  const queryMap = {
+    view,
+    'X-Gnfd-User-Address': address,
+    'X-Gnfd-App-Domain': window.location.origin,
+    'X-Gnfd-Expiry-Timestamp': dayjs().add(duration, 'second').toISOString(),
+  };
+  return client.object.getObjectPreviewUrl({ bucketName, objectName, queryMap, endpoint }, auth);
 };

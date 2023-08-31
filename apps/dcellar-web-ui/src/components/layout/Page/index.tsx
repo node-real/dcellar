@@ -29,6 +29,7 @@ export function Page(props: React.PropsWithChildren) {
   return (
     <Flex minH={'100vh'} minW={'1000px'} bg="bg.bottom" position={'relative'}>
       <Flex
+        minW={0}
         flex={1}
         flexDirection={'column'}
         justifyContent="space-between"
@@ -39,16 +40,16 @@ export function Page(props: React.PropsWithChildren) {
           flex={1}
           ml="269px"
           mt="64px"
-          minW={'calc(100vw - 269px)'}
+          minW={'calc(100% - 269px)'}
           flexDirection={'column'}
           bg="bg.bottom"
         >
           {children}
+          <Nav />
           {isShowFooter && <Footer />}
         </Flex>
         <Header />
       </Flex>
-      <Nav />
     </Flex>
   );
 }

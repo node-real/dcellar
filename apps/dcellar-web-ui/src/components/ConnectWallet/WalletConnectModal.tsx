@@ -9,18 +9,16 @@ import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useCallback, useEffect, useState } from 'react';
 import { ConnectorNotFoundError } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
-import { useLogin } from '@/hooks/useLogin';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
+import { useAppSelector } from '@/store';
 
 export interface WalletConnectModalProps extends DCModalProps {}
 
 export function WalletConnectModal(props: WalletConnectModalProps) {
   const { isOpen, onClose } = props;
 
-  const { loginState } = useLogin();
-  const [currentAddress, setCurrentAddress] = useState<string | undefined>(loginState.address);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
 
   const { isAuthPending } = useAppLogin(currentAddress);
 
@@ -32,10 +30,10 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
     if (err instanceof ConnectorNotFoundError) {
       const { connector } = args;
 
-      if (connector instanceof MetaMaskConnector) {
-        window.open(METAMASK_DOWNLOAD_URL, '_blank');
-      } else if (connector instanceof InjectedConnector && connector.name === 'Trust Wallet') {
+      if (connector.id === 'trust') {
         window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
+      } else if (connector.id === 'metaMask') {
+        window.open(METAMASK_DOWNLOAD_URL, '_blank');
       }
     }
   }, []);

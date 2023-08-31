@@ -1,6 +1,6 @@
 import { Box, Flex, Text } from '@totejs/uikit'
 import React from 'react'
-import FileIcon from '@/public/images/icons/file.svg';
+import FileIcon from '@/public/images/icons/bucket_icon.svg';
 import { formatFullTime } from '@/utils/time';
 import { DiscontinueNotice } from './DiscontinueNotice';
 
@@ -10,13 +10,13 @@ export const BucketNameItem = ({ info }: any) => {
     row: { original },
   } = info;
   const {
-    delete_at,
-    bucket_info: {
-      bucket_status
+    DeleteAt,
+    BucketInfo: {
+      BucketStatus
     }
   } = original.originalData;
-  const isContinued = bucket_status === 1;
-  const estimateTime = formatFullTime(+delete_at * 1000 + 7 * 24 * 60 * 60 * 1000, 'YYYY-MM-DD HH:mm:ss');
+  const isContinued = BucketStatus === 1;
+  const estimateTime = formatFullTime(+DeleteAt * 1000 + 7 * 24 * 60 * 60 * 1000, 'YYYY-MM-DD HH:mm:ss');
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`
 
   return (
@@ -34,7 +34,7 @@ export const BucketNameItem = ({ info }: any) => {
       >
         {info.getValue()}
       </Text>
-      {isContinued && <DiscontinueNotice content={content} learnMore={'https://docs.nodereal.io/docs/faq-1#question-what-is-discontinue'} />}
+      {isContinued && <DiscontinueNotice content={content} learnMore={'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-discontinue'} />}
     </Flex>
   )
 }

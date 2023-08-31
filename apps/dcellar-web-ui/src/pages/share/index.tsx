@@ -1,10 +1,9 @@
-import { NextPageContext } from 'next';
+import { NextPage, NextPageContext } from 'next';
 import { last } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
-import { useSPs } from '@/hooks/useSPs';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex } from '@totejs/uikit';
@@ -19,9 +18,14 @@ import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/st
 import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import { ShareLogin } from '@/modules/share/ShareLogin';
 import { Header } from '@/components/layout/Header';
-import { useLogin } from '@/hooks/useLogin';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { hasObjectPermission, headObject } from '@/facade/object';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { headBucket } from '@/facade/bucket';
+import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -29,33 +33,71 @@ const Container = styled.main`
   display: grid;
 `;
 
-export interface SharePageProps {
-  bucketName: string;
-  fileName: string;
+interface PageProps {
   objectName: string;
+  fileName: string;
+  bucketName: string;
 }
 
-const SharePage = (props: SharePageProps) => {
+const SharePage: NextPage<PageProps> = (props) => {
+  const { oneSp } = useAppSelector((root) => root.sp);
   const isMounted = useIsMounted();
-  const { sp } = useSPs();
-  const loginData = useLogin();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
   const { objectName, fileName, bucketName } = props;
   const title = `${bucketName} - ${fileName}`;
-  const { loginState } = loginData;
-  const loginAccount = loginState?.address;
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const dispatch = useAppDispatch();
+  const [getPermission, setGetPermission] = useState(true);
+  const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
 
   useAsyncEffect(async () => {
-    if (!sp) return;
-    const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(
+    if (!oneSp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    const bucketInfo = await headBucket(bucketName);
+    if (!bucketInfo) {
+      // bucket not exist
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
+    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId));
+    if (!sp) {
+      // bucket not exist
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
+    setPrimarySp(sp);
+    const params = {
       bucketName,
       objectName,
-      sp.endpoint,
-    );
+      endpoint: sp.endpoint,
+      seedString,
+      address: loginAccount,
+    };
+    if (!loginAccount || !isOwner) {
+      const objectInfo = await headObject(bucketName, objectName);
+      setObjectInfo(objectInfo);
+      setQuotaData({} as IQuotaProps);
+      return;
+    }
+
+    const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(params);
     setObjectInfo(objectInfo);
     setQuotaData(quotaData);
-  }, [sp]);
+  }, [oneSp]);
+
+  useAsyncEffect(async () => {
+    if (!loginAccount) return;
+    const res = await hasObjectPermission(
+      bucketName,
+      objectName,
+      PermissionTypes.ActionType.ACTION_GET_OBJECT,
+      loginAccount,
+    );
+    setGetPermission(res.effect === PermissionTypes.Effect.EFFECT_ALLOW);
+  }, [bucketName, objectName, loginAccount]);
 
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
   const walletConnected = !!loginAccount;
@@ -74,8 +116,16 @@ const SharePage = (props: SharePageProps) => {
       <Flex>
         <Box flex={1}>
           <Container>
-            {(!isPrivate || walletConnected) && (
-              <Logo zIndex={1} href="/" margin="20px 24px" position="absolute" left={0} top={0} />
+            {walletConnected && <Header taskManagement={false} />}
+            {!isPrivate && !walletConnected && (
+              <Logo
+                zIndex={1}
+                href="/buckets"
+                margin="20px 24px"
+                position="absolute"
+                left={0}
+                top={0}
+              />
             )}
             {quotaData === undefined || objectInfo === undefined ? (
               <Loading />
@@ -85,11 +135,11 @@ const SharePage = (props: SharePageProps) => {
               <ShareLogin />
             ) : (
               <>
-                {walletConnected && <Header />}
-                {isPrivate && !isOwner ? (
+                {isPrivate && !isOwner && !getPermission ? (
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (
                   <SharedFile
+                    primarySp={primarySp}
                     loginAccount={loginAccount as string}
                     objectInfo={objectInfo}
                     quotaData={quotaData}
@@ -107,14 +157,15 @@ const SharePage = (props: SharePageProps) => {
   );
 };
 
-export const getServerSideProps = async (context: NextPageContext) => {
+// ref https://github.com/kirill-konshin/next-redux-wrapper/issues/545
+SharePage.getInitialProps = async (context: NextPageContext) => {
   const { query, res } = context;
   const { file } = query;
 
   const redirect = () => {
     res!.statusCode = 302;
     res!.setHeader('location', '/buckets');
-    return { props: {} };
+    return { bucketName: '', fileName: '', objectName: '' };
   };
 
   if (!file) return redirect();
@@ -125,7 +176,11 @@ export const getServerSideProps = async (context: NextPageContext) => {
 
   if (!fileName) return redirect();
 
-  return { props: { bucketName, fileName, objectName } };
+  return { bucketName, fileName, objectName };
+};
+
+(SharePage as any).getLayout = function getLayout(page: ReactNode) {
+  return <>{page}</>;
 };
 
 export default SharePage;

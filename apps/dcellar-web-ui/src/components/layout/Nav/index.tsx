@@ -4,11 +4,15 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 import BucketsIcon from '@/public/images/icons/buckets.svg';
+import GroupsIcon from '@/public/images/icons/groups.svg';
 import WalletIcon from '@/public/images/icons/wallet.svg';
+import GroupsFilledIcon from '@/public/images/icons/groups-filled.svg';
 import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
 import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
+import AccountsIcon from '@/public/images/icons/accounts.svg';
+import AccountsFilledIcon from '@/public/images/icons/accounts_filled.svg';
 import { Logo } from '../Logo';
-import { isActiveUrl } from '@/utils/isActiveUrl';
+import { isActivePath } from '@/utils/isActivePath';
 import { GAClick } from '@/components/common/GATracker';
 import { DcellarDoc, FAQ } from '@/constants/links';
 import { DocIcon, HelpIcon } from '@totejs/icons';
@@ -19,15 +23,30 @@ const MENU_LIST = [
     icon: () => <BucketsIcon color="readable.normal" />,
     selectedIcon: () => <BucketsFilledIcon color={'#00BA34'} />,
     text: 'Buckets',
-    link: '/buckets',
+    path: '/buckets',
     enablePrefix: true,
     gaClickName: 'dc.main.nav.bucket.click',
+  },
+  {
+    icon: () => <GroupsIcon color="readable.normal" />,
+    selectedIcon: () => <GroupsFilledIcon color={'#00BA34'} />,
+    text: 'Groups',
+    path: '/groups',
+    enablePrefix: true,
+    gaClickName: 'dc.main.nav.groups.click',
+  },
+  {
+    icon: () => <AccountsIcon color="readable.normal" />,
+    selectedIcon: () => <AccountsFilledIcon color="#00BA34" />,
+    text: 'Accounts',
+    path: `/accounts`,
+    gaClickName: 'dc.main.nav.accounts.click',
   },
   {
     icon: () => <WalletIcon color="readable.normal" />,
     selectedIcon: () => <WalletFilledIcon color="#00BA34" />,
     text: 'Wallet',
-    link: `/wallet`,
+    path: `/wallet`,
     gaClickName: 'dc.main.nav.wallet.click',
   },
 ];
@@ -53,11 +72,10 @@ export const Nav = () => {
       left={0}
       top={0}
       bottom={0}
-      zIndex={1}
     >
       <Flex height={'64px'} paddingLeft="24px" alignItems={'center'}>
         <GAClick name="dc.main.nav.logo.click">
-          <Logo href="/" />
+          <Logo href="/buckets" />
         </GAClick>
         <Box
           fontSize={'12px'}
@@ -75,7 +93,7 @@ export const Nav = () => {
         {MENU_LIST &&
           MENU_LIST.map((item) => (
             <GAClick key={item.text} name={item.gaClickName}>
-              <Link href={item.link}>
+              <Link href={item.path} replace>
                 <Flex
                   fontSize={'16px'}
                   cursor={'pointer'}
@@ -86,17 +104,17 @@ export const Nav = () => {
                   onMouseOver={over}
                   onMouseOut={out}
                   backgroundColor={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? 'rgba(0, 186, 52, 0.1)'
                       : 'none'
                   }
                   color={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? '#009E2C'
                       : '#1E2026'
                   }
                   _hover={
-                    isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix)
+                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
                       ? {
                           backgroundColor: 'rgba(0, 186, 52, 0.15)',
                           color: '#009E2C',
@@ -107,7 +125,7 @@ export const Nav = () => {
                         }
                   }
                 >
-                  {isActiveUrl(router.pathname, item.link, router.basePath, item.enablePrefix) ? (
+                  {isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix) ? (
                     <item.selectedIcon />
                   ) : (
                     <item.icon />

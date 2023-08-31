@@ -1,8 +1,6 @@
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
-import React, { useContext, useMemo } from 'react';
-
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
+import React, { useMemo } from 'react';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
@@ -10,7 +8,10 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import LoadingIcon from '@/public/images/icons/loading.svg';
-import { useDefaultChainBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
+import { GAS_FEE_DOC } from '@/modules/file/constant';
 
 type GasFeeProps = {
   gasFee: BigNumber | null;
@@ -18,28 +19,26 @@ type GasFeeProps = {
   hasError: boolean;
 };
 export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const { availableBalance } = useDefaultChainBalance();
-  const balance = BigNumber(availableBalance || 0);
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
+  const balance = BigNumber(_availableBalance || 0);
   const strGasFee = gasFee && gasFee.dp(8).toString();
   const usdGasFee =
     gasFee &&
     currencyFormatter(
-      gasFee
-        .times(bnbPrice || 0)
-        .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
-        .toString(DECIMAL_NUMBER),
+      gasFee.times(bnbPrice).dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER),
     );
+
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
 
   const strBalance = balance && balance.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
   const usdBalance =
     balance &&
-    currencyFormatter(
-      balance
-        .times(bnbPrice || 0)
-        .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
-        .toString(),
-    );
+    currencyFormatter(balance.times(bnbPrice).dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString());
   const feeDisplay = useMemo(() => {
     if (hasError || gasFee === null) {
       return `-- --`;
@@ -49,17 +48,27 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   }, [gasFee, hasError, strGasFee, usdGasFee]);
 
   return (
-    <>
-      <Flex
-        backgroundColor={'#FAFAFA'}
-        borderRadius={'8px'}
-        padding="14px 16px 12px"
-        justifyContent={'space-between'}
-        marginTop="32px"
-        color="#76808F"
-        alignItems="flex-start"
-      >
-        <Box mt="4px">Gas fee</Box>
+    <Flex
+      backgroundColor={'#FAFAFA'}
+      borderRadius={'8px'}
+      padding="14px 16px 12px"
+      justifyContent={'space-between'}
+      marginTop="32px"
+      color="#76808F"
+      alignItems="flex-start"
+      flexDirection={'column'}
+    >
+      <Flex justifyContent={'space-between'} w={'100%'} h={24}>
+        <Box mt="4px" w={260}>
+          Gas fee{' '}
+          <Text display={'inline-block'} color={'readable.disabled'}>
+            (
+            <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
+              Pay by Owner Account
+            </Link>
+            )
+          </Text>
+        </Box>
         <Box textAlign={'right'}>
           <Flex
             fontSize={'14px'}
@@ -74,17 +83,20 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
               feeDisplay
             )}
           </Flex>
-          <Box
-            fontSize={'12px'}
-            lineHeight={'15px'}
-            wordBreak={'break-all'}
-            marginTop={'4px'}
-            color={'readable.disabled'}
-          >
-            {`Available balance: ${strBalance} BNB (${usdBalance})`}
-          </Box>
         </Box>
       </Flex>
-    </>
+      <Box
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        wordBreak={'break-all'}
+        marginTop={'4px'}
+        color={'readable.disabled'}
+        justifyContent={'flex-end'}
+        width={'100%'}
+        textAlign={'right'}
+      >
+        {`Available balance: ${strBalance} BNB (${usdBalance})`}
+      </Box>
+    </Flex>
   );
 };

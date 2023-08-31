@@ -36,9 +36,11 @@ export function CopyText(props: CopyTextProps) {
       lineHeight="20px"
       fontWeight={500}
       {...restProps}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
     >
       <Box>{children}</Box>
-
       <Tooltip
         content={
           hasCopied ? (
@@ -57,7 +59,7 @@ export function CopyText(props: CopyTextProps) {
             size="sm"
             variant="link"
             color={hasCopied ? "readable.brand6":"readable.normal"}
-            icon={<CopyIcon size="md" />}
+            icon={<CopyIcon size="md" color='readable.tertiary' />}
             onClick={onCopy}
             _hover={{
               color: 'readable.brand5',

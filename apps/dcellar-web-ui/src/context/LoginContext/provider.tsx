@@ -1,72 +1,79 @@
-import { ReactNode, useReducer, useEffect, useMemo, useCallback, PropsWithChildren } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
 
-import {
-  LoginReducer,
-  LoginContext,
-  initializer,
-  initialState,
-  LOGIN_STORAGE_KEY,
-} from '@/context/LoginContext/index';
+import { LoginContext } from '@/context/LoginContext/index';
 
 import { useAccount, useDisconnect } from 'wagmi';
-import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { removeOffChainData } from '@/modules/off-chain-auth/utils';
 import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
 import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { useRouter } from 'next/router';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { checkSpOffChainMayExpired, setLogout } from '@/store/slices/persist';
+import { useAsyncEffect } from 'ahooks';
+import { resetUploadQueue } from '@/store/slices/global';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button
 }
 
 export function LoginContextProvider(props: PropsWithChildren<LoginContextProviderProps>) {
+  const dispatch = useAppDispatch();
   const { children, inline = false } = props;
-
-  const [loginState, loginDispatch] = useReducer(LoginReducer, initialState, initializer);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(loginState));
-    }
-  }, [loginState]);
+  const { loginAccount } = useAppSelector((root) => root.persist);
 
   const { disconnect } = useDisconnect();
 
-  const logout = useCallback(() => {
-    loginDispatch({
-      type: 'LOGOUT',
-    });
-
-    removeOffChainData(loginState?.address, GREENFIELD_CHAIN_ID);
-    disconnect();
-  }, [disconnect, loginState?.address]);
+  const logout = useCallback(
+    (removeSpAuth = false) => {
+      dispatch(resetUploadQueue({ loginAccount }));
+      dispatch(setLogout(removeSpAuth));
+      disconnect();
+    },
+    [disconnect, dispatch, loginAccount],
+  );
 
   const value = useMemo(() => {
     return {
-      loginState,
-      loginDispatch,
       logout,
     };
-  }, [loginState, logout]);
+  }, [logout]);
 
   useWalletSwitchAccount(() => {
     logout();
   });
 
   const { pathname } = useRouter();
-  const { address: walletAddress } = useAccount();
+  const { address: walletAddress, connector } = useAccount();
 
   useEffect(() => {
     if (pathname === '/' || inline) return;
 
-    if (!walletAddress || loginState.address !== walletAddress) {
+    if (!walletAddress || loginAccount !== walletAddress) {
       logout();
     }
-    // don't remove the eslint comment
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletAddress, pathname]);
 
-  const { pass } = useLoginGuard(loginState, inline);
+    // Once the wallet is connected, we can get the address
+    // but if wallet is locked, we can't get the connector from wagmi
+    // to avoid errors when using the connector, we treat this situation as logout.
+    const timer = setTimeout(() => {
+      if (!connector) {
+        logout();
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [connector, inline, loginAccount, logout, pathname, walletAddress]);
+
+  useAsyncEffect(async () => {
+    if (loginAccount === walletAddress) {
+      // expire date less than 24h，remove sp auth & logout
+      const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
+      if (spMayExpired) logout(true);
+    }
+  }, [walletAddress]);
+
+  const { pass } = useLoginGuard(inline);
 
   if (!pass) {
     return null;

@@ -1,3 +1,4 @@
+/// <reference types="redux-persist" />
 import { BaseThemeTypings } from '@totejs/uikit';
 
 declare module '@totejs/uikit' {
@@ -27,7 +28,10 @@ declare global {
     ethereum: any;
     ga: any;
     clipboardData: any;
+    trustWallet: any;
     trustwallet: any;
+    // zk.wasm export
+    eddsaSign: any;
   }
 }
 

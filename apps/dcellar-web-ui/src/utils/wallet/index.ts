@@ -1,6 +1,7 @@
 import Long from 'long';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
+import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -44,16 +45,20 @@ const getNumInDigits = (
 const getLockFee = async (size = 0, primarySpAddress: string) => {
   try {
     const client = await getClient();
-    const spStoragePrice = await client.sp.getStoragePriceByTime(primarySpAddress);
-    const secondarySpStorePrice = await client.sp.getSecondarySpStorePrice();
+    const now = Math.floor(getUtcZeroTimestamp()/1000);
+    const globalSpStorePrice = await client.sp.getQueryGlobalSpStorePriceByTime({
+      timestamp: Long.fromNumber(now),
+    });
+    const spStoragePrice = globalSpStorePrice?.globalSpStorePrice.primaryStorePrice;
+    const secondarySpStorePrice = globalSpStorePrice?.globalSpStorePrice.secondaryStorePrice;
     const { params } = await client.storage.params();
     const {
       minChargeSize = new Long(0),
       redundantDataChunkNum = 0,
       redundantParityChunkNum = 0,
-    } = params && params.versionedParams || {};
-    const { params: paymentParams = {} } = await client.payment.params();
-    const { reserveTime } = paymentParams as any;
+    } = (params && params.versionedParams) || {};
+    const { params: paymentParams } = await client.payment.params();
+    const { reserveTime, validatorTaxRate = '' } = paymentParams?.versionedParams || {};
     const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
     const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
       .plus(
@@ -62,10 +67,12 @@ const getLockFee = async (size = 0, primarySpAddress: string) => {
         ),
       )
       .times(BigNumber(chargeSize))
+      .times(BigNumber(validatorTaxRate))
       .dividedBy(Math.pow(10, 18));
     const lockFeeInBNB = lockedFeeRate
-      .times(BigNumber(reserveTime.toString()))
+      .times(BigNumber(reserveTime?.toString() || 0))
       .dividedBy(Math.pow(10, 18));
+
     return lockFeeInBNB.toString();
   } catch (error: any) {
     // eslint-disable-next-line no-console

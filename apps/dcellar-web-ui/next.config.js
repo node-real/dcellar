@@ -48,11 +48,14 @@ const sentryWebpackPluginOptions = {
   authToken: '9e42bc70fd9f45e7a3aaac568e0204a60e734f6ce56d4384af57bedf72e0fcc8',
 };
 
+/**
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
   headers: async () => [
     {
       // cache public folder assets (default max-age: 0).
-      source: `${assetPrefix}/:public(fonts|images|wasm|zk-wasm)/:path*`,
+      source: `${assetPrefix}/:public(fonts|images|wasm|zk-crypto)/:path*`,
       locale: false,
       headers: [
         {
@@ -80,6 +83,9 @@ const nextConfig = {
   },
   sentry: {
     hideSourceMaps: true,
+  },
+  experimental: {
+    instrumentationHook: true,
   },
 };
 

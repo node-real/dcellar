@@ -9,14 +9,12 @@ import {
   InputRightElement,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback } from 'react';
-import { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
-import { OperationTypeContext } from '..';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -29,11 +27,11 @@ import BNBIcon from '@/public/images/icons/bnb.svg';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
-import {
-  useChainsBalance,
-  useDefaultChainBalance,
-} from '@/context/GlobalContext/WalletBalanceContext';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useMount } from 'ahooks';
 
 type AmountProps = {
   disabled: boolean;
@@ -44,6 +42,7 @@ type AmountProps = {
   setValue: UseFormSetValue<TWalletFromValues>;
   getGasFee?: GetFeeType;
   maxDisabled?: boolean;
+  balance: string;
 };
 
 const AmountErrors = {
@@ -55,56 +54,47 @@ const AmountErrors = {
 };
 
 const DefaultFee = {
-  // TODO temp down limit fee
   transfer_in: 0.00008 + 0.002,
   transfer_out: 0.000006 + 0.001,
   send: 0.000006,
 };
 
-export const Amount = ({
-  register,
-  errors,
-  disabled,
-  watch,
-  feeData,
-  setValue,
-  getGasFee,
-  maxDisabled,
-}: AmountProps) => {
-  const { type, bnbPrice } = React.useContext(OperationTypeContext);
-  const defaultFee = DefaultFee[type];
-  const curInfo = WalletOperationInfos[type];
+export const Amount = ({ register, errors, disabled, watch, balance, feeData, setValue }: AmountProps) => {
+  const dispatch = useAppDispatch();
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const { transType } = useAppSelector((root) => root.wallet);
+  const defaultFee = DefaultFee[transType];
+  const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
-  const { availableBalance: balance } = useDefaultChainBalance();
-  const { isLoading, all } = useChainsBalance();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
+  const isSendPage = transType === 'send';
 
-  // balance always show no matter what chain is selected by metamask
+  useMount(() => {
+    dispatch(setupTmpAvailableBalance(address));
+  });
+
   const Balance = useCallback(() => {
     if (isLoading) return null;
 
-    let newBalance = null;
-    // bsc balance
-    if (type === EOperation.transfer_in) {
-      newBalance = all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance;
-    } else {
-      // gnfd balance
-      newBalance = all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance;
-    }
-    newBalance = newBalance || 0;
     const val = trimFloatZero(
-      BigNumber(newBalance || 0)
+      BigNumber(balance || 0)
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = bnbPrice && BigNumber(newBalance).times(BigNumber(bnbPrice.value || 0));
+    const usdPrice = BigNumber(balance || 0).times(BigNumber(bnbPrice));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
-    return `Balance on ${curInfo?.chainName}: ${val}${' '}BNB (${unifyUsdPrice})`;
-  }, [all, bnbPrice, curInfo?.chainName, isLoading, type]);
+    return (
+      <>
+        Balance on {curInfo?.chainName}: {val} BNB ({unifyUsdPrice})
+      </>
+    );
+  }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
 
   // const onMaxClick = async () => {
   //   if (balance && feeData) {
@@ -187,8 +177,7 @@ export const Amount = ({
                 validateBalance: (val: string) => {
                   let totalAmount = BigNumber(0);
                   const balanceVal = BigNumber(balance || 0);
-                  // TODO temp limit
-                  if (type === EOperation.send) {
+                  if (transType === EOperation.send) {
                     totalAmount =
                       gasFee.toString() === '0'
                         ? BigNumber(val).plus(BigNumber(defaultFee))
@@ -199,8 +188,7 @@ export const Amount = ({
                         ? BigNumber(val).plus(BigNumber(defaultFee))
                         : BigNumber(val).plus(gasFee).plus(relayerFee);
                   }
-
-                  return !balance ? true : totalAmount.comparedTo(balanceVal) <= 0;
+                  return totalAmount.comparedTo(balanceVal) <= 0;
                 },
                 validateNum: (val: string) => {
                   const precisionStr = val.split('.')[1];
@@ -222,9 +210,9 @@ export const Amount = ({
           {/* @ts-ignore */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
-        <FormHelperText textAlign={'right'} color="#76808F">
-          {Balance()}
-        </FormHelperText>
+        {!isSendPage && <FormHelperText textAlign={'right'} color="#76808F">
+          <Balance />
+        </FormHelperText>}
       </FormControl>
     </>
   );

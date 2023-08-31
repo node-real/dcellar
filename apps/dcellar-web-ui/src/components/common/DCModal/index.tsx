@@ -22,6 +22,7 @@ export const DCModal = (props: DCModalProps) => {
       });
     }
     onClose?.();
+    document.documentElement.style.overflowY = '';
   };
 
   return (

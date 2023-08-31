@@ -1,8 +1,7 @@
 import { Text } from '@totejs/uikit';
 import React from 'react';
-
-import { OperationTypeContext } from '..';
 import { POPPINS_FONT } from '../constants';
+import { useAppSelector } from '@/store';
 
 const HeadContent = {
   transfer_in: {
@@ -15,13 +14,13 @@ const HeadContent = {
   },
   send: {
     title: 'send',
-    subtitle: 'Send BNB to another BNB Greenfield account.',
+    subtitle: 'Send/deposit/withdraw between BNB Greenfield accounts.',
   },
 };
 
 export const Head = () => {
-  const { type } = React.useContext(OperationTypeContext);
-  const content = HeadContent[type];
+  const { transType } = useAppSelector((root) => root.wallet);
+  const content = HeadContent[transType];
   return (
     <>
       <Text

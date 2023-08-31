@@ -1,47 +1,48 @@
-import { useContext } from 'react';
-import { Box, Flex, Text, Link } from '@totejs/uikit';
-
+import { Flex, Text, Circle } from '@totejs/uikit';
 import { getNumInDigits } from '@/utils/wallet';
-import { useAvailableBalance } from '@/hooks/useAvailableBalance';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { BnbPriceContext } from '@/context/GlobalContext/BnbPriceProvider';
 import { Tips } from '@/components/common/Tips';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { useMount } from 'ahooks';
+import { selectBalance } from '@/store/slices/balance';
+import BSCLogo from '@/public/images/accounts/logo-bsc.svg';
+import { setupAccountsInfo } from '@/store/slices/accounts';
 
 const NewBalance = (props: any) => {
-  const { availableBalance, lockFee } = useAvailableBalance();
-  const { value: bnbPrice } = useContext(BnbPriceContext);
-  const exchangeRate = bnbPrice?.toNumber() ?? 0;
+  const dispatch = useAppDispatch();
+  const exchangeRate = useAppSelector(selectBnbPrice);
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const {bankBalance: availableBalance} = useAppSelector(root=> root.accounts);
+  useMount(() => {
+    dispatch(setupAccountsInfo(address))
+  });
+
   const renderBalanceNumber = () => {
     if (Number(availableBalance) < 0) return 'Fetching balance...';
     return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
   };
 
-  const renderFeeNumber = () => {
-    if (Number(lockFee) < 0) return 'Fetching lock fee...';
-    const fee = getNumInDigits(lockFee, CRYPTOCURRENCY_DISPLAY_PRECISION);
-
-    return Number(fee) === 0 && Number(lockFee) > 0 ? `≈${fee} BNB` : `${fee} BNB`;
-  };
-
   const renderUsd = () => {
-    if (exchangeRate <= 0) return '';
-    const numberInUsd = Number(availableBalance) * exchangeRate;
+    if (Number(exchangeRate) <= 0) return '';
+    const numberInUsd = Number(availableBalance) * Number(exchangeRate);
     return `≈ $${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
   };
+
   return (
-    <Flex w="100%" flexDirection={'column'}>
-      <Flex alignItems="center" mt="4px" flexWrap="wrap">
-        <Text color="readable.normal" fontWeight="700" fontSize="20px" mr="8px">
-          {renderBalanceNumber()}
-        </Text>
+    <Flex w="100%" flexDirection={'column'} marginBottom={16}>
+      <Flex alignItems="center" mt="4px" flexDirection={'column'} gap={8} flexWrap="wrap">
+        <Flex color="readable.normal" fontWeight="700" fontSize="24px" mr="8px" alignItems={'center'}>
+          <Circle backgroundColor={'#F0B90B'} size='24px' marginRight={10}><BSCLogo /></Circle> {renderBalanceNumber()}
+        </Flex>
         <Text color="readable.disabled" fontWeight="400" fontSize="12px">
           {renderUsd()}
         </Text>
       </Flex>
-      <Flex
+      {/* <Flex
         w="100%"
         bg={'bg.bottom'}
         padding={'8px'}
@@ -71,10 +72,10 @@ const NewBalance = (props: any) => {
             <Box fontSize={'12px'} lineHeight="14px" width={'240px'}>
               <Box>
                 Greenfield will lock a certain amount of BNB and charge the storage fee by a certain
-                flow rate based on your file size.
+                flow rate based on your object size.
               </Box>
               <Link
-                href="https://docs.nodereal.io/docs/faq-1#question-what-is-flow-rate"
+                href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is-flow-rate"
                 target="_blank"
                 color="readable.primary"
                 textDecoration="underline"
@@ -84,7 +85,7 @@ const NewBalance = (props: any) => {
             </Box>
           }
         />
-      </Flex>
+      </Flex> */}
     </Flex>
   );
 };

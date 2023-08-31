@@ -5,22 +5,33 @@ import { Flex, Image, Text, useDisclosure } from '@totejs/uikit';
 import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
-import { IQuotaProps } from '@bnb-chain/greenfield-chain-sdk/dist/esm/types/storage';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
-import { useSPs } from '@/hooks/useSPs';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
-import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { headObject, quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_SP_NOT_FOUND, E_UNKNOWN } from '@/facade/error';
-import { find } from 'lodash-es';
+import {
+  downloadObject,
+  getCanObjectAccess,
+  hasObjectPermission,
+  previewObject,
+} from '@/facade/object';
+import { quotaRemains } from '@/facade/bucket';
+import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
+import { useAppDispatch } from '@/store';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { SpItem } from '@/store/slices/sp';
+import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 interface SharedFileProps {
   fileName: string;
   objectInfo: ObjectInfo;
   quotaData: IQuotaProps;
   loginAccount: string;
+  primarySp: SpItem;
 }
 
 type ActionType = 'view' | 'download' | '';
@@ -30,8 +41,9 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   objectInfo,
   quotaData,
   loginAccount,
+  primarySp,
 }) {
-  const { sp, sps } = useSPs();
+  const dispatch = useAppDispatch();
   const [action, setAction] = useState<ActionType>('');
   const [statusModalIcon, setStatusModalIcon] = useState<string>('');
   const [statusModalTitle, setStatusModalTitle] = useState('');
@@ -41,14 +53,17 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     onOpen: onStatusModalOpen,
     onClose: onStatusModalClose,
   } = useDisclosure();
+  const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
-  const endpoint = sp.endpoint;
   const size = payloadSize.toString();
 
-  const onError = (type: ShareErrorType) => {
+  const onError = (type: string) => {
     setAction('');
-    const errorData = SHARE_ERROR_TYPES[type]
-      ? SHARE_ERROR_TYPES[type]
+    if (type === E_OFF_CHAIN_AUTH) {
+      return setOpenAuthModal();
+    }
+    const errorData = SHARE_ERROR_TYPES[type as ShareErrorType]
+      ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
     setStatusModalIcon(errorData.icon);
     setStatusModalTitle(errorData.title);
@@ -57,42 +72,53 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   };
 
   const onAction = async (e: ActionType) => {
-    if (action) return;
+    if (action === e) return;
     reportEvent({
       name:
         e === 'download'
           ? 'dc.shared_ui.preview.download.click'
           : 'dc.shared_ui.preview.view.click',
     });
-
     let remainQuota = quotaRemains(quotaData, size);
     if (!remainQuota) return onError(E_NO_QUOTA);
 
     setAction(e);
-    const [_, accessError] = await getCanObjectAccess(
-      bucketName,
-      objectName,
-      endpoint,
-      loginAccount,
-    );
-    const errType = accessError as ShareErrorType;
-    if (errType) return onError(errType);
-
-    const bucketInfo = await headObject(bucketName);
-    if (!bucketInfo) return onError(E_UNKNOWN);
-
-    const primarySp = find(sps, (sp) => sp.operatorAddress === bucketInfo.primarySpAddress);
-    if (!primarySp) return onError(E_SP_NOT_FOUND);
-
+    const operator = primarySp.operatorAddress;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
+    const isPrivate = objectInfo.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
+    if (isPrivate) {
+      if (loginAccount === objectInfo.owner) {
+        const [_, accessError] = await getCanObjectAccess(
+          bucketName,
+          objectName,
+          primarySp.endpoint,
+          loginAccount,
+          seedString,
+        );
+        const errType = accessError as ShareErrorType;
+        if (errType) return onError(errType);
+      } else {
+        const res = await hasObjectPermission(
+          bucketName,
+          objectName,
+          PermissionTypes.ActionType.ACTION_GET_OBJECT,
+          loginAccount,
+        );
+        if (res.effect !== PermissionTypes.Effect.EFFECT_ALLOW) {
+          return onError(E_PERMISSION_DENIED);
+        }
+      }
+    }
     const params = {
       primarySp,
       objectInfo,
       address: loginAccount,
     };
     const [success, opsError] = await (e === 'download'
-      ? downloadObject(params)
-      : previewObject(params));
+      ? downloadObject(params, seedString)
+      : previewObject(params, seedString));
     if (opsError) return onError(opsError as ShareErrorType);
+    dispatch(setupBucketQuota(bucketName));
     setAction('');
     return success;
   };

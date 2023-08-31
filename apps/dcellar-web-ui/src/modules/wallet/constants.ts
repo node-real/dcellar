@@ -14,7 +14,7 @@ export const GET_BALANCE_INTERVAL_MS = 60 * 1000;
 export const POPPINS_FONT = `poppins, -apple-system, '.SFNSText-Regular', 'San Francisco', BlinkMacSystemFont,
 '.PingFang-SC-Regular', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial,
 sans-serif;`;
-export const INTER_FONT = `poppins, -apple-system, '.SFNSText-Regular', 'San Francisco', BlinkMacSystemFont,
+export const INTER_FONT = `Inter, poppins, -apple-system, '.SFNSText-Regular', 'San Francisco', BlinkMacSystemFont,
 '.PingFang-SC-Regular', 'Microsoft YaHei', 'Segoe UI', 'Helvetica Neue', Helvetica, Arial,
 sans-serif;`;
 

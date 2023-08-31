@@ -1,171 +1,255 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Text } from '@totejs/uikit';
-
-import { IDCSelectOption, Select } from '@/components/common/DCSelect';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Flex, Text } from '@totejs/uikit';
+import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
-import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { useSPs } from '@/hooks/useSPs';
-import { IRawSPInfo } from '../../type';
+import { useAppSelector } from '@/store';
+import { useMount } from 'ahooks';
+import { SpItem } from '@/store/slices/sp';
+import { ExternalLinkIcon } from '@totejs/icons';
+import styled from '@emotion/styled';
+import RefLink from '@/components/common/SvgIcon/RefLink.svg';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { transientOptions } from '@/utils/transientOptions';
+import { css } from '@emotion/react';
+import { sortBy } from 'lodash-es';
+import { DCTooltip } from '@/components/common/DCTooltip';
+import { formatBytes } from '@/modules/file/utils';
 
 interface SPSelector {
-  onChange: (value: IRawSPInfo) => void;
+  onChange: (value: SpItem) => void;
 }
 
 export function SPSelector(props: SPSelector) {
+  const { spInfo, oneSp, allSps, spMeta } = useAppSelector((root) => root.sp);
+  const { faultySps } = useAppSelector((root) => root.persist);
+  const len = allSps.length;
+  const [sp, setSP] = useState({} as SpItem);
   const { onChange } = props;
+  const saveOnChangeRef = useRef(onChange);
+  saveOnChangeRef.current = onChange;
 
-  const { sps: globalSps } = useSPs();
-
-  const finalSPs = useMemo<IRawSPInfo[]>(() => {
-    const sps: IRawSPInfo[] =
-      globalSps.filter((v: IRawSPInfo) => v?.description?.moniker !== 'QATest') ?? [];
-
-    return sps.sort((a, b) => {
-      const nameA = a.description?.moniker;
-      const nameB = b.description?.moniker;
-
-      if (nameA && nameB) {
-        return nameA < nameB ? -1 : 1;
-      }
-      if (!nameA && !nameB) {
-        return a.operatorAddress < b.operatorAddress ? -1 : 1;
-      }
-      if (nameA) return -1;
-      if (nameB) return 1;
-
-      return 0;
-    });
-  }, [globalSps]);
-
-  const [sp, setSP] = useState<IRawSPInfo>();
-  const [total, setTotal] = useState(0);
+  useMount(() => {
+    if (!len) return;
+    setSP(spInfo[oneSp]);
+  });
 
   useEffect(() => {
-    const len = finalSPs.length;
-    const index = ~~(Math.random() * len);
+    if (!sp.operatorAddress) return;
+    saveOnChangeRef.current?.(sp);
+  }, [sp]);
 
-    setSP(finalSPs[index]);
-    setTotal(len);
-  }, [finalSPs]);
+  const onChangeSP = (value: string) => {
+    setSP(spInfo[value]);
+  };
 
-  const saveOnChangeRef = useSaveFuncRef(onChange);
-  useEffect(() => {
-    saveOnChangeRef.current?.(sp as IRawSPInfo);
-  }, [saveOnChangeRef, sp]);
+  const onSearch = (result: IDCSelectOption[]) => {};
 
-  const onChangeSP = useCallback(
-    (value: string) => {
-      const target = finalSPs.find((item: IRawSPInfo) => item.operatorAddress === value);
-      if (target) {
-        setSP(target);
-      }
-    },
-    [finalSPs],
-  );
-
-  const onSearchFilter = useCallback((keyword: string, item: IDCSelectOption) => {
+  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
     const tmpName = item.name.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
-  }, []);
+  };
 
-  const onSearch = useCallback((result: IDCSelectOption[]) => {
-    setTotal(result.length);
-  }, []);
-
-  const { text, value } = useTextAndValue(sp);
-
-  const options = useMemo(() => {
-    return finalSPs.map((item) => {
-      const { operatorAddress, name, endpoint } = getNameAndAddress(item);
-      return {
-        label: <OptionItem address={operatorAddress} name={name}  endpoint={endpoint} />,
-        value: operatorAddress,
-        name,
-        endpoint: item.endpoint,
-      };
-    });
-  }, [finalSPs]);
+  const options = useMemo(
+    () =>
+      sortBy(allSps, [
+        (i) => (faultySps.includes(i.operatorAddress) ? 1 : 0),
+        (sp) => {
+          const meta = spMeta[sp.operatorAddress];
+          return meta ? meta.Latency : Infinity;
+        },
+      ]).map((item) => {
+        const { operatorAddress, moniker: name, endpoint } = item;
+        const access = !faultySps.includes(operatorAddress);
+        return {
+          label: (
+            <OptionItem address={operatorAddress} name={name} endpoint={endpoint} access={access} />
+          ),
+          value: operatorAddress,
+          name,
+          endpoint: item.endpoint,
+          access,
+        };
+      }),
+    [allSps, spMeta],
+  );
 
   return (
-    <Select
-      value={value}
-      text={text}
+    <DCSelect
+      value={sp.operatorAddress}
+      text={renderItem(sp.moniker, sp.operatorAddress)}
       options={options}
-      header={`Primary Storage Provider (${total})`}
+      header={
+        <>
+          <TH w={280}>SP list</TH>
+          <TH w={120}>Free Quota</TH>
+          <TH w={120}>Latency</TH>
+        </>
+      }
+      headerProps={{
+        px: 0,
+        py: 0,
+        display: 'flex',
+        alignItems: 'center',
+      }}
       onChange={onChangeSP}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
+        px: 0,
+        py: 0,
       }}
     />
   );
 }
 
-function getNameAndAddress(item: any = {}) {
-  return {
-    operatorAddress: item?.operatorAddress ?? '',
-    name: item?.description?.moniker ?? '',
-    endpoint: item?.endpoint ?? '',
-  };
-}
-
-function useTextAndValue(item: any) {
-  const [value, setValue] = useState('');
-  const [text, setText] = useState('');
-
-  useEffect(() => {
-    const { operatorAddress, name } = getNameAndAddress(item);
-    setValue(operatorAddress);
-
-    const addr = trimLongStr(operatorAddress, 10, 6, 4);
-    if (name && operatorAddress) {
-      setText(`${name} | ${addr}`);
-    } else if (name || operatorAddress) {
-      setText(`${name || addr}`);
-    } else {
-      setText('');
-    }
-  }, [item]);
-
-  return {
-    value,
-    text,
-  };
-}
+const renderItem = (moniker: string, address: string) => {
+  return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
+};
 
 function OptionItem(props: any) {
-  const { address, name, endpoint } = props;
-  const renderAddress = trimLongStr(address, 10, 6, 4);
+  const { spMeta } = useAppSelector((root) => root.sp);
+  const { address, name, endpoint, access } = props;
+  const meta = spMeta[address];
+
+  const link = !access ? (
+    <DCTooltip title="Check reasons in documentations" placement="bottomLeft">
+      <Text
+        as="a"
+        target="_blank"
+        href="https://docs.nodereal.io/docs/dcellar-faq#storage-provider-related"
+        w={64}
+        h={18}
+        whiteSpace="nowrap"
+        ml={4}
+        bgColor="#FDEBE7"
+        borderRadius={'360px'}
+        color="#F15D3C"
+        fontWeight={400}
+        lineHeight="18px"
+        cursor="pointer"
+        _hover={{
+          color: '#EE3911',
+        }}
+      >
+        <Box as="span" transform="scale(.8)" display="inline-flex" alignItems="center">
+          SP Error <ExternalLinkIcon boxSize={12} ml={2} />
+        </Box>
+      </Text>
+    </DCTooltip>
+  ) : (
+    <A
+      href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`}
+      target="_blank"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <RefLink />
+    </A>
+  );
 
   return (
-    <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
-      <Text
-        fontSize={16}
-        lineHeight="19px"
-        fontWeight={400}
-        w="100%"
-        color="readable.top.secondary"
-        noOfLines={1}
+    <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
+      <TD
+        w={280}
+        key={address}
+        display="flex"
+        flexDir="column"
+        alignItems="flex-start"
+        whiteSpace="normal"
+        color={access ? '#474D57' : '#AEB4BC'}
       >
-        {`${name} | ${renderAddress}`}
-      </Text>
-      {name && (
-        <Text
-          mt={2}
-          fontSize={12}
-          transformOrigin='0 50%'
-          transform={'scale(0.85)'}
-          lineHeight="18px"
-          fontWeight={400}
-          color="readable.secondary"
-          noOfLines={1}
-        >
-          {endpoint}
-        </Text>
-      )}
-    </Box>
+        <Flex alignItems="center" w="100%">
+          <Text
+            maxW="max-content"
+            minW={0}
+            flex={1}
+            lineHeight="17px"
+            fontSize={14}
+            fontWeight={400}
+            w="100%"
+            color={access ? '#474D57' : '#AEB4BC'}
+            noOfLines={1}
+          >
+            {name}
+          </Text>
+          {link}
+        </Flex>
+
+        <DCTooltip title={endpoint} placement="bottomLeft">
+          <Text
+            lineHeight="14px"
+            wordBreak="break-all"
+            fontSize={12}
+            transformOrigin="0 50%"
+            transform={'scale(0.85)'}
+            fontWeight={400}
+            color={access ? '#76808F' : '#AEB4BC'}
+            noOfLines={1}
+          >
+            {endpoint}
+          </Text>
+        </DCTooltip>
+      </TD>
+      <TD w={120} color={access ? '#474D57' : '#AEB4BC'}>
+        {meta ? formatBytes(meta.FreeReadQuota) : '--'}
+      </TD>
+      <TD $dot={meta?.Latency} color={access ? '#474D57' : '#AEB4BC'}>
+        {meta ? meta.Latency + 'ms' : '--'}
+      </TD>
+    </Flex>
   );
 }
+
+const A = styled.a`
+  :hover {
+    color: #00ba34;
+  }
+  margin-left: 4px;
+`;
+
+const TH = styled(Box)`
+  padding: 8px;
+  &:first-of-type {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  svg {
+    color: #aeb4bc;
+    :hover {
+      color: #76808f;
+    }
+  }
+`;
+
+const TD = styled(Box, transientOptions)<{ $dot?: number }>`
+  position: relative;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  &:first-of-type {
+    padding-left: 32px;
+  }
+
+  ${(props) =>
+    props.$dot &&
+    css`
+      :before {
+        position: relative;
+        top: -1px;
+        margin-right: 4px;
+        display: inline-flex;
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 100%;
+
+        background-color: ${props.$dot < 100
+          ? '#00BA34'
+          : props.$dot < 200
+          ? '#EEBE11'
+          : '#EE3911'};
+      }
+    `}
+`;

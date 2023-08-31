@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
@@ -12,7 +12,6 @@ import { Head } from '../components/Head';
 import { TransferIcon } from '../components/TransferIcon';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
-import { useLogin } from '@/hooks/useLogin';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
@@ -23,6 +22,8 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 import { getClient } from '@/base/client';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { useAppSelector } from '@/store';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 
 export const TransferOut = () => {
   const { chain } = useNetwork();
@@ -32,6 +33,10 @@ export const TransferOut = () => {
   const [status, setStatus] = useState<any>('success');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { feeData, isLoading } = useTransferOutFee();
+  const { all } = useChainsBalance();
+  const balance = useMemo(() => {
+    return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || '';
+  }, [all]);
   const {
     handleSubmit,
     register,
@@ -44,9 +49,7 @@ export const TransferOut = () => {
     mode: 'all',
   });
 
-  const {
-    loginState: { address },
-  } = useLogin();
+  const { loginAccount: address } = useAppSelector((root) => root.persist);
 
   const onSubmit = async (data: any) => {
     setStatus('pending');
@@ -114,6 +117,7 @@ export const TransferOut = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <FormControl isInvalid={!isEmpty(errors)}>
           <Amount
+            balance={balance}
             watch={watch}
             errors={errors}
             register={register}
