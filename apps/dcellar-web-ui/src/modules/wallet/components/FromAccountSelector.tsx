@@ -80,11 +80,14 @@ export function FromAccountSelector(props: TAccountSelector) {
       alignItems={'center'}
       justifyContent={'center'}
       cursor={'pointer'}
+      _hover={{
+        bgColor: 'bg.bottom'
+      }}
       onClick={() => {
         router.push('/accounts');
       }}
     >
-      Manage Account
+      Manage Accounts
     </Flex>
   );
 

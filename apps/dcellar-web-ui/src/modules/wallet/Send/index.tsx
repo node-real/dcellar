@@ -262,7 +262,7 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : renderFee(balance, exchangeRate + '' )}
+            Balance on Greenfield: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : renderFee(balance, exchangeRate + '' )}
           </FormHelperText>
         </FormControl>
         <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
@@ -290,7 +290,7 @@ export const Send = () => {
           <FormErrorMessage textAlign={'left'}>
             {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
-          <FormHelperText textAlign={'right'} color="#76808F">
+          {/* <FormHelperText textAlign={'right'} color="#76808F">
             Balance on:{' '}
             {toAccount ? (
               toAccount.address && isLoadingDetail === toAccount.address ? (
@@ -302,7 +302,7 @@ export const Send = () => {
               renderFee(0, exchangeRate)
             )}{' '}
             BNB
-          </FormHelperText>
+          </FormHelperText> */}
         </FormControl>
         <Amount
           balance={balance}

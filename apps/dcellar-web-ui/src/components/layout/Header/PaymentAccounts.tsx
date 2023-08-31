@@ -26,7 +26,7 @@ export const PaymentAccounts = () => {
     address: loginAccount as any,
     chainId: GREENFIELD_CHAIN_ID,
     watch: true,
-    cacheTime: 5000,
+    cacheTime: 1000,
   });
   const metamaskValue = gnfdBalance?.formatted ?? '0';
   useAsyncEffect(async () => {

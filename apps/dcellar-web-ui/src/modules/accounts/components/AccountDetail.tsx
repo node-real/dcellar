@@ -56,7 +56,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
       ),
     },
     {
-      label: 'Available balance',
+      label: 'Balance',
       value: (
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>

@@ -167,6 +167,7 @@ export function DCSelect(props: DCSelectProps) {
                   position="relative"
                   px={24}
                   py={8}
+                  fontSize={14}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}

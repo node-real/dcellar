@@ -150,6 +150,9 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_in);
                 setShowPanel(false);
@@ -180,6 +183,9 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_out);
                 setShowPanel(false);
@@ -210,6 +216,9 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.send);
                 setShowPanel(false);

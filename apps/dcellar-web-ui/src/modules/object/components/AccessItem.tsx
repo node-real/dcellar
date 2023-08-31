@@ -19,14 +19,14 @@ const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" w={16} h={16} />,
     label: 'Private',
-    desc: 'Only people with access can open with the link.',
+    desc: 'Only peoples with permission can access the objects.',
     value: 2,
     bg: '#E6E8EA',
   },
   {
     icon: <PublicFileIcon fillColor="#1E2026" w={16} h={16} />,
     label: 'Public',
-    desc: 'Anyone with the link can open at anytime and can find in explorer.',
+    desc: 'Anyone with a shared link can access objects.',
     value: 1,
     bg: '#E7F3FD',
   },

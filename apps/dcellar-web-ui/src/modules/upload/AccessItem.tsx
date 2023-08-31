@@ -23,14 +23,14 @@ const options = [
     icon: <PrivateFileIcon fillColor="#1E2026" />,
     bgColor: '#E6E8EA',
     label: 'Private',
-    desc: 'Only people with access can open with share link.',
+    desc: 'Only peoples with permission can access the objects.',
     value: VisibilityType.VISIBILITY_TYPE_PRIVATE,
   },
   {
     icon: <PublicFileIcon fillColor="#1184EE" />,
     bgColor: '#E7F3FD',
     label: 'Public',
-    desc: 'Everyone with share link can open and can find in explorer.',
+    desc: 'Anyone with a shared link can access objects.',
     value: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
   },
 ];

@@ -87,11 +87,14 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
       alignItems={'center'}
       justifyContent={'center'}
       cursor={'pointer'}
+      _hover={{
+        bgColor: 'bg.bottom'
+      }}
       onClick={() => {
         router.push('/accounts');
       }}
     >
-      Manage Account
+      Manage Accounts
     </Flex>
   );
 
