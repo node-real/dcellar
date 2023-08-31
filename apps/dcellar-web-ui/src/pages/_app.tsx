@@ -15,6 +15,7 @@ import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
 import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
+import { StatusDetail } from '@/modules/object/components/StatusDetail';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -38,6 +39,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
                     <PageProtect>
                       <Component {...props.pageProps} />
                       <GAPageView />
+                      <StatusDetail />
                     </PageProtect>
                   </OffChainAuthProvider>,
                 )}

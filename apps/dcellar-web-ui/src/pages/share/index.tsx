@@ -22,9 +22,10 @@ import { useIsMounted } from '@/hooks/useIsMounted';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { getSpUrlByBucketName } from '@/facade/virtual-group';
 import { hasObjectPermission, headObject } from '@/facade/object';
 import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { headBucket } from '@/facade/bucket';
+import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -48,21 +49,30 @@ const SharePage: NextPage<PageProps> = (props) => {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const dispatch = useAppDispatch();
   const [getPermission, setGetPermission] = useState(true);
+  const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
 
   useAsyncEffect(async () => {
     if (!oneSp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
-    const [primarySpEndpoint, error] = await getSpUrlByBucketName(bucketName);
-    if (!primarySpEndpoint) {
+    const bucketInfo = await headBucket(bucketName);
+    if (!bucketInfo) {
       // bucket not exist
       setObjectInfo(null);
       setQuotaData(null);
       return;
     }
+    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId));
+    if (!sp) {
+      // bucket not exist
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
+    setPrimarySp(sp);
     const params = {
       bucketName,
       objectName,
-      endpoint: primarySpEndpoint,
+      endpoint: sp.endpoint,
       seedString,
       address: loginAccount,
     };
@@ -129,6 +139,7 @@ const SharePage: NextPage<PageProps> = (props) => {
                   <ShareError type={E_PERMISSION_DENIED} />
                 ) : (
                   <SharedFile
+                    primarySp={primarySp}
                     loginAccount={loginAccount as string}
                     objectInfo={objectInfo}
                     quotaData={quotaData}

@@ -6,6 +6,7 @@ import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storag
 import { get } from '@/base/http';
 import { commonFault } from '@/facade/error';
 import { getDomain } from '@/utils/getDomain';
+import { MsgData } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/abci/v1beta1/abci';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -28,11 +29,11 @@ export const getObjectInfoAndBucketQuota = async ({
     client.bucket
       .getBucketReadQuota({
         bucketName,
-        endpoint,
-        signType: 'offChainAuth',
+      }, {
+        type: 'EDDSA',
+        seed: seedString,
+        domain: window.location.origin,
         address,
-        seedString,
-        domain: getDomain(),
       })
       .catch((e) => {
         return {} as IObjectResultType<IQuotaProps>;

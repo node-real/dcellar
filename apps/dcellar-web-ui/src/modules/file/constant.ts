@@ -24,6 +24,8 @@ const GROUP_CREATE = 'Creating Group';
 const GROUP_UPDATE_EXTRA = 'Updating Group';
 const GROUP_DELETE = 'Deleting Group';
 
+const GAS_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
+
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
 const OBJECT_TITLE_CREATING = 'Creating Object';
@@ -75,6 +77,7 @@ const FOLDER_STATUS_CREATING = 'FOLDER_STATUS_CREATING';
 const GET_LOCK_FEE_ERROR = `Get lock fee error, please retry`;
 const GET_GAS_FEE_ERROR = `Get gas fee error, please retry`;
 const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
+const LOCK_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for prepaid fee, please check.`;
 const GET_GAS_FEE_DEFAULT_ERROR = `There are some errors occurred when estimating gas fee, please check.`;
 const FETCH_OBJECT_APPROVAL_ERROR = `Fetch object approval error, please retry.`;
 const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
@@ -82,6 +85,8 @@ const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 const AUTH_EXPIRED = 'Authentication Expired';
 const WALLET_CONFIRM = 'Confirm this transaction in your wallet.';
 
+// account
+const SET_ACCOUNT_NON_REFUNDABLE_ICON = `${assetPrefix}/images/accounts/disable-account.svg`;
 export {
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,
@@ -153,4 +158,7 @@ export {
   WALLET_CONFIRM,
   GROUP_UPDATE_EXTRA,
   GROUP_DELETE,
+  SET_ACCOUNT_NON_REFUNDABLE_ICON,
+  GAS_FEE_DOC,
+  LOCK_FEE_LACK_BALANCE_ERROR,
 };

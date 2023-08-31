@@ -2,6 +2,7 @@ import { memo, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditCreate, setupBuckets } from '@/store/slices/bucket';
 import { CreateBucket as LegacyCreateBucket } from '@/modules/buckets/List/components/CreateBucket';
+import { useUnmount } from 'ahooks';
 
 interface BucketDrawerProps {}
 
@@ -25,6 +26,8 @@ export const BucketDrawer = memo<BucketDrawerProps>(function BucketDrawer() {
       document.documentElement.style.overflowY = '';
     }, 200);
   };
+
+  useUnmount(onClose);
 
   const refetch = () => {
     dispatch(setupBuckets(loginAccount));

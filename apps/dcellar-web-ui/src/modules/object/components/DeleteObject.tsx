@@ -49,6 +49,7 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
 import LoadingIcon from '@/public/images/icons/loading.svg';
+import { renderFee } from './CancelObject';
 
 interface modalProps {
   refetch: () => void;
@@ -67,36 +68,6 @@ const renderQuota = (key: string, value: string) => {
   );
 };
 
-const renderFee = (
-  key: string,
-  bnbValue: string,
-  exchangeRate: number,
-  loading?: boolean,
-  keyIcon?: React.ReactNode,
-) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Flex alignItems="center" mb="4px">
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          {key}
-        </Text>
-        {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
-            {keyIcon}
-          </Box>
-        )}
-      </Flex>
-      {loading ? (
-        <LoadingIcon color={'#76808F'} width={'20px'} height={'20px'} />
-      ) : (
-        <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-          ~{renderFeeValue(bnbValue, exchangeRate)}
-        </Text>
-      )}
-    </Flex>
-  );
-};
-
 export const DeleteObject = ({ refetch }: modalProps) => {
   const dispatch = useAppDispatch();
   const [lockFee, setLockFee] = useState('');
@@ -108,7 +79,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { _availableBalance: availableBalance } = useAppSelector((root) => root.global);
+  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const isOpen = !!editDelete.objectName;
   const isFolder = editDelete.objectName.endsWith('/');
   const [isFolderCanDelete, setFolderCanDelete] = useState(true);
@@ -161,8 +132,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     };
     const [res, error] = await getListObjects(params);
     if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
-    const list = res.body!;
-    return list.key_count === '1' && list.objects[0].object_info.object_name === objectName;
+    const {GfSpListObjectsByBucketNameResponse} = res.body!;
+    return GfSpListObjectsByBucketNameResponse.KeyCount === '1' && GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName;
   };
   useAsyncEffect(async () => {
     if (!isFolder) return;
@@ -282,7 +253,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             gap={'4px'}
           >
             {/* {renderFee(
-          'Unlocked storage fee',
+          'Prepaid fee refund',
           lockFee,
           exchangeRate,
           <Tips

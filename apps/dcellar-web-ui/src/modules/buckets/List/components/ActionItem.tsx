@@ -1,12 +1,15 @@
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { getQuota } from '@/modules/file/utils';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { Flex, Menu, MenuButton, MenuItem, MenuList, toast, Text } from '@totejs/uikit';
-import React from 'react';
-import { useAppSelector } from '@/store';
+import React, { use } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { getBucketReadQuota } from '@/facade/bucket';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 export const ActionItem = ({ setShowDetail, setRowData, setQuotaData, onOpen, info }: any) => {
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
+  const dispatch = useAppDispatch();
   // CellContext<any, unknown>
   const {
     row: { original: rowData },
@@ -53,15 +56,22 @@ export const ActionItem = ({ setShowDetail, setRowData, setQuotaData, onOpen, in
                     onOpen();
                     setRowData(rowData);
                     setQuotaData(null);
-                    const sp = spInfo[rowData?.originalData.bucket_info.primary_sp_address];
+                    const sp = spInfo[rowData?.originalData.BucketInfo.PrimarySpAddress];
                     if (!sp) {
                       toast.error({
                         description: `Sp address info is mismatched, please retry.`,
                       });
                       return;
                     }
-                    const { endpoint: spEndpoint } = sp;
-                    const currentQuotaData = await getQuota(rowData.bucket_name, spEndpoint);
+                    const { seedString } = await dispatch(
+                      getSpOffChainData(loginAccount, sp.operatorAddress),
+                    );
+                    const currentQuotaData = await getBucketReadQuota({
+                      bucketName: rowData.BucketName,
+                      seedString,
+                      address: loginAccount,
+                      endpoint: sp.endpoint,
+                    });
                     setQuotaData(currentQuotaData);
                   }}
                 >
@@ -79,7 +89,7 @@ export const ActionItem = ({ setShowDetail, setRowData, setQuotaData, onOpen, in
                     setShowDetail(false);
                     onOpen();
                     // TODO Do not mix information from rowData and sp
-                    const curSp = spInfo[rowData.originalData.bucket_info.primary_sp_address];
+                    const curSp = spInfo[rowData.originalData.BucketInfo.PrimarySpAddress];
                     setRowData({ ...rowData, spEndpoint: curSp?.endpoint });
                   }}
                 >

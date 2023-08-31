@@ -18,8 +18,8 @@
     "ahooks": "3.7.7",
     "hash-wasm": "4.9.0",
     "@babel/core": "^7.20.12",
-    "@bnb-chain/greenfield-js-sdk": "0.2.4-alpha.5",
-    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.18",
+    "@bnb-chain/greenfield-js-sdk": "0.2.4-alpha.26",
+    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.22",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@next/bundle-analyzer": "^13.1.6",
@@ -49,7 +49,8 @@
     "react-redux": "^8.1.1",
     "next-redux-wrapper": "^8.1.0",
     "redux-persist":  "^6.0.0",
-    "@wagmi/core": "^0.10.13"
+    "@wagmi/core": "^0.10.13",
+    "fast-xml-parser": "~4.2.7"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",

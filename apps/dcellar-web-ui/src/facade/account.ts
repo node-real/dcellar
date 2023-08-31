@@ -4,18 +4,22 @@ import {
   MsgCreateObjectTypeUrl,
   MsgDeleteObjectTypeUrl,
   PermissionTypes,
+  getUtcZeroTimestamp,
   newBucketGRN,
   newObjectGRN,
+  toTimestamp,
 } from '@bnb-chain/greenfield-js-sdk';
 import { Coin } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/v1beta1/coin';
-import { Wallet } from 'ethers';
+import { Wallet, ethers } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';
 import { resolve } from './common';
-import { ErrorResponse, broadcastFault, simulateFault, createTxFault } from './error';
+import { ErrorResponse, broadcastFault, simulateFault, createTxFault, commonFault } from './error';
 import { UNKNOWN_ERROR } from '@/modules/file/constant';
 import { TTmpAccount } from '@/store/slices/global';
-import { signTypedDataCallback } from '@/facade/wallet';
 import { signTypedDataV4 } from '@/utils/signDataV4';
+import { signTypedDataCallback } from './wallet';
+import { QueryGetStreamRecordResponse, QueryPaymentAccountResponse, QueryPaymentAccountsByOwnerResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
+import { Connector } from 'wagmi';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -51,6 +55,9 @@ export const createTmpAccount = async ({
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();
   // MsgGrantAllowanceTypeUrl
+  const curTimeStamp = await getUtcZeroTimestamp();
+  const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
+  const expirationDate = new Date(expirationTimestamp);
   const [grantAllowanceTx, allowError] = await client.feegrant
     .grantAllowance({
       granter: address,
@@ -58,6 +65,7 @@ export const createTmpAccount = async ({
       allowedMessages: grantAllowedMessage,
       amount: parseEther(amount <= 0 ? '0.1' : amount).toString(),
       denom: 'BNB',
+      expirationTime: toTimestamp(expirationDate),
     })
     .then(resolve, createTxFault);
 
@@ -120,5 +128,204 @@ export const createTmpAccount = async ({
     return [null, error || UNKNOWN_ERROR];
   }
 
-  return [{ address: wallet.address, privateKey: wallet.privateKey }, null];
-};
+  return [{
+    address: wallet.address,
+    privateKey: wallet.privateKey
+  }, null];
+}
+
+// No stream record data can be accessed when creating a payment account without making any deposits.
+export const getAccountStreamRecord = async (address: string): Promise<ErrorResponse | [QueryGetStreamRecordResponse, null]> => {
+  const client = await getClient();
+  return await client.payment.getStreamRecord(address).then(resolve, commonFault);
+}
+
+export const createPaymentAccount = async (address: string, connector: Connector) => {
+  const client = await getClient();
+  const [tx, txError] = await client.account.createPaymentAccount({
+    creator: address,
+  }).then(resolve, commonFault);
+  if (!tx || txError) {
+    return [null, txError];
+  }
+  const [simulateInfo, error] = await tx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (error) {
+    return [null, error];
+  }
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: address,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  const [res, bError] = await tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+  if (bError) {
+    return [null, bError];
+  }
+  if (!res || res.code !== 0) {
+    return [null, res && res.rawLog || UNKNOWN_ERROR];
+  }
+
+  return [res, null]
+}
+
+export const disablePaymentAccountRefund = async ({ address, paymentAccount }: { address: string; paymentAccount: string }, connector: Connector): Promise<ErrorResponse | [any, null]> => {
+  const client = await getClient();
+  const [tx, tError] = await client.payment.disableRefund({
+    owner: address,
+    addr: paymentAccount,
+  }).then(resolve, commonFault);
+  if (!tx || tError) {
+    return [null, tError];
+  }
+  const [simulateInfo, sError] = await tx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (sError) {
+    return [null, sError];
+  }
+
+  const [res, bError] = await tx.broadcast({
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: address,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  }).then(resolve, broadcastFault);
+  if (bError) {
+    return [null, bError];
+  }
+  if (!res || res.code !== 0) {
+    return [null, res && res.rawLog || UNKNOWN_ERROR];
+  }
+
+  return [res, null];
+}
+
+export const getPaymentAccountsByOwner = async (address: string): Promise<ErrorResponse | [QueryPaymentAccountsByOwnerResponse, null]> => {
+  const client = await getClient();
+  return await client.payment.getPaymentAccountsByOwner({
+    owner: address,
+  }).then(resolve, commonFault);
+}
+
+export const sendToOwnerAccount = async ({ fromAddress, toAddress, amount }: { fromAddress: string; toAddress: string; amount: string }, connector: Connector): Promise<ErrorResponse | [any, null]> => {
+  const client = await getClient();
+  const [tx, txError] = await client.account.transfer({
+    fromAddress,
+    toAddress,
+    amount: [
+      {
+        denom: 'BNB',
+        amount: ethers.utils.parseEther(amount).toString(),
+      },
+    ],
+  }).then(resolve, commonFault);
+  if (!tx || txError) {
+    return [null, txError];
+  }
+  const [simulateInfo, error] = await tx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (!simulateInfo || error) {
+    return [null, error];
+  }
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo.gasLimit),
+    gasPrice: simulateInfo.gasPrice,
+    payer: fromAddress,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  }
+  const [res, bError] = await tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+
+  if (bError) {
+    return [null, bError];
+  }
+  if (!res || res.code !== 0) {
+    return [null, res && res.rawLog || UNKNOWN_ERROR];
+  }
+
+  return [res, null];
+}
+export const depositToPaymentAccount = async ({ fromAddress, toAddress, amount }: { fromAddress: string; toAddress: string; amount: string }, connector: Connector): Promise<ErrorResponse | [any, null]> => {
+  const client = await getClient();
+  const [tx, txError] = await client.payment.deposit({
+    creator: fromAddress,
+    to: toAddress,
+    amount: parseEther(amount).toString(),
+  }).then(resolve, commonFault);
+  if (!tx || txError) {
+    return [null, txError];
+  }
+  const [simulateInfo, error] = await tx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (error) {
+    return [null, error];
+  }
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: fromAddress,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  const [res, bError] = await tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+  if (bError) {
+    return [null, bError];
+  }
+  if (!res || res.code !== 0) {
+    return [null, res && res.rawLog || UNKNOWN_ERROR];
+  }
+
+  return [res, null];
+}
+
+export const withdrawFromPaymentAccount = async ({ creator, fromAddress, amount }: { creator: string; fromAddress: string; amount: string }, connector: Connector): Promise<ErrorResponse | [any, null]> => {
+  const client = await getClient();
+  const [tx, txError] = await client.payment.withdraw({
+    creator,
+    from: fromAddress,
+    amount: parseEther(amount).toString(),
+  }).then(resolve, commonFault);
+  if (!tx || txError) {
+    return [null, txError];
+  }
+  const [simulateInfo, error] = await tx.simulate({
+    denom: 'BNB',
+  }).then(resolve, simulateFault);
+  if (error) {
+    return [null, error];
+  }
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: creator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+
+  const [res, bError] = await tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+  if (bError) {
+    return [null, bError];
+  }
+  if (!res || res.code !== 0) {
+    return [null, res && res.rawLog || UNKNOWN_ERROR];
+  }
+
+  return [res, null];
+}
+
+export const getPaymentAccount = async (address: string): Promise<ErrorResponse | [QueryPaymentAccountResponse, null]> => {
+  const client = await getClient();
+  return await client.payment.paymentAccount({addr: address}).then(resolve, commonFault);
+}

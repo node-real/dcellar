@@ -11,17 +11,17 @@ const range = (len: number) => {
 const generateNewFile = (index: number): any => {
   return {
     // fake data
-    owner: '0xD7B568Ca056F46Ce23C8bddCcB98Ac8CeAe18Ff6',
-    bucket_name: 'fake_user',
-    object_name: 'fake.png',
-    id: '794',
-    payload_size: '997',
-    visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-    content_type: 'image/png',
-    create_at: '1681290627',
-    object_status: 1,
-    redundancy_type: 0,
-    source_type: 0,
+    Owner: '0xD7B568Ca056F46Ce23C8bddCcB98Ac8CeAe18Ff6',
+    BucketName: 'fake_user',
+    ObjectName: 'fake.png',
+    Id: '794',
+    PayloadSize: '997',
+    Visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+    ContentType: 'image/png',
+    CreateAt: '1681290627',
+    ObjectStatus: 1,
+    RedundancyType: 0,
+    SourceType: 0,
     checksums: [
       'tQ1U22QwYx9+PC6l3zboALQsj9HL5Ax639+qe2DgnHw=',
       '0rEAKTmM7s+oI/JFQNMXaazlwfupc5c2W+D1qjs6M+g=',

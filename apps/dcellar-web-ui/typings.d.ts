@@ -29,6 +29,7 @@ declare global {
     ga: any;
     clipboardData: any;
     trustWallet: any;
+    trustwallet: any;
     // zk.wasm export
     eddsaSign: any;
   }

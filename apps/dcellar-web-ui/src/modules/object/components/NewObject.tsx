@@ -1,4 +1,4 @@
-import React, { ChangeEvent, memo } from 'react';
+import React, { ChangeEvent, memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
 import {
@@ -31,6 +31,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { MenuCloseIcon } from '@totejs/icons';
+import { debounce } from 'lodash-es';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -47,7 +48,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { folders, prefix, path, objectsInfo, bucketName } = useAppSelector((root) => root.object);
+  const { folders, prefix, path, objectsInfo, bucketName, objects } = useAppSelector(
+    (root) => root.object,
+  );
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
@@ -56,6 +59,28 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     if (disabled) return;
     dispatch(setEditCreate(true));
   };
+
+  const refreshList = useCallback(
+    debounce(async () => {
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
+      const query = new URLSearchParams();
+      const params = {
+        seedString,
+        query,
+        endpoint: primarySp.endpoint,
+      };
+      dispatch(setSelectedRowKeys([]));
+      dispatch(setupBucketQuota(bucketName));
+      dispatch(setListRefreshing(true));
+      dispatch(setRestoreCurrent(false));
+      await dispatch(setupListObjects(params));
+      dispatch(setListRefreshing(false));
+    }, 150),
+    [loginAccount, primarySp?.operatorAddress, bucketName],
+  );
+
   if (!owner) return <></>;
 
   const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
@@ -64,8 +89,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;
   const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
 
-  const disabled = maxFolderDepth || discontinue;
-  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL;
+  const loading = !objects[path];
+  const disabled = maxFolderDepth || discontinue || loading;
+  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading;
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     console.log(e);
@@ -164,24 +190,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     e.target.value = '';
   };
 
-  const refreshList = async () => {
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
-    const query = new URLSearchParams();
-    const params = {
-      seedString,
-      query,
-      endpoint: primarySp.endpoint,
-    };
-    dispatch(setSelectedRowKeys([]));
-    dispatch(setupBucketQuota(bucketName));
-    dispatch(setListRefreshing(true));
-    dispatch(setRestoreCurrent(false));
-    await dispatch(setupListObjects(params));
-    dispatch(setListRefreshing(false));
-  };
-
   return (
     <Flex gap={12}>
       {showRefresh && (
@@ -205,7 +213,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             : `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
         }
         placement={'bottom-start'}
-        visibility={maxFolderDepth ? 'visible' : 'hidden'}
+        visibility={maxFolderDepth && !loading ? 'visible' : 'hidden'}
       >
         <GAClick name={gaFolderClickName}>
           <Flex
@@ -231,7 +239,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           content={
             discontinue ? 'Bucket in the discontinue status cannot upload files' : 'Path invalid'
           }
-          visibility={uploadDisabled ? 'visible' : 'hidden'}
+          visibility={uploadDisabled && !loading ? 'visible' : 'hidden'}
         >
           <MenuButton
             as={Button}
