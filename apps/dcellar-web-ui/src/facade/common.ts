@@ -5,6 +5,8 @@ import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
 import { commonFault } from '@/facade/error';
+import { getDomain } from '@/utils/getDomain';
+import { MsgData } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/abci/v1beta1/abci';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -25,17 +27,14 @@ export const getObjectInfoAndBucketQuota = async ({
   const [{ objectInfo }, { body }] = await Promise.all([
     client.object.headObject(bucketName, objectName).catch(() => ({} as QueryHeadObjectResponse)),
     client.bucket
-      .getBucketReadQuota(
-        {
-          bucketName,
-        },
-        {
-          type: 'EDDSA',
-          seed: seedString,
-          domain: window.location.origin,
-          address,
-        },
-      )
+      .getBucketReadQuota({
+        bucketName,
+      }, {
+        type: 'EDDSA',
+        seed: seedString,
+        domain: window.location.origin,
+        address,
+      })
       .catch((e) => {
         return {} as IObjectResultType<IQuotaProps>;
       }),

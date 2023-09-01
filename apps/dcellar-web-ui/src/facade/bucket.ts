@@ -5,7 +5,11 @@ import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/gree
 import { commonFault, ErrorResponse, offChainAuthFault, simulateFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { TBaseGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
-import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
+import {
+  GetUserBucketsResponse,
+  IObjectResultType,
+  ISimulateGasFee,
+} from '@bnb-chain/greenfield-js-sdk';
 import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
 
 export type TGetReadQuotaParams = {
@@ -16,13 +20,8 @@ export type TGetReadQuotaParams = {
 };
 
 export const quotaRemains = (quota: IQuotaProps, payload: string | number) => {
-  const { freeQuota, readQuota, consumedQuota, freeConsumedSize } = quota;
-  return !BigNumber(freeQuota)
-    .plus(readQuota)
-    .minus(consumedQuota)
-    .minus(freeConsumedSize)
-    .minus(payload)
-    .isNegative();
+  const { freeQuota, readQuota, consumedQuota } = quota;
+  return !BigNumber(freeQuota).plus(readQuota).minus(consumedQuota).minus(payload).isNegative();
 };
 
 export const headBucket = async (bucketName: string) => {
