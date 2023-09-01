@@ -75,6 +75,7 @@ export const NewPA = () => {
         color={'readable.normal'}
         border={'1px solid readable.border'}
         borderRadius={4}
+        visibility={hasBankBalance ? 'hidden' : 'visible'}
       >
         <PopoverBody>
           <Box w={232} textAlign={'left'}>
