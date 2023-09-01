@@ -36,7 +36,7 @@ export const pollingCreateAsync =
           }
         } catch (e: any) {
           const { code } = parseError(e?.message);
-          if (+code !== 6) {
+          if (+code !== 6 && e?.response?.status !== 404) {
             throw e;
           }
         }
