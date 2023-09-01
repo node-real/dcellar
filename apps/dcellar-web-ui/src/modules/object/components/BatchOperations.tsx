@@ -77,7 +77,10 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
   const downloadable = remainQuota && showDownload && !!items.length;
   const remainQuotaBytes = formatBytes(
-    quotaData.freeQuota + quotaData.readQuota - quotaData.consumedQuota,
+    quotaData.freeQuota +
+      quotaData.readQuota -
+      quotaData.consumedQuota -
+      quotaData.freeConsumedSize,
   );
 
   const refetch = async () => {

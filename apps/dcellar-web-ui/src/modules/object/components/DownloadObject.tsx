@@ -34,7 +34,7 @@ export const DownloadObject = (props: modalProps) => {
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(
     null,
   );
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDownload, bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const quotas = useAppSelector((root) => root.bucket.quotas);
@@ -61,13 +61,19 @@ export const DownloadObject = (props: modalProps) => {
     dispatch(setStatusDetail(errorData));
   };
 
-  const remainingQuota = +quotaData?.readQuota + +quotaData?.freeQuota - +quotaData?.consumedQuota;
+  const remainingQuota =
+    +quotaData?.readQuota +
+    +quotaData?.freeQuota -
+    +quotaData?.consumedQuota -
+    +quotaData?.freeConsumedSize;
   const transformedRemainingQuota = remainingQuota ? formatBytes(remainingQuota, true) : '--';
 
   const onAction = async () => {
     const objectName = editDownload.objectName;
     const endpoint = primarySp.endpoint;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const [_, accessError, objectInfo] = await getCanObjectAccess(
       bucketName,
       objectName,
