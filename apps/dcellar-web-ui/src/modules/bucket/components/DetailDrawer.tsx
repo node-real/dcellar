@@ -160,8 +160,8 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
 
   const transformedRemainingQuota = useMemo(() => {
     if (!quota) return '--';
-    const { freeQuota, readQuota, consumedQuota, freeConsumedSize } = quota;
-    const remainingQuota = readQuota + freeQuota - consumedQuota - freeConsumedSize;
+    const { freeQuota, readQuota, consumedQuota } = quota;
+    const remainingQuota = readQuota + freeQuota - consumedQuota;
     return `${formatBytes(remainingQuota, true)} / ${formatBytes(freeQuota + readQuota)}`;
   }, [quota]);
 
