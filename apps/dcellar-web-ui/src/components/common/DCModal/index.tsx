@@ -29,7 +29,7 @@ export const DCModal = (props: DCModalProps) => {
     <GAShow isShow={props.isOpen} name={gaShowName} data={gaShowData}>
       <Modal
         closeOnOverlayClick={false}
-        rootProps={{
+        overlayProps={{
           backdropFilter: 'blur(12px)',
         }}
         w={568}
