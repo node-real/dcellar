@@ -29,10 +29,7 @@ import {
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
-import {
-  MsgCreateObjectTypeUrl,
-  TBaseGetCreateObject
-} from '@bnb-chain/greenfield-js-sdk';
+import { MsgCreateObjectTypeUrl, TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -54,12 +51,9 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import {
-  setupPreLockFeeObjects,
-  setupTmpAvailableBalance,
-} from '@/store/slices/global';
+import { setupPreLockFeeObjects, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { getObjectMeta } from '@/facade/object';
+import { legacyGetObjectMeta } from '@/facade/object';
 import { renderFeeValue, renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { MenuCloseIcon } from '@totejs/icons';
 import { useAsyncEffect } from 'ahooks';
@@ -246,7 +240,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
 
     // polling ensure create sealed
     const fullPath = getPath(inputFolderName, folders);
-    await getObjectMeta(bucketName, fullPath, primarySp.endpoint);
+    await legacyGetObjectMeta(bucketName, fullPath, primarySp.endpoint);
 
     setLoading(false);
     showSuccessToast(transactionHash);
