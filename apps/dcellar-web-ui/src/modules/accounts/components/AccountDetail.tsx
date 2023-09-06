@@ -1,15 +1,5 @@
 import { useAppSelector } from '@/store';
-import {
-  Box,
-  Divider,
-  Flex,
-  Image,
-  Link,
-  QDrawerBody,
-  QDrawerCloseButton,
-  QDrawerHeader,
-  Text,
-} from '@totejs/uikit';
+import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import React from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
 import { trimAddress } from '@/utils/string';
@@ -21,12 +11,18 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
-import { getNumInDigits } from '@/utils/wallet';
 
-export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) => {
+type Props = {
+  loading: boolean;
+  title: string;
+  accountDetail: any;
+  availableBalance: string;
+}
+BigNumber.config({ EXPONENTIAL_AT: 10 });
+export const AccountDetail = ({ loading, title, accountDetail, availableBalance }: Props) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
-  const {bankBalance} = useAppSelector(root=> root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const balance = isOwnerAccount
     ? BigNumber(accountDetail?.staticBalance || 0)
         .plus(BigNumber(bankBalance))
@@ -66,12 +62,12 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {getNumInDigits(balance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB
+                {BigNumber(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
-                (
+                &nbsp;(
                 {currencyFormatter(
-                  BigNumber(balance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
+                  BigNumber(availableBalance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
                 )}
                 )
               </Text>
@@ -81,16 +77,14 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       ),
     },
     {
-      label: 'Locked Storage fee',
+      label: 'Prepaid fee',
       value: (
         <Flex marginBottom={8}>
           <LoadingAdaptor loading={loading} empty={false}>
             <Text fontSize={14} fontWeight={500}>
-              {trimFloatZero(
-                BigNumber(lockFee || 0)
-                  .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-                  .toString(),
-              )}{' '}
+              {BigNumber(accountDetail.bufferBalance || 0)
+                .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+                .toString()}{' '}
               BNB
             </Text>
           </LoadingAdaptor>
@@ -98,7 +92,7 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       ),
     },
     {
-      label: 'Flow Rate',
+      label: 'Flow rate',
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>
@@ -120,7 +114,6 @@ export const AccountDetail = ({ loading, title, accountDetail, lockFee }: any) =
       <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
         {title}
       </QDrawerHeader>
-      <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />
       <QDrawerBody>
         <Flex alignItems={'flex-start'}>
           <Image

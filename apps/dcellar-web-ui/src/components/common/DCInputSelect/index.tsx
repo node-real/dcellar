@@ -62,6 +62,7 @@ export function DCInputSelect(props: DCSelectProps) {
     onSearchFilter,
     onSearch,
     children,
+    isDisabled,
     ...restProps
   } = props;
 
@@ -119,6 +120,7 @@ export function DCInputSelect(props: DCSelectProps) {
         text={text}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
+        disabled={isDisabled}
       />
       {!!resultOptions?.length && (
         <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
@@ -139,7 +141,7 @@ export function DCInputSelect(props: DCSelectProps) {
           )}
           <Box
             maxH={220}
-            overflowY="scroll"
+            overflowY="auto"
             sx={{
               '&::-webkit-scrollbar': {
                 width: '4px',
@@ -166,9 +168,9 @@ export function DCInputSelect(props: DCSelectProps) {
                       bg: isSelected ? undefined : 'bg.bottom',
                     }}
                     onClick={() => onSelectItem(item)}
-                    _last={{
-                      mb: 8,
-                    }}
+                    // _last={{
+                    //   mb: 8,
+                    // }}
                     {...restItemProps}
                   >
                     {item.label}
@@ -201,6 +203,7 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
     text = '',
     onChangeKeyword,
     onEnter,
+    disabled,
     ...restProps
   } = props;
 
@@ -212,6 +215,7 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
   return (
     <InputGroup ref={ref} {...restProps}>
       <Input
+        disabled={disabled}
         h={52}
         value={text}
         onChange={onChange}

@@ -1,28 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
-import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
-import { trimLongStr } from '@/utils/string';
+import { IDCSelectOption } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
-import { useMount } from 'ahooks';
-import { SpItem } from '@/store/slices/sp';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { TAccount } from '@/store/slices/accounts';
+import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 
 type TProps = {
   onChange: (value: TAccount) => void;
   to: string;
+  disabled?: boolean;
 };
 
-export function ToAccountSelector({ onChange, to }: TProps) {
+export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { PAList } = useAppSelector((root) => root.accounts);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
 
   const accountList = useMemo(
-    () => [{ name: 'Owner Account', address: loginAccount }, ...PAList],
-    [loginAccount, PAList],
+    () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
+    [loginAccount, paymentAccounts],
   );
   const keyAccountList = keyBy(accountList, 'address');
   const len = accountList?.length;
@@ -31,12 +29,12 @@ export function ToAccountSelector({ onChange, to }: TProps) {
   const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
-  useMount(() => {
+  useEffect(() => {
     if (!len) return;
     const initialAccount = accountList.find((item) => item.address === to);
     setTotal(len);
     setAccount(initialAccount || { name: 'Custom Account', address: '' });
-  });
+  }, [to, accountList]);
 
   useEffect(() => {
     if (!account) return;
@@ -65,14 +63,16 @@ export function ToAccountSelector({ onChange, to }: TProps) {
 
   const options = useMemo(
     () =>
-      accountList.map((item) => {
-        const { name, address } = item;
-        return {
-          label: <OptionItem address={address} name={name} />,
-          value: address,
-          name,
-        };
-      }),
+      accountList
+        .map((item) => {
+          const { name, address } = item;
+          return {
+            label: <OptionItem address={address} name={name} />,
+            value: address,
+            name,
+          };
+        })
+        .filter((item) => item.value !== loginAccount),
     [accountList],
   );
 
@@ -87,15 +87,20 @@ export function ToAccountSelector({ onChange, to }: TProps) {
       alignItems={'center'}
       justifyContent={'center'}
       cursor={'pointer'}
+      _hover={{
+        bgColor: 'bg.bottom'
+      }}
       onClick={() => {
         router.push('/accounts');
       }}
     >
-      Manage Account
+      Manage Accounts
     </Flex>
   );
+
   return (
     <DCInputSelect
+      isDisabled={disabled}
       value={account?.address}
       text={account?.address}
       placeholder="Choose or enter addresses"

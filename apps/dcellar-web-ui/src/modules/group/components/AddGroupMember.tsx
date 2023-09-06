@@ -86,10 +86,10 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
     const curTimeStamp = await getUtcZeroTimestamp();
     const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
     const expirationDate = new Date(expirationTimestamp);
-    const membersToAdd = values.map(item => ({
+    const membersToAdd = values.map((item) => ({
       member: item,
       expirationTime: toTimestamp(expirationDate),
-    }))
+    }));
 
     const payload = {
       operator: loginAccount,

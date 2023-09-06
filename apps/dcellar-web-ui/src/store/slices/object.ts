@@ -263,7 +263,6 @@ export const objectSlice = createSlice({
           };
         })
         .filter((i) => {
-          console.log('!i.objectNam && !i.removed', i.objectName.endsWith('/') , i.removed)
           return !i.objectName.endsWith('/') && !i.removed
         })
         .filter((o) => {

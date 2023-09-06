@@ -47,7 +47,7 @@ export function Welcome() {
           <Text mt={36} mb={48} fontSize={28} lineHeight="34px" whiteSpace="pre-wrap">
             {`Start your journey of BNB Greenfield\r\ndecentralized data network Now.🥳`}
           </Text>
-          <ConnectWallet />
+          <ConnectWallet gaClickName='dc.welcome.main.connect_wa.click' />
         </Flex>
 
         <Footer

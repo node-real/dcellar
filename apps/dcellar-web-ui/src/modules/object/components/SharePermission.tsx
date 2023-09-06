@@ -1,30 +1,12 @@
-import React, { memo, ReactNode, useEffect, useState } from 'react';
+import React, { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
-import { Box, Button, Flex, Text, toast, useClipboard } from '@totejs/uikit';
+import { Box, Button, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { transientOptions } from '@/utils/transientOptions';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
-import {
-  ObjectItem,
-  setEditShare,
-  setStatusDetail,
-  TStatusDetail,
-  updateObjectVisibility,
-} from '@/store/slices/object';
-import { updateObjectInfo } from '@/facade/object';
-import { useAccount } from 'wagmi';
-import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
-import {
-  AUTH_EXPIRED,
-  BUTTON_GOT_IT,
-  FILE_ACCESS,
-  FILE_ACCESS_URL,
-  FILE_FAILED_URL,
-  FILE_STATUS_ACCESS,
-} from '@/modules/file/constant';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { setEditShare } from '@/store/slices/object';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';

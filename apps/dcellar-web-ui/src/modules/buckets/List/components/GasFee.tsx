@@ -48,22 +48,25 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
   }, [gasFee, hasError, strGasFee, usdGasFee]);
 
   return (
-    <>
-      <Flex
-        backgroundColor={'#FAFAFA'}
-        borderRadius={'8px'}
-        padding="14px 16px 12px"
-        justifyContent={'space-between'}
-        marginTop="32px"
-        color="#76808F"
-        alignItems="flex-start"
-      >
+    <Flex
+      backgroundColor={'#FAFAFA'}
+      borderRadius={'8px'}
+      padding="14px 16px 12px"
+      justifyContent={'space-between'}
+      marginTop="32px"
+      color="#76808F"
+      alignItems="flex-start"
+      flexDirection={'column'}
+    >
+      <Flex justifyContent={'space-between'} w={'100%'} h={24}>
         <Box mt="4px" w={260}>
           Gas fee{' '}
           <Text display={'inline-block'} color={'readable.disabled'}>
-          (<Link href={GAS_FEE_DOC} textDecoration={'underline'} color='readable.disabled'>
+            (
+            <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
               Pay by Owner Account
-            </Link>)
+            </Link>
+            )
           </Text>
         </Box>
         <Box textAlign={'right'}>
@@ -80,17 +83,20 @@ export const GasFee = ({ gasFee, hasError, isGasLoading }: GasFeeProps) => {
               feeDisplay
             )}
           </Flex>
-          <Box
-            fontSize={'12px'}
-            lineHeight={'15px'}
-            wordBreak={'break-all'}
-            marginTop={'4px'}
-            color={'readable.disabled'}
-          >
-            {`Available balance: ${strBalance} BNB (${usdBalance})`}
-          </Box>
         </Box>
       </Flex>
-    </>
+      <Box
+        fontSize={'12px'}
+        lineHeight={'15px'}
+        wordBreak={'break-all'}
+        marginTop={'4px'}
+        color={'readable.disabled'}
+        justifyContent={'flex-end'}
+        width={'100%'}
+        textAlign={'right'}
+      >
+        {`Available balance: ${strBalance} BNB (${usdBalance})`}
+      </Box>
+    </Flex>
   );
 };

@@ -253,7 +253,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             gap={'4px'}
           >
             {/* {renderFee(
-          'Unlocked storage fee',
+          'Prepaid fee refund',
           lockFee,
           exchangeRate,
           <Tips

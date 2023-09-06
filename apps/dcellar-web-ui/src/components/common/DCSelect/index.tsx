@@ -143,7 +143,7 @@ export function DCSelect(props: DCSelectProps) {
 
         <Box
           maxH={220}
-          overflowY="scroll"
+          overflowY="auto"
           sx={{
             '&::-webkit-scrollbar': {
               width: '4px',
@@ -167,6 +167,7 @@ export function DCSelect(props: DCSelectProps) {
                   position="relative"
                   px={24}
                   py={8}
+                  fontSize={14}
                   transitionDuration="normal"
                   transitionProperty="colors"
                   bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
@@ -174,9 +175,9 @@ export function DCSelect(props: DCSelectProps) {
                     bg: isSelected || !access ? undefined : 'bg.bottom',
                   }}
                   onClick={() => access && onSelectItem(item)}
-                  _last={{
-                    mb: 8,
-                  }}
+                  // _last={{
+                  //   mb: 8,
+                  // }}
                   {...restItemProps}
                 >
                   {isSelected && <Tick />} {item.label}

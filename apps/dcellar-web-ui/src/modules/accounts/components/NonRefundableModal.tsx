@@ -38,10 +38,14 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
       connector,
     );
     if (error || res && res.code !== 0) {
+      let msg = error as string;
+      if (error?.toLocaleLowerCase().includes('payment account has already be set as non-refundable')) {
+        msg = 'This payment account has already be set as non-refundable.'
+      }
       return dispatch(setStatusDetail({
         title: 'Set Failed',
         icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
-        desc: error as string,
+        desc: msg,
       }));
     }
     dispatch(setStatusDetail({} as TStatusDetail));

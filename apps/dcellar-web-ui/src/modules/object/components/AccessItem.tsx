@@ -19,14 +19,14 @@ const options = [
   {
     icon: <PrivateFileIcon fillColor="#1E2026" w={16} h={16} />,
     label: 'Private',
-    desc: 'Only people with access can open with the link.',
+    desc: 'Only peoples with permission can access the objects.',
     value: 2,
     bg: '#E6E8EA',
   },
   {
     icon: <PublicFileIcon fillColor="#1E2026" w={16} h={16} />,
     label: 'Public',
-    desc: 'Anyone with the link can open at anytime and can find in explorer.',
+    desc: 'Anyone with a shared link can access objects.',
     value: 1,
     bg: '#E7F3FD',
   },
@@ -36,7 +36,7 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
   value,
   onChange = () => {},
 }) {
-  const valueOption = find(options, (o) => o.value === value) || options[0];
+  const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
 
   return (
     <FormItem>
@@ -56,22 +56,25 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
                   </StyledButton>
                 </GAClick>
                 <StyledMenuList w={456}>
-                  {options.map((option) => (
-                    <StyledItem
-                      $active={option.value === value}
-                      key={option.value}
-                      onClick={() => {
-                        if (option.value === value) return;
-                        onChange(option.value);
-                      }}
-                    >
-                      <OptionTitle>
-                        {option.value === value && <SelectedIcon />}
-                        {option.label}
-                      </OptionTitle>
-                      <OptionDesc>{option.desc}</OptionDesc>
-                    </StyledItem>
-                  ))}
+                  {options.map((option) => {
+                    const active = String(option.value) === String(value);
+                    return (
+                      <StyledItem
+                        $active={active}
+                        key={option.value}
+                        onClick={() => {
+                          if (active) return;
+                          onChange(option.value);
+                        }}
+                      >
+                        <OptionTitle>
+                          {active && <SelectedIcon />}
+                          {option.label}
+                        </OptionTitle>
+                        <OptionDesc>{option.desc}</OptionDesc>
+                      </StyledItem>
+                    );
+                  })}
                 </StyledMenuList>
               </>
             )}

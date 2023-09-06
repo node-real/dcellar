@@ -1,4 +1,8 @@
-import { getAccountStreamRecord, getPaymentAccount, getPaymentAccountsByOwner } from '@/facade/account';
+import {
+  getAccountStreamRecord,
+  getPaymentAccount,
+  getPaymentAccountsByOwner,
+} from '@/facade/account';
 import { StreamRecord } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/stream_record';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
@@ -7,7 +11,7 @@ import { AppDispatch, GetState } from '..';
 export type TAccount = {
   name: string;
   address: string;
-}
+};
 export type TAccountInfo = {
   name: string;
   address: string;
@@ -25,12 +29,12 @@ export type TAccountInfo = {
 export type TBalance = {
   bankBalance: string;
   staticBalance: string;
-}
+};
 interface AccountsState {
-  isLoadingPAList: boolean;
+  isLoadingPaymentAccounts: boolean;
   isLoadingDetail: string;
   ownerAccount: TAccount;
-  PAList: TAccount[];
+  paymentAccounts: Record<string, TAccount[]>;
   currentPAPage: number;
   accountsInfo: Record<string, TAccountInfo>;
   editOwnerDetail: string;
@@ -56,10 +60,10 @@ export const getDefaultBalance = () => ({
 
 const initialState: AccountsState = {
   isLoadingDetail: '',
-  isLoadingPAList: false,
+  isLoadingPaymentAccounts: false,
   currentPAPage: 0,
   ownerAccount: {} as TAccountInfo,
-  PAList: [],
+  paymentAccounts: {},
   accountsInfo: {},
   editOwnerDetail: '',
   editPaymentDetail: '',
@@ -73,33 +77,40 @@ export const paymentAccountSlice = createSlice({
     return { ...initialState };
   },
   reducers: {
-    setOAList: (state, { payload }: PayloadAction<TAccount>) => {
+    setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
-    setPAList: (state, { payload }: PayloadAction<{ paymentAccounts: string[] }>) => {
-      const { paymentAccounts } = payload;
-      state.PAList = (paymentAccounts || []).map((account, index) => {
+    setPaymentAccounts: (state, { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>) => {
+      const { loginAccount, paymentAccounts } = payload;
+      state.paymentAccounts[loginAccount] = (paymentAccounts || []).map((account, index) => {
         return {
           name: `Payment Account ${index + 1}`,
-          address: account
+          address: account,
         };
       });
     },
-    setPAInfos: (state) => {
-      const { PAList } = state;
-      PAList.map((account, index) => {
+    setPAInfos: (state, { payload }: PayloadAction<{ loginAccount: string }>) => {
+      const { loginAccount } = payload;
+      const { paymentAccounts } = state;
+      const list = paymentAccounts[loginAccount];
+      list.map((account, index) => {
         state.accountsInfo[account.address] = {
           ...state.accountsInfo[account.address],
           ...account,
-        }
+        };
       });
     },
-    setAccountsInfo: (state, { payload }: PayloadAction<{
-      address: string;
-      name: string;
-      streamRecord?: StreamRecord | undefined;
-      refundable?: boolean;
-    }>) => {
+    setAccountsInfo: (
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        address: string;
+        name: string;
+        streamRecord?: StreamRecord | undefined;
+        refundable?: boolean;
+      }>,
+    ) => {
       const { address, name, streamRecord } = payload;
       if (!address) return;
       if (!streamRecord) {
@@ -108,7 +119,7 @@ export const paymentAccountSlice = createSlice({
           name,
           address,
           refundable: payload.refundable,
-        }
+        };
       } else {
         state.accountsInfo[address] = {
           name: name,
@@ -124,7 +135,6 @@ export const paymentAccountSlice = createSlice({
           refundable: payload.refundable,
         };
       }
-
     },
     setEditOwnerDetail: (state, { payload }: PayloadAction<string>) => {
       state.editOwnerDetail = payload;
@@ -138,23 +148,23 @@ export const paymentAccountSlice = createSlice({
     setLoadingDetail: (state, { payload }: PayloadAction<string>) => {
       state.isLoadingDetail = payload;
     },
-    setLoadingPAList: (state, { payload }: PayloadAction<boolean>) => {
-      state.isLoadingPAList = payload;
+    setLoadingPaymentAccounts: (state, { payload }: PayloadAction<boolean>) => {
+      state.isLoadingPaymentAccounts = payload;
     },
     setCurrentPAPage(state, { payload }: PayloadAction<number>) {
       state.currentPAPage = payload;
     },
     setBankBalance(state, { payload }: PayloadAction<string>) {
       state.bankBalance = payload;
-    }
+    },
   },
 });
 
 export const {
   setLoadingDetail,
-  setLoadingPAList,
-  setOAList,
-  setPAList,
+  setLoadingPaymentAccounts,
+  setOwnerAccount,
+  setPaymentAccounts,
   setPAInfos,
   setBankBalance,
   setAccountsInfo,
@@ -164,47 +174,58 @@ export const {
   setCurrentPAPage,
 } = paymentAccountSlice.actions;
 
-export const selectAccount = (address: string) => (state: any) => state.accounts.accountsInfo[address];
-export const selectBankBalance = (address: string) => (state: any) => state.accounts.bankBalances[address];
+export const selectAccount = (address: string) => (state: any) =>
+  state.accounts.accountsInfo[address];
+export const selectBankBalance = (address: string) => (state: any) =>
+  state.accounts.bankBalances[address];
+export const selectPaymentAccounts = (address: string) => (state: any) => state.accounts.paymentAccounts[address];
 
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
   const account = {
     address: loginAccount,
     name: 'Owner Account',
-  }
-  dispatch(setOAList(account))
-  dispatch(setAccountsInfo(account))
+  };
+  dispatch(setOwnerAccount(account));
+  dispatch(setAccountsInfo(account));
 };
 
-export const setupPAList = () => async (dispatch: any, getState: GetState) => {
-  const { loginAccount } = getState().persist;
-  dispatch(setLoadingPAList(true));
-  const [data, error] = await getPaymentAccountsByOwner(loginAccount);
-  dispatch(setLoadingPAList(false));
-  if (!data) return;
-  const paymentAccounts = data.paymentAccounts;
-  dispatch(setPAList({ paymentAccounts }));
-  dispatch(setPAInfos());
-}
+export const setupPaymentAccounts =
+  (forceLoading = false) =>
+    async (dispatch: any, getState: GetState) => {
+      const { loginAccount } = getState().persist;
+      const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+      if (isLoadingPaymentAccounts) return;
+      if (!paymentAccounts.length || forceLoading) {
+        dispatch(setLoadingPaymentAccounts(true));
+      }
+      const [data, error] = await getPaymentAccountsByOwner(loginAccount);
+      dispatch(setLoadingPaymentAccounts(false));
+      if (!data) return;
+      const newData = data.paymentAccounts;
+      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
+      dispatch(setPAInfos({loginAccount}));
+  };
 
-export const setupAccountsInfo = (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
-  if (!address) return;
-  const { PAList } = getState().accounts;
-  const  { loginAccount } = getState().persist;
-  const accountList = [...PAList, {address:loginAccount, name: 'Owner Account' }]
-  dispatch(setLoadingDetail(address));
-  const [PARes, PAError] = await getPaymentAccount(address);
-  const [SRRes, SRError] = await getAccountStreamRecord(address);
-  dispatch(setLoadingDetail(''))
-  const paymentAccountName =
-    accountList.find((item) => item.address === address)?.name || '';
-  dispatch(setAccountsInfo({
-    address,
-    name: paymentAccountName,
-    streamRecord: SRRes?.streamRecord,
-    refundable: PARes?.paymentAccount?.refundable,
-  }));
-}
+export const setupAccountsInfo =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    if (!address) return;
+    const { loginAccount } = getState().persist;
+    const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
+    const accountList = [...(paymentAccounts || []), { address: loginAccount, name: 'Owner Account' }];
+    dispatch(setLoadingDetail(address));
+    const [PARes, PAError] = await getPaymentAccount(address);
+    const [SRRes, SRError] = await getAccountStreamRecord(address);
+    dispatch(setLoadingDetail(''));
+    const paymentAccountName = accountList.find((item) => item.address === address)?.name || '';
+    dispatch(
+      setAccountsInfo({
+        address,
+        name: paymentAccountName,
+        streamRecord: SRRes?.streamRecord,
+        refundable: PARes?.paymentAccount?.refundable,
+      }),
+    );
+  };
 
 export default paymentAccountSlice.reducer;

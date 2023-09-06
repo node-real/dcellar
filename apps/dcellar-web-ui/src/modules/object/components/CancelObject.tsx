@@ -66,7 +66,7 @@ export const renderFee = (
           {key.toLowerCase() === 'gas fee' && (
             <>
               {' '}(
-              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
                 Pay by Owner Account
               </Link>
               )
@@ -196,7 +196,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
         borderRadius={'12px'}
       >
         {renderFee(
-          'Unlocked storage fee',
+          'Prepaid fee refund',
           lockFee,
           exchangeRate,
           <Tips

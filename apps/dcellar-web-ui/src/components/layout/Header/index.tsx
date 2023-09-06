@@ -75,14 +75,14 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         ref={ref}
         visibility={showPanel ? 'visible' : 'hidden'}
         bg="readable.white"
-        borderRadius="12px"
+        borderRadius="4px"
         position="fixed"
         zIndex="popover"
         right="24px"
         flexDirection="column"
         top="70px"
         padding="16px"
-        boxShadow="0px 4px 20px rgba(0, 0, 0, 0.04);"
+        boxShadow="0px 4px 24px rgba(0, 0, 0, 0.08);"
       >
         <Flex
           alignItems="center"
@@ -106,7 +106,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           </CopyText>
         </Flex>
         <Flex alignItems="center" margin={'16px auto 0'}>
-          <Text color="readable.disabled" fontWeight="400" fontSize="12px" lineHeight="20px">
+          <Text color="readable.tertiary" fontWeight="500" fontSize="12px" lineHeight="20px">
             Greenfield Available Balance
           </Text>
           <Tips
@@ -141,11 +141,20 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           h="24px"
         >
           <GAClick name="dc.main.account.transferin.click">
-            <Flex
+            <Button
+              variant="ghost"
+              h={81}
+              w={97}
+              padding={0}
+              borderRadius={4}
+              border="none"
               flexDirection={'column'}
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_in);
                 setShowPanel(false);
@@ -162,14 +171,23 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               <Box fontWeight={500} fontSize="14px" marginTop={8}>
                 Transfer In
               </Box>
-            </Flex>
+            </Button>
           </GAClick>
           <GAClick name="dc.main.account.transferout.click">
-            <Flex
+            <Button
+              variant="ghost"
+              h={81}
+              w={97}
+              p={0}
+              borderRadius={4}
+              border="none"
               flexDirection={'column'}
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_out);
                 setShowPanel(false);
@@ -186,14 +204,23 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               <Box fontWeight={500} fontSize="14px" marginTop={8}>
                 Transfer Out
               </Box>
-            </Flex>
+            </Button>
           </GAClick>
           <GAClick name="dc.main.account.send.click">
-            <Flex
+            <Button
+              variant="ghost"
+              h={81}
+              w={97}
+              p={0}
+              borderRadius={4}
+              border="none"
               flexDirection={'column'}
               justifyContent={'center'}
               alignItems={'center'}
               cursor={'pointer'}
+              _hover={{
+                bgColor: '#f5f5f5'
+              }}
               onClick={() => {
                 router.push(InternalRoutePaths.send);
                 setShowPanel(false);
@@ -210,7 +237,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               <Box fontWeight={500} fontSize="14px" marginTop={8}>
                 Send
               </Box>
-            </Flex>
+            </Button>
           </GAClick>
         </Flex>
         <Flex h="1px" marginTop="20px" marginBottom="8px" w="100%" bg="readable.border" />
@@ -227,7 +254,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             borderRadius="8px"
             _hover={{ bg: 'bg.bottom' }}
           >
-            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="" />
+            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="accounts icon" />
             <Text color="readable.normal" fontWeight={500} fontSize="16px">
               Accounts
             </Text>

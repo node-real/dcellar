@@ -4,7 +4,7 @@ import {
   setBankBalance,
   setupAccountsInfo,
   setupOAList,
-  setupPAList,
+  setupPaymentAccounts,
 } from '@/store/slices/accounts';
 import { setupGasObjects } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
@@ -19,14 +19,14 @@ export const PaymentAccounts = () => {
   const { bucketName } = useAppSelector((state) => state.object);
   useAsyncEffect(async () => {
     dispatch(setupOAList());
-    dispatch(setupPAList());
+    dispatch(setupPaymentAccounts());
     loginAccount && dispatch(setupAccountsInfo(loginAccount));
   }, [dispatch, setupGasObjects]);
   const { data: gnfdBalance, refetch } = useBalance({
     address: loginAccount as any,
     chainId: GREENFIELD_CHAIN_ID,
     watch: true,
-    cacheTime: 5000,
+    cacheTime: 1000,
   });
   const metamaskValue = gnfdBalance?.formatted ?? '0';
   useAsyncEffect(async () => {
@@ -37,7 +37,10 @@ export const PaymentAccounts = () => {
   }, [asPath, refetch]);
 
   useThrottleEffect(() => {
-    console.log('invoke get paymentAddress info');
+    dispatch(setBankBalance(metamaskValue));
+  }, [metamaskValue])
+
+  useThrottleEffect(() => {
     const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;
     paymentAddress && dispatch(setupAccountsInfo(paymentAddress));
   }, [asPath]);

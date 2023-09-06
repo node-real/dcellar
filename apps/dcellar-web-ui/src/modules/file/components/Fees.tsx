@@ -68,7 +68,7 @@ export const Fees = memo<GasFeeItemProps>(function GasFeeItem(props) {
                   as="p"
                 >
                   {label} (
-                  <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+                  <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
                     Pay by Owner Account
                   </Link>
                   )

@@ -5,6 +5,7 @@ import { isEmpty } from 'lodash-es';
 import {
   Box,
   Divider,
+  Flex,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -27,7 +28,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { POPPINS_FONT } from '../constants';
 import { FromAccountSelector } from '../components/FromAccountSelector';
-import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts, setupAccountsInfo } from '@/store/slices/accounts';
 import { ToAccountSelector } from '../components/ToAccountSelector';
 import {
   depositToPaymentAccount,
@@ -37,14 +38,17 @@ import {
 import { isAddress } from 'ethers/lib/utils.js';
 import { Tips } from '@/components/common/Tips';
 import { setFromAccount, setToAccount } from '@/store/slices/wallet';
+import { renderFee } from '@/utils/common';
+import { selectBnbPrice } from '@/store/slices/global';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
+  const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountsInfo, isLoadingDetail, PAList, ownerAccount } = useAppSelector(
-    (root) => root.accounts,
-  );
+  const { bankBalance, accountsInfo, isLoadingDetail, ownerAccount, isLoadingPaymentAccounts } =
+    useAppSelector((root) => root.accounts);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
@@ -61,14 +65,18 @@ export const Send = () => {
   }, [accountsInfo, bankBalance, fromAccount]);
 
   useEffect(() => {
-    if (isEmpty(PAList) || isEmpty(ownerAccount)) return;
-    const allList = [...PAList, ownerAccount];
+    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
+    if (isEmpty(paymentAccounts)) {
+      initFormRef.current = true;
+      return;
+    }
+    const allList = [...(paymentAccounts || []), ownerAccount];
     const initialFromAccount = from && allList.find((item) => item.address === from);
     initialFromAccount && dispatch(setFromAccount(initialFromAccount));
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || { name: 'Initial Account', address: '' }));
     initFormRef.current = true;
-  }, [PAList, dispatch, from, ownerAccount, to]);
+  }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
 
   const {
     handleSubmit,
@@ -94,7 +102,7 @@ export const Send = () => {
       return 'withdraw_from_payment_account';
     }
     if (
-      toAccount.name.toLowerCase() === 'owner account' &&
+      fromAccount.name.toLowerCase() === 'owner account' &&
       !toAccount.name.toLowerCase().includes('payment account')
     ) {
       return 'send_to_owner_account';
@@ -191,6 +199,11 @@ export const Send = () => {
 
   const isHideToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
 
+  useEffect(() => {
+    if (!isHideToAccount || isEmpty(ownerAccount)) return;
+    dispatch(setToAccount(ownerAccount));
+  }, [isHideToAccount, ownerAccount]);
+
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
     if (isLoadingDetail || isEmpty(fromAccount)) return errors;
@@ -215,7 +228,12 @@ export const Send = () => {
     return errors;
   }, [isLoadingDetail, toAccount, toJsErrors]);
 
-  if (!initFormRef.current) return <></>;
+  if (!initFormRef.current)
+    return (
+      <Flex justifyContent="center" my={50}>
+        <Loading />
+      </Flex>
+    );
 
   return (
     <Container>
@@ -244,52 +262,48 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on:{' '}
-            {isLoadingDetail === fromAccount.address ? (
-              <SmallLoading />
-            ) : (
-              balance
-            )}
-            {" "}BNB
+            Balance on Greenfield: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : renderFee(balance, exchangeRate + '' )}
           </FormHelperText>
         </FormControl>
-        {!isHideToAccount && (
-          <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
-            <FormLabel
-              marginBottom={'8px'}
-              fontWeight={500}
-              fontSize="14px"
-              lineHeight="150%"
-              htmlFor="text"
-              display={'flex'}
-              fontFamily={POPPINS_FONT}
-            >
-              To
-              <Tips
-                tips={
-                  'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
-                }
-              />
-            </FormLabel>
-            <ToAccountSelector to={to} onChange={(e) => onChangeAccount(e, 'to')} />
-            <FormErrorMessage textAlign={'left'}>
-              {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
-            </FormErrorMessage>
-            <FormHelperText textAlign={'right'} color="#76808F">
-              Balance on:{' '}
-              {toAccount ? (
-                toAccount.address && isLoadingDetail === toAccount.address ? (
-                  <SmallLoading />
-                ) : (
-                  accountsInfo[toAccount.address]?.staticBalance || 0
-                )
+        <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
+          <FormLabel
+            marginBottom={'8px'}
+            fontWeight={500}
+            fontSize="14px"
+            lineHeight="150%"
+            htmlFor="text"
+            display={'flex'}
+            fontFamily={POPPINS_FONT}
+          >
+            To
+            <Tips
+              tips={
+                'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
+              }
+            />
+          </FormLabel>
+          <ToAccountSelector
+            disabled={isHideToAccount}
+            to={to}
+            onChange={(e) => onChangeAccount(e, 'to')}
+          />
+          <FormErrorMessage textAlign={'left'}>
+            {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
+          </FormErrorMessage>
+          {/* <FormHelperText textAlign={'right'} color="#76808F">
+            Balance on:{' '}
+            {toAccount ? (
+              toAccount.address && isLoadingDetail === toAccount.address ? (
+                <SmallLoading />
               ) : (
-                0
-              )}{' '}
-              BNB
-            </FormHelperText>
-          </FormControl>
-        )}
+                renderFee(accountsInfo[toAccount.address]?.staticBalance || 0, exchangeRate)
+              )
+            ) : (
+              renderFee(0, exchangeRate)
+            )}{' '}
+            BNB
+          </FormHelperText> */}
+        </FormControl>
         <Amount
           balance={balance}
           errors={errors}

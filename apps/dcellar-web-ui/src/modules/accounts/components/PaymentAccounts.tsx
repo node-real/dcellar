@@ -1,9 +1,10 @@
 import { Box, Flex, Link, Loading } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useMemo, useState } from 'react';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import React, { useMemo } from 'react';
+import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  selectPaymentAccounts,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
   setEditPaymentDetail,
@@ -28,14 +29,16 @@ const actions: ActionMenuItem[] = [
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { PAList, isLoadingPAList, currentPAPage, ownerAccount } = useAppSelector(
-    (root) => root.accounts,
-  );
   const {
+    loginAccount,
     PAPageSize,
     paymentAccountSortBy: [sortName, dir],
   } = useAppSelector((root) => root.persist);
-  const ascend = sortBy(PAList, sortName);
+  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount } = useAppSelector(
+    (root) => root.accounts,
+  );
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const ascend = sortBy(paymentAccounts, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -130,7 +133,7 @@ export const PaymentAccounts = () => {
     dispatch(setCurrentPAPage(0));
     dispatch(updatePAPageSize(pageSize));
   };
-  const empty = !isLoadingPAList && !sortedList.length;
+  const empty = !isLoadingPaymentAccounts && !sortedList.length;
 
   return (
     <>
@@ -143,7 +146,7 @@ export const PaymentAccounts = () => {
       <DCTable
         rowKey="address"
         loading={{
-          spinning: isLoadingPAList,
+          spinning: isLoadingPaymentAccounts,
           indicator: <Loading />,
         }}
         columns={columns}

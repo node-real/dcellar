@@ -19,7 +19,7 @@ import {
   FILE_UPLOAD_URL,
   OBJECT_AUTH_TEMP_ACCOUNT_CREATING,
 } from '@/modules/file/constant';
-import Fee from './SimulateFee';
+import { Fees } from './Fees';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
 import { WarningInfo } from '@/components/common/WarningInfo';
@@ -284,7 +284,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
             / <strong>{checkedQueue.length} Objects</strong>
           </Box>
         </Flex>
-        <Fee />
+        <Fees />
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"

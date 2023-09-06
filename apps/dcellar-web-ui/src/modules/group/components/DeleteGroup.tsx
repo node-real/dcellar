@@ -148,7 +148,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
               color={'readable.tertiary'}
             >
               Gas Fee (
-              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
                 Pay by Owner Account
               </Link>
               )

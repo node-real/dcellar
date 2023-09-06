@@ -23,7 +23,7 @@ import BigNumber from 'bignumber.js';
 import { DECIMAL_NUMBER } from '../wallet/constants';
 import { GAS_FEE_DOC } from '../file/constant';
 
-export const Fee = () => {
+export const Fees = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
@@ -134,7 +134,7 @@ export const Fee = () => {
             {key}{key.toLowerCase() === 'gas fee' && (
             <>
               {' '}(
-              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled">
+              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
                 Pay by Owner Account
               </Link>
               )
@@ -148,7 +148,7 @@ export const Fee = () => {
           )}
         </Flex>
         <Text fontSize={'14px'} lineHeight={'17px'} fontWeight={400} color={'readable.tertiary'}>
-          {key === 'Pre-locked storage fee'
+          {key === 'Prepaid fee'
             ? renderPrelockedFeeValue(bnbValue, exchangeRate)
             : renderFeeValue(bnbValue, exchangeRate)}
         </Text>
@@ -180,7 +180,7 @@ export const Fee = () => {
       <Box borderTop="1px solid #AEB4BC" display={isOpen ? 'none' : 'block'}>
         <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
           {renderFee(
-            'Pre-locked storage fee',
+            'Prepaid fee',
             lockFee + '',
             +exchangeRate,
             <Tips
@@ -239,5 +239,3 @@ export const Fee = () => {
     </Flex>
   );
 };
-
-export default Fee;

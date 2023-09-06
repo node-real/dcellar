@@ -515,7 +515,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   <SPSelector onChange={onChangeSP} />
                 </FormControl>
                 <FormControl>
-                  <FormLabel fontSize={14} fontWeight={500} mb={8} fontFamily="heading">
+                  <FormLabel fontSize={14} fontWeight={500} mb={8}>
                     Payment Account
                   </FormLabel>
                   <PaymentAccountSelector onChange={onChangePA} />

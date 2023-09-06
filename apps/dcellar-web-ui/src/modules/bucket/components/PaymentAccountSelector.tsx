@@ -4,7 +4,7 @@ import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
-import { TAccount } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { keyBy } from 'lodash-es';
 
 type Props = {
@@ -12,8 +12,10 @@ type Props = {
 };
 
 export function PaymentAccountSelector(props: Props) {
-  const { isLoadingDetail, PAList, ownerAccount } = useAppSelector((root) => root.accounts);
-  const accountList = useMemo(() => [ownerAccount, ...PAList], [PAList, ownerAccount]);
+  const { isLoadingDetail, ownerAccount } = useAppSelector((root) => root.accounts);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const accountList = useMemo(() => [ownerAccount, ...(paymentAccounts || [])], [paymentAccounts, ownerAccount]);
   const len = accountList.length;
   const keyAccountList = keyBy(accountList, 'address');
   const [pa, setPA] = useState({} as TAccount);

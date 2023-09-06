@@ -14,7 +14,7 @@ const HeadContent = {
   },
   send: {
     title: 'send',
-    subtitle: 'Send BNB to another BNB Greenfield account.',
+    subtitle: 'Send/deposit/withdraw between BNB Greenfield accounts.',
   },
 };
 

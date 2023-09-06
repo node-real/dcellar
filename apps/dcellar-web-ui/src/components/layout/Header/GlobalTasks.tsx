@@ -13,7 +13,6 @@ import {
 } from '@/store/slices/global';
 import { useChecksumApi } from '@/modules/checksum';
 import { useAsyncEffect } from 'ahooks';
-import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/store/slices/persist';
 import {
   TMakePutObjectHeaders,
@@ -94,7 +93,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     );
   }, [hashTask, dispatch]);
 
-  // todo refactor
   const runUploadTask = async (task: UploadFile) => {
     // 1. get approval from sp
     const isFolder = task.waitFile.name.endsWith('/');
