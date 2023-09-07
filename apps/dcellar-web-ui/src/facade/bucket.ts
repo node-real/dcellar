@@ -27,6 +27,7 @@ export type TGetReadQuotaParams = {
 };
 
 export const quotaRemains = (quota: IQuotaProps, payload: string | number) => {
+  // free 剩余， readQuota, readConsumedQuota, freeConsumedSize
   const { freeQuota, readQuota, consumedQuota } = quota;
   return !BigNumber(freeQuota).plus(readQuota).minus(consumedQuota).minus(payload).isNegative();
 };
