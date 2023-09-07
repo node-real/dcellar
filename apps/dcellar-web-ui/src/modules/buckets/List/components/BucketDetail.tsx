@@ -131,9 +131,11 @@ export const BucketDetail = ({ rowData, onClose, isOpen, quotaData }: any) => {
 
   const transformedRemainingQuota = useMemo(() => {
     if (!quotaData) return '--';
-    const { freeQuota, readQuota, consumedQuota } = quotaData;
+    const { freeQuota, readQuota, consumedQuota, freeConsumedSize } = quotaData;
     const remainingQuota = readQuota + freeQuota - consumedQuota;
-    return `${formatBytes(remainingQuota, true)}/${formatBytes(freeQuota + readQuota)}`;
+    return `${formatBytes(remainingQuota, true)}/${formatBytes(
+      freeQuota + readQuota + freeConsumedSize,
+    )}`;
   }, [quotaData]);
 
   return (
