@@ -9,12 +9,8 @@ import {
   Link,
 } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { useEffect, useState } from 'react';
-import {
-  renderBalanceNumber,
-  renderFeeValue,
-  renderInsufficientBalance,
-} from '@/modules/file/utils';
+import React, { useEffect, useMemo, useState } from 'react';
+import { renderBalanceNumber, renderInsufficientBalance, renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
@@ -42,48 +38,46 @@ import {
   setStatusDetail,
   addDeletedObject,
 } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl, getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
+import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect } from 'ahooks';
-import { getLockFee } from '@/utils/wallet';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { selectStoreFeeParams } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
-import LoadingIcon from '@/public/images/icons/loading.svg';
 import { renderFee } from './CancelObject';
-
+import { Tips } from '@/components/common/Tips';
+import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { getStoreFeeParams } from '@/facade/payment';
+import { BN } from '@/utils/BigNumber';
+import { getNetflowRate } from '@/utils/payment';
+import { getTimestampInSeconds } from '@/utils/time';
+import { displayTime } from '@/utils/common';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 interface modalProps {
   refetch: () => void;
 }
 
-const renderQuota = (key: string, value: string) => {
-  return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Text fontSize={'14px'} lineHeight={'17px'} fontWeight={400} color={'readable.tertiary'}>
-        {key}
-      </Text>
-      <Text fontSize={'14px'} lineHeight={'17px'} fontWeight={400} color={'readable.tertiary'}>
-        {value}
-      </Text>
-    </Flex>
-  );
-};
-
 export const DeleteObject = ({ refetch }: modalProps) => {
   const dispatch = useAppDispatch();
-  const [lockFee, setLockFee] = useState('');
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const [refundAmount, setRefundAmount] = useState<string | null>(null);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  // Since reserveTime rarely change, we can optimize performance by using global data.
+  const {reserveTime} = useAppSelector(selectStoreFeeParams);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { editDelete, bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const isOpen = !!editDelete.objectName;
   const isFolder = editDelete.objectName.endsWith('/');
   const [isFolderCanDelete, setFolderCanDelete] = useState(true);
-
+  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const bucket = bucketInfo[bucketName];
+  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress))
+  const accountDetail = useAppSelector(selectAccount(bucket.PaymentAddress));
+  const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(bucket.PaymentAddress);
   const onClose = () => {
     dispatch(setEditDelete({} as ObjectItem));
     // todo fix it
@@ -92,30 +86,30 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
   const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
   const { connector } = useAccount();
-
-  useEffect(() => {
-    if (!isOpen) return;
-    dispatch(setupTmpAvailableBalance(address));
-  }, [isOpen, dispatch, address]);
-
+  const isStoredAtMinimumTime = useMemo(() => {
+    if (!reserveTime) return null;
+    return BN(getTimestampInSeconds()).minus(editDelete.createAt).minus(reserveTime).isPositive();
+  }, [editDelete.createAt, reserveTime]);
+  const {crudTimestamp} = useAppSelector(selectAccount(bucket?.PaymentAddress));
   useAsyncEffect(async () => {
-    const lockFeeInBNB = await getLockFee(editDelete.payloadSize, primarySp.operatorAddress);
-    // const [data, error] = await preExecDeleteObject(bucketName, editDelete.objectName, address);
-    // if (error) {
-    //   if (error.toLowerCase().includes('not empty')) {
-    //     dispatch(setStatusDetail({
-    //       icon: FOLDER_NOT_EMPTY_ICON,
-    //       title: FOLDER_TITLE_NOT_EMPTY,
-    //       desc: FOLDER_DESC_NOT_EMPTY,
-    //       buttonText: BUTTON_GOT_IT,
-    //       buttonOnClick: () => {
-    //         dispatch(setStatusDetail({} as TStatusDetail));
-    //       }
-    //     }));
-    //   }
-    // }
-    setLockFee(lockFeeInBNB);
+    if (isStoredAtMinimumTime === null) return;
+    if (!isStoredAtMinimumTime) {
+      return setRefundAmount('0');
+    }
+    const curTime = getTimestampInSeconds();
+    const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
+    const netflowRate = getNetflowRate(editDelete.payloadSize, latestStoreFeeParams);
+    if (BN(curTime).gt(BN(latestStoreFeeParams.reserveTime).plus(crudTimestamp))) {
+      return setRefundAmount('0');
+    }
+    const refundAmount = BN(netflowRate)
+      .times(BN(crudTimestamp).plus(latestStoreFeeParams.reserveTime).minus(curTime))
+      .dividedBy(10 ** 18)
+      .abs()
+      .toString();
+    setRefundAmount(refundAmount);
   }, [isOpen]);
+
   const isFolderEmpty = async (objectName: string) => {
     const _query = new URLSearchParams();
     _query.append('delimiter', '/');
@@ -132,8 +126,11 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     };
     const [res, error] = await getListObjects(params);
     if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
-    const {GfSpListObjectsByBucketNameResponse} = res.body!;
-    return GfSpListObjectsByBucketNameResponse.KeyCount === '1' && GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName;
+    const { GfSpListObjectsByBucketNameResponse } = res.body!;
+    return (
+      GfSpListObjectsByBucketNameResponse.KeyCount === '1' &&
+      GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName
+    );
   };
   useAsyncEffect(async () => {
     if (!isFolder) return;
@@ -176,8 +173,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     setButtonDisabled(true);
   }, [simulateGasFee, availableBalance]);
   const filePath = editDelete.objectName.split('/');
-  const isSavedSixMonths =
-    getUtcZeroTimestamp() - editDelete.createAt * 1000 > 6 * 30 * 24 * 60 * 60 * 1000;
+
   const showName = filePath[filePath.length - 1];
   const folderName = filePath[filePath.length - 2];
   const description = isFolder
@@ -198,6 +194,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     );
   };
 
+
   return (
     <>
       {isFolderCanDelete && (
@@ -210,7 +207,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
         >
           <ModalHeader>Confirm Delete</ModalHeader>
           <ModalCloseButton />
-          {!isFolder && !isSavedSixMonths && (
+          {!isFolder && isStoredAtMinimumTime !== null && !isStoredAtMinimumTime && (
             <Text
               fontSize="18px"
               lineHeight={'22px'}
@@ -220,8 +217,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               color={'readable.secondary'}
               mb={'12px'}
             >
-              You’ve paid 6 months locked storage fee for this object, but this object has been
-              stored less than 6 months.{' '}
+              You’ve paid {displayTime(reserveTime)} locked storage fee for this object, but this
+              object has been stored less than {displayTime(reserveTime)}.{' '}
               <Link
                 color="readable.normal"
                 textDecoration={'underline'}
@@ -252,27 +249,28 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             borderRadius="12px"
             gap={'4px'}
           >
-            {/* {renderFee(
-          'Prepaid fee refund',
-          lockFee,
-          exchangeRate,
-          <Tips
-            iconSize={'14px'}
-            containerWidth={'308px'}
-            tips={
-              <Box width={'308px'} p="8px 12px">
-                <Box
-                  color={'readable.secondary'}
-                  fontSize="14px"
-                  lineHeight={'150%'}
-                  wordBreak={'break-word'}
-                >
-                  We will unlock the storage fee after you delete the file.
-                </Box>
-              </Box>
-            }
-          />,
-        )} */}
+            {renderFee(
+              'Prepaid fee refund',
+              refundAmount || '',
+              exchangeRate,
+              <Tips
+                iconSize={'14px'}
+                containerWidth={'308px'}
+                tips={
+                  <Box width={'308px'} p="8px 12px">
+                    <Box
+                      color={'readable.secondary'}
+                      fontSize="14px"
+                      lineHeight={'150%'}
+                      wordBreak={'break-word'}
+                    >
+                      We will unlock the storage fee after you delete the file.
+                    </Box>
+                  </Box>
+                }
+              />,
+            )}
+            {renderFee('Settlement fee', settlementFee + '', exchangeRate, loading)}
             {renderFee('Gas Fee', simulateGasFee + '', exchangeRate, loading)}
           </Flex>
           <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
@@ -280,6 +278,16 @@ export const DeleteObject = ({ refetch }: modalProps) => {
               {renderInsufficientBalance(simulateGasFee + '', '0', availableBalance || '0', {
                 gaShowName: 'dc.file.delete_confirm.depost.show',
                 gaClickName: 'dc.file.delete_confirm.transferin.click',
+              })}
+              {renderPaymentInsufficientBalance({
+                gasFee: simulateGasFee,
+                refundFee: refundAmount || '',
+                settlementFee,
+                storeFee: '0',
+                payGasFeeBalance: bankBalance,
+                payStoreFeeBalance: accountDetail.staticBalance,
+                ownerAccount: loginAccount,
+                payAccount: bucket.PaymentAddress
               })}
             </Text>
             <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
@@ -317,7 +325,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                   const delObjTx = await client.object.deleteObject({
                     bucketName,
                     objectName: editDelete.objectName,
-                    operator: address,
+                    operator: loginAccount,
                   });
                   const simulateInfo = await delObjTx.simulate({
                     denom: 'BNB',
@@ -327,7 +335,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                       denom: 'BNB',
                       gasLimit: Number(simulateInfo?.gasLimit),
                       gasPrice: simulateInfo?.gasPrice || '5000000000',
-                      payer: address,
+                      payer: loginAccount,
                       granter: '',
                       signTypedDataCallback: async (addr: string, message: string) => {
                         const provider = await connector?.getProvider();
@@ -375,8 +383,8 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 }
               }}
               colorScheme="danger"
-              isLoading={loading}
-              isDisabled={buttonDisabled}
+              isLoading={loading || refundAmount === null || loadingSettlementFee}
+              isDisabled={buttonDisabled || refundAmount === null || loadingSettlementFee}
             >
               Delete
             </DCButton>

@@ -96,11 +96,13 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
 
   return (
     <>
-      <BatchDeleteObject
-        refetch={refetch}
-        isOpen={isBatchDeleteOpen}
-        cancelFn={() => setBatchDeleteOpen(false)}
-      />
+      {isBatchDeleteOpen && (
+        <BatchDeleteObject
+          refetch={refetch}
+          isOpen={isBatchDeleteOpen}
+          cancelFn={() => setBatchDeleteOpen(false)}
+        />
+      )}
       <Text as="div" fontWeight={500} alignItems="center" display="flex" gap={12}>
         {showDownload && (
           <Tooltip

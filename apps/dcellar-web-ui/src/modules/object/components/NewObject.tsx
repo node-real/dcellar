@@ -25,13 +25,14 @@ import {
   setupListObjects,
 } from '@/store/slices/object';
 import { addToWaitQueue } from '@/store/slices/global';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { MenuCloseIcon } from '@totejs/icons';
 import { debounce } from 'lodash-es';
+import { getTimestamp } from '@/utils/time';
+import { selectAccount } from '@/store/slices/accounts';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -51,6 +52,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const { folders, prefix, path, objectsInfo, bucketName, objects } = useAppSelector(
     (root) => root.object,
   );
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const bucket = bucketInfo[bucketName];
+  const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const primarySp = primarySpInfo[bucketName];
@@ -90,8 +94,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
 
   const loading = !objects[path];
-  const disabled = maxFolderDepth || discontinue || loading;
-  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading;
+  const disabled = maxFolderDepth || discontinue || loading || accountDetail.clientFrozen;
+  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading || accountDetail.clientFrozen;
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     console.log(e);
@@ -104,7 +108,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       });
     }
     Object.values(files).forEach((file: File) => {
-      const time = getUtcZeroTimestamp();
+      const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
       dispatch(addToWaitQueue({ id, file, time }));
     });
@@ -182,7 +186,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     });
 
     Object.values(infos).forEach((file: File) => {
-      const time = getUtcZeroTimestamp();
+      const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
       dispatch(addToWaitQueue({ id, file, time }));
     });

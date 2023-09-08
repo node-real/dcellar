@@ -17,7 +17,7 @@ import {
 import { BroadcastResponse, DeliverResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { Connector } from 'wagmi';
-import Long from 'long';
+import { Long } from '@bnb-chain/greenfield-js-sdk';
 
 export const getGroups = async (account: string): Promise<ErrorResponse | [GroupInfo[], null]> => {
   const client = await getClient();

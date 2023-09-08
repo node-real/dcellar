@@ -4,7 +4,6 @@ import {
   MsgCreateObjectTypeUrl,
   MsgDeleteObjectTypeUrl,
   PermissionTypes,
-  getUtcZeroTimestamp,
   newBucketGRN,
   newObjectGRN,
   toTimestamp,
@@ -20,6 +19,7 @@ import { signTypedDataV4 } from '@/utils/signDataV4';
 import { signTypedDataCallback } from './wallet';
 import { QueryGetStreamRecordResponse, QueryPaymentAccountResponse, QueryPaymentAccountsByOwnerResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import { Connector } from 'wagmi';
+import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -55,7 +55,7 @@ export const createTmpAccount = async ({
   // 2. allow temporary account to submit specified tx and amount
   const client = await getClient();
   // MsgGrantAllowanceTypeUrl
-  const curTimeStamp = await getUtcZeroTimestamp();
+  const curTimeStamp = await getTimestamp();
   const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60 * 1000);
   const expirationDate = new Date(expirationTimestamp);
   const [grantAllowanceTx, allowError] = await client.feegrant
@@ -135,7 +135,7 @@ export const createTmpAccount = async ({
 }
 
 // No stream record data can be accessed when creating a payment account without making any deposits.
-export const getAccountStreamRecord = async (address: string): Promise<ErrorResponse | [QueryGetStreamRecordResponse, null]> => {
+export const getStreamRecord = async (address: string): Promise<ErrorResponse | [QueryGetStreamRecordResponse, null]> => {
   const client = await getClient();
   return await client.payment.getStreamRecord(address).then(resolve, commonFault);
 }

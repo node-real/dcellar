@@ -14,6 +14,7 @@ import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
+  renderPaymentInsufficientBalance,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -47,6 +48,8 @@ import { setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 
 interface modalProps {
   refetch: () => void;
@@ -88,20 +91,24 @@ export const renderFee = (
 
 export const CancelObject = ({ refetch }: modalProps) => {
   const dispatch = useAppDispatch();
-  const [lockFee, setLockFee] = useState('');
+  const [refundStoreFee, setRefundStoreFee] = useState<string | null>(null);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const {
     bnb: { price: bnbPrice },
   } = useAppSelector((root) => root.global);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, editCancel } = useAppSelector((root) => root.object);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const bucket = bucketInfo[bucketName];
+  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress))
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const isOpen = !!editCancel.objectName;
+  const accountDetail = useAppSelector(selectAccount(bucket.PaymentAddress));
   const onClose = () => {
     dispatch(setEditCancel({} as ObjectItem));
     // todo fix it
@@ -134,21 +141,22 @@ export const CancelObject = ({ refetch }: modalProps) => {
       return;
     }
 
-    setLockFee(formatLockFee(data?.amount));
+    setRefundStoreFee(formatLockFee(data?.amount));
   }, [isOpen]);
+  const { loading: isLoadingSF, settlementFee } = useSettlementFee(bucket.PaymentAddress);
 
   useEffect(() => {
-    if (!simulateGasFee || Number(simulateGasFee) < 0 || !lockFee || Number(lockFee) < 0) {
+    if (!simulateGasFee || Number(simulateGasFee) < 0 || !refundStoreFee || Number(refundStoreFee) < 0) {
       setButtonDisabled(false);
       return;
     }
     const currentBalance = Number(availableBalance);
-    if (currentBalance >= Number(simulateGasFee) + Number(lockFee)) {
+    if (currentBalance >= Number(simulateGasFee) + Number(refundStoreFee)) {
       setButtonDisabled(false);
       return;
     }
     setButtonDisabled(true);
-  }, [simulateGasFee, availableBalance, lockFee]);
+  }, [simulateGasFee, availableBalance, refundStoreFee]);
   const { connector } = useAccount();
 
   const filePath = editCancel.name.split('/');
@@ -197,7 +205,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
       >
         {renderFee(
           'Prepaid fee refund',
-          lockFee,
+          refundStoreFee,
           exchangeRate,
           <Tips
             iconSize={'14px'}
@@ -216,11 +224,21 @@ export const CancelObject = ({ refetch }: modalProps) => {
             }
           />,
         )}
+        {renderFee('Settlement fee', settlementFee, exchangeRate)}
         {renderFee('Gas Fee', simulateGasFee, exchangeRate)}
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'32px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee, '0', availableBalance || '0')}
+          {renderPaymentInsufficientBalance({
+            gasFee: simulateGasFee,
+            settlementFee,
+            storeFee: '0',
+            refundFee: refundStoreFee,
+            payGasFeeBalance: bankBalance,
+            payStoreFeeBalance: accountDetail.staticBalance,
+            ownerAccount: loginAccount,
+            payAccount: bucket.PaymentAddress
+          })}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
           Available balance: {renderBalanceNumber(availableBalance || '0')}
@@ -301,7 +319,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
           }}
           colorScheme="danger"
           isLoading={loading}
-          isDisabled={buttonDisabled}
+          isDisabled={buttonDisabled || isLoadingSF || refundStoreFee === null}
         >
           Confirm
         </DCButton>

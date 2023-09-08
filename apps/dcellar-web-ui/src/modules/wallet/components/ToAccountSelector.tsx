@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Loading, Text } from '@totejs/uikit';
 import { IDCSelectOption } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
+import { selectAccount, selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
+import { MenuCloseIcon } from '@totejs/icons';
 
 type TProps = {
   onChange: (value: TAccount) => void;
@@ -13,11 +14,15 @@ type TProps = {
   disabled?: boolean;
 };
 
+type TStatus = 'unknown' | 'known' | 'non-refundable';
+
 export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-
+  const { isLoadingDetail } = useAppSelector((state) => state.accounts)
+  const accountDetail = useAppSelector(selectAccount(to));
+  const isLoading = isLoadingDetail === to;
   const accountList = useMemo(
     () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],
@@ -98,9 +103,15 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
     </Flex>
   );
 
+  const RightIcon = () => {
+    if (isLoadingDetail && to && isLoadingDetail === to) return <Loading size={12} marginX={4} color="readable.normal" />
+
+    return <MenuCloseIcon/>
+  }
   return (
     <DCInputSelect
       isDisabled={disabled}
+      RightIcon={RightIcon}
       value={account?.address}
       text={account?.address}
       placeholder="Choose or enter addresses"

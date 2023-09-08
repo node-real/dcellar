@@ -4,39 +4,46 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { Tips } from '@/components/common/Tips';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { selectBnbPrice } from '@/store/slices/global';
 import { useMount } from 'ahooks';
-import { selectBalance } from '@/store/slices/balance';
 import BSCLogo from '@/public/images/accounts/logo-bsc.svg';
-import { setupAccountsInfo } from '@/store/slices/accounts';
+import { setupAccountDetail } from '@/store/slices/accounts';
 
 const NewBalance = (props: any) => {
   const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const {bankBalance: availableBalance} = useAppSelector(root=> root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   useMount(() => {
-    dispatch(setupAccountsInfo(address))
+    dispatch(setupAccountDetail(address));
   });
 
   const renderBalanceNumber = () => {
-    if (Number(availableBalance) < 0) return 'Fetching balance...';
-    return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
+    if (Number(bankBalance) < 0) return 'Fetching balance...';
+    return `${getNumInDigits(bankBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
   };
 
   const renderUsd = () => {
     if (Number(exchangeRate) <= 0) return '';
-    const numberInUsd = Number(availableBalance) * Number(exchangeRate);
+    const numberInUsd = Number(bankBalance) * Number(exchangeRate);
     return `≈ $${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
   };
 
   return (
     <Flex w="100%" flexDirection={'column'} marginBottom={16}>
       <Flex alignItems="center" mt="4px" flexDirection={'column'} gap={8} flexWrap="wrap">
-        <Flex color="readable.normal" fontWeight="700" fontSize="24px" mr="8px" alignItems={'center'}>
-          <Circle backgroundColor={'#F0B90B'} size='24px' marginRight={10}><BSCLogo /></Circle> {renderBalanceNumber()}
+        <Flex
+          color="readable.normal"
+          fontWeight="700"
+          fontSize="24px"
+          mr="8px"
+          alignItems={'center'}
+        >
+          <Circle backgroundColor={'#F0B90B'} size="24px" marginRight={10}>
+            <BSCLogo />
+          </Circle>{' '}
+          {renderBalanceNumber()}
         </Flex>
         <Text color="readable.disabled" fontWeight="400" fontSize="12px">
           {renderUsd()}

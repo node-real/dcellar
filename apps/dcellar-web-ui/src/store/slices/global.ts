@@ -7,9 +7,9 @@ import { find, keyBy } from 'lodash-es';
 import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { defaultBalance } from '@/store/slices/balance';
-import Long from 'long';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { getUtcZeroTimestamp, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { getStoreFeeParams } from '@/facade/payment';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -25,8 +25,9 @@ type TGas = {
   gasObjects: TGasList;
 };
 
-export type TPreLockFeeParams = {
-  spStorageStorePrice: string;
+export type TStoreFeeParams = {
+  readPrice: string;
+  primarySpStorePrice: string;
   secondarySpStorePrice: string;
   validatorTaxRate: string;
   minChargeSize: number;
@@ -35,12 +36,7 @@ export type TPreLockFeeParams = {
   reserveTime: string;
 };
 
-type TPreLockFeeObjects = {
-  [key: string]: TPreLockFeeParams;
-};
-
 export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
-
 
 export type TUploadStatus =
   | 'WAIT'
@@ -87,8 +83,10 @@ export type UploadFile = {
 export interface GlobalState {
   bnb: BnbPriceInfo;
   gasHub: TGas;
-  preLockFeeObjects: TPreLockFeeObjects;
-  waitQueue: WaitFile[]; // max length two, share cross different accounts.
+  isLoadingPLF: boolean;
+  // Global data, different times may have different values
+  storeFeeParams: TStoreFeeParams;
+  waitQueue: WaitFile[];
   uploadQueue: Record<string, UploadFile[]>;
   _availableBalance: string; // using static value, avoid rerender
   _lockFee: string;
@@ -102,7 +100,8 @@ const initialState: GlobalState = {
     gasPrice: 5e-9,
     gasObjects: {},
   },
-  preLockFeeObjects: {},
+  storeFeeParams: {} as TStoreFeeParams,
+  isLoadingPLF: false,
   waitQueue: [],
   uploadQueue: {},
   _availableBalance: '0',
@@ -296,17 +295,15 @@ export const globalSlice = createSlice({
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
     },
-    setPreLockFeeObjects(
+    setStoreFeeParams(
       state,
-      { payload }: PayloadAction<{ primarySpAddress: string; lockFeeParams: TPreLockFeeParams }>,
+      { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>,
     ) {
-      const { primarySpAddress, lockFeeParams } = payload;
-      state.preLockFeeObjects[primarySpAddress] = lockFeeParams;
+      state.storeFeeParams = payload.storeFeeParams;
     },
     setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
       state.tmpAccount = payload;
     },
-    //TODO 当正在上传的时候，如果500了，objectList还是会展示sealing，需要更加精细化判断
     resetUploadQueue(state, { payload }: PayloadAction<{ loginAccount: string }>) {
       const { loginAccount } = payload;
       if (!loginAccount) return;
@@ -359,6 +356,9 @@ export const globalSlice = createSlice({
         }
         return task;
       });
+    },
+    setisLoadingPLF(state, { payload }: PayloadAction<boolean>) {
+      state.isLoadingPLF = payload;
     }
   },
 });
@@ -382,6 +382,7 @@ export const {
   resetUploadQueue,
   cancelUploadFolder,
   cancelWaitUploadFolder,
+  setisLoadingPLF,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
@@ -407,6 +408,8 @@ export const selectGasFee = (type: string) => (state: AppState) => {
   return gasObject ? gasObject.gasFee : 0;
 };
 
+export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams
+
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();
   dispatch(setBnbInfo(res));
@@ -425,34 +428,16 @@ export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   dispatch(globalSlice.actions.setGasObjects(res));
 };
 
-export const setupPreLockFeeObjects =
-  (primarySpAddress: string) => async (dispatch: AppDispatch) => {
-    const client = await getClient();
-    const now = Math.floor(getUtcZeroTimestamp()/1000);
-    const globalSpStoragePrice = await client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(now) });
-    const { params: storageParams } = await client.storage.params();
-    const {
-      minChargeSize = new Long(0),
-      redundantDataChunkNum = 0,
-      redundantParityChunkNum = 0,
-    } = (storageParams && storageParams.versionedParams) || {};
-    const { params: paymentParams } = await client.payment.params();
-    const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
-    const lockFeeParamsPayload = {
-      spStorageStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
-      secondarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.secondaryStorePrice || '',
-      validatorTaxRate: validatorTaxRate || '',
-      minChargeSize: minChargeSize.toNumber(),
-      redundantDataChunkNum,
-      redundantParityChunkNum,
-      reserveTime: reserveTime?.toString() || '',
-    };
+export const setupStoreFeeParams =
+  () => async (dispatch: AppDispatch) => {
+    dispatch(setisLoadingPLF(true))
+    const storeFeeParams = await getStoreFeeParams();
     dispatch(
-      globalSlice.actions.setPreLockFeeObjects({
-        primarySpAddress,
-        lockFeeParams: lockFeeParamsPayload,
+      globalSlice.actions.setStoreFeeParams({
+        storeFeeParams,
       }),
     );
+    dispatch(setisLoadingPLF(false))
   };
 
 export const refreshTaskFolder =

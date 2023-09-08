@@ -25,6 +25,8 @@ const GROUP_UPDATE_EXTRA = 'Updating Group';
 const GROUP_DELETE = 'Deleting Group';
 
 const GAS_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
+export const PREPAID_FEE_DOC='https://docs.nodereal.io/docs/dcellar-faq#fee-related'
+export const SETTLEMENT_FEE_DOC='https://docs.nodereal.io/docs/dcellar-faq#fee-related'
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';

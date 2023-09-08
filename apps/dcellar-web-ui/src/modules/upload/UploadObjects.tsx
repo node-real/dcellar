@@ -55,7 +55,6 @@ import {
   setTmpAccount,
   setupWaitTaskErrorMsg,
   updateWaitFileStatus,
-  updateWaitTaskMsg,
 } from '@/store/slices/global';
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
@@ -66,6 +65,7 @@ import { useUploadTab } from './useUploadTab';
 import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { useAccount } from 'wagmi';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 
 interface UploadObjectsProps {}
 
@@ -73,12 +73,12 @@ interface UploadObjectsProps {}
 export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const dispatch = useAppDispatch();
   const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { editUpload, bucketName, path, objects, folders } = useAppSelector((root) => root.object);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { editUpload, bucketName, path, objects } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const primarySp = primarySpInfo[bucketName];
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { waitQueue, preLockFeeObjects } = useAppSelector((root) => root.global);
+  const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
   const [visibility, setVisibility] = useState<VisibilityType>(
     VisibilityType.VISIBILITY_TYPE_PRIVATE,
   );
@@ -88,8 +88,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   const { uploadQueue } = useAppSelector((root) => root.global);
   const [creating, setCreating] = useState(false);
   const { tabOptions, activeKey, setActiveKey } = useUploadTab();
-
-  const { PaymentAddress } = bucketInfo[bucketName] || {};
+  const bucket = bucketInfo[bucketName];
+  const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
   const onClose = () => {
     dispatch(setEditUploadStatus(false));
     dispatch(setEditUpload({} as TEditUpload));
@@ -183,11 +183,11 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
         desc: FILE_STATUS_UPLOADING,
       }),
     );
-    const { totalFee: amount } = editUpload;
+    const { totalFee } = editUpload;
     const safeAmount =
-      Number(amount) * 1.05 > Number(bankBalance)
+      Number(totalFee) * 1.05 > Number(bankBalance)
         ? round(Number(bankBalance), 6)
-        : round(Number(amount) * 1.05, 6);
+        : round(Number(totalFee) * 1.05, 6);
     const [tmpAccount, error] = await createTmpAccount({
       address: loginAccount,
       bucketName,
@@ -230,8 +230,8 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
   }, [selectedFiles.length]);
 
   const loading = useMemo(() => {
-    return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(preLockFeeObjects);
-  }, [preLockFeeObjects, selectedFiles]);
+    return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
+  }, [storeFeeParams, selectedFiles]);
   const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
 
   return (
@@ -291,7 +291,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
             variant={'dcPrimary'}
             onClick={onUploadClick}
             isDisabled={
-              loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable
+              loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable || loadingSettlementFee
             }
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"

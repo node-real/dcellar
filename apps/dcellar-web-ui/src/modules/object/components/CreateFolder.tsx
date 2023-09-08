@@ -11,7 +11,6 @@ import {
   toast,
 } from '@totejs/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
-import { Fees } from '@/modules/file/components/Fees';
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import {
@@ -34,8 +33,6 @@ import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
-import { GAClick, GAShow } from '@/components/common/GATracker';
-import { InternalRoutePaths } from '@/constants/paths';
 import {
   E_USER_REJECT_STATUS_NUM,
   broadcastFault,
@@ -45,25 +42,25 @@ import {
 } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
-import { getDomain } from '@/utils/getDomain';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
 import {
-  selectBnbPrice,
-  setupPreLockFeeObjects,
-  setupTmpAvailableBalance,
+  selectStoreFeeParams,
+  setupStoreFeeParams,
 } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getObjectMeta } from '@/facade/object';
-import { renderFeeValue, renderPaymentInsufficientBalance } from '@/modules/file/utils';
-import { MenuCloseIcon } from '@totejs/icons';
+import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
-import { calPreLockFee } from '@/utils/sp';
 import { selectAccount } from '@/store/slices/accounts';
+import { getNetflowRate } from '@/utils/payment';
+import { BN } from '@/utils/BigNumber';
+import { TotalFees } from './TotalFees';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 
 interface modalProps {
   refetch: (name?: string) => void;
@@ -73,7 +70,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
 
-  const { preLockFeeObjects } = useAppSelector((root) => root.global);
+  const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const checksumWorkerApi = useChecksumApi();
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName, folders, objects, path } = useAppSelector((root) => root.object);
@@ -85,10 +82,11 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const folderList = objects[path]?.filter((item) => item.objectName.endsWith('/')) || [];
   const { PaymentAddress } = bucketInfo?.[bucketName] || {};
-  const payLockFeeAccount = useAppSelector(selectAccount(PaymentAddress));
+  const { settlementFee } = useSettlementFee(PaymentAddress);
+  const accountDetail = useAppSelector(selectAccount(PaymentAddress));
   const isOpen = useAppSelector((root) => root.object.editCreate);
   const { setOpenAuthModal } = useOffChainAuth();
-  const isOwnerAccount = payLockFeeAccount.address === loginAccount;
+  const isOwnerAccount = accountDetail.address === loginAccount;
   const onClose = () => {
     dispatch(setEditCreate(false));
     // todo fix it
@@ -105,28 +103,20 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
 
-  // useEffect(() => {
-  //   if (!isOpen) return;
-  //   dispatch(setupTmpAvailableBalance(loginAccount));
-  // }, [isOpen, dispatch, address]);
   useAsyncEffect(async () => {
     if (!primarySp?.operatorAddress) return;
-    if (isEmpty(preLockFeeObjects[primarySp.operatorAddress])) {
-      return await dispatch(setupPreLockFeeObjects(primarySp.operatorAddress));
+    if (isEmpty(storeFeeParams)) {
+      return await dispatch(setupStoreFeeParams());
     }
   }, [primarySp?.operatorAddress]);
-  const preLockFeeObject = preLockFeeObjects[primarySp.operatorAddress];
-  const loadingFee = useMemo(() => {
-    return isEmpty(preLockFeeObjects);
-  }, [preLockFeeObjects]);
-  const preLockFee =
-    (!isEmpty(preLockFeeObject) &&
-      calPreLockFee({
-        size: 0,
-        primarySpAddress: primarySp.operatorAddress,
-        preLockFeeObject: preLockFeeObject,
-      }).toString()) ||
-    '0';
+
+  const storeFee = useMemo(() => {
+    if (isEmpty(storeFeeParams)) return '-1';
+    const netflowRate = getNetflowRate(0, storeFeeParams);
+    const storeFee = BN(netflowRate).times(storeFeeParams.reserveTime).dividedBy(10 ** 18);
+
+    return storeFee.toString()
+  }, [storeFeeParams]);
 
   const getPath = useCallback((name: string, folders: string[]) => {
     const parentFolderName = folders && folders[folders.length - 1];
@@ -325,23 +315,23 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
   };
 
   useEffect(() => {
-    if (isEmpty(preLockFeeObject)) {
+    if (isEmpty(storeFeeParams)) {
       return;
     }
     const nGasFee = BigNumber(gasFee);
     if (isOwnerAccount) {
-      if (BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance).plus(bankBalance))) {
+      if (BigNumber(storeFee).gt(BigNumber(accountDetail.staticBalance).plus(bankBalance))) {
         setTimeout(() => setFormErrors([GET_GAS_FEE_LACK_BALANCE_ERROR]), 100);
       }
     } else {
       if (
-        BigNumber(preLockFee).gt(BigNumber(payLockFeeAccount.staticBalance)) ||
+        BigNumber(storeFee).gt(BigNumber(accountDetail.staticBalance)) ||
         nGasFee.gt(BigNumber(bankBalance))
       ) {
         setTimeout(() => setFormErrors([LOCK_FEE_LACK_BALANCE_ERROR]), 100);
       }
     }
-  }, [gasFee, bankBalance, preLockFee, payLockFeeAccount.staticBalance, preLockFeeObject, loginAccount, isOwnerAccount]);
+  }, [gasFee, bankBalance, storeFee, accountDetail.staticBalance, loginAccount, isOwnerAccount, storeFeeParams]);
 
   useEffect(() => {
     setFormErrors([]);
@@ -385,32 +375,16 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         </Flex>
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
-        <Fees gasFee={gasFee + ''} lockFee={preLockFee || '0'} />
-        {/* {lackGasFee && (
-          <Flex w="100%" justifyContent="space-between" mt={8}>
-            <Text fontSize={12} lineHeight="16px" color="scene.danger.normal">
-              <GAShow name={'dc.file.create_folder_m.transferin.show'}>
-                Insufficient balance.&nbsp;
-                <GAClick name={'dc.file.create_folder_m.transferin.click'}>
-                  <Link
-                    href={InternalRoutePaths.transfer_in}
-                    style={{ textDecoration: 'underline' }}
-                    color="#EE3911"
-                  >
-                    Transfer in
-                  </Link>
-                </GAClick>
-              </GAShow>
-            </Text>
-          </Flex>
-        )} */}
+        <TotalFees payStoreFeeAddress={PaymentAddress} gasFee={gasFee} prepaidFee={storeFee} settlementFee={settlementFee} />
         {renderPaymentInsufficientBalance({
           gasFee,
-          lockFee: preLockFee,
+          storeFee,
+          refundFee: '0',
+          settlementFee,
           payGasFeeBalance: bankBalance,
-          payLockFeeBalance: payLockFeeAccount.staticBalance,
+          payStoreFeeBalance: accountDetail.staticBalance,
           ownerAccount: loginAccount,
-          payAccount: payLockFeeAccount.address,
+          payAccount: accountDetail.address,
         })}
         <Flex w="100%" flexDirection="column">
           <DCButton

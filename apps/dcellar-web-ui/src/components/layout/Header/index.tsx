@@ -1,7 +1,6 @@
 import { Box, Button, Circle, Flex, Image, Link, Text, useOutsideClick } from '@totejs/uikit';
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { getShortenWalletAddress } from '@/utils/wallet';
@@ -13,7 +12,7 @@ import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 // import { StreamBalance } from '@/components/layout/Header/StreamBalance';
 import { useDebounceEffect } from 'ahooks';
-import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
 import { GasObjects } from './GasObjects';
@@ -23,6 +22,8 @@ import { PaymentAccounts } from './PaymentAccounts';
 import TransferInIcon from '@/public/images/icons/transfer-in.svg';
 import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
 import SendIcon from '@/public/images/icons/send.svg';
+import { setupAccountDetail } from '@/store/slices/accounts';
+import { StoreFeeParams } from './StoreFeeParams';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
@@ -37,9 +38,9 @@ const renderAvatar = (size?: 'sm' | 'md') => {
 export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) => {
   const dispatch = useAppDispatch();
   const { logout } = useLogin();
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const router = useRouter();
-  const shortAddress = getShortenWalletAddress(address);
+  const shortAddress = getShortenWalletAddress(loginAccount);
 
   const [showPanel, setShowPanel] = useState(false);
   const ref = useRef(null);
@@ -58,8 +59,9 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
   useDebounceEffect(() => {
     if (!showPanel) return;
     dispatch(setupBnbPrice());
-    dispatch(setupTmpAvailableBalance(address));
-    dispatch(setupTmpLockFee(address));
+    // dispatch(setupTmpAvailableBalance(loginAccount));
+    // dispatch(setupTmpLockFee(loginAccount));
+    dispatch(setupAccountDetail(loginAccount))
   }, [showPanel]);
 
   return (
@@ -68,6 +70,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       {/* <StreamBalance /> */}
       <GasObjects />
       <PaymentAccounts />
+      <StoreFeeParams />
       <Flex
         w="340px"
         ref={ref}
@@ -94,7 +97,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         >
           {renderAvatar('sm')}
           <CopyText
-            value={address}
+            value={loginAccount}
             iconProps={{ color: 'readable.normal' }}
             gaClickName="dc.main.account.copy_add.click"
           >

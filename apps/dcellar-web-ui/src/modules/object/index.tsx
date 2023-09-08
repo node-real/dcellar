@@ -20,7 +20,9 @@ import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
-import { setupAccountsInfo } from '@/store/slices/accounts';
+import { setupAccountDetail } from '@/store/slices/accounts';
+import { InsufficientBalance } from './components/InsufficientBalance';
+import { setupStoreFeeParams } from '@/store/slices/global';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -44,9 +46,9 @@ export const ObjectsPage = () => {
   useAsyncEffect(async () => {
     if (!bucket) return;
     // 1. set global primary sp info
-    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
     // 2. set payment account infos
-    dispatch(setupAccountsInfo(bucket.PaymentAddress));
+    dispatch(setupAccountDetail(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
@@ -106,6 +108,7 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
+      <InsufficientBalance />
       <ObjectList />
     </ObjectContainer>
   );

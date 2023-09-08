@@ -40,7 +40,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
   const { setOpenAuthModal } = useOffChainAuth();
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const [loading, setLoading] = useState(false);
   const isOpen = !!removeGroup.groupName;
   const [open, setOpen] = useState(isOpen); // for modal close animation
@@ -108,7 +108,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
   )}”? `;
   const fee = gasObjects?.[MsgDeleteGroupTypeUrl]?.gasFee || 0;
 
-  const buttonDisabled = new BigNumber(availableBalance).minus(fee).isNegative();
+  const buttonDisabled = new BigNumber(bankBalance).minus(fee).isNegative();
 
   return (
     <DCModal
@@ -161,13 +161,13 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
       </Flex>
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
+          {renderInsufficientBalance(fee + '', '0', bankBalance || '0', {
             gaShowName: 'dc.group.delete_confirm.depost.show',
             gaClickName: 'dc.group.delete_confirm.transferin.click',
           })}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-          Available balance: {renderBalanceNumber(availableBalance || '0')}
+          Available balance: {renderBalanceNumber(bankBalance || '0')}
         </Text>
       </Flex>
       <ModalFooter margin={0} flexDirection={'row'}>

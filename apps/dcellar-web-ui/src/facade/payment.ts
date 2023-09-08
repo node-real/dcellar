@@ -1,7 +1,8 @@
 import { getClient } from '@/base/client';
 import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import BigNumber from 'bignumber.js';
-import { getUtcZeroTimestamp } from '@/utils/time';
+import { Long } from '@bnb-chain/greenfield-js-sdk';
+import { getTimestampInSeconds } from '@/utils/time';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();
@@ -15,7 +16,7 @@ export const getStreamRecord = async (address: string) => {
     if (error.message.includes('key not found')) useMetamaskValue = true;
     return { streamRecord: {} } as QueryGetStreamRecordResponse;
   });
-  const ts = Math.floor(getUtcZeroTimestamp() / 1000);
+  const ts = getTimestampInSeconds();
 
   const {
     netflowRate = '0',
@@ -46,3 +47,29 @@ export const getStreamRecord = async (address: string) => {
     useMetamaskValue,
   };
 };
+
+export const getStoreFeeParams = async (time?: number) => {
+  const client = await getClient();
+  const now = getTimestampInSeconds()
+  const globalSpStoragePrice = await client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(time || now) });
+  const { params: storageParams } = await client.storage.params();
+  const {
+    minChargeSize = new Long(0),
+    redundantDataChunkNum = 0,
+    redundantParityChunkNum = 0,
+  } = (storageParams && storageParams.versionedParams) || {};
+  const { params: paymentParams } = await client.payment.params();
+  const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
+  const storeFeeParamsPayload = {
+    primarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
+    readPrice: globalSpStoragePrice?.globalSpStorePrice.readPrice || '',
+    secondarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.secondaryStorePrice || '',
+    validatorTaxRate: validatorTaxRate || '',
+    minChargeSize: minChargeSize.toNumber(),
+    redundantDataChunkNum,
+    redundantParityChunkNum,
+    reserveTime: reserveTime?.toString() || '',
+  };
+
+  return storeFeeParamsPayload;
+}

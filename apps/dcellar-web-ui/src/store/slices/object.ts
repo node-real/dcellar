@@ -8,7 +8,6 @@ import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
-// import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -366,13 +365,12 @@ export const selectPathCurrent = (root: AppState) => {
   return currentPage[path] || 0;
 };
 
-export const selectPayLockFeeAccount = (root: AppState) => {
+export const selectLocateBucket = (root: AppState) => {
   const { bucketInfo } = root.bucket;
   const { bucketName } = root.object;
-  const { PaymentAddress } = bucketInfo[bucketName] || {};
-  const { accountsInfo } = root.accounts;
-  return accountsInfo[PaymentAddress];
+  return bucketInfo[bucketName] || {};
 }
+
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
   const { objects, path } = root.object;

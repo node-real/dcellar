@@ -9,7 +9,6 @@ import {
   setupTmpLockFee,
 } from '@/store/slices/global';
 
-// TODO 重写balance
 type Balance = {
   amount: string;
   denom: string;

@@ -46,7 +46,7 @@ import { useMount } from 'ahooks';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
-import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
+import { TAccount, setupAccountDetail } from '@/store/slices/accounts';
 
 type Props = {
   isOpen: boolean;
@@ -405,7 +405,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const onChangePA = useCallback(
     async (pa: TAccount) => {
       selectedPaRef.current = pa;
-      await dispatch(setupAccountsInfo(pa.address));
+      await dispatch(setupAccountDetail(pa.address));
       const { value, available } = validateNameAndGas.name;
       if (available && value) {
         checkGasFee(value);

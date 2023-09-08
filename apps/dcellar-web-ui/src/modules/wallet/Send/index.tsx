@@ -28,7 +28,7 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { POPPINS_FONT } from '../constants';
 import { FromAccountSelector } from '../components/FromAccountSelector';
-import { TAccount, selectPaymentAccounts, setupAccountsInfo } from '@/store/slices/accounts';
+import { TAccount, selectPaymentAccounts, setupAccountDetail } from '@/store/slices/accounts';
 import { ToAccountSelector } from '../components/ToAccountSelector';
 import {
   depositToPaymentAccount,
@@ -40,16 +40,18 @@ import { Tips } from '@/components/common/Tips';
 import { setFromAccount, setToAccount } from '@/store/slices/wallet';
 import { renderFee } from '@/utils/common';
 import { selectBnbPrice } from '@/store/slices/global';
+import { useRouter } from 'next/router';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountsInfo, isLoadingDetail, ownerAccount, isLoadingPaymentAccounts } =
+  const { isLoadingDetail, bankBalance, accountDetails, ownerAccount, isLoadingPaymentAccounts } =
     useAppSelector((root) => root.accounts);
+  const router = useRouter();
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
+  const { fromAccount, toAccount, from, to} = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
@@ -61,9 +63,19 @@ export const Send = () => {
     if (fromAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountsInfo[fromAccount?.address]?.staticBalance || '';
-  }, [accountsInfo, bankBalance, fromAccount]);
-
+    return accountDetails[fromAccount?.address]?.staticBalance || '';
+  }, [accountDetails, bankBalance, fromAccount]);
+  const {
+    handleSubmit,
+    register,
+    formState: { errors, isSubmitting },
+    getValues,
+    watch,
+    reset,
+    setValue,
+  } = useForm<TWalletFromValues>({
+    mode: 'all',
+  });
   useEffect(() => {
     if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
     if (isEmpty(paymentAccounts)) {
@@ -78,17 +90,14 @@ export const Send = () => {
     initFormRef.current = true;
   }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
 
-  const {
-    handleSubmit,
-    register,
-    formState: { errors, isSubmitting },
-    getValues,
-    watch,
-    reset,
-    setValue,
-  } = useForm<TWalletFromValues>({
-    mode: 'all',
-  });
+  const onModalClose = () => {
+    reset();
+    onClose();
+  };
+  const inputAmount = getValues('amount');
+  const isShowFee = useCallback(() => {
+    return isEmpty(errors) && !isEmpty(inputAmount);
+  }, [errors, inputAmount]);
 
   const txType = useMemo(() => {
     if (isEmpty(toAccount) || isEmpty(fromAccount)) return;
@@ -176,25 +185,19 @@ export const Send = () => {
     }
   };
 
-  const onModalClose = () => {
-    reset();
-    onClose();
-  };
-  const inputAmount = getValues('amount');
-  const isShowFee = useCallback(() => {
-    return isEmpty(errors) && !isEmpty(inputAmount);
-  }, [errors, inputAmount]);
-
-  const onChangeAccount = async (account: TAccount, type: 'from' | 'to') => {
-    if (type === 'to') {
-      !isEmpty(toJsErrors) && setToJsErrors([]);
-      if (account.address !== '' && !isAddress(account.address)) {
-        return setToJsErrors(['Invalid address']);
-      }
-    }
+  const onChangeFromAccount = async (account: TAccount, type: 'from' | 'to') => {
     if (!isAddress(account.address)) return;
-    type === 'from' ? dispatch(setFromAccount(account)) : dispatch(setToAccount(account));
-    dispatch(setupAccountsInfo(account.address));
+    dispatch(setFromAccount(account));
+    await dispatch(setupAccountDetail(account.address));
+  };
+
+  const onChangeToAccount = async (account: TAccount, type: 'from' | 'to') => {
+    !isEmpty(toJsErrors) && setToJsErrors([]);
+    if (account.address !== '' && !isAddress(account.address)) {
+      return setToJsErrors(['Invalid address']);
+    }
+    dispatch(setToAccount(account));
+    await dispatch(setupAccountDetail(account.address));
   };
 
   const isHideToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
@@ -207,19 +210,19 @@ export const Send = () => {
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
     if (isLoadingDetail || isEmpty(fromAccount)) return errors;
-    const fromAccountInfo = accountsInfo[fromAccount?.address];
-    const isPaymentAccount = fromAccountInfo.name.toLocaleLowerCase().includes('payment account');
+    const fromAccountDetail = accountDetails[fromAccount?.address];
+    const isPaymentAccount = fromAccountDetail.name.toLocaleLowerCase().includes('payment account');
     if (!isPaymentAccount) {
       return errors;
     }
-    if (fromAccountInfo?.status === 1) {
+    if (fromAccountDetail?.clientFrozen) {
       errors.push('This account is frozen due to insufficient balance.');
     }
-    if (fromAccountInfo.refundable === false) {
+    if (fromAccountDetail.refundable === false) {
       errors.push('This account is non-refundable.');
     }
     return errors;
-  }, [accountsInfo, fromAccount, isLoadingDetail]);
+  }, [accountDetails, fromAccount, isLoadingDetail]);
 
   const toErrors = useMemo(() => {
     const errors: string[] = toJsErrors;
@@ -251,7 +254,7 @@ export const Send = () => {
           >
             From
           </FormLabel>
-          <FromAccountSelector from={from} onChange={(e) => onChangeAccount(e, 'from')} />
+          <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e, 'from')} />
           <FormErrorMessage textAlign={'left'}>
             {fromErrors && fromErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
@@ -262,7 +265,7 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on Greenfield: {isLoadingDetail === fromAccount.address ? <SmallLoading /> : renderFee(balance, exchangeRate + '' )}
+            Balance on Greenfield: {isLoadingDetail === fromAccount.address ? <Loading size={12} marginX={4} color="readable.normal" /> : renderFee(balance, exchangeRate + '' )}
           </FormHelperText>
         </FormControl>
         <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
@@ -285,24 +288,11 @@ export const Send = () => {
           <ToAccountSelector
             disabled={isHideToAccount}
             to={to}
-            onChange={(e) => onChangeAccount(e, 'to')}
+            onChange={(e) => onChangeToAccount(e, 'to')}
           />
           <FormErrorMessage textAlign={'left'}>
             {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
-          {/* <FormHelperText textAlign={'right'} color="#76808F">
-            Balance on:{' '}
-            {toAccount ? (
-              toAccount.address && isLoadingDetail === toAccount.address ? (
-                <SmallLoading />
-              ) : (
-                renderFee(accountsInfo[toAccount.address]?.staticBalance || 0, exchangeRate)
-              )
-            ) : (
-              renderFee(0, exchangeRate)
-            )}{' '}
-            BNB
-          </FormHelperText> */}
         </FormControl>
         <Amount
           balance={balance}
@@ -329,7 +319,8 @@ export const Send = () => {
             !isEmpty(fromErrors) ||
             (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
             isSubmitting ||
-            isLoading
+            isLoading ||
+            !!isLoadingDetail
           }
           isSubmitting={isSubmitting}
           gaClickSwitchName="dc.wallet.send.switch_network.click"
@@ -340,5 +331,3 @@ export const Send = () => {
     </Container>
   );
 };
-
-const SmallLoading = () => <Loading size={12} marginX={4} color="readable.normal" />;

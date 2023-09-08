@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderInsufficientBalance,
+  renderPaymentInsufficientBalance,
 } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
@@ -25,13 +26,20 @@ import {
 } from '@/store/slices/object';
 import { MsgCancelCreateObjectTypeUrl, MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { setTmpAccount, setupTmpAvailableBalance } from '@/store/slices/global';
-import { createTmpAccount } from '@/facade/account';
+import { createTmpAccount, getStreamRecord } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { cancelCreateObject, deleteObject } from '@/facade/object';
 import { renderFee } from '../CancelObject';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useAsyncEffect } from 'ahooks';
+import { getTimestampInSeconds } from '@/utils/time';
+import { getStoreFeeParams } from '@/facade/payment';
+import { BN } from '@/utils/BigNumber';
+import { getNetflowRate } from '@/utils/payment';
+import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
 
 interface modalProps {
   refetch: () => void;
@@ -41,24 +49,67 @@ interface modalProps {
 
 export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => {
   const dispatch = useAppDispatch();
-  const [lockFee, setLockFee] = useState('');
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { bucketName, objectsInfo } = useAppSelector((root) => root.object);
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const [isModalOpen, setModalOpen] = useState(isOpen);
   const { setOpenAuthModal } = useOffChainAuth();
+
   const { gasObjects } = useAppSelector((root) => root.global.gasHub);
+  const [refundAmount, setRefundAmount] = useState<string | null>(null);
   const deleteFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee || 0;
   const cancelFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee || 0;
-
+  const bucket = bucketInfo[bucketName];
+  const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
+  const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(bucket?.PaymentAddress);
   const deleteObjects = selectedRowKeys.map((key) => {
     return objectsInfo[bucketName + '/' + key];
   });
+
+  useAsyncEffect(async () => {
+    if (!bucket || !crudTimestamp) return;
+    const curTime = getTimestampInSeconds();
+    const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
+    // 1. 距离上一次结算超过reserveTime，不退
+    if (BN(curTime).gt(BN(latestStoreFeeParams.reserveTime).plus(crudTimestamp))) {
+      return setRefundAmount('0');
+    }
+    const refundTime = BN(crudTimestamp)
+      .plus(latestStoreFeeParams.reserveTime)
+      .minus(curTime)
+      .toString();
+
+    const refundAmount = deleteObjects.reduce((acc, cur) => {
+      const netflowRate = getNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
+      let objectRefund = '0';
+      // 2. 从创建到现在存储小于reserveTime 不退
+      // 3. 当前时间在下一次结算时间内，且创建到现在大于reserveTime，可以计算退钱
+      if (
+        BN(curTime)
+          .minus(cur.ObjectInfo.CreateAt)
+          .minus(latestStoreFeeParams.reserveTime)
+          .isPositive()
+      ) {
+        objectRefund = BN(netflowRate)
+          .times(refundTime)
+          .dividedBy(10 ** 18)
+          .abs()
+          .toString();
+      }
+
+      return BN(acc).plus(objectRefund).toString();
+    }, '0');
+
+    setRefundAmount(refundAmount);
+  }, [isOpen]);
 
   const onClose = () => {
     document.documentElement.style.overflowY = '';
@@ -67,7 +118,6 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
-  // @ts-ignore
     (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
     0,
   );
@@ -127,7 +177,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
     const [tmpAccount, err] = await createTmpAccount({
       address: loginAccount,
       bucketName,
-      amount: parseEther(round(Number(lockFee), 6).toString()).toString(),
+      amount: parseEther(round(Number(availableBalance), 6).toString()).toString(),
       connector,
       actionType: 'delete',
     });
@@ -207,13 +257,26 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
         borderRadius="12px"
         gap={'4px'}
       >
+        {renderFee('Prepaid fee refund', refundAmount || '', exchangeRate, loading)}
+        {renderFee('Settlement fee', settlementFee, exchangeRate, loading)}
         {renderFee('Gas Fee', simulateGasFee + '', exchangeRate, loading)}
       </Flex>
+
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(simulateGasFee + '', lockFee, availableBalance || '0', {
+          {/* {renderInsufficientBalance(simulateGasFee + '', settlementFee, availableBalance || '0', {
             gaShowName: 'dc.file.delete_confirm.depost.show',
             gaClickName: 'dc.file.delete_confirm.transferin.click',
+          })} */}
+          {renderPaymentInsufficientBalance({
+            gasFee: simulateGasFee,
+            storeFee: '0',
+            refundFee: refundAmount || '',
+            settlementFee,
+            payGasFeeBalance: bankBalance,
+            payStoreFeeBalance: accountDetail.staticBalance,
+            ownerAccount: loginAccount,
+            payAccount: bucket?.PaymentAddress,
           })}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
@@ -236,8 +299,8 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
           flex={1}
           onClick={onConfirmDelete}
           colorScheme="danger"
-          isLoading={loading}
-          isDisabled={buttonDisabled}
+          isLoading={loading || loadingSettlementFee}
+          isDisabled={buttonDisabled || loadingSettlementFee || refundAmount === null}
         >
           Delete
         </DCButton>

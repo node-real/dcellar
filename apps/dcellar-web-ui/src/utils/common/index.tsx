@@ -1,6 +1,7 @@
 import BigNumber from "bignumber.js";
 import { currencyFormatter } from "../currencyFormatter";
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from "@/modules/wallet/constants";
+import { Timestamp } from "@bnb-chain/greenfield-cosmos-types/google/protobuf/timestamp";
 
 export const parseErrorXml = async (result: Response) => {
   try {
@@ -25,4 +26,24 @@ export const renderFee = (amount: string | number, usdPrice: string | number, sy
   const fiatValue = currencyFormatter(BigNumber(amount).times(BigNumber(usdPrice)).toString());
 
   return `${amountFormat} ${symbol} (${fiatValue})`
+}
+
+export const displayTime = (intervalTime: number | string) => {
+  const time = +intervalTime;
+  const dayInSeconds = 24 * 60 * 60;
+  const monthInSeconds = 30 * dayInSeconds;
+  const timeObj = {
+    monthInSeconds,
+    dayInSeconds
+  };
+
+  let display = '';
+  Object.entries(timeObj).forEach(([key, value]) => {
+    const interval = Math.floor(time/value);
+    if (interval >= 1) {
+      display += interval + " " + key.replace('InSeconds', '') + ( interval > 1 ? 's' : '')
+    }
+  });
+
+  return display
 }

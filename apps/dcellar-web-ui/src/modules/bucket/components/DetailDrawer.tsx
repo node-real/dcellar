@@ -26,13 +26,13 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const quota = quotas[editDetail.BucketName];
   const bucket = bucketInfo[editDetail.BucketName] || {};
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { accountsInfo } = useAppSelector((root) => root.accounts);
+  const { accountDetails } = useAppSelector((root) => root.accounts);
 
   const getContent = () => {
     if (!isOpen || !editDetail) return;
     const CreateAt = getMillisecond(editDetail.CreateAt);
     const spName = editDetail.PrimarySpAddress && spInfo[editDetail.PrimarySpAddress]?.moniker;
-    const payAccountName = bucket.PaymentAddress && accountsInfo[bucket.PaymentAddress]?.name;
+    const payAccountName = bucket.PaymentAddress && accountDetails[bucket.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,
