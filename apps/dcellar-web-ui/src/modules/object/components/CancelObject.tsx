@@ -205,7 +205,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
       >
         {renderFee(
           'Prepaid fee refund',
-          refundStoreFee,
+          refundStoreFee || '',
           exchangeRate,
           <Tips
             iconSize={'14px'}
@@ -233,7 +233,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
             gasFee: simulateGasFee,
             settlementFee,
             storeFee: '0',
-            refundFee: refundStoreFee,
+            refundFee: refundStoreFee || '',
             payGasFeeBalance: bankBalance,
             payStoreFeeBalance: accountDetail.staticBalance,
             ownerAccount: loginAccount,
