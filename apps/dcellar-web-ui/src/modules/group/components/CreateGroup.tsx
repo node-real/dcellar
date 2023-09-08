@@ -151,6 +151,13 @@ export const CreateGroup = memo<CreateGroupProps>(function CreateGroup() {
               value={form.name}
               placeholder="Enter a group name"
               onChange={(e) => onFormChange(e.target.value, 'name')}
+              tips={{
+                title: 'Naming Rules',
+                rules: [
+                  'The group name cannot be duplicated under the same user.',
+                  'Must be between 1 and 63 characters long.',
+                ],
+              }}
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.name]} />

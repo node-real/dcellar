@@ -33,6 +33,7 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
+  extraParams?: Array<string | number>;
 };
 
 export type ObjectActionType = 'view' | 'download' | '';
@@ -208,7 +209,10 @@ export const objectSlice = createSlice({
     setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;
     },
-    setObjectList(state, { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>) {
+    setObjectList(
+      state,
+      { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>,
+    ) {
       const { path, list } = payload;
       const [bucketName] = path.split('/');
       // keep order
@@ -232,38 +236,36 @@ export const objectSlice = createSlice({
           return !ts;
         });
 
+      const objects = list.Objects.map((i) => {
+        const {
+          BucketName,
+          ObjectName,
+          ObjectStatus,
+          CreateAt,
+          PayloadSize,
+          Visibility,
+          ContentType,
+        } = i.ObjectInfo;
 
-      const objects = list.Objects
-        .map((i) => {
-          const {
-            BucketName,
-            ObjectName,
-            ObjectStatus,
-            CreateAt,
-            PayloadSize,
-            Visibility,
-            ContentType,
-          } = i.ObjectInfo;
+        const path = [BucketName, ObjectName].join('/');
+        state.objectsInfo[path] = i;
 
-          const path = [BucketName, ObjectName].join('/');
-          state.objectsInfo[path] = i;
-
-          return {
-            bucketName: BucketName,
-            objectName: ObjectName,
-            name: last(ObjectName.split('/'))!,
-            payloadSize: Number(PayloadSize),
-            // todo fix it *second*
-            createAt: Number(CreateAt),
-            contentType: ContentType,
-            folder: false,
-            objectStatus: Number(ObjectStatus),
-            visibility: Visibility,
-            removed: i.Removed,
-          };
-        })
+        return {
+          bucketName: BucketName,
+          objectName: ObjectName,
+          name: last(ObjectName.split('/'))!,
+          payloadSize: Number(PayloadSize),
+          // todo fix it *second*
+          createAt: Number(CreateAt),
+          contentType: ContentType,
+          folder: false,
+          objectStatus: Number(ObjectStatus),
+          visibility: Visibility,
+          removed: i.Removed,
+        };
+      })
         .filter((i) => {
-          return !i.objectName.endsWith('/') && !i.removed
+          return !i.objectName.endsWith('/') && !i.removed;
         })
         .filter((o) => {
           const path = [bucketName, o.objectName].join('/');
@@ -372,7 +374,7 @@ export const selectPayLockFeeAccount = (root: AppState) => {
   const { PaymentAddress } = bucketInfo[bucketName] || {};
   const { accountsInfo } = root.accounts;
   return accountsInfo[PaymentAddress];
-}
+};
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
   const { objects, path } = root.object;

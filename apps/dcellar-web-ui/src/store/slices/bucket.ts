@@ -134,9 +134,10 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
+    const { loginAccount } = getState().persist;
 
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket }));
+    dispatch(setBucketInfo({ address: address || loginAccount, bucket }));
   };
 
 export const setupBuckets =

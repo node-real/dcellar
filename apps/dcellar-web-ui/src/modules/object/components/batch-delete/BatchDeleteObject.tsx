@@ -1,10 +1,7 @@
-import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { useEffect, useState } from 'react';
-import {
-  renderBalanceNumber,
-  renderInsufficientBalance,
-} from '@/modules/file/utils';
+import React, { memo, useEffect, useState } from 'react';
+import { renderBalanceNumber, renderInsufficientBalance } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
@@ -39,7 +36,11 @@ interface modalProps {
   cancelFn: () => void;
 }
 
-export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => {
+export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
+  refetch,
+  isOpen,
+  cancelFn,
+}) {
   const dispatch = useAppDispatch();
   const [lockFee, setLockFee] = useState('');
   const { loginAccount } = useAppSelector((root) => root.persist);
@@ -67,7 +68,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
-  // @ts-ignore
+    // @ts-ignore
     (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
     0,
   );
@@ -244,4 +245,4 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       </ModalFooter>
     </DCModal>
   );
-};
+});

@@ -12,14 +12,15 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
   const { quotas } = useAppSelector((root) => root.bucket);
   const { bucketName } = useAppSelector((root) => root.object);
   const quota = quotas[bucketName];
-  const { readQuota, freeQuota, consumedQuota } = quota || {
+  const { readQuota, freeQuota, consumedQuota, freeConsumedSize } = quota || {
     readQuota: 0,
     freeQuota: 0,
     consumedQuota: 0,
+    freeConsumedSize: 0,
   };
 
   const remain = readQuota + freeQuota - consumedQuota;
-  const percent = (1 - consumedQuota / (readQuota + freeQuota)) * 100;
+  const percent = (1 - consumedQuota / (readQuota + freeQuota + freeConsumedSize)) * 100;
 
   const manageQuota = () => {
     dispatch(setEditQuota([bucketName, '']));
@@ -31,7 +32,7 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
         <Flex fontWeight={600}>
           {quota ? formatBytes(remain, true) : '--'}{' '}
           <Text ml={4} fontWeight={500} color="#76808F">
-            of {quota ? formatBytes(readQuota + freeQuota, true) : '--'}
+            of {quota ? formatBytes(readQuota + freeQuota + freeConsumedSize, true) : '--'}
           </Text>
         </Flex>
         <Text

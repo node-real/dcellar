@@ -13,6 +13,7 @@ export interface SimplePaginationProps {
   pageChange?: (pageSize: number, next: boolean, prev: boolean) => void;
   canNext: boolean;
   canPrev: boolean;
+  simple?: boolean;
 }
 
 export const SimplePagination = memo<SimplePaginationProps>(function SimplePagination({
@@ -21,6 +22,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   pageChange = () => {},
   canPrev,
   canNext,
+  simple = false,
 }) {
   const menu = (
     <Menu placement="top">
@@ -53,7 +55,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   );
   return (
     <Container>
-      Rows per page: {menu}
+      {!simple && <>Rows per page: {menu}</>}
       <StyledBack $disabled={!canPrev} onClick={() => pageChange(pageSize, false, true)} />{' '}
       <StyledGo $disabled={!canNext} onClick={() => pageChange(pageSize, true, false)} />
     </Container>

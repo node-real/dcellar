@@ -1,24 +1,24 @@
-import React, { memo, useEffect, useMemo } from 'react';
+import React, { memo, useEffect } from 'react';
 import {
-  QDrawerHeader,
-  QDrawerBody,
-  Flex,
-  Text,
-  Link,
   Box,
   Divider,
+  Flex,
+  Link,
+  QDrawerBody,
   QDrawerFooter,
+  QDrawerHeader,
+  Text,
+  Tooltip,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { BucketItem, setEditDetail, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
-import { formatId, trimAddress } from '@/utils/string';
+import { formatId, formatQuota, trimAddress } from '@/utils/string';
 import { formatAddress } from '@/modules/buckets/utils/formatAddress';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { GAClick } from '@/components/common/GATracker';
 import { CopyText } from '@/components/common/CopyText';
 import { Label } from '@/modules/buckets/List/components/BucketDetail';
-import { formatBytes } from '@/modules/file/utils';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { getClient } from '@/base/client';
@@ -37,24 +37,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const quota = quotas[editDetail.BucketName];
   const bucket = bucketInfo[editDetail.BucketName] || {};
   const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
-
-  const transformedRemainingQuota = useMemo(() => {
-    if (!quota)
-      return {
-        remain: 0,
-        text: '--',
-        free: '--',
-        read: '--',
-      };
-    const { freeQuota, readQuota, consumedQuota } = quota;
-    const remainingQuota = readQuota + freeQuota - consumedQuota;
-    return {
-      free: formatBytes(freeQuota, true).replace(' ', ''),
-      read: !readQuota ? '0G' : formatBytes(readQuota, true).replace(' ', ''),
-      remain: (remainingQuota / (freeQuota + readQuota)) * 100,
-      text: `${formatBytes(remainingQuota, true)} / ${formatBytes(freeQuota + readQuota)}`,
-    };
-  }, [quota]);
+  const formattedQuota = formatQuota(quota);
   const { spInfo } = useAppSelector((root) => root.sp);
   const { accountsInfo } = useAppSelector((root) => root.accounts);
 
@@ -197,7 +180,10 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
           <Label>Free quota (one-time)</Label>
           <Flex>
             <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
-              {transformedRemainingQuota.free}
+              {formattedQuota.totalFreeText}{' '}
+              <Text as="span" color="#76808F">
+                ({formattedQuota.remainFreeText} remains)
+              </Text>
             </Text>
           </Flex>
         </Flex>
@@ -213,7 +199,10 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
           <Label>Monthly quota</Label>
           <Flex flexDirection={'column'} alignItems="flex-end">
             <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
-              {transformedRemainingQuota.read}/mo
+              {formattedQuota.totalReadText}/mo{' '}
+              <Text as="span" color="#76808F">
+                ({formattedQuota.remainReadText} remains)
+              </Text>
             </Text>
             <Text>Expire date: {endDate}</Text>
           </Flex>
@@ -264,9 +253,32 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             <Text color="readable.tertiary" fontSize={'12px'} marginBottom="4px" marginTop="8px">
               Remaining Quota
             </Text>
-            <Box bg="#F5F5F5" height={8} my={4}>
-              <Box bg="#00BA34" height={8} w={`${transformedRemainingQuota.remain}%`} />
-            </Box>
+            <Tooltip
+              content={
+                <Box fontSize={12} lineHeight="normal" color="#1E2026" minW="330">
+                  <Box>Free quota: {formattedQuota.remainFreeText} Remain</Box>
+                  <Box>
+                    Monthly quota: {formattedQuota.remainReadText} Remain
+                    <Text
+                      as="span"
+                      color="#76808F"
+                      transform="scale(0.8333)"
+                      transformOrigin="left center"
+                      display="inline-flex"
+                      ml={4}
+                    >
+                      (Expire date: {endDate})
+                    </Text>
+                  </Box>
+                </Box>
+              }
+              placement="bottom"
+            >
+              <Flex bg="#F5F5F5" height={8} my={4} alignItems={'center'}>
+                <Box bg="#00BA34" height={8} w={`${formattedQuota.readRemainPercent}%`} />
+                <Box bg="#91E1A8" height={8} w={`${formattedQuota.freeRemainPercent}%`} />
+              </Flex>
+            </Tooltip>
             <Text
               display="flex"
               justifyContent="space-between"
@@ -274,7 +286,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
               fontWeight={500}
               wordBreak="break-all"
             >
-              {transformedRemainingQuota.text}{' '}
+              {formattedQuota.show}{' '}
               <Text
                 as="span"
                 color="#00BA34"

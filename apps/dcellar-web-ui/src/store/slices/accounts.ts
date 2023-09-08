@@ -80,7 +80,10 @@ export const paymentAccountSlice = createSlice({
     setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
-    setPaymentAccounts: (state, { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>) => {
+    setPaymentAccounts: (
+      state,
+      { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>,
+    ) => {
       const { loginAccount, paymentAccounts } = payload;
       state.paymentAccounts[loginAccount] = (paymentAccounts || []).map((account, index) => {
         return {
@@ -178,7 +181,10 @@ export const selectAccount = (address: string) => (state: any) =>
   state.accounts.accountsInfo[address];
 export const selectBankBalance = (address: string) => (state: any) =>
   state.accounts.bankBalances[address];
-export const selectPaymentAccounts = (address: string) => (state: any) => state.accounts.paymentAccounts[address];
+
+export const defaultPAList = Array<TAccount>();
+export const selectPaymentAccounts = (address: string) => (state: any) =>
+  state.accounts.paymentAccounts[address] || defaultPAList;
 
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
@@ -192,19 +198,19 @@ export const setupOAList = () => async (dispatch: AppDispatch, getState: GetStat
 
 export const setupPaymentAccounts =
   (forceLoading = false) =>
-    async (dispatch: any, getState: GetState) => {
-      const { loginAccount } = getState().persist;
-      const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
-      if (isLoadingPaymentAccounts) return;
-      if (!paymentAccounts.length || forceLoading) {
-        dispatch(setLoadingPaymentAccounts(true));
-      }
-      const [data, error] = await getPaymentAccountsByOwner(loginAccount);
-      dispatch(setLoadingPaymentAccounts(false));
-      if (!data) return;
-      const newData = data.paymentAccounts;
-      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
-      dispatch(setPAInfos({loginAccount}));
+  async (dispatch: any, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+    if (isLoadingPaymentAccounts) return;
+    if (!paymentAccounts.length || forceLoading) {
+      dispatch(setLoadingPaymentAccounts(true));
+    }
+    const [data, error] = await getPaymentAccountsByOwner(loginAccount);
+    dispatch(setLoadingPaymentAccounts(false));
+    if (!data) return;
+    const newData = data.paymentAccounts;
+    dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
+    dispatch(setPAInfos({ loginAccount }));
   };
 
 export const setupAccountsInfo =
@@ -212,7 +218,10 @@ export const setupAccountsInfo =
     if (!address) return;
     const { loginAccount } = getState().persist;
     const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
-    const accountList = [...(paymentAccounts || []), { address: loginAccount, name: 'Owner Account' }];
+    const accountList = [
+      ...(paymentAccounts || []),
+      { address: loginAccount, name: 'Owner Account' },
+    ];
     dispatch(setLoadingDetail(address));
     const [PARes, PAError] = await getPaymentAccount(address);
     const [SRRes, SRError] = await getAccountStreamRecord(address);

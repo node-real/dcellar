@@ -14,10 +14,14 @@ import {
   MsgUpdateGroupExtra,
   MsgUpdateGroupMember,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { BroadcastResponse, DeliverResponse } from '@/facade/object';
+import { BroadcastResponse, DeliverResponse, xmlParser } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { Connector } from 'wagmi';
 import Long from 'long';
+import { generateUrlByBucketName } from '@bnb-chain/greenfield-js-sdk';
+import { encodeObjectName } from '@/utils/string';
+import axios from 'axios';
+import { GroupMember } from '@/store/slices/group';
 
 export const getGroups = async (account: string): Promise<ErrorResponse | [GroupInfo[], null]> => {
   const client = await getClient();
@@ -30,7 +34,7 @@ export const getGroups = async (account: string): Promise<ErrorResponse | [Group
         limit: Long.fromInt(200),
         offset: Long.fromInt(0),
         reverse: false,
-      }
+      },
     })
     .then(resolve, commonFault);
   if (!res) return [null, error];
@@ -174,4 +178,18 @@ export const deleteGroup = async (msg: MsgDeleteGroup, connector: Connector): Br
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const getGroupMembers = async (
+  groupId: string,
+  endpoint: string,
+): Promise<GroupMember[]> => {
+  const url = `${endpoint}/?group-members&group-id=${groupId}&limit=1000`;
+  return axios
+    .get(url)
+    .then((e) => {
+      const xml = xmlParser.parse(e.data);
+      return xml.GfSpGetGroupMembersResponse?.Groups || [];
+    })
+    .catch((e) => []);
 };

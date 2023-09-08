@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditQuota } from '@/store/slices/bucket';
+import { setEditQuota, setupBucket } from '@/store/slices/bucket';
 import { BackIcon } from '@totejs/icons';
 import {
   Divider,
@@ -16,11 +16,11 @@ import {
 import styled from '@emotion/styled';
 import { formatBytes } from '@/modules/file/utils';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
-import { setupPAList } from '@/store/slices/accounts';
+import { selectPaymentAccounts } from '@/store/slices/accounts';
 import { find } from 'lodash-es';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { trimLongStr } from '@/utils/string';
+import { formatQuota, trimLongStr } from '@/utils/string';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
 import { G_BYTES } from '@/utils/constant';
@@ -37,7 +37,6 @@ import {
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { updateBucketInfo, UpdateBucketInfoPayload } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
-import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 
 interface ManageQuotaProps {
   onClose: () => void;
@@ -46,8 +45,9 @@ interface ManageQuotaProps {
 export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose }) {
   const dispatch = useAppDispatch();
   const { editQuota, bucketInfo, quotas } = useAppSelector((root) => root.bucket);
-  const { ownerAccount, PAList } = useAppSelector((root) => root.accounts);
+  const { ownerAccount } = useAppSelector((root) => root.accounts);
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const PAList = useAppSelector(selectPaymentAccounts(loginAccount));
   const [bucketName] = editQuota;
   const bucket = bucketInfo[bucketName] || {};
   const quota = quotas[bucketName];
@@ -57,6 +57,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
+  const formattedQuota = formatQuota(quota);
 
   const paymentAccount = useMemo(() => {
     if (!bucket) return '--';
@@ -91,13 +92,14 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   }, [ownerAccount, PAList, bucket]);
 
   useEffect(() => {
+    if (!bucketName) return;
+    dispatch(setupBucket(bucketName));
+  }, [bucketName, dispatch]);
+
+  useEffect(() => {
     if (!quota) return;
     setNewChargedQuota(currentQuota / G_BYTES);
   }, [currentQuota]);
-
-  useMount(() => {
-    dispatch(setupPAList());
-  });
 
   useAsyncEffect(async () => {
     if (!bucket) return;
@@ -147,7 +149,6 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
       chargedReadQuota: String(newChargedQuota * G_BYTES),
     };
 
-    console.log(payload);
     const [txRes, txError] = await updateBucketInfo(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
@@ -177,7 +178,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
         </Field>
         <Field>
           <Label>Free quota (one-time)</Label>
-          <Value>{quota ? formatBytes(quota.freeQuota) : '--'}</Value>
+          <Value>{formattedQuota.totalFreeText}</Value>
         </Field>
         <Divider my={8} />
         <QuotaItem
