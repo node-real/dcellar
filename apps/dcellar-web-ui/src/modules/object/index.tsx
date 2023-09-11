@@ -20,9 +20,9 @@ import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
+import { QuotaCard } from '@/modules/object/components/QuotaCard';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
-import { setupStoreFeeParams } from '@/store/slices/global';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -81,7 +81,10 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <ObjectBreadcrumb />
+        <Flex justifyContent="space-between">
+          <ObjectBreadcrumb />
+          <QuotaCard />
+        </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>
             <ForwardIcon />

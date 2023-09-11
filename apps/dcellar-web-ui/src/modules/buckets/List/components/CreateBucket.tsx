@@ -1,5 +1,6 @@
 import {
   Box,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
@@ -47,6 +48,8 @@ import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { TAccount, setupAccountDetail } from '@/store/slices/accounts';
+import { QuotaItem } from '@/components/formitems/QuotaItem';
+import { G_BYTES } from '@/utils/constant';
 
 type Props = {
   isOpen: boolean;
@@ -89,6 +92,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
   const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
+  const [chargeQuota, setChargeQuota] = useState(0);
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
@@ -170,7 +174,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         bucketName,
         creator: address,
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-        chargedReadQuota: '0',
+        chargedReadQuota: String(chargeQuota * G_BYTES),
         spInfo: {
           primarySpAddress: sp.operatorAddress,
         },
@@ -290,83 +294,81 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     [checkGasFee, clearErrors, setError, setValue, validateNameRules],
   );
 
-  const onSubmit = useCallback(
-    async (data: any) => {
-      try {
-        setStatus('operating');
-        const { seedString } = await dispatch(
-          getSpOffChainData(address, selectedSpRef.current.operatorAddress),
-        );
-        if (!seedString) {
-          onClose();
-          setOpenAuthModal();
-          return;
-        }
-        const bucketName = data.bucketName;
-        const selectedPaAddress = selectedPaRef.current.address;
-        const createBucketPayload: IBaseGetCreateBucket = {
-          bucketName,
-          creator: address,
-          paymentAddress: selectedPaAddress,
-          visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-          chargedReadQuota: '0',
-          spInfo: {
-            primarySpAddress: selectedSpRef.current.operatorAddress,
-          },
-        };
-        const createBucketTx = await genCreateBucketTx(createBucketPayload, {
-          type: 'EDDSA',
-          domain: window.location.origin,
-          seed: seedString,
-          address,
-        });
-        const simulateInfo = await createBucketTx.simulate({
-          denom: 'BNB',
-        });
-        const txRes = await createBucketTx.broadcast({
-          denom: 'BNB',
-          gasLimit: Number(simulateInfo?.gasLimit),
-          gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: createBucketPayload.creator,
-          granter: '',
-          signTypedDataCallback: async (addr: string, message: string) => {
-            const provider = await connector?.getProvider();
-            return await signTypedDataV4(provider, addr, message);
-          },
-        });
-        // todo refactor
-        await pollingGetBucket({
-          address: createBucketPayload.creator,
-          endpoint: globalSP.endpoint,
-          bucketName: createBucketPayload.bucketName,
-        });
-
-        if (txRes.code === 0) {
-          onClose();
-          typeof refetch === 'function' && refetch();
-          toast.success({
-            description: `Bucket created successfully!`,
-          });
-          setTimeout(() => {
-            setStatus('pending');
-          }, 200);
-          reportEvent({
-            name: 'dc.toast.bucket_create.success.show',
-          });
-        } else {
-          throw txRes;
-        }
-      } catch (e: any) {
-        setStatus('failed');
-        // handle chain and storage error
-        const errorMsg = e?.message;
-        errorMsg && setSubmitErrorMsg(errorMsg);
-        // eslint-disable-next-line no-console
-        console.log('submit error', e);
+  const onSubmit = async (data: any) => {
+    try {
+      setStatus('operating');
+      const { seedString } = await dispatch(
+        getSpOffChainData(address, selectedSpRef.current.operatorAddress),
+      );
+      if (!seedString) {
+        onClose();
+        setOpenAuthModal();
+        return;
       }
-    },
-    [address, connector, dispatch, globalSP?.endpoint, onClose, refetch, setOpenAuthModal],
-  );
+      const bucketName = data.bucketName;
+      const selectedPaAddress = selectedPaRef.current.address;
+      const createBucketPayload: IBaseGetCreateBucket = {
+        bucketName,
+        creator: address,
+        paymentAddress: selectedPaAddress,
+        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+        chargedReadQuota: String(chargeQuota * G_BYTES),
+        spInfo: {
+          primarySpAddress: selectedSpRef.current.operatorAddress,
+        },
+      };
+
+      const createBucketTx = await genCreateBucketTx(createBucketPayload, {
+        type: 'EDDSA',
+        domain: window.location.origin,
+        seed: seedString,
+        address,
+      });
+      const simulateInfo = await createBucketTx.simulate({
+        denom: 'BNB',
+      });
+      const txRes = await createBucketTx.broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo?.gasLimit),
+        gasPrice: simulateInfo?.gasPrice || '5000000000',
+        payer: createBucketPayload.creator,
+        granter: '',
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
+        },
+      });
+      // todo refactor
+      await pollingGetBucket({
+        address: createBucketPayload.creator,
+        endpoint: globalSP.endpoint,
+        bucketName: createBucketPayload.bucketName,
+      });
+
+      if (txRes.code === 0) {
+        onClose();
+        typeof refetch === 'function' && refetch();
+        toast.success({
+          description: `Bucket created successfully!`,
+        });
+        setTimeout(() => {
+          setStatus('pending');
+        }, 200);
+        reportEvent({
+          name: 'dc.toast.bucket_create.success.show',
+        });
+      } else {
+        throw txRes;
+      }
+    } catch (e: any) {
+      setStatus('failed');
+      // handle chain and storage error
+      const errorMsg = e?.message;
+      errorMsg && setSubmitErrorMsg(errorMsg);
+      // eslint-disable-next-line no-console
+      console.log('submit error', e);
+    }
+  };
 
   const disableCreateButton = () => {
     return (
@@ -519,6 +521,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   <PaymentAccountSelector onChange={onChangePA} />
                 </FormControl>
               </Flex>
+              <Divider my={32} />
+              <QuotaItem value={chargeQuota} onChange={setChargeQuota} />
               <GasFee
                 gasFee={validateNameAndGas.gas.value}
                 hasError={!isEmpty(errors.bucketName)}

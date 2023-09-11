@@ -34,6 +34,7 @@ export interface BucketState {
   editDetail: TEditDetailItem;
   editDelete: BucketItem;
   editCreate: boolean;
+  editQuota: string[];
 }
 
 const initialState: BucketState = {
@@ -47,6 +48,7 @@ const initialState: BucketState = {
   editDetail: {} as BucketItem,
   editDelete: {} as BucketItem,
   editCreate: false,
+  editQuota: ['', ''],
 };
 
 export const bucketSlice = createSlice({
@@ -62,6 +64,9 @@ export const bucketSlice = createSlice({
     },
     setEditDetail(state, { payload }: PayloadAction<TEditDetailItem>) {
       state.editDetail = payload;
+    },
+    setEditQuota(state, { payload }: PayloadAction<string[]>) {
+      state.editQuota = payload;
     },
     setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
       state.editDelete = payload;
@@ -129,9 +134,10 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
+    const { loginAccount } = getState().persist;
 
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket }));
+    dispatch(setBucketInfo({ address: address || loginAccount, bucket }));
   };
 
 export const setupBuckets =
@@ -192,6 +198,7 @@ export const {
   setEditDelete,
   setReadQuota,
   setEditCreate,
+  setEditQuota,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

@@ -15,5 +15,12 @@ export const theme: ThemeConfig = {
     Tooltip: {
       zIndexPopup: 1600,
     },
+    InputNumber: {
+      borderRadius: 2,
+      boxShadow: 'none',
+      colorBorder: '#E6E8EA',
+      fontSize: 14,
+      lineHeight: 1.214,
+    },
   },
 };

@@ -19,7 +19,7 @@ import {
   makePutObjectHeaders,
 } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
-import { headObject } from '@/facade/object';
+import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
@@ -37,7 +37,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { tmpAccount } = useAppSelector((root) => root.global);
+  const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
@@ -251,22 +251,25 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const objectName = [...prefixFolders, waitFile.relativePath, waitFile.name]
           .filter((item) => !!item)
           .join('/');
-        const objectInfo = await headObject(bucketName, objectName);
 
-        if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
+        const endpoint = spInfo[task.spAddress].endpoint;
+        const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
+        const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus!;
+        const preTs = sealingTs[task.id] || Date.now();
+        if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
               task,
-              errorMsg: 'Something went wrong.',
+              errorMsg: error ? error : 'Something went wrong.',
             }),
           );
           return -1;
         }
-        if (objectInfo.objectStatus === 1) {
+        if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
         }
-        return objectInfo.objectStatus;
+        return objectStatus;
       }),
     );
 

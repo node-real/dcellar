@@ -52,7 +52,7 @@ import {
   setupStoreFeeParams,
 } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { getObjectMeta } from '@/facade/object';
+import { legacyGetObjectMeta } from '@/facade/object';
 import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
@@ -234,7 +234,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
 
     // polling ensure create sealed
     const fullPath = getPath(inputFolderName, folders);
-    await getObjectMeta(bucketName, fullPath, primarySp.endpoint);
+    await legacyGetObjectMeta(bucketName, fullPath, primarySp.endpoint);
 
     setLoading(false);
     showSuccessToast(transactionHash);

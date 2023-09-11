@@ -51,6 +51,10 @@ const SharePage: NextPage<PageProps> = (props) => {
   const [getPermission, setGetPermission] = useState(true);
   const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
 
+  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
+  const walletConnected = !!loginAccount;
+  const isOwner = objectInfo?.owner === loginAccount;
+
   useAsyncEffect(async () => {
     if (!oneSp) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
@@ -76,7 +80,8 @@ const SharePage: NextPage<PageProps> = (props) => {
       seedString,
       address: loginAccount,
     };
-    if (!loginAccount || !isOwner) {
+
+    if (!loginAccount) {
       const objectInfo = await headObject(bucketName, objectName);
       setObjectInfo(objectInfo);
       setQuotaData({} as IQuotaProps);
@@ -98,10 +103,6 @@ const SharePage: NextPage<PageProps> = (props) => {
     );
     setGetPermission(res.effect === PermissionTypes.Effect.EFFECT_ALLOW);
   }, [bucketName, objectName, loginAccount]);
-
-  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-  const walletConnected = !!loginAccount;
-  const isOwner = objectInfo?.owner === loginAccount;
 
   const header = (
     <Head>

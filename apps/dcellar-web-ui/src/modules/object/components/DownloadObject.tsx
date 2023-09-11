@@ -34,13 +34,14 @@ export const DownloadObject = (props: modalProps) => {
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(
     null,
   );
-  const {primarySpInfo}= useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDownload, bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const directDownload = accounts[loginAccount].directDownload;
   const isOpen = !!editDownload.objectName;
   const { setOpenAuthModal } = useOffChainAuth();
+  const [loading, setLoading] = useState(false);
   const onClose = () => {
     dispatch(setEditDownload({} as ObjectItem));
     // todo fix it
@@ -50,8 +51,9 @@ export const DownloadObject = (props: modalProps) => {
   const quotaData = quotas[bucketName];
 
   const onError = (type: string) => {
+    setLoading(false);
+    onClose();
     if (type === E_OFF_CHAIN_AUTH) {
-      onClose();
       return setOpenAuthModal();
     }
     const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -65,9 +67,12 @@ export const DownloadObject = (props: modalProps) => {
   const transformedRemainingQuota = remainingQuota ? formatBytes(remainingQuota, true) : '--';
 
   const onAction = async () => {
+    setLoading(true);
     const objectName = editDownload.objectName;
     const endpoint = primarySp.endpoint;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
     const [_, accessError, objectInfo] = await getCanObjectAccess(
       bucketName,
       objectName,
@@ -89,7 +94,7 @@ export const DownloadObject = (props: modalProps) => {
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
     if (opsError) return onError(opsError);
-    onClose();
+    setLoading(false);
     return success;
   };
 
@@ -145,6 +150,7 @@ export const DownloadObject = (props: modalProps) => {
           gaClickName="dc.file.download_confirm.confirm.click"
           w="100%"
           variant={'dcPrimary'}
+          isLoading={loading}
           onClick={() => {
             onAction();
             currentAllowDirectDownload !== null &&

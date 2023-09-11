@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BnbPriceInfo, getDefaultBnbInfo, getBnbPrice } from '@/facade/common';
+import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getClient } from '@/base/client';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
@@ -92,6 +92,7 @@ export interface GlobalState {
   _lockFee: string;
   taskManagement: boolean;
   tmpAccount: TTmpAccount;
+  sealingTs: Record<string, number>;
 }
 
 const initialState: GlobalState = {
@@ -108,6 +109,7 @@ const initialState: GlobalState = {
   _lockFee: '0',
   taskManagement: false,
   tmpAccount: {} as TTmpAccount,
+  sealingTs: {},
 };
 
 export const globalSlice = createSlice({
@@ -130,6 +132,7 @@ export const globalSlice = createSlice({
       task.progress = progress;
       if (progress >= 100) {
         task.status = 'SEAL';
+        state.sealingTs[task.id] = Date.now();
         task.waitFile.file = {} as any;
       }
     },
@@ -214,7 +217,7 @@ export const globalSlice = createSlice({
         // add it to waitQueueInfos
         const commonPath = isFolder ? t.name : t.relativePath + '/';
         if (!waitQueueInfos[commonPath]) {
-          waitQueueInfos[commonPath] = []
+          waitQueueInfos[commonPath] = [];
         }
         if (!isFolder) {
           waitQueueInfos[commonPath].push(t);
@@ -232,12 +235,14 @@ export const globalSlice = createSlice({
       const isFolder = deleteObject?.name.endsWith('/');
       if (isFolder) {
         const commonPath = deleteObject.name;
-        const childIds = waitQueue.filter((t) => {
-          if (t.name.endsWith('/')) {
-            return t.name.startsWith(commonPath);
-          }
-          return (t.relativePath + '/').startsWith(commonPath);
-        }).map(t => t.id);
+        const childIds = waitQueue
+          .filter((t) => {
+            if (t.name.endsWith('/')) {
+              return t.name.startsWith(commonPath);
+            }
+            return (t.relativePath + '/').startsWith(commonPath);
+          })
+          .map((t) => t.id);
         ids.push(...childIds);
       }
       const deleteParent = (queue: WaitFile[], deleteObject?: WaitFile) => {
@@ -252,10 +257,14 @@ export const globalSlice = createSlice({
         // file/folder => parentFolder is 1:1
         const newParentObject = queue.find((t: WaitFile) => {
           const isFolder = t.name.endsWith('/');
-          return isFolder && deletePath.startsWith(t.name) && deletePath.replace(new RegExp(t.name + '$'), '').split('/').length === 2;
+          return (
+            isFolder &&
+            deletePath.startsWith(t.name) &&
+            deletePath.replace(new RegExp(t.name + '$'), '').split('/').length === 2
+          );
         });
         deleteParent(queue, newParentObject);
-      }
+      };
       deleteParent(waitQueue, deleteObject);
       state.waitQueue = state.waitQueue.filter((task) => !ids.includes(task.id));
     },
@@ -309,15 +318,17 @@ export const globalSlice = createSlice({
       if (!loginAccount) return;
       let uploadQueue = state.uploadQueue?.[loginAccount];
       if (!uploadQueue) return;
-      uploadQueue = uploadQueue.filter((task) => task.status !== 'WAIT').map((task) => {
-        if (['HASH', 'READY'].includes(task.status)) {
-          task.status = 'CANCEL';
-          task.msg = 'Account switch or logout leads to cancellation of upload.';
-        }
-        return task;
-      });
+      uploadQueue = uploadQueue
+        .filter((task) => task.status !== 'WAIT')
+        .map((task) => {
+          if (['HASH', 'READY'].includes(task.status)) {
+            task.status = 'CANCEL';
+            task.msg = 'Account switch or logout leads to cancellation of upload.';
+          }
+          return task;
+        });
     },
-    cancelUploadFolder(state, { payload }: PayloadAction<{ account: string, folderName: string }>) {
+    cancelUploadFolder(state, { payload }: PayloadAction<{ account: string; folderName: string }>) {
       const { account } = payload;
       if (!account) return;
       let uploadQueue = state.uploadQueue?.[account];
@@ -396,9 +407,7 @@ export const selectHashTask = (address: string) => (root: AppState) => {
   const hashQueue = uploadQueue.filter((task) => task.status === 'HASH');
   const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT');
 
-  const res = !!hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
-
-  return res;
+  return !!hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
 };
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
@@ -418,13 +427,16 @@ export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
 export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   const client = await getClient();
 
-  const res = await client.gashub.getMsgGasParams({ msgTypeUrls: [], pagination: {
-    countTotal: true,
-    key: Uint8Array.from([]),
-    limit: Long.fromInt(1000),
-    offset: Long.fromInt(0),
-    reverse: false,
-  }});
+  const res = await client.gashub.getMsgGasParams({
+    msgTypeUrls: [],
+    pagination: {
+      countTotal: true,
+      key: Uint8Array.from([]),
+      limit: Long.fromInt(1000),
+      offset: Long.fromInt(0),
+      reverse: false,
+    },
+  });
   dispatch(globalSlice.actions.setGasObjects(res));
 };
 
@@ -523,19 +535,29 @@ export const setupTmpLockFee =
     dispatch(setTmpLockFee(_lockFee || balance.lockFee));
   };
 
-export const setupUploadTaskErrorMsg = ({ account, task, errorMsg }: { account: string, task: UploadFile, errorMsg: string }) => async (dispatch: AppDispatch) => {
-  const isFolder = task.waitFile.name.endsWith('/');
-  dispatch(updateUploadTaskMsg({ account, id: task.id, msg: errorMsg || "The object failed to be created." }));
-  isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
-}
+export const setupUploadTaskErrorMsg =
+  ({ account, task, errorMsg }: { account: string; task: UploadFile; errorMsg: string }) =>
+  async (dispatch: AppDispatch) => {
+    const isFolder = task.waitFile.name.endsWith('/');
+    dispatch(
+      updateUploadTaskMsg({
+        account,
+        id: task.id,
+        msg: errorMsg || 'The object failed to be created.',
+      }),
+    );
+    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+  };
 
-export const setupWaitTaskErrorMsg = ({ id, errorMsg }: { id: number, errorMsg: string }) => async (dispatch: AppDispatch, getState: GetState) => {
-  const {waitQueue} = getState().global;
-  const task = waitQueue.find(t => t.id === id);
-  if (!task) return;
-  const isFolder = task.name.endsWith('/');
-  dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || "The object failed to be created." }));
-  isFolder && dispatch(cancelWaitUploadFolder({folderName: task.name}))
-}
+export const setupWaitTaskErrorMsg =
+  ({ id, errorMsg }: { id: number; errorMsg: string }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const task = waitQueue.find((t) => t.id === id);
+    if (!task) return;
+    const isFolder = task.name.endsWith('/');
+    dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
+    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+  };
 
 export default globalSlice.reducer;

@@ -1,9 +1,8 @@
-import { Box, Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
-  renderInsufficientBalance,
   renderPaymentInsufficientBalance,
 } from '@/modules/file/utils';
 import {
@@ -26,7 +25,7 @@ import {
 } from '@/store/slices/object';
 import { MsgCancelCreateObjectTypeUrl, MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { setTmpAccount, setupTmpAvailableBalance } from '@/store/slices/global';
-import { createTmpAccount, getStreamRecord } from '@/facade/account';
+import { createTmpAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
@@ -47,7 +46,11 @@ interface modalProps {
   cancelFn: () => void;
 }
 
-export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => {
+export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
+  refetch,
+  isOpen,
+  cancelFn,
+}) {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
@@ -118,6 +121,7 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
   };
 
   const simulateGasFee = deleteObjects.reduce(
+    // @ts-ignore
     (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
     0,
   );
@@ -307,4 +311,4 @@ export const BatchDeleteObject = ({ refetch, isOpen, cancelFn }: modalProps) => 
       </ModalFooter>
     </DCModal>
   );
-};
+});

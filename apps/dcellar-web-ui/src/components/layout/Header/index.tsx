@@ -24,6 +24,7 @@ import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
 import SendIcon from '@/public/images/icons/send.svg';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { StoreFeeParams } from './StoreFeeParams';
+import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
@@ -66,6 +67,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
 
   return (
     <>
+      <ManageQuotaDrawer />
       <GlobalTasks />
       {/* <StreamBalance /> */}
       <GasObjects />
