@@ -25,6 +25,8 @@ import { EditGroup } from '@/modules/group/components/EditGroup';
 import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
 import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
 import { GroupDetail } from '@/modules/group/components/GroupDetail';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { ethers } from 'ethers';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -86,18 +88,28 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
           Group ID{sortName === 'id' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
-      render: (_: string) => (
-        <CopyText
-          alignItems="center"
-          value={_}
-          fontWeight={400}
-          textDecoration="underline"
-          iconProps={{ boxSize: 16, ml: 4 }}
-          lineHeight={0}
-        >
-          {_}
-        </CopyText>
-      ),
+      render: (_: string) => {
+        const hexString = ethers.utils.hexZeroPad(ethers.BigNumber.from(_).toHexString(), 32);
+        return (
+          <CopyText
+            alignItems="center"
+            value={_}
+            fontWeight={400}
+            iconProps={{ boxSize: 16, ml: 4 }}
+            lineHeight={0}
+          >
+            <Text
+              as="a"
+              textDecoration="underline"
+              _hover={{ textDecoration: 'underline' }}
+              target="_blank"
+              href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
+            >
+              {_}
+            </Text>
+          </CopyText>
+        );
+      },
     },
     {
       key: 'extra',

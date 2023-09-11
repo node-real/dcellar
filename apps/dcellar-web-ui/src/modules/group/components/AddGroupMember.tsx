@@ -81,7 +81,7 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
   const [removeAccount, setRemoveAccount] = useState('');
   const memberList = useAppSelector(selectMemberList(addGroupMember.id));
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
-  const memberListLoading = !(addGroupMember.id in groupMembers);
+  const memberListLoading = addGroupMember.id && !(addGroupMember.id in groupMembers);
   const { page, canPrev, canNext } = useTableNav<GroupMember>({
     list: memberList,
     sorter: ['UpdateAt', 'descend'],

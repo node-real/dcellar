@@ -13,6 +13,9 @@ import Avatar1 from '@/components/common/SvgIcon/avatars/Avatar1.svg';
 import Avatar2 from '@/components/common/SvgIcon/avatars/Avatar2.svg';
 import Avatar3 from '@/components/common/SvgIcon/avatars/Avatar3.svg';
 import Avatar4 from '@/components/common/SvgIcon/avatars/Avatar4.svg';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { CopyText } from '@/components/common/CopyText';
+import { ethers } from 'ethers';
 
 export const GROUP_MEMBER_AVATARS = [Avatar0, Avatar1, Avatar2, Avatar3, Avatar4];
 
@@ -34,11 +37,15 @@ export const GroupDetail = memo<GroupDetailProps>(function GroupDetail() {
 
   useUnmount(onClose);
 
-  const loading = !(detailGroup.id in groupMembers);
+  const loading = !!detailGroup.id && !(detailGroup.id in groupMembers);
   const members = groupMembers[detailGroup.id] || [];
   const total = members.length;
   const empty = !loading && !total;
   const moreText = total <= 5 ? '' : total === 1000 ? '>1000' : `+${total - 5}`;
+  const hexString = ethers.utils.hexZeroPad(
+    ethers.BigNumber.from(detailGroup.id || 0).toHexString(),
+    32,
+  );
 
   return (
     <DCDrawer isOpen={!!detailGroup.groupName} onClose={onClose}>
@@ -82,7 +89,23 @@ export const GroupDetail = memo<GroupDetailProps>(function GroupDetail() {
           alignItems={'center'}
         >
           <Text color="#76808F">Group ID</Text>
-          <Text>{detailGroup.id}</Text>
+          <CopyText
+            alignItems="center"
+            value={detailGroup.id}
+            fontWeight={400}
+            iconProps={{ boxSize: 16, ml: 4 }}
+            lineHeight={0}
+          >
+            <Text
+              as="a"
+              textDecoration="underline"
+              _hover={{ textDecoration: 'underline', color: '#00BA34' }}
+              target="_blank"
+              href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
+            >
+              {detailGroup.id}
+            </Text>
+          </CopyText>
         </Flex>
         <Divider />
         <Box my={24}>
