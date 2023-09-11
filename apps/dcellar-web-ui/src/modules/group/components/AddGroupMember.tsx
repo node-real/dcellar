@@ -40,10 +40,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { ADDRESS_RE } from '@/utils/regex';
-import {
-  MsgUpdateGroupMemberTypeUrl,
-  toTimestamp,
-} from '@bnb-chain/greenfield-js-sdk';
+import { MsgUpdateGroupMemberTypeUrl, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import { BackIcon, MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
@@ -324,7 +321,7 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
                           <Menu placement="bottom-start">
                             {({ isOpen }) => (
                               <>
-                                <StyledMenuButton isActive={isOpen} as={Text}>
+                                <StyledMenuButton as={Text}>
                                   Member
                                   {isOpen ? (
                                     <MenuOpenIcon boxSize={16} color="#76808F" />
