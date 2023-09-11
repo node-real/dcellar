@@ -133,6 +133,7 @@ export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
 
   const f = (v: number, _removeSpace = removeSpace) => {
     if (!quota) return '--';
+    if (v <= 0) return '0GB';
     const text = _removeSpace ? formatBytes(v, true).replace(' ', '') : formatBytes(v, true);
     return v ? text : text.replace('B', 'GB');
   };
