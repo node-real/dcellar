@@ -45,7 +45,7 @@ import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
 import { renderFee } from './CancelObject';
 import { Tips } from '@/components/common/Tips';
-import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { selectAccount, selectAvailableBalance, setupAccountDetail } from '@/store/slices/accounts';
 import { getStoreFeeParams } from '@/facade/payment';
 import { BN } from '@/utils/BigNumber';
 import { getNetflowRate } from '@/utils/payment';
@@ -348,6 +348,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                     return toast.error({ description: error || 'Delete object error.' });
                   }
                   if (txRes.code === 0) {
+                    await dispatch(setupAccountDetail(bucket.PaymentAddress))
                     toast.success({
                       description: isFolder
                         ? 'Folder deleted successfully.'

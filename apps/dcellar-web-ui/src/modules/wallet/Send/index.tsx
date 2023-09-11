@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
-import { isEmpty } from 'lodash-es';
+import { debounce, isEmpty } from 'lodash-es';
 import {
   Box,
   Divider,
@@ -28,7 +28,13 @@ import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { POPPINS_FONT } from '../constants';
 import { FromAccountSelector } from '../components/FromAccountSelector';
-import { TAccount, selectPaymentAccounts, setupAccountDetail } from '@/store/slices/accounts';
+import {
+  TAccount,
+  selectPaymentAccounts,
+  setAccountType,
+  setupAccountDetail,
+  setupAccountType,
+} from '@/store/slices/accounts';
 import { ToAccountSelector } from '../components/ToAccountSelector';
 import {
   depositToPaymentAccount,
@@ -41,23 +47,34 @@ import { setFromAccount, setToAccount } from '@/store/slices/wallet';
 import { renderFee } from '@/utils/common';
 import { selectBnbPrice } from '@/store/slices/global';
 import { useRouter } from 'next/router';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { InternalRoutePaths } from '@/constants/paths';
+
+export type TxType = 'withdraw_from_payment_account' | 'send_to_owner_account' | 'send_to_payment_account';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { isLoadingDetail, bankBalance, accountDetails, ownerAccount, isLoadingPaymentAccounts } =
-    useAppSelector((root) => root.accounts);
+  const {
+    isLoadingDetail,
+    bankBalance,
+    accountDetails,
+    ownerAccount,
+    isLoadingPaymentAccounts,
+  } = useAppSelector((root) => root.accounts);
   const router = useRouter();
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { fromAccount, toAccount, from, to} = useAppSelector((root) => root.wallet);
+  const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const [viewTxUrl, setViewTxUrl] = useState('');
+  const [loadingToAccount, setLoadingToAccount] = useState(false);
   const { feeData, isLoading } = useSendFee();
   const [toJsErrors, setToJsErrors] = useState<string[]>([]);
+  const { loading: isLoadingSettlementFee, settlementFee } = useSettlementFee(fromAccount.address);
   const balance = useMemo(() => {
     if (isEmpty(fromAccount)) return '';
     if (fromAccount.name.toLowerCase().includes('owner account')) {
@@ -65,6 +82,13 @@ export const Send = () => {
     }
     return accountDetails[fromAccount?.address]?.staticBalance || '';
   }, [accountDetails, bankBalance, fromAccount]);
+  const toBalance = useMemo(() => {
+    if (isEmpty(toAccount)) return '';
+    if (toAccount.name.toLowerCase().includes('owner account')) {
+      return bankBalance;
+    }
+    return accountDetails[toAccount?.address]?.staticBalance || '';
+  }, [accountDetails, bankBalance, toAccount]);
   const {
     handleSubmit,
     register,
@@ -117,7 +141,7 @@ export const Send = () => {
       return 'send_to_owner_account';
     }
   }, [fromAccount, toAccount]);
-  const txCallback = (res: any, error: string | null) => {
+  const txCallback = (res: any, error: string | null, address?: string) => {
     if (!res || error) {
       setStatus('failed');
       !isOpen && onOpen();
@@ -126,6 +150,7 @@ export const Send = () => {
       res?.transactionHash
     }`;
     setViewTxUrl(txUrl);
+    address && dispatch(setupAccountDetail(address))
     setStatus('success');
     reset();
     !isOpen && onOpen();
@@ -167,7 +192,7 @@ export const Send = () => {
           },
           connector,
         );
-        txCallback(wRes, wError);
+        txCallback(wRes, wError, fromAccount.address);
         break;
       case 'send_to_owner_account':
         onOpen();
@@ -191,21 +216,25 @@ export const Send = () => {
     await dispatch(setupAccountDetail(account.address));
   };
 
-  const onChangeToAccount = async (account: TAccount, type: 'from' | 'to') => {
+  const onChangeToAccount = debounce(async (account: TAccount) => {
     !isEmpty(toJsErrors) && setToJsErrors([]);
     if (account.address !== '' && !isAddress(account.address)) {
+      dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
       return setToJsErrors(['Invalid address']);
     }
+    setLoadingToAccount(true);
     dispatch(setToAccount(account));
     await dispatch(setupAccountDetail(account.address));
-  };
+    await dispatch(setupAccountType(account.address));
+    setLoadingToAccount(false);
+  }, 500);
 
-  const isHideToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
+  const isDisableToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
 
   useEffect(() => {
-    if (!isHideToAccount || isEmpty(ownerAccount)) return;
+    if (!isDisableToAccount || isEmpty(ownerAccount)) return;
     dispatch(setToAccount(ownerAccount));
-  }, [isHideToAccount, ownerAccount]);
+  }, [dispatch, isDisableToAccount, ownerAccount]);
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
@@ -265,7 +294,12 @@ export const Send = () => {
             textAlign={'right'}
             color="#76808F"
           >
-            Balance on Greenfield: {isLoadingDetail === fromAccount.address ? <Loading size={12} marginX={4} color="readable.normal" /> : renderFee(balance, exchangeRate + '' )}
+            Balance on Greenfield:{' '}
+            {isLoadingDetail === fromAccount.address ? (
+              <Loading size={12} marginX={4} color="readable.normal" />
+            ) : (
+              renderFee(balance, exchangeRate + '')
+            )}
           </FormHelperText>
         </FormControl>
         <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
@@ -286,13 +320,29 @@ export const Send = () => {
             />
           </FormLabel>
           <ToAccountSelector
-            disabled={isHideToAccount}
             to={to}
-            onChange={(e) => onChangeToAccount(e, 'to')}
+            isError={!isEmpty(toJsErrors)}
+            disabled={isDisableToAccount}
+            loading={loadingToAccount}
+            onChange={(e) => onChangeToAccount(e)}
           />
           <FormErrorMessage textAlign={'left'}>
             {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
+          <FormHelperText
+            display={'flex'}
+            alignItems={'center'}
+            justifyContent={'flex-end'}
+            textAlign={'right'}
+            color="#76808F"
+          >
+            Balance on Greenfield:{' '}
+            {loadingToAccount ? (
+              <Loading size={12} marginX={4} color="readable.normal" />
+            ) : (
+              renderFee(toBalance, exchangeRate + '')
+            )}
+          </FormHelperText>
         </FormControl>
         <Amount
           balance={balance}
@@ -307,7 +357,13 @@ export const Send = () => {
         {isShowFee() ? (
           <>
             <Divider margin={'12px 0'} />
-            <Fee isGasLoading={isLoading} feeData={feeData} amount={inputAmount} />
+            <Fee
+              isGasLoading={isLoading || isLoadingSettlementFee}
+              feeData={feeData}
+              showSettlement={txType === 'withdraw_from_payment_account'}
+              settlementFee={settlementFee}
+              amount={inputAmount}
+            />
           </>
         ) : (
           <Box height={'32px'} w="100%"></Box>
@@ -320,7 +376,7 @@ export const Send = () => {
             (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
             isSubmitting ||
             isLoading ||
-            !!isLoadingDetail
+            !!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet
           }
           isSubmitting={isSubmitting}
           gaClickSwitchName="dc.wallet.send.switch_network.click"

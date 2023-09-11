@@ -113,7 +113,6 @@ export const commonFault = (e: any): ErrorResponse => {
 };
 
 export const queryLockFeeFault = (e: any): ErrorResponse => {
-  console.log('e', e);
   if (e?.message.includes('storage price')) {
     return [null, E_SP_PRICE_FAILED];
   }

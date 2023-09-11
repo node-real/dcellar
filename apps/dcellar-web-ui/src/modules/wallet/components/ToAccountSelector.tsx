@@ -4,25 +4,25 @@ import { IDCSelectOption } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { selectAccount, selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
+import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 import { MenuCloseIcon } from '@totejs/icons';
+import { getAccountDisplay } from '@/utils/accounts';
+import { AccountTips } from './AccountTips';
 
 type TProps = {
-  onChange: (value: TAccount) => void;
   to: string;
+  loading: boolean;
+  isError: boolean;
   disabled?: boolean;
+  onChange: (value: TAccount) => void;
 };
 
-type TStatus = 'unknown' | 'known' | 'non-refundable';
-
-export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
+export function ToAccountSelector({ onChange, to, loading, isError, disabled = false }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { isLoadingDetail } = useAppSelector((state) => state.accounts)
-  const accountDetail = useAppSelector(selectAccount(to));
-  const isLoading = isLoadingDetail === to;
+  const { accountTypes } = useAppSelector((state) => state.accounts);
   const accountList = useMemo(
     () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],
@@ -93,7 +93,7 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
       justifyContent={'center'}
       cursor={'pointer'}
       _hover={{
-        bgColor: 'bg.bottom'
+        bgColor: 'bg.bottom',
       }}
       onClick={() => {
         router.push('/accounts');
@@ -104,10 +104,14 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
   );
 
   const RightIcon = () => {
-    if (isLoadingDetail && to && isLoadingDetail === to) return <Loading size={12} marginX={4} color="readable.normal" />
+    if (loading) {
+      return <Loading size={12} marginX={4} color="readable.normal" />;
+    }
+    const accountType = isError ? 'error_account' : accountTypes[to];
+    const accountDisplay = getAccountDisplay(accountType);
+    return accountDisplay ? <AccountTips type={accountType} /> : <MenuCloseIcon />;
+  };
 
-    return <MenuCloseIcon/>
-  }
   return (
     <DCInputSelect
       isDisabled={disabled}

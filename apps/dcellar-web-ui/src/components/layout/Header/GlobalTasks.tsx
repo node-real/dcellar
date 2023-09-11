@@ -29,6 +29,7 @@ import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
+import { setupAccountDetail } from '@/store/slices/accounts';
 
 interface GlobalTasksProps {}
 
@@ -38,6 +39,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
   const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
@@ -268,6 +270,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         }
         if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
+          const bucket = bucketInfo[task.bucketName];
+          dispatch(setupAccountDetail(bucket.PaymentAddress))
         }
         return objectStatus;
       }),

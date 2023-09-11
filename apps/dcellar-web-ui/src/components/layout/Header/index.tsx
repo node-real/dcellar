@@ -60,8 +60,6 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
   useDebounceEffect(() => {
     if (!showPanel) return;
     dispatch(setupBnbPrice());
-    // dispatch(setupTmpAvailableBalance(loginAccount));
-    // dispatch(setupTmpLockFee(loginAccount));
     dispatch(setupAccountDetail(loginAccount))
   }, [showPanel]);
 

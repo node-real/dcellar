@@ -38,7 +38,7 @@ import { getTimestampInSeconds } from '@/utils/time';
 import { getStoreFeeParams } from '@/facade/payment';
 import { BN } from '@/utils/BigNumber';
 import { getNetflowRate } from '@/utils/payment';
-import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { selectAccount, selectAvailableBalance, setupAccountDetail } from '@/store/slices/accounts';
 
 interface modalProps {
   refetch: () => void;
@@ -217,6 +217,7 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
           }),
         );
       }
+      await dispatch(setupAccountDetail(bucket.PaymentAddress))
       return true;
     }
 
@@ -268,10 +269,6 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
 
       <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {/* {renderInsufficientBalance(simulateGasFee + '', settlementFee, availableBalance || '0', {
-            gaShowName: 'dc.file.delete_confirm.depost.show',
-            gaClickName: 'dc.file.delete_confirm.transferin.click',
-          })} */}
           {renderPaymentInsufficientBalance({
             gasFee: simulateGasFee,
             storeFee: '0',

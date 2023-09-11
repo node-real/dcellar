@@ -229,7 +229,7 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
         cursor={requestFocus ? 'auto' : 'pointer'}
         borderColor={requestFocus ? 'scene.primary.active' : '#EAECF0'}
       />
-      <InputRightElement color="readable.tertiary" pointerEvents="none">
+      <InputRightElement color="readable.tertiary" >
         {requestFocus ? <SearchIcon /> : <RightIcon />}
       </InputRightElement>
     </InputGroup>

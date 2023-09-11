@@ -20,6 +20,7 @@ import { signTypedDataCallback } from './wallet';
 import { QueryGetStreamRecordResponse, QueryPaymentAccountResponse, QueryPaymentAccountsByOwnerResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import { Connector } from 'wagmi';
 import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
+import { BaseAccount } from '@bnb-chain/greenfield-cosmos-types/cosmos/auth/v1beta1/auth';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -328,4 +329,9 @@ export const withdrawFromPaymentAccount = async ({ creator, fromAddress, amount 
 export const getPaymentAccount = async (address: string): Promise<ErrorResponse | [QueryPaymentAccountResponse, null]> => {
   const client = await getClient();
   return await client.payment.paymentAccount({addr: address}).then(resolve, commonFault);
+}
+
+export const getAccount = async (address: string): Promise<ErrorResponse | [BaseAccount, null]> => {
+  const client = await getClient();
+  return await client.account.getAccount(address).then(resolve, commonFault);
 }

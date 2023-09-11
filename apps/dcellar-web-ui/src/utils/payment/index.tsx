@@ -44,6 +44,9 @@ export const getNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) =>
 };
 
 export const getClientFrozen = (settleTime: number) => {
+  if (String(settleTime).length !== 13) {
+    return false;
+  }
   const curTime = getTimestampInSeconds()
   return curTime + BUFFER_TIME > settleTime;
 }

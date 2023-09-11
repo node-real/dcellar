@@ -56,7 +56,7 @@ import { legacyGetObjectMeta } from '@/facade/object';
 import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
-import { selectAccount } from '@/store/slices/accounts';
+import { selectAccount, setupAccountDetail } from '@/store/slices/accounts';
 import { getNetflowRate } from '@/utils/payment';
 import { BN } from '@/utils/BigNumber';
 import { TotalFees } from './TotalFees';
@@ -217,6 +217,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       );
       return;
     }
+    await dispatch(setupAccountDetail(PaymentAddress))
     if (txRes?.code !== 0) {
       dispatch(
         setStatusDetail({
