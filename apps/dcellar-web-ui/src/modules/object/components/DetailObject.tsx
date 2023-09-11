@@ -36,7 +36,7 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
-interface modalProps {}
+interface modalProps { accountFrozen: boolean };
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -218,6 +218,7 @@ const renderVisibilityTag = (visibility: any) => {
 };
 
 export const DetailObject = (props: modalProps) => {
+  const { accountFrozen } = props;
   const dispatch = useAppDispatch();
   const [action, setAction] = useState<ObjectActionType>('');
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
@@ -386,6 +387,7 @@ export const DetailObject = (props: modalProps) => {
                 mr={'16px'}
                 borderColor={'readable.normal'}
                 gaClickName="dc.file.f_detail_pop.share.click"
+                isDisabled={accountFrozen}
                 onClick={() => onAction('view')}
               >
                 Preview
@@ -394,6 +396,7 @@ export const DetailObject = (props: modalProps) => {
                 variant={'dcPrimary'}
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.download.click"
+                isDisabled={accountFrozen}
                 onClick={() => onAction('download')}
               >
                 Download

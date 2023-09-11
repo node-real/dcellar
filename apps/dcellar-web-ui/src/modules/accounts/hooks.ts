@@ -7,7 +7,7 @@ import { isEmpty } from "lodash-es";
 import { useMemo } from "react";
 import { getTimestampInSeconds } from "@/utils/time";
 
-export const bufferTime = 24 * 60 * 60;
+export const BUFFER_TIME = 24 * 60 * 60;
 
 export const useUnFreezeAmount = (address: string) => {
   const storeFeeParams = useAppSelector(selectStoreFeeParams);

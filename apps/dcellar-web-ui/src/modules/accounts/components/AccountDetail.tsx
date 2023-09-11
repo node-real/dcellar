@@ -14,17 +14,18 @@ import { BN } from '@/utils/BigNumber';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/constants/paths';
 import { TAccountDetail } from '@/store/slices/accounts';
+import { formatTime, getMillisecond } from '@/utils/time';
 
 type Props = {
   loading: boolean;
   title: string;
   accountDetail: TAccountDetail;
   availableBalance: string;
-}
+};
 export const AccountDetail = ({ loading, title, accountDetail, availableBalance }: Props) => {
   const router = useRouter();
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const {loginAccount} = useAppSelector((state) => state.persist)
+  const { loginAccount } = useAppSelector((state) => state.persist);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
@@ -40,16 +41,17 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
   }, [accountDetail?.frozenNetflowRate, storeFeeParams?.reserveTime]);
 
   const onTopUpClick = () => {
-    const url = isOwnerAccount ? InternalRoutePaths.transfer_in : `${InternalRoutePaths.send}&from=${loginAccount}&to=${accountDetail.address}`;
+    const url = isOwnerAccount
+      ? InternalRoutePaths.transfer_in
+      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${accountDetail.address}`;
 
     router.push(url);
-  }
-
+  };
   const detailItems = [
     {
       label: title,
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <Text fontSize={'14px'} fontWeight={500}>
             {accountDetail?.name} | &nbsp;
           </Text>
@@ -74,7 +76,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
     {
       label: 'Balance',
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
@@ -95,7 +97,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
     {
       label: 'Prepaid fee',
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <LoadingAdaptor loading={loading} empty={false}>
             <Text fontSize={14} fontWeight={500}>
               {BN(accountDetail.bufferBalance || 0)
@@ -119,6 +121,26 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                 .toString(DECIMAL_NUMBER),
             )}{' '}
             BNB/s
+          </Text>
+        </LoadingAdaptor>
+      ),
+    },
+    {
+      label: 'Update date',
+      value: (
+        <LoadingAdaptor loading={loading} empty={false}>
+          <Text fontSize={14} fontWeight={500}>
+            {formatTime(getMillisecond(accountDetail?.crudTimestamp))}
+          </Text>
+        </LoadingAdaptor>
+      ),
+    },
+    {
+      label: 'Force settle date',
+      value: (
+        <LoadingAdaptor loading={loading} empty={false}>
+          <Text fontSize={14} fontWeight={500}>
+            {formatTime(getMillisecond(accountDetail?.settleTimestamp))}
           </Text>
         </LoadingAdaptor>
       ),
@@ -154,7 +176,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                     _hover: {
                       color: '#F15D3C',
                     },
-                    marginTop: '-1px'
+                    marginTop: '-1px',
                   }}
                   trigger="hover"
                   tips={
@@ -163,7 +185,9 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                         Frozen Account
                       </Text>
                       <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
-                        Your account is suspended due to insufficient balance. To reactivate your account, please deposit at least &nbsp;<strong>{unFreezeAmount}  &nbsp;BNB</strong>&nbsp; immediately.
+                        Your account is suspended due to insufficient balance. To reactivate your
+                        account, please deposit at least &nbsp;
+                        <strong>{unFreezeAmount} &nbsp;BNB</strong>&nbsp; immediately.
                       </Text>
                       <Link
                         cursor={'pointer'}
@@ -197,14 +221,16 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           </Box>
         </Flex>
         <Divider marginY={24} />
-        {detailItems.map((item, index) => (
-          <Flex justifyContent={'space-between'} key={index}>
-            <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
-              {item.label}
-            </Text>
-            {item.value}
-          </Flex>
-        ))}
+        <Flex gap={8} flexDirection={'column'}>
+          {detailItems.map((item, index) => (
+            <Flex justifyContent={'space-between'} key={index}>
+              <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
+                {item.label}
+              </Text>
+              {item.value}
+            </Flex>
+          ))}
+        </Flex>
       </QDrawerBody>
     </>
   );

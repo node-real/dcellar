@@ -3,7 +3,7 @@ import { BN } from '../BigNumber';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getTimestampInSeconds } from '../time';
-import { bufferTime } from '@/modules/accounts/hooks';
+import { BUFFER_TIME } from '@/modules/accounts/hooks';
 
 export const getSettlementFee = async (address: string) => {
   const [res, error] = await getStreamRecord(address);
@@ -45,5 +45,5 @@ export const getNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) =>
 
 export const getClientFrozen = (settleTime: number) => {
   const curTime = getTimestampInSeconds()
-  return curTime + bufferTime > settleTime;
+  return curTime + BUFFER_TIME > settleTime;
 }

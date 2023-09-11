@@ -24,6 +24,9 @@ export const convertTimeStampToDate = (utcTimestamp: number) => {
 };
 
 export const formatTime = (utcZeroTimestamp = 0) => {
+  if (String(utcZeroTimestamp).length !== 13) {
+    return '--'
+  }
   dayjs.extend(utc);
   dayjs.extend(timezone);
 
@@ -31,15 +34,11 @@ export const formatTime = (utcZeroTimestamp = 0) => {
   const zeroToCurTimezone = dayjs(utcZeroTimestamp).tz(curTimezone);
   const now = dayjs();
 
-  if (zeroToCurTimezone.isBefore(now, 'day')) {
-    return zeroToCurTimezone.format('MMM D, YYYY');
-  }
-
   if (zeroToCurTimezone.isSame(now, 'day')) {
     return zeroToCurTimezone.format('HH:mm A');
   }
 
-  return '--';
+  return zeroToCurTimezone.format('MMM D, YYYY');
 };
 
 export const formatFullTime = (

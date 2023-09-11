@@ -15,7 +15,7 @@ import DepositIcon from '@/public/images/icons/deposit.svg';
 import WithdrawIcon from '@/public/images/icons/withdraw.svg';
 import { ActionButton } from './ActionButton';
 
-export type ActionMenuItem = { label: string; value: string };
+export type ActionMenuItem = { label: string; value: string; disabled?: boolean };
 
 interface ActionMenuProps {
   onChange?: (menu: string) => void;
@@ -41,7 +41,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.group.add_member.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
-                title='Add'
+                title="Add"
               >
                 <AddMember />
               </ActionButton>
@@ -87,7 +87,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title='Transfer Out'
+                title="Transfer Out"
                 gaClickName="dc.accounts.owner_account.transfer_out_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -145,6 +145,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
               {menus.map((m) => (
                 <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>
                   <StyledMenuItem
+                    isDisabled={m.disabled}
                     onClick={(e) => {
                       e.stopPropagation();
                       onChange(m.value);
@@ -176,8 +177,8 @@ export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: b
 `;
 
 export const StyledMenuItem = styled(MenuItem)`
-  :hover {
-    color: #009e2c;
+  :hover  {
+    color: ${(props) => !props.isDisabled && '#009e2c'};
     background-color: rgba(0, 186, 52, 0.1);
   }
 `;

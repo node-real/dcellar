@@ -98,7 +98,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading || accountDetail.clientFrozen;
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e);
     const files = e.target.files;
     if (!files || !files.length) return;
     if (files.length > SELECT_OBJECT_NUM_LIMIT) {

@@ -18,6 +18,7 @@ export const ButtonConfig: TButtonConfig = {
       _disabled: {
         bg: `#AEB4BC`,
         color: 'readable.tertiary',
+        cursor: 'not-allowed',
         _hover: {
           bg: `#AEB4BC`,
         },
@@ -26,6 +27,7 @@ export const ButtonConfig: TButtonConfig = {
     dcPrimary: {
       bg: 'readable.brand6',
       color: 'white',
+      cursor: 'not-allowed',
       _hover: {
         bg: 'readable.brand5',
       },
@@ -46,6 +48,7 @@ export const ButtonConfig: TButtonConfig = {
       _disabled: {
         bg: `#AEB4BC`,
         color: 'readable.tertiary',
+        cursor: 'not-allowed',
         _hover: {
           bg: `#AEB4BC`,
         },
@@ -64,8 +67,10 @@ export const ButtonConfig: TButtonConfig = {
         bg: `#AEB4BC`,
         color: 'readable.tertiary',
         border: '1px solid transparent',
+        cursor: 'not-allowed',
         _hover: {
           bg: `#AEB4BC`,
+          color: 'readable.tertiary'
         },
       },
     },

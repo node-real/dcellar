@@ -30,9 +30,10 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface NameItemProps {
   item: ObjectItem;
+  disabled: Boolean;
 }
 
-export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
+export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }) {
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
@@ -114,6 +115,11 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
       <Link
         href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
+          if (disabled) {
+            e.stopPropagation();
+            e.preventDefault();
+            return
+          }
           e.stopPropagation();
           if (folder) {
             const path = trimEnd([bucketName, objectName].join('/'), '/');
