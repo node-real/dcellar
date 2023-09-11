@@ -19,14 +19,14 @@ interface QuotaItemProps {
   onChange: (v: number) => void;
 }
 
-export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, current = 0, onChange }) {
+export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, current, onChange }) {
   const dispatch = useAppDispatch();
   const percent = Math.min(Math.floor((Math.min(value, 1024) / 1024) * 100), 98);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
   const originPercent = Math.min(Math.floor((Math.min(current || 0, 1024) / 1024) * 100), 98);
   const originValue = !current ? '0GB' : formatByGB(current * G_BYTES).replace(' ', '');
   const { readPrice = 0 } = useAppSelector(selectStoreFeeParams);
-  const invalid = value < current;
+  const invalid = value < (current || 0);
   const overlayStyles = { color: '#fff', borderColor: invalid ? '#EE3911' : '#14151A' };
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
             <DCTooltip
               key={invalid ? percent : current}
               color={invalid ? '#EE3911' : '#14151A'}
-              open={value > 0}
+              open={current !== undefined || value > 0}
               title={
                 invalid ? 'Lower quota cannot be set until 30 days after initial date.' : title
               }
