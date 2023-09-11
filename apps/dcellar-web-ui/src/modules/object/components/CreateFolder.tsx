@@ -47,17 +47,14 @@ import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TStatusDetail, setEditCreate, setStatusDetail } from '@/store/slices/object';
-import {
-  selectStoreFeeParams,
-  setupStoreFeeParams,
-} from '@/store/slices/global';
+import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { legacyGetObjectMeta } from '@/facade/object';
 import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
 import { selectAccount, setupAccountDetail } from '@/store/slices/accounts';
-import { getNetflowRate } from '@/utils/payment';
+import { getStoreNetflowRate } from '@/utils/payment';
 import { BN } from '@/utils/BigNumber';
 import { TotalFees } from './TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
@@ -112,10 +109,12 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
 
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
-    const netflowRate = getNetflowRate(0, storeFeeParams);
-    const storeFee = BN(netflowRate).times(storeFeeParams.reserveTime).dividedBy(10 ** 18);
+    const netflowRate = getStoreNetflowRate(0, storeFeeParams);
+    const storeFee = BN(netflowRate)
+      .times(storeFeeParams.reserveTime)
+      .dividedBy(10 ** 18);
 
-    return storeFee.toString()
+    return storeFee.toString();
   }, [storeFeeParams]);
 
   const getPath = useCallback((name: string, folders: string[]) => {
@@ -376,7 +375,12 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         </Flex>
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
-        <TotalFees payStoreFeeAddress={PaymentAddress} gasFee={gasFee} prepaidFee={storeFee} settlementFee={settlementFee} />
+        <TotalFees
+          payStoreFeeAddress={PaymentAddress}
+          gasFee={gasFee}
+          prepaidFee={storeFee}
+          settlementFee={settlementFee}
+        />
         {renderPaymentInsufficientBalance({
           gasFee,
           storeFee,

@@ -21,7 +21,7 @@ export const getSettlementFee = async (address: string) => {
   return [amount, null];
 };
 
-export const getNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) => {
+export const getStoreNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) => {
   const {
     primarySpStorePrice,
     secondarySpStorePrice,
@@ -43,10 +43,21 @@ export const getNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) =>
   return netflowRate.toString();
 };
 
+export const getQuotaNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) => {
+  const { validatorTaxRate, readPrice } = storeFeeParams;
+  const primaryQuotaRate = BN(readPrice)
+    .dividedBy(10 ** 18)
+    .times(size);
+  const taxRate = BN(validatorTaxRate)
+    .dividedBy(10 ** 18)
+    .times(primaryQuotaRate);
+  return primaryQuotaRate.plus(taxRate).toString();
+};
+
 export const getClientFrozen = (settleTime: number) => {
   if (String(settleTime).length !== 13) {
     return false;
   }
-  const curTime = getTimestampInSeconds()
+  const curTime = getTimestampInSeconds();
   return curTime + BUFFER_TIME > settleTime;
-}
+};

@@ -6,12 +6,13 @@ import {
 } from '@/modules/wallet/constants';
 import { InternalRoutePaths } from '@/constants/paths';
 import { AxiosResponse } from 'axios';
-import React from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { getClient } from '@/base/client';
 import { ChainVisibilityEnum } from '../type';
 import { SpItem } from '@/store/slices/sp';
 import { BN } from '@/utils/BigNumber';
+import { useMount } from 'ahooks';
 
 const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {
@@ -318,6 +319,107 @@ const truncateFileName = (fileName: string) => {
   )}...${fileNameWithoutExtension.slice(-4)}${fileExtension}`;
 };
 
+interface PaymentInsufficientBalanceProps {
+  gasFee: string | number;
+  storeFee: string;
+  settlementFee: string;
+  refundFee: string;
+  payGasFeeBalance: string;
+  payStoreFeeBalance: string;
+  ownerAccount: string;
+  payAccount: string;
+  gaOptions?: { gaClickName: string; gaShowName: string };
+  onValidate: (val: boolean) => void;
+}
+
+export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
+  function PaymentInsufficientBalance(props) {
+    const {
+      gasFee,
+      storeFee,
+      settlementFee,
+      // This field have value when Cancel object or delete object
+      refundFee,
+      payGasFeeBalance,
+      payStoreFeeBalance,
+      ownerAccount,
+      payAccount,
+      gaOptions,
+      onValidate,
+    } = props;
+    const [items, setItems] = useState<Array<{ link: string; text: string }>>([]);
+    const isOwnerAccount = ownerAccount === payAccount;
+
+    useMount(() => {
+      onValidate(true);
+    });
+
+    useEffect(() => {
+      onValidate(!items.length);
+    }, [items.length]);
+
+    useEffect(() => {
+      if (!gasFee || Number(gasFee) < 0) {
+        setItems([]);
+        return;
+      }
+      const items = [];
+      if (isOwnerAccount) {
+        // If is owner account, bankBalance can pay store fee.
+        if (
+          BN(payGasFeeBalance).lt(BN(gasFee)) ||
+          BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
+            BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
+          )
+        ) {
+          items.push({
+            link: InternalRoutePaths.transfer_in,
+            text: 'Transfer In',
+          });
+        }
+      } else {
+        if (BN(payGasFeeBalance).lt(BN(gasFee))) {
+          items.push({
+            link: InternalRoutePaths.transfer_in,
+            text: 'Transfer In',
+          });
+        }
+        if (BN(payStoreFeeBalance).lt(BN(storeFee).plus(settlementFee).minus(refundFee))) {
+          const link = `${InternalRoutePaths.send}&from=${ownerAccount}&to=${payAccount}`;
+          items.push({
+            link: link,
+            text: 'Deposit',
+          });
+        }
+      }
+      setItems(items);
+    }, [props]);
+
+    if (items.length === 0) return <></>;
+
+    return (
+      <Flex color={'#EE3911'}>
+        {items.map((item, index) => (
+          <GAShow key={index} name={gaOptions?.gaShowName}>
+            Insufficient balance.&nbsp;
+            <GAClick name={gaOptions?.gaClickName}>
+              <Link
+                display={'inline'}
+                href={item.link}
+                style={{ textDecoration: 'underline' }}
+                color="#EE3911"
+                _hover={{ color: '#EE3911' }}
+              >
+                {item.text}
+              </Link>
+            </GAClick>
+          </GAShow>
+        ))}
+      </Flex>
+    );
+  },
+);
+
 const renderPaymentInsufficientBalance = ({
   gasFee,
   storeFee,
@@ -347,7 +449,9 @@ const renderPaymentInsufficientBalance = ({
     // If is owner account, bankBalance can pay store fee.
     if (
       BN(payGasFeeBalance).lt(BN(gasFee)) ||
-      BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee))
+      BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
+        BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
+      )
     ) {
       items.push({
         link: InternalRoutePaths.transfer_in,

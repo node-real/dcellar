@@ -15,16 +15,24 @@ interface TotalFeesProps {
   prepaidFee: string;
   settlementFee: string;
   payStoreFeeAddress: string;
+  refund?: boolean;
 }
 
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
-  const { gasFee, prepaidFee, settlementFee, payStoreFeeAddress } = props;
+  const { gasFee, prepaidFee, settlementFee, payStoreFeeAddress, refund = false } = props;
   const exchangeRate = useAppSelector(selectBnbPrice);
-  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({defaultIsOpen: true});
+  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
   const availableBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
 
   return (
-    <Flex gap={8} padding={'8px 12px'} borderRadius={4} w="100%" bg="bg.secondary" flexDirection="column">
+    <Flex
+      gap={8}
+      padding={'8px 12px'}
+      borderRadius={4}
+      w="100%"
+      bg="bg.secondary"
+      flexDirection="column"
+    >
       <Flex
         fontSize={'14px'}
         fontWeight={600}
@@ -57,7 +65,7 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
                 color="readable.tertiary"
                 as="p"
               >
-                Prepaid fee
+                {refund ? 'Prepaid fee refund' : 'Prepaid fee'}
               </Text>
               <PrePaidTips />
             </Flex>

@@ -1,6 +1,4 @@
-import {
-  renderPaymentInsufficientBalance,
-} from '@/modules/file/utils';
+import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   MsgCreateObjectTypeUrl,
@@ -15,7 +13,7 @@ import { isEmpty } from 'lodash-es';
 import { selectLocateBucket, setEditUpload } from '@/store/slices/object';
 import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
 import { DECIMAL_NUMBER } from '../wallet/constants';
-import { getNetflowRate } from '@/utils/payment';
+import { getStoreNetflowRate } from '@/utils/payment';
 import { BN } from '@/utils/BigNumber';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { TotalFees } from '../object/components/TotalFees';
@@ -57,7 +55,9 @@ export const Fees = () => {
       .reduce(
         (sum, obj) =>
           sum.plus(
-            BN(getNetflowRate(obj.size || 0, storeFeeParams)).times(storeFeeParams.reserveTime),
+            BN(getStoreNetflowRate(obj.size || 0, storeFeeParams)).times(
+              storeFeeParams.reserveTime,
+            ),
           ),
         BN(0),
       )

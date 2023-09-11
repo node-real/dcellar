@@ -1,5 +1,6 @@
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { formatBytes } from '@/modules/file/utils';
+import BigNumber from 'bignumber.js';
 
 export const trimLongStr = (
   str: string,
@@ -119,6 +120,10 @@ export const getShareLink = (bucketName: string, objectName: string) => {
   )}`;
 };
 
+export const formatByGB = (num: number) => {
+  return `${Number(BigNumber(num).div(1_073_741_824).toFixed(2))} GB`;
+};
+
 export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
   const { freeQuota = 0, readQuota = 0, consumedQuota = 0, freeConsumedSize = 0 } = quota || {};
 
@@ -134,7 +139,7 @@ export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
   const f = (v: number, _removeSpace = removeSpace) => {
     if (!quota) return '--';
     if (v <= 0) return '0GB';
-    const text = _removeSpace ? formatBytes(v, true).replace(' ', '') : formatBytes(v, true);
+    const text = _removeSpace ? formatByGB(v).replace(' ', '') : formatByGB(v);
     return v ? text : text.replace('B', 'GB');
   };
 

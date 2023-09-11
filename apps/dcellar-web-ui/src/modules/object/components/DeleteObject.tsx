@@ -10,7 +10,11 @@ import {
 } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { useEffect, useMemo, useState } from 'react';
-import { renderBalanceNumber, renderInsufficientBalance, renderPaymentInsufficientBalance } from '@/modules/file/utils';
+import {
+  renderBalanceNumber,
+  renderInsufficientBalance,
+  renderPaymentInsufficientBalance,
+} from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
@@ -48,7 +52,7 @@ import { Tips } from '@/components/common/Tips';
 import { selectAccount, selectAvailableBalance, setupAccountDetail } from '@/store/slices/accounts';
 import { getStoreFeeParams } from '@/facade/payment';
 import { BN } from '@/utils/BigNumber';
-import { getNetflowRate } from '@/utils/payment';
+import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
 import { displayTime } from '@/utils/common';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
@@ -61,7 +65,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [refundAmount, setRefundAmount] = useState<string | null>(null);
   const { loginAccount } = useAppSelector((root) => root.persist);
   // Since reserveTime rarely change, we can optimize performance by using global data.
-  const {reserveTime} = useAppSelector(selectStoreFeeParams);
+  const { reserveTime } = useAppSelector(selectStoreFeeParams);
   const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
@@ -75,7 +79,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
   const [isFolderCanDelete, setFolderCanDelete] = useState(true);
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const bucket = bucketInfo[bucketName];
-  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress))
+  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
   const accountDetail = useAppSelector(selectAccount(bucket.PaymentAddress));
   const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(bucket.PaymentAddress);
   const onClose = () => {
@@ -90,7 +94,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     if (!reserveTime) return null;
     return BN(getTimestampInSeconds()).minus(editDelete.createAt).minus(reserveTime).isPositive();
   }, [editDelete.createAt, reserveTime]);
-  const {crudTimestamp} = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
   useAsyncEffect(async () => {
     if (isStoredAtMinimumTime === null) return;
     if (!isStoredAtMinimumTime) {
@@ -98,7 +102,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     }
     const curTime = getTimestampInSeconds();
     const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
-    const netflowRate = getNetflowRate(editDelete.payloadSize, latestStoreFeeParams);
+    const netflowRate = getStoreNetflowRate(editDelete.payloadSize, latestStoreFeeParams);
     if (BN(curTime).gt(BN(latestStoreFeeParams.reserveTime).plus(crudTimestamp))) {
       return setRefundAmount('0');
     }
@@ -194,7 +198,6 @@ export const DeleteObject = ({ refetch }: modalProps) => {
     );
   };
 
-
   return (
     <>
       {isFolderCanDelete && (
@@ -287,7 +290,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                 payGasFeeBalance: bankBalance,
                 payStoreFeeBalance: accountDetail.staticBalance,
                 ownerAccount: loginAccount,
-                payAccount: bucket.PaymentAddress
+                payAccount: bucket.PaymentAddress,
               })}
             </Text>
             <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>

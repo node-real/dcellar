@@ -304,10 +304,7 @@ export const globalSlice = createSlice({
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.taskManagement = payload;
     },
-    setStoreFeeParams(
-      state,
-      { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>,
-    ) {
+    setStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
       state.storeFeeParams = payload.storeFeeParams;
     },
     setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
@@ -370,7 +367,7 @@ export const globalSlice = createSlice({
     },
     setisLoadingPLF(state, { payload }: PayloadAction<boolean>) {
       state.isLoadingPLF = payload;
-    }
+    },
   },
 });
 
@@ -417,7 +414,7 @@ export const selectGasFee = (type: string) => (state: AppState) => {
   return gasObject ? gasObject.gasFee : 0;
 };
 
-export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams
+export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams;
 
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();
@@ -440,17 +437,18 @@ export const setupGasObjects = () => async (dispatch: AppDispatch) => {
   dispatch(globalSlice.actions.setGasObjects(res));
 };
 
-export const setupStoreFeeParams =
-  () => async (dispatch: AppDispatch) => {
-    dispatch(setisLoadingPLF(true))
-    const storeFeeParams = await getStoreFeeParams();
-    dispatch(
-      globalSlice.actions.setStoreFeeParams({
-        storeFeeParams,
-      }),
-    );
-    dispatch(setisLoadingPLF(false))
-  };
+export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState: GetState) => {
+  const { isLoadingPLF } = getState().global;
+  if (isLoadingPLF) return;
+  dispatch(setisLoadingPLF(true));
+  const storeFeeParams = await getStoreFeeParams();
+  dispatch(
+    globalSlice.actions.setStoreFeeParams({
+      storeFeeParams,
+    }),
+  );
+  dispatch(setisLoadingPLF(false));
+};
 
 export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {

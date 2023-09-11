@@ -50,15 +50,20 @@ export const getStreamRecord = async (address: string) => {
 
 export const getStoreFeeParams = async (time?: number) => {
   const client = await getClient();
-  const now = getTimestampInSeconds()
-  const globalSpStoragePrice = await client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(time || now) });
-  const { params: storageParams } = await client.storage.params();
+  const now = getTimestampInSeconds();
+  const [globalSpStoragePrice, { params: storageParams }, { params: paymentParams }] =
+    await Promise.all([
+      client.sp.getQueryGlobalSpStorePriceByTime({ timestamp: Long.fromNumber(time || now) }),
+      client.storage.params(),
+      client.payment.params(),
+    ]);
+
   const {
     minChargeSize = new Long(0),
     redundantDataChunkNum = 0,
     redundantParityChunkNum = 0,
   } = (storageParams && storageParams.versionedParams) || {};
-  const { params: paymentParams } = await client.payment.params();
+
   const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
   const storeFeeParamsPayload = {
     primarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
@@ -72,4 +77,4 @@ export const getStoreFeeParams = async (time?: number) => {
   };
 
   return storeFeeParamsPayload;
-}
+};

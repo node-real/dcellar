@@ -37,7 +37,7 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const isOpen = !!_statusDetail?.title;
   const gaOptions = getGAOptions(_statusDetail.title);
-  const [statusDetail, setInnerStatusDetail] = useState({} as TStatusDetail);
+  const [statusDetail, setInnerStatusDetail] = useState(_statusDetail);
   const quotaBucket = bucketName || statusDetail?.extraParams?.[0];
   const NO_QUOTA =
     OBJECT_ERROR_TYPES['NO_QUOTA'].title === statusDetail.title && !!quotaBucket && !!loginAccount;

@@ -1,10 +1,7 @@
 import { Flex, ModalCloseButton, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
 import React, { memo, useEffect, useState } from 'react';
-import {
-  renderBalanceNumber,
-  renderPaymentInsufficientBalance,
-} from '@/modules/file/utils';
+import { renderBalanceNumber, renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import {
   BUTTON_GOT_IT,
   FILE_DELETE_GIF,
@@ -37,7 +34,7 @@ import { useAsyncEffect } from 'ahooks';
 import { getTimestampInSeconds } from '@/utils/time';
 import { getStoreFeeParams } from '@/facade/payment';
 import { BN } from '@/utils/BigNumber';
-import { getNetflowRate } from '@/utils/payment';
+import { getStoreNetflowRate } from '@/utils/payment';
 import { selectAccount, selectAvailableBalance, setupAccountDetail } from '@/store/slices/accounts';
 
 interface modalProps {
@@ -91,7 +88,7 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
       .toString();
 
     const refundAmount = deleteObjects.reduce((acc, cur) => {
-      const netflowRate = getNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
+      const netflowRate = getStoreNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
       let objectRefund = '0';
       // 2. 从创建到现在存储小于reserveTime 不退
       // 3. 当前时间在下一次结算时间内，且创建到现在大于reserveTime，可以计算退钱

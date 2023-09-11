@@ -10,6 +10,8 @@ export const theme: ThemeConfig = {
     colorText: '#1E2026',
     colorTextHeading: '#76808F',
     fontFamily: 'Inter, sans-serif',
+    colorError: '#EE3911',
+    colorErrorBorderHover: '#FC6E75',
   },
   components: {
     Tooltip: {

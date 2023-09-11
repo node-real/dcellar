@@ -9,9 +9,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
 import { AppDispatch, GetState } from '..';
 import { BN } from '@/utils/BigNumber';
-import { getTimestampInSeconds } from '@/utils/time';
 import { getClientFrozen } from '@/utils/payment';
-import { getAccountDisplay } from '@/utils/accounts';
 
 export type TAccount = {
   name: string;
@@ -193,8 +191,10 @@ export const {
   setAccountType,
 } = paymentAccountSlice.actions;
 
+const defaultPaAccount = {} as TAccountDetail;
 export const selectAccount = (address: string) => (state: any) =>
-  (state.accounts.accountDetails[address] || {}) as TAccountDetail;
+  state.accounts.accountDetails[address] || defaultPaAccount;
+
 export const selectBankBalance = (address: string) => (state: any) =>
   state.accounts.bankBalances[address];
 
@@ -211,7 +211,7 @@ export const selectAvailableBalance = (address: string) => (state: any) => {
   }
 
   return accountDetail?.staticBalance;
-}
+};
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
   const account = {

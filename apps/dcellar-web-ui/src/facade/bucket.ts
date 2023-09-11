@@ -18,6 +18,10 @@ import { Connector } from 'wagmi';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
+import axios from 'axios';
+import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import { signTypedDataV4 } from '@/utils/signDataV4';
+import { pollingDeleteBucket } from '@/modules/buckets/List/utils';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -120,4 +124,51 @@ export const preExecDeleteBucket = async (
 
   if (error) return [null, error];
   return [data!, null];
+};
+
+export const getBucketExtraInfo = async (bucketName: string) => {
+  return axios.get(
+    `${GREENFIELD_CHAIN_RPC_URL}/greenfield/storage/head_bucket_extra/${bucketName}`,
+  );
+};
+
+type DeleteBucketProps = {
+  address: string;
+  bucketName: string;
+  connector: Connector;
+};
+
+export const deleteBucket = async ({
+  address,
+  bucketName,
+  connector,
+}: DeleteBucketProps): BroadcastResponse => {
+  const client = await getClient();
+  const [deleteBucketTx, error1] = await client.bucket
+    .deleteBucket({
+      bucketName: bucketName,
+      operator: address,
+    })
+    .then(resolve, createTxFault);
+
+  if (!deleteBucketTx) return [null, error1];
+
+  const [simulateInfo, error2] = await deleteBucketTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
+
+  if (!simulateInfo) return [null, error2];
+
+  return deleteBucketTx
+    .broadcast({
+      denom: 'BNB',
+      gasLimit: Number(simulateInfo?.gasLimit),
+      gasPrice: simulateInfo?.gasPrice || '5000000000',
+      payer: address,
+      granter: '',
+      signTypedDataCallback: signTypedDataCallback(connector),
+    })
+    .then(resolve, broadcastFault);
 };
