@@ -27,13 +27,13 @@ export const ButtonConfig: TButtonConfig = {
     dcPrimary: {
       bg: 'readable.brand6',
       color: 'white',
-      cursor: 'not-allowed',
       _hover: {
         bg: 'readable.brand5',
       },
       _disabled: {
         bg: `#AEB4BC`,
         color: 'readable.tertiary',
+        cursor: 'not-allowed',
         _hover: {
           bg: `#AEB4BC`,
         },
