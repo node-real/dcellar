@@ -1,5 +1,4 @@
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
-import { formatBytes } from '@/modules/file/utils';
 import BigNumber from 'bignumber.js';
 
 export const trimLongStr = (
@@ -121,7 +120,7 @@ export const getShareLink = (bucketName: string, objectName: string) => {
 };
 
 export const formatByGB = (num: number) => {
-  return `${Number(BigNumber(num).div(1_073_741_824).toFixed(2))} GB`;
+  return `${BigNumber(num).div(1_073_741_824).dp(2)} GB`;
 };
 
 export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {

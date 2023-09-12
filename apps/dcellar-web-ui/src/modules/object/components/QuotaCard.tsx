@@ -2,8 +2,8 @@ import React, { memo } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import styled from '@emotion/styled';
-import { formatBytes } from '@/modules/file/utils';
 import { setEditQuota } from '@/store/slices/bucket';
+import { formatQuota } from '@/utils/string';
 
 interface QuotaCardProps {}
 
@@ -12,15 +12,7 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
   const { quotas } = useAppSelector((root) => root.bucket);
   const { bucketName } = useAppSelector((root) => root.object);
   const quota = quotas[bucketName];
-  const { readQuota, freeQuota, consumedQuota, freeConsumedSize } = quota || {
-    readQuota: 0,
-    freeQuota: 0,
-    consumedQuota: 0,
-    freeConsumedSize: 0,
-  };
-
-  const remain = readQuota + freeQuota - consumedQuota;
-  const percent = (1 - consumedQuota / (readQuota + freeQuota + freeConsumedSize)) * 100;
+  const formattedQuota = formatQuota(quota);
 
   const manageQuota = () => {
     dispatch(setEditQuota([bucketName, '']));
@@ -30,9 +22,9 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
     <Container gap={8}>
       <Flex justifyContent={'space-between'}>
         <Flex fontWeight={600}>
-          {quota ? formatBytes(remain, true) : '--'}{' '}
+          {formattedQuota.remainText}{' '}
           <Text ml={4} fontWeight={500} color="#76808F">
-            of {quota ? formatBytes(readQuota + freeQuota + freeConsumedSize, true) : '--'}
+            of {formattedQuota.totalText}
           </Text>
         </Flex>
         <Text
@@ -46,7 +38,7 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
         </Text>
       </Flex>
       <Track>
-        <Box w={`${percent}%`} h={8} bg="#00BA34" />
+        <Box w={`${formattedQuota.remainPercent}%`} h={8} bg="#00BA34" />
       </Track>
     </Container>
   );
