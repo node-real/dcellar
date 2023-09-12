@@ -79,7 +79,7 @@ export const NewPA = () => {
       >
         <PopoverBody>
           <Box w={232} textAlign={'left'}>
-            Insufficient balance in Owner account.{' '}
+            Insufficient balance in Owner Account.{' '}
             <Link
               textDecoration={'underline'}
               onClick={() => router.push(InternalRoutePaths.transfer_in)}

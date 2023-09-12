@@ -98,6 +98,7 @@ export interface GlobalState {
   disconnectWallet: boolean;
 }
 
+export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'];
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
   gasHub: {

@@ -39,14 +39,14 @@ export function ToAccountSelector({ onChange, to, loading, isError, disabled = f
     const initialAccount = accountList.find((item) => item.address === to);
     setTotal(len);
     setAccount(initialAccount || { name: 'Custom Account', address: '' });
-  }, [to, accountList]);
+  }, [accountList]);
 
   useEffect(() => {
     if (!account) return;
     saveOnChangeRef.current?.(account);
   }, [account]);
 
-  const onChangeSP = (value: string) => {
+  const onChangeAccount = (value: string) => {
     setAccount(
       keyAccountList[value] || {
         name: 'Custom Account',
@@ -121,7 +121,7 @@ export function ToAccountSelector({ onChange, to, loading, isError, disabled = f
       placeholder="Choose or enter addresses"
       options={options}
       header={`Accounts (${total})`}
-      onChange={onChangeSP}
+      onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{

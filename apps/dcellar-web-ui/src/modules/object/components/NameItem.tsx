@@ -20,7 +20,6 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
-  E_OBJECT_NAME_EXISTS,
   E_OFF_CHAIN_AUTH,
   E_UNKNOWN,
 } from '@/facade/error';
@@ -82,9 +81,6 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
       }
       if (quotaData === null) {
         return onError(E_GET_QUOTA_FAILED);
-      }
-      if (objectInfo === null) {
-        return onError(E_OBJECT_NAME_EXISTS);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);

@@ -48,6 +48,7 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import {
+  UPLOADING_STATUSES,
   WaitFile,
   addTasksToUploadQueue,
   resetWaitQueue,
@@ -139,7 +140,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     }
     // Validation only works to data within the current path.
     const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
-    const uploadingObjectNames = (uploadQueue?.[loginAccount] || []).map((item) => {
+    const uploadingObjectNames = (uploadQueue?.[loginAccount] || []).filter(item => UPLOADING_STATUSES.includes(item.status)).map((item) => {
       return [
         item.bucketName,
         ...item.prefixFolders,
@@ -153,7 +154,7 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     const isExistObjectList = objectListObjectNames.includes(fullObjectName);
     const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
-    if (isExistObjectList || isExistUploadList) {
+    if (isExistObjectList || (!isExistObjectList && isExistUploadList)) {
       return E_OBJECT_NAME_EXISTS;
     }
     return '';

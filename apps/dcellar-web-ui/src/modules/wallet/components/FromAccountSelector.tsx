@@ -41,7 +41,7 @@ export function FromAccountSelector(props: TAccountSelector) {
     saveOnChangeRef.current?.(account);
   }, [account]);
 
-  const onChangeSP = (value: string) => {
+  const onChangeAccount = (value: string) => {
     setAccount(keyAccountList[value]);
   };
 
@@ -97,7 +97,7 @@ export function FromAccountSelector(props: TAccountSelector) {
       text={renderItem(account?.name, account?.address)}
       options={options}
       header={`Accounts (${total})`}
-      onChange={onChangeSP}
+      onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{

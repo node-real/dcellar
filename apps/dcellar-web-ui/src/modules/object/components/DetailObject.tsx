@@ -14,7 +14,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useState } from 'react';
-import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
+import { EMPTY_TX_HASH, FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { DCButton } from '@/components/common/DCButton';
 import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
@@ -286,6 +286,7 @@ export const DetailObject = (props: modalProps) => {
     return <></>;
   }
 
+  console.log('objectInfo', objectInfo)
   return (
     <>
       <DCDrawer
@@ -356,7 +357,7 @@ export const DetailObject = (props: modalProps) => {
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
               'tx',
             )}
-            {renderAddressLink(
+            {objectInfo.SealTxHash !== EMPTY_TX_HASH && renderAddressLink(
               'Seal transaction hash',
               objectInfo.SealTxHash,
               'dc.object.f_detail_pop.SealTxHash.click',
