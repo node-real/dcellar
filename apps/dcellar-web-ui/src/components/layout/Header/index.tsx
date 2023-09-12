@@ -270,7 +270,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           <Flex
             h="56px"
             alignItems="center"
-            onClick={logout}
+            onClick={(e) => logout(true)}
             paddingX="16px"
             cursor="pointer"
             borderRadius="8px"
