@@ -16,6 +16,7 @@ import UploadIcon from '@/public/images/files/upload_transparency.svg';
 import {
   ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,
+  SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
   setEditCreate,
   setEditUploadStatus,
@@ -33,6 +34,7 @@ import { MenuCloseIcon } from '@totejs/icons';
 import { debounce } from 'lodash-es';
 import { getTimestamp } from '@/utils/time';
 import { selectAccount } from '@/store/slices/accounts';
+import { formatBytes } from '@/modules/file/utils';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -95,7 +97,12 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
 
   const loading = !objects[path];
   const disabled = maxFolderDepth || discontinue || loading || accountDetail.clientFrozen;
-  const uploadDisabled = discontinue || invalidPath || folders.length > MAX_FOLDER_LEVEL || loading || accountDetail.clientFrozen;
+  const uploadDisabled =
+    discontinue ||
+    invalidPath ||
+    folders.length > MAX_FOLDER_LEVEL ||
+    loading ||
+    accountDetail.clientFrozen;
 
   const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -238,11 +245,19 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       </Tooltip>
       <Menu>
         <Tooltip
-          placement="bottom-end"
+          placement="top-end"
           content={
-            discontinue ? 'Bucket in the discontinue status cannot upload files' : 'Path invalid'
+            discontinue
+              ? 'Bucket in the discontinue status cannot upload objects.'
+              : accountDetail?.clientFrozen
+              ?
+                'The payment account in the frozen status cannot upload objects.'
+              : uploadDisabled
+              ? 'Path invalid'
+              : `Please limit object size to ${formatBytes(
+                  SINGLE_OBJECT_MAX_SIZE,
+                )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
           }
-          visibility={uploadDisabled && !loading ? 'visible' : 'hidden'}
         >
           <MenuButton
             as={Button}
@@ -295,10 +310,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         </Tooltip>
         {!uploadDisabled && (
           <MenuList>
-            {/* <Tooltip
-              placement="bottom-end"
-              content={`Please limit object size to 128MB and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. `}
-            > */}
             <label htmlFor="files-upload">
               <GAClick name={gaUploadClickName}>
                 <MenuItem
@@ -329,15 +340,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 </MenuItem>
               </GAClick>
             </label>
-            {/* </Tooltip> */}
-            {/* <Tooltip
-              placement="bottom-end"
-              content={
-                disabled
-                  ? `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
-                  : `The maximum supported folder depth is ${MAX_FOLDER_LEVEL}`
-              }
-            > */}
             <label htmlFor="folder-picker">
               <GAClick name={gaUploadClickName}>
                 <MenuItem
@@ -373,7 +375,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 </MenuItem>
               </GAClick>
             </label>
-            {/* </Tooltip> */}
           </MenuList>
         )}
       </Menu>

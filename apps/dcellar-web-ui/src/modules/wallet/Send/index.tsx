@@ -210,7 +210,7 @@ export const Send = () => {
     }
   };
 
-  const onChangeFromAccount = async (account: TAccount, type: 'from' | 'to') => {
+  const onChangeFromAccount = async (account: TAccount) => {
     if (!isAddress(account.address)) return;
     dispatch(setFromAccount(account));
     await dispatch(setupAccountDetail(account.address));
@@ -283,7 +283,7 @@ export const Send = () => {
           >
             From
           </FormLabel>
-          <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e, 'from')} />
+          <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e)} />
           <FormErrorMessage textAlign={'left'}>
             {fromErrors && fromErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
@@ -347,6 +347,7 @@ export const Send = () => {
         <Amount
           balance={balance}
           errors={errors}
+          txType={txType === 'withdraw_from_payment_account' ? txType : undefined}
           register={register}
           disabled={isSubmitting}
           watch={watch}

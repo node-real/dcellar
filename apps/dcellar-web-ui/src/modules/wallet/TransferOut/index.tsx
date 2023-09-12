@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import { ChainBox } from '../components/ChainBox';
 import Amount from '../components/Amount';
 import { Head } from '../components/Head';
-import { TransferIcon } from '../components/TransferIcon';
+import { SwapIcon } from '../components/SwapIcon';
 import Container from '../components/Container';
 import { WalletButton } from '../components/WalletButton';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -110,7 +110,7 @@ export const TransferOut = () => {
       <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={GREENFIELD_CHAIN_ID} />
         <GAClick name="dc.wallet.transferout.exchange_btn.click">
-          <TransferIcon onClick={onChangeTransfer} />
+          <SwapIcon onClick={onChangeTransfer} />
         </GAClick>
         <ChainBox type="to" chainId={BSC_CHAIN_ID} />
       </Flex>

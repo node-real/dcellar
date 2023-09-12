@@ -12,7 +12,7 @@ import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 // import { StreamBalance } from '@/components/layout/Header/StreamBalance';
 import { useDebounceEffect } from 'ahooks';
-import { setupBnbPrice } from '@/store/slices/global';
+import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
 import { GasObjects } from './GasObjects';
@@ -25,6 +25,7 @@ import SendIcon from '@/public/images/icons/send.svg';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { StoreFeeParams } from './StoreFeeParams';
 import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
+import { DisconnectWalletModal } from './DisconnectWalletModal';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
@@ -44,8 +45,14 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
   const shortAddress = getShortenWalletAddress(loginAccount);
 
   const [showPanel, setShowPanel] = useState(false);
+  const isUploading = useAppSelector(selectHasUploadingTask);
   const ref = useRef(null);
-
+  const onDisconnectClick = () => {
+    if (!isUploading) {
+      return logout(true);
+    }
+    dispatch(setDisconnectWallet(true));
+  }
   useOutsideClick({
     ref,
     handler: () => {
@@ -71,6 +78,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       <GasObjects />
       <PaymentAccounts />
       <StoreFeeParams />
+      <DisconnectWalletModal />
       <Flex
         w="340px"
         ref={ref}
@@ -270,7 +278,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           <Flex
             h="56px"
             alignItems="center"
-            onClick={(e) => logout(true)}
+            onClick={onDisconnectClick}
             paddingX="16px"
             cursor="pointer"
             borderRadius="8px"

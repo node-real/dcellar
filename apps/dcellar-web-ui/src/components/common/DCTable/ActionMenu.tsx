@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
+import { Flex, Menu, MenuButton, MenuItem, MenuList, Tooltip } from '@totejs/uikit';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import styled from '@emotion/styled';
@@ -41,7 +41,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.group.add_member.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
-                title="Add"
+                tip="Add"
               >
                 <AddMember />
               </ActionButton>
@@ -53,6 +53,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 title="Download"
                 gaClickName="dc.file.download_btn.0.click"
                 marginRight={'8px'}
+                tip="Download"
                 onClick={() => onChange(m)}
               >
                 <DownloadIcon size="md" color="readable.brand6" />
@@ -63,7 +64,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
               <ActionButton
                 marginRight={'8px'}
                 key={m}
-                title="Share"
+                tip="Share"
                 gaClickName="dc.file.share_btn.0.click"
                 onClick={() => onChange(m)}
               >
@@ -75,7 +76,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Transfer In"
+                tip="Transfer In"
                 gaClickName="dc.accounts.transfer_in_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -87,7 +88,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Transfer Out"
+                tip="Transfer Out"
                 gaClickName="dc.accounts.owner_account.transfer_out_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -99,7 +100,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Send"
+                tip="Send"
                 gaClickName="dc.accounts.owner_account.send_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -112,7 +113,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Deposit"
+                tip="Deposit"
                 gaClickName="dc.accounts.payment_account.deposit_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -124,7 +125,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Withdraw"
+                tip="Withdraw"
                 gaClickName="dc.accounts.payment_account.withdraw_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -177,7 +178,7 @@ export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: b
 `;
 
 export const StyledMenuItem = styled(MenuItem)`
-  :hover  {
+  :hover {
     color: ${(props) => !props.isDisabled && '#009e2c'};
     background-color: rgba(0, 186, 52, 0.1);
   }

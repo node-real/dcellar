@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { checkSpOffChainMayExpired, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
-import { resetUploadQueue } from '@/store/slices/global';
+import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button
@@ -26,6 +26,8 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     (removeSpAuth = false) => {
       dispatch(resetUploadQueue({ loginAccount }));
       dispatch(setLogout(removeSpAuth));
+      dispatch(setDisconnectWallet(false));
+      dispatch(setTaskManagement(false));
       disconnect();
     },
     [disconnect, dispatch, loginAccount],

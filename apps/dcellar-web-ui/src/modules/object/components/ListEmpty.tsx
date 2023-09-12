@@ -30,7 +30,7 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
     ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
     : `(Please limit object size to ${formatBytes(
         SINGLE_OBJECT_MAX_SIZE,
-      )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time during testnet. Note that data loss may occur during this phase.
+      )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time. Note that data loss may occur during this phase.
     )`;
 
   return (

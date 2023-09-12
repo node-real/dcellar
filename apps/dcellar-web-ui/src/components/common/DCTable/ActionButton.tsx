@@ -1,12 +1,13 @@
-import { CenterProps, Circle } from "@totejs/uikit";
+import { CenterProps, Circle, Tooltip } from "@totejs/uikit";
 import { GAClick } from "../GATracker";
 
 interface ActionButtonProps extends CenterProps {
   gaClickName?: string;
+  tip?: string;
 }
 
 export function ActionButton(props: ActionButtonProps) {
-  const { children, onClick, gaClickName, ...restProps } = props;
+  const { children, onClick, gaClickName, tip, ...restProps } = props;
 
   const onBeforeClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -15,6 +16,7 @@ export function ActionButton(props: ActionButtonProps) {
 
   return (
     <GAClick name={gaClickName}>
+      <Tooltip content={tip} visibility={tip ? 'visible' : 'hidden'}>
       <Circle
         className="btn-action"
         boxSize={24}
@@ -33,7 +35,8 @@ export function ActionButton(props: ActionButtonProps) {
         {...restProps}
       >
         {children}
-      </Circle>
+        </Circle>
+        </Tooltip>
     </GAClick>
   );
 }

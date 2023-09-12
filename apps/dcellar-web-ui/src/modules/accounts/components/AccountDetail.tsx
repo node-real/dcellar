@@ -6,7 +6,7 @@ import { trimAddress } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/currencyFormatter';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER, MIN_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
@@ -114,11 +114,10 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>
-            ≈{' '}
             {trimFloatZero(
               BN(accountDetail?.netflowRate || 0)
-                .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-                .toString(DECIMAL_NUMBER),
+                .dp(MIN_DISPLAY_PRECISION)
+                .toString(),
             )}{' '}
             BNB/s
           </Text>
