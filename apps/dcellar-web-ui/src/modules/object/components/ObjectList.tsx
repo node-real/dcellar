@@ -84,11 +84,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { setOpenAuthModal } = useOffChainAuth();
+  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload} = useAppSelector(
-    (root) => root.object,
-  );
+  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload } =
+    useAppSelector((root) => root.object);
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
@@ -267,8 +266,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
         fitActions = fitActions.map((item) => ({
           ...item,
-          disabled: accountDetail?.clientFrozen && ['delete', 'download'].includes(item.value)
-        }))
+          disabled: accountDetail?.clientFrozen && ['delete', 'download'].includes(item.value),
+        }));
 
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
@@ -277,7 +276,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName,
+            (q) =>
+              [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName &&
+              q.status !== 'ERROR',
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');
@@ -297,11 +298,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = [];
         }
 
-        fitActions.forEach(item => {
+        fitActions.forEach((item) => {
           if (!item.disabled && ImportantActions.includes(item.value) && !isFolder && isSealed) {
-            operations.push(item.value)
+            operations.push(item.value);
           }
-        })
+        });
 
         return (
           <ActionMenu

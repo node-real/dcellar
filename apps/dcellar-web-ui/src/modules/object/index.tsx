@@ -26,7 +26,7 @@ import { InsufficientBalance } from './components/InsufficientBalance';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { bucketInfo, owner } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const router = useRouter();
@@ -83,7 +83,7 @@ export const ObjectsPage = () => {
       <PanelContainer>
         <Flex justifyContent="space-between">
           <ObjectBreadcrumb />
-          <QuotaCard />
+          {owner && <QuotaCard />}
         </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>

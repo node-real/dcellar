@@ -10,6 +10,7 @@ import { defaultBalance } from '@/store/slices/balance';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getStoreFeeParams } from '@/facade/payment';
+import { AuthPostAction } from '@/modules/off-chain-auth/OffChainAuthContext';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -93,6 +94,7 @@ export interface GlobalState {
   taskManagement: boolean;
   tmpAccount: TTmpAccount;
   sealingTs: Record<string, number>;
+  authModalOpen: [boolean, AuthPostAction];
 }
 
 const initialState: GlobalState = {
@@ -110,12 +112,16 @@ const initialState: GlobalState = {
   taskManagement: false,
   tmpAccount: {} as TTmpAccount,
   sealingTs: {},
+  authModalOpen: [false, {} as AuthPostAction],
 };
 
 export const globalSlice = createSlice({
   name: 'global',
   initialState,
   reducers: {
+    setAuthModalOpen(state, { payload }: PayloadAction<[boolean, AuthPostAction]>) {
+      state.authModalOpen = payload;
+    },
     setTmpAvailableBalance(state, { payload }: PayloadAction<string>) {
       state._availableBalance = payload;
     },
@@ -133,7 +139,7 @@ export const globalSlice = createSlice({
       if (progress >= 100) {
         task.status = 'SEAL';
         state.sealingTs[task.id] = Date.now();
-        task.waitFile.file = {} as any;
+        // task.waitFile.file = {} as any;
       }
     },
     updateUploadStatus(
@@ -391,6 +397,7 @@ export const {
   cancelUploadFolder,
   cancelWaitUploadFolder,
   setisLoadingPLF,
+  setAuthModalOpen,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();

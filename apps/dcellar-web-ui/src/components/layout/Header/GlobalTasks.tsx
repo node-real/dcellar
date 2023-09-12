@@ -1,7 +1,8 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   progressFetchList,
+  refreshTaskFolder,
   selectHashTask,
   selectUploadQueue,
   setupUploadTaskErrorMsg,
@@ -30,6 +31,7 @@ import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { setupAccountDetail } from '@/store/slices/accounts';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface GlobalTasksProps {}
 
@@ -43,6 +45,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
+  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
+  const [authModal, setAuthModal] = useState(false);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
   const folderInfos = keyBy(
     queue.filter((q) => q.waitFile.name.endsWith('/')),
@@ -95,7 +99,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     );
   }, [hashTask, dispatch]);
 
+  useEffect(() => {
+    if (isAuthPending) return;
+    setAuthModal(false);
+  }, [isAuthPending]);
+
   const runUploadTask = async (task: UploadFile) => {
+    if (authModal) return;
     // 1. get approval from sp
     const isFolder = task.waitFile.name.endsWith('/');
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
@@ -207,6 +217,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             await dispatch(progressFetchList(task));
+            if (authModal) return;
             dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
           },
 
@@ -224,6 +235,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
+          if (message?.includes('invalid signature')) {
+            setOpenAuthModal();
+            setAuthModal(true);
+            dispatch(refreshTaskFolder(task));
+          }
           setTimeout(() => {
             dispatch(
               setupUploadTaskErrorMsg({
@@ -271,7 +287,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
           const bucket = bucketInfo[task.bucketName];
-          dispatch(setupAccountDetail(bucket.PaymentAddress))
+          dispatch(setupAccountDetail(bucket.PaymentAddress));
         }
         return objectStatus;
       }),

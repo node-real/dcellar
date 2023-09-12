@@ -12,6 +12,7 @@ import {
   SourceType,
   VisibilityType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { setAuthModalOpen } from '@/store/slices/global';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
@@ -27,6 +28,7 @@ export interface BucketState {
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
+  quotaLoading: boolean;
   currentPage: number;
   // current visit bucket;
   discontinue: boolean;
@@ -42,6 +44,7 @@ const initialState: BucketState = {
   bucketInfo: {},
   quotas: {},
   loading: false,
+  quotaLoading: false,
   currentPage: 0,
   discontinue: false,
   owner: true,
@@ -81,6 +84,9 @@ export const bucketSlice = createSlice({
     },
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
+    },
+    setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
+      state.quotaLoading = payload;
     },
     setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo }>) {
       const { address, bucket } = payload;
@@ -170,11 +176,16 @@ export const setupBuckets =
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { bucketInfo } = getState().bucket;
+    const { bucketInfo, quotaLoading } = getState().bucket;
+    if (quotaLoading) return;
     const info = bucketInfo[bucketName];
     if (!info) return;
+    dispatch(setQuotaLoading(true));
     const sp = await dispatch(getPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
-    if (!sp) return;
+    if (!sp) {
+      dispatch(setQuotaLoading(false));
+      return;
+    }
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
@@ -182,8 +193,13 @@ export const setupBucketQuota =
       seedString,
       address: loginAccount,
     });
+    dispatch(setQuotaLoading(false));
     if (quota === null) {
-      return toast.error({ description: error || 'Get bucket read quota error' });
+      console.error({ description: error || 'Get bucket read quota error' });
+      if (error === 'invalid signature') {
+        dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
+      }
+      return error || 'Get bucket read quota error';
     }
     dispatch(setReadQuota({ bucketName, quota }));
   };
@@ -199,6 +215,7 @@ export const {
   setReadQuota,
   setEditCreate,
   setEditQuota,
+  setQuotaLoading,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

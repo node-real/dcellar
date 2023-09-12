@@ -12,9 +12,17 @@ import { isEmpty } from 'lodash-es';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
 import { setupOffchain } from '@/store/slices/persist';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { useUpdateEffect } from 'ahooks';
+import { setAuthModalOpen } from '@/store/slices/global';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
+
+export type AuthPostAction = {
+  action: string;
+  params: Record<string, string>;
+};
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const dispatch = useAppDispatch();
@@ -24,9 +32,18 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const authSps = useRef<SpItem[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
+  const [postAction, setPostAction] = useState({} as AuthPostAction);
+  const { authModalOpen } = useAppSelector((root) => root.global);
+
+  useUpdateEffect(() => {
+    if (!authModalOpen[0]) return;
+    setPostAction(authModalOpen[1]);
+    onOpen();
+  }, [authModalOpen]);
 
   // For selected sps auth
-  const setOpenAuthModal = (spAddress?: string[]) => {
+  const setOpenAuthModal = (spAddress?: string[] | null, action?: AuthPostAction) => {
+    setPostAction(action || ({} as AuthPostAction));
     if (spAddress) {
       authSps.current = spAddress.map((a) => spInfo[a]);
     }
@@ -67,7 +84,13 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         dispatch(setupOffchain(address, offChainData, isEmpty(authSps.current)));
         setIsAuthPending(false);
         onClose();
-
+        if (postAction.action) {
+          switch (postAction.action) {
+            case 'quota':
+              dispatch(setupBucketQuota(postAction.params['bucketName']));
+              break;
+          }
+        }
         return { code: 0, message: 'success' };
       } catch (e: any) {
         console.log('gen offChain data error', e);
@@ -77,9 +100,11 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         onClose();
 
         return { code: -1, error: e };
+      } finally {
+        dispatch(setAuthModalOpen([false, {} as AuthPostAction]));
       }
     },
-    [connector, allSps, dispatch, onClose],
+    [connector, allSps, dispatch, onClose, postAction],
   );
 
   return (
@@ -92,14 +117,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       }}
     >
       {children}
-      <DCModal
-        isOpen={isOpen}
-        overlayProps={{
-          zIndex: 1,
-        }}
-        onClose={() => {}}
-        gaShowName="dc.off_chain_auth.auth_modal.0.show"
-      >
+      <DCModal isOpen={isOpen} onClose={() => {}} gaShowName="dc.off_chain_auth.auth_modal.0.show">
         <ModalBody mt={0} textAlign={'center'}>
           <Image
             alt="auth failed icon"

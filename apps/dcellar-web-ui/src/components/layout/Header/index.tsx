@@ -60,7 +60,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
   useDebounceEffect(() => {
     if (!showPanel) return;
     dispatch(setupBnbPrice());
-    dispatch(setupAccountDetail(loginAccount))
+    dispatch(setupAccountDetail(loginAccount));
   }, [showPanel]);
 
   return (
@@ -154,7 +154,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_in);
@@ -187,7 +187,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_out);
@@ -220,7 +220,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.send);
@@ -255,7 +255,12 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             borderRadius="8px"
             _hover={{ bg: 'bg.bottom' }}
           >
-            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="accounts icon" />
+            <Image
+              src={`${assetPrefix}/images/icons/accounts.svg`}
+              w="24px"
+              mr="8px"
+              alt="accounts icon"
+            />
             <Text color="readable.normal" fontWeight={500} fontSize="16px">
               Accounts
             </Text>

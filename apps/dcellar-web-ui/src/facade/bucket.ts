@@ -75,6 +75,7 @@ export const getBucketReadQuota = async ({
     })
     .then(resolve, offChainAuthFault);
   if (error) return [null, error];
+  if (res?.code === -1) return [null, res?.message!];
 
   const quota = res?.body as IQuotaProps;
   return [quota, null];
