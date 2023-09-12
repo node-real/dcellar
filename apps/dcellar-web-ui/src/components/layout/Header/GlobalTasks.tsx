@@ -235,7 +235,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
-          if (message?.includes('invalid signature')) {
+          const authExpired = message?.includes('invalid signature');
+          if (authExpired) {
             setOpenAuthModal();
             setAuthModal(true);
             dispatch(refreshTaskFolder(task));
@@ -245,7 +246,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
               setupUploadTaskErrorMsg({
                 account: loginAccount,
                 task,
-                errorMsg: message || e?.message || 'upload error',
+                errorMsg: authExpired
+                  ? 'Authentication expired.'
+                  : message || e?.message || 'upload error',
               }),
             );
           }, 200);
