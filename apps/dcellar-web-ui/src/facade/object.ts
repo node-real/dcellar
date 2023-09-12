@@ -106,7 +106,10 @@ export const getCanObjectAccess = async (
     address: loginAccount,
     seedString,
   };
-  const [info, quota] = await getObjectInfoAndBucketQuota(params);
+  const [info, quota, error] = await getObjectInfoAndBucketQuota(params);
+  if (error === 'invalid signature') {
+    return [false, E_OFF_CHAIN_AUTH];
+  }
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useRef, useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
 import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
@@ -15,13 +15,16 @@ import { setupOffchain } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useUpdateEffect } from 'ahooks';
 import { setAuthModalOpen } from '@/store/slices/global';
+import { useRouter } from 'next/router';
+import { provider } from '@/context/WalletConnectContext/chains';
+import { useLogin } from '@/hooks/useLogin';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
 
 export type AuthPostAction = {
   action: string;
-  params: Record<string, string>;
+  params?: Record<string, string>;
 };
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
@@ -87,7 +90,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         if (postAction.action) {
           switch (postAction.action) {
             case 'quota':
-              dispatch(setupBucketQuota(postAction.params['bucketName']));
+              dispatch(setupBucketQuota(postAction.params!['bucketName']));
               break;
           }
         }

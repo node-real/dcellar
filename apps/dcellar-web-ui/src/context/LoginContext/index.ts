@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface LoginContextType {
-  logout: () => void;
+  logout: (removeSpAuth?: boolean) => void;
 }
 
 export const LoginContext = React.createContext<LoginContextType>({} as LoginContextType);

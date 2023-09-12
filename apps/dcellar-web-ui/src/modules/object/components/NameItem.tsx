@@ -37,7 +37,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
@@ -63,15 +63,20 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
     if (config.directDownload) {
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
       const gParams = {
         bucketName,
         objectName: object.objectName,
         endpoint: primarySp.endpoint,
         seedString,
         address: loginAccount,
+      };
+      const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
+      if (error === 'invalid signature') {
+        return onError(E_OFF_CHAIN_AUTH);
       }
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
@@ -118,7 +123,7 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
           if (disabled) {
             e.stopPropagation();
             e.preventDefault();
-            return
+            return;
           }
           e.stopPropagation();
           if (folder) {

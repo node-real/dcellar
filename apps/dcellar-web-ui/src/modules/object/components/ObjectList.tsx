@@ -147,7 +147,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         seedString,
         address: loginAccount,
       };
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
+      const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
+      if (error === 'invalid signature') {
+        return onError(E_OFF_CHAIN_AUTH);
+      }
       if (!quotaData) {
         return onError(E_GET_QUOTA_FAILED);
       }
