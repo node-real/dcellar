@@ -104,7 +104,7 @@ export const Send = () => {
     mode: 'all',
   });
   useEffect(() => {
-    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
+    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current || initFormRef.current) return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -113,9 +113,15 @@ export const Send = () => {
     const initialFromAccount = from && allList.find((item) => item.address === from);
     initialFromAccount && dispatch(setFromAccount(initialFromAccount));
     const initialToAccount = to && allList.find((item) => item.address === to);
-    dispatch(setToAccount(initialToAccount || { name: 'Initial Account', address: '' }));
+    dispatch(setToAccount(initialToAccount || paymentAccounts[0]));
     initFormRef.current = true;
   }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
+
+  const isDisableToAccount = fromAccount?.address !== loginAccount;
+  useEffect(() => {
+    if (!isDisableToAccount || isEmpty(ownerAccount) || !initFormRef.current) return;
+    dispatch(setToAccount(ownerAccount));
+  }, [dispatch, isDisableToAccount, ownerAccount]);
 
   const onModalClose = () => {
     reset();
@@ -220,7 +226,7 @@ export const Send = () => {
     // optimize performance
     if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
       // Avoid from owner account to owner account
-      if (account.address === loginAccount && to === loginAccount) {
+      if (account.address === loginAccount && toAccount.address === loginAccount) {
         dispatch(setToAccount(paymentAccounts[0]));
       }
       return dispatch(setFromAccount(account));
@@ -230,7 +236,7 @@ export const Send = () => {
     await dispatch(setupAccountDetail(account.address));
   };
 
-  const onChangeToAccount = debounce(async (account: TAccount) => {
+  const onChangeToAccount = useCallback(debounce(async (account: TAccount) => {
     setToJsErrors([]);
     if (!isAddress(account.address)) {
       dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
@@ -246,14 +252,7 @@ export const Send = () => {
     await dispatch(setupAccountDetail(account.address));
     await dispatch(setupAccountType(account.address));
     setLoadingToAccount(false);
-  }, 500);
-
-  const isDisableToAccount = fromAccount?.address !== loginAccount;
-
-  useEffect(() => {
-    if (!isDisableToAccount || isEmpty(ownerAccount)) return;
-    dispatch(setToAccount(ownerAccount));
-  }, [dispatch, isDisableToAccount, ownerAccount]);
+  }, 500), [])
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
