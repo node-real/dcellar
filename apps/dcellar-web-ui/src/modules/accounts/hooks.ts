@@ -4,8 +4,6 @@ import { selectAccount } from '@/store/slices/accounts';
 import { BN } from "@/utils/BigNumber";
 import { isEmpty } from "lodash-es";
 
-export const BUFFER_TIME = 24 * 60 * 60;
-
 export const useUnFreezeAmount = (address: string) => {
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const account = useAppSelector(selectAccount(address));

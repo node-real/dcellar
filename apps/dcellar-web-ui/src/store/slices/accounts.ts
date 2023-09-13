@@ -120,9 +120,10 @@ export const paymentAccountSlice = createSlice({
         name: string;
         streamRecord?: StreamRecord | undefined;
         refundable?: boolean;
+        bufferTime: string;
       }>,
     ) => {
-      const { address, name, streamRecord } = payload;
+      const { address, name, streamRecord, bufferTime } = payload;
       if (!address) return;
       if (!streamRecord) {
         state.accountDetails[address] = {
@@ -143,7 +144,7 @@ export const paymentAccountSlice = createSlice({
           crudTimestamp: streamRecord.crudTimestamp.low,
           outFlowCount: streamRecord.outFlowCount.low,
           settleTimestamp: streamRecord.settleTimestamp.low,
-          clientFrozen: getClientFrozen(streamRecord.settleTimestamp.low),
+          clientFrozen: getClientFrozen(streamRecord.settleTimestamp.low, +bufferTime),
           refundable: payload.refundable,
         };
       }
@@ -214,12 +215,13 @@ export const selectAvailableBalance = (address: string) => (state: any) => {
 };
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
+  const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
   const account = {
     address: loginAccount,
     name: 'Owner Account',
   };
   dispatch(setOwnerAccount(account));
-  dispatch(setAccountDetail(account));
+  dispatch(setAccountDetail({ ...account, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME }));
 };
 
 export const setupPaymentAccounts =
@@ -244,6 +246,7 @@ export const setupAccountDetail =
     if (!address) return;
     const { loginAccount } = getState().persist;
     const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
+    const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
     const accountList = [
       ...(paymentAccounts || []),
       { address: loginAccount, name: 'Owner Account' },
@@ -260,7 +263,7 @@ export const setupAccountDetail =
       refundable: PARes?.paymentAccount?.refundable,
     }
     dispatch(
-      setAccountDetail(accountDetail),
+      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME}),
     );
   };
 
