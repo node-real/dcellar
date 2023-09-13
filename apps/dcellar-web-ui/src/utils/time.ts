@@ -45,6 +45,9 @@ export const formatFullTime = (
   utcZeroTimestamp = 0,
   format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
 ) => {
+  if (String(utcZeroTimestamp).length !== 13) {
+    return '--'
+  }
   const formatStyle = format || 'MMM D, YYYY HH:mm A';
   dayjs.extend(utc);
   dayjs.extend(timezone);

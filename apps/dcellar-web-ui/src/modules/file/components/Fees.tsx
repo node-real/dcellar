@@ -86,7 +86,7 @@ export const Fees = memo<GasFeeItemProps>(function GasFeeItem(props) {
                   color="readable.tertiary"
                   as="p"
                 >
-                  6 months prepaid fee
+                  Prepaid fee
                 </Text>
               </Flex>
               <Text fontSize={14} lineHeight="28px" fontWeight={400} color="readable.tertiary">

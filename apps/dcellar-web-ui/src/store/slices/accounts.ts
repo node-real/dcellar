@@ -15,7 +15,7 @@ export type TAccount = {
   name: string;
   address: string;
 };
-export type AccountType = 'unknown_account' | 'gnfd_account' | 'payment_account' | 'non_refundable_account' | 'error_account';
+export type AccountType = 'unknown_account' | 'gnfd_account' | 'payment_account' | 'non_refundable_payment_account' | 'error_account';
 export type TAccountDetail = {
   name: string;
   address: string;
@@ -276,7 +276,7 @@ export const setupAccountType =
     }
     const [PARes, PAError] = await getPaymentAccount(address);
     if (PARes) {
-      const type = PARes?.paymentAccount.refundable === true ? 'payment_account' : 'non_refundable_account';
+      const type = PARes?.paymentAccount.refundable === true ? 'payment_account' : 'non_refundable_payment_account';
       return dispatch(setAccountType({ addr: address, type }))
     }
     const [EARes, EAError] = await getAccount(address);

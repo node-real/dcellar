@@ -28,7 +28,7 @@ export const getAccountDisplay = (type: AccountType) => {
       icon: <PaymentAccountIcon />,
       tip: 'Payment Account',
     },
-    non_refundable_account: {
+    non_refundable_payment_account: {
       name: 'Payment Account (Non-Refundable)',
       icon: <NonRefundableIcon />,
       tip: 'Payment Account (Non-Refundable)',

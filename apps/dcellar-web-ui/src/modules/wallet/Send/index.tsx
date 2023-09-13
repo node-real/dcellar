@@ -130,7 +130,7 @@ export const Send = () => {
     if (isEmpty(toAccount) || isEmpty(fromAccount)) return;
     if (
       fromAccount.name.toLowerCase() === 'owner account' &&
-      toAccount.name.toLowerCase().includes('payment account')
+      ['payment_account', 'non_refundable_payment_account'].includes(accountTypes[toAccount.address])
     ) {
       return 'send_to_payment_account';
     }
@@ -139,11 +139,11 @@ export const Send = () => {
     }
     if (
       fromAccount.name.toLowerCase() === 'owner account' &&
-      !toAccount.name.toLowerCase().includes('payment account')
+      ['gnfd_account', 'unknown_account'].includes(accountTypes[toAccount.address])
     ) {
       return 'send_to_owner_account';
     }
-  }, [fromAccount, toAccount]);
+  }, [accountTypes, fromAccount, toAccount]);
   const txCallback = (res: any, error: string | null, address?: string) => {
     if (!res || error) {
       setStatus('failed');
