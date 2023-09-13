@@ -117,10 +117,10 @@ export const Send = () => {
     initFormRef.current = true;
   }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
 
-  const isDisableToAccount = fromAccount?.address !== loginAccount;
+  const isDisableToAccount = !isEmpty(fromAccount) && fromAccount.address !== loginAccount;
   useEffect(() => {
     if (!isDisableToAccount || isEmpty(ownerAccount) || !initFormRef.current) return;
-    dispatch(setToAccount(ownerAccount));
+    isDisableToAccount && dispatch(setToAccount(ownerAccount));
   }, [dispatch, isDisableToAccount, ownerAccount]);
 
   const onModalClose = () => {
