@@ -463,7 +463,7 @@ export const getObjectMeta = async (
     },
     (e) => {
       const error =
-        e.status !== 429
+        e.status === 429
           ? { code: e.status, message: 'SP not available. Try later.' }
           : xmlParser.parse(e.data);
       return commonFault(error);

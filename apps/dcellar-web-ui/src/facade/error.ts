@@ -80,6 +80,9 @@ export const createTxFault = (e: any): ErrorResponse => {
   ) {
     return [null, E_OFF_CHAIN_AUTH];
   }
+  if ((e as any).statusCode === 429) {
+    return [null, 'SP not available. Try later.'];
+  }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };
 
