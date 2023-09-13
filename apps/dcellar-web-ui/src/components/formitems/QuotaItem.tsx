@@ -78,12 +78,10 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
   };
 
   const onDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    const indicator = e.target as HTMLDivElement;
-    const trackElem = indicator.parentElement as HTMLDivElement;
+    const container = document.getElementById('buy-quota-progress-bar')!;
     const movingClass = 'indicator-moving';
 
-    indicator.classList.add(movingClass);
-    trackElem.classList.add(movingClass);
+    container.classList.add(movingClass);
     document.body.style.cursor = 'pointer';
     document.body.style.userSelect = 'none';
 
@@ -98,8 +96,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
     const mouseup = () => {
       document.body.style.cursor = 'default';
       document.body.style.userSelect = '';
-      indicator.classList.remove(movingClass);
-      trackElem.classList.remove(movingClass);
+      container.classList.remove(movingClass);
       document.removeEventListener('mousemove', mousemove);
       document.removeEventListener('mouseup', mouseup);
     };
@@ -224,7 +221,7 @@ const Indicator = styled(Box)`
   right: -7px;
   top: -3px;
   cursor: pointer;
-  &.indicator-moving {
+  .indicator-moving & {
     background: #009e2c;
   }
 `;
@@ -235,7 +232,7 @@ const Progress = styled(Box)`
   position: absolute;
   left: 0;
   top: 0;
-  &.indicator-moving {
+  .indicator-moving & {
     background: #009e2c;
   }
 `;
