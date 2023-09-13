@@ -20,7 +20,6 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
   MIN_AMOUNT,
-  POPPINS_FONT,
   WalletOperationInfos,
 } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
@@ -144,7 +143,6 @@ export const Amount = ({
           htmlFor="amount"
           mb={'8px'}
           display="inline-block"
-          fontFamily={POPPINS_FONT}
         >
           Amount
         </FormLabel>

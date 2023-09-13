@@ -14,7 +14,7 @@ import { BN } from '@/utils/BigNumber';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/constants/paths';
 import { TAccountDetail } from '@/store/slices/accounts';
-import { formatTime, getMillisecond } from '@/utils/time';
+import { formatFullTime, formatTime, getMillisecond } from '@/utils/time';
 
 type Props = {
   loading: boolean;
@@ -49,7 +49,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
   };
   const detailItems = [
     {
-      label: title,
+      label: 'Account Address',
       value: (
         <Flex>
           <Text fontSize={'14px'} fontWeight={500}>
@@ -125,21 +125,21 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
       ),
     },
     {
-      label: 'Update date',
+      label: 'Last update date',
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>
-            {formatTime(getMillisecond(accountDetail?.crudTimestamp))}
+            {formatFullTime(getMillisecond(accountDetail?.crudTimestamp))}
           </Text>
         </LoadingAdaptor>
       ),
     },
     {
-      label: 'Force settle date',
+      label: 'Force settlement date',
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>
-            {formatTime(getMillisecond(accountDetail?.settleTimestamp))}
+            {formatFullTime(getMillisecond(accountDetail?.settleTimestamp))}
           </Text>
         </LoadingAdaptor>
       ),
@@ -156,8 +156,8 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           <Image
             alt="account icon"
             src={`${assetPrefix}/images/accounts/filled-account.svg`}
-            width={120}
-            height={120}
+            width={48}
+            height={48}
             marginRight={24}
           />
           <Box>

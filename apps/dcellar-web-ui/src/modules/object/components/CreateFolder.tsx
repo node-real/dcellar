@@ -352,7 +352,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         <Text
           align="center"
           color="readable.tertiary"
-          mt={32}
+          // mt={32}
           fontWeight={400}
           fontSize={18}
           lineHeight="22px"

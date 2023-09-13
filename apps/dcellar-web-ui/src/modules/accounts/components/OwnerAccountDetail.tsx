@@ -54,7 +54,7 @@ export const OwnerAccountDetail = () => {
       gaShowName="dc.accounts.detail.show"
       gaClickCloseName="dc.accounts.detail.close.click"
     >
-      <AccountDetail loading={!!isLoadingDetail} title="Owner Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
+      <AccountDetail loading={!!isLoadingDetail} title="Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
           <DCButton

@@ -16,8 +16,6 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useState } from 'react';
 import { EMPTY_TX_HASH, FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { DCButton } from '@/components/common/DCButton';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -169,63 +167,17 @@ const renderUrlWithLink = (
   );
 };
 
-const renderCopyAddress = (address: string, gaClickName?: string) => {
-  return (
-    <CopyText value={formatAddress(address)} justifyContent="flex-end" gaClickName={gaClickName}>
-      <Text as="span" fontSize={14} lineHeight="17px" fontWeight={500}>
-        {trimAddress(address, 28, 15, 13)}
-      </Text>
-    </CopyText>
-  );
-};
-
-const renderVisibilityTag = (visibility: any) => {
-  // public File
-  if (visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ) {
-    return (
-      <Flex h={'24px'} alignItems={'center'}>
-        <PublicFileIcon fillColor={'#009E2C'} w={14} h={14} />
-        <Text
-          color={'readable.primary'}
-          fontWeight={400}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          ml={'6px'}
-        >
-          Public
-        </Text>
-      </Flex>
-    );
-  }
-  // private file
-  if (visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE) {
-    return (
-      <Flex h={'24px'} alignItems={'center'}>
-        <PrivateFileIcon fillColor={'#009E2C'} w={14} h={14} />
-        <Text
-          color={'readable.primary'}
-          fontWeight={400}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          ml={'6px'}
-        >
-          Private
-        </Text>
-      </Flex>
-    );
-  }
-  return <></>;
-};
-
 export const DetailObject = (props: modalProps) => {
   const { accountFrozen } = props;
   const dispatch = useAppDispatch();
   const [action, setAction] = useState<ObjectActionType>('');
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount] || {};
   const { setOpenAuthModal } = useOffChainAuth();
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDetail, bucketName, objectsInfo, path } = useAppSelector((root) => root.object);
+  const bucket = bucketInfo[editDetail.bucketName];
   const primarySp = primarySpInfo[bucketName];
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
@@ -286,7 +238,6 @@ export const DetailObject = (props: modalProps) => {
     return <></>;
   }
 
-  console.log('objectInfo', objectInfo)
   return (
     <>
       <DCDrawer
@@ -347,6 +298,12 @@ export const DetailObject = (props: modalProps) => {
             {renderAddressLink(
               'Primary SP seal address',
               primarySp.operatorAddress,
+              'dc.file.f_detail_pop.seal.click',
+              'dc.file.f_detail_pop.copy_seal.click',
+            )}
+            {renderAddressLink(
+              'Payment address',
+              bucket.PaymentAddress,
               'dc.file.f_detail_pop.seal.click',
               'dc.file.f_detail_pop.copy_seal.click',
             )}

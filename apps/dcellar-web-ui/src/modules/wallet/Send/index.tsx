@@ -26,7 +26,6 @@ import { Fee } from '../components/Fee';
 import { TWalletFromValues } from '../type';
 import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { POPPINS_FONT } from '../constants';
 import { FromAccountSelector } from '../components/FromAccountSelector';
 import {
   TAccount,
@@ -50,7 +49,10 @@ import { useRouter } from 'next/router';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { InternalRoutePaths } from '@/constants/paths';
 
-export type TxType = 'withdraw_from_payment_account' | 'send_to_owner_account' | 'send_to_payment_account';
+export type TxType =
+  | 'withdraw_from_payment_account'
+  | 'send_to_owner_account'
+  | 'send_to_payment_account';
 
 export const Send = () => {
   const dispatch = useAppDispatch();
@@ -60,6 +62,7 @@ export const Send = () => {
   const {
     isLoadingDetail,
     bankBalance,
+    accountTypes,
     accountDetails,
     ownerAccount,
     isLoadingPaymentAccounts,
@@ -150,7 +153,7 @@ export const Send = () => {
       res?.transactionHash
     }`;
     setViewTxUrl(txUrl);
-    address && dispatch(setupAccountDetail(address))
+    address && dispatch(setupAccountDetail(address));
     setStatus('success');
     reset();
     !isOpen && onOpen();
@@ -212,15 +215,31 @@ export const Send = () => {
 
   const onChangeFromAccount = async (account: TAccount) => {
     if (!isAddress(account.address)) return;
+    const accountType = accountTypes[account.address];
+    const accountDetail = accountDetails[account.address];
+    // optimize performance
+    if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
+      // Avoid from owner account to owner account
+      if (account.address === loginAccount && to === loginAccount) {
+        dispatch(setToAccount(paymentAccounts[0]));
+      }
+      return dispatch(setFromAccount(account));
+    }
+
     dispatch(setFromAccount(account));
     await dispatch(setupAccountDetail(account.address));
   };
 
   const onChangeToAccount = debounce(async (account: TAccount) => {
-    !isEmpty(toJsErrors) && setToJsErrors([]);
-    if (account.address !== '' && !isAddress(account.address)) {
+    setToJsErrors([]);
+    if (!isAddress(account.address)) {
       dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
       return setToJsErrors(['Invalid address']);
+    }
+    const accountType = accountTypes[account.address];
+    const accountDetail = accountDetails[account.address];
+    if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
+      return dispatch(setToAccount(account));
     }
     setLoadingToAccount(true);
     dispatch(setToAccount(account));
@@ -229,7 +248,7 @@ export const Send = () => {
     setLoadingToAccount(false);
   }, 500);
 
-  const isDisableToAccount = fromAccount?.name?.toLocaleLowerCase().includes('payment account');
+  const isDisableToAccount = fromAccount?.address !== loginAccount;
 
   useEffect(() => {
     if (!isDisableToAccount || isEmpty(ownerAccount)) return;
@@ -279,7 +298,6 @@ export const Send = () => {
             lineHeight="150%"
             htmlFor="text"
             display={'inline-block'}
-            fontFamily={POPPINS_FONT}
           >
             From
           </FormLabel>
@@ -310,7 +328,6 @@ export const Send = () => {
             lineHeight="150%"
             htmlFor="text"
             display={'flex'}
-            fontFamily={POPPINS_FONT}
           >
             To
             <Tips
@@ -320,15 +337,12 @@ export const Send = () => {
             />
           </FormLabel>
           <ToAccountSelector
-            to={to}
+            value={to}
             isError={!isEmpty(toJsErrors)}
             disabled={isDisableToAccount}
             loading={loadingToAccount}
             onChange={(e) => onChangeToAccount(e)}
           />
-          <FormErrorMessage textAlign={'left'}>
-            {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
-          </FormErrorMessage>
           <FormHelperText
             display={'flex'}
             alignItems={'center'}
@@ -343,6 +357,9 @@ export const Send = () => {
               renderFee(toBalance, exchangeRate + '')
             )}
           </FormHelperText>
+          <FormErrorMessage textAlign={'left'}>
+            {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
+          </FormErrorMessage>
         </FormControl>
         <Amount
           balance={balance}
@@ -377,7 +394,7 @@ export const Send = () => {
             (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
             isSubmitting ||
             isLoading ||
-            !!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet
+            (!!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet)
           }
           isSubmitting={isSubmitting}
           gaClickSwitchName="dc.wallet.send.switch_network.click"

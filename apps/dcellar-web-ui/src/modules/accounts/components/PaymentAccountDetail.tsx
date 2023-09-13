@@ -65,7 +65,7 @@ export const PaymentAccountDetail = () => {
     >
       <AccountDetail
         loading={!!isLoadingDetail}
-        title="Payment account detail"
+        title="Account Detail"
         accountDetail={paymentAccount}
         availableBalance={availableBalance}
       />

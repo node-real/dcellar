@@ -11,14 +11,14 @@ import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
 
 type TProps = {
-  to: string;
+  value: string;
   loading: boolean;
   isError: boolean;
   disabled?: boolean;
   onChange: (value: TAccount) => void;
 };
 
-export function ToAccountSelector({ onChange, to, loading, isError, disabled = false }: TProps) {
+export function ToAccountSelector({ onChange, value, loading, isError, disabled = false }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
@@ -36,10 +36,14 @@ export function ToAccountSelector({ onChange, to, loading, isError, disabled = f
 
   useEffect(() => {
     if (!len) return;
-    const initialAccount = accountList.find((item) => item.address === to);
     setTotal(len);
-    setAccount(initialAccount || { name: 'Custom Account', address: '' });
-  }, [accountList]);
+  }, [len]);
+
+  useEffect(() => {
+    if (account.address === value || !value) return;
+    const initialAccount = accountList.find((item) => item.address === value);
+    setAccount(initialAccount || { name: 'Custom Account', address: value });
+  }, [accountList, value]);
 
   useEffect(() => {
     if (!account) return;
@@ -107,7 +111,7 @@ export function ToAccountSelector({ onChange, to, loading, isError, disabled = f
     if (loading) {
       return <Loading size={12} marginX={4} color="readable.normal" />;
     }
-    const accountType = isError ? 'error_account' : accountTypes[to];
+    const accountType = isError ? 'error_account' : accountTypes[value];
     const accountDisplay = getAccountDisplay(accountType);
     return accountDisplay ? <AccountTips type={accountType} /> : <MenuCloseIcon />;
   };
