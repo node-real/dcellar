@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
@@ -52,8 +52,13 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
   const originPercent = valueToPercent(current || 0);
   const originValue = !current ? '0GB' : formatByGB(current * G_BYTES).replace(' ', '');
   const { readPrice = 0 } = useAppSelector(selectStoreFeeParams);
-  const invalid = value < (current || 0);
+  const [invalid, setInvalid] = useState(false);
   const overlayStyles = { color: '#fff', borderColor: invalid ? '#EE3911' : '#14151A' };
+
+  useEffect(() => {
+    if (!current) return;
+    setInvalid(value < (current || 0));
+  }, [value, current]);
 
   useEffect(() => {
     dispatch(setupStoreFeeParams());
