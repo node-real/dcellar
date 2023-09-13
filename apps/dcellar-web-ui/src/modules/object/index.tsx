@@ -81,7 +81,7 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <Flex justifyContent="space-between">
+        <Flex justifyContent="space-between" mt={-8} alignItems="center">
           <ObjectBreadcrumb />
           {owner && <QuotaCard />}
         </Flex>

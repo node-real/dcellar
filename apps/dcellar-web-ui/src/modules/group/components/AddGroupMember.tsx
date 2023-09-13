@@ -41,7 +41,7 @@ import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { ADDRESS_RE } from '@/utils/regex';
 import { MsgUpdateGroupMemberTypeUrl, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
-import { BackIcon, MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
+import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
@@ -256,13 +256,8 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
           removeAccount,
         )} from this group?`}
       />
-      <DCDrawer
-        isOpen={!!addGroupMember.groupName}
-        onClose={onClose}
-        showCloseBtn={from !== 'drawer'}
-      >
+      <DCDrawer isOpen={!!addGroupMember.groupName} onClose={onClose}>
         <QDrawerHeader alignItems="center" lineHeight="normal">
-          {from === 'drawer' && <BackIcon mr={8} cursor="pointer" onClick={onClose} />}
           Group Members
         </QDrawerHeader>
         <QDrawerBody>
@@ -302,12 +297,12 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
               <Loading my={24} />
             ) : (
               <>
-                <Flex direction="column" gap={8} h={40}>
+                <Flex direction="column" gap={8}>
                   {page.map((p) => {
                     const Avatar = GROUP_MEMBER_AVATARS[p.AccountId.charCodeAt(20) % 5];
                     const owner = loginAccount === p.AccountId;
                     return (
-                      <Flex key={p.AccountId} alignItems="center">
+                      <Flex key={p.AccountId} alignItems="center" h={40}>
                         <Box key={p.AccountId} title={p.AccountId}>
                           <Avatar />
                         </Box>
@@ -374,6 +369,12 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
 
 const StyledMenuButton = styled(MenuButton)`
   cursor: pointer;
+  padding: 2px 0 2px 4px;
+  border-radius: 2px;
+
+  :hover {
+    background: #f5f5f5;
+  }
 
   svg {
     pointer-events: none;

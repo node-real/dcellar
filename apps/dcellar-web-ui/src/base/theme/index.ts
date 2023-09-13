@@ -27,6 +27,9 @@ export const theme = {
           marginLeft: -24,
           padding: '0 24px',
         },
+        '.ui-drawer .ui-drawer-footer': {
+          marginTop: 16,
+        },
       },
     },
   },

@@ -289,9 +289,8 @@ export const ManageQuotaDrawer = memo<ManageQuotaDrawerProps>(function ManageQuo
   useUnmount(onClose);
 
   return (
-    <DCDrawer isOpen={!!bucketName} onClose={onClose} showCloseBtn={from !== 'drawer'}>
+    <DCDrawer isOpen={!!bucketName} onClose={onClose}>
       <QDrawerHeader alignItems="center" lineHeight="normal">
-        {from === 'drawer' && <BackIcon mr={8} cursor="pointer" onClick={onClose} />}
         Manage Quota
       </QDrawerHeader>
       <ManageQuota onClose={onClose} />

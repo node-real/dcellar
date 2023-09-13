@@ -41,7 +41,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.group.add_member.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
-                tip="Add"
+                tip="Add Members"
               >
                 <AddMember />
               </ActionButton>

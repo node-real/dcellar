@@ -214,7 +214,7 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
           }),
         );
       }
-      await dispatch(setupAccountDetail(bucket.PaymentAddress))
+      await dispatch(setupAccountDetail(bucket.PaymentAddress));
       return true;
     }
 

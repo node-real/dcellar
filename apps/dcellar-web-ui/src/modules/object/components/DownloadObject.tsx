@@ -95,6 +95,7 @@ export const DownloadObject = (props: modalProps) => {
       : previewObject(params, seedString));
     if (opsError) return onError(opsError);
     setLoading(false);
+    onClose();
     return success;
   };
 

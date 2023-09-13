@@ -95,7 +95,7 @@ const SharePage: NextPage<PageProps> = (props) => {
       logout(true);
     }
     setObjectInfo(objectInfo);
-    setQuotaData(quotaData);
+    setQuotaData(quotaData || ({} as IQuotaProps));
   }, [oneSp, walletConnected]);
 
   useAsyncEffect(async () => {

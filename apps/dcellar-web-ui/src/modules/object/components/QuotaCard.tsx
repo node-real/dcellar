@@ -46,7 +46,7 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
 
 const Container = styled(Flex)`
   width: 291px;
-  padding: 8px 12px;
+  padding: 7px 12px;
   flex-direction: column;
   font-size: 14px;
   font-weight: 500;

@@ -41,7 +41,10 @@ export type ErrorResponse = [null, ErrorMsg];
 
 export const simulateFault = (e: any): ErrorResponse => {
   console.error('SimulateFault', e);
-  if (e?.message.includes('static balance is not enough')) {
+  if (
+    e?.message.includes('static balance is not enough') ||
+    e?.message.includes('balance not enough')
+  ) {
     return [null, E_GET_GAS_FEE_LACK_BALANCE_ERROR];
   }
   if (e?.message.includes('No such object')) {

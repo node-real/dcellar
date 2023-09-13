@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from 'react';
+import React, { memo, useEffect, useMemo } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
@@ -10,8 +10,9 @@ import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';
 import { BN } from '@/utils/BigNumber';
+import BigNumber from 'bignumber.js';
 
-const MAX_SIZE = 1024 * 1024;
+const MAX_SIZE = 100000;
 
 interface QuotaItemProps {
   value: number;
@@ -19,11 +20,36 @@ interface QuotaItemProps {
   onChange: (v: number) => void;
 }
 
+const percentToValue = (percent: number) => {
+  percent = percent < 0 ? 0 : percent > 100 ? 100 : percent;
+  let value;
+  if (percent <= 50) {
+    value = (200 * percent) / 50;
+  } else if (percent > 50 && percent <= 78) {
+    value = 200 + (300 * (percent - 50)) / 38;
+  } else {
+    value = 500 + ((percent - 78) / 22) * (100000 - 500);
+  }
+  return BigNumber(value).dp(0).toNumber();
+};
+
+const valueToPercent = (value: number) => {
+  let percent;
+  if (value <= 200) {
+    percent = (value / 200) * 50;
+  } else if (value > 200 && value <= 500) {
+    percent = ((value - 200) / 300) * 38 + 50;
+  } else {
+    percent = ((value - 500) / (100000 - 500)) * 22 + 78;
+  }
+  return Math.min(98, percent);
+};
+
 export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, current, onChange }) {
   const dispatch = useAppDispatch();
-  const percent = Math.min(Math.floor((Math.min(value, 1024) / 1024) * 100), 98);
+  const percent = valueToPercent(value);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
-  const originPercent = Math.min(Math.floor((Math.min(current || 0, 1024) / 1024) * 100), 98);
+  const originPercent = valueToPercent(current || 0);
   const originValue = !current ? '0GB' : formatByGB(current * G_BYTES).replace(' ', '');
   const { readPrice = 0 } = useAppSelector(selectStoreFeeParams);
   const invalid = value < (current || 0);
@@ -32,6 +58,49 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
   useEffect(() => {
     dispatch(setupStoreFeeParams());
   }, [dispatch]);
+
+  const onTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const elem = e.target as HTMLDivElement;
+    const track = '#buy-quota-progress-bar > div:first-child';
+    const child = '#buy-quota-progress-bar > div:first-child *';
+    if (!elem.matches(`${track},${child}`)) return;
+    const trackElem = document.querySelector(track) as HTMLDivElement;
+    const { x, width } = trackElem.getBoundingClientRect();
+    const { clientX } = e;
+    const percent = ((clientX - x) / width) * 100;
+    onChange(percentToValue(percent));
+  };
+
+  const onDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    const indicator = e.target as HTMLDivElement;
+    const trackElem = indicator.parentElement as HTMLDivElement;
+    const movingClass = 'indicator-moving';
+
+    indicator.classList.add(movingClass);
+    trackElem.classList.add(movingClass);
+    document.body.style.cursor = 'pointer';
+    document.body.style.userSelect = 'none';
+
+    const mousemove = (e: MouseEvent) => {
+      const { clientX } = e;
+      const track = '#buy-quota-progress-bar > div:first-child';
+      const trackElem = document.querySelector(track) as HTMLDivElement;
+      const { x, width } = trackElem.getBoundingClientRect();
+      const percent = ((clientX - x) / width) * 100;
+      onChange(percentToValue(percent));
+    };
+    const mouseup = () => {
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = '';
+      indicator.classList.remove(movingClass);
+      trackElem.classList.remove(movingClass);
+      document.removeEventListener('mousemove', mousemove);
+      document.removeEventListener('mouseup', mouseup);
+    };
+    document.addEventListener('mousemove', mousemove);
+    document.addEventListener('mouseup', mouseup);
+  };
 
   const price = useMemo(
     () =>
@@ -58,9 +127,8 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
           Price: {renderBnb(price)} BNB/GB/month
         </Text>
       </FormLabel>
-
-      <Flex alignItems="center">
-        <Track id="buy-quota-progress-bar">
+      <Flex position="relative" alignItems="center" id="buy-quota-progress-bar">
+        <Track onClick={onTrackClick}>
           {current !== undefined && (
             <ProgressOrigin w={`${originPercent}%`} minW={6}>
               <DCTooltip
@@ -99,7 +167,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
               overlayInnerStyle={overlayStyles}
               getPopupContainer={() => document.getElementById('buy-quota-progress-bar')!}
             >
-              <Indicator bg={value > 0 ? '#00ba34' : '#91E1A8'} />
+              <Indicator bg={'#00ba34'} onMouseDown={onDragStart} />
             </DCTooltip>
           </Progress>
         </Track>
@@ -150,6 +218,10 @@ const Indicator = styled(Box)`
   position: absolute;
   right: -7px;
   top: -3px;
+  cursor: pointer;
+  &.indicator-moving {
+    background: #009e2c;
+  }
 `;
 
 const Progress = styled(Box)`
@@ -158,6 +230,9 @@ const Progress = styled(Box)`
   position: absolute;
   left: 0;
   top: 0;
+  &.indicator-moving {
+    background: #009e2c;
+  }
 `;
 
 const Track = styled(Flex)`
