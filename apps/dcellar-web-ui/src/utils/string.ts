@@ -1,5 +1,5 @@
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 
 export const trimLongStr = (
   str: string,

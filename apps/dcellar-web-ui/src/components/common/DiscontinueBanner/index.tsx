@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@totejs/uikit';
 import React from 'react';
 import WaringTriangleIcon from '@/public/images/icons/warning-triangle.svg';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';

@@ -4,9 +4,8 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
 import { omit } from 'lodash-es';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { getPrimarySpInfo } from './sp';
-import { GetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk';
+import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   SourceType,

@@ -1,10 +1,9 @@
 import { getClient } from '@/base/client';
 import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { IObjectResultType } from '@bnb-chain/greenfield-js-sdk';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
 import { commonFault, ErrorMsg } from '@/facade/error';
+import { IQuotaProps, SpResponse } from '@bnb-chain/greenfield-js-sdk';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -36,7 +35,7 @@ export const getObjectInfoAndBucketQuota = async ({
         },
       )
       .catch((e) => {
-        return {} as IObjectResultType<IQuotaProps>;
+        return {} as SpResponse<IQuotaProps>;
       }),
   ]);
 

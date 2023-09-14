@@ -29,9 +29,9 @@ import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
-import { TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 
 interface GlobalTasksProps {}
 
@@ -112,7 +112,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
       .join('/');
-    const createObjectPayload: TBaseGetCreateObject = {
+    const createObjectPayload: CreateObjectApprovalRequest = {
       bucketName: task.bucketName,
       objectName: finalName,
       creator: tmpAccount.address,

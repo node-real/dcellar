@@ -3,12 +3,15 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
 import { find, get, last, trimEnd } from 'lodash-es';
-import { GfSPListObjectsByBucketNameResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
+import {
+  GfSPListObjectsByBucketNameResponse,
+  ListObjectsByBucketNameRequest,
+} from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -283,7 +286,7 @@ export const objectSlice = createSlice({
 });
 
 export const _getAllList = async (
-  params: TListObjects,
+  params: ListObjectsByBucketNameRequest,
 ): Promise<[GfSPListObjectsByBucketNameResponse, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
@@ -373,7 +376,7 @@ export const selectLocateBucket = (root: AppState) => {
   const { bucketInfo } = root.bucket;
   const { bucketName } = root.object;
   return bucketInfo[bucketName] || defaultLocateBucket;
-}
+};
 
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {

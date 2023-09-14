@@ -11,7 +11,6 @@ import {
 } from '@totejs/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
-import { DeleteBucketFailed } from './DeleteFailed';
 import { BucketNotEmpty } from '@/modules/buckets/List/components/BucketNotEmpty';
 import { DeletingBucket } from '@/modules/buckets/List/components/DeletingBucket';
 import { DCModal } from '@/components/common/DCModal';
@@ -24,7 +23,6 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
 import { useAsyncEffect } from 'ahooks';
 import { getQuotaNetflowRate } from '@/utils/payment';
-import { G_BYTES } from '@/utils/constant';
 import { BN } from '@/utils/BigNumber';
 import { renderFee } from '@/modules/object/components/CancelObject';
 import { PaymentInsufficientBalance, renderBalanceNumber } from '@/modules/file/utils';

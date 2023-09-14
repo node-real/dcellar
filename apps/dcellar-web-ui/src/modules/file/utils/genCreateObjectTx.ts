@@ -1,10 +1,11 @@
-import { getClient } from "@/base/client";
-import { TBaseGetCreateObject } from "@bnb-chain/greenfield-js-sdk";
-import { AuthType } from "@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient";
+import { getClient } from '@/base/client';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 
-export const genCreateObjectTx = async (configParam: TBaseGetCreateObject, authType: AuthType) => {
+export const genCreateObjectTx = async (
+  configParam: CreateObjectApprovalRequest,
+  authType: AuthType,
+) => {
   const client = await getClient();
-  const createObjectTx = await client.object.createObject(configParam, authType);
-
-  return createObjectTx;
+  return client.object.createObject(configParam, authType);
 };

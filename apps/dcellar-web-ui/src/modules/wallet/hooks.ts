@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
