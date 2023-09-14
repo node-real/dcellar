@@ -20,7 +20,12 @@ import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfie
 import { Connector } from 'wagmi';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
-import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import {
+  BucketMetaWithVGF,
+  PolicyMeta,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
+import { get } from 'lodash-es';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -170,4 +175,17 @@ export const deleteBucket = async ({
       signTypedDataCallback: signTypedDataCallback(connector),
     })
     .then(resolve, broadcastFault);
+};
+
+export const getObjectPolicies = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
+  const res = (await client.object.listObjectPolicies({
+    bucketName,
+    objectName,
+    limit: 1000,
+    actionType: 'ACTION_GET_OBJECT',
+  })) as { body: GetListObjectPoliciesResponse; code: number };
+  const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
+  const list: PolicyMeta[] = get(res, valuePath);
+  return list;
 };

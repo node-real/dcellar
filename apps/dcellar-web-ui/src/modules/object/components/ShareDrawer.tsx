@@ -1,7 +1,6 @@
 import React, { memo, useEffect } from 'react';
 import {
   Box,
-  Flex,
   Image,
   QDrawerBody,
   QDrawerFooter,
@@ -36,7 +35,6 @@ import {
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { getShareLink } from '@/utils/string';
-import ComingSoon from '@/components/common/SvgIcon/members.svg';
 import { DCButton } from '@/components/common/DCButton';
 import { useUnmount } from 'ahooks';
 
@@ -148,12 +146,6 @@ export const ShareDrawer = memo<ShareDrawerProps>(function ShareDrawer() {
           <Box mb={24}>
             <ViewerList />
           </Box>
-          <Flex flexDirection="column" alignItems="center" mt={116}>
-            <ComingSoon />
-            <Text fontWeight="400" color="#76808F" mt={20}>
-              Permission list will coming soon.
-            </Text>
-          </Flex>
         </QDrawerBody>
         <QDrawerFooter>
           <DCButton variant="dcPrimary" width={'100%'} onClick={onCopy}>

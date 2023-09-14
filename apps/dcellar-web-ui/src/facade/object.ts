@@ -1,12 +1,14 @@
 import {
+  generateUrlByBucketName,
+  GRNToString,
   IQuotaProps,
   ISimulateGasFee,
-  ListObjectsByBucketNameResponse,
-  PermissionTypes,
-  TxResponse,
-  generateUrlByBucketName,
   ListObjectsByBucketNameRequest,
+  ListObjectsByBucketNameResponse,
+  newObjectGRN,
+  PermissionTypes,
   SpResponse,
+  TxResponse,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,
@@ -44,6 +46,7 @@ import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObject
 import { batchDownload, directlyDownload } from '@/modules/file/utils';
 import {
   ActionType,
+  Principal,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 import { GROUP_ID } from '@/utils/regex';
@@ -330,6 +333,43 @@ export const putObjectPolicy = async (
     gasLimit: Number(simulateInfo?.gasLimit),
     gasPrice: simulateInfo?.gasPrice || '5000000000',
     payer: srcMsg.operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const deleteObjectPolicy = async (
+  connector: Connector,
+  bucketName: string,
+  objectName: string,
+  operator: string,
+  principalAddr: string,
+): Promise<ErrorResponse | [DeliverResponse, null]> => {
+  const client = await getClient();
+  const resource = GRNToString(newObjectGRN(bucketName, objectName));
+  const principal: Principal = {
+    type: principalAddr.match(GROUP_ID)
+      ? PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP
+      : PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+    value: principalAddr,
+  };
+  const [tx, error1] = await client.storage
+    .deletePolicy({
+      resource,
+      principal,
+      operator,
+    })
+    .then(resolve, createTxFault);
+  if (!tx) return [null, error1];
+  const [simulateInfo, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+
+  if (!simulateInfo) return [null, error2];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: operator,
     granter: '',
     signTypedDataCallback: signTypedDataCallback(connector),
   };

@@ -6,10 +6,17 @@ import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
 import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { transientOptions } from '@/utils/transientOptions';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
-import { setEditShare } from '@/store/slices/object';
+import { setEditShare, setupObjectPolicies } from '@/store/slices/object';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { useAsyncEffect } from 'ahooks';
+import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
+import { GROUP_MEMBER_AVATARS } from '@/modules/group/components/GroupDetail';
+import Group0 from '@/components/common/SvgIcon/avatars/Group0.svg';
+import Group1 from '@/components/common/SvgIcon/avatars/Group1.svg';
+import Group2 from '@/components/common/SvgIcon/avatars/Group2.svg';
+import Group3 from '@/components/common/SvgIcon/avatars/Group3.svg';
 
 interface SharePermissionProps {}
 
@@ -26,14 +33,27 @@ const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
   },
 };
 
+export const OBJECT_POLICY_GROUP_AVATARS = [Group0, Group1, Group2, Group3];
+
 export const SharePermission = memo<SharePermissionProps>(function SharePermission() {
   const dispatch = useAppDispatch();
-  const { editDetail, bucketName } = useAppSelector((root) => root.object);
+  const { editDetail, bucketName, objectPolicies } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
+
+  useAsyncEffect(async () => {
+    if (!editDetail.name || !bucketName) return;
+    dispatch(setupObjectPolicies(bucketName, editDetail.objectName));
+  }, [dispatch, editDetail.name, bucketName]);
 
   if (!editDetail.name) return <></>;
 
   const CurrentAccess = Access[editDetail.visibility] ? Access[editDetail.visibility] : Access[2];
+  const path = [bucketName, editDetail.objectName].join('/');
+  const loading = !(path in objectPolicies);
+  const members = objectPolicies[path] || [];
+  const total = members.length;
+  const empty = !loading && !total;
+  const moreText = total <= 5 ? '' : total === 1000 ? '>1000' : `+${total - 5}`;
 
   return (
     <>
@@ -45,6 +65,42 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
               <span>{CurrentAccess.icon}</span>
               {CurrentAccess.text}
             </AccessType>
+            <Box mx={16} w={1} bg="#E6E8EA" h={43} />
+            <Flex color="#474D57" fontWeight={500} fontSize={12} flex={1}>
+              <LoadingAdaptor
+                loading={loading}
+                empty={empty}
+                emptyText="This group currently has no members."
+              >
+                <Flex gap={8}>
+                  {members.slice(0, 5).map((m, index) => {
+                    const isGroup = !m.PrincipalValue.startsWith('0x');
+                    const lastCharCode =
+                      m.PrincipalValue[m.PrincipalValue.length - 1].charCodeAt(0);
+                    const Avatar = isGroup
+                      ? OBJECT_POLICY_GROUP_AVATARS[lastCharCode % 4]
+                      : GROUP_MEMBER_AVATARS[lastCharCode % 5];
+                    return (
+                      <Box key={m.PrincipalValue + String(index)} title={m.PrincipalValue}>
+                        <Avatar />
+                      </Box>
+                    );
+                  })}
+                  {moreText && (
+                    <Box
+                      fontSize={12}
+                      px={12}
+                      borderRadius="360"
+                      border="1px solid #E6E8EA"
+                      lineHeight="32px"
+                      color="#1E2026"
+                    >
+                      {moreText}
+                    </Box>
+                  )}
+                </Flex>
+              </LoadingAdaptor>
+            </Flex>
             <Flex gap={8} flex={1} />
             <ManageAccess
               onClick={() => dispatch(setEditShare({ record: editDetail, from: 'drawer' }))}

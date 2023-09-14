@@ -11,7 +11,8 @@ import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getObjectPolicies } from '@/facade/bucket';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -71,6 +72,8 @@ export interface ObjectState {
   selectedRowKeys: Key[];
   deletedObjects: Record<string, number>;
   refreshing: boolean;
+  objectPolicies: Record<string, PolicyMeta[]>;
+  objectPoliciesPage: number;
 }
 
 const initialState: ObjectState = {
@@ -96,12 +99,21 @@ const initialState: ObjectState = {
   selectedRowKeys: [],
   deletedObjects: {},
   refreshing: false,
+  objectPolicies: {},
+  objectPoliciesPage: 0,
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setObjectPoliciesPage(state, { payload }: PayloadAction<number>) {
+      state.objectPoliciesPage = payload;
+    },
+    setObjectPolicies(state, { payload }: PayloadAction<{ path: string; policies: PolicyMeta[] }>) {
+      const { path, policies } = payload;
+      state.objectPolicies[path] = policies;
+    },
     addDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
       const { path, ts } = payload;
       state.deletedObjects[path] = ts;
@@ -358,9 +370,6 @@ export const setupListObjects =
     }
   };
 
-export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
-  dispatch(setStatusDetail({} as TStatusDetail));
-};
 export const selectPathLoading = (root: AppState) => {
   const { objects, path, refreshing } = root.object;
   return !(path in objects) || refreshing;
@@ -384,6 +393,26 @@ export const selectObjectList = (root: AppState) => {
   return objects[path] || defaultObjectList;
 };
 
+export const setupObjectPolicies =
+  (bucketName: string, objectName: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const policies = await getObjectPolicies(bucketName, objectName);
+    if (!policies.some((p) => p.PrincipalValue === loginAccount)) {
+      policies.unshift({
+        CreateTimestamp: Date.now(),
+        ExpirationTime: 0,
+        PrincipalType: 2,
+        PrincipalValue: loginAccount,
+        ResourceId: '',
+        ResourceType: 2,
+        UpdateTimestamp: 0,
+      });
+    }
+    const path = [bucketName, objectName].join('/');
+    dispatch(setObjectPolicies({ path, policies }));
+    return policies;
+  };
+
 export const {
   setFolders,
   setCurrentObjectPage,
@@ -404,6 +433,8 @@ export const {
   addDeletedObject,
   setListRefreshing,
   setSelectedRowKeys,
+  setObjectPolicies,
+  setObjectPoliciesPage,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
