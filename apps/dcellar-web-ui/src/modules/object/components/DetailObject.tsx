@@ -34,7 +34,9 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
-interface modalProps { accountFrozen: boolean };
+interface modalProps {
+  accountFrozen: boolean;
+}
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -281,7 +283,7 @@ export const DetailObject = (props: modalProps) => {
           </Flex>
           <Divider />
           <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-            {renderPropRow('Date Created', formatFullTime(+objectInfo.ObjectInfo.CreateAt * 1000))}
+            {renderPropRow('Date created', formatFullTime(+objectInfo.ObjectInfo.CreateAt * 1000))}
             {renderAddressLink(
               'Object ID',
               formatId(Number(objectInfo.ObjectInfo?.Id)),
@@ -314,13 +316,14 @@ export const DetailObject = (props: modalProps) => {
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
               'tx',
             )}
-            {objectInfo.SealTxHash !== EMPTY_TX_HASH && renderAddressLink(
-              'Seal transaction hash',
-              objectInfo.SealTxHash,
-              'dc.object.f_detail_pop.SealTxHash.click',
-              'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-              'tx',
-            )}
+            {objectInfo.SealTxHash !== EMPTY_TX_HASH &&
+              renderAddressLink(
+                'Seal transaction hash',
+                objectInfo.SealTxHash,
+                'dc.object.f_detail_pop.SealTxHash.click',
+                'dc.object.f_detail_pop.copy_seal_tx_hash.click',
+                'tx',
+              )}
             {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
               renderPropRow(
                 'Universal link',
