@@ -2,7 +2,7 @@ import { Box, Text } from '@totejs/uikit';
 import React from 'react';
 import { UploadingObjects } from './UploadingObjects';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectHasUploadingTask, selectUploadQueue, setTaskManagement } from '@/store/slices/global';
+import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global';
 import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { DCDrawer } from '@/components/common/DCDrawer';

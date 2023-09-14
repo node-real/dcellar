@@ -1,6 +1,6 @@
 import { Box, Flex, Link } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useState } from 'react';
+import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TAccount, setEditOwnerDetail } from '@/store/slices/accounts';

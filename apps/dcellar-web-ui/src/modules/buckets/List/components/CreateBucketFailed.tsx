@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Flex, Modal, ModalBody, ModalFooter, Text, useDisclosure } from '@totejs/uikit';
+import React from 'react';
+import { Flex, Modal, ModalBody, ModalFooter, Text } from '@totejs/uikit';
 
 import { POPPINS_FONT } from '@/modules/wallet/constants';
 import CreateFailedIcon from '@/public/images/buckets/create-failed.svg';

@@ -1,6 +1,5 @@
 import { useAppSelector } from '@/store';
 import { TUploadStatus, UploadFile } from '@/store/slices/global';
-import { ColoredAlertIcon } from '@totejs/icons';
 // import { ColoredAlertIcon } from '@totejs/icons';
 
 import { sortBy } from 'lodash-es';

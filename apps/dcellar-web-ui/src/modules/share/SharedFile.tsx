@@ -5,7 +5,6 @@ import { Flex, Image, Text } from '@totejs/uikit';
 import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import {
   downloadObject,
@@ -22,7 +21,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { SpItem } from '@/store/slices/sp';
-import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { setStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT } from '@/modules/file/constant';

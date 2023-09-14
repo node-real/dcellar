@@ -28,7 +28,7 @@ import {
 } from '@/modules/file/constant';
 import { ErrorDisplay } from '@/modules/buckets/List/components/ErrorDisplay';
 import { DotLoading } from '@/components/common/DotLoading';
-import { MsgCreateObjectTypeUrl, TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
+import { CreateObjectApprovalRequest, MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useAccount } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -216,7 +216,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       );
       return;
     }
-    await dispatch(setupAccountDetail(PaymentAddress))
+    await dispatch(setupAccountDetail(PaymentAddress));
     if (txRes?.code !== 0) {
       dispatch(
         setStatusDetail({
@@ -274,7 +274,7 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const createObjectPayload: TBaseGetCreateObject = {
+    const createObjectPayload: CreateObjectApprovalRequest = {
       bucketName,
       objectName: fullPath,
       creator: loginAccount,

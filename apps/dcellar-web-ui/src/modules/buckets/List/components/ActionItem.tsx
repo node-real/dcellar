@@ -1,7 +1,7 @@
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { Flex, Menu, MenuButton, MenuItem, MenuList, toast, Text } from '@totejs/uikit';
-import React, { use } from 'react';
+import React from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getBucketReadQuota } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';

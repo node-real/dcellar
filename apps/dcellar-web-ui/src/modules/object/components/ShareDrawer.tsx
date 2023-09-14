@@ -13,7 +13,6 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { BackIcon } from '@totejs/icons';
 import { AccessItem } from '@/modules/object/components/AccessItem';
 import {
   ObjectItem,
@@ -50,7 +49,7 @@ export const ShareDrawer = memo<ShareDrawerProps>(function ShareDrawer() {
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
-  const { record: editDetail, from } = editShare;
+  const { record: editDetail } = editShare;
   const open = !!editDetail.objectName;
 
   const onClose = () => {

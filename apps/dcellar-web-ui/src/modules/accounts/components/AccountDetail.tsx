@@ -6,7 +6,11 @@ import { trimAddress } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/currencyFormatter';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER, MIN_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import {
+  CRYPTOCURRENCY_DISPLAY_PRECISION,
+  DECIMAL_NUMBER,
+  MIN_DISPLAY_PRECISION,
+} from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
@@ -14,7 +18,7 @@ import { BN } from '@/utils/BigNumber';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/constants/paths';
 import { TAccountDetail } from '@/store/slices/accounts';
-import { formatFullTime, formatTime, getMillisecond } from '@/utils/time';
+import { formatFullTime, getMillisecond } from '@/utils/time';
 
 type Props = {
   loading: boolean;

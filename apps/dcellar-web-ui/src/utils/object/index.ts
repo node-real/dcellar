@@ -1,5 +1,4 @@
-import { ObjectItem } from "@/store/slices/object";
-import { VisibilityType } from "@bnb-chain/greenfield-cosmos-types/greenfield/storage/common";
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 export type TKey = keyof typeof VisibilityType;
 export type TReverseVisibilityType = {
@@ -17,7 +16,7 @@ export const convertVisibility = () => {
     });
 
   return reverseVisibilityType;
-}
+};
 
 export const formatLockFee = (lockFee: string | undefined) => {
   return String(Number(lockFee || '') / Math.pow(10, 18));

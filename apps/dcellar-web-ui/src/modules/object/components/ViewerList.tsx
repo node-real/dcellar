@@ -85,7 +85,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
         {
           effect: PermissionTypes.Effect.EFFECT_ALLOW,
           actions: [PermissionTypes.ActionType.ACTION_GET_OBJECT],
-          resources: [''],
+          resources: [],
         },
       ],
       principal: {
