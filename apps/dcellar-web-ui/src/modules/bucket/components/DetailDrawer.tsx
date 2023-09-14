@@ -49,7 +49,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
     const infos = [
       {
         canCopy: false,
-        label: 'Date Created',
+        label: 'Date created',
         value: formatFullTime(CreateAt),
         display: formatFullTime(CreateAt),
         href: '',
@@ -119,12 +119,12 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             >
               <Label>{item.label}</Label>
               <Flex>
-                {item.label === 'Date Created' && (
+                {item.label === 'Date created' && (
                   <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
                     {item.display}
                   </Text>
                 )}
-                {item.label !== 'Date Created' &&
+                {item.label !== 'Date created' &&
                   (item.canCopy ? (
                     <>
                       <Text color={'readable.normal'} fontSize={'14px'} fontWeight={500}>
@@ -182,7 +182,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
               {formattedQuota.totalFreeText}{' '}
               <Text as="span" color="#76808F">
-                ({formattedQuota.remainFreeText} remains)
+                ({formattedQuota.remainFreeText} remaining)
               </Text>
             </Text>
           </Flex>
@@ -201,7 +201,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
             <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
               {formattedQuota.totalReadText}/mo{' '}
               <Text as="span" color="#76808F">
-                ({formattedQuota.remainReadText} remains)
+                ({formattedQuota.remainReadText} remaining)
               </Text>
             </Text>
             <Text>Expire date: {endDate}</Text>
@@ -254,11 +254,12 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
               Remaining Quota
             </Text>
             <Tooltip
+              maxW="365px"
               content={
-                <Box fontSize={12} lineHeight="normal" color="#1E2026" minW="330">
-                  <Box>Free quota: {formattedQuota.remainFreeText} Remain</Box>
-                  <Box>
-                    Monthly quota: {formattedQuota.remainReadText} Remain
+                <Box fontSize={12} lineHeight="normal" color="#1E2026">
+                  <Box>Free quota: {formattedQuota.remainFreeText} remaining.</Box>
+                  <Box whiteSpace="nowrap">
+                    Monthly quota: {formattedQuota.remainReadText} remaining.
                     <Text
                       as="span"
                       color="#76808F"

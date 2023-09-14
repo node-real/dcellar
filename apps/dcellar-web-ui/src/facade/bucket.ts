@@ -20,8 +20,6 @@ import { signTypedDataCallback } from '@/facade/wallet';
 import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
 import axios from 'axios';
 import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
-import { signTypedDataV4 } from '@/utils/signDataV4';
-import { pollingDeleteBucket } from '@/modules/buckets/List/utils';
 
 export type TGetReadQuotaParams = {
   bucketName: string;

@@ -9,6 +9,7 @@ import { selectAvailableBalance } from '@/store/slices/accounts';
 import { GAS_FEE_DOC } from '@/modules/file/constant';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
+import { displayTime } from '@/utils/common';
 
 interface TotalFeesProps {
   gasFee: string | number;
