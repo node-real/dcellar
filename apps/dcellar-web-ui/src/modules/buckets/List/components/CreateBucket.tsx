@@ -549,14 +549,14 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           <TotalFees
             gasFee={gasFee}
             prepaidFee={quotaFee}
-            settlementFee={settlementFee}
+            settlementFee={!chargeQuota ? '0' : settlementFee}
             payStoreFeeAddress={selectedPaRef.current.address}
           />
           <PaymentInsufficientBalance
             gasFee={gasFee}
             storeFee={quotaFee}
             refundFee="0"
-            settlementFee={settlementFee}
+            settlementFee={!chargeQuota ? '0' : settlementFee}
             payGasFeeBalance={bankBalance}
             payStoreFeeBalance={accountDetail.staticBalance}
             ownerAccount={address}

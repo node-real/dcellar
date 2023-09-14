@@ -154,7 +154,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
             gap={'4px'}
           >
             {renderFee('Prepaid fee refund', quotaFee || '', exchangeRate, loading)}
-            {renderFee('Settlement fee', settlementFee, exchangeRate, loading)}
+            {renderFee('Settlement fee', !chargeQuota ? '0' : settlementFee, exchangeRate, loading)}
             {renderFee('Gas Fee', gasFee + '', exchangeRate, loading)}
           </Flex>
           <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
@@ -163,7 +163,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
                 gasFee={gasFee}
                 storeFee={'0'}
                 refundFee={quotaFee}
-                settlementFee={settlementFee}
+                settlementFee={!chargeQuota ? '0' : settlementFee}
                 payGasFeeBalance={bankBalance}
                 payStoreFeeBalance={accountDetail.staticBalance}
                 ownerAccount={loginAccount}
