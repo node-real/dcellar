@@ -209,6 +209,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
                               overflow="hidden"
                               textOverflow="ellipsis"
                               mr={4}
+                              title={item.label}
                             >
                               {item.label}
                             </Text>
@@ -221,6 +222,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
                               color="#76808F"
                               fontWeight={400}
                               lineHeight="12px"
+                              title={item.desc}
                             >
                               {item.desc || '-'}
                             </Text>

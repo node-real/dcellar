@@ -41,19 +41,6 @@ export const Accounts = () => {
         <Box as="h2" fontWeight={700} fontSize={24} marginBottom={16}>
           Accounts
         </Box>
-        {!hasBankBalance && (
-          <Flex fontSize={14} alignItems={'center'} bg={'#FDF9E7'} borderRadius={4} p={8} mb={16}>
-            <ColoredWarningIcon w={16} marginRight={4} />
-            Insufficient balance in Owner account.&nbsp;
-            <Link
-              cursor={'pointer'}
-              textDecoration={'underline'}
-              onClick={() => router.push(InternalRoutePaths.transfer_in)}
-            >
-              Transfer In
-            </Link>
-          </Flex>
-        )}
         <OwnerAccount />
         <PaymentAccounts />
       </Box>

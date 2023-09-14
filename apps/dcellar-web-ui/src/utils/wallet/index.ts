@@ -1,8 +1,3 @@
-import Long from 'long';
-import BigNumber from 'bignumber.js';
-import { getClient } from '@/base/client';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
-
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
   if (address.length <= 7) return address;
@@ -42,43 +37,4 @@ const getNumInDigits = (
   return fixDigits ? Number(numberString).toFixed(digits) : numberString;
 };
 
-const getLockFee = async (size = 0, primarySpAddress: string) => {
-  try {
-    const client = await getClient();
-    const now = Math.floor(getUtcZeroTimestamp()/1000);
-    const globalSpStorePrice = await client.sp.getQueryGlobalSpStorePriceByTime({
-      timestamp: Long.fromNumber(now),
-    });
-    const spStoragePrice = globalSpStorePrice?.globalSpStorePrice.primaryStorePrice;
-    const secondarySpStorePrice = globalSpStorePrice?.globalSpStorePrice.secondaryStorePrice;
-    const { params } = await client.storage.params();
-    const {
-      minChargeSize = new Long(0),
-      redundantDataChunkNum = 0,
-      redundantParityChunkNum = 0,
-    } = (params && params.versionedParams) || {};
-    const { params: paymentParams } = await client.payment.params();
-    const { reserveTime, validatorTaxRate = '' } = paymentParams?.versionedParams || {};
-    const chargeSize = size >= minChargeSize.toNumber() ? size : minChargeSize.toString();
-    const lockedFeeRate = BigNumber((spStoragePrice as any).storePrice)
-      .plus(
-        BigNumber((secondarySpStorePrice as any).storePrice).times(
-          redundantDataChunkNum + redundantParityChunkNum,
-        ),
-      )
-      .times(BigNumber(chargeSize))
-      .times(BigNumber(validatorTaxRate))
-      .dividedBy(Math.pow(10, 18));
-    const lockFeeInBNB = lockedFeeRate
-      .times(BigNumber(reserveTime?.toString() || 0))
-      .dividedBy(Math.pow(10, 18));
-
-    return lockFeeInBNB.toString();
-  } catch (error: any) {
-    // eslint-disable-next-line no-console
-    console.error('Get lock fee error', error);
-    throw new Error(error);
-  }
-};
-
-export { getShortenWalletAddress, getNumInDigits, getLockFee };
+export { getShortenWalletAddress, getNumInDigits };

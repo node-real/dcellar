@@ -1,41 +1,58 @@
-import { ModalCloseButton, ModalBody, ModalFooter, Image, Text, Box } from '@totejs/uikit';
+import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 
 import {
   FILE_BOX_IMAGE_URL,
   FILE_STATUS_DOWNLOADING,
-  FILE_TITLE_UPLOADING,
-  FILE_TITLE_DOWNLOADING,
-  FILE_TITLE_DELETING,
-  FILE_TITLE_CANCELING,
-  FILE_TITLE_UPLOAD_FAILED,
-  FILE_TITLE_DOWNLOAD_FAILED,
-  FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_CANCEL_FAILED,
-  NOT_ENOUGH_QUOTA,
-  FILE_TITLE_FILE_TOO_LARGE,
+  FILE_TITLE_CANCELING,
+  FILE_TITLE_DELETE_FAILED,
+  FILE_TITLE_DELETING,
+  FILE_TITLE_DOWNLOAD_FAILED,
+  FILE_TITLE_DOWNLOADING,
   FILE_TITLE_FILE_EMPTY,
   FILE_TITLE_FILE_NAME_ERROR,
+  FILE_TITLE_FILE_TOO_LARGE,
   FILE_TITLE_SP_REJECTED,
+  FILE_TITLE_UPLOAD_FAILED,
+  FILE_TITLE_UPLOADING,
   FOLDER_CREATING,
+  NOT_ENOUGH_QUOTA,
 } from '@/modules/file/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DotLoading } from '@/components/common/DotLoading';
 import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { memo, useEffect, useState } from 'react';
+import { useUnmount } from 'ahooks';
+import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
+import { setEditQuota } from '@/store/slices/bucket';
 
-interface modalProps {}
+interface StatusDetailProps {}
 
-export const StatusDetail = () => {
+export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
   const dispatch = useAppDispatch();
-  const statusDetail = useAppSelector((root) => root.object.statusDetail);
-  const isOpen = !!statusDetail?.title;
-  const gaOptions = getGAOptions(statusDetail.title);
-  const onClose = () => {
+  const _statusDetail = useAppSelector((root) => root.object.statusDetail);
+  const { bucketName } = useAppSelector((root) => root.object);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const isOpen = !!_statusDetail?.title;
+  const gaOptions = getGAOptions(_statusDetail.title);
+  const [statusDetail, setInnerStatusDetail] = useState(_statusDetail);
+  const quotaBucket = bucketName || statusDetail?.extraParams?.[0];
+  const NO_QUOTA =
+    OBJECT_ERROR_TYPES['NO_QUOTA'].title === statusDetail.title && !!quotaBucket && !!loginAccount;
+
+  useEffect(() => {
+    if (!_statusDetail.title) return;
+    setInnerStatusDetail(_statusDetail);
+  }, [_statusDetail]);
+
+  const onClose = async () => {
     dispatch(setStatusDetail({} as TStatusDetail));
-    // todo fix it
-    document.documentElement.style.overflowY = '';
   };
+
+  useUnmount(onClose);
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -96,21 +113,27 @@ export const StatusDetail = () => {
           </Text>
         )}
       </ModalBody>
-      {statusDetail.buttonText && (
+      {(statusDetail.buttonText || NO_QUOTA) && (
         <ModalFooter mt={24}>
           <DCButton
             variant={'dcPrimary'}
             w="100%"
-            onClick={statusDetail.buttonOnClick}
+            onClick={() => {
+              statusDetail.buttonOnClick?.();
+              onClose();
+              if (NO_QUOTA) {
+                dispatch(setEditQuota([String(quotaBucket), 'modal']));
+              }
+            }}
             gaClickName={gaOptions.closeName}
           >
-            {statusDetail.buttonText}
+            {NO_QUOTA ? 'Increase Quota' : statusDetail.buttonText}
           </DCButton>
         </ModalFooter>
       )}
     </DCModal>
   );
-};
+});
 
 function getGAOptions(title: string = '') {
   const options: Record<string, { showName: string; closeName: string }> = {

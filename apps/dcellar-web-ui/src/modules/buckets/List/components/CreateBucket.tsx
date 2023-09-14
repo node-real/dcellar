@@ -1,12 +1,12 @@
 import {
   Box,
+  Divider,
   Flex,
   FormControl,
   FormLabel,
   Input,
   InputGroup,
   InputRightElement,
-  Link,
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
@@ -18,35 +18,38 @@ import { useForm } from 'react-hook-form';
 import { useAccount } from 'wagmi';
 import { debounce, isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
-import NextLink from 'next/link';
 
 import { TCreateBucketFromValues } from '../../type';
-import { GasFee } from './GasFee';
 import { genCreateBucketTx, pollingGetBucket } from '@/modules/buckets/List/utils';
 import { CreateBucketFailed } from '@/modules/buckets/List/components/CreateBucketFailed';
 import { CreatingBucket } from './CreatingBucket';
 import { parseError } from '../../utils/parseError';
 import { Tips } from '@/components/common/Tips';
 import { ErrorDisplay } from './ErrorDisplay';
-import { InternalRoutePaths } from '@/constants/paths';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCButton } from '@/components/common/DCButton';
 import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
-import { GAClick, GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/reportEvent';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
-import { IBaseGetCreateBucket } from '@bnb-chain/greenfield-js-sdk';
+import { IBaseGetCreateBucket, MsgCreateBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { useMount } from 'ahooks';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { useAsyncEffect } from 'ahooks';
+import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
-import { TAccount, setupAccountsInfo } from '@/store/slices/accounts';
+import { selectAccount, setupAccountDetail, TAccount } from '@/store/slices/accounts';
+import { QuotaItem } from '@/components/formitems/QuotaItem';
+import { G_BYTES } from '@/utils/constant';
+import { getQuotaNetflowRate } from '@/utils/payment';
+import { BN } from '@/utils/BigNumber';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { PaymentInsufficientBalance } from '@/modules/file/utils';
 
 type Props = {
   isOpen: boolean;
@@ -86,20 +89,38 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const selectedSpRef = useRef<SpItem>(globalSP);
   const selectedPaRef = useRef<TAccount>({} as TAccount);
   const { connector } = useAccount();
-  const { bankBalance: _availableBalance } = useAppSelector((root) => root.accounts);
-  const balance = useMemo(() => BigNumber(_availableBalance || 0), [_availableBalance]);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const balance = useMemo(() => BigNumber(bankBalance || 0), [bankBalance]);
   const [submitErrorMsg, setSubmitErrorMsg] = useState('');
+  const [chargeQuota, setChargeQuota] = useState(0);
   const nonceRef = useRef(0);
+  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const { gasFee } = gasObjects?.[MsgCreateBucketTypeUrl] || {};
+  const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
-
-  useMount(() => {
-    dispatch(setupTmpAvailableBalance(address));
-  });
-
   // pending, operating, failed
   const [status, setStatus] = useState('pending');
   const { setOpenAuthModal } = useOffChainAuth();
+  const PaymentAddress = selectedPaRef.current.address;
+  const { settlementFee } = useSettlementFee(PaymentAddress);
+  const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+  const [balanceEnough, setBalanceEnough] = useState(true);
+
+  useAsyncEffect(async () => {
+    if (!isEmpty(storeFeeParams)) return;
+    dispatch(setupStoreFeeParams());
+  }, [dispatch]);
+
+  const quotaFee = useMemo(() => {
+    if (isEmpty(storeFeeParams)) return '-1';
+    const netflowRate = getQuotaNetflowRate(chargeQuota * G_BYTES, storeFeeParams);
+    return BN(netflowRate)
+      .times(storeFeeParams.reserveTime)
+      .dividedBy(10 ** 18)
+      .toString();
+  }, [storeFeeParams, chargeQuota]);
+
   const {
     handleSubmit,
     register,
@@ -170,7 +191,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         bucketName,
         creator: address,
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-        chargedReadQuota: '0',
+        chargedReadQuota: String(chargeQuota * G_BYTES),
         spInfo: {
           primarySpAddress: sp.operatorAddress,
         },
@@ -215,6 +236,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         ...validateNameAndGas,
         isLoading: false,
       };
+      console.log(e.message);
       if (e?.message) {
         if (e.message.includes('user public key is expired' || 'invalid signature')) {
           onClose();
@@ -252,6 +274,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         types['validateBalanceAndName'] = 'Something went wrong.';
       }
 
+      console.log(types);
       Object.values(types).length > 0 ? setError('bucketName', { types }) : clearErrors();
       setValidateNameAndGas(result);
     }
@@ -290,83 +313,81 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     [checkGasFee, clearErrors, setError, setValue, validateNameRules],
   );
 
-  const onSubmit = useCallback(
-    async (data: any) => {
-      try {
-        setStatus('operating');
-        const { seedString } = await dispatch(
-          getSpOffChainData(address, selectedSpRef.current.operatorAddress),
-        );
-        if (!seedString) {
-          onClose();
-          setOpenAuthModal();
-          return;
-        }
-        const bucketName = data.bucketName;
-        const selectedPaAddress = selectedPaRef.current.address;
-        const createBucketPayload: IBaseGetCreateBucket = {
-          bucketName,
-          creator: address,
-          paymentAddress: selectedPaAddress,
-          visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-          chargedReadQuota: '0',
-          spInfo: {
-            primarySpAddress: selectedSpRef.current.operatorAddress,
-          },
-        };
-        const createBucketTx = await genCreateBucketTx(createBucketPayload, {
-          type: 'EDDSA',
-          domain: window.location.origin,
-          seed: seedString,
-          address,
-        });
-        const simulateInfo = await createBucketTx.simulate({
-          denom: 'BNB',
-        });
-        const txRes = await createBucketTx.broadcast({
-          denom: 'BNB',
-          gasLimit: Number(simulateInfo?.gasLimit),
-          gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: createBucketPayload.creator,
-          granter: '',
-          signTypedDataCallback: async (addr: string, message: string) => {
-            const provider = await connector?.getProvider();
-            return await signTypedDataV4(provider, addr, message);
-          },
-        });
-        // todo refactor
-        await pollingGetBucket({
-          address: createBucketPayload.creator,
-          endpoint: globalSP.endpoint,
-          bucketName: createBucketPayload.bucketName,
-        });
-
-        if (txRes.code === 0) {
-          onClose();
-          typeof refetch === 'function' && refetch();
-          toast.success({
-            description: `Bucket created successfully!`,
-          });
-          setTimeout(() => {
-            setStatus('pending');
-          }, 200);
-          reportEvent({
-            name: 'dc.toast.bucket_create.success.show',
-          });
-        } else {
-          throw txRes;
-        }
-      } catch (e: any) {
-        setStatus('failed');
-        // handle chain and storage error
-        const errorMsg = e?.message;
-        errorMsg && setSubmitErrorMsg(errorMsg);
-        // eslint-disable-next-line no-console
-        console.log('submit error', e);
+  const onSubmit = async (data: any) => {
+    try {
+      setStatus('operating');
+      const { seedString } = await dispatch(
+        getSpOffChainData(address, selectedSpRef.current.operatorAddress),
+      );
+      if (!seedString) {
+        onClose();
+        setOpenAuthModal();
+        return;
       }
-    },
-    [address, connector, dispatch, globalSP?.endpoint, onClose, refetch, setOpenAuthModal],
-  );
+      const bucketName = data.bucketName;
+      const selectedPaAddress = selectedPaRef.current.address;
+      const createBucketPayload: IBaseGetCreateBucket = {
+        bucketName,
+        creator: address,
+        paymentAddress: selectedPaAddress,
+        visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
+        chargedReadQuota: String(chargeQuota * G_BYTES),
+        spInfo: {
+          primarySpAddress: selectedSpRef.current.operatorAddress,
+        },
+      };
+
+      const createBucketTx = await genCreateBucketTx(createBucketPayload, {
+        type: 'EDDSA',
+        domain: window.location.origin,
+        seed: seedString,
+        address,
+      });
+      const simulateInfo = await createBucketTx.simulate({
+        denom: 'BNB',
+      });
+      const txRes = await createBucketTx.broadcast({
+        denom: 'BNB',
+        gasLimit: Number(simulateInfo?.gasLimit),
+        gasPrice: simulateInfo?.gasPrice || '5000000000',
+        payer: createBucketPayload.creator,
+        granter: '',
+        signTypedDataCallback: async (addr: string, message: string) => {
+          const provider = await connector?.getProvider();
+          return await signTypedDataV4(provider, addr, message);
+        },
+      });
+      // todo refactor
+      await pollingGetBucket({
+        address: createBucketPayload.creator,
+        endpoint: globalSP.endpoint,
+        bucketName: createBucketPayload.bucketName,
+      });
+
+      if (txRes.code === 0) {
+        onClose();
+        typeof refetch === 'function' && refetch();
+        toast.success({
+          description: `Bucket created successfully!`,
+        });
+        setTimeout(() => {
+          setStatus('pending');
+        }, 200);
+        reportEvent({
+          name: 'dc.toast.bucket_create.success.show',
+        });
+      } else {
+        throw txRes;
+      }
+    } catch (e: any) {
+      setStatus('failed');
+      // handle chain and storage error
+      const errorMsg = e?.message;
+      errorMsg && setSubmitErrorMsg(errorMsg);
+      // eslint-disable-next-line no-console
+      console.log('submit error', e);
+    }
+  };
 
   const disableCreateButton = () => {
     return (
@@ -378,7 +399,8 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       isEmpty(bucketName) ||
       !isEmpty(errors?.bucketName) ||
       !isEnoughBalance ||
-      isLoadingDetail === selectedPaRef.current.address
+      isLoadingDetail === selectedPaRef.current.address ||
+      !balanceEnough
     );
   };
   const isEnoughBalance = useMemo(() => {
@@ -405,7 +427,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
   const onChangePA = useCallback(
     async (pa: TAccount) => {
       selectedPaRef.current = pa;
-      await dispatch(setupAccountsInfo(pa.address));
+      await dispatch(setupAccountDetail(pa.address));
       const { value, available } = validateNameAndGas.name;
       if (available && value) {
         checkGasFee(value);
@@ -413,7 +435,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     },
     [checkGasFee, dispatch, validateNameAndGas.name],
   );
-  const gaOptions = getGAOptions(status);
 
   return (
     <>
@@ -519,34 +540,30 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
                   <PaymentAccountSelector onChange={onChangePA} />
                 </FormControl>
               </Flex>
-              <GasFee
-                gasFee={validateNameAndGas.gas.value}
-                hasError={!isEmpty(errors.bucketName)}
-                isGasLoading={validateNameAndGas.isValidating}
-              />
-              {!isEnoughBalance && !validateNameAndGas.isValidating && (
-                <Flex marginTop={'4px'} color={'#ee3911'} textAlign={'right'}>
-                  <Text>Insufficient balance. &nbsp; </Text>
-                  <GAShow name="dc.bucket.create_modal.transferin.show" />
-                  <GAClick name="dc.bucket.create_modal.transferin.click">
-                    <Link
-                      as={NextLink}
-                      textAlign={'right'}
-                      cursor={'pointer'}
-                      color="#ee3911"
-                      _hover={{ color: '#ee3911' }}
-                      textDecoration={'underline'}
-                      href={InternalRoutePaths.transfer_in}
-                    >
-                      Transfer In
-                    </Link>
-                  </GAClick>
-                </Flex>
-              )}
+              <Divider my={32} />
+              <QuotaItem value={chargeQuota} onChange={setChargeQuota} />
             </form>
           </Box>
         </QDrawerBody>
-        <QDrawerFooter>
+        <QDrawerFooter w="100%" flexDirection={'column'}>
+          <TotalFees
+            gasFee={gasFee}
+            prepaidFee={quotaFee}
+            settlementFee={!chargeQuota ? '0' : settlementFee}
+            payStoreFeeAddress={selectedPaRef.current.address}
+          />
+          <PaymentInsufficientBalance
+            gasFee={gasFee}
+            storeFee={quotaFee}
+            refundFee="0"
+            settlementFee={!chargeQuota ? '0' : settlementFee}
+            payGasFeeBalance={bankBalance}
+            payStoreFeeBalance={accountDetail.staticBalance}
+            ownerAccount={address}
+            payAccount={selectedPaRef.current.address}
+            onValidate={setBalanceEnough}
+          />
+
           <DCButton
             variant="dcPrimary"
             disabled={disableCreateButton()}
@@ -564,22 +581,3 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
     </>
   );
 };
-
-function getGAOptions(status: string) {
-  const options: Record<string, { showName: string; closeName: string }> = {
-    pending: {
-      showName: 'dc.bucket.create_modal.0.show',
-      closeName: 'dc.bucket.create_modal.close.click',
-    },
-    operating: {
-      showName: 'dc.bucket.creating_modal.0.show',
-      closeName: 'dc.bucket.creating_modal.close.click',
-    },
-    failed: {
-      showName: 'dc.bucket.create_fail_modal.0.show',
-      closeName: 'dc.bucket.create_fail_modal.close.click',
-    },
-  };
-
-  return options[status] ?? {};
-}

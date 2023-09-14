@@ -7,6 +7,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Link,
   Text,
 } from '@totejs/uikit';
 import React, { useCallback, useMemo } from 'react';
@@ -19,7 +20,6 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
   MIN_AMOUNT,
-  POPPINS_FONT,
   WalletOperationInfos,
 } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
@@ -32,6 +32,8 @@ import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useMount } from 'ahooks';
+import { TxType } from '../Send';
+import { BN } from '@/utils/BigNumber';
 
 type AmountProps = {
   disabled: boolean;
@@ -42,6 +44,7 @@ type AmountProps = {
   setValue: UseFormSetValue<TWalletFromValues>;
   getGasFee?: GetFeeType;
   maxDisabled?: boolean;
+  txType?: TxType,
   balance: string;
 };
 
@@ -51,6 +54,19 @@ const AmountErrors = {
   validateNum: `The maximum precision is ${CRYPTOCURRENCY_DISPLAY_PRECISION} digits.`,
   required: 'Amount is required.',
   min: 'Please enter a minimum amount of 0.00000001.',
+  withdrawError: (
+    <>
+      No withdrawals allowed over 100 BNB.{' '}
+      <Link
+        href="#"
+        color="readable.danger"
+        _hover={{ color: 'readable.danger' }}
+        textDecoration={'underline'}
+      >
+        Learn More
+      </Link>
+    </>
+  ),
 };
 
 const DefaultFee = {
@@ -59,7 +75,16 @@ const DefaultFee = {
   send: 0.000006,
 };
 
-export const Amount = ({ register, errors, disabled, watch, balance, feeData, setValue }: AmountProps) => {
+export const Amount = ({
+  register,
+  errors,
+  disabled,
+  watch,
+  balance,
+  feeData,
+  setValue,
+  txType,
+}: AmountProps) => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -118,7 +143,6 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
           htmlFor="amount"
           mb={'8px'}
           display="inline-block"
-          fontFamily={POPPINS_FONT}
         >
           Amount
         </FormLabel>
@@ -195,6 +219,10 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
 
                   return !precisionStr || precisionStr.length <= CRYPTOCURRENCY_DISPLAY_PRECISION;
                 },
+                withdrawError: (val: string) => {
+                  if (!txType || txType !== 'withdraw_from_payment_account') return true;
+                  return BN(val).lt(100);
+                },
               },
             })}
           />
@@ -210,9 +238,11 @@ export const Amount = ({ register, errors, disabled, watch, balance, feeData, se
           {/* @ts-ignore */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
-        {!isSendPage && <FormHelperText textAlign={'right'} color="#76808F">
-          <Balance />
-        </FormHelperText>}
+        {!isSendPage && (
+          <FormHelperText textAlign={'right'} color="#76808F">
+            <Balance />
+          </FormHelperText>
+        )}
       </FormControl>
     </>
   );

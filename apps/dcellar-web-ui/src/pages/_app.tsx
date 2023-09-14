@@ -34,15 +34,15 @@ function DcellarApp({ Component, ...rest }: AppProps) {
           <ThemeProvider theme={theme}>
             <WalletConnectProvider>
               <LoginContextProvider inline={!!customLayout}>
-                {getLayout(
-                  <OffChainAuthProvider>
+                <OffChainAuthProvider>
+                  {getLayout(
                     <PageProtect>
                       <Component {...props.pageProps} />
                       <GAPageView />
                       <StatusDetail />
-                    </PageProtect>
-                  </OffChainAuthProvider>,
-                )}
+                    </PageProtect>,
+                  )}
+                </OffChainAuthProvider>
               </LoginContextProvider>
             </WalletConnectProvider>
           </ThemeProvider>

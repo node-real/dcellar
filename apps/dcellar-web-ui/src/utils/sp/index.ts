@@ -1,11 +1,7 @@
 import { getClient } from '@/base/client';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { TPreLockFeeParams } from '@/store/slices/global';
-import {
-  IReturnOffChainAuthKeyPairAndUpload,
-  getUtcZeroTimestamp,
-} from '@bnb-chain/greenfield-js-sdk';
-import { BigNumber } from 'bignumber.js';
+import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
+import { getTimestamp } from '../time';
 
 const getStorageProviders = async () => {
   const client = await getClient();
@@ -26,7 +22,7 @@ const getObjectInfo = async (bucketName: string, objectName: string): Promise<an
 };
 
 const filterAuthSps = ({ address, sps }: { address: string; sps: any[] }) => {
-  const curTime = getUtcZeroTimestamp();
+  const curTime = getTimestamp();
   const key = `${address}-${GREENFIELD_CHAIN_ID}`;
   const localData = localStorage.getItem(key);
   const parseLocalData = (localData && JSON.parse(localData)) || [];
@@ -44,41 +40,6 @@ const filterAuthSps = ({ address, sps }: { address: string; sps: any[] }) => {
   });
 
   return filterSps;
-};
-
-export const calPreLockFee = ({
-  size,
-  preLockFeeObject,
-}: {
-  size: number;
-  primarySpAddress: string;
-  preLockFeeObject: TPreLockFeeParams;
-}) => {
-  const {
-    spStorageStorePrice,
-    secondarySpStorePrice,
-    redundantDataChunkNum,
-    redundantParityChunkNum,
-    minChargeSize,
-    reserveTime,
-    validatorTaxRate,
-  } = preLockFeeObject;
-  const chargeSize = size >= minChargeSize ? size : minChargeSize;
-  const primarySpRate = BigNumber(spStorageStorePrice)
-    .dividedBy(Math.pow(10, 18))
-    .times(BigNumber(chargeSize));
-  const secondarySpNum = redundantDataChunkNum + redundantParityChunkNum;
-  let secondarySpRate = BigNumber(secondarySpStorePrice)
-    .dividedBy(Math.pow(10, 18))
-    .times(BigNumber(chargeSize));
-  secondarySpRate = secondarySpRate.times(secondarySpNum);
-  const validatorTax = BigNumber(validatorTaxRate)
-    .dividedBy(Math.pow(10, 18))
-    .times(primarySpRate.plus(secondarySpRate));
-  const rate = primarySpRate.plus(secondarySpRate).plus(validatorTax);
-  const lockFeeInBNB = rate.times(BigNumber(reserveTime || 0)).dividedBy(Math.pow(10, 18));
-
-  return lockFeeInBNB.toString();
 };
 
 const checkZkWasm = (attempts: number = 5): Promise<boolean> => {

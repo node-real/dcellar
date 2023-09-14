@@ -108,9 +108,8 @@ export const ShareDrawer = memo<ShareDrawerProps>(function ShareDrawer() {
 
   return (
     <>
-      <DCDrawer isOpen={open} onClose={onClose} showCloseBtn={from !== 'drawer'}>
+      <DCDrawer isOpen={open} onClose={onClose}>
         <QDrawerHeader alignItems="center">
-          {from === 'drawer' && <BackIcon mr={8} cursor="pointer" onClick={onClose} />}
           <Text
             flex={1}
             minW={0}

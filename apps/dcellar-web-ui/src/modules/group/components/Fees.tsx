@@ -25,7 +25,7 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { isOpen, onToggle } = useDisclosure();
 
@@ -41,8 +41,8 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));
 
   useEffect(() => {
-    setBalanceAvailable(new BigNumber(availableBalance).minus(allFees).isPositive());
-  }, [allFees.toString(), availableBalance]);
+    setBalanceAvailable(new BigNumber(bankBalance).minus(allFees).isPositive());
+  }, [allFees.toString(), bankBalance]);
 
   return (
     <Flex
@@ -101,13 +101,13 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
         <Flex w={'100%'} justifyContent={'space-between'}>
           {/*todo correct the error showing logics*/}
           <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-            {renderInsufficientBalance(allFees.toString(), '0', availableBalance || '0', {
+            {renderInsufficientBalance(allFees.toString(), '0', bankBalance || '0', {
               gaShowName: 'dc.group.create_group.show',
               gaClickName: 'dc.group.create_group.click',
             })}
           </Text>
           <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-            Available balance: {renderBalanceNumber(availableBalance || '0')}
+            Available balance: {renderBalanceNumber(bankBalance || '0')}
           </Text>
         </Flex>
       </Box>

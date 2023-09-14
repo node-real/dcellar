@@ -2,7 +2,7 @@ import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBankBalance,
-  setupAccountsInfo,
+  setupAccountDetail,
   setupOAList,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
@@ -20,7 +20,7 @@ export const PaymentAccounts = () => {
   useAsyncEffect(async () => {
     dispatch(setupOAList());
     dispatch(setupPaymentAccounts());
-    loginAccount && dispatch(setupAccountsInfo(loginAccount));
+    loginAccount && dispatch(setupAccountDetail(loginAccount));
   }, [dispatch, setupGasObjects]);
   const { data: gnfdBalance, refetch } = useBalance({
     address: loginAccount as any,
@@ -42,7 +42,7 @@ export const PaymentAccounts = () => {
 
   useThrottleEffect(() => {
     const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;
-    paymentAddress && dispatch(setupAccountsInfo(paymentAddress));
+    paymentAddress && dispatch(setupAccountDetail(paymentAddress));
   }, [asPath]);
 
   return <></>;

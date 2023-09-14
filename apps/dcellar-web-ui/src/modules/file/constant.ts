@@ -25,6 +25,8 @@ const GROUP_UPDATE_EXTRA = 'Updating Group';
 const GROUP_DELETE = 'Deleting Group';
 
 const GAS_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
+export const PREPAID_FEE_DOC='https://docs.nodereal.io/docs/dcellar-faq#fee-related'
+export const SETTLEMENT_FEE_DOC='https://docs.nodereal.io/docs/dcellar-faq#fee-related'
 
 // status_TITLE
 const FILE_TITLE_UPLOADING = 'Uploading File';
@@ -87,6 +89,8 @@ const WALLET_CONFIRM = 'Confirm this transaction in your wallet.';
 
 // account
 const SET_ACCOUNT_NON_REFUNDABLE_ICON = `${assetPrefix}/images/accounts/disable-account.svg`;
+
+export const EMPTY_TX_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000'
 export {
   FILE_BOX_IMAGE_URL,
   FILE_TOO_LARGE_URL,

@@ -1,36 +1,59 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { getGroups } from '@/facade/group';
+import { getGroupMembers, getGroups } from '@/facade/group';
 import { BucketInfo, GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { toast } from '@totejs/uikit';
+
+export type GroupMember = {
+  AccountId: string;
+  Operator: string;
+  CreateAt: number;
+  CreateTime: number;
+  UpdateAt: number;
+  Removed: boolean;
+  ExpirationTime: number;
+};
 
 interface GroupState {
   groups: Record<string, GroupInfo[]>;
   loading: boolean;
   currentPage: number;
+  memberListPage: number;
   creatingGroup: boolean;
   editGroup: GroupInfo;
   removeGroup: GroupInfo;
-  addGroupMember: GroupInfo;
+  addGroupMember: { record: GroupInfo; from: string };
   removeGroupMember: GroupInfo;
+  detailGroup: GroupInfo;
+  groupMembers: Record<string, GroupMember[]>;
 }
 
 const initialState: GroupState = {
   groups: {},
   loading: false,
   currentPage: 0,
+  memberListPage: 0,
   creatingGroup: false,
   editGroup: {} as GroupInfo,
   removeGroup: {} as GroupInfo,
-  addGroupMember: {} as GroupInfo,
+  addGroupMember: { record: {} as GroupInfo, from: '' },
   removeGroupMember: {} as GroupInfo,
+  detailGroup: {} as GroupInfo,
+  groupMembers: {},
 };
 
 export const groupSlice = createSlice({
   name: 'group',
   initialState,
   reducers: {
-    setAddGroupMember(state, { payload }: PayloadAction<GroupInfo>) {
+    setGroupMembers(state, { payload }: PayloadAction<{ id: string; members: GroupMember[] }>) {
+      const { id, members } = payload;
+      state.groupMembers[id] = members;
+    },
+    setDetailGroup(state, { payload }: PayloadAction<GroupInfo>) {
+      state.detailGroup = payload;
+    },
+    setAddGroupMember(state, { payload }: PayloadAction<{ record: GroupInfo; from: string }>) {
       state.addGroupMember = payload;
     },
     setRemoveGroupMember(state, { payload }: PayloadAction<GroupInfo>) {
@@ -47,6 +70,9 @@ export const groupSlice = createSlice({
     },
     setCurrentGroupPage(state, { payload }: PayloadAction<number>) {
       state.currentPage = payload;
+    },
+    setMemberListPage(state, { payload }: PayloadAction<number>) {
+      state.memberListPage = payload;
     },
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
@@ -67,7 +93,35 @@ export const {
   setEditGroup,
   setRemoveGroupMember,
   setAddGroupMember,
+  setDetailGroup,
+  setGroupMembers,
+  setMemberListPage,
 } = groupSlice.actions;
+
+export const setupGroupMembers =
+  (id: string, endpoint: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    let members = Array<GroupMember>().concat(await getGroupMembers(id, endpoint));
+    if (!members.some((m) => m.AccountId === loginAccount)) {
+      const now = Date.now();
+      members.unshift({
+        AccountId: loginAccount,
+        CreateTime: now,
+        ExpirationTime: now,
+        CreateAt: now,
+        Operator: loginAccount,
+        Removed: false,
+        UpdateAt: now,
+      });
+    }
+    dispatch(setGroupMembers({ id, members }));
+    return members;
+  };
+
+const defaultMemberList = Array<GroupMember>();
+export const selectMemberList = (id: string) => (root: AppState) => {
+  return root.group.groupMembers[id] || defaultMemberList;
+};
 
 const defaultGroupList = Array<BucketInfo>();
 export const selectGroupList = (address: string) => (root: AppState) => {

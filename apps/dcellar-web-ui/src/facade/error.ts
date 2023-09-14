@@ -41,7 +41,10 @@ export type ErrorResponse = [null, ErrorMsg];
 
 export const simulateFault = (e: any): ErrorResponse => {
   console.error('SimulateFault', e);
-  if (e?.message.includes('static balance is not enough')) {
+  if (
+    e?.message.includes('static balance is not enough') ||
+    e?.message.includes('balance not enough')
+  ) {
     return [null, E_GET_GAS_FEE_LACK_BALANCE_ERROR];
   }
   if (e?.message.includes('No such object')) {
@@ -77,6 +80,9 @@ export const createTxFault = (e: any): ErrorResponse => {
   ) {
     return [null, E_OFF_CHAIN_AUTH];
   }
+  if ((e as any).statusCode === 429) {
+    return [null, 'SP not available. Try later.'];
+  }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };
 
@@ -95,6 +101,7 @@ export const downloadPreviewFault = (e: any): ErrorResponse => {
 };
 
 export const offChainAuthFault = (e: any): ErrorResponse => {
+  console.log(e);
   if (e?.response?.status === 500) {
     return [null, E_OFF_CHAIN_AUTH];
   }
@@ -113,7 +120,6 @@ export const commonFault = (e: any): ErrorResponse => {
 };
 
 export const queryLockFeeFault = (e: any): ErrorResponse => {
-  console.log('e', e);
   if (e?.message.includes('storage price')) {
     return [null, E_SP_PRICE_FAILED];
   }

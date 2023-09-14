@@ -14,6 +14,7 @@ export interface WalletState {
   toAccount: TAccount;
   from: string;
   to: string;
+  sendAmount: string;
 }
 
 const initialState: WalletState = {
@@ -22,6 +23,7 @@ const initialState: WalletState = {
   toAccount: {} as TAccount,
   from: '',
   to: '',
+  sendAmount: '',
 };
 
 export const walletSlice = createSlice({
@@ -45,9 +47,12 @@ export const walletSlice = createSlice({
     setFrom: (state, { payload }: PayloadAction<string>) => {
       state.from = payload;
     },
+    setSendAmount: (state, { payload }: PayloadAction<string>) => {
+      state.sendAmount = payload;
+    }
   },
 });
 
-export const { setTransType, setFromAccount, setToAccount, setFrom, setTo } = walletSlice.actions;
+export const { setTransType, setFromAccount, setToAccount, setFrom, setTo, setSendAmount } = walletSlice.actions;
 
 export default walletSlice.reducer;

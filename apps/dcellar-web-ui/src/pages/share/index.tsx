@@ -26,6 +26,7 @@ import { hasObjectPermission, headObject } from '@/facade/object';
 import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { headBucket } from '@/facade/bucket';
 import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
+import { useLogin } from '@/hooks/useLogin';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -50,6 +51,11 @@ const SharePage: NextPage<PageProps> = (props) => {
   const dispatch = useAppDispatch();
   const [getPermission, setGetPermission] = useState(true);
   const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
+  const { logout } = useLogin();
+
+  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
+  const walletConnected = !!loginAccount;
+  const isOwner = objectInfo?.owner === loginAccount;
 
   useAsyncEffect(async () => {
     if (!oneSp) return;
@@ -76,17 +82,21 @@ const SharePage: NextPage<PageProps> = (props) => {
       seedString,
       address: loginAccount,
     };
-    if (!loginAccount || !isOwner) {
+
+    if (!loginAccount) {
       const objectInfo = await headObject(bucketName, objectName);
       setObjectInfo(objectInfo);
       setQuotaData({} as IQuotaProps);
       return;
     }
 
-    const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(params);
+    const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(params);
+    if (error === 'invalid signature') {
+      logout(true);
+    }
     setObjectInfo(objectInfo);
-    setQuotaData(quotaData);
-  }, [oneSp]);
+    setQuotaData(quotaData || ({} as IQuotaProps));
+  }, [oneSp, walletConnected]);
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
@@ -98,10 +108,6 @@ const SharePage: NextPage<PageProps> = (props) => {
     );
     setGetPermission(res.effect === PermissionTypes.Effect.EFFECT_ALLOW);
   }, [bucketName, objectName, loginAccount]);
-
-  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-  const walletConnected = !!loginAccount;
-  const isOwner = objectInfo?.owner === loginAccount;
 
   const header = (
     <Head>
@@ -129,10 +135,10 @@ const SharePage: NextPage<PageProps> = (props) => {
             )}
             {quotaData === undefined || objectInfo === undefined ? (
               <Loading />
-            ) : objectInfo === null || quotaData === null ? (
-              <ShareError type={!objectInfo ? E_NOT_FOUND : E_UNKNOWN} />
             ) : isPrivate && !walletConnected ? (
               <ShareLogin />
+            ) : objectInfo === null || quotaData === null ? (
+              <ShareError type={!objectInfo ? E_NOT_FOUND : E_UNKNOWN} />
             ) : (
               <>
                 {isPrivate && !isOwner && !getPermission ? (

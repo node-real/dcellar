@@ -58,6 +58,7 @@ import { StyledRow } from '@/modules/object/objects.style';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
+import { selectAccount } from '@/store/slices/accounts';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -66,6 +67,7 @@ const Actions: ActionMenuItem[] = [
   { label: 'Cancel', value: 'cancel' },
   { label: 'Delete', value: 'delete' },
 ];
+const ImportantActions = ['download', 'share'];
 
 interface ObjectListProps {}
 
@@ -74,21 +76,20 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { loginAccount, objectPageSize, objectSortBy, accounts } = useAppSelector(
     (root) => root.persist,
   );
-  // const [deleteFolderNotEmpty, setDeleteFolderNotEmpty] = useState(false);
   const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
     (root) => root.object,
   );
   const currentPage = useAppSelector(selectPathCurrent);
-  const { discontinue, owner } = useAppSelector((root) => root.bucket);
+  const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { setOpenAuthModal } = useOffChainAuth();
+  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload} = useAppSelector(
-    (root) => root.object,
-  );
-
+  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload } =
+    useAppSelector((root) => root.object);
+  const bucket = bucketInfo[bucketName];
+  const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
     list: objectList,
     sorter: objectSortBy,
@@ -146,7 +147,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         seedString,
         address: loginAccount,
       };
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
+      const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
+      if (error === 'invalid signature') {
+        return onError(E_OFF_CHAIN_AUTH);
+      }
       if (!quotaData) {
         return onError(E_GET_QUOTA_FAILED);
       }
@@ -198,7 +202,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       ),
       render: (_: string, record: ObjectItem) => (
         <StyledRow $disabled={record.objectStatus !== 1}>
-          <NameItem item={record} />
+          <NameItem item={record} disabled={accountDetail.clientFrozen} />
         </StyledRow>
       ),
     },
@@ -263,6 +267,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const isFolder = record.objectName.endsWith('/');
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
+        fitActions = fitActions.map((item) => ({
+          ...item,
+          disabled: accountDetail?.clientFrozen && ['delete', 'download'].includes(item.value),
+        }));
+
         if (isSealed) {
           fitActions = fitActions.filter((a) => a.value !== 'cancel');
         } else {
@@ -270,7 +279,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
-            (q) => [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName,
+            (q) =>
+              [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName &&
+              q.status !== 'ERROR',
           );
           if (file) {
             fitActions = fitActions.filter((a) => a.value !== 'cancel');
@@ -289,8 +300,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         if (isFolder && !owner) {
           fitActions = [];
         }
-        !isFolder && isSealed && operations.push('share');
-        !isFolder && isSealed && operations.push('download');
+
+        fitActions.forEach((item) => {
+          if (!item.disabled && ImportantActions.includes(item.value) && !isFolder && isSealed) {
+            operations.push(item.value);
+          }
+        });
 
         return (
           <ActionMenu
@@ -366,7 +381,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     <>
       {editCreate && <CreateFolder refetch={refetch} />}
       {editDelete?.objectName && <DeleteObject refetch={refetch} />}
-      {editDetail?.objectName && <DetailObject />}
+      {editDetail?.objectName && <DetailObject accountFrozen={accountDetail?.clientFrozen} />}
       <ShareDrawer />
       {editDownload?.objectName && <DownloadObject />}
       {editCancel.objectName && <CancelObject refetch={refetch} />}

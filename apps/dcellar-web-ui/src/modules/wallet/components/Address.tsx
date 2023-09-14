@@ -13,7 +13,7 @@ import { isEmpty } from 'lodash-es';
 import { FieldErrors, UseFormGetValues, UseFormRegister } from 'react-hook-form';
 
 import { isRightChain } from '../utils/isRightChain';
-import { POPPINS_FONT, WalletOperationInfos } from '../constants';
+import { WalletOperationInfos } from '../constants';
 import { TWalletFromValues } from '../type';
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
@@ -44,7 +44,6 @@ export const Address = ({ disabled, errors, register, gaShowTipsName }: AddressP
           lineHeight="150%"
           htmlFor="text"
           display={'inline-block'}
-          fontFamily={POPPINS_FONT}
         >
           Address
         </FormLabel>

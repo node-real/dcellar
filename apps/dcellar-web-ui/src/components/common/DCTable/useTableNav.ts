@@ -17,7 +17,7 @@ export const useTableNav = <T>({ list, sorter, pageSize, currentPage }: TableNav
   const chunks = useCreation(() => chunk(sortedList, pageSize), [sortedList, pageSize]);
   const pages = chunks.length;
   const current = currentPage >= pages ? 0 : currentPage;
-  const page = chunks[current];
+  const page = chunks[current] || Array<T>();
   const canNext = current < pages - 1;
   const canPrev = current > 0;
 

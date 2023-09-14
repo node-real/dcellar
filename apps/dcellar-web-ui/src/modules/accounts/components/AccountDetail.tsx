@@ -1,39 +1,57 @@
 import { useAppSelector } from '@/store';
 import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
 import { trimAddress } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
-import BigNumber from 'bignumber.js';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/currencyFormatter';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER, MIN_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
+import { BN } from '@/utils/BigNumber';
+import { useRouter } from 'next/router';
+import { InternalRoutePaths } from '@/constants/paths';
+import { TAccountDetail } from '@/store/slices/accounts';
+import { formatFullTime, formatTime, getMillisecond } from '@/utils/time';
 
 type Props = {
   loading: boolean;
   title: string;
-  accountDetail: any;
+  accountDetail: TAccountDetail;
   availableBalance: string;
-}
-BigNumber.config({ EXPONENTIAL_AT: 10 });
+};
 export const AccountDetail = ({ loading, title, accountDetail, availableBalance }: Props) => {
+  const router = useRouter();
   const bnbPrice = useAppSelector(selectBnbPrice);
+  const { loginAccount } = useAppSelector((state) => state.persist);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
   const { bankBalance } = useAppSelector((root) => root.accounts);
+  const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const balance = isOwnerAccount
-    ? BigNumber(accountDetail?.staticBalance || 0)
-        .plus(BigNumber(bankBalance))
+    ? BN(accountDetail?.staticBalance || 0)
+        .plus(BN(bankBalance))
         .toString(DECIMAL_NUMBER)
-    : BigNumber(accountDetail?.staticBalance || 0).toString(DECIMAL_NUMBER);
+    : BN(accountDetail?.staticBalance || 0).toString(DECIMAL_NUMBER);
+  const isFrozen = accountDetail?.clientFrozen;
 
+  const unFreezeAmount = useMemo(() => {
+    return BN(storeFeeParams.reserveTime).times(BN(accountDetail?.frozenNetflowRate)).toString();
+  }, [accountDetail?.frozenNetflowRate, storeFeeParams?.reserveTime]);
+
+  const onTopUpClick = () => {
+    const url = isOwnerAccount
+      ? InternalRoutePaths.transfer_in
+      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${accountDetail.address}`;
+
+    router.push(url);
+  };
   const detailItems = [
     {
-      label: title,
+      label: 'Account Address',
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <Text fontSize={'14px'} fontWeight={500}>
             {accountDetail?.name} | &nbsp;
           </Text>
@@ -58,16 +76,16 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
     {
       label: 'Balance',
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {BigNumber(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
+                {BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
                 &nbsp;(
                 {currencyFormatter(
-                  BigNumber(availableBalance).times(BigNumber(bnbPrice)).toString(DECIMAL_NUMBER),
+                  BN(availableBalance).times(BN(bnbPrice)).toString(DECIMAL_NUMBER),
                 )}
                 )
               </Text>
@@ -79,10 +97,10 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
     {
       label: 'Prepaid fee',
       value: (
-        <Flex marginBottom={8}>
+        <Flex>
           <LoadingAdaptor loading={loading} empty={false}>
             <Text fontSize={14} fontWeight={500}>
-              {BigNumber(accountDetail.bufferBalance || 0)
+              {BN(accountDetail.bufferBalance || 0)
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
                 .toString()}{' '}
               BNB
@@ -96,13 +114,32 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
       value: (
         <LoadingAdaptor loading={loading} empty={false}>
           <Text fontSize={14} fontWeight={500}>
-            ≈{' '}
             {trimFloatZero(
-              BigNumber(accountDetail?.netflowRate || 0)
-                .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-                .toString(DECIMAL_NUMBER),
+              BN(accountDetail?.netflowRate || 0)
+                .dp(MIN_DISPLAY_PRECISION)
+                .toString(),
             )}{' '}
             BNB/s
+          </Text>
+        </LoadingAdaptor>
+      ),
+    },
+    {
+      label: 'Last update date',
+      value: (
+        <LoadingAdaptor loading={loading} empty={false}>
+          <Text fontSize={14} fontWeight={500}>
+            {formatFullTime(getMillisecond(accountDetail?.crudTimestamp))}
+          </Text>
+        </LoadingAdaptor>
+      ),
+    },
+    {
+      label: 'Force settlement date',
+      value: (
+        <LoadingAdaptor loading={loading} empty={false}>
+          <Text fontSize={14} fontWeight={500}>
+            {formatFullTime(getMillisecond(accountDetail?.settleTimestamp))}
           </Text>
         </LoadingAdaptor>
       ),
@@ -119,8 +156,8 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           <Image
             alt="account icon"
             src={`${assetPrefix}/images/accounts/filled-account.svg`}
-            width={120}
-            height={120}
+            width={48}
+            height={48}
             marginRight={24}
           />
           <Box>
@@ -128,7 +165,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
               <Text fontSize={14} fontWeight={500}>
                 {accountDetail?.name}
               </Text>
-              {accountDetail?.status === 1 && (
+              {isFrozen && (
                 <Tips
                   containerWidth={280}
                   iconSize={16}
@@ -138,24 +175,26 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                     _hover: {
                       color: '#F15D3C',
                     },
+                    marginTop: '-1px',
                   }}
-                  trigger="click"
+                  trigger="hover"
                   tips={
                     <Box>
-                      <Text fontSize={14} fontWeight={500} mb={4}>
+                      <Text fontSize={14} fontWeight={600} mb={4}>
                         Frozen Account
                       </Text>
                       <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
                         Your account is suspended due to insufficient balance. To reactivate your
-                        account, please deposit it immediately.
+                        account, please deposit at least &nbsp;
+                        <strong>{unFreezeAmount} &nbsp;BNB</strong>&nbsp; immediately.
                       </Text>
                       <Link
                         cursor={'pointer'}
                         display={'inline-block'}
                         textDecoration={'underline'}
                         w="100%"
-                        href="/wallet?type=send"
                         textAlign={'right'}
+                        onClick={() => onTopUpClick()}
                       >
                         Top Up
                       </Link>
@@ -181,14 +220,16 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           </Box>
         </Flex>
         <Divider marginY={24} />
-        {detailItems.map((item, index) => (
-          <Flex justifyContent={'space-between'} key={index}>
-            <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
-              {item.label}
-            </Text>
-            {item.value}
-          </Flex>
-        ))}
+        <Flex gap={8} flexDirection={'column'}>
+          {detailItems.map((item, index) => (
+            <Flex justifyContent={'space-between'} key={index}>
+              <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
+                {item.label}
+              </Text>
+              {item.value}
+            </Flex>
+          ))}
+        </Flex>
       </QDrawerBody>
     </>
   );

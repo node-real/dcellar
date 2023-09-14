@@ -10,10 +10,19 @@ export const theme: ThemeConfig = {
     colorText: '#1E2026',
     colorTextHeading: '#76808F',
     fontFamily: 'Inter, sans-serif',
+    colorError: '#EE3911',
+    colorErrorBorderHover: '#FC6E75',
   },
   components: {
     Tooltip: {
       zIndexPopup: 1600,
+    },
+    InputNumber: {
+      borderRadius: 2,
+      boxShadow: 'none',
+      colorBorder: '#E6E8EA',
+      fontSize: 14,
+      lineHeight: 1.214,
     },
   },
 };

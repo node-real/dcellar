@@ -1,13 +1,12 @@
-import { Flex, FlexProps, Link, Text } from '@totejs/uikit';
 import React from 'react';
-
-import { getUtcYear } from '@/utils/getUtcYear';
+import { Flex, FlexProps, Link, Text } from '@totejs/uikit';
+import { getUTC0Year } from '@/utils/getUTC0Year';
 import { noderealUrl } from '@/constants/links';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 
 export const Footer = (props: FlexProps) => {
-  const utcYear = getUtcYear();
+  const utcYear = getUTC0Year();
   const { ...restProps } = props;
   // const fixAtBottomStyle = fixAtBottom
   //   ? { position: 'fixed', bottom: 0, left: 0, right: 0 }

@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
 import { updateSps } from '@/store/slices/sp';
-import { getUtcZeroTimestamp } from '@/utils/time';
 import { find } from 'lodash-es';
+import { getTimestamp } from '@/utils/time';
 
 type OffChain = IReturnOffChainAuthKeyPairAndUpload;
 
@@ -125,7 +125,7 @@ export const setupOffchain =
   (address: string, payload: IReturnOffChainAuthKeyPairAndUpload, needUpdate = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const sps = payload.spAddresses;
-    const curTime = getUtcZeroTimestamp();
+    const curTime = getTimestamp();
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
     const { allSps } = getState().sp;
     const { offchain } = config;
@@ -153,7 +153,7 @@ export const checkOffChainDataAvailable =
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
     const { offchain } = config;
     if (!offchain.length) return false;
-    const curTime = getUtcZeroTimestamp();
+    const curTime = getTimestamp();
     return offchain.some((o) => o.expirationTime > curTime);
   };
 
@@ -161,7 +161,7 @@ export const getSpOffChainData =
   (address: string, spAddress: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const config = getState().persist.accounts[address] || getDefaultAccountConfig();
     const { offchain } = config;
-    const curTime = getUtcZeroTimestamp();
+    const curTime = getTimestamp();
     return (find<OffChain>(
       offchain,
       (o) => o.spAddresses.includes(spAddress) && o.expirationTime > curTime,
@@ -180,7 +180,7 @@ export const checkSpOffChainMayExpired =
     const config = accounts[address] || getDefaultAccountConfig();
     const allSps = getState().sp.allSps ?? [];
     const { offchain, sps } = config;
-    const curTime = getUtcZeroTimestamp();
+    const curTime = getTimestamp();
     const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
     const hasNewSp = allSps.some(
       (s) => !sps.includes(s.operatorAddress) && !faultySps.includes(s.operatorAddress),

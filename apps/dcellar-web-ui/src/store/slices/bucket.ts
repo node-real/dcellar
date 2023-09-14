@@ -12,6 +12,7 @@ import {
   SourceType,
   VisibilityType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { setAuthModalOpen } from '@/store/slices/global';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
@@ -27,6 +28,7 @@ export interface BucketState {
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
+  quotaLoading: boolean;
   currentPage: number;
   // current visit bucket;
   discontinue: boolean;
@@ -34,6 +36,7 @@ export interface BucketState {
   editDetail: TEditDetailItem;
   editDelete: BucketItem;
   editCreate: boolean;
+  editQuota: string[];
 }
 
 const initialState: BucketState = {
@@ -41,12 +44,14 @@ const initialState: BucketState = {
   bucketInfo: {},
   quotas: {},
   loading: false,
+  quotaLoading: false,
   currentPage: 0,
   discontinue: false,
   owner: true,
   editDetail: {} as BucketItem,
   editDelete: {} as BucketItem,
   editCreate: false,
+  editQuota: ['', ''],
 };
 
 export const bucketSlice = createSlice({
@@ -63,6 +68,9 @@ export const bucketSlice = createSlice({
     setEditDetail(state, { payload }: PayloadAction<TEditDetailItem>) {
       state.editDetail = payload;
     },
+    setEditQuota(state, { payload }: PayloadAction<string[]>) {
+      state.editQuota = payload;
+    },
     setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
       state.editDelete = payload;
     },
@@ -76,6 +84,9 @@ export const bucketSlice = createSlice({
     },
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
+    },
+    setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
+      state.quotaLoading = payload;
     },
     setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo }>) {
       const { address, bucket } = payload;
@@ -129,9 +140,10 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
+    const { loginAccount } = getState().persist;
 
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket }));
+    dispatch(setBucketInfo({ address: address || loginAccount, bucket }));
   };
 
 export const setupBuckets =
@@ -164,11 +176,16 @@ export const setupBuckets =
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { bucketInfo } = getState().bucket;
+    const { bucketInfo, quotaLoading } = getState().bucket;
+    if (quotaLoading) return;
     const info = bucketInfo[bucketName];
     if (!info) return;
+    dispatch(setQuotaLoading(true));
     const sp = await dispatch(getPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
-    if (!sp) return;
+    if (!sp) {
+      dispatch(setQuotaLoading(false));
+      return;
+    }
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
@@ -176,8 +193,14 @@ export const setupBucketQuota =
       seedString,
       address: loginAccount,
     });
+    dispatch(setQuotaLoading(false));
     if (quota === null) {
-      return toast.error({ description: error || 'Get bucket read quota error' });
+      if (error === 'invalid signature') {
+        dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
+      } else {
+        toast.error({ description: error || 'Get bucket read quota error' });
+      }
+      return;
     }
     dispatch(setReadQuota({ bucketName, quota }));
   };
@@ -192,6 +215,8 @@ export const {
   setEditDelete,
   setReadQuota,
   setEditCreate,
+  setEditQuota,
+  setQuotaLoading,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;
