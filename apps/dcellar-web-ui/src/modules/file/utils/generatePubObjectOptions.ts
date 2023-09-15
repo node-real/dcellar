@@ -1,14 +1,14 @@
 import {
   METHOD_PUT,
   SpMetaInfo,
-  TBasePutObject,
   isValidBucketName,
   isValidObjectName,
+  PutObjectRequest,
 } from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/base/client';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 
-export type TMakePutObjectHeaders = TBasePutObject & {
+export type TMakePutObjectHeaders = PutObjectRequest & {
   endpoint: string;
 };
 export const makePutObjectHeaders = async (

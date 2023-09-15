@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setAddGroupMember, setDetailGroup, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
@@ -23,8 +23,15 @@ interface GroupDetailProps {}
 
 export const GroupDetail = memo<GroupDetailProps>(function GroupDetail() {
   const dispatch = useAppDispatch();
-  const { detailGroup, groupMembers } = useAppSelector((root) => root.group);
+  const { detailGroup: _detailGroup, groupMembers } = useAppSelector((root) => root.group);
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const [detailGroup, setDetailGroupState] = useState(_detailGroup);
+  const open = !!_detailGroup.groupName;
+
+  useEffect(() => {
+    if (!_detailGroup.groupName) return;
+    setDetailGroupState(_detailGroup);
+  }, [_detailGroup]);
 
   const onClose = () => {
     dispatch(setDetailGroup({} as GroupInfo));
@@ -48,7 +55,7 @@ export const GroupDetail = memo<GroupDetailProps>(function GroupDetail() {
   );
 
   return (
-    <DCDrawer isOpen={!!detailGroup.groupName} onClose={onClose}>
+    <DCDrawer isOpen={open} onClose={onClose}>
       <QDrawerHeader>Group Detail</QDrawerHeader>
       <QDrawerBody>
         <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>

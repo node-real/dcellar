@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Flex, Menu, MenuButton, MenuItem, MenuList, Tooltip } from '@totejs/uikit';
+import { Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
 import MenuIcon from '@/public/images/icons/menu.svg';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import styled from '@emotion/styled';
@@ -23,6 +23,7 @@ interface ActionMenuProps {
   operations?: string[];
   justifyContent?: string;
 }
+
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
   operations = [],
@@ -169,10 +170,12 @@ export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: b
   width: 24px;
   cursor: pointer;
   transition: all 0.1s;
+
   :hover {
     background-color: rgba(0, 186, 52, 0.2);
     color: #00ba34;
   }
+
   background-color: ${(props) => (props.$open ? 'rgba(0, 186, 52, 0.1)' : 'transparent')};
   color: ${(props) => (props.$open ? '#00BA34' : '#1E2026')};
 `;

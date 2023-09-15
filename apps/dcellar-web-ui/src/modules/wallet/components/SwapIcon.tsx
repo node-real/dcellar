@@ -2,15 +2,11 @@ import { Flex, FlexProps } from '@totejs/uikit';
 import React from 'react';
 
 import SwapSvgIcon from '@/public/images/icons/swap.svg';
-import { DCButton } from '@/components/common/DCButton';
 
 type SwapIconProps = FlexProps & {
   onClick: React.MouseEventHandler<HTMLDivElement>;
-}
-export const SwapIcon = ({
-  onClick,
-  ...props
-}: SwapIconProps) => {
+};
+export const SwapIcon = ({ onClick, ...props }: SwapIconProps) => {
   return (
     <Flex
       width={'28px'}

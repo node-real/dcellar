@@ -10,7 +10,6 @@ import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
-// import { StreamBalance } from '@/components/layout/Header/StreamBalance';
 import { useDebounceEffect } from 'ahooks';
 import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -52,7 +51,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       return logout(true);
     }
     dispatch(setDisconnectWallet(true));
-  }
+  };
   useOutsideClick({
     ref,
     handler: () => {
@@ -74,7 +73,6 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
     <>
       <ManageQuotaDrawer />
       <GlobalTasks />
-      {/* <StreamBalance /> */}
       <GasObjects />
       <PaymentAccounts />
       <StoreFeeParams />

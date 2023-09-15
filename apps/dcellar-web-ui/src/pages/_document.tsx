@@ -3,7 +3,6 @@ import { Html, Head, Main, NextScript } from 'next/document';
 import { Ga4 } from '@/components/common/Ga4';
 import { GA_ID, assetPrefix } from '@/base/env';
 import { LCP_IMAGES } from '@/constants/common';
-import Script from 'next/script';
 
 export default function Document() {
   return (
@@ -32,7 +31,7 @@ export default function Document() {
         ></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js?`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js?`}></script>
-        <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm"/>
+        <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm" />
       </Head>
       <body>
         <Main />

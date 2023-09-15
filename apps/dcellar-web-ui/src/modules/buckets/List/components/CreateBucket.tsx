@@ -32,7 +32,7 @@ import { SPSelector } from '@/modules/buckets/List/components/SPSelector';
 import { reportEvent } from '@/utils/reportEvent';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { getDomain } from '@/utils/getDomain';
-import { IBaseGetCreateBucket, MsgCreateBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { CreateBucketApprovalRequest, MsgCreateBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { signTypedDataV4 } from '@/utils/signDataV4';
 import { ChainVisibilityEnum } from '@/modules/file/type';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -187,7 +187,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
         setOpenAuthModal();
         return;
       }
-      const createBucketPayload: IBaseGetCreateBucket = {
+      const createBucketPayload: CreateBucketApprovalRequest = {
         bucketName,
         creator: address,
         visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
@@ -326,7 +326,7 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
       }
       const bucketName = data.bucketName;
       const selectedPaAddress = selectedPaRef.current.address;
-      const createBucketPayload: IBaseGetCreateBucket = {
+      const createBucketPayload: CreateBucketApprovalRequest = {
         bucketName,
         creator: address,
         paymentAddress: selectedPaAddress,

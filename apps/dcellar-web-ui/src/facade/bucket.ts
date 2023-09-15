@@ -1,7 +1,9 @@
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
-import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import {
+  QueryHeadBucketResponse,
+  QueryQuoteUpdateTimeResponse,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import {
   broadcastFault,
   commonFault,
@@ -11,15 +13,24 @@ import {
   simulateFault,
 } from '@/facade/error';
 import { resolve } from '@/facade/common';
-import { TBaseGetBucketReadQuota } from '@bnb-chain/greenfield-js-sdk/dist/cjs/types';
-import { IObjectResultType, ISimulateGasFee } from '@bnb-chain/greenfield-js-sdk';
+import {
+  IQuotaProps,
+  ISimulateGasFee,
+  Long,
+  ReadQuotaRequest,
+  SpResponse,
+} from '@bnb-chain/greenfield-js-sdk';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
-import { GfSPGetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/GetUserBucketsResponse';
-import axios from 'axios';
-import { GREENFIELD_CHAIN_RPC_URL } from '@/base/env';
+import {
+  BucketMetaWithVGF,
+  PolicyMeta,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
+import { get } from 'lodash-es';
+import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -45,10 +56,10 @@ export const headBucket = async (bucketName: string) => {
 export const getUserBuckets = async (
   address: string,
   endpoint: string,
-): Promise<ErrorResponse | [IObjectResultType<GfSPGetUserBucketsResponse['Buckets']>, null]> => {
+): Promise<ErrorResponse | [SpResponse<BucketMetaWithVGF[]>, null]> => {
   const client = await getClient();
   const [res, error] = await client.bucket
-    .getUserBuckets({ address, endpoint })
+    .listBuckets({ address, endpoint })
     .then(resolve, commonFault);
 
   if (error) return [null, error];
@@ -57,12 +68,14 @@ export const getUserBuckets = async (
 
 export const getBucketReadQuota = async ({
   bucketName,
+  endpoint,
   seedString,
   address,
 }: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
-  const payload: TBaseGetBucketReadQuota = {
+  const payload: ReadQuotaRequest = {
     bucketName,
+    endpoint,
   };
   const [res, error] = await client.bucket
     .getBucketReadQuota(payload, {
@@ -126,9 +139,8 @@ export const preExecDeleteBucket = async (
 };
 
 export const getBucketExtraInfo = async (bucketName: string) => {
-  return axios.get(
-    `${GREENFIELD_CHAIN_RPC_URL}/greenfield/storage/head_bucket_extra/${bucketName}`,
-  );
+  const client = await getClient();
+  return client.bucket.headBucketExtra(bucketName);
 };
 
 type DeleteBucketProps = {
@@ -170,4 +182,27 @@ export const deleteBucket = async ({
       signTypedDataCallback: signTypedDataCallback(connector),
     })
     .then(resolve, broadcastFault);
+};
+
+export const getObjectPolicies = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
+  const res = (await client.object.listObjectPolicies({
+    bucketName,
+    objectName,
+    limit: 1000,
+    actionType: 'ACTION_GET_OBJECT',
+  })) as { body: GetListObjectPoliciesResponse; code: number };
+  const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
+  const list: PolicyMeta[] = get(res, valuePath);
+  return list;
+};
+
+export const getBucketQuotaUpdateTime = async (bucketName: string) => {
+  const client = await getClient();
+  const storageClient = await client.queryClient.getStorageQueryClient();
+  const defaultValue = new Long(getTimestampInSeconds());
+  const res = await storageClient
+    .QueryQuotaUpdateTime({ bucketName })
+    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
+  return Number(res?.updateAt || defaultValue);
 };

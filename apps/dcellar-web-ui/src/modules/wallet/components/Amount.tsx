@@ -28,7 +28,6 @@ import { trimFloatZero } from '@/utils/trimFloatZero';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
 import { useMount } from 'ahooks';
@@ -44,7 +43,7 @@ type AmountProps = {
   setValue: UseFormSetValue<TWalletFromValues>;
   getGasFee?: GetFeeType;
   maxDisabled?: boolean;
-  txType?: TxType,
+  txType?: TxType;
   balance: string;
 };
 

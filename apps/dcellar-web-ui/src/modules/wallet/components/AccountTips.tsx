@@ -1,8 +1,7 @@
 import React from 'react';
-import { Box, Popover, PopoverContent, PopoverTrigger, Tooltip } from '@totejs/uikit';
+import { Box, Popover, PopoverContent, PopoverTrigger } from '@totejs/uikit';
 import { AccountType } from '@/store/slices/accounts';
 import { getAccountDisplay } from '@/utils/accounts';
-import { deepReadDirSync } from '@sentry/nextjs';
 
 type AccountTipsProps = {
   type: AccountType;

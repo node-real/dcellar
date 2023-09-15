@@ -13,7 +13,6 @@ import React, { useEffect, useState } from 'react';
 import {
   renderBalanceNumber,
   renderFeeValue,
-  renderInsufficientBalance,
   renderPaymentInsufficientBalance,
 } from '@/modules/file/utils';
 import {
@@ -68,8 +67,14 @@ export const renderFee = (
           {key}
           {key.toLowerCase() === 'gas fee' && (
             <>
-              {' '}(
-              <Link href={GAS_FEE_DOC} textDecoration={'underline'} color="readable.disabled" target='_blank'>
+              {' '}
+              (
+              <Link
+                href={GAS_FEE_DOC}
+                textDecoration={'underline'}
+                color="readable.disabled"
+                target="_blank"
+              >
                 Pay by Owner Account
               </Link>
               )
@@ -102,7 +107,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const bucket = bucketInfo[bucketName];
-  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress))
+  const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
   const primarySp = primarySpInfo[bucketName];
   const exchangeRate = +bnbPrice ?? 0;
   const [loading, setLoading] = useState(false);
@@ -146,7 +151,12 @@ export const CancelObject = ({ refetch }: modalProps) => {
   const { loading: isLoadingSF, settlementFee } = useSettlementFee(bucket.PaymentAddress);
 
   useEffect(() => {
-    if (!simulateGasFee || Number(simulateGasFee) < 0 || !refundStoreFee || Number(refundStoreFee) < 0) {
+    if (
+      !simulateGasFee ||
+      Number(simulateGasFee) < 0 ||
+      !refundStoreFee ||
+      Number(refundStoreFee) < 0
+    ) {
       setButtonDisabled(false);
       return;
     }
@@ -237,7 +247,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
             payGasFeeBalance: bankBalance,
             payStoreFeeBalance: accountDetail.staticBalance,
             ownerAccount: loginAccount,
-            payAccount: bucket.PaymentAddress
+            payAccount: bucket.PaymentAddress,
           })}
         </Text>
         <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
