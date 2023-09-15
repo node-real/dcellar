@@ -68,12 +68,14 @@ export const getUserBuckets = async (
 
 export const getBucketReadQuota = async ({
   bucketName,
+  endpoint,
   seedString,
   address,
 }: TGetReadQuotaParams): Promise<ErrorResponse | [IQuotaProps, null]> => {
   const client = await getClient();
   const payload: ReadQuotaRequest = {
     bucketName,
+    endpoint,
   };
   const [res, error] = await client.bucket
     .getBucketReadQuota(payload, {

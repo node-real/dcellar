@@ -21,8 +21,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { Label } from '@/modules/buckets/List/components/BucketDetail';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { getClient } from '@/base/client';
-import { SpItem } from '@/store/slices/sp';
+import { getPrimarySpInfo } from '@/store/slices/sp';
 import { useAsyncEffect } from 'ahooks';
 import dayjs from 'dayjs';
 import { DCButton } from '@/components/common/DCButton';
@@ -32,7 +31,6 @@ interface DetailDrawerProps {}
 export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   const dispatch = useAppDispatch();
   const { editDetail, quotas, bucketInfo } = useAppSelector((root) => root.bucket);
-  const { allSps } = useAppSelector((root) => root.sp);
   const isOpen = !!editDetail.BucketName;
   const quota = quotas[editDetail.BucketName];
   const bucket = bucketInfo[editDetail.BucketName] || {};
@@ -217,17 +215,13 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   }, [editDetail.BucketName, dispatch]);
 
   useAsyncEffect(async () => {
-    if (!editDetail.BucketName || editDetail.PrimarySpAddress) return;
-    const client = await getClient();
-    const endpoint = await client.sp.getSPUrlByBucket(editDetail.BucketName);
-    const primarySp = allSps.find((sp: SpItem) => sp.endpoint === endpoint) as SpItem;
-    dispatch(
-      setEditDetail({
-        ...editDetail,
-        PrimarySpAddress: primarySp.operatorAddress,
-      }),
+    if (!bucket.BucketName || editDetail.PrimarySpAddress) return;
+    const sp = await dispatch(
+      getPrimarySpInfo(bucket.BucketName, +bucket.GlobalVirtualGroupFamilyId),
     );
-  }, [editDetail]);
+    if (!sp) return;
+    dispatch(setEditDetail({ ...editDetail, PrimarySpAddress: sp.operatorAddress }));
+  }, [bucket.BucketName, editDetail]);
 
   const onClose = () => {
     dispatch(setEditDetail({} as BucketItem));

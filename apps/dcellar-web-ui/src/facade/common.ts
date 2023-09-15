@@ -12,6 +12,7 @@ export const getObjectInfoAndBucketQuota = async ({
   objectName,
   address,
   seedString,
+  endpoint,
 }: {
   bucketName: string;
   objectName: string;
@@ -26,6 +27,7 @@ export const getObjectInfoAndBucketQuota = async ({
       .getBucketReadQuota(
         {
           bucketName,
+          endpoint,
         },
         {
           type: 'EDDSA',
