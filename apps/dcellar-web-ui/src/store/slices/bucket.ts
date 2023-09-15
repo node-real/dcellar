@@ -3,8 +3,8 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
-import { omit } from 'lodash-es';
-import { getPrimarySpInfo } from './sp';
+import { find, omit } from 'lodash-es';
+import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
@@ -148,7 +148,7 @@ export const setupBucket =
 export const setupBuckets =
   (address: string, forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    const { oneSp, spInfo } = getState().sp;
+    const { oneSp, spInfo, allSps } = getState().sp;
     const { buckets, loading } = getState().bucket;
     const sp = spInfo[oneSp];
     if (loading) return;
@@ -161,15 +161,23 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    const bucketList = res.body?.map((bucket) => {
-      return {
-        ...bucket,
-        BucketInfo: {
-          ...bucket.BucketInfo,
-        },
-      };
-    });
-    dispatch(setBucketList({ address, buckets: bucketList || [] }));
+    const bucketList =
+      res.body?.map((bucket) => {
+        return {
+          ...bucket,
+          BucketInfo: {
+            ...bucket.BucketInfo,
+          },
+        };
+      }) || [];
+
+    const bucketSpInfo = bucketList.map((b) => ({
+      bucketName: b.BucketInfo.BucketName,
+      sp: find<SpItem>(allSps, (sp) => sp.id === b.Vgf.PrimarySpId)!,
+    }));
+
+    dispatch(setPrimarySpInfos(bucketSpInfo));
+    dispatch(setBucketList({ address, buckets: bucketList }));
   };
 
 export const setupBucketQuota =
