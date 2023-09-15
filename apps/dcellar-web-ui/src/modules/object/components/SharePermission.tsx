@@ -1,4 +1,4 @@
-import React, { memo, ReactNode } from 'react';
+import React, { memo, ReactNode, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { Box, Button, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -37,8 +37,18 @@ export const OBJECT_POLICY_GROUP_AVATARS = [Group0, Group1, Group2, Group3];
 
 export const SharePermission = memo<SharePermissionProps>(function SharePermission() {
   const dispatch = useAppDispatch();
-  const { editDetail, bucketName, objectPolicies } = useAppSelector((root) => root.object);
+  const {
+    editDetail: _editDetail,
+    bucketName,
+    objectPolicies,
+  } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
+  const [editDetail, setEditDetailState] = useState(_editDetail);
+
+  useEffect(() => {
+    if (!_editDetail.objectName) return;
+    setEditDetailState(_editDetail);
+  }, [_editDetail]);
 
   useAsyncEffect(async () => {
     if (!editDetail.name || !bucketName) return;
