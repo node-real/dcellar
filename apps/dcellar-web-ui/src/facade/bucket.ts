@@ -1,6 +1,9 @@
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
-import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import {
+  QueryHeadBucketResponse,
+  QueryQuoteUpdateTimeResponse,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import {
   broadcastFault,
   commonFault,
@@ -13,6 +16,7 @@ import { resolve } from '@/facade/common';
 import {
   IQuotaProps,
   ISimulateGasFee,
+  Long,
   ReadQuotaRequest,
   SpResponse,
 } from '@bnb-chain/greenfield-js-sdk';
@@ -26,6 +30,7 @@ import {
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
 import { get } from 'lodash-es';
+import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -188,4 +193,14 @@ export const getObjectPolicies = async (bucketName: string, objectName: string) 
   const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
   const list: PolicyMeta[] = get(res, valuePath);
   return list;
+};
+
+export const getBucketQuotaUpdateTime = async (bucketName: string) => {
+  const client = await getClient();
+  const storageClient = await client.queryClient.getStorageQueryClient();
+  const defaultValue = new Long(getTimestampInSeconds());
+  const res = await storageClient
+    .QueryQuotaUpdateTime({ bucketName })
+    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
+  return Number(res?.updateAt || defaultValue);
 };

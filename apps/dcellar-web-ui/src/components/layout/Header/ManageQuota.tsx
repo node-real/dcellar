@@ -33,7 +33,12 @@ import {
   WALLET_CONFIRM,
 } from '@/modules/file/constant';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { getBucketExtraInfo, updateBucketInfo, UpdateBucketInfoPayload } from '@/facade/bucket';
+import {
+  getBucketExtraInfo,
+  getBucketQuotaUpdateTime,
+  updateBucketInfo,
+  UpdateBucketInfoPayload,
+} from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 import { PaymentInsufficientBalance } from '@/modules/file/utils';
@@ -76,6 +81,13 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   const [preStoreFeeParams, setPreStoreFeeParams] = useState({} as TStoreFeeParams);
   const [chargeSize, setChargeSize] = useState(0);
   const [refund, setRefund] = useState(false);
+  const [quotaUpdateTime, setQuotaUpdateTime] = useState<number>();
+
+  useAsyncEffect(async () => {
+    if (!bucketName) return;
+    const updateAt = await getBucketQuotaUpdateTime(bucketName);
+    setQuotaUpdateTime(updateAt);
+  }, [bucketName]);
 
   useAsyncEffect(async () => {
     if (!isEmpty(storeFeeParams)) return;
@@ -237,6 +249,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
           current={!quota ? 0 : currentQuota / G_BYTES}
           value={newChargedQuota}
           onChange={setNewChargedQuota}
+          quotaUpdateAt={quotaUpdateTime}
         />
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
