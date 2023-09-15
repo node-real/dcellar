@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';
 import { BN } from '@/utils/BigNumber';
 import BigNumber from 'bignumber.js';
+import { getTimestampInSeconds } from '@/utils/time';
 
 const MAX_SIZE = 100000;
 
@@ -18,6 +19,7 @@ interface QuotaItemProps {
   value: number;
   current?: number;
   onChange: (v: number) => void;
+  quotaUpdateAt?: number;
 }
 
 const percentToValue = (percent: number) => {
@@ -51,7 +53,12 @@ const CONST_VALUE = BigNumber(1)
   .times(2_592_000)
   .dividedBy(10 ** 18);
 
-export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, current, onChange }) {
+export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
+  value,
+  current,
+  onChange,
+  quotaUpdateAt,
+}) {
   const dispatch = useAppDispatch();
   const percent = valueToPercent(value);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
@@ -62,9 +69,11 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({ value, curren
   const overlayStyles = { color: '#fff', borderColor: invalid ? '#EE3911' : '#14151A' };
 
   useEffect(() => {
-    if (!current) return;
-    setInvalid(value < (current || 0));
-  }, [value, current]);
+    if (!current || !quotaUpdateAt) return;
+    const now = getTimestampInSeconds();
+    const days = (now - quotaUpdateAt) / 86400;
+    setInvalid(value < (current || 0) && days < 30);
+  }, [value, current, quotaUpdateAt]);
 
   useEffect(() => {
     dispatch(setupStoreFeeParams());

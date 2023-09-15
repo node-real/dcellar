@@ -1,6 +1,9 @@
 import BigNumber from 'bignumber.js';
 import { getClient } from '@/base/client';
-import { QueryHeadBucketResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import {
+  QueryHeadBucketResponse,
+  QueryQuoteUpdateTimeResponse,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import {
   broadcastFault,
   commonFault,
@@ -13,6 +16,7 @@ import { resolve } from '@/facade/common';
 import {
   IQuotaProps,
   ISimulateGasFee,
+  Long,
   ReadQuotaRequest,
   SpResponse,
 } from '@bnb-chain/greenfield-js-sdk';
@@ -20,7 +24,13 @@ import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfie
 import { Connector } from 'wagmi';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
-import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import {
+  BucketMetaWithVGF,
+  PolicyMeta,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
+import { get } from 'lodash-es';
+import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -170,4 +180,27 @@ export const deleteBucket = async ({
       signTypedDataCallback: signTypedDataCallback(connector),
     })
     .then(resolve, broadcastFault);
+};
+
+export const getObjectPolicies = async (bucketName: string, objectName: string) => {
+  const client = await getClient();
+  const res = (await client.object.listObjectPolicies({
+    bucketName,
+    objectName,
+    limit: 1000,
+    actionType: 'ACTION_GET_OBJECT',
+  })) as { body: GetListObjectPoliciesResponse; code: number };
+  const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
+  const list: PolicyMeta[] = get(res, valuePath);
+  return list;
+};
+
+export const getBucketQuotaUpdateTime = async (bucketName: string) => {
+  const client = await getClient();
+  const storageClient = await client.queryClient.getStorageQueryClient();
+  const defaultValue = new Long(getTimestampInSeconds());
+  const res = await storageClient
+    .QueryQuotaUpdateTime({ bucketName })
+    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
+  return Number(res?.updateAt || defaultValue);
 };
