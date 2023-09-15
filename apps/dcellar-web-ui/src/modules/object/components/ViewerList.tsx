@@ -36,19 +36,13 @@ import {
 import {
   MsgDeletePolicyTypeUrl,
   MsgPutPolicyTypeUrl,
-  MsgUpdateGroupMemberTypeUrl,
   PermissionTypes,
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
-import {
-  selectGroupList,
-  setMemberListPage,
-  setupGroupMembers,
-  setupGroups,
-} from '@/store/slices/group';
+import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
 import GroupIcon from '@/public/images/icons/group_icon.svg';
 import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
-import { escapeRegExp, without } from 'lodash-es';
+import { without } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { ADDRESS_RE } from '@/utils/regex';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
@@ -245,7 +239,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   );
 
   const putFee = (gasObjects?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
-  const deleteFee = (gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * values.length;
+  const deleteFee = gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0;
 
   return (
     <>
@@ -512,6 +506,7 @@ const ScrollContent = styled.div`
   &::-webkit-scrollbar {
     width: 4px
   }
+
   &::-webkit-scrollbar-thumb {
     background: #E6E8EA;
     border-radius: 4px
