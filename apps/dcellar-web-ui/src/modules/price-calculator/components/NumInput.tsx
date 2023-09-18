@@ -16,7 +16,7 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       fontWeight={600}
       {...restProps}
       value={value}
-      onWheel={(e) => e.target.blur()}
+      onWheel={(e) => (e.target as HTMLElement).blur()}
       onPaste={(e) => {
         const clipboardData = e.clipboardData || window.clipboardData;
         const pastedData = parseFloat(clipboardData.getData('text'));
@@ -33,10 +33,6 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
         const value = e.target.value;
         if (parseFloat(value) < 0 || value.length >15 ) return;
         onChangeValue(value.replace(/^0+/, '') );
-        // setStorageSize({
-        //   ...storageSize,
-        //   size: e.target.value,
-        // });
       }}
     />
   );

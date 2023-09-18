@@ -6,7 +6,6 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
-  useDisclosure,
 } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import { NumInput } from './NumInput';

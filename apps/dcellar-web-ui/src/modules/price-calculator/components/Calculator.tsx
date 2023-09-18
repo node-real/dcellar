@@ -6,13 +6,14 @@ import { BN } from '@/utils/BigNumber';
 import { currencyFormatter } from '@/utils/currencyFormatter';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0Month } from '@/utils/time';
-import { Box, Divider, Flex, Input, Link, Text, useDisclosure } from '@totejs/uikit';
+import { Box, Divider, Flex, Link, Loading, Text, useDisclosure } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 import { FeeItem } from './FeeItem';
 import { SizeMenu } from './SizeMenu';
 import { NumInput } from './NumInput';
-import { Sizes, TSize, TTime, TTimeOption, TimeOptions, TimeUnits, Times } from '../utils';
+import { Sizes, TSize, TTime, TimeOptions, TimeUnits, Times } from '../utils';
 import { CustomTime } from './CustomTime';
+import { isEmpty } from 'lodash-es';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -52,6 +53,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
   const [customStorageTime, setCustomStorageTime] = useState(TimeOptions[2]);
   const sizes = Object.keys(Sizes);
   const storeNetflowRate = useMemo(() => {
+    if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getStoreNetflowRate(Sizes[storageSize.unit as TSize], storeParams))
       .times(Times['m'])
       .dividedBy(10 ** 18)
@@ -75,6 +77,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       .toString();
   }, [storageSize, storeParams]);
   const quotaNetflowRate = useMemo(() => {
+    if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getQuotaNetflowRate(Sizes[quotaSize.unit as TSize], storeParams))
       .times(Times['m'])
       .dividedBy(10 ** 18)
@@ -107,8 +110,8 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
   const costs = useMemo(() => {
     let storeTime =
       storageTime.id === 'custom'
-        ? BN(customStorageTime.value).times(Times[customStorageTime.unit as TTime])
-        : BN(storageTime.value).times(Times[storageTime.unit as TTime]);
+        ? BN(formatInput(customStorageTime.value)).times(Times[customStorageTime.unit as TTime]).toString()
+        : BN(formatInput(storageTime.value)).times(Times[storageTime.unit as TTime]).toString()
 
     const totalStorageSize = BN(formatInput(storageSize.size))
       .times(Sizes[storageSize.unit as TSize])
@@ -127,7 +130,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       .times(Sizes[quotaSize.unit as TSize])
       .toNumber();
     const totalQuotaCost =
-      totalStorageSize === 0
+      totalQuotaSize === 0
         ? '0'
         : BN(getQuotaNetflowRate(totalQuotaSize, storeParams))
             .times(storeTime)
@@ -148,9 +151,11 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       .plus(totalGasCost)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
-    // 算出每个月的钱，所有的钱处以三十天
-    const averageMonthCost = BN(totalCost)
-      .dividedBy(Times['m'])
+
+    const months = BN(storeTime).dividedBy(Times['m']).toString();
+    console.log('months', months)
+    const averageMonthCost = months === '0' ? '0' : BN(totalCost)
+      .dividedBy(months)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
 
@@ -176,11 +181,11 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
 
   const storageTimeDisplay = useMemo(() => {
     if (storageTime.id === 'custom') {
-      return `${customStorageTime.value} ${TimeUnits[customStorageTime.unit]}${
+      return `${customStorageTime.value || 0} ${TimeUnits[customStorageTime.unit]}${
         +customStorageTime.value > 1 ? 's' : ''
       }`;
     }
-    return `${storageTime.value} ${TimeUnits[storageTime.unit]}${
+    return `${storageTime.value || 0} ${TimeUnits[storageTime.unit]}${
       +customStorageTime.value > 1 ? 's' : ''
     }`;
   }, [
@@ -251,7 +256,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
               <Text fontWeight={600}>= {storageFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
-                ({displayUsd(storageFee || '0', bnbPrice)})
+                &nbsp;({displayUsd(storageFee || '0', bnbPrice)})
               </Text>
             </Flex>
           </Flex>
@@ -300,7 +305,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
               <Text fontWeight={600}>= {quotaFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
-                ({displayUsd(quotaFee || '0', bnbPrice)})
+              &nbsp;({displayUsd(quotaFee || '0', bnbPrice)})
               </Text>
             </Flex>
           </Flex>
@@ -328,7 +333,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
               <Text fontWeight={600}>= {totalGasFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
-                ({displayUsd(totalGasFee || '0', bnbPrice)})
+              &nbsp;({displayUsd(totalGasFee || '0', bnbPrice)})
               </Text>
             </Flex>
           </Flex>
@@ -396,14 +401,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   fontWeight={400}
                   display={'inline-block'}
                 >
-                  ({displayUsd(costs.totalCost || '0', bnbPrice)})
+                  &nbsp;({displayUsd(costs.totalCost || '0', bnbPrice)})
                 </Text>
               </Text>
             </Flex>
             <Box textAlign={'right'}>
               <Text display={'inline-block'}>{costs.averageMonthCost} BNB/month</Text>
               <Text display={'inline-block'}>
-                ({displayUsd(costs.averageMonthCost, bnbPrice)}/month)
+                &nbsp;({displayUsd(costs.averageMonthCost, bnbPrice)})
               </Text>
             </Box>
           </Box>

@@ -1,30 +1,10 @@
-import { DCButton } from '@/components/common/DCButton';
-import { SEOHead } from '@/components/common/SEOHead';
-import { Tips } from '@/components/common/Tips';
-import { UnderlineLink } from '@/components/layout/Footer';
-import { getTimestampInSeconds, getUTC0Month } from '@/utils/time';
-import { ExternalLinkIcon, MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import {
-  Box,
-  Button,
-  Divider,
-  Flex,
-  Input,
-  Link,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Text,
-} from '@totejs/uikit';
+import { getTimestampInSeconds } from '@/utils/time';
+import { Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
 import { getStoreFeeParams } from '@/facade/payment';
-import { useMemo, useState } from 'react';
-import { getStoreNetflowRate } from '@/utils/payment';
+import { useState } from 'react';
 import { GAS_PRICE, TStoreFeeParams } from '@/store/slices/global';
-import BigNumber from 'bignumber.js';
-import { BN } from '@/utils/BigNumber';
 import { getBnbPrice, getGasFees } from '@/facade/common';
 import { assetPrefix } from '@/base/env';
 import { FAQ } from './components/FAQ';
@@ -51,8 +31,12 @@ export const PriceCalculator = () => {
   const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
   useAsyncEffect(async () => {
     const curTime = getTimestampInSeconds();
+    console.time('getStoreFeeParams');
     const latestStoreParams = await getStoreFeeParams(curTime);
+    console.timeEnd('getStoreFeeParams');
     setStoreParams(latestStoreParams);
+  }, []);
+  useAsyncEffect(async () => {
     const bnbPrice = await getBnbPrice();
     setBnbPrice(bnbPrice.price);
     const [gasFees, error] = await getGasFees();
