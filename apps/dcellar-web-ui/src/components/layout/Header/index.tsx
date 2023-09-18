@@ -27,12 +27,12 @@ import { StoreFeeParams } from './StoreFeeParams';
 import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
 import { DisconnectWalletModal } from './DisconnectWalletModal';
 
-const renderAvatar = (size?: 'sm' | 'md') => {
+export const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
   const imgSize = size === 'sm' ? 28 : 32;
   return (
     <Circle size={circleSize} borderRadius="50%" border="1px solid readable.border">
-      <Image alt="avatar" boxSize={imgSize} src={`${assetPrefix}/images/icons/avatar.svg`} />
+    <Image alt="avatar" boxSize={imgSize} src={`${assetPrefix}/images/icons/avatar.svg`} />
     </Circle>
   );
 };

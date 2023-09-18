@@ -1,17 +1,27 @@
+import { Flex, FlexProps, Link, LinkProps, Text } from '@totejs/uikit';
 import React from 'react';
-import { Flex, FlexProps, Link, Text } from '@totejs/uikit';
 import { getUTC0Year } from '@/utils/getUTC0Year';
 import { noderealUrl } from '@/constants/links';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 
+export const UnderlineLink = (props: LinkProps) => (
+  <Link
+    cursor="pointer"
+    color="readable.tertiary"
+    textDecoration={'underline'}
+    target="_blank"
+    _hover={{ color: 'readable.brand7' }}
+    href={noderealUrl}
+    {...props}
+  >
+    {props.children}
+  </Link>
+);
+
 export const Footer = (props: FlexProps) => {
   const utcYear = getUTC0Year();
   const { ...restProps } = props;
-  // const fixAtBottomStyle = fixAtBottom
-  //   ? { position: 'fixed', bottom: 0, left: 0, right: 0 }
-  //   : { position: 'absolute', bottom: 0, left: '269px', right: 0 };
-
   const { pathname } = useRouter();
   const gaClickName = getGAOptions(pathname);
 
@@ -19,28 +29,22 @@ export const Footer = (props: FlexProps) => {
     <Flex
       alignItems={'center'}
       justifyContent={'center'}
-      height={'48px'}
+      height={49}
       gridArea={'footer'}
       bgColor="bg.middle"
       color="readable.secondary"
+      gap={24}
       {...restProps}
     >
       <Text color="inherit">
         © {utcYear}&nbsp;
         <GAClick name={gaClickName}>
-          <Link
-            cursor="pointer"
-            color="#76808F"
-            textDecoration={'underline'}
-            target="_blank"
-            _hover={{ color: '#009E2C' }}
-            href={noderealUrl}
-          >
-            NodeReal
-          </Link>
+          <UnderlineLink href={noderealUrl}>NodeReal</UnderlineLink>
         </GAClick>
         . All rights reserved.
       </Text>
+      <UnderlineLink href={noderealUrl}>Terms of Use</UnderlineLink>
+      <UnderlineLink href={noderealUrl}>Privacy Policy</UnderlineLink>
     </Flex>
   );
 };

@@ -1,6 +1,6 @@
 import { getClient } from '@/base/client';
 import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { IObjectResultType } from '@bnb-chain/greenfield-js-sdk';
+import { IObjectResultType, Long } from '@bnb-chain/greenfield-js-sdk';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
@@ -56,3 +56,17 @@ export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
   if (error) return getDefaultBnbInfo();
   return res as BnbPriceInfo;
 };
+
+export const getGasFees = async () => {
+  const client = await getClient();
+  return await client.gashub.getMsgGasParams({
+    msgTypeUrls: [],
+    pagination: {
+      countTotal: true,
+      key: Uint8Array.from([]),
+      limit: Long.fromInt(1000),
+      offset: Long.fromInt(0),
+      reverse: false,
+    },
+  }).then(resolve, commonFault);
+}
