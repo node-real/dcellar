@@ -1,6 +1,6 @@
 import { assetPrefix } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@totejs/uikit';
 import React from 'react';
 
 export const StartBuild = () => {

@@ -1,10 +1,6 @@
-import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
-import { BN } from '@/utils/BigNumber';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { Flex, Text, Box } from '@totejs/uikit';
 import React from 'react';
 import { displayUsd } from './Calculator';
-import { TTimeOption } from '../utils';
 
 type FeeItemProps = {
   title: string;
