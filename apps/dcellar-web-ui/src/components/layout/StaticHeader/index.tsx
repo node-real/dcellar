@@ -36,6 +36,7 @@ export const StaticHeader = () => {
       justifyContent={'space-between'}
       bg={'transparent'}
       position={'fixed'}
+      zIndex={1600}
       backdropFilter={'blur(10px)'}
     >
       <GAClick name="dc.main.nav.logo.click">

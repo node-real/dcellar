@@ -52,7 +52,7 @@ export const PriceCalculator = () => {
       return {
         operatorAddress: item.operatorAddress,
         name: item?.description?.moniker,
-        freeQuota: String(keySpMeta[item.operatorAddress].FreeReadQuota || ''),
+        freeQuota: String(keySpMeta[item.operatorAddress]?.FreeReadQuota || ''),
       }
     })
     setSps(fullSps);
