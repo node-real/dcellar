@@ -1,3 +1,4 @@
+import { mergeRefs } from '@totejs/uikit';
 import { useReportFuncRef } from './useReportFuncRef';
 import React, { useMemo } from 'react';
 
@@ -18,7 +19,7 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
     const clone = React.cloneElement(child, {
       ...restProps,
       ...child.props,
-      ref,
+      ref: mergeRefs(child.ref, ref),
       onClick: (event: React.MouseEvent) => {
         const { isDisabled, onClick: originClick } = child.props;
         originClick?.call(child, event);
