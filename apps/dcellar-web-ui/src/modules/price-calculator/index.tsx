@@ -62,7 +62,7 @@ export const PriceCalculator = () => {
     <Flex gap={40} flexDirection={'column'} bgColor={'#fff'}>
       <Flex
         paddingTop={64}
-        bg={`center/cover no-repeat url(${assetPrefix}/images/price/bg.svg)`}
+        bg={`center/cover no-repeat url(${assetPrefix}/images/price/bg.svg), right bottom no-repeat url(${assetPrefix}/images/price/bg_2.svg)`}
         flexDirection={'column'}
       >
         <Banner />
