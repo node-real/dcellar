@@ -1,17 +1,17 @@
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount, setEditOwnerDetail, setupAccountsInfo } from '@/store/slices/accounts';
+import { selectAccount, setEditOwnerDetail, setupAccountDetail } from '@/store/slices/accounts';
 import {
   Flex,
   QDrawerFooter,
 } from '@totejs/uikit';
-import React, { use, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAsyncEffect, useInterval } from 'ahooks';
 import { AccountDetail } from './AccountDetail';
 import { useRouter } from 'next/router';
-import { getUtcZeroTimestamp } from '@bnb-chain/greenfield-js-sdk';
 import BigNumber from 'bignumber.js';
+import { getTimestampInSeconds } from '@/utils/time';
 
 export const OwnerAccountDetail = () => {
   const dispatch = useAppDispatch();
@@ -31,13 +31,13 @@ export const OwnerAccountDetail = () => {
   };
   useAsyncEffect(async () => {
     if (!loginAccount) return;
-    dispatch(setupAccountsInfo(loginAccount));
+    dispatch(setupAccountDetail(loginAccount));
   }, [loginAccount]);
 
   const clear = useInterval(() => {
     if (!ownerAccount) return;
     const { netflowRate, staticBalance, crudTimestamp } = ownerAccount;
-    const ts = Math.floor(getUtcZeroTimestamp() / 1000);
+    const ts = getTimestampInSeconds();
     const needSettleRate = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
     const availableBalance = BigNumber(staticBalance).plus(bankBalance).plus(needSettleRate).toString();
     setAvailableBalance(availableBalance);
@@ -54,7 +54,7 @@ export const OwnerAccountDetail = () => {
       gaShowName="dc.accounts.detail.show"
       gaClickCloseName="dc.accounts.detail.close.click"
     >
-      <AccountDetail loading={!!isLoadingDetail} title="Owner Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
+      <AccountDetail loading={!!isLoadingDetail} title="Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
           <DCButton

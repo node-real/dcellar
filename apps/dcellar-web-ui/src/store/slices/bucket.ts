@@ -3,15 +3,15 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
-import { omit } from 'lodash-es';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
-import { getPrimarySpInfo } from './sp';
-import { GetUserBucketsResponse } from '@bnb-chain/greenfield-js-sdk';
+import { find, omit } from 'lodash-es';
+import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
+import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   SourceType,
   VisibilityType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { setAuthModalOpen } from '@/store/slices/global';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
@@ -27,6 +27,7 @@ export interface BucketState {
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
+  quotaLoading: boolean;
   currentPage: number;
   // current visit bucket;
   discontinue: boolean;
@@ -34,6 +35,7 @@ export interface BucketState {
   editDetail: TEditDetailItem;
   editDelete: BucketItem;
   editCreate: boolean;
+  editQuota: string[];
 }
 
 const initialState: BucketState = {
@@ -41,12 +43,14 @@ const initialState: BucketState = {
   bucketInfo: {},
   quotas: {},
   loading: false,
+  quotaLoading: false,
   currentPage: 0,
   discontinue: false,
   owner: true,
   editDetail: {} as BucketItem,
   editDelete: {} as BucketItem,
   editCreate: false,
+  editQuota: ['', ''],
 };
 
 export const bucketSlice = createSlice({
@@ -63,6 +67,9 @@ export const bucketSlice = createSlice({
     setEditDetail(state, { payload }: PayloadAction<TEditDetailItem>) {
       state.editDetail = payload;
     },
+    setEditQuota(state, { payload }: PayloadAction<string[]>) {
+      state.editQuota = payload;
+    },
     setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
       state.editDelete = payload;
     },
@@ -76,6 +83,9 @@ export const bucketSlice = createSlice({
     },
     setLoading(state, { payload }: PayloadAction<boolean>) {
       state.loading = payload;
+    },
+    setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
+      state.quotaLoading = payload;
     },
     setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo }>) {
       const { address, bucket } = payload;
@@ -129,15 +139,16 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const bucket = await headBucket(bucketName);
+    const { loginAccount } = getState().persist;
 
     if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address, bucket }));
+    dispatch(setBucketInfo({ address: address || loginAccount, bucket }));
   };
 
 export const setupBuckets =
   (address: string, forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    const { oneSp, spInfo } = getState().sp;
+    const { oneSp, spInfo, allSps } = getState().sp;
     const { buckets, loading } = getState().bucket;
     const sp = spInfo[oneSp];
     if (loading) return;
@@ -150,25 +161,38 @@ export const setupBuckets =
       toast.error({ description: error || res?.message });
       return;
     }
-    const bucketList = res.body?.map((bucket) => {
-      return {
-        ...bucket,
-        BucketInfo: {
-          ...bucket.BucketInfo,
-        },
-      };
-    });
-    dispatch(setBucketList({ address, buckets: bucketList || [] }));
+    const bucketList =
+      res.body?.map((bucket) => {
+        return {
+          ...bucket,
+          BucketInfo: {
+            ...bucket.BucketInfo,
+          },
+        };
+      }) || [];
+
+    const bucketSpInfo = bucketList.map((b) => ({
+      bucketName: b.BucketInfo.BucketName,
+      sp: find<SpItem>(allSps, (sp) => sp.id === b.Vgf.PrimarySpId)!,
+    }));
+
+    dispatch(setPrimarySpInfos(bucketSpInfo));
+    dispatch(setBucketList({ address, buckets: bucketList }));
   };
 
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { bucketInfo } = getState().bucket;
+    const { bucketInfo, quotaLoading } = getState().bucket;
+    if (quotaLoading) return;
     const info = bucketInfo[bucketName];
     if (!info) return;
+    dispatch(setQuotaLoading(true));
     const sp = await dispatch(getPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
-    if (!sp) return;
+    if (!sp) {
+      dispatch(setQuotaLoading(false));
+      return;
+    }
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
@@ -176,8 +200,14 @@ export const setupBucketQuota =
       seedString,
       address: loginAccount,
     });
+    dispatch(setQuotaLoading(false));
     if (quota === null) {
-      return toast.error({ description: error || 'Get bucket read quota error' });
+      if (error === 'invalid signature') {
+        dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
+      } else {
+        toast.error({ description: error || 'Get bucket read quota error' });
+      }
+      return;
     }
     dispatch(setReadQuota({ bucketName, quota }));
   };
@@ -192,6 +222,8 @@ export const {
   setEditDelete,
   setReadQuota,
   setEditCreate,
+  setEditQuota,
+  setQuotaLoading,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

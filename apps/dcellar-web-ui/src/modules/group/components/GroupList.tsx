@@ -4,6 +4,7 @@ import {
   selectGroupList,
   setAddGroupMember,
   setCurrentGroupPage,
+  setDetailGroup,
   setEditGroup,
   setRemoveGroup,
   setRemoveGroupMember,
@@ -16,7 +17,6 @@ import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTa
 import { Loading } from '@/components/common/Loading';
 import { GroupEmpty } from '@/modules/group/components/GroupEmpty';
 import { CreateGroup } from '@/modules/group/components/CreateGroup';
-import { StatusDetail } from '@/modules/object/components/StatusDetail';
 import { NameItem } from '@/modules/group/components/NameItem';
 import { Text } from '@totejs/uikit';
 import { CopyText } from '@/components/common/CopyText';
@@ -24,13 +24,15 @@ import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMe
 import { EditGroup } from '@/modules/group/components/EditGroup';
 import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
 import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
-import { RemoveGroupMember } from '@/modules/group/components/RemoveGroupMember';
+import { GroupDetail } from '@/modules/group/components/GroupDetail';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { ethers } from 'ethers';
 
 const Actions: ActionMenuItem[] = [
-  { label: 'Edit Description', value: 'edit' },
-  { label: 'Add Member', value: 'add' },
-  { label: 'Remove Member', value: 'remove' },
-  { label: 'Delete Group', value: 'delete' },
+  { label: 'View Details', value: 'detail' },
+  { label: 'Edit Group', value: 'edit' },
+  { label: 'Manage Members', value: 'add' },
+  { label: 'Delete', value: 'delete' },
 ];
 
 interface GroupListProps {}
@@ -55,10 +57,12 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
 
   const onMenuClick = (menu: string, record: GroupInfo) => {
     switch (menu) {
+      case 'detail':
+        return dispatch(setDetailGroup(record));
       case 'edit':
         return dispatch(setEditGroup(record));
       case 'add':
-        return dispatch(setAddGroupMember(record));
+        return dispatch(setAddGroupMember({ record, from: 'menu' }));
       case 'remove':
         return dispatch(setRemoveGroupMember(record));
       case 'delete':
@@ -84,18 +88,28 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
           Group ID{sortName === 'id' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
-      render: (_: string) => (
-        <CopyText
-          alignItems="center"
-          value={_}
-          fontWeight={400}
-          textDecoration="underline"
-          iconProps={{ boxSize: 16, ml: 4 }}
-          lineHeight={0}
-        >
-          {_}
-        </CopyText>
-      ),
+      render: (_: string) => {
+        const hexString = ethers.utils.hexZeroPad(ethers.BigNumber.from(_).toHexString(), 32);
+        return (
+          <CopyText
+            alignItems="center"
+            value={_}
+            fontWeight={400}
+            iconProps={{ boxSize: 16, ml: 4 }}
+            lineHeight={0}
+          >
+            <Text
+              as="a"
+              textDecoration="underline"
+              _hover={{ textDecoration: 'underline' }}
+              target="_blank"
+              href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
+            >
+              {_}
+            </Text>
+          </CopyText>
+        );
+      },
     },
     {
       key: 'extra',
@@ -133,12 +147,11 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
 
   return (
     <>
-      <StatusDetail />
+      <GroupDetail />
       <CreateGroup />
       <EditGroup />
       <DeleteGroup />
       <AddGroupMember />
-      <RemoveGroupMember />
       <DCTable
         loading={{
           spinning: loading,
@@ -152,6 +165,11 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
+        onRow={(record: GroupInfo) => ({
+          onClick: () => {
+            dispatch(setDetailGroup(record));
+          },
+        })}
       />
     </>
   );

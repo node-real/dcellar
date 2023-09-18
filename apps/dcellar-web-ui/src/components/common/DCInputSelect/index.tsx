@@ -1,9 +1,10 @@
-import { MenuCloseIcon, SearchIcon } from '@totejs/icons';
+import { SearchIcon } from '@totejs/icons';
 import {
   Box,
   BoxProps,
   Input,
   InputGroup,
+  InputProps,
   InputRightElement,
   Menu,
   MenuButton,
@@ -14,11 +15,8 @@ import {
   MenuProps,
   rgba,
   useDisclosure,
-  InputProps,
 } from '@totejs/uikit';
-import React, { useEffect, useRef, useState } from 'react';
-
-import { useKeyDown } from '@/hooks/useKeyDown';
+import React, { ReactElement, useEffect, useState } from 'react';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import { GAClick } from '@/components/common/GATracker';
 
@@ -29,6 +27,7 @@ interface ListItemProps extends MenuItemProps {
 export interface IDCSelectOption {
   label: React.ReactNode;
   value: any;
+
   [x: string]: any;
 }
 
@@ -37,6 +36,7 @@ export interface DCSelectProps extends MenuProps {
   Footer?: () => JSX.Element;
   value?: string;
   text: string;
+  RightIcon?: () => ReactElement;
   placeholder?: string;
   options?: Array<IDCSelectOption>;
   headerProps?: BoxProps;
@@ -63,9 +63,11 @@ export function DCInputSelect(props: DCSelectProps) {
     onSearch,
     children,
     isDisabled,
+    RightIcon,
     ...restProps
   } = props;
 
+  const Right = RightIcon ? RightIcon : () => <SearchIcon />;
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [resultOptions, setResultOptions] = useState<Array<IDCSelectOption>>();
 
@@ -114,6 +116,7 @@ export function DCInputSelect(props: DCSelectProps) {
     >
       <MenuButton
         as={SelectInput}
+        RightIcon={Right}
         requestFocus={isOpen}
         onClick={onOpen}
         placeholder={placeholder}
@@ -193,6 +196,7 @@ interface SelectInputProps extends InputProps {
   requestFocus: boolean;
   text: string;
   placeholder: string;
+  RightIcon: () => ReactElement;
   onEnter: () => void;
 }
 
@@ -204,6 +208,7 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
     onChangeKeyword,
     onEnter,
     disabled,
+    RightIcon,
     ...restProps
   } = props;
 
@@ -223,8 +228,8 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
         cursor={requestFocus ? 'auto' : 'pointer'}
         borderColor={requestFocus ? 'scene.primary.active' : '#EAECF0'}
       />
-      <InputRightElement color="readable.tertiary" pointerEvents="none">
-        {requestFocus ? <SearchIcon /> : <MenuCloseIcon />}
+      <InputRightElement color="readable.tertiary">
+        {requestFocus ? <SearchIcon /> : <RightIcon />}
       </InputRightElement>
     </InputGroup>
   );

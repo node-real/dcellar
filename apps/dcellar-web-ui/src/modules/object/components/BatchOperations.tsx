@@ -1,18 +1,18 @@
-import React, { memo, useMemo } from 'react';
-import { Box, Text, Tooltip } from '@totejs/uikit';
+import React, { memo, useMemo, useState } from 'react';
+import { Box, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
 import { setSelectedRowKeys, setStatusDetail, setupListObjects } from '@/store/slices/object';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
-import { useMount } from 'ahooks';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { useMount, useUnmount } from 'ahooks';
+import { setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { downloadObject } from '@/facade/object';
-import { formatBytes } from '@/modules/file/utils';
 import { GhostButton } from '@/modules/object/objects.style';
 import { BatchDeleteObject } from '@/modules/object/components/batch-delete/BatchDeleteObject';
+import { DCTooltip } from '@/components/common/DCTooltip';
 
 interface BatchOperationsProps {}
 
@@ -27,9 +27,14 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const [isBatchDeleteOpen, setBatchDeleteOpen] = React.useState(false);
   const quotaData = quotas[bucketName] || {};
   const primarySp = primarySpInfo[bucketName];
+  const [quotaTooltip, setQuotaTooltip] = useState(false);
 
   useMount(() => {
     dispatch(setupBucketQuota(bucketName));
+  });
+
+  useUnmount(() => {
+    dispatch(setSelectedRowKeys([]));
   });
 
   const onError = (type: string) => {
@@ -76,9 +81,6 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
 
   const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
   const downloadable = remainQuota && showDownload && !!items.length;
-  const remainQuotaBytes = formatBytes(
-    quotaData.freeQuota + quotaData.readQuota - quotaData.consumedQuota,
-  );
 
   const refetch = async () => {
     if (!primarySp || !loginAccount) return;
@@ -94,26 +96,45 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     dispatch(setupListObjects(params));
   };
 
+  const openQuotaManage = () => {
+    setQuotaTooltip(false);
+    dispatch(setEditQuota([bucketName, 'menu']));
+  };
+
+  const onOpenChange = (v: boolean) => {
+    if (downloadable && v) return;
+    if (remainQuota && v) return;
+    setQuotaTooltip(v);
+  };
+
   return (
     <>
-      <BatchDeleteObject
-        refetch={refetch}
-        isOpen={isBatchDeleteOpen}
-        cancelFn={() => setBatchDeleteOpen(false)}
-      />
+      {isBatchDeleteOpen && (
+        <BatchDeleteObject
+          refetch={refetch}
+          isOpen={isBatchDeleteOpen}
+          cancelFn={() => setBatchDeleteOpen(false)}
+        />
+      )}
       <Text as="div" fontWeight={500} alignItems="center" display="flex" gap={12}>
         {showDownload && (
-          <Tooltip
-            trigger="hover"
-            placement="bottom-start"
-            visibility={remainQuota ? 'hidden' : 'visible'}
-            content={
-              <Box>
-                No enough quota to download your selected objects. Please reduce the number of
-                objects or increase quota.
-                <Text fontSize={14} fontWeight={600} mt={12}>
-                  Remaining Quota: {remainQuotaBytes}
-                </Text>
+          <DCTooltip
+            placement="bottomLeft"
+            open={quotaTooltip}
+            onOpenChange={onOpenChange}
+            title={
+              <Box fontSize={14} lineHeight="20px" p={4}>
+                <Text
+                  cursor="pointer"
+                  as="span"
+                  color="#00BA34"
+                  _hover={{ color: '#2EC659' }}
+                  borderBottom="1px solid currentColor"
+                  onClick={openQuotaManage}
+                >
+                  Increase the quota
+                </Text>{' '}
+                or decrease the number of selected objects to continue.
               </Box>
             }
           >
@@ -127,7 +148,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
                 Download
               </GhostButton>
             </div>
-          </Tooltip>
+          </DCTooltip>
         )}
         <GhostButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
           Delete

@@ -2,7 +2,7 @@ import { Box, Text } from '@totejs/uikit';
 import React from 'react';
 import { UploadingObjects } from './UploadingObjects';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectUploadQueue, setTaskManagement } from '@/store/slices/global';
+import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global';
 import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { DCDrawer } from '@/components/common/DCDrawer';
@@ -11,8 +11,6 @@ import { useThrottleFn } from 'ahooks';
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();
   const { taskManagement } = useAppSelector((root) => root.global);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const isOpen = taskManagement;
   const { run: onToggle } = useThrottleFn(() => dispatch(setTaskManagement(!isOpen)), {
     wait: 200,
@@ -20,9 +18,7 @@ export const TaskManagement = () => {
   const setClose = () => {
     dispatch(setTaskManagement(false));
   };
-  const isUploading = uploadQueue.some((i) =>
-    ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(i.status),
-  );
+  const isUploading = useAppSelector(selectHasUploadingTask);
 
   const renderButton = () => {
     if (isUploading) {

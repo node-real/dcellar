@@ -1,23 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Loading, Text } from '@totejs/uikit';
 import { IDCSelectOption } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
+import { MenuCloseIcon } from '@totejs/icons';
+import { getAccountDisplay } from '@/utils/accounts';
+import { AccountTips } from './AccountTips';
 
 type TProps = {
-  onChange: (value: TAccount) => void;
-  to: string;
+  value: string;
+  loading: boolean;
+  isError: boolean;
   disabled?: boolean;
+  onChange: (value: TAccount) => void;
 };
 
-export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
+export function ToAccountSelector({ onChange, value, loading, isError, disabled = false }: TProps) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-
+  const { accountTypes } = useAppSelector((state) => state.accounts);
   const accountList = useMemo(
     () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],
@@ -31,17 +36,21 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
 
   useEffect(() => {
     if (!len) return;
-    const initialAccount = accountList.find((item) => item.address === to);
     setTotal(len);
-    setAccount(initialAccount || { name: 'Custom Account', address: '' });
-  }, [to, accountList]);
+  }, [len]);
+
+  useEffect(() => {
+    if (account.address === value || !value) return;
+    const initialAccount = accountList.find((item) => item.address === value);
+    setAccount(initialAccount || { name: 'Custom Account', address: value });
+  }, [accountList, value]);
 
   useEffect(() => {
     if (!account) return;
     saveOnChangeRef.current?.(account);
   }, [account]);
 
-  const onChangeSP = (value: string) => {
+  const onChangeAccount = (value: string) => {
     setAccount(
       keyAccountList[value] || {
         name: 'Custom Account',
@@ -88,7 +97,7 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
       justifyContent={'center'}
       cursor={'pointer'}
       _hover={{
-        bgColor: 'bg.bottom'
+        bgColor: 'bg.bottom',
       }}
       onClick={() => {
         router.push('/accounts');
@@ -98,15 +107,25 @@ export function ToAccountSelector({ onChange, to, disabled = false }: TProps) {
     </Flex>
   );
 
+  const RightIcon = () => {
+    if (loading) {
+      return <Loading size={12} marginX={4} color="readable.normal" />;
+    }
+    const accountType = isError ? 'error_account' : accountTypes[value];
+    const accountDisplay = getAccountDisplay(accountType);
+    return accountDisplay ? <AccountTips type={accountType} /> : <MenuCloseIcon />;
+  };
+
   return (
     <DCInputSelect
       isDisabled={disabled}
+      RightIcon={RightIcon}
       value={account?.address}
       text={account?.address}
       placeholder="Choose or enter addresses"
       options={options}
       header={`Accounts (${total})`}
-      onChange={onChangeSP}
+      onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{

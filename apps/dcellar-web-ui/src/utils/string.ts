@@ -1,3 +1,6 @@
+import BigNumber from 'bignumber.js';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+
 export const trimLongStr = (
   str: string,
   maxLength: number = 12,
@@ -63,14 +66,15 @@ export const encodeObjectName = (pathName: string) => {
 
       // others characters need to be encoded
       default:
-        const length = encodeURIComponent(s).length;
-        if (length < 0) {
-          // if encodeURIComponent cannot convert return the same string as is
-          return pathName;
+        // . ! @ # $ % ^ & * ) ( - + = { } [ ] / " , ' < > ~ \ .` ? : ; | \\
+        if (/[.!@#$%^&*)(\-+={}\[\]\/",'<>~·`?:;|\\]+$/.test(s)) {
+          // english characters
+          const hexStr = s.charCodeAt(0).toString(16);
+          encodedPathName += '%' + hexStr.toUpperCase();
+        } else {
+          // others characters
+          encodedPathName += encodeURI(s);
         }
-
-        const hexStr = s.charCodeAt(0).toString(16);
-        encodedPathName += '%' + hexStr.toUpperCase();
     }
   }
   return encodedPathName;
@@ -113,4 +117,46 @@ export const getShareLink = (bucketName: string, objectName: string) => {
   return `${location.origin}/share?file=${encodeURIComponent(
     getObjectPath(bucketName, objectName),
   )}`;
+};
+
+export const formatByGB = (num: number) => {
+  return `${BigNumber(num).div(1_073_741_824).dp(2)} GB`;
+};
+
+export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
+  const { freeQuota = 0, readQuota = 0, consumedQuota = 0, freeConsumedSize = 0 } = quota || {};
+
+  const value = {
+    totalFree: freeQuota + freeConsumedSize,
+    totalRead: readQuota,
+    remainFree: freeQuota,
+    remainRead: readQuota - consumedQuota,
+    total: readQuota + freeQuota + freeConsumedSize,
+    remain: freeQuota + readQuota - consumedQuota,
+  };
+
+  const f = (v: number, _removeSpace = removeSpace) => {
+    if (!quota) return '--';
+    if (v <= 0) return '0GB';
+    const text = _removeSpace ? formatByGB(v).replace(' ', '') : formatByGB(v);
+    return v ? text : text.replace('B', 'GB');
+  };
+
+  const text = {
+    totalFreeText: f(freeQuota + freeConsumedSize),
+    totalReadText: f(readQuota),
+    remainFreeText: f(freeQuota),
+    remainReadText: f(readQuota - consumedQuota),
+    totalText: f(readQuota + freeQuota + freeConsumedSize),
+    remainText: f(freeQuota + readQuota - consumedQuota),
+  };
+
+  return {
+    ...value,
+    ...text,
+    remainPercent: (value.remain / value.total) * 100,
+    freeRemainPercent: (value.remainFree / value.total) * 100,
+    readRemainPercent: (value.remainRead / value.total) * 100,
+    show: `${f(value.remain, false)} / ${f(value.total, false)}`,
+  };
 };

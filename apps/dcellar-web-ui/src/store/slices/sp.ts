@@ -54,7 +54,7 @@ export const spSlice = createSlice({
   reducers: {
     setSpMeta(state, { payload }: PayloadAction<SpMeta[]>) {
       payload.forEach((meta) => {
-        state.spMeta[meta.SPAddress] = meta;
+        state.spMeta[meta.Endpoint] = meta;
       });
     },
     setStorageProviders(
@@ -95,19 +95,22 @@ export const spSlice = createSlice({
       const { bucketName, sp } = payload;
       state.primarySpInfo[bucketName] = sp;
     },
+    setPrimarySpInfos(
+      state,
+      { payload }: PayloadAction<Array<{ bucketName: string; sp: SpItem }>>,
+    ) {
+      payload.forEach(({ bucketName, sp }) => {
+        state.primarySpInfo[bucketName] = sp;
+      });
+    },
     updateSps(state, { payload }: PayloadAction<string[]>) {
       state.sps = state.sps.filter((sp) => payload.includes(sp.operatorAddress));
       // state.oneSp = payload[0];
     },
-    filterSps(state, { payload }: PayloadAction<string[]>) {
-      state.sps = state.sps.filter((s) => !payload.includes(s.operatorAddress));
-      // const len = state.sps.length;
-      // state.oneSp = state.sps[random(0, len - 1)]?.operatorAddress;
-    },
   },
 });
 
-export const { setStorageProviders, setPrimarySpInfo, updateSps, filterSps, setSpMeta } =
+export const { setStorageProviders, setPrimarySpInfo, setPrimarySpInfos, updateSps, setSpMeta } =
   spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {

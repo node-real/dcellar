@@ -3,7 +3,6 @@ import { Flex, Link, Text, useDisclosure } from '@totejs/uikit';
 import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
-import { selectBalance } from '@/store/slices/balance';
 import { useMount } from 'ahooks';
 import { GAS_FEE_DOC } from '../constant';
 import { MenuCloseIcon } from '@totejs/icons';
@@ -87,7 +86,7 @@ export const Fees = memo<GasFeeItemProps>(function GasFeeItem(props) {
                   color="readable.tertiary"
                   as="p"
                 >
-                  6 months prepaid fee
+                  Prepaid fee
                 </Text>
               </Flex>
               <Text fontSize={14} lineHeight="28px" fontWeight={400} color="readable.tertiary">

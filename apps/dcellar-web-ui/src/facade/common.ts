@@ -1,46 +1,47 @@
 import { getClient } from '@/base/client';
 import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { IObjectResultType } from '@bnb-chain/greenfield-js-sdk';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
-import { commonFault } from '@/facade/error';
-import { getDomain } from '@/utils/getDomain';
-import { MsgData } from '@bnb-chain/greenfield-cosmos-types/cosmos/base/abci/v1beta1/abci';
+import { commonFault, ErrorMsg } from '@/facade/error';
+import { IQuotaProps, SpResponse } from '@bnb-chain/greenfield-js-sdk';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
 export const getObjectInfoAndBucketQuota = async ({
   bucketName,
   objectName,
-  endpoint,
   address,
   seedString,
+  endpoint,
 }: {
   bucketName: string;
   objectName: string;
-  endpoint: string;
+  endpoint?: string;
   address: string;
   seedString: string;
-}): Promise<[ObjectInfo | null, IQuotaProps | null]> => {
+}): Promise<[ObjectInfo | null, IQuotaProps | null, ErrorMsg?]> => {
   const client = await getClient();
-  const [{ objectInfo }, { body }] = await Promise.all([
+  const [{ objectInfo }, { body, message }] = await Promise.all([
     client.object.headObject(bucketName, objectName).catch(() => ({} as QueryHeadObjectResponse)),
     client.bucket
-      .getBucketReadQuota({
-        bucketName,
-      }, {
-        type: 'EDDSA',
-        seed: seedString,
-        domain: window.location.origin,
-        address,
-      })
+      .getBucketReadQuota(
+        {
+          bucketName,
+          endpoint,
+        },
+        {
+          type: 'EDDSA',
+          seed: seedString,
+          domain: window.location.origin,
+          address,
+        },
+      )
       .catch((e) => {
-        return {} as IObjectResultType<IQuotaProps>;
+        return {} as SpResponse<IQuotaProps>;
       }),
   ]);
 
-  return [objectInfo || null, body || null];
+  return [objectInfo || null, body || null, message];
 };
 
 export type BnbPriceInfo = { price: string; symbol: string };

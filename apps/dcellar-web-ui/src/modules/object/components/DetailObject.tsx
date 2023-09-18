@@ -14,10 +14,8 @@ import { CopyText } from '@/components/common/CopyText';
 import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { useState } from 'react';
-import { FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
+import { EMPTY_TX_HASH, FILE_INFO_IMAGE_URL } from '@/modules/file/constant';
 import { DCButton } from '@/components/common/DCButton';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -36,7 +34,9 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
-interface modalProps {}
+interface modalProps {
+  accountFrozen: boolean;
+}
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -169,62 +169,17 @@ const renderUrlWithLink = (
   );
 };
 
-const renderCopyAddress = (address: string, gaClickName?: string) => {
-  return (
-    <CopyText value={formatAddress(address)} justifyContent="flex-end" gaClickName={gaClickName}>
-      <Text as="span" fontSize={14} lineHeight="17px" fontWeight={500}>
-        {trimAddress(address, 28, 15, 13)}
-      </Text>
-    </CopyText>
-  );
-};
-
-const renderVisibilityTag = (visibility: any) => {
-  // public File
-  if (visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ) {
-    return (
-      <Flex h={'24px'} alignItems={'center'}>
-        <PublicFileIcon fillColor={'#009E2C'} w={14} h={14} />
-        <Text
-          color={'readable.primary'}
-          fontWeight={400}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          ml={'6px'}
-        >
-          Public
-        </Text>
-      </Flex>
-    );
-  }
-  // private file
-  if (visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE) {
-    return (
-      <Flex h={'24px'} alignItems={'center'}>
-        <PrivateFileIcon fillColor={'#009E2C'} w={14} h={14} />
-        <Text
-          color={'readable.primary'}
-          fontWeight={400}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          ml={'6px'}
-        >
-          Private
-        </Text>
-      </Flex>
-    );
-  }
-  return <></>;
-};
-
 export const DetailObject = (props: modalProps) => {
+  const { accountFrozen } = props;
   const dispatch = useAppDispatch();
   const [action, setAction] = useState<ObjectActionType>('');
   const { accounts, loginAccount } = useAppSelector((root) => root.persist);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount] || {};
   const { setOpenAuthModal } = useOffChainAuth();
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { editDetail, bucketName, objectsInfo, path } = useAppSelector((root) => root.object);
+  const bucket = bucketInfo[editDetail.bucketName];
   const primarySp = primarySpInfo[bucketName];
   const key = `${path}/${editDetail.name}`;
   const objectInfo = objectsInfo[key];
@@ -328,7 +283,7 @@ export const DetailObject = (props: modalProps) => {
           </Flex>
           <Divider />
           <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
-            {renderPropRow('Date Created', formatFullTime(+objectInfo.ObjectInfo.CreateAt * 1000))}
+            {renderPropRow('Date created', formatFullTime(+objectInfo.ObjectInfo.CreateAt * 1000))}
             {renderAddressLink(
               'Object ID',
               formatId(Number(objectInfo.ObjectInfo?.Id)),
@@ -349,19 +304,26 @@ export const DetailObject = (props: modalProps) => {
               'dc.file.f_detail_pop.copy_seal.click',
             )}
             {renderAddressLink(
+              'Payment address',
+              bucket.PaymentAddress,
+              'dc.file.f_detail_pop.seal.click',
+              'dc.file.f_detail_pop.copy_seal.click',
+            )}
+            {renderAddressLink(
               'Create transaction hash',
               objectInfo.CreateTxHash,
               'dc.object.f_detail_pop.CreateTxHash.click',
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
               'tx',
             )}
-            {renderAddressLink(
-              'Seal transaction hash',
-              objectInfo.SealTxHash,
-              'dc.object.f_detail_pop.SealTxHash.click',
-              'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-              'tx',
-            )}
+            {objectInfo.SealTxHash !== EMPTY_TX_HASH &&
+              renderAddressLink(
+                'Seal transaction hash',
+                objectInfo.SealTxHash,
+                'dc.object.f_detail_pop.SealTxHash.click',
+                'dc.object.f_detail_pop.copy_seal_tx_hash.click',
+                'tx',
+              )}
             {editDetail.visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
               renderPropRow(
                 'Universal link',
@@ -386,6 +348,7 @@ export const DetailObject = (props: modalProps) => {
                 mr={'16px'}
                 borderColor={'readable.normal'}
                 gaClickName="dc.file.f_detail_pop.share.click"
+                isDisabled={accountFrozen}
                 onClick={() => onAction('view')}
               >
                 Preview
@@ -394,6 +357,7 @@ export const DetailObject = (props: modalProps) => {
                 variant={'dcPrimary'}
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.download.click"
+                isDisabled={accountFrozen}
                 onClick={() => onAction('download')}
               >
                 Download

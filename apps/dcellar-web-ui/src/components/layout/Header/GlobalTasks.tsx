@@ -1,7 +1,8 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   progressFetchList,
+  refreshTaskFolder,
   selectHashTask,
   selectUploadQueue,
   setupUploadTaskErrorMsg,
@@ -19,7 +20,7 @@ import {
   makePutObjectHeaders,
 } from '@/modules/file/utils/generatePubObjectOptions';
 import axios from 'axios';
-import { headObject } from '@/facade/object';
+import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/utils/constant';
 import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
@@ -28,7 +29,9 @@ import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
-import { TBaseGetCreateObject } from '@bnb-chain/greenfield-js-sdk';
+import { setupAccountDetail } from '@/store/slices/accounts';
+import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 
 interface GlobalTasksProps {}
 
@@ -37,10 +40,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { tmpAccount } = useAppSelector((root) => root.global);
+  const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
+  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
+  const [authModal, setAuthModal] = useState(false);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
   const folderInfos = keyBy(
     queue.filter((q) => q.waitFile.name.endsWith('/')),
@@ -93,14 +99,20 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     );
   }, [hashTask, dispatch]);
 
+  useEffect(() => {
+    if (isAuthPending) return;
+    setAuthModal(false);
+  }, [isAuthPending]);
+
   const runUploadTask = async (task: UploadFile) => {
+    if (authModal) return;
     // 1. get approval from sp
     const isFolder = task.waitFile.name.endsWith('/');
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
       .join('/');
-    const createObjectPayload: TBaseGetCreateObject = {
+    const createObjectPayload: CreateObjectApprovalRequest = {
       bucketName: task.bucketName,
       objectName: finalName,
       creator: tmpAccount.address,
@@ -205,6 +217,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             await dispatch(progressFetchList(task));
+            if (authModal) return;
             dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
           },
 
@@ -222,12 +235,20 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
+          const authExpired = message?.includes('invalid signature');
+          if (authExpired) {
+            setOpenAuthModal();
+            setAuthModal(true);
+            dispatch(refreshTaskFolder(task));
+          }
           setTimeout(() => {
             dispatch(
               setupUploadTaskErrorMsg({
                 account: loginAccount,
                 task,
-                errorMsg: message || e?.message || 'upload error',
+                errorMsg: authExpired
+                  ? 'Authentication expired.'
+                  : message || e?.message || 'upload error',
               }),
             );
           }, 200);
@@ -251,22 +272,27 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const objectName = [...prefixFolders, waitFile.relativePath, waitFile.name]
           .filter((item) => !!item)
           .join('/');
-        const objectInfo = await headObject(bucketName, objectName);
 
-        if (!objectInfo || ![0, 1].includes(objectInfo.objectStatus)) {
+        const endpoint = spInfo[task.spAddress].endpoint;
+        const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
+        const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus!;
+        const preTs = sealingTs[task.id] || Date.now();
+        if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
               task,
-              errorMsg: 'Something went wrong.',
+              errorMsg: error ? error : 'Something went wrong.',
             }),
           );
           return -1;
         }
-        if (objectInfo.objectStatus === 1) {
+        if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
+          const bucket = bucketInfo[task.bucketName];
+          dispatch(setupAccountDetail(bucket.PaymentAddress));
         }
-        return objectInfo.objectStatus;
+        return objectStatus;
       }),
     );
 

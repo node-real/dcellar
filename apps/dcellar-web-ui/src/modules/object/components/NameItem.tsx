@@ -20,7 +20,6 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import {
   E_GET_QUOTA_FAILED,
   E_NO_QUOTA,
-  E_OBJECT_NAME_EXISTS,
   E_OFF_CHAIN_AUTH,
   E_UNKNOWN,
 } from '@/facade/error';
@@ -30,13 +29,14 @@ import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 
 interface NameItemProps {
   item: ObjectItem;
+  disabled: Boolean;
 }
 
-export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
+export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }) {
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const {primarySpInfo} = useAppSelector((root) => root.sp);
+  const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName } = useAppSelector((root) => root.object);
   const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
@@ -62,23 +62,25 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
     if (config.directDownload) {
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, primarySp.operatorAddress));
+      const { seedString } = await dispatch(
+        getSpOffChainData(loginAccount, primarySp.operatorAddress),
+      );
       const gParams = {
         bucketName,
         objectName: object.objectName,
         endpoint: primarySp.endpoint,
         seedString,
         address: loginAccount,
+      };
+      const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
+      if (error === 'invalid signature') {
+        return onError(E_OFF_CHAIN_AUTH);
       }
-      const [objectInfo, quotaData] = await getObjectInfoAndBucketQuota(gParams);
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
       if (quotaData === null) {
         return onError(E_GET_QUOTA_FAILED);
-      }
-      if (objectInfo === null) {
-        return onError(E_OBJECT_NAME_EXISTS);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
       if (!remainQuota) return onError(E_NO_QUOTA);
@@ -114,6 +116,11 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
       <Link
         href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
+          if (disabled) {
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+          }
           e.stopPropagation();
           if (folder) {
             const path = trimEnd([bucketName, objectName].join('/'), '/');

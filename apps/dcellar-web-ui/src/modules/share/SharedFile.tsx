@@ -1,12 +1,10 @@
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import React, { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Image, Text, useDisclosure } from '@totejs/uikit';
+import { Flex, Image, Text } from '@totejs/uikit';
 import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/storage';
-import { FileStatusModal } from '@/modules/file/components/FileStatusModal';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import {
   downloadObject,
@@ -23,8 +21,10 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
 import { SpItem } from '@/store/slices/sp';
-import { PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { setStatusDetail } from '@/store/slices/object';
+import { BUTTON_GOT_IT } from '@/modules/file/constant';
 
 interface SharedFileProps {
   fileName: string;
@@ -45,14 +45,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
 }) {
   const dispatch = useAppDispatch();
   const [action, setAction] = useState<ActionType>('');
-  const [statusModalIcon, setStatusModalIcon] = useState<string>('');
-  const [statusModalTitle, setStatusModalTitle] = useState('');
-  const [statusModalDescription, setStatusModalDescription] = useState<string | JSX.Element>('');
-  const {
-    isOpen: isStatusModalOpen,
-    onOpen: onStatusModalOpen,
-    onClose: onStatusModalClose,
-  } = useDisclosure();
   const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
   const size = payloadSize.toString();
@@ -65,10 +57,13 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const errorData = SHARE_ERROR_TYPES[type as ShareErrorType]
       ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
-    setStatusModalIcon(errorData.icon);
-    setStatusModalTitle(errorData.title);
-    setStatusModalDescription(errorData.desc);
-    onStatusModalOpen();
+    dispatch(
+      setStatusDetail({
+        ...errorData,
+        buttonText: BUTTON_GOT_IT,
+        extraParams: [bucketName],
+      }),
+    );
   };
 
   const onAction = async (e: ActionType) => {
@@ -125,15 +120,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
 
   return (
     <Content>
-      <FileStatusModal
-        isOpen={isStatusModalOpen}
-        onClose={onStatusModalClose}
-        buttonOnClick={onStatusModalClose}
-        title={statusModalTitle}
-        description={statusModalDescription}
-        buttonText="Got It"
-        icon={statusModalIcon}
-      />
       <>
         <Flex gap={24}>
           <Image

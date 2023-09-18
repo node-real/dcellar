@@ -1,4 +1,4 @@
-import { convertVisibility } from "./object";
+import { convertVisibility } from './object';
 
 const getLoginLocalStorageKey = (prefix = '') => `${prefix}_GREENFIELD_LOGIN_STORAGE`;
 
@@ -12,4 +12,12 @@ const CHAIN_NAMES: {[key: number | string]: string} = {
 
 const reverseVisibilityType = convertVisibility();
 
-export { getLoginLocalStorageKey, USER_REJECT_STATUS_NUM, REQUEST_PENDING_NUM, CHAIN_NAMES, reverseVisibilityType };
+export {
+  getLoginLocalStorageKey,
+  USER_REJECT_STATUS_NUM,
+  REQUEST_PENDING_NUM,
+  CHAIN_NAMES,
+  reverseVisibilityType,
+};
+
+export const G_BYTES = 1024 * 1024 * 1024;

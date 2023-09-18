@@ -1,7 +1,6 @@
 import { Box, Button, Circle, Flex, Image, Link, Text, useOutsideClick } from '@totejs/uikit';
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-import { PulseIcon, ReverseHIcon, SaverIcon } from '@totejs/icons';
 
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { getShortenWalletAddress } from '@/utils/wallet';
@@ -11,9 +10,8 @@ import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
-// import { StreamBalance } from '@/components/layout/Header/StreamBalance';
 import { useDebounceEffect } from 'ahooks';
-import { setupBnbPrice, setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
+import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
 import { GasObjects } from './GasObjects';
@@ -23,6 +21,10 @@ import { PaymentAccounts } from './PaymentAccounts';
 import TransferInIcon from '@/public/images/icons/transfer-in.svg';
 import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
 import SendIcon from '@/public/images/icons/send.svg';
+import { setupAccountDetail } from '@/store/slices/accounts';
+import { StoreFeeParams } from './StoreFeeParams';
+import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
+import { DisconnectWalletModal } from './DisconnectWalletModal';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
@@ -37,13 +39,19 @@ const renderAvatar = (size?: 'sm' | 'md') => {
 export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) => {
   const dispatch = useAppDispatch();
   const { logout } = useLogin();
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const router = useRouter();
-  const shortAddress = getShortenWalletAddress(address);
+  const shortAddress = getShortenWalletAddress(loginAccount);
 
   const [showPanel, setShowPanel] = useState(false);
+  const isUploading = useAppSelector(selectHasUploadingTask);
   const ref = useRef(null);
-
+  const onDisconnectClick = () => {
+    if (!isUploading) {
+      return logout(true);
+    }
+    dispatch(setDisconnectWallet(true));
+  };
   useOutsideClick({
     ref,
     handler: () => {
@@ -58,16 +66,17 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
   useDebounceEffect(() => {
     if (!showPanel) return;
     dispatch(setupBnbPrice());
-    dispatch(setupTmpAvailableBalance(address));
-    dispatch(setupTmpLockFee(address));
+    dispatch(setupAccountDetail(loginAccount));
   }, [showPanel]);
 
   return (
     <>
+      <ManageQuotaDrawer />
       <GlobalTasks />
-      {/* <StreamBalance /> */}
       <GasObjects />
       <PaymentAccounts />
+      <StoreFeeParams />
+      <DisconnectWalletModal />
       <Flex
         w="340px"
         ref={ref}
@@ -94,7 +103,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         >
           {renderAvatar('sm')}
           <CopyText
-            value={address}
+            value={loginAccount}
             iconProps={{ color: 'readable.normal' }}
             gaClickName="dc.main.account.copy_add.click"
           >
@@ -151,7 +160,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_in);
@@ -184,7 +193,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.transfer_out);
@@ -217,7 +226,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
               alignItems={'center'}
               cursor={'pointer'}
               _hover={{
-                bgColor: '#f5f5f5'
+                bgColor: '#f5f5f5',
               }}
               onClick={() => {
                 router.push(InternalRoutePaths.send);
@@ -252,7 +261,12 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             borderRadius="8px"
             _hover={{ bg: 'bg.bottom' }}
           >
-            <Image src={`${assetPrefix}/images/icons/accounts.svg`} w="24px" mr="8px" alt="accounts icon" />
+            <Image
+              src={`${assetPrefix}/images/icons/accounts.svg`}
+              w="24px"
+              mr="8px"
+              alt="accounts icon"
+            />
             <Text color="readable.normal" fontWeight={500} fontSize="16px">
               Accounts
             </Text>
@@ -262,7 +276,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           <Flex
             h="56px"
             alignItems="center"
-            onClick={logout}
+            onClick={onDisconnectClick}
             paddingX="16px"
             cursor="pointer"
             borderRadius="8px"

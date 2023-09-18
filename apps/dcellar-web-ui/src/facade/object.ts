@@ -1,12 +1,12 @@
 import {
-  IObjectResultType,
   IQuotaProps,
   ISimulateGasFee,
   ListObjectsByBucketNameResponse,
   PermissionTypes,
-  TListObjects,
   TxResponse,
   generateUrlByBucketName,
+  ListObjectsByBucketNameRequest,
+  SpResponse,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,
@@ -47,6 +47,8 @@ import {
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 import { GROUP_ID } from '@/utils/regex';
+import { XMLParser } from 'fast-xml-parser';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -104,7 +106,10 @@ export const getCanObjectAccess = async (
     address: loginAccount,
     seedString,
   };
-  const [info, quota] = await getObjectInfoAndBucketQuota(params);
+  const [info, quota, error] = await getObjectInfoAndBucketQuota(params);
+  if (error === 'invalid signature') {
+    return [false, E_OFF_CHAIN_AUTH];
+  }
   if (!info) return [false, E_NOT_FOUND];
 
   const size = info.payloadSize.toString();
@@ -213,8 +218,8 @@ export type ListObjectsParams = {
 };
 
 export const getListObjects = async (
-  params: TListObjects,
-): Promise<[IObjectResultType<ListObjectsByBucketNameResponse>, null] | ErrorResponse> => {
+  params: ListObjectsByBucketNameRequest,
+): Promise<[SpResponse<ListObjectsByBucketNameResponse>, null] | ErrorResponse> => {
   const client = await getClient();
   const [res, error] = await client.object.listObjects(params).then(resolve, commonFault);
   if (!res || error) return [null, error];
@@ -375,7 +380,7 @@ export const putObjectPolicies = async (
     return [null, null, ids];
   }
 
-  const txs = await client.basic.multiTx(_opts);
+  const txs = await client.txClient.multiTx(_opts);
   const [simulateInfo, simulateError] = await txs
     .simulate({ denom: 'BNB' })
     .then(resolve, simulateFault);
@@ -412,7 +417,11 @@ export const preExecDeleteObject = async (
   return [data!, null];
 };
 
-export const getObjectMeta = async (bucketName: string, objectName: string, endpoint: string) => {
+export const legacyGetObjectMeta = async (
+  bucketName: string,
+  objectName: string,
+  endpoint: string,
+) => {
   const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
     objectName,
   )}?object-meta`;
@@ -428,4 +437,36 @@ export const getObjectMeta = async (bucketName: string, objectName: string, endp
   };
 
   return axios.get(url).catch(errorHandle);
+};
+
+export const xmlParser = new XMLParser({
+  numberParseOptions: {
+    hex: false,
+    leadingZeros: true,
+    eNotation: false,
+  },
+});
+
+export const getObjectMeta = async (
+  bucketName: string,
+  objectName: string,
+  endpoint: string,
+): Promise<[ObjectMeta, null] | ErrorResponse> => {
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+    objectName,
+  )}?object-meta`;
+
+  return axios.get(url).then(
+    (e) => {
+      const data = xmlParser.parse(e.data)?.GfSpGetObjectMetaResponse.Object as ObjectMeta;
+      return [data, null];
+    },
+    (e) => {
+      const error =
+        e.status === 429
+          ? { code: e.status, message: 'SP not available. Try later.' }
+          : xmlParser.parse(e.data);
+      return commonFault(error);
+    },
+  );
 };

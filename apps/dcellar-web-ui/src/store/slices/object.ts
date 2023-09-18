@@ -3,12 +3,15 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
 import { find, get, last, trimEnd } from 'lodash-es';
-import { GfSPListObjectsByBucketNameResponse, TListObjects } from '@bnb-chain/greenfield-js-sdk';
+import {
+  GfSPListObjectsByBucketNameResponse,
+  ListObjectsByBucketNameRequest,
+} from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
-// import { TObject } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp-xml/Common';
+import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -33,6 +36,7 @@ export type TStatusDetail = {
   buttonText?: string;
   errorText?: string;
   buttonOnClick?: () => void;
+  extraParams?: Array<string | number>;
 };
 
 export type ObjectActionType = 'view' | 'download' | '';
@@ -208,7 +212,10 @@ export const objectSlice = createSlice({
     setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
       state.editDownload = payload;
     },
-    setObjectList(state, { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>) {
+    setObjectList(
+      state,
+      { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>,
+    ) {
       const { path, list } = payload;
       const [bucketName] = path.split('/');
       // keep order
@@ -232,38 +239,36 @@ export const objectSlice = createSlice({
           return !ts;
         });
 
+      const objects = list.Objects.map((i) => {
+        const {
+          BucketName,
+          ObjectName,
+          ObjectStatus,
+          CreateAt,
+          PayloadSize,
+          Visibility,
+          ContentType,
+        } = i.ObjectInfo;
 
-      const objects = list.Objects
-        .map((i) => {
-          const {
-            BucketName,
-            ObjectName,
-            ObjectStatus,
-            CreateAt,
-            PayloadSize,
-            Visibility,
-            ContentType,
-          } = i.ObjectInfo;
+        const path = [BucketName, ObjectName].join('/');
+        state.objectsInfo[path] = i;
 
-          const path = [BucketName, ObjectName].join('/');
-          state.objectsInfo[path] = i;
-
-          return {
-            bucketName: BucketName,
-            objectName: ObjectName,
-            name: last(ObjectName.split('/'))!,
-            payloadSize: Number(PayloadSize),
-            // todo fix it *second*
-            createAt: Number(CreateAt),
-            contentType: ContentType,
-            folder: false,
-            objectStatus: Number(ObjectStatus),
-            visibility: Visibility,
-            removed: i.Removed,
-          };
-        })
+        return {
+          bucketName: BucketName,
+          objectName: ObjectName,
+          name: last(ObjectName.split('/'))!,
+          payloadSize: Number(PayloadSize),
+          // todo fix it *second*
+          createAt: Number(CreateAt),
+          contentType: ContentType,
+          folder: false,
+          objectStatus: Number(ObjectStatus),
+          visibility: Visibility,
+          removed: i.Removed,
+        };
+      })
         .filter((i) => {
-          return !i.objectName.endsWith('/') && !i.removed
+          return !i.objectName.endsWith('/') && !i.removed;
         })
         .filter((o) => {
           const path = [bucketName, o.objectName].join('/');
@@ -281,7 +286,7 @@ export const objectSlice = createSlice({
 });
 
 export const _getAllList = async (
-  params: TListObjects,
+  params: ListObjectsByBucketNameRequest,
 ): Promise<[GfSPListObjectsByBucketNameResponse, null] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
@@ -366,13 +371,13 @@ export const selectPathCurrent = (root: AppState) => {
   return currentPage[path] || 0;
 };
 
-export const selectPayLockFeeAccount = (root: AppState) => {
+const defaultLocateBucket = {} as BucketInfo;
+export const selectLocateBucket = (root: AppState) => {
   const { bucketInfo } = root.bucket;
   const { bucketName } = root.object;
-  const { PaymentAddress } = bucketInfo[bucketName] || {};
-  const { accountsInfo } = root.accounts;
-  return accountsInfo[PaymentAddress];
-}
+  return bucketInfo[bucketName] || defaultLocateBucket;
+};
+
 const defaultObjectList = Array<string>();
 export const selectObjectList = (root: AppState) => {
   const { objects, path } = root.object;

@@ -1,6 +1,5 @@
 import { Text } from '@totejs/uikit';
 import React from 'react';
-import { POPPINS_FONT } from '../constants';
 import { useAppSelector } from '@/store';
 
 const HeadContent = {
@@ -31,7 +30,6 @@ export const Head = () => {
         mb={'8px'}
         w={'100%'}
         textTransform="capitalize"
-        fontFamily={POPPINS_FONT}
       >
         {content?.title}
       </Text>

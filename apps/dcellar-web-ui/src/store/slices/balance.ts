@@ -3,13 +3,8 @@ import BigNumber from 'bignumber.js';
 import { AppDispatch, AppState } from '@/store';
 import { getAccountBalance } from '@/facade/account';
 import { getStreamRecord } from '@/facade/payment';
-import {
-  setTmpAvailableBalance,
-  setupTmpAvailableBalance,
-  setupTmpLockFee,
-} from '@/store/slices/global';
+import { setupTmpAvailableBalance, setupTmpLockFee } from '@/store/slices/global';
 
-// TODO 重写balance
 type Balance = {
   amount: string;
   denom: string;

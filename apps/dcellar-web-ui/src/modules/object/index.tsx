@@ -20,11 +20,13 @@ import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { ForwardIcon } from '@totejs/icons';
-import { setupAccountsInfo } from '@/store/slices/accounts';
+import { QuotaCard } from '@/modules/object/components/QuotaCard';
+import { setupAccountDetail } from '@/store/slices/accounts';
+import { InsufficientBalance } from './components/InsufficientBalance';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { bucketInfo, owner } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const router = useRouter();
@@ -44,9 +46,9 @@ export const ObjectsPage = () => {
   useAsyncEffect(async () => {
     if (!bucket) return;
     // 1. set global primary sp info
-    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
     // 2. set payment account infos
-    dispatch(setupAccountsInfo(bucket.PaymentAddress));
+    dispatch(setupAccountDetail(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
@@ -79,7 +81,10 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <ObjectBreadcrumb />
+        <Flex justifyContent="space-between" mt={-8} alignItems="center">
+          <ObjectBreadcrumb />
+          {owner && <QuotaCard />}
+        </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>
             <ForwardIcon />
@@ -106,6 +111,7 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
+      <InsufficientBalance />
       <ObjectList />
     </ObjectContainer>
   );

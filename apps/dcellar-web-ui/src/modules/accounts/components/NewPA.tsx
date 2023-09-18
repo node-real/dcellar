@@ -75,10 +75,11 @@ export const NewPA = () => {
         color={'readable.normal'}
         border={'1px solid readable.border'}
         borderRadius={4}
+        visibility={hasBankBalance ? 'hidden' : 'visible'}
       >
         <PopoverBody>
           <Box w={232} textAlign={'left'}>
-            Insufficient balance in Owner account.{' '}
+            Insufficient balance in Owner Account.{' '}
             <Link
               textDecoration={'underline'}
               onClick={() => router.push(InternalRoutePaths.transfer_in)}

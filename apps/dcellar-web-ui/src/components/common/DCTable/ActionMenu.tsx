@@ -15,7 +15,7 @@ import DepositIcon from '@/public/images/icons/deposit.svg';
 import WithdrawIcon from '@/public/images/icons/withdraw.svg';
 import { ActionButton } from './ActionButton';
 
-export type ActionMenuItem = { label: string; value: string };
+export type ActionMenuItem = { label: string; value: string; disabled?: boolean };
 
 interface ActionMenuProps {
   onChange?: (menu: string) => void;
@@ -23,6 +23,7 @@ interface ActionMenuProps {
   operations?: string[];
   justifyContent?: string;
 }
+
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
   operations = [],
@@ -41,7 +42,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.group.add_member.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
-                title='Add'
+                tip="Add Members"
               >
                 <AddMember />
               </ActionButton>
@@ -53,6 +54,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 title="Download"
                 gaClickName="dc.file.download_btn.0.click"
                 marginRight={'8px'}
+                tip="Download"
                 onClick={() => onChange(m)}
               >
                 <DownloadIcon size="md" color="readable.brand6" />
@@ -63,7 +65,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
               <ActionButton
                 marginRight={'8px'}
                 key={m}
-                title="Share"
+                tip="Share"
                 gaClickName="dc.file.share_btn.0.click"
                 onClick={() => onChange(m)}
               >
@@ -75,7 +77,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Transfer In"
+                tip="Transfer In"
                 gaClickName="dc.accounts.transfer_in_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -87,7 +89,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title='Transfer Out'
+                tip="Transfer Out"
                 gaClickName="dc.accounts.owner_account.transfer_out_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -99,7 +101,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Send"
+                tip="Send"
                 gaClickName="dc.accounts.owner_account.send_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -112,7 +114,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Deposit"
+                tip="Deposit"
                 gaClickName="dc.accounts.payment_account.deposit_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -124,7 +126,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
             return (
               <ActionButton
                 key={m}
-                title="Withdraw"
+                tip="Withdraw"
                 gaClickName="dc.accounts.payment_account.withdraw_btn.0.click"
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
@@ -145,6 +147,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
               {menus.map((m) => (
                 <GAClick key={m.value} name={`dc.bucket.list_menu.${m.value}.click`}>
                   <StyledMenuItem
+                    isDisabled={m.disabled}
                     onClick={(e) => {
                       e.stopPropagation();
                       onChange(m.value);
@@ -167,17 +170,19 @@ export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: b
   width: 24px;
   cursor: pointer;
   transition: all 0.1s;
+
   :hover {
     background-color: rgba(0, 186, 52, 0.2);
     color: #00ba34;
   }
+
   background-color: ${(props) => (props.$open ? 'rgba(0, 186, 52, 0.1)' : 'transparent')};
   color: ${(props) => (props.$open ? '#00BA34' : '#1E2026')};
 `;
 
 export const StyledMenuItem = styled(MenuItem)`
   :hover {
-    color: #009e2c;
+    color: ${(props) => !props.isDisabled && '#009e2c'};
     background-color: rgba(0, 186, 52, 0.1);
   }
 `;

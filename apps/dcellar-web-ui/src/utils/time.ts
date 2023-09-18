@@ -6,15 +6,13 @@ export const getMillisecond = (second: number) => {
   return second * 1000;
 };
 
-export const convertToSecond = (millisecond: number) => {
-  return Math.floor(millisecond / 1000);
-};
+export const getTimestamp = () => {
+  return +new Date();
+}
 
-export const getUtcZeroTimestamp = () => {
-  dayjs.extend(utc);
-
-  return dayjs().utc().valueOf();
-};
+export const getTimestampInSeconds = () => {
+  return Math.floor(+new Date() / 1000);
+}
 
 export const convertTimeStampToDate = (utcTimestamp: number) => {
   dayjs.extend(utc);
@@ -26,6 +24,9 @@ export const convertTimeStampToDate = (utcTimestamp: number) => {
 };
 
 export const formatTime = (utcZeroTimestamp = 0) => {
+  if (String(utcZeroTimestamp).length !== 13) {
+    return '--'
+  }
   dayjs.extend(utc);
   dayjs.extend(timezone);
 
@@ -33,21 +34,20 @@ export const formatTime = (utcZeroTimestamp = 0) => {
   const zeroToCurTimezone = dayjs(utcZeroTimestamp).tz(curTimezone);
   const now = dayjs();
 
-  if (zeroToCurTimezone.isBefore(now, 'day')) {
-    return zeroToCurTimezone.format('MMM D, YYYY');
-  }
-
   if (zeroToCurTimezone.isSame(now, 'day')) {
     return zeroToCurTimezone.format('HH:mm A');
   }
 
-  return '--';
+  return zeroToCurTimezone.format('MMM D, YYYY');
 };
 
 export const formatFullTime = (
   utcZeroTimestamp = 0,
   format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
 ) => {
+  if (String(utcZeroTimestamp).length !== 13) {
+    return '--'
+  }
   const formatStyle = format || 'MMM D, YYYY HH:mm A';
   dayjs.extend(utc);
   dayjs.extend(timezone);

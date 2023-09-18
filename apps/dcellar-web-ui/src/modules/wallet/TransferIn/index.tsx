@@ -10,7 +10,7 @@ import BigNumber from 'bignumber.js';
 import { ChainBox } from '../components/ChainBox';
 import Amount from '../components/Amount';
 import { Head } from '../components/Head';
-import { TransferIcon } from '../components/TransferIcon';
+import { SwapIcon } from '../components/SwapIcon';
 import { StatusModal } from '../components/StatusModal';
 import Container from '../components/Container';
 import {
@@ -191,7 +191,7 @@ export const TransferIn = () => {
       <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={BSC_CHAIN_ID} />
         <GAClick name="dc.wallet.transferin.exchange_btn.click">
-          <TransferIcon onClick={onChangeTransfer} />
+          <SwapIcon onClick={onChangeTransfer} />
         </GAClick>
         <ChainBox type="to" chainId={GREENFIELD_CHAIN_ID} />
       </Flex>

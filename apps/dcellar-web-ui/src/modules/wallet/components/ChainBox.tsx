@@ -2,7 +2,7 @@ import { Box, Flex, FormLabel, Text } from '@totejs/uikit';
 import React from 'react';
 
 import BSCIcon from '@/public/images/icons/bsc.svg';
-import { ChainInfos, POPPINS_FONT } from '../constants';
+import { ChainInfos } from '../constants';
 
 type Props = {
   chainId: number;
@@ -19,7 +19,6 @@ export const ChainBox = ({ chainId, type }: Props) => {
         fontSize="14px"
         lineHeight="150%"
         htmlFor={chain?.name}
-        fontFamily={POPPINS_FONT}
       >
         {type}
       </FormLabel>

@@ -6,7 +6,7 @@ import { TransferIn } from './TransferIn';
 import { TransferOut } from './TransferOut';
 import { Send } from './Send';
 import { EOperation } from './type';
-import { INTER_FONT, POPPINS_FONT } from './constants';
+import { INTER_FONT } from './constants';
 import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
@@ -28,7 +28,6 @@ export const Wallet = () => {
           fontWeight="700"
           fontSize={'24px'}
           lineHeight="36px"
-          fontFamily={POPPINS_FONT}
         >
           Wallet
         </Text>

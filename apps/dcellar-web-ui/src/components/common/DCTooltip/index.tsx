@@ -4,7 +4,11 @@ import { theme } from '@/base/theme/antd';
 
 type DCTooltipProps = TooltipProps & {};
 
-export const DCTooltip = memo<DCTooltipProps>(function DCTooltip({ arrow = false, ...props }) {
+export const DCTooltip = memo<DCTooltipProps>(function DCTooltip({
+  arrow = false,
+  overlayInnerStyle,
+  ...props
+}) {
   return (
     <ConfigProvider theme={theme}>
       <Tooltip
@@ -18,6 +22,7 @@ export const DCTooltip = memo<DCTooltipProps>(function DCTooltip({ arrow = false
           lineHeight: '15px',
           minHeight: 25,
           boxShadow: 'none',
+          ...overlayInnerStyle,
         }}
         {...props}
         arrow={arrow}

@@ -1,18 +1,22 @@
 import {
-  getAccountStreamRecord,
+  getStreamRecord,
   getPaymentAccount,
   getPaymentAccountsByOwner,
+  getAccount,
 } from '@/facade/account';
 import { StreamRecord } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/stream_record';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
 import { AppDispatch, GetState } from '..';
+import { BN } from '@/utils/BigNumber';
+import { getClientFrozen } from '@/utils/payment';
 
 export type TAccount = {
   name: string;
   address: string;
 };
-export type TAccountInfo = {
+export type AccountType = 'unknown_account' | 'gnfd_account' | 'payment_account' | 'non_refundable_payment_account' | 'error_account';
+export type TAccountDetail = {
   name: string;
   address: string;
   bufferBalance: string;
@@ -22,6 +26,7 @@ export type TAccountInfo = {
   crudTimestamp: number;
   outFlowCount: number;
   settleTimestamp: number;
+  clientFrozen: boolean;
   status: number;
   lockBalance: string;
   refundable?: boolean;
@@ -33,18 +38,18 @@ export type TBalance = {
 interface AccountsState {
   isLoadingPaymentAccounts: boolean;
   isLoadingDetail: string;
+  isLoadingAccountType: boolean;
   ownerAccount: TAccount;
   paymentAccounts: Record<string, TAccount[]>;
   currentPAPage: number;
-  accountsInfo: Record<string, TAccountInfo>;
+  accountDetails: Record<string, TAccountDetail>;
+  accountTypes: Record<string, AccountType>;
   editOwnerDetail: string;
   editPaymentDetail: string;
   editDisablePaymentAccount: string;
   bankBalance: string;
 }
 export const getDefaultBalance = () => ({
-  amount: '0',
-  denom: 'BNB',
   bufferBalance: '0',
   frozenNetflowRate: '0',
   netflowRate: '0',
@@ -53,18 +58,21 @@ export const getDefaultBalance = () => ({
   crudTimestamp: 0,
   outFlowCount: 0,
   settleTimestamp: 0,
+  clientFrozen: false,
   status: 0,
   refundable: true,
-  bankBalance: {},
+  bankBalance: '',
 });
 
 const initialState: AccountsState = {
   isLoadingDetail: '',
   isLoadingPaymentAccounts: false,
+  isLoadingAccountType: false,
   currentPAPage: 0,
-  ownerAccount: {} as TAccountInfo,
+  ownerAccount: {} as TAccountDetail,
   paymentAccounts: {},
-  accountsInfo: {},
+  accountDetails: {},
+  accountTypes: {},
   editOwnerDetail: '',
   editPaymentDetail: '',
   editDisablePaymentAccount: '',
@@ -80,7 +88,10 @@ export const paymentAccountSlice = createSlice({
     setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
-    setPaymentAccounts: (state, { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>) => {
+    setPaymentAccounts: (
+      state,
+      { payload }: PayloadAction<{ loginAccount: string; paymentAccounts: string[] }>,
+    ) => {
       const { loginAccount, paymentAccounts } = payload;
       state.paymentAccounts[loginAccount] = (paymentAccounts || []).map((account, index) => {
         return {
@@ -94,13 +105,13 @@ export const paymentAccountSlice = createSlice({
       const { paymentAccounts } = state;
       const list = paymentAccounts[loginAccount];
       list.map((account, index) => {
-        state.accountsInfo[account.address] = {
-          ...state.accountsInfo[account.address],
+        state.accountDetails[account.address] = {
+          ...state.accountDetails[account.address],
           ...account,
         };
       });
     },
-    setAccountsInfo: (
+    setAccountDetail: (
       state,
       {
         payload,
@@ -109,19 +120,20 @@ export const paymentAccountSlice = createSlice({
         name: string;
         streamRecord?: StreamRecord | undefined;
         refundable?: boolean;
+        bufferTime: string;
       }>,
     ) => {
-      const { address, name, streamRecord } = payload;
+      const { address, name, streamRecord, bufferTime } = payload;
       if (!address) return;
       if (!streamRecord) {
-        state.accountsInfo[address] = {
+        state.accountDetails[address] = {
           ...getDefaultBalance(),
           name,
           address,
           refundable: payload.refundable,
         };
       } else {
-        state.accountsInfo[address] = {
+        state.accountDetails[address] = {
           name: name,
           ...streamRecord,
           address: address,
@@ -132,6 +144,7 @@ export const paymentAccountSlice = createSlice({
           crudTimestamp: streamRecord.crudTimestamp.low,
           outFlowCount: streamRecord.outFlowCount.low,
           settleTimestamp: streamRecord.settleTimestamp.low,
+          clientFrozen: getClientFrozen(streamRecord.settleTimestamp.low, +bufferTime),
           refundable: payload.refundable,
         };
       }
@@ -157,6 +170,10 @@ export const paymentAccountSlice = createSlice({
     setBankBalance(state, { payload }: PayloadAction<string>) {
       state.bankBalance = payload;
     },
+    setAccountType(state, { payload }: PayloadAction<{ addr: string, type: AccountType }>) {
+      const { addr, type } = payload;
+      state.accountTypes[addr] = type;
+    }
   },
 });
 
@@ -167,27 +184,44 @@ export const {
   setPaymentAccounts,
   setPAInfos,
   setBankBalance,
-  setAccountsInfo,
+  setAccountDetail,
   setEditOwnerDetail,
   setEditPaymentDetail,
   setEditDisablePaymentAccount,
   setCurrentPAPage,
+  setAccountType,
 } = paymentAccountSlice.actions;
 
+const defaultPaAccount = {} as TAccountDetail;
 export const selectAccount = (address: string) => (state: any) =>
-  state.accounts.accountsInfo[address];
+  state.accounts.accountDetails[address] || defaultPaAccount;
+
 export const selectBankBalance = (address: string) => (state: any) =>
   state.accounts.bankBalances[address];
-export const selectPaymentAccounts = (address: string) => (state: any) => state.accounts.paymentAccounts[address];
 
+export const defaultPAList = Array<TAccount>();
+export const selectPaymentAccounts = (address: string) => (state: any) =>
+  state.accounts.paymentAccounts[address] || defaultPAList;
+export const selectAvailableBalance = (address: string) => (state: any) => {
+  const isOwnerAccount = address === state.persist.loginAccount;
+  const accountDetail = state.accounts.accountDetails[address] as TAccountDetail;
+  if (isOwnerAccount) {
+    // TODO Use static balance on next version
+    // return BN(state.accounts.bankBalance).plus(accountDetail.staticBalance).toString();
+    return BN(state.accounts.bankBalance).toString();
+  }
+
+  return accountDetail?.staticBalance;
+};
 export const setupOAList = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
+  const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
   const account = {
     address: loginAccount,
     name: 'Owner Account',
   };
   dispatch(setOwnerAccount(account));
-  dispatch(setAccountsInfo(account));
+  dispatch(setAccountDetail({ ...account, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME }));
 };
 
 export const setupPaymentAccounts =
@@ -204,28 +238,62 @@ export const setupPaymentAccounts =
       if (!data) return;
       const newData = data.paymentAccounts;
       dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
-      dispatch(setPAInfos({loginAccount}));
-  };
+      dispatch(setPAInfos({ loginAccount }));
+    };
 
-export const setupAccountsInfo =
+export const setupAccountDetail =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
     if (!address) return;
     const { loginAccount } = getState().persist;
     const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
-    const accountList = [...(paymentAccounts || []), { address: loginAccount, name: 'Owner Account' }];
+    const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
+    const accountList = [
+      ...(paymentAccounts || []),
+      { address: loginAccount, name: 'Owner Account' },
+    ];
     dispatch(setLoadingDetail(address));
     const [PARes, PAError] = await getPaymentAccount(address);
-    const [SRRes, SRError] = await getAccountStreamRecord(address);
+    const [SRRes, SRError] = await getStreamRecord(address);
     dispatch(setLoadingDetail(''));
     const paymentAccountName = accountList.find((item) => item.address === address)?.name || '';
+    const accountDetail = {
+      address,
+      name: paymentAccountName,
+      streamRecord: SRRes?.streamRecord,
+      refundable: PARes?.paymentAccount?.refundable,
+    }
     dispatch(
-      setAccountsInfo({
-        address,
-        name: paymentAccountName,
-        streamRecord: SRRes?.streamRecord,
-        refundable: PARes?.paymentAccount?.refundable,
-      }),
+      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME}),
     );
   };
 
+export const setupAccountType =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    if (!address) return;
+    const { loginAccount } = getState().persist;
+    if (loginAccount === address) {
+      return dispatch(setAccountType({
+        addr: address,
+        type: 'gnfd_account'
+      }))
+    }
+    const [PARes, PAError] = await getPaymentAccount(address);
+    if (PARes) {
+      const type = PARes?.paymentAccount.refundable === true ? 'payment_account' : 'non_refundable_payment_account';
+      return dispatch(setAccountType({ addr: address, type }))
+    }
+    const [EARes, EAError] = await getAccount(address);
+    if (EARes) {
+      const type = 'gnfd_account';
+      return dispatch(setAccountType({
+        addr: address,
+        type,
+      }))
+    }
+    dispatch(setAccountType({
+      addr: address,
+      type: 'unknown_account'
+    }))
+
+  };
 export default paymentAccountSlice.reducer;
