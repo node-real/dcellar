@@ -22,7 +22,7 @@ export type TGasList = {
 };
 
 type TGas = {
-  gasPrice: number;
+  gasPrice: string;
   gasObjects: TGasList;
 };
 
@@ -97,12 +97,12 @@ export interface GlobalState {
   authModalOpen: [boolean, AuthPostAction];
   disconnectWallet: boolean;
 }
-
+export const GAS_PRICE = '0.000000005'
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'];
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
   gasHub: {
-    gasPrice: 5e-9,
+    gasPrice: GAS_PRICE,
     gasObjects: {},
   },
   storeFeeParams: {} as TStoreFeeParams,
@@ -290,12 +290,12 @@ export const globalSlice = createSlice({
       const gasObjects = keyBy(
         payload.msgGasParams.map((item) => {
           let gasLimit = item.fixedType?.fixedGas.low || 0;
-          let gasFee = gasPrice * gasLimit;
+          let gasFee = +gasPrice * gasLimit;
           let perItemFee = 0;
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
-            gasFee = gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * gasPrice;
+            gasFee = +gasPrice * gasLimit;
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * (+gasPrice);
           }
 
           return {
