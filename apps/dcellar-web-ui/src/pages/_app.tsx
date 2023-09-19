@@ -17,7 +17,7 @@ import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
 import { StatusDetail } from '@/modules/object/components/StatusDetail';
 
-export const ssrLandingRoutes =['/price-calculator', '/'];
+export const ssrLandingRoutes = ['/price-calculator', '/'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {
@@ -32,21 +32,23 @@ function DcellarApp({ Component, ...rest }: AppProps) {
       <SEOHead />
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          <ThemeProvider theme={theme}>
-            <WalletConnectProvider>
-              <LoginContextProvider inline={!!customLayout}>
-                <OffChainAuthProvider>
-                  {getLayout(
-                    <PageProtect>
-                      <Component {...props.pageProps} />
-                      <GAPageView />
-                      <StatusDetail />
-                    </PageProtect>,
-                  )}
-                </OffChainAuthProvider>
-              </LoginContextProvider>
-            </WalletConnectProvider>
-          </ThemeProvider>
+          {() => (
+            <ThemeProvider theme={theme}>
+              <WalletConnectProvider>
+                <LoginContextProvider inline={!!customLayout}>
+                  <OffChainAuthProvider>
+                    {getLayout(
+                      <PageProtect>
+                        <Component {...props.pageProps} />
+                        <GAPageView />
+                        <StatusDetail />
+                      </PageProtect>,
+                    )}
+                  </OffChainAuthProvider>
+                </LoginContextProvider>
+              </WalletConnectProvider>
+            </ThemeProvider>
+          )}
         </PersistGate>
       </Provider>
     </>
