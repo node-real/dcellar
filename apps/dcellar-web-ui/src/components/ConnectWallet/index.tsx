@@ -3,11 +3,13 @@ import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { WalletConnectModal } from '@/components/ConnectWallet/WalletConnectModal';
 import { useDisclosure } from '@totejs/uikit';
 
-interface ConnectWalletProps extends DCButtonProps {}
+interface ConnectWalletProps extends DCButtonProps {
+  text?: string;
+}
 
 export const ConnectWallet = memo<ConnectWalletProps>(function ConnectButton(props) {
   const { isOpen, onClose, onOpen } = useDisclosure();
-
+  const { text, ...restProps } = props;
   return (
     <>
       <WalletConnectModal isOpen={isOpen} onClose={onClose} />
@@ -17,10 +19,10 @@ export const ConnectWallet = memo<ConnectWalletProps>(function ConnectButton(pro
         fontSize={18}
         lineHeight="22px"
         fontWeight={600}
-        {...props}
+        {...restProps}
         onClick={onOpen}
       >
-        Connect Wallet
+        {text ? text : 'Connect Wallet'}
       </DCButton>
     </>
   );

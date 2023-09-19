@@ -1,5 +1,5 @@
 import { getTimestampInSeconds } from '@/utils/time';
-import { Flex } from '@totejs/uikit';
+import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
 import { getStoreFeeParams } from '@/facade/payment';
@@ -20,10 +20,40 @@ type TQuotaSP = {
   name: string;
   freeQuota: string;
   operatorAddress: string;
-}
+};
 const DEFAULT_GAS_FEE = '0.000006';
 const DEFAULT_GAS_LIMIT = 1200;
 const DEFAULT_TX_TYPE = MsgCreateObjectTypeUrl;
+export const lgMedia = `@media (min-width: 978px)`;
+export const mdMedia = `@media (min-width: 768px) and (max-width: 977px)`;
+export const smMedia = `@media (max-width: 767px)`;
+
+export type PriceResponsiveProps = BoxProps & React.PropsWithChildren;
+
+export const PriceResponsiveContainer = ({ children, sx, ...restProps }: PriceResponsiveProps) => {
+  return (
+    <Box
+      margin={'auto auto'}
+      sx={{
+        [lgMedia]: {
+          width: '954px',
+        },
+        [mdMedia]: {
+          width: 'calc(100% - 40px)',
+          minWidth: '351px',
+        },
+        [smMedia]: {
+          width: 'calc(100% - 40px)',
+          minWidth: '351px',
+        },
+      }}
+      {...restProps}
+    >
+      {children}
+    </Box>
+  );
+};
+
 export const PriceCalculator = () => {
   const [storeParams, setStoreParams] = useState({} as TStoreFeeParams);
   const [bnbPrice, setBnbPrice] = useState('0');
@@ -37,7 +67,9 @@ export const PriceCalculator = () => {
     setStoreParams(latestStoreParams);
   }, []);
   useAsyncEffect(async () => {
+    console.log('invoke client render');
     const bnbPrice = await getBnbPrice();
+    console.log('invoke client render bnbPrice', bnbPrice);
     setBnbPrice(bnbPrice.price);
     const [gasFees, error] = await getGasFees();
     const gasLimit =
@@ -53,17 +85,26 @@ export const PriceCalculator = () => {
         operatorAddress: item.operatorAddress,
         name: item?.description?.moniker,
         freeQuota: String(keySpMeta[item.operatorAddress]?.FreeReadQuota || ''),
-      }
-    })
+      };
+    });
     setSps(fullSps);
   }, []);
 
   return (
-    <Flex gap={40} flexDirection={'column'} bgColor={'#fff'}>
+    <Flex gap={40} paddingBottom={'40px'} flexDirection={'column'} bgColor={'#fff'} sx={{
+      [smMedia]: {
+        paddingBottom: '20px'
+      }
+    }}>
       <Flex
         paddingTop={64}
         bg={`center/cover no-repeat url(${assetPrefix}/images/price/bg.svg), right bottom no-repeat url(${assetPrefix}/images/price/bg_2.svg)`}
         flexDirection={'column'}
+        sx={{
+          [smMedia]: {
+            bg: `center/cover no-repeat url(${assetPrefix}/images/price/bg.svg)`
+          }
+        }}
       >
         <Banner />
         <Calculator storeParams={storeParams} bnbPrice={bnbPrice} gasFee={gasFee} />

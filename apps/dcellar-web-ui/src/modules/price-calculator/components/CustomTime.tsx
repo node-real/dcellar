@@ -7,11 +7,13 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from '@totejs/uikit';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
 import { DCButton } from '@/components/common/DCButton';
 import { TTimeOption, TimeUnits, swapObj } from '../utils';
+import { useScroll } from 'ahooks';
+import { smMedia } from '@/modules/responsive';
 
 type Props = {
   selected: boolean;
@@ -29,6 +31,10 @@ type Props = {
 };
 export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onToggle, onChangeButton, onChangeInput }: Props) => {
   const swapTimeUnits = swapObj(TimeUnits);
+  const scroll = useScroll(document);
+  useEffect(() => {
+    if (isOpen && scroll) onClose();
+  }, [scroll])
   return (
     <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>
@@ -38,6 +44,14 @@ export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onTog
           onClick={() => {
             onChangeButton();
             onToggle();
+          }}
+          sx={{
+            [smMedia]: {
+              width: '100%',
+              fontSize: '14px',
+              padding: '8px',
+              whiteSpace: 'nowrap',
+            }
           }}
         >
           {customStorageTime.title}: {customStorageTime.value} {TimeUnits[customStorageTime.unit]}{+customStorageTime.value > 1 ? 's' : ''}

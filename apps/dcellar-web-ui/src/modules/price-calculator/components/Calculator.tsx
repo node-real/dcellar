@@ -14,6 +14,8 @@ import { NumInput } from './NumInput';
 import { Sizes, TSize, TTime, TimeOptions, TimeUnits, Times } from '../utils';
 import { CustomTime } from './CustomTime';
 import { isEmpty } from 'lodash-es';
+import { PriceResponsiveContainer } from '..';
+import { smMedia } from '@/modules/responsive';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -110,8 +112,12 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
   const costs = useMemo(() => {
     let storeTime =
       storageTime.id === 'custom'
-        ? BN(formatInput(customStorageTime.value)).times(Times[customStorageTime.unit as TTime]).toString()
-        : BN(formatInput(storageTime.value)).times(Times[storageTime.unit as TTime]).toString()
+        ? BN(formatInput(customStorageTime.value))
+            .times(Times[customStorageTime.unit as TTime])
+            .toString()
+        : BN(formatInput(storageTime.value))
+            .times(Times[storageTime.unit as TTime])
+            .toString();
 
     const totalStorageSize = BN(formatInput(storageSize.size))
       .times(Sizes[storageSize.unit as TSize])
@@ -153,11 +159,10 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       .toString();
 
     const months = BN(storeTime).dividedBy(Times['m']).toString();
-    console.log('months', months)
-    const averageMonthCost = months === '0' ? '0' : BN(totalCost)
-      .dividedBy(months)
-      .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-      .toString();
+    const averageMonthCost =
+      months === '0'
+        ? '0'
+        : BN(totalCost).dividedBy(months).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
 
     return {
       totalStorageCost,
@@ -196,20 +201,47 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
     storageTime.value,
   ]);
   return (
-    <Box
-      margin={'40px auto'}
-      w={954}
+    <PriceResponsiveContainer
+      margin={['20px auto', '40px auto']}
       borderRadius={4}
       boxShadow="0px 4px 24px 0px rgba(0, 0, 0, 0.08)"
       bg={'#fff'}
-      padding={'16px 40px'}
+      padding={['16px', '16px 40px']}
     >
-      <Box fontSize={14} fontWeight={500} color={'readable.tertiary'} textAlign={'right'}>
+      <Box
+        fontSize={14}
+        fontWeight={500}
+        color={'readable.tertiary'}
+        textAlign={'right'}
+        sx={{
+          [smMedia]: {
+            fontSize: '12px',
+            textAlign: 'left',
+            marginBottom: '16px',
+          },
+        }}
+      >
         Prices are updated monthly: {updateMonth}
       </Box>
-      <Flex flexDirection={'column'} gap={40}>
+      <Flex
+        flexDirection={'column'}
+        gap={40}
+        sx={{
+          [smMedia]: {
+            gap: '0',
+          },
+        }}
+      >
         <Flex gap={8} flexDirection={'column'}>
-          <Flex fontSize={16} fontWeight={600}>
+          <Flex
+            fontSize={16}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: '14px',
+              },
+            }}
+          >
             Total Storage Size
             <Tips
               placement={'top'}
@@ -226,7 +258,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             />
           </Flex>
           <Text fontSize={12}>What's your estimated Storage Size?</Text>
-          <Flex alignItems={'center'} gap={12}>
+          <Flex alignItems={'center'} flexWrap={'wrap'} gap={12}>
             <NumInput
               value={storageSize.size}
               onChangeValue={(value) =>
@@ -235,6 +267,13 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   size: value,
                 })
               }
+              sx={{
+                [smMedia]: {
+                  flex: '1',
+                  h: '33px',
+                  fontSize: '14px',
+                },
+              }}
             />
             <SizeMenu
               sizes={sizes}
@@ -251,9 +290,21 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Text>
             <Flex flexDirection={'column'}>
               <Text fontWeight={600}>{storeNetflowRate}</Text>
-              <Text color="readable.tertiary">BNB/{storageSize.unit}/month</Text>
+              <Text color="readable.tertiary" fontSize={12}>
+                BNB/{storageSize.unit}/month
+              </Text>
             </Flex>
-            <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
+            <Flex
+              sx={{
+                [smMedia]: {
+                  flex: 'none',
+                  width: '100%',
+                },
+              }}
+              flexDirection={'column'}
+              flex={1}
+              textAlign={'right'}
+            >
               <Text fontWeight={600}>= {storageFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(storageFee || '0', bnbPrice)})
@@ -261,8 +312,25 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
+        <Divider
+          display={'none'}
+          sx={{
+            [smMedia]: {
+              margin: '24px 0',
+              display: 'block',
+            },
+          }}
+        />
         <Flex gap={8} flexDirection={'column'}>
-          <Flex fontSize={16} fontWeight={600}>
+          <Flex
+            fontSize={16}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: '14px',
+              },
+            }}
+          >
             Monthly Download Quota
             <Tips
               placement={'top'}
@@ -275,7 +343,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             />
           </Flex>
           <Text fontSize={12}>How much monthly download quota do you require? </Text>
-          <Flex alignItems={'center'} gap={12}>
+          <Flex alignItems={'center'} gap={12} flexWrap={'wrap'}>
             <NumInput
               value={quotaSize.size}
               onChangeValue={(value) =>
@@ -284,6 +352,13 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   size: value,
                 })
               }
+              sx={{
+                [smMedia]: {
+                  flex: '1',
+                  h: '33px',
+                  fontSize: '14px',
+                },
+              }}
             />
             <SizeMenu
               sizes={sizes}
@@ -300,26 +375,64 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Text>
             <Flex flexDirection={'column'}>
               <Text fontWeight={600}>{quotaNetflowRate}</Text>
-              <Text color="readable.tertiary">BNB/{quotaSize.unit}/month</Text>
+              <Text color="readable.tertiary" fontSize={12}>
+                BNB/{quotaSize.unit}/month
+              </Text>
             </Flex>
-            <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
+            <Flex
+              flexDirection={'column'}
+              flex={1}
+              textAlign={'right'}
+              sx={{
+                [smMedia]: {
+                  flex: 'none',
+                  width: '100%',
+                },
+              }}
+            >
               <Text fontWeight={600}>= {quotaFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
-              &nbsp;({displayUsd(quotaFee || '0', bnbPrice)})
+                &nbsp;({displayUsd(quotaFee || '0', bnbPrice)})
               </Text>
             </Flex>
           </Flex>
         </Flex>
-
+        <Divider
+          display={'none'}
+          sx={{
+            [smMedia]: {
+              margin: '24px 0',
+              display: 'block',
+            },
+          }}
+        />
         <Flex gap={8} flexDirection={'column'}>
-          <Flex fontSize={16} fontWeight={600}>
+          <Flex
+            fontSize={16}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: '14px',
+              },
+            }}
+          >
             Monthly Operation Gas Fee
           </Flex>
           <Text fontSize={12}>
             How many monthly operations do you anticipate? (Uploads, deletions, shares, etc.)
           </Text>
-          <Flex alignItems={'center'} gap={12}>
-            <NumInput value={gasTimes} onChangeValue={(value) => setGasTimes(value)} />
+          <Flex alignItems={'center'} gap={12} flexWrap={'wrap'}>
+            <NumInput
+              value={gasTimes}
+              onChangeValue={(value) => setGasTimes(value)}
+              sx={{
+                [smMedia]: {
+                  flex: '1',
+                  h: '33px',
+                  fontSize: '14px',
+                },
+              }}
+            />
             <Text fontSize={12} color={'readable.tertiary'}>
               times/month
             </Text>
@@ -328,22 +441,50 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Text>
             <Flex flexDirection={'column'}>
               <Text fontWeight={600}>～{gasFee}</Text>
-              <Text color="readable.tertiary">BNB/operation</Text>
+              <Text color="readable.tertiary" fontSize={12}>
+                BNB/operation
+              </Text>
             </Flex>
-            <Flex flexDirection={'column'} flex={1} textAlign={'right'}>
+            <Flex
+              flexDirection={'column'}
+              flex={1}
+              textAlign={'right'}
+              sx={{
+                [smMedia]: {
+                  flex: 'none',
+                  width: '100%',
+                },
+              }}
+            >
               <Text fontWeight={600}>= {totalGasFee} BNB/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
-              &nbsp;({displayUsd(totalGasFee || '0', bnbPrice)})
+                &nbsp;({displayUsd(totalGasFee || '0', bnbPrice)})
               </Text>
             </Flex>
           </Flex>
         </Flex>
-
+        <Divider
+          display={'none'}
+          sx={{
+            [smMedia]: {
+              margin: '24px 0',
+              display: 'block',
+            },
+          }}
+        />
         <Flex gap={8} flexDirection={'column'}>
-          <Text fontSize={16} fontWeight={600}>
+          <Text
+            fontSize={16}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: '14px',
+              },
+            }}
+          >
             Storage Time
           </Text>
-          <Flex gap={12}>
+          <Flex gap={12} flexWrap={'wrap'}>
             {TimeOptions.map((item) => (
               <>
                 {item.id !== 'custom' && (
@@ -352,6 +493,15 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                     variant="ghost"
                     borderColor={item.id === storageTime.id ? 'readable.brand6' : 'readable.border'}
                     onClick={() => setStorageTime(item)}
+                    sx={{
+                      [smMedia]: {
+                        fontSize: '14px',
+                        padding: '8px',
+                        whiteSpace: 'nowrap',
+                        width: 'fit-content',
+                        flex: '1',
+                      },
+                    }}
                   >
                     {item.title}
                   </DCButton>
@@ -387,12 +537,36 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             months.
           </Text>
         </Flex>
-        <Divider />
+        <Divider
+          sx={{
+            [smMedia]: {
+              margin: '24px 0',
+              display: 'block',
+            },
+          }}
+        />
         <Flex gap={16} flexDirection={'column'}>
           <Box>
             <Flex justifyContent={'space-between'} fontSize={24} fontWeight={600} mb={8}>
-              <Text>Estimated Total Cost</Text>
-              <Text textAlign={'right'}>
+              <Text
+                sx={{
+                  [smMedia]: {
+                    fontSize: '16px',
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                Estimated Total Cost
+              </Text>
+              <Text
+                textAlign={'right'}
+                wordBreak={'break-all'}
+                sx={{
+                  [smMedia]: {
+                    fontSize: '16px',
+                  },
+                }}
+              >
                 {costs.totalCost} BNB
                 <Text
                   wordBreak={'break-all'}
@@ -405,9 +579,20 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 </Text>
               </Text>
             </Flex>
-            <Box textAlign={'right'}>
+            <Box
+              textAlign={'right'}
+              sx={{
+                [smMedia]: {
+                  fontSize: '12px',
+                },
+              }}
+            >
               <Text display={'inline-block'}>{costs.averageMonthCost} BNB/month</Text>
-              <Text display={'inline-block'}>
+              <Text display={'inline-block'} sx={{
+                [smMedia]: {
+                  display: 'block'
+                }
+              }}>
                 &nbsp;({displayUsd(costs.averageMonthCost, bnbPrice)})
               </Text>
             </Box>
@@ -432,13 +617,13 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             title="Operation fee"
             storeTime={storageTimeDisplay}
             size={gasTimes}
-            unit={''}
+            unit={'times'}
             fee={costs.totalGasCost}
             bnbPrice={bnbPrice}
           />
           <Text>*1 month=30 day</Text>
         </Flex>
       </Flex>
-    </Box>
+    </PriceResponsiveContainer>
   );
 };
