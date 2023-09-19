@@ -50,7 +50,6 @@ import { trimAddress } from '@/utils/string';
 import TickIcon from '@/components/common/SvgIcon/TickIconLarge.svg';
 import styled from '@emotion/styled';
 import { Loading } from '@/components/common/Loading';
-import { getTimestampInSeconds } from '@/utils/time';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -145,12 +144,11 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
     dispatch(
       setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
     );
-    const curTimeStamp = await getTimestampInSeconds();
-    const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60);
-    const expirationDate = new Date(expirationTimestamp);
+    const now = new Date();
+    now.setFullYear(now.getFullYear() + 200);
     const membersToAdd = values.map((item) => ({
       member: item,
-      expirationTime: toTimestamp(expirationDate),
+      expirationTime: toTimestamp(now),
     }));
 
     const payload = {
