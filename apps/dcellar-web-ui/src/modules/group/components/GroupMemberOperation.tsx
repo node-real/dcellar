@@ -25,7 +25,6 @@ import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { trimAddress } from '@/utils/string';
 import styled from '@emotion/styled';
 import { Loading } from '@/components/common/Loading';
-import { getTimestampInSeconds } from '@/utils/time';
 import { Avatar } from '@/components/Avatar';
 import { ADDRESS_RE } from '@/utils/constant';
 import { IconFont } from '@/components/IconFont';
@@ -47,8 +46,8 @@ interface GroupMemberOperationProps {
 }
 
 export const GroupMemberOperation = memo<GroupMemberOperationProps>(function GroupMemberOperation({
-  selectGroup: addGroupMember,
-}) {
+                                                                                                    selectGroup: addGroupMember,
+                                                                                                  }) {
   const dispatch = useAppDispatch();
   const [values, setValues] = useState<string[]>([]);
   const { loginAccount } = useAppSelector((root) => root.persist);
@@ -130,12 +129,11 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
-    const curTimeStamp = await getTimestampInSeconds();
-    const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60);
-    const expirationDate = new Date(expirationTimestamp);
+    const now = new Date();
+    now.setFullYear(now.getFullYear() + 200);
     const membersToAdd = values.map((item) => ({
       member: item,
-      expirationTime: toTimestamp(expirationDate),
+      expirationTime: toTimestamp(now),
     }));
 
     const payload = {
