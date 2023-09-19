@@ -8,14 +8,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConnectorNotFoundError } from 'wagmi';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { useAppSelector } from '@/store';
+import { useRouter } from 'next/router';
+import { InternalRoutePaths } from '@/utils/constant';
+import { ssrLandingRoutes } from '@/pages/_app';
 import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/utils/constant';
 import { IconFont } from '@/components/IconFont';
 
 export interface WalletConnectModalProps extends DCModalProps {}
-
 export function WalletConnectModal(props: WalletConnectModalProps) {
+  const router = useRouter();
   const { isOpen, onClose } = props;
-
+  const [hasTrigger, setHasTrigger] = useState(false);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
 
@@ -24,6 +27,18 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
   const onSuccess = useCallback((address?: string) => {
     setCurrentAddress(address);
   }, []);
+
+  // TODO
+  useEffect(() => {
+    if (
+      hasTrigger &&
+      !isAuthPending &&
+      !!address &&
+      ssrLandingRoutes.some((item) => item === router.pathname)
+    ) {
+      setTimeout(() => router.push(InternalRoutePaths.buckets), 100);
+    }
+  }, [address, hasTrigger, isAuthPending, isOpen, router]);
 
   const onConnectError = useCallback((err: Error, args: any) => {
     if (err instanceof ConnectorNotFoundError) {
@@ -79,7 +94,10 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
                 name={item.name}
                 isActive={isActive}
                 isDisabled={isLoading}
-                onClick={() => onChangeConnector(item)}
+                onClick={() => {
+                  setHasTrigger(true);
+                  onChangeConnector(item);
+                }}
               />
             </GAClick>
           );

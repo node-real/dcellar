@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
-import { useMount } from 'ahooks';
+import { ssrLandingRoutes } from '@/pages/_app';
 import { InternalRoutePaths } from '@/utils/constant';
 
 export function useLoginGuard(inline: boolean) {
@@ -9,13 +9,8 @@ export function useLoginGuard(inline: boolean) {
 
   const router = useRouter();
   const { pathname, asPath } = router;
-  const [mounted, setMounted] = useState(false);
 
-  const [pass, setPass] = useState(inline);
-
-  useMount(() => {
-    setMounted(true);
-  });
+  const [pass, setPass] = useState(false);
 
   useEffect(() => {
     if (!address) {
@@ -29,6 +24,9 @@ export function useLoginGuard(inline: boolean) {
         setPass(true);
       }
     } else {
+      if (ssrLandingRoutes.some(item => item === pathname)) {
+        return setPass(true);
+      }
       if (router?.query?.originAsPath && router?.query.originAsPath.length > 0) {
         const originPathname = decodeURIComponent(router.query.originAsPath as string);
         router.replace(originPathname, undefined, { shallow: true });
@@ -41,6 +39,6 @@ export function useLoginGuard(inline: boolean) {
   }, [address, asPath, pathname, router, inline]);
 
   return {
-    pass: (!mounted && inline) || pass,
+    pass,
   };
 }
