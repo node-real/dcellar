@@ -2,6 +2,7 @@ import { InternalRoutePaths } from '@/constants/paths';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
+import { ssrLandingRoutes } from '@/pages/_app';
 
 export function useLoginGuard(inline: boolean) {
   const { loginAccount: address } = useAppSelector((root) => root.persist);
@@ -23,6 +24,9 @@ export function useLoginGuard(inline: boolean) {
         setPass(true);
       }
     } else {
+      if (ssrLandingRoutes.some(item => item === pathname)) {
+        return setPass(true);
+      }
       if (router?.query?.originAsPath && router?.query.originAsPath.length > 0) {
         const originPathname = decodeURIComponent(router.query.originAsPath as string);
         router.replace(originPathname, undefined, { shallow: true });

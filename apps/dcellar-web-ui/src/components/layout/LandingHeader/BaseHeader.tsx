@@ -1,10 +1,10 @@
-import { Box, Text, Flex, IconButtonProps, Link } from '@totejs/uikit';
+import { Flex, Link } from '@totejs/uikit';
 import { Logo } from '../Logo';
 import { GAClick } from '@/components/common/GATracker';
-import { ExternalLinkIcon, IconProps, WalletIcon } from '@totejs/icons';
-import { DCButton } from '@/components/common/DCButton';
-import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
+import { ExternalLinkIcon, IconProps } from '@totejs/icons';
 import { ConnectWallet } from '@/components/ConnectWallet';
+import { useAppSelector } from '@/store';
+import { useRouter } from 'next/router';
 
 export const MENUS = [
   {
@@ -28,6 +28,9 @@ export const MENUS = [
 ];
 
 export const BaseHeader = () => {
+  const { loginAccount } = useAppSelector((state) => state.persist);
+  const router = useRouter();
+
   return (
     <Flex
       as="header"
@@ -48,15 +51,24 @@ export const BaseHeader = () => {
         {MENUS.map((item) => (
           <Link color={'readable.normal'} key={item.title} href={item.link} target={item.target}>
             {item.title}
-            <item.Icon/>
+            <item.Icon />
           </Link>
         ))}
       </Flex>
-      <ConnectWallet h={36} p={'10px 16px'} fontWeight={500} fontSize={14}/>
-      {/* <DCButton h={36} p={'10px 16px'} variant="dcGhost">
-        <WalletFilledIcon w={24} h={24} color={'readable.normal'} />
-        <Text marginLeft={4}>Get Started</Text>
-      </DCButton> */}
+      <ConnectWallet h={36} p={'10px 16px'} fontWeight={500} fontSize={14} />
+      {/* {!!loginAccount && (
+        <DCButton
+          h={36}
+          p={'10px 16px'}
+          variant="dcGhost"
+          onClick={() => {
+            router.push(InternalRoutePaths.buckets);
+          }}
+        >
+          <WalletFilledIcon w={24} h={24} color={'readable.normal'} />
+          <Text marginLeft={4}>Get Started</Text>
+        </DCButton>
+      )} */}
     </Flex>
   );
 };

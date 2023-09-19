@@ -31,10 +31,11 @@ type Props = {
 };
 export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onToggle, onChangeButton, onChangeInput }: Props) => {
   const swapTimeUnits = swapObj(TimeUnits);
-  const scroll = useScroll(document);
+  // const
+  // const scroll = useScroll(typeof document !== 'undefined' ? '' :  document);
   useEffect(() => {
-    if (isOpen && scroll) onClose();
-  }, [scroll])
+    if (isOpen) onClose();
+  }, [])
   return (
     <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>
