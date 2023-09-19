@@ -2,7 +2,7 @@ import { memo, ReactNode, useRef } from 'react';
 import { ConfigProvider, Select, SelectProps } from 'antd';
 import { Flex } from '@totejs/uikit';
 import styled from '@emotion/styled';
-import { theme } from '@/base/theme/antd';
+import { antdTheme } from '@/base/theme/antd';
 
 interface DCComboBoxProps extends SelectProps {
   addon?: ReactNode;
@@ -13,7 +13,7 @@ export const DCComboBox = memo<DCComboBoxProps>(function DCComboBox({ addon, ...
 
   return (
     <Container ref={ref}>
-      <ConfigProvider theme={theme}>
+      <ConfigProvider theme={antdTheme}>
         <Select
           getPopupContainer={() => ref.current!}
           dropdownStyle={{

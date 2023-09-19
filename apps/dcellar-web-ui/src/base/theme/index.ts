@@ -1,14 +1,9 @@
 import { light } from './light';
-import { dark } from './dark';
+import { Theme } from '@totejs/uikit';
 
-export const theme = {
+export const theme: Theme = {
   colors: {
-    dark: {
-      ...dark.colors,
-    },
-    light: {
-      ...light.colors,
-    },
+    light: { ...light.colors },
   },
   config: {
     useSystemColorMode: false, // true | false
@@ -16,8 +11,12 @@ export const theme = {
   },
   styles: {
     global: {
+      html: {
+        lineHeight: 'normal',
+      },
       body: {
-        bg: 'transparent',
+        // todo refactor
+        bg: 'bg.middle',
         '.ui-toast-manager': {
           top: 65,
           maxW: '500px',

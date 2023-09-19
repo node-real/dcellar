@@ -1,9 +1,8 @@
 import { Html, Head, Main, NextScript } from 'next/document';
-
 import { Ga4 } from '@/components/common/Ga4';
 import { GA_ID, assetPrefix } from '@/base/env';
-import { LCP_IMAGES } from '@/constants/common';
 
+// todo refactor
 export default function Document() {
   return (
     <Html lang="en">
@@ -19,24 +18,20 @@ export default function Document() {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap"
           rel="stylesheet preload"
         />
-        <>
-          {LCP_IMAGES.map((url: string) => {
-            <link rel="preload" href={url} as="image" />;
-          })}
-        </>
+        <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm" />
+        <Ga4 id={GA_ID} />
         <script
           dangerouslySetInnerHTML={{
             __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js?`}></script>
-        <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js?`}></script>
-        <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm" />
+        <script src={`${assetPrefix}/iconfont.min.js`}></script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js`}></script>
+        <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js`}></script>
       </Head>
       <body>
         <Main />
         <NextScript />
-        <Ga4 id={GA_ID} />
       </body>
     </Html>
   );

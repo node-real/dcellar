@@ -14,17 +14,11 @@ import { useDebounceEffect } from 'ahooks';
 import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useLogin } from '@/hooks/useLogin';
-import { GasObjects } from './GasObjects';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
-import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
-import { PaymentAccounts } from './PaymentAccounts';
 import TransferInIcon from '@/public/images/icons/transfer-in.svg';
 import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
 import SendIcon from '@/public/images/icons/send.svg';
 import { setupAccountDetail } from '@/store/slices/accounts';
-import { StoreFeeParams } from './StoreFeeParams';
-import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
-import { DisconnectWalletModal } from './DisconnectWalletModal';
 
 const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
@@ -71,12 +65,6 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
 
   return (
     <>
-      <ManageQuotaDrawer />
-      <GlobalTasks />
-      <GasObjects />
-      <PaymentAccounts />
-      <StoreFeeParams />
-      <DisconnectWalletModal />
       <Flex
         w="340px"
         ref={ref}
@@ -296,10 +284,6 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
       </Flex>
 
       <Flex
-        position="fixed"
-        top={0}
-        left={0}
-        right={0}
         paddingY={'10px'}
         pr={'24px'}
         bg="bg.middle"

@@ -1,173 +1,128 @@
-import { Box, Flex, Text } from '@totejs/uikit';
-import React, { useState } from 'react';
+import { Box, Text } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-
-import BucketsIcon from '@/public/images/icons/buckets.svg';
-import GroupsIcon from '@/public/images/icons/groups.svg';
-import WalletIcon from '@/public/images/icons/wallet.svg';
-import GroupsFilledIcon from '@/public/images/icons/groups-filled.svg';
-import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
-import BucketsFilledIcon from '@/public/images/icons/buckets-filled.svg';
-import AccountsIcon from '@/public/images/icons/accounts.svg';
-import AccountsFilledIcon from '@/public/images/icons/accounts_filled.svg';
-import { Logo } from '../Logo';
-import { isActivePath } from '@/utils/isActivePath';
-import { GAClick } from '@/components/common/GATracker';
-import { DcellarDoc, FAQ } from '@/constants/links';
-import { DocIcon, HelpIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
+import { IconFont } from '@/components/IconFont';
+import { css } from '@emotion/react';
+import { DcellarDoc, FAQ } from '@/constants/links';
 
-const MENU_LIST = [
+const MENU_ITEMS = [
   {
-    icon: () => <BucketsIcon color="readable.normal" />,
-    selectedIcon: () => <BucketsFilledIcon color={'#00BA34'} />,
+    icon: 'bucket',
     text: 'Buckets',
-    path: '/buckets',
-    enablePrefix: true,
-    gaClickName: 'dc.main.nav.bucket.click',
+    trackId: 'dc.main.nav.bucket.click',
   },
   {
-    icon: () => <GroupsIcon color="readable.normal" />,
-    selectedIcon: () => <GroupsFilledIcon color={'#00BA34'} />,
+    icon: 'group',
     text: 'Groups',
-    path: '/groups',
-    enablePrefix: true,
-    gaClickName: 'dc.main.nav.groups.click',
+    trackId: 'dc.main.nav.groups.click',
   },
   {
-    icon: () => <AccountsIcon color="readable.normal" />,
-    selectedIcon: () => <AccountsFilledIcon color="#00BA34" />,
+    icon: 'account',
     text: 'Accounts',
-    path: `/accounts`,
-    gaClickName: 'dc.main.nav.accounts.click',
+    trackId: 'dc.main.nav.accounts.click',
   },
   {
-    icon: () => <WalletIcon color="readable.normal" />,
-    selectedIcon: () => <WalletFilledIcon color="#00BA34" />,
+    icon: 'wallet',
     text: 'Wallet',
-    path: `/wallet`,
-    gaClickName: 'dc.main.nav.wallet.click',
+    trackId: 'dc.main.nav.wallet.click',
   },
 ];
 
-export const Nav = () => {
-  const router = useRouter();
-  const [isHover, setIsHover] = useState(false);
+const ASIDE = [
+  { link: DcellarDoc, trackId: 'dc.main.nav.doc.click', icon: 'doc', text: 'Documentation' },
+  { link: FAQ, trackId: 'dc.main.nav.faq.click', icon: 'help', text: 'FAQ' },
+];
 
-  const over = () => {
-    setIsHover(true);
-  };
-  const out = () => {
-    setIsHover(false);
-  };
+export const Nav = () => {
+  const { pathname } = useRouter();
 
   return (
-    <Flex
-      direction="column"
-      w="269px"
-      borderRight={'1px solid #E6E8EA;'}
-      backgroundColor="bg.middle"
-      position="fixed"
-      left={0}
-      top={0}
-      bottom={0}
-    >
-      <Flex height={'64px'} paddingLeft="24px" alignItems={'center'}>
-        <GAClick name="dc.main.nav.logo.click">
-          <Logo href="/buckets" />
-        </GAClick>
-        <Box
-          fontSize={'12px'}
-          lineHeight="24px"
-          paddingX={'4px'}
-          borderRadius="4px"
-          bgColor={'rgba(0, 186, 52, 0.1)'}
-          color="readable.brand6"
-          marginLeft={'4px'}
-        >
-          Testnet
-        </Box>
-      </Flex>
-      <Box p={'24px'}>
-        {MENU_LIST &&
-          MENU_LIST.map((item) => (
-            <GAClick key={item.text} name={item.gaClickName}>
-              <Link href={item.path} replace>
-                <Flex
-                  fontSize={'16px'}
-                  cursor={'pointer'}
-                  p={'8px 12px'}
-                  alignItems="center"
-                  borderRadius={'8px'}
-                  mb="16px"
-                  onMouseOver={over}
-                  onMouseOut={out}
-                  backgroundColor={
-                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
-                      ? 'rgba(0, 186, 52, 0.1)'
-                      : 'none'
-                  }
-                  color={
-                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
-                      ? '#009E2C'
-                      : '#1E2026'
-                  }
-                  _hover={
-                    isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix)
-                      ? {
-                          backgroundColor: 'rgba(0, 186, 52, 0.15)',
-                          color: '#009E2C',
-                        }
-                      : {
-                          backgroundColor: '#F5F5F5',
-                          color: '#1E2026',
-                        }
-                  }
-                >
-                  {isActivePath(router.pathname, item.path, router.basePath, item.enablePrefix) ? (
-                    <item.selectedIcon />
-                  ) : (
-                    <item.icon />
-                  )}
-                  <Text fontWeight={500} ml={'12px'}>
-                    {item.text}
-                  </Text>
-                </Flex>
+    <NavContainer>
+      <MenuList>
+        {MENU_ITEMS.map((menu) => {
+          const link = `/${menu.text.toLowerCase()}`;
+          const active = pathname.startsWith(link);
+          const icon = `${menu.icon}${active ? '-filled' : ''}`;
+          return (
+            <MenuItem key={menu.text} $active={active}>
+              <Link href={link} data-track-id={menu.trackId} replace>
+                <MenuIcon as="span">
+                  <IconFont type={icon} />
+                </MenuIcon>
+                <MenuText as="span">{menu.text}</MenuText>
               </Link>
-            </GAClick>
-          ))}
-      </Box>
-      <Box m={'24px'} borderTop="1px solid #E6E8EA" mt="auto">
-        <GAClick name="dc.main.nav.doc.click">
-          <Link href={DcellarDoc} target="_blank">
-            <NavItem>
-              <DocIcon mr={12} />
-              Documentation
-            </NavItem>
-          </Link>
-        </GAClick>
-        <GAClick name="dc.main.nav.faq.click">
-          <Link href={FAQ} target="_blank">
-            <NavItem>
-              <HelpIcon mr={12} />
-              FAQ
-            </NavItem>
-          </Link>
-        </GAClick>
-      </Box>
-    </Flex>
+            </MenuItem>
+          );
+        })}
+      </MenuList>
+      <MenuList>
+        {ASIDE.map((menu) => (
+          <MenuItem key={menu.text}>
+            <Link href={menu.link} data-track-id={menu.trackId} target="_blank">
+              <MenuIcon as="span">
+                <IconFont type={menu.icon} />
+              </MenuIcon>
+              <MenuText as="span">{menu.text}</MenuText>
+            </Link>
+          </MenuItem>
+        ))}
+      </MenuList>
+    </NavContainer>
   );
 };
 
-const NavItem = styled(Flex)`
-  padding: 8px;
-  font-weight: 500;
-  font-size: 16px;
-  margin-top: 16px;
-  border-radius: 8px;
-  :hover {
-    background-color: #f5f5f5;
-    cursor: pointer;
+const NavContainer = styled(Box)`
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+`;
+
+const MenuList = styled.ul`
+  display: grid;
+  padding: 16px 0;
+  gap: 16px;
+  grid-template-rows: repeat(auto-fill, 40px);
+  :last-child {
+    border-top: 1px solid var(--ui-colors-readable-border);
   }
+`;
+
+const MenuItem = styled.li<{ $active?: boolean }>`
+  position: relative;
+  font-weight: 500;
+  transition: all 0.15s;
+  a {
+    display: grid;
+    gap: 12px;
+    padding: 8px 12px;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+  
+  ${(props) =>
+    props.$active
+      ? css`
+          z-index: 1;
+          color: var(--ui-colors-brand-normal-hight);
+          border-right: 3px solid var(--ui-colors-brand-normal);
+          background: rgba(0, 186, 52, 0.1);
+          ${MenuIcon} {
+            color: var(--ui-colors-brand-normal-hight);
+          }
+        `
+      : css`
+          :hover {
+            background: var(--ui-colors-bg-bottom);
+          }
+        `}}
+`;
+
+const MenuIcon = styled(Text)`
+  font-size: 24px;
+  color: var(--ui-colors-readable-secondary);
+`;
+
+const MenuText = styled(Text)`
+  font-size: 16px;
 `;

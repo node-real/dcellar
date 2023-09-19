@@ -13,7 +13,7 @@ import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
 import { formatBytes } from '@/modules/file/utils';
-import { theme } from '@/base/theme/antd';
+import { antdTheme } from '@/base/theme/antd';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -34,7 +34,7 @@ export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
 }) {
   return (
     <Container>
-      <ConfigProvider renderEmpty={renderEmpty} theme={theme}>
+      <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
         <Table {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
       {pagination && (

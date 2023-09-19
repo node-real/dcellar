@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { theme } from '@/base/theme';
-import { GAPageView } from '@/components/common/GATracker';
 import { SEOHead } from '@/components/common/SEOHead';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
 import { LoginContextProvider } from '@/context/LoginContext/provider';
@@ -13,9 +12,9 @@ import { WalletConnectProvider } from '@/context/WalletConnectContext';
 import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
-import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
-import { StatusDetail } from '@/modules/object/components/StatusDetail';
+import { Layout } from '@/components/layout';
+import { GlobalManagements } from '@/components/layout/GlobalManagements';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
@@ -24,7 +23,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
   });
 
   const customLayout = (Component as any).getLayout;
-  const getLayout = customLayout || ((page: ReactNode) => <Page>{page}</Page>);
+  const getLayout = customLayout || ((page: ReactNode) => <Layout>{page}</Layout>);
 
   return (
     <>
@@ -38,8 +37,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
                   {getLayout(
                     <PageProtect>
                       <Component {...props.pageProps} />
-                      <GAPageView />
-                      <StatusDetail />
+                      <GlobalManagements />
                     </PageProtect>,
                   )}
                 </OffChainAuthProvider>

@@ -87,6 +87,9 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
   },
+  compiler: {
+    emotion: true,
+  },
 };
 
 module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), sentryWebpackPluginOptions);

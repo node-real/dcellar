@@ -1,58 +1,63 @@
+import { rgba } from '@totejs/uikit';
+
 export const light = {
   colors: {
-    readable: {
-      normal: '#1E2026',
-      secondary: '#474D57',
-      disabled: '#AEB4BC',
-      border: '#e6e8ea',
-      white: '#FFFFFF',
-      primary: '#00BA34',
-      tertiary: '#76808F',
-      placeholder: '#AEB4BC',
-      neutral1: '#F8FAFD',
-      neutral2: '#EFF2F5',
-      neutral3: '#CFD6E4',
-      neutral4: '#A6B0C3',
-      neutral5: '#808A9D',
-      neutral6: '#58667E',
-      brand5: '#2EC659',
-      brand6: '#00BA34',
-      brand7: '#009E2C',
+    brand: {
+      'normal-hight': '#009e2c',
+      normal: '#00ba34',
+      disable: '#c2eece',
     },
-
+    readable: {
+      normal: '#1e2026',
+      secondary: '#474d57',
+      tertiary: '#76808f',
+      disable: '#aeb4bc',
+      border: '#e6e8ea',
+      white: '#fff',
+    },
     bg: {
       bottom: '#f5f5f5',
-      secondary: '#FAFAFA',
-      middle: '#FFFFFF',
-      codebox: '#f0f4f9',
+      'bottom-secondary': '#fafafa',
+      middle: '#fff',
       top: {
         normal: '#f5f5f5',
         active: '#e6e8ea',
       },
     },
-
     scene: {
-      primary: {
-        normal: '#00BA34',
-        active: '#00BA34',
-      },
-
       success: {
-        normal: '#02C076',
-        active: '#2ED191',
+        normal: '#00ba34',
+        active: '#3ec659',
+        opacity: {
+          normal: rgba('#00ba34', 0.1),
+          active: rgba('#00ba34', 0.15),
+        },
       },
-
       danger: {
-        normal: '#D9304E',
-        active: '#FC6E75',
+        normal: '#ee3911',
+        active: '#f15d3c',
+        opacity: {
+          normal: rgba('#ee3911', 0.1),
+          active: rgba('#ee3911', 0.15),
+        },
       },
-
+      waiting: {
+        normal: '#eebe11',
+        active: '#f1ca3c',
+        opacity: {
+          normal: rgba('#f0b90b', 0.1),
+          active: rgba('#f0b90b', 0.15),
+        },
+      },
       warning: {
-        normal: '#F0B90B',
-        active: '#F8D12F',
+        normal: '#ee7c11',
+        active: '#f1943c',
+        opacity: {
+          normal: rgba('#ee7c11', 0.1),
+          active: rgba('#ee7c11', 0.15),
+        },
       },
     },
-
     shadows: {
       normal: '0px 2px 8px rgba(11, 14, 17, 0.16)',
     },
