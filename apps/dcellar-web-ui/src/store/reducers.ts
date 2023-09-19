@@ -29,7 +29,7 @@ const rootReducer = combineReducers({
 
 export type RootState = ReturnType<typeof rootReducer>;
 
-const reducer = (state: RootState, action: AnyAction) => {
+export const reducer = (state: RootState, action: AnyAction) => {
   if (action.type === HYDRATE) {
     return {
       ...state, // use previous state

@@ -8,6 +8,8 @@ import { Sizes, TSize, TTime, Times } from '../utils';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { BN } from '@/utils/BigNumber';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { PriceResponsiveContainer } from '..';
+import { smMedia } from '@/modules/responsive';
 
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
@@ -51,9 +53,19 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
     };
   }, [storeParams, unit.size, unit.time]);
   return (
-    <Flex gap={16} w={954} margin={'0 auto'} bgColor={'#fff'} flexDirection={'column'}>
+    <PriceResponsiveContainer
+      display={'flex'}
+      gap={16}
+      margin={'0 auto'}
+      bgColor={'#fff'}
+      flexDirection={'column'}
+    >
       <Flex gap={16} alignItems={'center'}>
-        <Text fontSize={24} fontWeight={700}>
+        <Text fontSize={24} fontWeight={700} sx={{
+          [smMedia]: {
+            fontSize: '20px',
+          }
+        }}>
           BNB Greenfield Pricing
         </Text>
         <Box
@@ -62,12 +74,27 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           fontWeight={500}
           fontSize={14}
           border="1px solid readable.border"
+          sx={{
+            [smMedia]: {
+              padding: '4px',
+              fontSize: '12px',
+            }
+          }}
         >
           {curFullMonth}
         </Box>
       </Flex>
-      <Flex justifyContent={'space-between'}>
-        <Text>
+      <Flex justifyContent={'space-between'} sx={{
+        [smMedia]: {
+          flexWrap: 'wrap'
+        }
+      }}>
+        <Text sx={{
+          [smMedia]: {
+            width: '100%',
+            marginBottom: '16px'
+          }
+        }}>
           Global prices will update monthly based on all the SPs' suggested prices.{' '}
           <UnderlineLink href="#">Learn More</UnderlineLink>
         </Text>
@@ -107,7 +134,11 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           )}
         </Menu>
       </Flex>
-      <Flex gap={20}>
+      <Flex gap={20} sx={{
+        [smMedia]: {
+          flexDirection: 'column'
+        }
+      }}>
         <Flex
           flex={1}
           flexDirection={'column'}
@@ -139,6 +170,6 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           </Text>
         </Flex>
       </Flex>
-    </Flex>
+    </PriceResponsiveContainer>
   );
 };

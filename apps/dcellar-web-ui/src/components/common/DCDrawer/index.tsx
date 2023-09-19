@@ -36,7 +36,7 @@ export const DCDrawer = (props: DCDrawerProps) => {
         w={568}
         padding="16px 24px"
         onClose={onBeforeClose}
-        rootProps={{ top: 64.5 }}
+        rootProps={{ top: 65 }}
         {...restProps}
       >
         {showCloseBtn && <QDrawerCloseButton top={16} right={24} color="readable.tertiary" />}

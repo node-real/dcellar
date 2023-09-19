@@ -4,6 +4,7 @@ import { getUTC0Year } from '@/utils/getUTC0Year';
 import { noderealUrl } from '@/constants/links';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
+import { smMedia } from '@/modules/responsive';
 
 export const UnderlineLink = (props: LinkProps) => (
   <Link
@@ -34,9 +35,25 @@ export const Footer = (props: FlexProps) => {
       bgColor="bg.middle"
       color="readable.secondary"
       gap={24}
+      flexWrap={'wrap'}
+      sx={{
+        [smMedia]: {
+          gap: '8px',
+          padding: '12px 20px',
+          height: 'auto',
+        },
+      }}
       {...restProps}
     >
-      <Text color="inherit">
+      <Text
+        color="inherit"
+        sx={{
+          [smMedia]: {
+            width: '100%',
+            textAlign: 'center',
+          },
+        }}
+      >
         © {utcYear}&nbsp;
         <GAClick name={gaClickName}>
           <UnderlineLink href={noderealUrl}>NodeReal</UnderlineLink>

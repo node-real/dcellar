@@ -16,6 +16,7 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       fontWeight={600}
       {...restProps}
       value={value}
+      borderRadius={4}
       onWheel={(e) => (e.target as HTMLElement).blur()}
       onPaste={(e) => {
         const clipboardData = e.clipboardData || window.clipboardData;

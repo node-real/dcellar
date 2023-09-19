@@ -5,14 +5,21 @@ import { ExternalLinkIcon } from '@totejs/icons';
 import { Flex, Text, Link } from '@totejs/uikit';
 import { isEmpty } from 'lodash-es';
 import React from 'react';
+import { PriceResponsiveContainer } from '../index';
+import { smMedia } from '@/modules/responsive';
 
 type SPFreeQuotaProps = {
   sps: any[];
 };
 export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => {
+  console.log('SP Free Quota sps', sps, isEmpty(sps));
   return (
-    <Flex gap={16} w={954} margin={'0 auto'} flexDirection={'column'}>
-      <Text fontSize={24} fontWeight={700}>
+    <PriceResponsiveContainer display={'flex'} gap={16} w={'100%'} margin={'0 auto'} flexDirection={'column'} paddingX={'0'}>
+      <Text fontSize={24} fontWeight={700} sx={{
+        [smMedia]: {
+          fontSize: '20px'
+        }
+      }}>
         One Time Free Quota
       </Text>
       <Text fontSize={14} fontWeight={400}>
@@ -27,6 +34,16 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => {
             p={12}
             w={'50%'}
             justifyContent={'space-between'}
+            borderLeftColor={index % 2 !== 0 ? 'transparent' : 'readable.border'}
+            borderTopColor={index > 1? 'transparent' : 'readable.border'}
+            sx={{
+              [smMedia]: {
+                width: '100%',
+                borderTopColor: index !== 0 ? 'transparent' : 'readable.border',
+                borderLeftColor: 'readable.border',
+                borderBottomColor: 'readable.border'
+              }
+            }}
           >
             <Link
               href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.operatorAddress}`}
@@ -45,6 +62,6 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => {
           </Flex>
         ))}
       </Flex>
-    </Flex>
+    </PriceResponsiveContainer>
   );
 };

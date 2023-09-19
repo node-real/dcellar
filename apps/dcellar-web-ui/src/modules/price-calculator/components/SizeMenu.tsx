@@ -1,4 +1,5 @@
 
+import { smMedia } from '@/modules/responsive';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { Button, ButtonProps, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
 import React from 'react'
@@ -24,6 +25,13 @@ export const SizeMenu = ({value, sizes, onItemClick, buttonStyles = {}}: Props)=
           bgColor={'bg.bottom'}
           _hover={{
             bg: 'bg.secondary',
+          }}
+            sx={{
+              [smMedia]: {
+                w: '60px',
+                h: '33px',
+                fontSize: '14px'
+            }
           }}
           rightIcon={
             isOpen ? (

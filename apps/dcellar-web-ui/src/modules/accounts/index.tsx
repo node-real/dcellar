@@ -9,16 +9,10 @@ import { NonRefundableModal } from './components/NonRefundableModal';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
-import BigNumber from 'bignumber.js';
-import { MIN_AMOUNT } from '../wallet/constants';
-import { useRouter } from 'next/router';
 
 export const Accounts = () => {
   const dispatch = useAppDispatch();
-  const { bankBalance, editPaymentDetail, editOwnerDetail } = useAppSelector(
-    (state) => state.accounts,
-  );
-  const router = useRouter();
+  const { editPaymentDetail, editOwnerDetail } = useAppSelector((state) => state.accounts);
 
   const refreshPAList = () => {
     dispatch(setupPaymentAccounts(true));
@@ -27,8 +21,6 @@ export const Accounts = () => {
   useMount(() => {
     dispatch(setupPaymentAccounts());
   });
-
-  const hasBankBalance = BigNumber(bankBalance).gt(BigNumber(MIN_AMOUNT));
 
   return (
     <>

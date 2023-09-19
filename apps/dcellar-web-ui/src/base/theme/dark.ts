@@ -56,5 +56,5 @@ export const dark = {
     shadows: {
       normal: '0px 2px 8px rgba(11, 14, 17, 1)',
     },
-  },
+  }
 };
