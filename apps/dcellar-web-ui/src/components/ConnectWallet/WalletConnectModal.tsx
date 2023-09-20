@@ -29,7 +29,6 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
     setCurrentAddress(address);
   }, []);
 
-  // TODO
   useEffect(() => {
     if (
       hasTrigger &&
@@ -67,11 +66,11 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
 
   const isLoading = isWalletConnecting || isAuthPending;
 
-  useEffect(() => {
-    if (isOpen) {
-      disconnect();
-    }
-  }, [disconnect, isOpen]);
+  // useEffect(() => {
+  //   if (isOpen) {
+  //     disconnect();
+  //   }
+  // }, [disconnect, isOpen]);
 
   return (
     <DCModal
@@ -97,7 +96,7 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
                 isDisabled={isLoading}
                 onClick={() => {
                   setHasTrigger(true);
-                  onChangeConnector(item);
+                  !address && onChangeConnector(item);
                 }}
               />
             </GAClick>
