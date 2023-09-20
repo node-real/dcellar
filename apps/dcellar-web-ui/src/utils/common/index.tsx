@@ -59,5 +59,5 @@ export const capitalizeFLetter = (str: string) => {
 };
 
 export const networkTag = (runtimeEnv: TRuntimeEnv) => {
-  return runtimeEnv === 'testnet' ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
+  return ['mainnet', 'testnet'].includes(runtimeEnv) ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
 }
