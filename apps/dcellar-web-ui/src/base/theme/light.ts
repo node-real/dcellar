@@ -2,6 +2,16 @@ import { rgba } from '@totejs/uikit';
 
 export const light = {
   colors: {
+    opacity1: 'rgba(0, 186, 52, 0.10)',
+    opacity2: 'rgba(0, 186, 52, 0.15)',
+    opacity3: 'rgba(238, 57, 17, 0.10)',
+    opacity4: 'rgba(238, 57, 17, 0.15)',
+    opacity5: 'rgba(238, 124, 17, 0.10)',
+    opacity6: 'rgba(238, 124, 17, 0.15)',
+    opacity7: 'rgba(17, 132, 238, 0.10)',
+    opacity8: 'rgba(17, 132, 238, 0.15)',
+    opacity9: 'rgba(0, 0, 0, 0.15)',
+    opacity10: 'rgba(255, 255, 255, 0.10)',
     brand: {
       'normal-hight': '#009e2c',
       normal: '#00ba34',

@@ -13,7 +13,7 @@ import { useDebounceEffect } from 'ahooks';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { Avatar } from '@/components/Avatar';
 import styled from '@emotion/styled';
-import { DCLink } from '@/components/DCLink';
+import { DCLink } from '@/components/common/DCLink';
 import { IconFont } from '@/components/IconFont';
 
 interface AccountInfoProps {}

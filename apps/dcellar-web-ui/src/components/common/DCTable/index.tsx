@@ -17,8 +17,6 @@ import { antdTheme } from '@/base/theme/antd';
 
 export type AlignType = 'left' | 'right' | 'center';
 
-export type FixedType = 'left' | 'right' | boolean;
-
 interface DCTable extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
@@ -159,9 +157,9 @@ export const SortItem = styled.span`
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 7px 16px;
+  padding: 7px 8px;
   transition: all 0.2s;
-  margin-left: -16px;
+  margin-left: -8px;
   margin-top: -7px;
   margin-bottom: -7px;
   user-select: none;
@@ -182,13 +180,14 @@ export const SortItem = styled.span`
 `;
 
 const Container = styled.div`
-  border-radius: 16px;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
-  padding: 0 16px;
   position: relative;
+
   .ant-table-thead > tr > th {
-    background: #fff;
+    color: var(--ui-colors-readable-normal);
+    background: var(--ui-colors-bg-bottom);
     &:before {
       display: none;
     }
@@ -206,6 +205,7 @@ const Container = styled.div`
   .ant-table-tbody > tr > td {
     font-weight: 500;
     background: #fff;
+    padding: 12px 16px;
   }
 
   .ant-spin-nested-loading > div > .ant-spin {

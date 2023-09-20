@@ -59,5 +59,5 @@ const LayoutNav = styled.nav`
 const Content = styled.main`
   grid-area: Content;
   background: var(--ui-colors-bg-middle);
-  padding: 24px 24px 16px 24px;
+  padding: 16px 24px;
 `;

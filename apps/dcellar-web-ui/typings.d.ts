@@ -31,7 +31,17 @@ declare module '@totejs/uikit' {
       | 'brand.brand7'
       | 'brand.brand8'
       | 'brand.brand9'
-      | 'brand.brand10';
+      | 'brand.brand10'
+      | 'opacity1'
+      | 'opacity2'
+      | 'opacity3'
+      | 'opacity4'
+      | 'opacity5'
+      | 'opacity6'
+      | 'opacity7'
+      | 'opacity8'
+      | 'opacity9'
+      | 'opacity10';
     shadows: BaseThemeTypings['shadows'];
   }
 }

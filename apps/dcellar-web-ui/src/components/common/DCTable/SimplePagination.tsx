@@ -1,9 +1,10 @@
 import { memo } from 'react';
 import { Button, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import { BackIcon, GoIcon, MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
+import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
+import { IconFont } from '@/components/IconFont';
 
 const defaultPageSizeOptions = [10, 20, 50, 100, 500];
 
@@ -35,7 +36,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
           >
             {pageSize}
           </StyledButton>
-          <MenuList w={50} borderRadius={4}>
+          <MenuList minW={64} borderRadius={4}>
             {pageSizeOptions.map((p) => (
               <StyledMenuItem
                 key={p}
@@ -56,8 +57,12 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   return (
     <Container>
       {!simple && <>Rows per page: {menu}</>}
-      <StyledBack $disabled={!canPrev} onClick={() => pageChange(pageSize, false, true)} />{' '}
-      <StyledGo $disabled={!canNext} onClick={() => pageChange(pageSize, true, false)} />
+      <StyledBack
+        type="back"
+        $disabled={!canPrev}
+        onClick={() => pageChange(pageSize, false, true)}
+      />{' '}
+      <StyledGo type="go" $disabled={!canNext} onClick={() => pageChange(pageSize, true, false)} />
     </Container>
   );
 });
@@ -68,25 +73,28 @@ const disabled = css`
 `;
 
 const active = css`
+  font-size: 24px;
+  cursor: pointer;
   transition: all 0.2s;
   :hover {
     color: #00ba34;
   }
 `;
 
-const StyledBack = styled(BackIcon, transientOptions)<{ $disabled: boolean }>`
+const StyledBack = styled(IconFont, transientOptions)<{ $disabled: boolean }>`
   ${active};
   ${(props) => props.$disabled && disabled}
 `;
 
-const StyledGo = styled(GoIcon, transientOptions)<{ $disabled: boolean }>`
+const StyledGo = styled(IconFont, transientOptions)<{ $disabled: boolean }>`
   ${active};
+  margin-left: 16px;
   ${(props) => props.$disabled && disabled}
 `;
 
 const StyledMenuItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
-  padding: 2px 4px;
-  height: 19px;
+  padding: 8px 12px;
+  height: 28px;
   font-size: 12px;
   font-weight: 400;
   ${(props) =>
@@ -98,13 +106,12 @@ const StyledMenuItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
 
 const StyledButton = styled(MenuButton, transientOptions)<{ $open: boolean }>`
   margin-left: 12px;
-  margin-right: 8px;
+  margin-right: 24px;
   display: flex;
-  padding: 2px 4px;
+  padding: 8px 12px;
   align-items: center;
   border-radius: 4px;
-  height: 19px;
-  width: 44px;
+  height: 28px;
   border: 1px solid #e6e8ea;
   background: #fff;
   font-size: 12px;
@@ -128,16 +135,12 @@ const StyledButton = styled(MenuButton, transientOptions)<{ $open: boolean }>`
 `;
 
 const Container = styled.div`
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 12px 16px;
-  font-size: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
   font-weight: 500;
-  color: #76808f;
-  > svg {
-    width: 20px;
-    margin-left: 16px;
-    cursor: pointer;
-  }
+  color: var(--ui-colors-readable-tertiary);
 `;

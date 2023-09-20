@@ -5,10 +5,12 @@ export const theme: Theme = {
   colors: {
     light: { ...light.colors },
   },
+
   config: {
     useSystemColorMode: false, // true | false
     initialColorMode: 'light', // light | dark | system
   },
+
   styles: {
     global: {
       html: {

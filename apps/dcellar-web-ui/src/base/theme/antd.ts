@@ -12,6 +12,7 @@ export const antdTheme: ThemeConfig = {
     fontFamily: 'Inter, sans-serif',
     colorError: '#EE3911',
     colorErrorBorderHover: '#FC6E75',
+    borderRadius: 4,
   },
   components: {
     Tooltip: {

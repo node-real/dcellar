@@ -14,7 +14,7 @@ import { NameItem } from '@/modules/bucket/components/NameItem';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
-import { ListEmpty } from '@/modules/bucket/components/ListEmpty';
+import { BucketListEmpty } from '@/modules/bucket/components/BucketListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
@@ -124,7 +124,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
         rowKey="BucketName"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <ListEmpty empty={empty} />}
+        renderEmpty={() => <BucketListEmpty empty={empty} />}
         pageSize={bucketPageSize}
         pageChange={onPageChange}
         canNext={canNext}
