@@ -26,27 +26,28 @@ function DcellarApp({ Component, ...rest }: AppProps) {
   const customLayout = (Component as any).getLayout;
   const getLayout = customLayout || ((page: ReactNode) => <Layout>{page}</Layout>);
 
+  const CommonComponent = (
+    <ThemeProvider theme={theme}>
+      <WalletConnectProvider>
+        <LoginContextProvider inline={!!customLayout}>
+          <OffChainAuthProvider>
+            {getLayout(
+              <PageProtect>
+                <Component {...props.pageProps} />
+                <GlobalManagements />
+              </PageProtect>,
+            )}
+          </OffChainAuthProvider>
+        </LoginContextProvider>
+      </WalletConnectProvider>
+    </ThemeProvider>
+  );
   return (
     <>
       <SEOHead />
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          {() => (
-            <ThemeProvider theme={theme}>
-              <WalletConnectProvider>
-                <LoginContextProvider inline={!!customLayout}>
-                  <OffChainAuthProvider>
-                    {getLayout(
-                      <PageProtect>
-                        <Component {...props.pageProps} />
-                        <GlobalManagements />
-                      </PageProtect>,
-                    )}
-                  </OffChainAuthProvider>
-                </LoginContextProvider>
-              </WalletConnectProvider>
-            </ThemeProvider>
-          )}
+          {process.env.NODE_ENV === 'development' ? CommonComponent : () => CommonComponent}
         </PersistGate>
       </Provider>
     </>
