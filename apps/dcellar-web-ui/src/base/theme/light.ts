@@ -6,6 +6,16 @@ export const light = {
       'normal-hight': '#009e2c',
       normal: '#00ba34',
       disable: '#c2eece',
+      brand1: '#E6F8EB',
+      brand2: '#C2EECE',
+      brand3: '#91E1A8',
+      brand4: '#5ED47F',
+      brand5: '#2EC659',
+      brand6: '#00BA34',
+      brand7: '#009E2C',
+      brand8: '#008425',
+      brand9: '#006A1E',
+      brand10: '#005417',
     },
     readable: {
       normal: '#1e2026',
@@ -14,6 +24,8 @@ export const light = {
       disable: '#aeb4bc',
       border: '#e6e8ea',
       white: '#fff',
+      'label-normal': '#EEBE11',
+      'label-active': '#F1CA3C',
     },
     bg: {
       bottom: '#f5f5f5',
@@ -25,37 +37,29 @@ export const light = {
       },
     },
     scene: {
+      warning: {
+        normal: '#ee7c11',
+        active: '#f1943c',
+        'opacity-normal': rgba('#ee7c11', 0.1),
+        'opacity-active': rgba('#ee7c11', 0.15),
+      },
       success: {
         normal: '#00ba34',
         active: '#3ec659',
-        opacity: {
-          normal: rgba('#00ba34', 0.1),
-          active: rgba('#00ba34', 0.15),
-        },
+        'opacity-normal': rgba('#00ba34', 0.1),
+        'opacity-active': rgba('#00ba34', 0.15),
       },
       danger: {
         normal: '#ee3911',
         active: '#f15d3c',
-        opacity: {
-          normal: rgba('#ee3911', 0.1),
-          active: rgba('#ee3911', 0.15),
-        },
+        'opacity-normal': rgba('#ee3911', 0.1),
+        'opacity-active': rgba('#ee3911', 0.15),
       },
       waiting: {
         normal: '#eebe11',
         active: '#f1ca3c',
-        opacity: {
-          normal: rgba('#f0b90b', 0.1),
-          active: rgba('#f0b90b', 0.15),
-        },
-      },
-      warning: {
-        normal: '#ee7c11',
-        active: '#f1943c',
-        opacity: {
-          normal: rgba('#ee7c11', 0.1),
-          active: rgba('#ee7c11', 0.15),
-        },
+        'opacity-normal': rgba('#f0b90b', 0.1),
+        'opacity-active': rgba('#f0b90b', 0.15),
       },
     },
     shadows: {

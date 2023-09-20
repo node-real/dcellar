@@ -27,7 +27,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.52.1
+      '@totejs/uikit': 2.52.1
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38

@@ -1,19 +1,16 @@
-import { forwardRef, LegacyRef, SVGProps } from 'react';
-import styled from '@emotion/styled';
+import { forwardRef } from 'react';
+import { html, HTMLProps } from '@totejs/uikit';
 
-interface IconFontProps extends SVGProps<SVGSVGElement> {
+export interface IconFontProps extends HTMLProps<'svg'> {
   type: string;
-  ref?: LegacyRef<SVGSVGElement>;
 }
 
-const _IconFont = forwardRef<SVGSVGElement, IconFontProps>(
-  ({ type, className = '', ...props }, ref) => {
+export const IconFont = forwardRef<SVGSVGElement, IconFontProps>(
+  ({ type, className = '', w = '1em', h = w, ...props }, ref) => {
     return (
-      <svg ref={ref} width="1em" height="1em" {...props}>
+      <html.svg ref={ref} w={w} h={h} {...props}>
         <use xlinkHref={`#icon-${type}`} />
-      </svg>
+      </html.svg>
     );
   },
 );
-
-export const IconFont = styled(_IconFont)``;

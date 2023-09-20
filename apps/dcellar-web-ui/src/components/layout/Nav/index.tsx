@@ -5,6 +5,7 @@ import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 import { DcellarDoc, FAQ } from '@/constants/links';
+import { memo } from 'react';
 
 const MENU_ITEMS = [
   {
@@ -34,7 +35,9 @@ const ASIDE = [
   { link: FAQ, trackId: 'dc.main.nav.faq.click', icon: 'help', text: 'FAQ' },
 ];
 
-export const Nav = () => {
+interface NavProps {}
+
+export const Nav = memo<NavProps>(function Nav() {
   const { pathname } = useRouter();
 
   return (
@@ -70,7 +73,7 @@ export const Nav = () => {
       </MenuList>
     </NavContainer>
   );
-};
+});
 
 const NavContainer = styled(Box)`
   display: grid;

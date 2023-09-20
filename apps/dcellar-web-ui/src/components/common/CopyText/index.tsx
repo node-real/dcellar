@@ -1,5 +1,4 @@
 import { GAClick } from '@/components/common/GATracker';
-import { ColoredSuccessIcon, CopyIcon } from '@totejs/icons';
 import {
   Flex,
   Box,
@@ -12,6 +11,7 @@ import {
   IconButtonProps,
 } from '@totejs/uikit';
 import { useEffect } from 'react';
+import { IconFont } from '@/components/IconFont';
 
 export interface CopyTextProps extends FlexProps {
   value: string;
@@ -45,7 +45,7 @@ export function CopyText(props: CopyTextProps) {
         content={
           hasCopied ? (
             <Center color={'readable.normal'}>
-              <ColoredSuccessIcon color={'readable.primary'} size="sm" mr={4} />
+              <IconFont type="colored-success" w={16} mr={4} />
               Copied
             </Center>
           ) : (
@@ -58,11 +58,11 @@ export function CopyText(props: CopyTextProps) {
             alignSelf="flex-start"
             size="sm"
             variant="link"
-            color={hasCopied ? "readable.brand6":"readable.normal"}
-            icon={<CopyIcon size="md" color='readable.tertiary' />}
+            color={'readable.normal'}
+            icon={<IconFont type="copy" w={20} />}
             onClick={onCopy}
             _hover={{
-              color: 'readable.brand5',
+              color: hasCopied ? 'brand.brand6' : 'brand.brand5',
             }}
             {...iconProps}
           />
