@@ -95,11 +95,12 @@ export const buttonConfig = {
             bg: 'brand.brand5',
           },
           _disabled: {
+            cursor: 'not-allowed',
             bg: 'readable.disable',
             color: 'readable.tertiary',
-            // _hover: {
-            //   bg: 'readable.disable',
-            // },
+            _hover: {
+              bg: 'readable.disable',
+            },
           },
         },
       };
@@ -115,11 +116,12 @@ export const buttonConfig = {
             bg: 'readable.secondary',
           },
           _disabled: {
+            cursor: 'not-allowed',
             bg: 'readable.disable',
             color: 'readable.tertiary',
-            // _hover: {
-            //   bg: 'readable.disable',
-            // },
+            _hover: {
+              bg: 'readable.disable',
+            },
           },
         },
       };
@@ -138,12 +140,13 @@ export const buttonConfig = {
             borderColor: 'brand.brand6',
           },
           _disabled: {
+            cursor: 'not-allowed',
             borderColor: 'readable.border',
             color: 'readable.disable',
-            // _hover: {
-            //   borderColor: 'readable.border',
-            //   color: 'readable.disable',
-            // },
+            _hover: {
+              borderColor: 'readable.border',
+              color: 'readable.disable',
+            },
           },
         },
       };

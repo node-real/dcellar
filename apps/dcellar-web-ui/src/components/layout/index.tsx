@@ -24,6 +24,7 @@ const LayoutContainer = styled(Grid)`
   grid-template-areas:
     'Header Header'
     'Nav Content';
+  grid-template-columns: auto 1fr;
 `;
 
 const LayoutHeader = styled.header`

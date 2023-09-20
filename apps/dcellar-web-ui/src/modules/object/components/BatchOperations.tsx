@@ -10,9 +10,9 @@ import { setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { downloadObject } from '@/facade/object';
-import { GhostButton } from '@/modules/object/objects.style';
 import { BatchDeleteObject } from '@/modules/object/components/batch-delete/BatchDeleteObject';
 import { DCTooltip } from '@/components/common/DCTooltip';
+import { DCButton } from '@/components/common/DCButton';
 
 interface BatchOperationsProps {}
 
@@ -138,21 +138,19 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
               </Box>
             }
           >
-            <div>
-              <GhostButton
-                as={!downloadable ? 'span' : 'button'}
-                disabled={!downloadable}
-                variant="ghost"
-                onClick={onBatchDownload}
-              >
-                Download
-              </GhostButton>
-            </div>
+            <DCButton
+              as={!downloadable ? 'span' : 'button'}
+              disabled={!downloadable}
+              variant="ghost"
+              onClick={onBatchDownload}
+            >
+              Download
+            </DCButton>
           </DCTooltip>
         )}
-        <GhostButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
+        <DCButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
           Delete
-        </GhostButton>
+        </DCButton>
       </Text>
     </>
   );

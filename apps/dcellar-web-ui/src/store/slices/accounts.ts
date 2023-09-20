@@ -15,7 +15,12 @@ export type TAccount = {
   name: string;
   address: string;
 };
-export type AccountType = 'unknown_account' | 'gnfd_account' | 'payment_account' | 'non_refundable_payment_account' | 'error_account';
+export type AccountType =
+  | 'unknown_account'
+  | 'gnfd_account'
+  | 'payment_account'
+  | 'non_refundable_payment_account'
+  | 'error_account';
 export type TAccountDetail = {
   name: string;
   address: string;
@@ -170,10 +175,10 @@ export const paymentAccountSlice = createSlice({
     setBankBalance(state, { payload }: PayloadAction<string>) {
       state.bankBalance = payload;
     },
-    setAccountType(state, { payload }: PayloadAction<{ addr: string, type: AccountType }>) {
+    setAccountType(state, { payload }: PayloadAction<{ addr: string; type: AccountType }>) {
       const { addr, type } = payload;
       state.accountTypes[addr] = type;
-    }
+    },
   },
 });
 
@@ -195,9 +200,6 @@ export const {
 const defaultPaAccount = {} as TAccountDetail;
 export const selectAccount = (address: string) => (state: any) =>
   state.accounts.accountDetails[address] || defaultPaAccount;
-
-export const selectBankBalance = (address: string) => (state: any) =>
-  state.accounts.bankBalances[address];
 
 export const defaultPAList = Array<TAccount>();
 export const selectPaymentAccounts = (address: string) => (state: any) =>
@@ -226,20 +228,21 @@ export const setupOAList = () => async (dispatch: AppDispatch, getState: GetStat
 
 export const setupPaymentAccounts =
   (forceLoading = false) =>
-    async (dispatch: any, getState: GetState) => {
-      const { loginAccount } = getState().persist;
-      const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
-      if (isLoadingPaymentAccounts) return;
-      if (!paymentAccounts.length || forceLoading) {
-        dispatch(setLoadingPaymentAccounts(true));
-      }
-      const [data, error] = await getPaymentAccountsByOwner(loginAccount);
-      dispatch(setLoadingPaymentAccounts(false));
-      if (!data) return;
-      const newData = data.paymentAccounts;
-      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
-      dispatch(setPAInfos({ loginAccount }));
-    };
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+    const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
+    if (isLoadingPaymentAccounts) return;
+    if (!loginPaymentAccounts.length || forceLoading) {
+      dispatch(setLoadingPaymentAccounts(true));
+    }
+    const [data, error] = await getPaymentAccountsByOwner(loginAccount);
+    dispatch(setLoadingPaymentAccounts(false));
+    if (!data) return;
+    const newData = data.paymentAccounts;
+    dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
+    dispatch(setPAInfos({ loginAccount }));
+  };
 
 export const setupAccountDetail =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -261,9 +264,9 @@ export const setupAccountDetail =
       name: paymentAccountName,
       streamRecord: SRRes?.streamRecord,
       refundable: PARes?.paymentAccount?.refundable,
-    }
+    };
     dispatch(
-      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME}),
+      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME }),
     );
   };
 
@@ -272,28 +275,36 @@ export const setupAccountType =
     if (!address) return;
     const { loginAccount } = getState().persist;
     if (loginAccount === address) {
-      return dispatch(setAccountType({
-        addr: address,
-        type: 'gnfd_account'
-      }))
+      return dispatch(
+        setAccountType({
+          addr: address,
+          type: 'gnfd_account',
+        }),
+      );
     }
     const [PARes, PAError] = await getPaymentAccount(address);
     if (PARes) {
-      const type = PARes?.paymentAccount.refundable === true ? 'payment_account' : 'non_refundable_payment_account';
-      return dispatch(setAccountType({ addr: address, type }))
+      const type =
+        PARes?.paymentAccount.refundable === true
+          ? 'payment_account'
+          : 'non_refundable_payment_account';
+      return dispatch(setAccountType({ addr: address, type }));
     }
     const [EARes, EAError] = await getAccount(address);
     if (EARes) {
       const type = 'gnfd_account';
-      return dispatch(setAccountType({
-        addr: address,
-        type,
-      }))
+      return dispatch(
+        setAccountType({
+          addr: address,
+          type,
+        }),
+      );
     }
-    dispatch(setAccountType({
-      addr: address,
-      type: 'unknown_account'
-    }))
-
+    dispatch(
+      setAccountType({
+        addr: address,
+        type: 'unknown_account',
+      }),
+    );
   };
 export default paymentAccountSlice.reducer;

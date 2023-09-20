@@ -19,10 +19,10 @@ import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
-import { ForwardIcon } from '@totejs/icons';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
+import { IconFont } from '@/components/IconFont';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -81,15 +81,13 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <Flex justifyContent="space-between" mt={-8} alignItems="center">
+        <Flex justifyContent="space-between" alignItems="center">
           <ObjectBreadcrumb />
           {owner && <QuotaCard />}
         </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>
-            <ForwardIcon />
-          </GoBack>
-          <Flex flex={1} minW={0}>
+            <IconFont type="backward" w={24} />
             {selected > 0 ? (
               <SelectedText>
                 {selected} File{selected > 1 && 's'} Selected
@@ -103,7 +101,7 @@ export const ObjectsPage = () => {
                 <ObjectName>{title}</ObjectName>
               </Tooltip>
             )}
-          </Flex>
+          </GoBack>
           <NewObject
             showRefresh={true}
             gaFolderClickName="dc.file.list.create_folder.click"

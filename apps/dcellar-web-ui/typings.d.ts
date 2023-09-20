@@ -1,5 +1,4 @@
 /// <reference types="redux-persist" />
-
 import { BaseThemeTypings } from '@totejs/uikit';
 
 declare module '@totejs/uikit' {
@@ -10,6 +9,7 @@ declare module '@totejs/uikit' {
       | 'brand.normal'
       | 'brand.disable'
       | 'readable.normal'
+      | 'readable.primary'
       | 'readable.secondary'
       | 'readable.tertiary'
       | 'readable.disable'

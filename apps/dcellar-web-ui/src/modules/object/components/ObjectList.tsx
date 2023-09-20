@@ -16,6 +16,7 @@ import {
   setStatusDetail,
   setupDummyFolder,
   setupListObjects,
+  SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
 import { find, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
@@ -28,7 +29,6 @@ import {
 import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
-import { ListEmpty } from '@/modules/object/components/ListEmpty';
 import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
@@ -59,6 +59,8 @@ import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 import { selectAccount } from '@/store/slices/accounts';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { NewObject } from '@/modules/object/components/NewObject';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -84,7 +86,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload } =
     useAppSelector((root) => root.object);
@@ -399,7 +401,22 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         rowKey="objectName"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <ListEmpty empty={empty} />}
+        renderEmpty={() => (
+          <ListEmpty
+            type={discontinue ? 'discontinue' : 'empty-object'}
+            title={discontinue ? 'Discontinue Notice' : 'Upload Objects and Start Your Work Now'}
+            desc={
+              discontinue
+                ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
+                : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
+                    SINGLE_OBJECT_MAX_SIZE,
+                  )}.`
+            }
+            empty={empty}
+          >
+            <NewObject showRefresh={false} />
+          </ListEmpty>
+        )}
         pageSize={objectPageSize}
         pageChange={onPageChange}
         canNext={canNext}

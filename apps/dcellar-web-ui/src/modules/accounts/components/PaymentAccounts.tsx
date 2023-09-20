@@ -1,4 +1,4 @@
-import { Box, Flex, Link, Loading } from '@totejs/uikit';
+import { Box, Flex, Link } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
@@ -16,8 +16,9 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
 import { useRouter } from 'next/router';
 import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/persist';
-import { PAListEmpty } from './PAListEmpty';
 import { NewPA } from './NewPA';
+import { Loading } from '@/components/common/Loading';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 
 const actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -97,7 +98,7 @@ export const PaymentAccounts = () => {
             >
               {record.address}{' '}
             </Link>{' '}
-            <CopyText value={record.address} />
+            <CopyText value={record.address} boxSize={16} />
           </Flex>
         );
       },
@@ -137,8 +138,8 @@ export const PaymentAccounts = () => {
 
   return (
     <>
-      <Flex justifyContent={'space-between'} marginBottom={16}>
-        <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
+      <Flex justifyContent={'space-between'} marginBottom={16} alignItems="center">
+        <Box as="h3" fontSize={16} fontWeight={600}>
           Payment Account
         </Box>
         <NewPA />
@@ -151,17 +152,27 @@ export const PaymentAccounts = () => {
         }}
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <PAListEmpty empty={empty} />}
+        renderEmpty={() => (
+          <ListEmpty
+            type="empty-account"
+            title="No Payment Accounts"
+            desc="Create payment accounts to pay for storage and bandwidth. "
+            empty={empty}
+            h={274}
+          >
+            <NewPA />
+          </ListEmpty>
+        )}
         pageSize={PAPageSize}
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record: TAccount, index) => ({
+        onRow={(record: TAccount) => ({
           onClick: () => {
             dispatch(setEditPaymentDetail(record.address));
           },
         })}
-      ></DCTable>
+      />
     </>
   );
 };

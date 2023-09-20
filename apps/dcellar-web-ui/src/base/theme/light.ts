@@ -36,6 +36,7 @@ export const light = {
       white: '#fff',
       'label-normal': '#EEBE11',
       'label-active': '#F1CA3C',
+      primary: '#00BA34',
     },
     bg: {
       bottom: '#f5f5f5',
@@ -47,6 +48,12 @@ export const light = {
       },
     },
     scene: {
+      primary: {
+        normal: '#00ba34',
+        active: '#3ec659',
+        'opacity-normal': rgba('#00ba34', 0.1),
+        'opacity-active': rgba('#00ba34', 0.15),
+      },
       warning: {
         normal: '#ee7c11',
         active: '#f1943c',

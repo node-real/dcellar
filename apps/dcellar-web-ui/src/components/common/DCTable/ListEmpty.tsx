@@ -1,20 +1,30 @@
-import { memo } from 'react';
-import styled from '@emotion/styled';
-import { Flex, Text } from '@totejs/uikit';
-import { NewBucket } from '@/modules/bucket/components/NewBucket';
+import { memo, PropsWithChildren } from 'react';
+import { Box, Flex, Text } from '@totejs/uikit';
 import { IconFont } from '@/components/IconFont';
+import styled from '@emotion/styled';
 
-interface ListEmptyProps {
+interface ListEmptyProps extends PropsWithChildren {
   empty: boolean;
+  title: string;
+  desc: string;
+  type: string;
+  h?: number;
 }
 
-export const BucketListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }) {
+export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({
+  empty,
+  title,
+  desc,
+  type,
+  children,
+  h = 438,
+}) {
   return (
-    <Container>
+    <Container h={h}>
       <Content>
         {empty && (
           <Flex flex={1} flexDirection={'column'} alignItems={'center'} justifyContent="center">
-            <IconFont type="empty-bucket" w={120} />
+            <IconFont type={type} w={120} />
             <Flex my={16} flexDirection="column">
               <Text
                 color="readable.normal"
@@ -23,13 +33,13 @@ export const BucketListEmpty = memo<ListEmptyProps>(function ListEmpty({ empty }
                 fontSize={18}
                 mb={8}
               >
-                No Buckets
+                {title}
               </Text>
               <Text lineHeight="normal" color={'readable.tertiary'}>
-                Create a bucket to get started!👏
+                {desc}
               </Text>
             </Flex>
-            <NewBucket showRefresh={false} />
+            {children}
           </Flex>
         )}
       </Content>
@@ -43,8 +53,7 @@ const Content = styled.div`
   max-width: 568px;
 `;
 
-const Container = styled.div`
-  height: 530px;
+const Container = styled(Box)`
   display: grid;
   place-items: center;
 `;

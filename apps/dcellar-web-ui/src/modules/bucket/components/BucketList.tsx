@@ -14,7 +14,6 @@ import { NameItem } from '@/modules/bucket/components/NameItem';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
-import { BucketListEmpty } from '@/modules/bucket/components/BucketListEmpty';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
@@ -22,6 +21,8 @@ import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
 import { DeleteBucket } from '@/modules/bucket/components/DeleteBucket';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { BucketDrawer } from '@/modules/bucket/components/BucketDrawer';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { NewBucket } from '@/modules/bucket/components/NewBucket';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -33,7 +34,7 @@ interface BucketListProps {}
 export const BucketList = memo<BucketListProps>(function BucketList() {
   const dispatch = useAppDispatch();
   const { loginAccount, bucketPageSize, bucketSortBy } = useAppSelector((root) => root.persist);
-  const { loading, currentPage } = useAppSelector((root) => root.bucket);
+  const { buckets, currentPage, loading } = useAppSelector((root) => root.bucket);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<BucketItem>({
@@ -102,7 +103,8 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
     dispatch(updateBucketPageSize(pageSize));
   };
 
-  const empty = !loading && !sortedList.length;
+  const spinning = !(loginAccount in buckets);
+  const empty = !spinning && !sortedList.length;
 
   return (
     <>
@@ -118,13 +120,22 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       )}
       <DCTable
         loading={{
-          spinning: loading,
+          spinning: spinning || loading,
           indicator: <Loading />,
         }}
         rowKey="BucketName"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <BucketListEmpty empty={empty} />}
+        renderEmpty={() => (
+          <ListEmpty
+            type="empty-bucket"
+            empty={empty}
+            title="No Buckets"
+            desc="Create a bucket to get started!👏"
+          >
+            <NewBucket showRefresh={false} />
+          </ListEmpty>
+        )}
         pageSize={bucketPageSize}
         pageChange={onPageChange}
         canNext={canNext}

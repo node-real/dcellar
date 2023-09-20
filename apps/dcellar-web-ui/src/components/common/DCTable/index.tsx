@@ -6,14 +6,13 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import Descend from '@/components/common/SvgIcon/Descend.svg';
-import Ascend from '@/components/common/SvgIcon/Ascend.svg';
 import { Box, Flex, keyframes, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
 import { formatBytes } from '@/modules/file/utils';
 import { antdTheme } from '@/base/theme/antd';
+import { IconFont } from '@/components/IconFont';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -21,22 +20,24 @@ interface DCTable extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
 
-export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
+export const DCTable = memo<DCTable & Omit<SimplePaginationProps, 'loading'>>(function DCTable({
   renderEmpty,
   pageSize,
   pageChange,
   canNext,
   canPrev,
   pagination = true,
+  dataSource,
   ...props
 }) {
   return (
     <Container>
       <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
-        <Table {...props} pagination={false} tableLayout="fixed" />
+        <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
       {pagination && (
         <SimplePagination
+          loading={!dataSource?.length}
           pageSize={pageSize}
           canNext={canNext}
           canPrev={canPrev}
@@ -149,8 +150,8 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 };
 
 export const SortIcon = {
-  descend: <Descend />,
-  ascend: <Ascend />,
+  descend: <IconFont type="sort-descend" w={18} />,
+  ascend: <IconFont type="sort-ascend" w={18} />,
 };
 
 export const SortItem = styled.span`
@@ -180,10 +181,15 @@ export const SortItem = styled.span`
 `;
 
 const Container = styled.div`
+  overflow: hidden;
   border-radius: 4px;
   border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
   position: relative;
+
+  .ant-table-wrapper .ant-table {
+    line-height: normal;
+  }
 
   .ant-table-thead > tr > th {
     color: var(--ui-colors-readable-normal);

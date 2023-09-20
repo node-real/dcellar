@@ -6,14 +6,7 @@ import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import {
-  Box,
-  Link,
-  Popover,
-  PopoverBody,
-  PopoverContent,
-  PopoverTrigger,
-} from '@totejs/uikit';
+import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -59,8 +52,6 @@ export const NewPA = () => {
         <Box>
           <DCButton
             h={40}
-            width={'fit-content'}
-            variant={'dcPrimary'}
             gaClickName="dc.file.f_detail_pop.download.click"
             onClick={() => onCreatePaymentClick()}
             disabled={!hasBankBalance}

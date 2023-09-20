@@ -14,14 +14,14 @@ const MENU_ITEMS = [
     trackId: 'dc.main.nav.bucket.click',
   },
   {
-    icon: 'group',
-    text: 'Groups',
-    trackId: 'dc.main.nav.groups.click',
-  },
-  {
     icon: 'account',
     text: 'Accounts',
     trackId: 'dc.main.nav.accounts.click',
+  },
+  {
+    icon: 'group',
+    text: 'Groups',
+    trackId: 'dc.main.nav.groups.click',
   },
   {
     icon: 'wallet',

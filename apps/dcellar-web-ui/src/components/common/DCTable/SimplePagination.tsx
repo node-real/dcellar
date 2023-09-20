@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Button, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
+import { Box, Button, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
@@ -15,6 +15,7 @@ export interface SimplePaginationProps {
   canNext: boolean;
   canPrev: boolean;
   simple?: boolean;
+  loading?: boolean;
 }
 
 export const SimplePagination = memo<SimplePaginationProps>(function SimplePagination({
@@ -24,6 +25,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   canPrev,
   canNext,
   simple = false,
+  loading = false,
 }) {
   const menu = (
     <Menu placement="top">
@@ -54,6 +56,9 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
       )}
     </Menu>
   );
+
+  if (loading) return <Box h={45} mt={-1} bg="bg.middle" position="relative" />;
+
   return (
     <Container>
       {!simple && <>Rows per page: {menu}</>}

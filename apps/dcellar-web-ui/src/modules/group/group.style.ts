@@ -1,15 +1,12 @@
 import styled from '@emotion/styled';
 
-export const GroupContainer = styled.div`
-  margin: 24px;
-`;
+export const GroupContainer = styled.div``;
 
 export const PanelContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
-  height: 40px;
+  margin-bottom: 16px;
 `;
 
 export const PageTitle = styled.h1`

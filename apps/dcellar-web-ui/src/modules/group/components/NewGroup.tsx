@@ -2,9 +2,9 @@ import { memo, useCallback } from 'react';
 import { Flex } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setCreatingGroup, setupGroups } from '@/store/slices/group';
-import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { DCButton } from '@/components/common/DCButton';
 import { debounce } from 'lodash-es';
+import { IconFont } from '@/components/IconFont';
 
 interface NewGroupProps {
   showRefresh?: boolean;
@@ -28,13 +28,13 @@ export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = tr
   return (
     <Flex gap={12}>
       {showRefresh && (
-        <Flex onClick={onRefresh} alignItems="center" height={40} mr={12} cursor="pointer">
-          <RefreshIcon />
-        </Flex>
+        <DCButton
+          variant="ghost"
+          leftIcon={<IconFont type="refresh" w={24} />}
+          onClick={onRefresh}
+        />
       )}
-      <DCButton variant="dcPrimary" h={40} onClick={onCreate}>
-        Create Group
-      </DCButton>
+      <DCButton onClick={onCreate}>Create Group</DCButton>
     </Flex>
   );
 });

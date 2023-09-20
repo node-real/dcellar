@@ -10,6 +10,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
+import { Loading } from '@/components/common/Loading';
 
 const actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -61,7 +62,7 @@ export const OwnerAccount = () => {
             >
               {record.address}{' '}
             </Link>{' '}
-            <CopyText value={record.address} />
+            <CopyText value={record.address} boxSize={16} />
           </Flex>
         );
       },
@@ -97,8 +98,11 @@ export const OwnerAccount = () => {
         canPrev={false}
         pageSize={10}
         pagination={false}
-        loading={ownerAccountLoading}
-        onRow={(record: TAccount, index) => ({
+        loading={{
+          spinning: ownerAccountLoading,
+          indicator: <Loading />,
+        }}
+        onRow={(record: TAccount) => ({
           onClick: () => {
             dispatch(setEditOwnerDetail(record.address));
           },

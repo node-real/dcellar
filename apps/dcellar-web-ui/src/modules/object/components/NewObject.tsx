@@ -26,7 +26,6 @@ import {
   setupListObjects,
 } from '@/store/slices/object';
 import { addToWaitQueue } from '@/store/slices/global';
-import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -35,6 +34,8 @@ import { debounce } from 'lodash-es';
 import { getTimestamp } from '@/utils/time';
 import { selectAccount } from '@/store/slices/accounts';
 import { formatBytes } from '@/modules/file/utils';
+import { DCButton } from '@/components/common/DCButton';
+import { IconFont } from '@/components/IconFont';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -204,15 +205,11 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     <Flex gap={12}>
       {showRefresh && (
         <>
-          <Flex
+          <DCButton
+            variant="ghost"
             onClick={refreshList}
-            alignItems="center"
-            height={40}
-            marginRight={12}
-            cursor="pointer"
-          >
-            <RefreshIcon />
-          </Flex>
+            leftIcon={<IconFont type="refresh" w={24} />}
+          />
           <BatchOperations />
         </>
       )}
@@ -225,23 +222,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         placement={'bottom-start'}
         visibility={maxFolderDepth && !loading ? 'visible' : 'hidden'}
       >
-        <GAClick name={gaFolderClickName}>
-          <Flex
-            bgColor={disabled ? 'readable.tertiary' : 'readable.normal'}
-            _hover={{ bg: 'readable.tertiary' }}
-            position="relative"
-            paddingX="16px"
-            paddingY="8px"
-            alignItems="center"
-            borderRadius={'8px'}
-            cursor={disabled ? 'default' : 'pointer'}
-            onClick={onOpenCreateFolder}
-          >
-            <Text color="readable.white" fontWeight={500} fontSize="16px" lineHeight="20px">
+        <div>
+          <GAClick name={gaFolderClickName}>
+            <DCButton variant="second" onClick={onOpenCreateFolder} disabled={disabled}>
               Create Folder
-            </Text>
-          </Flex>
-        </GAClick>
+            </DCButton>
+          </GAClick>
+        </div>
       </Tooltip>
       <Menu>
         <Tooltip
@@ -250,8 +237,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             discontinue
               ? 'Bucket in the discontinue status cannot upload objects.'
               : accountDetail?.clientFrozen
-              ?
-                'The payment account in the frozen status cannot upload objects.'
+              ? 'The payment account in the frozen status cannot upload objects.'
               : uploadDisabled
               ? 'Path invalid'
               : `Please limit object size to ${formatBytes(

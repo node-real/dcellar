@@ -16,12 +16,21 @@ import { IconFont } from '@/components/IconFont';
 export interface CopyTextProps extends FlexProps {
   value: string;
   iconProps?: Omit<IconButtonProps, 'icon'>;
+  boxSize?: number;
 
   gaClickName?: string;
   gaClickData?: Record<string, any>;
 }
 export function CopyText(props: CopyTextProps) {
-  const { value, children, iconProps, gaClickName, gaClickData, ...restProps } = props;
+  const {
+    value,
+    children,
+    iconProps,
+    gaClickName,
+    gaClickData,
+    boxSize = 20,
+    ...restProps
+  } = props;
   const { hasCopied, onCopy, setValue } = useClipboard(value);
 
   useEffect(() => {
@@ -59,7 +68,7 @@ export function CopyText(props: CopyTextProps) {
             size="sm"
             variant="link"
             color={'readable.normal'}
-            icon={<IconFont type="copy" w={20} />}
+            icon={<IconFont type="copy" w={boxSize} />}
             onClick={onCopy}
             _hover={{
               color: hasCopied ? 'brand.brand6' : 'brand.brand5',
