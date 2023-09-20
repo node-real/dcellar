@@ -6,6 +6,8 @@ import { BucketList } from '@/modules/bucket/components/BucketList';
 import Head from 'next/head';
 import React from 'react';
 import { Box, Flex } from '@totejs/uikit';
+import { runtimeEnv } from '@/base/env';
+import { networkTag } from '@/utils/common';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
@@ -26,7 +28,7 @@ export const BucketPage = () => {
   return (
     <>
       <Head>
-        <title>Buckets - DCellar</title>
+        <title>Buckets - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <Flex mb={16} alignItems="center" justifyContent="space-between">
         <Box as="h1" fontSize={24} fontWeight={700}>

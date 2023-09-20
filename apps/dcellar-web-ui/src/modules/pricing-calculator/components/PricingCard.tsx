@@ -10,6 +10,7 @@ import { BN } from '@/utils/BigNumber';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
+import { H2 } from './Common';
 
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
@@ -61,13 +62,7 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
       flexDirection={'column'}
     >
       <Flex gap={16} alignItems={'center'}>
-        <Text fontSize={24} fontWeight={700} sx={{
-          [smMedia]: {
-            fontSize: '20px',
-          }
-        }}>
-          BNB Greenfield Pricing
-        </Text>
+        <H2>BNB Greenfield Pricing</H2>
         <Box
           borderRadius={4}
           p={'8px 12px'}
@@ -78,23 +73,28 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
             [smMedia]: {
               padding: '4px',
               fontSize: '12px',
-            }
+            },
           }}
         >
           {curFullMonth}
         </Box>
       </Flex>
-      <Flex justifyContent={'space-between'} sx={{
-        [smMedia]: {
-          flexWrap: 'wrap'
-        }
-      }}>
-        <Text sx={{
+      <Flex
+        justifyContent={'space-between'}
+        sx={{
           [smMedia]: {
-            width: '100%',
-            marginBottom: '16px'
-          }
-        }}>
+            flexWrap: 'wrap',
+          },
+        }}
+      >
+        <Text
+          sx={{
+            [smMedia]: {
+              width: '100%',
+              marginBottom: '16px',
+            },
+          }}
+        >
           Global prices will update monthly based on all the SPs' suggested prices.{' '}
           <UnderlineLink href="#">Learn More</UnderlineLink>
         </Text>
@@ -134,11 +134,14 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           )}
         </Menu>
       </Flex>
-      <Flex gap={20} sx={{
-        [smMedia]: {
-          flexDirection: 'column'
-        }
-      }}>
+      <Flex
+        gap={20}
+        sx={{
+          [smMedia]: {
+            flexDirection: 'column',
+          },
+        }}
+      >
         <Flex
           flex={1}
           flexDirection={'column'}

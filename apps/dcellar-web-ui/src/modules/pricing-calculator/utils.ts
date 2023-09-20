@@ -16,7 +16,8 @@ export type TTimeOption = {
   value: string;
   id: string;
   unit: string;
-  title: string
+  title: string;
+  gaClickName?: string;
 }
 export const TimeOptions: TTimeOption[] = [
   {
@@ -24,18 +25,21 @@ export const TimeOptions: TTimeOption[] = [
     id: '6d',
     unit: 'm',
     title: '6 months',
+    gaClickName: 'dc_lp.calculator.time.6mo.click',
   },
   {
     id: '1y',
     value: '1',
     unit: 'y',
     title: '1 year',
+    gaClickName: 'dc_lp.calculator.time.1yr.click',
   },
   {
     id: 'custom',
     value: '180',
     unit: 'd',
-    title: 'Custom'
+    title: 'Custom',
+    gaClickName: 'dc_lp.calculator.time.custom.click',
   }
 ];
 

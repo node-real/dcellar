@@ -6,6 +6,9 @@ import { setupOAList, setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch } from '@/store';
 import { useMount } from 'ahooks';
 import { AccountOperations } from '@/modules/accounts/components/AccountOperations';
+import Head from 'next/head';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 export const Accounts = () => {
   const dispatch = useAppDispatch();
@@ -17,6 +20,9 @@ export const Accounts = () => {
 
   return (
     <>
+      <Head>
+        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
+      </Head>
       <NonRefundableModal />
       <AccountOperations />
       <>

@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
+import { TRuntimeEnv } from '@/base/env';
 
 export const parseErrorXml = async (result: any) => {
   try {
@@ -52,3 +53,11 @@ export const displayTime = (intervalTime: number | string) => {
 
   return display;
 };
+
+export const capitalizeFLetter = (str: string) => {
+  return str.replace(/^./, str[0].toUpperCase());
+};
+
+export const networkTag = (runtimeEnv: TRuntimeEnv) => {
+  return runtimeEnv === 'testnet' ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
+}

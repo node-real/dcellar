@@ -26,6 +26,8 @@ import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { headBucket } from '@/facade/bucket';
 import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
 import { useLogin } from '@/hooks/useLogin';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -114,7 +116,7 @@ const SharePage: NextPage<PageProps> = (props) => {
 
   const header = (
     <Head>
-      <title>{title}</title>
+      <title>{title}{networkTag(runtimeEnv)}</title>
     </Head>
   );
 

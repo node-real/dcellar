@@ -32,6 +32,12 @@ export function GAPageView() {
         case /\/wallet\?type=send/gi.test(asPath):
           name = 'dc.wallet.send.all.pv';
           break;
+        case /\/pricing-calculator$/gi.test(asPath):
+          name = 'dc_lp.calculator.main.all.pv';
+          break;
+        case /\/pricing-calculator\/.*/gi.test(asPath):
+          name = 'dc_lp.calculator.main.all.pv';
+          break;
       }
 
       reportEvent({

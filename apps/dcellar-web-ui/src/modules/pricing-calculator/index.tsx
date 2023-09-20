@@ -15,6 +15,7 @@ import { Calculator } from './components/Calculator';
 import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { keyBy } from 'lodash-es';
+import { SEOHead } from './components/SEOHead';
 
 type TQuotaSP = {
   name: string;
@@ -91,28 +92,37 @@ export const PriceCalculator = () => {
   }, []);
 
   return (
-    <Flex gap={40} paddingBottom={'40px'} flexDirection={'column'} bgColor={'#fff'} sx={{
-      [smMedia]: {
-        paddingBottom: '20px'
-      }
-    }}>
+    <>
+      <SEOHead />
       <Flex
-        paddingTop={64}
-        bg={`center/cover no-repeat url(${assetPrefix}/images/price/bg.svg), right bottom no-repeat url(${assetPrefix}/images/price/bg_2.svg)`}
+        gap={80}
+        paddingBottom={'40px'}
         flexDirection={'column'}
+        bgColor={'#fff'}
         sx={{
           [smMedia]: {
-            bg: `center/cover no-repeat url(${assetPrefix}/images/price/bg.svg)`
-          }
+            paddingBottom: '20px',
+          },
         }}
       >
-        <Banner />
-        <Calculator storeParams={storeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
+        <Flex
+          paddingTop={64}
+          bg={`center/cover no-repeat url(${assetPrefix}/images/price/bg.svg), right bottom no-repeat url(${assetPrefix}/images/price/bg_2.svg)`}
+          flexDirection={'column'}
+          sx={{
+            [smMedia]: {
+              bg: `center/cover no-repeat url(${assetPrefix}/images/price/bg.svg)`,
+            },
+          }}
+        >
+          <Banner />
+          <Calculator storeParams={storeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
+        </Flex>
+        <PricingCard storeParams={storeParams} />
+        <SPFreeQuota sps={sps} />
+        <FAQ />
+        <StartBuild />
       </Flex>
-      <PricingCard storeParams={storeParams} />
-      <SPFreeQuota sps={sps} />
-      <FAQ />
-      <StartBuild />
-    </Flex>
+    </>
   );
 };

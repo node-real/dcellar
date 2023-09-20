@@ -6,6 +6,8 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { setupGroups } from '@/store/slices/group';
 import { Box, Flex } from '@totejs/uikit';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 interface GroupsPageProps {}
 
@@ -28,7 +30,7 @@ export const GroupsPage = memo<GroupsPageProps>(function GroupsPage() {
   return (
     <>
       <Head>
-        <title>Groups - DCellar</title>
+        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <Flex mb={16} alignItems="center" justifyContent="space-between">
         <Box as="h1" fontSize={24} fontWeight={700}>
