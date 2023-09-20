@@ -14,7 +14,7 @@ export async function register() {
     });
 
     const config = (await service.getConfig(
-      runtimeEnv === 'development' ? 'devnet' : runtimeEnv,
+      ['development', 'qa'].includes(runtimeEnv)  ? 'devnet' : runtimeEnv,
     )) as PropertiesConfig;
     (global as any).__GLOBAL_CONFIG = Object.fromEntries(config.getAllConfig());
     config.addChangeListener(() => {
