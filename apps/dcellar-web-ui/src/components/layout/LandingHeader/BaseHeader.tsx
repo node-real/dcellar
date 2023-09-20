@@ -12,24 +12,28 @@ export const MENUS = [
     link: '/',
     target: '',
     Icon: () => <></>,
+    gaName: 'dc_lp.main.header.homepage.click',
   },
   {
     title: 'Pricing',
-    link: '/price-calculator',
+    link: '/pricing-calculator',
     target: '',
     Icon: () => <></>,
+    gaName: 'dc_lp.main.header.pricing.click',
   },
   {
     title: 'Docs',
     link: '#',
     target: '_blank',
     Icon: (props: IconProps) => <ExternalLinkIcon w={12} ml={2} mt={-1} {...props} />,
+    gaName: 'dc_lp.main.header.docs.click',
   },
 ];
 
 export const BaseHeader = () => {
-  const { loginAccount } = useAppSelector((state) => state.persist);
   const router = useRouter();
+  const gaClickName = getGAOptions(router.pathname);
+  const curPath = router.pathname;
 
   return (
     <Flex
@@ -44,31 +48,39 @@ export const BaseHeader = () => {
       zIndex={1100}
       backdropFilter={'blur(10px)'}
     >
-      <GAClick name="dc.main.nav.logo.click">
+      <GAClick name="dc_lp.main.header.logo.click">
         <Logo href="/buckets" />
       </GAClick>
       <Flex gap={32}>
-        {MENUS.map((item) => (
-          <Link color={'readable.normal'} key={item.title} href={item.link} target={item.target}>
-            {item.title}
-            <item.Icon />
-          </Link>
+        {MENUS.map((item, index) => (
+          <GAClick name={item.gaName} key={index}>
+            <Link
+              color={router.pathname === item.link ? 'readable.brand6' : 'readable.normal'}
+              href={item.link}
+              target={item.target}
+            >
+              {item.title}
+              <item.Icon />
+            </Link>
+          </GAClick>
         ))}
       </Flex>
-      <ConnectWallet h={36} p={'10px 16px'} fontWeight={500} fontSize={14} />
-      {/* {!!loginAccount && (
-        <DCButton
-          h={36}
-          p={'10px 16px'}
-          variant="dcGhost"
-          onClick={() => {
-            router.push(InternalRoutePaths.buckets);
-          }}
-        >
-          <WalletFilledIcon w={24} h={24} color={'readable.normal'} />
-          <Text marginLeft={4}>Get Started</Text>
-        </DCButton>
-      )} */}
+      <ConnectWallet
+        h={36}
+        p={'10px 16px'}
+        fontWeight={500}
+        fontSize={14}
+        gaClickName={gaClickName}
+      />
     </Flex>
   );
 };
+
+function getGAOptions(pathname: string) {
+  switch (true) {
+    case pathname === '/pricing-calculator':
+      return 'dc_lp.calculator.dcellar.connect_wallet.click';
+    default:
+      return 'dc_lp.main.header.connect_wallet.click';
+  }
+}

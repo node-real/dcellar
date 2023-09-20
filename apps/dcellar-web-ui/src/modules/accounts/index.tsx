@@ -9,6 +9,9 @@ import { NonRefundableModal } from './components/NonRefundableModal';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
+import Head from 'next/head';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 export const Accounts = () => {
   const dispatch = useAppDispatch();
@@ -24,6 +27,9 @@ export const Accounts = () => {
 
   return (
     <>
+      <Head>
+        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
+      </Head>
       <NonRefundableModal refreshList={refreshPAList} />
       {editOwnerDetail && <OwnerAccountDetail />}
       {editPaymentDetail && <PaymentAccountDetail />}

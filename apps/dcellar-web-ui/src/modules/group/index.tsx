@@ -6,6 +6,8 @@ import { GroupList } from '@/modules/group/components/GroupList';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { setupGroups } from '@/store/slices/group';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 interface GroupsPageProps {}
 
@@ -28,7 +30,7 @@ export const GroupsPage = memo<GroupsPageProps>(function GroupsPage() {
   return (
     <GroupContainer>
       <Head>
-        <title>Groups - DCellar</title>
+        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <PanelContainer>
         <PageTitle>Groups</PageTitle>

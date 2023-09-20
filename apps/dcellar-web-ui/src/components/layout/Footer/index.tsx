@@ -24,7 +24,6 @@ export const Footer = (props: FlexProps) => {
   const utcYear = getUTC0Year();
   const { ...restProps } = props;
   const { pathname } = useRouter();
-  const gaClickName = getGAOptions(pathname);
 
   return (
     <Flex
@@ -55,22 +54,18 @@ export const Footer = (props: FlexProps) => {
         }}
       >
         © {utcYear}&nbsp;
-        <GAClick name={gaClickName}>
+        <GAClick name={'dc_lp.main.footer.nodereal.click'}>
           <UnderlineLink href={noderealUrl}>NodeReal</UnderlineLink>
         </GAClick>
         . All rights reserved.
       </Text>
-      <UnderlineLink href={noderealUrl}>Terms of Use</UnderlineLink>
-      <UnderlineLink href={noderealUrl}>Privacy Policy</UnderlineLink>
+      <GAClick name="dc_lp.main.Footer.terms.click">
+        <UnderlineLink href={noderealUrl}>Terms of Use</UnderlineLink>
+      </GAClick>
+      <GAClick name="dc_lp.main.Footer.privacy.click">
+        <UnderlineLink href={noderealUrl}>Privacy Policy</UnderlineLink>
+      </GAClick>
     </Flex>
   );
 };
 
-function getGAOptions(pathname: string) {
-  switch (true) {
-    case pathname === '/':
-      return 'dc.welcome.main.nodereal.click';
-    default:
-      return 'dc.main.footer.nodereal.click';
-  }
-}

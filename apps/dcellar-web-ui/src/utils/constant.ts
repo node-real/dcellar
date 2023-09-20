@@ -7,7 +7,14 @@ const REQUEST_PENDING_NUM = -32002;
 
 const reverseVisibilityType = convertVisibility();
 
+const CHAIN_NAMES: {[key: number | string]: string} = {
+  5600: 'Greenfield Testnet',
+  97: 'BNB Smart Chain Testnet',
+  9000: 'Greenfield Devnet'
+};
+
 export {
+  CHAIN_NAMES,
   getLoginLocalStorageKey,
   USER_REJECT_STATUS_NUM,
   REQUEST_PENDING_NUM,

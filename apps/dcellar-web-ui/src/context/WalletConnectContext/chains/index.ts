@@ -6,15 +6,15 @@ import {
   BSC_RPC_URL,
   GREENFIELD_CHAIN_RPC_URL,
   GREENFIELD_CHAIN_ID,
-  runtimeEnv,
   GREENFIELD_CHAIN_EXPLORER_URL,
   BSC_EXPLORER_URL,
 } from '@/base/env';
+import { CHAIN_NAMES } from '@/utils/constant';
 
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
-  name: runtimeEnv === 'prod' ? 'Greenfield Mekong Testnet' : `${runtimeEnv} - Greenfield`,
-  network: 'Greenfield Mekong Testnet',
+  name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
+  network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
     name: 'tBNB',
     symbol: 'tBNB',

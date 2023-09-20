@@ -16,6 +16,7 @@ import { CustomTime } from './CustomTime';
 import { isEmpty } from 'lodash-es';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
+import { NetworkSwitch } from './NetworkSwitch';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -208,21 +209,28 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       bg={'#fff'}
       padding={['16px', '16px 40px']}
     >
-      <Box
-        fontSize={14}
-        fontWeight={500}
-        color={'readable.tertiary'}
-        textAlign={'right'}
-        sx={{
-          [smMedia]: {
-            fontSize: '12px',
-            textAlign: 'left',
-            marginBottom: '16px',
-          },
-        }}
-      >
-        Prices are updated monthly: {updateMonth}
-      </Box>
+      <Flex marginBottom={40} justifyContent={'space-between'} sx={{
+        [smMedia]: {
+          flexDirection: 'column-reverse',
+          gap: '12px',
+        }
+      }}>
+        <NetworkSwitch />
+        <Text
+          fontSize={14}
+          fontWeight={500}
+          color={'readable.tertiary'}
+          textAlign={'right'}
+          sx={{
+            [smMedia]: {
+              fontSize: '12px',
+              textAlign: 'left',
+            },
+          }}
+        >
+          Prices are updated monthly: {updateMonth}
+        </Text>
+      </Flex>
       <Flex
         flexDirection={'column'}
         gap={40}
@@ -493,6 +501,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                     variant="ghost"
                     borderColor={item.id === storageTime.id ? 'readable.brand6' : 'readable.border'}
                     onClick={() => setStorageTime(item)}
+                    gaClickName={item.gaClickName}
                     sx={{
                       [smMedia]: {
                         fontSize: '14px',
@@ -513,6 +522,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                     customStorageTime={customStorageTime}
                     onClose={onClose}
                     onToggle={onToggle}
+                    gaClickName={item.gaClickName || ''}
                     onChangeButton={() =>
                       setStorageTime({ ...storageTime, id: 'custom', title: 'Custom' })
                     }
@@ -588,11 +598,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               }}
             >
               <Text display={'inline-block'}>{costs.averageMonthCost} BNB/month</Text>
-              <Text display={'inline-block'} sx={{
-                [smMedia]: {
-                  display: 'block'
-                }
-              }}>
+              <Text
+                display={'inline-block'}
+                sx={{
+                  [smMedia]: {
+                    display: 'block',
+                  },
+                }}
+              >
                 &nbsp;({displayUsd(costs.averageMonthCost, bnbPrice)})
               </Text>
             </Box>
@@ -601,7 +614,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             title="Storage fee"
             storeTime={storageTimeDisplay}
             size={storageSize.size}
-            unit={storageSize.unit}
+            unit={`${storageSize.unit}/month`}
             fee={costs.totalStorageCost}
             bnbPrice={bnbPrice}
           />
@@ -609,7 +622,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             title="Download fee"
             storeTime={storageTimeDisplay}
             size={quotaSize.size}
-            unit={quotaSize.unit}
+            unit={`${quotaSize.unit}/month`}
             fee={costs.totalQuotaCost}
             bnbPrice={bnbPrice}
           />
@@ -617,7 +630,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             title="Operation fee"
             storeTime={storageTimeDisplay}
             size={gasTimes}
-            unit={'times'}
+            unit={`time${+gasTimes > 1 ? 's' : ''}/month`}
             fee={costs.totalGasCost}
             bnbPrice={bnbPrice}
           />

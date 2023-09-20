@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 import { useAppDispatch } from '@/store';
 import { EOperation } from '@/modules/wallet/type';
 import { isTrans, setFrom, setSendAmount, setTo, setTransType } from '@/store/slices/wallet';
+import { runtimeEnv } from '@/base/env';
+import { networkTag } from '@/utils/common';
 
 const Index = () => {
   const dispatch = useAppDispatch();
@@ -23,7 +25,7 @@ const Index = () => {
   return (
     <>
       <Head>
-        <title>Wallet - DCellar</title>
+        <title>Wallet - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <Wallet />
     </>

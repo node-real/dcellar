@@ -15,10 +15,10 @@ const {
   NEXT_PUBLIC_BSC_EXPLORER_URL,
 } = publicRuntimeConfig || {};
 
-export type TRuntimeEnv = 'prod' | 'qa' | 'development';
+export type TRuntimeEnv = 'development' | 'devnet' | 'testnet' | 'mainnet';
 
 export const NODE_ENV = process.env.NODE_ENV;
-export const runtimeEnv: TRuntimeEnv = NEXT_PUBLIC_ENV || 'qa';
+export const runtimeEnv: TRuntimeEnv = NEXT_PUBLIC_ENV || 'devnet';
 
 export const assetPrefix = NEXT_PUBLIC_STATIC_HOST || '';
 export const GA_ID = NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;

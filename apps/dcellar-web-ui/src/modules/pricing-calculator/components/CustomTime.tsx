@@ -22,20 +22,31 @@ type Props = {
     title: string;
     unit: string;
     value: string;
-  }
+  };
+  gaClickName: string;
   isOpen: boolean;
   onClose: () => void;
   onToggle: () => void;
   onChangeButton: () => void;
   onChangeInput: (option: TTimeOption) => void;
 };
-export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onToggle, onChangeButton, onChangeInput }: Props) => {
+export const CustomTime = ({
+  isOpen,
+  selected,
+  customStorageTime,
+  onClose,
+  onToggle,
+  onChangeButton,
+  onChangeInput,
+  gaClickName,
+}: Props) => {
   const swapTimeUnits = swapObj(TimeUnits);
   // const
   // const scroll = useScroll(typeof document !== 'undefined' ? '' :  document);
   useEffect(() => {
     if (isOpen) onClose();
-  }, [])
+  }, []);
+  // TODO 滚动消失
   return (
     <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>
@@ -46,16 +57,18 @@ export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onTog
             onChangeButton();
             onToggle();
           }}
+          gaClickName={gaClickName}
           sx={{
             [smMedia]: {
               width: '100%',
               fontSize: '14px',
               padding: '8px',
               whiteSpace: 'nowrap',
-            }
+            },
           }}
         >
-          {customStorageTime.title}: {customStorageTime.value} {TimeUnits[customStorageTime.unit]}{+customStorageTime.value > 1 ? 's' : ''}
+          {customStorageTime.title}: {customStorageTime.value} {TimeUnits[customStorageTime.unit]}
+          {+customStorageTime.value > 1 ? 's' : ''}
         </DCButton>
       </PopoverTrigger>
       <PopoverContent
@@ -70,17 +83,22 @@ export const CustomTime = ({ isOpen, selected, customStorageTime, onClose, onTog
           Custom Storage Time
         </PopoverHeader>
         <PopoverBody display={'flex'}>
-          <NumInput w={120} h={32} borderRadius={4} value={customStorageTime.value} onChangeValue={(item) => {
-            onChangeInput({ ...customStorageTime, value: item })
-          }
-          } />
+          <NumInput
+            w={120}
+            h={32}
+            borderRadius={4}
+            value={customStorageTime.value}
+            onChangeValue={(item) => {
+              onChangeInput({ ...customStorageTime, value: item });
+            }}
+          />
           <SizeMenu
-            buttonStyles={{ height: '32px', marginLeft: '8px', borderRadius:'4px' }}
+            buttonStyles={{ height: '32px', marginLeft: '8px', borderRadius: '4px' }}
             sizes={['Day', 'Month', 'Year']}
             value={TimeUnits[customStorageTime.unit]}
             onItemClick={(item: string) => {
               const unit = swapTimeUnits[item];
-              onChangeInput({...customStorageTime, unit})
+              onChangeInput({ ...customStorageTime, unit });
             }}
           />
         </PopoverBody>
