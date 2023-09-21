@@ -209,12 +209,16 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       bg={'#fff'}
       padding={['16px', '16px 40px']}
     >
-      <Flex marginBottom={40} justifyContent={'space-between'} sx={{
-        [smMedia]: {
-          flexDirection: 'column-reverse',
-          gap: '12px',
-        }
-      }}>
+      <Flex
+        marginBottom={40}
+        justifyContent={'space-between'}
+        sx={{
+          [smMedia]: {
+            flexDirection: 'column-reverse',
+            gap: '12px',
+          },
+        }}
+      >
         <NetworkSwitch />
         <Text
           fontSize={14}
@@ -257,7 +261,12 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               tips={
                 <>
                   <Text display={'inline-block'}>Check out&nbsp;</Text>
-                  <Link display={'inline-block'} cursor={'pointer'} href="####">
+                  <Link
+                    display={'inline-block'}
+                    cursor={'pointer'}
+                    href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment"
+                    target='_blank'
+                  >
                     the Storage Fee Formula
                   </Link>
                   .
