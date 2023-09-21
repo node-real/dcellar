@@ -4,6 +4,7 @@ import { Footer } from '../Footer';
 import { Box, Flex, useMediaQuery } from '@totejs/uikit';
 import { MobileHeader } from '../LandingHeader/MobileHeader';
 import { breakpoints } from '@/modules/responsive';
+import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
 
 export interface LandingPageProps {
   page: ReactElement;
@@ -27,6 +28,7 @@ export const LandingPage = (props: LandingPageProps) => {
         {isSm && <MobileHeader />}
         <Box flex={1}>{page}</Box>
         <Footer borderTop={'1px solid readable.border'} />
+        <CookiePolicyContainer />
       </Flex>
     </Flex>
   );

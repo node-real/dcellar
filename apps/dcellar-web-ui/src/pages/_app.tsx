@@ -17,7 +17,7 @@ import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
 import { StatusDetail } from '@/modules/object/components/StatusDetail';
 
-export const ssrLandingRoutes = ['/pricing-calculator', '/'];
+export const ssrLandingRoutes = ['/pricing-calculator'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {
@@ -49,7 +49,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
     <>
       <SEOHead />
       <Provider store={store}>
-        <PersistGate persistor={persistor}>
+        <PersistGate persistor={persistor} loading={customLayout ? CommonComponent : null}>
           {CommonComponent}
         </PersistGate>
       </Provider>
