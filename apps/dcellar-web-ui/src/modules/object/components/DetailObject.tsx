@@ -343,7 +343,7 @@ export const DetailObject = (props: modalProps) => {
           <QDrawerFooter flexDirection={'column'}>
             <Flex w={'100%'}>
               <DCButton
-                variant={'dcGhost'}
+                variant="ghost"
                 flex={1}
                 mr={'16px'}
                 borderColor={'readable.normal'}
@@ -354,7 +354,6 @@ export const DetailObject = (props: modalProps) => {
                 Preview
               </DCButton>
               <DCButton
-                variant={'dcPrimary'}
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.download.click"
                 isDisabled={accountFrozen}

@@ -3,14 +3,12 @@ import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccount, setEditOwnerDetail } from '@/store/slices/accounts';
-import { isEmpty } from 'lodash-es';
+import { setEditOwnerDetail, TAccount } from '@/store/slices/accounts';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
-import { Loading } from '@/components/common/Loading';
 
 const actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -32,7 +30,6 @@ export const OwnerAccount = () => {
       return router.push(`/wallet?type=${e}`);
     }
   };
-  const ownerAccountLoading = isEmpty(ownerAccount);
   const columns: ColumnProps<TAccount>[] = [
     {
       key: 'name',
@@ -98,10 +95,8 @@ export const OwnerAccount = () => {
         canPrev={false}
         pageSize={10}
         pagination={false}
-        loading={{
-          spinning: ownerAccountLoading,
-          indicator: <Loading />,
-        }}
+        loading={false}
+        renderEmpty={() => null}
         onRow={(record: TAccount) => ({
           onClick: () => {
             dispatch(setEditOwnerDetail(record.address));
@@ -114,6 +109,7 @@ export const OwnerAccount = () => {
 
 const Container = styled(Box)`
   margin-bottom: 32px;
+
   .ant-table-wrapper .ant-table-tbody > tr > td {
     border-bottom: none;
   }

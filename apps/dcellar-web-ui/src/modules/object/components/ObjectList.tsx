@@ -32,7 +32,7 @@ import { Loading } from '@/components/common/Loading';
 import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
-import { NameItem } from '@/modules/object/components/NameItem';
+import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
 import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
 import { DeleteObject } from './DeleteObject';
 import { DetailObject } from './DetailObject';
@@ -185,8 +185,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
         return dispatch(setEditDelete(record));
       case 'share':
-        // copy(getShareLink(bucketName, record.objectName));
-        // toast.success({ description: 'Successfully copied to your clipboard.' });
         return dispatch(setEditShare({ record, from: 'menu' }));
       case 'download':
         return download(record);
@@ -204,7 +202,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       ),
       render: (_: string, record: ObjectItem) => (
         <StyledRow $disabled={record.objectStatus !== 1}>
-          <NameItem item={record} disabled={accountDetail.clientFrozen} />
+          <ObjectNameColumn item={record} disabled={accountDetail.clientFrozen} />
         </StyledRow>
       ),
     },

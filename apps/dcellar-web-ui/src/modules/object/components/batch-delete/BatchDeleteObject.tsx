@@ -284,7 +284,7 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
 
       <ModalFooter margin={0} flexDirection={'row'}>
         <DCButton
-          variant={'dcGhost'}
+          variant="ghost"
           flex={1}
           onClick={onClose}
           gaClickName="dc.file.delete_confirm.cancel.click"
@@ -293,7 +293,7 @@ export const BatchDeleteObject = memo<modalProps>(function BatchDeleteObject({
         </DCButton>
         <DCButton
           gaClickName="dc.file.delete_confirm.delete.click"
-          variant={'dcDanger'}
+          variant={'scene'}
           flex={1}
           onClick={onConfirmDelete}
           colorScheme="danger"

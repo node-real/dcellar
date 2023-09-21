@@ -300,7 +300,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
 
           <ModalFooter margin={0} flexDirection={'row'}>
             <DCButton
-              variant={'dcGhost'}
+              variant="ghost"
               flex={1}
               onClick={onClose}
               gaClickName="dc.file.delete_confirm.cancel.click"
@@ -309,7 +309,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
             </DCButton>
             <DCButton
               gaClickName="dc.file.delete_confirm.delete.click"
-              variant={'dcDanger'}
+              variant="scene"
               flex={1}
               onClick={async () => {
                 try {
@@ -351,7 +351,7 @@ export const DeleteObject = ({ refetch }: modalProps) => {
                     return toast.error({ description: error || 'Delete object error.' });
                   }
                   if (txRes.code === 0) {
-                    await dispatch(setupAccountDetail(bucket.PaymentAddress))
+                    await dispatch(setupAccountDetail(bucket.PaymentAddress));
                     toast.success({
                       description: isFolder
                         ? 'Folder deleted successfully.'

@@ -13,7 +13,7 @@ const isSizeKey = (size: string): size is keyof typeof sizes => {
   return size in sizes;
 };
 
-interface DCButtonProps extends ButtonProps {
+export interface DCButtonProps extends ButtonProps {
   gaClickName?: string;
   gaClickData?: Record<string, any>;
   gaShowName?: string;

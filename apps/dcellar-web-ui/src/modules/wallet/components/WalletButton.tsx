@@ -41,7 +41,7 @@ export const WalletButton = ({
       <>
         <DCButton
           as="div"
-          variant="dcWarning"
+          variant="scene"
           width={'100%'}
           cursor={'pointer'}
           textTransform="-moz-initial"
@@ -57,7 +57,6 @@ export const WalletButton = ({
 
   return (
     <DCButton
-      variant="dcPrimary"
       width={'100%'}
       isLoading={isSubmitting || isGasLoading}
       disabled={disabled}

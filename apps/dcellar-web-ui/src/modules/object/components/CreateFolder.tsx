@@ -394,7 +394,6 @@ export const CreateFolder = memo<modalProps>(function CreateFolderDrawer({ refet
         <Flex w="100%" flexDirection="column">
           <DCButton
             w="100%"
-            variant="dcPrimary"
             onClick={onCreateFolder}
             isDisabled={loading || !!formErrors.length}
             justifyContent="center"

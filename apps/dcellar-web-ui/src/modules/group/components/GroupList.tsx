@@ -15,7 +15,6 @@ import { SorterType, updateGroupPageSize, updateGroupSorter } from '@/store/slic
 import { ColumnProps } from 'antd/es/table';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { Loading } from '@/components/common/Loading';
-import { GroupEmpty } from '@/modules/group/components/GroupEmpty';
 import { CreateGroup } from '@/modules/group/components/CreateGroup';
 import { NameItem } from '@/modules/group/components/NameItem';
 import { Text } from '@totejs/uikit';
@@ -27,6 +26,8 @@ import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
 import { GroupDetail } from '@/modules/group/components/GroupDetail';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { ethers } from 'ethers';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { NewGroup } from '@/modules/group/components/NewGroup';
 
 const Actions: ActionMenuItem[] = [
   { label: 'View Details', value: 'detail' },
@@ -40,7 +41,7 @@ interface GroupListProps {}
 export const GroupList = memo<GroupListProps>(function GroupList() {
   const dispatch = useAppDispatch();
   const { loginAccount, groupPageSize, groupSortBy } = useAppSelector((root) => root.persist);
-  const { loading, currentPage } = useAppSelector((root) => root.group);
+  const { loading, currentPage, groups } = useAppSelector((root) => root.group);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<GroupInfo>({
     list: groupList,
@@ -143,7 +144,8 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
     dispatch(updateGroupPageSize(pageSize));
   };
 
-  const empty = !loading && !sortedList.length;
+  const spinning = !(loginAccount in groups);
+  const empty = !spinning && !sortedList.length;
 
   return (
     <>
@@ -154,13 +156,17 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
       <AddGroupMember />
       <DCTable
         loading={{
-          spinning: loading,
+          spinning: spinning || loading,
           indicator: <Loading />,
         }}
         rowKey="id"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <GroupEmpty empty={empty} />}
+        renderEmpty={() => (
+          <ListEmpty type="empty-group" title="No Groups" desc="Create a group!👏" empty={empty}>
+            <NewGroup showRefresh={false} />
+          </ListEmpty>
+        )}
         pageSize={groupPageSize}
         pageChange={onPageChange}
         canNext={canNext}

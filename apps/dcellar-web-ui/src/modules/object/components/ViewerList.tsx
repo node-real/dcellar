@@ -261,7 +261,6 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
           setConfirmModal(false);
         }}
         description="Confirm this transaction in your wallet."
-        variant="dcPrimary"
       />
       <ConfirmModal
         confirmText="Confirm"
@@ -394,7 +393,6 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
             }
           />
           <DCButton
-            variant="dcPrimary"
             onClick={() => {
               _onChange(values);
               if (!values.length || loading || invalid) return;

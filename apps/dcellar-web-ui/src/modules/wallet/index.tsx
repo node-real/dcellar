@@ -22,13 +22,8 @@ export const Wallet = () => {
 
   return (
     <WalletBalanceProvider>
-      <Box p={'24px'} flex="1">
-        <Text
-          as={'h1'}
-          fontWeight="700"
-          fontSize={'24px'}
-          lineHeight="36px"
-        >
+      <Box>
+        <Text as={'h1'} fontWeight="700" fontSize={'24px'}>
           Wallet
         </Text>
         <Tabs activeKey={transType} onChange={(key) => onChange(key.toString())}>

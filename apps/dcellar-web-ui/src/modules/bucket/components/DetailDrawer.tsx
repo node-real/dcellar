@@ -299,7 +299,6 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       </QDrawerBody>
       <QDrawerFooter>
         <DCButton
-          variant="dcPrimary"
           backgroundColor={'readable.brand6'}
           height={'48px'}
           width={'100%'}

@@ -133,7 +133,6 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           <DCButton
             width={'100%'}
             marginTop={'24px'}
-            variant="dcPrimary"
             isLoading={isAuthPending}
             onClick={(e) => {
               e.preventDefault();

@@ -27,7 +27,6 @@ export const BucketNotEmpty = ({ onClose }: { onClose: () => void }) => {
       </ModalBody>
       <ModalFooter>
         <DCButton
-          variant="dcPrimary"
           width={'100%'}
           onClick={onClose}
           gaClickName="dc.bucket.not_empty_modal.close.click"

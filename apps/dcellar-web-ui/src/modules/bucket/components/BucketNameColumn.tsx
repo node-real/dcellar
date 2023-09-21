@@ -2,17 +2,17 @@ import { memo } from 'react';
 import { BucketItem } from '@/store/slices/bucket';
 import { formatFullTime } from '@/utils/time';
 import { DiscontinueNotice } from './DiscontinueNotice';
-import FileIcon from '@/public/images/icons/bucket_icon.svg';
 import Link from 'next/link';
 import styled from '@emotion/styled';
 import { useAppDispatch } from '@/store';
 import { setCurrentObjectPage } from '@/store/slices/object';
+import { IconFont } from '@/components/IconFont';
 
-interface NameItemProps {
+interface BucketNameColumnProps {
   item: BucketItem;
 }
 
-export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
+export const BucketNameColumn = memo<BucketNameColumnProps>(function BucketNameColumn({ item }) {
   const dispatch = useAppDispatch();
   const { DeleteAt, BucketStatus, BucketName } = item;
   const discontinue = BucketStatus === 1;
@@ -31,7 +31,8 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item }) {
           dispatch(setCurrentObjectPage({ path: BucketName, current: 0 }));
         }}
       >
-        <FileIcon /> <span title={item.BucketName}>{item.BucketName}</span>
+        <IconFont type="bucket-thumbnail" w={20} />
+        <span title={item.BucketName}>{item.BucketName}</span>
       </Link>
       {discontinue && <DiscontinueNotice content={content} learnMore={more} />}
     </Container>
@@ -45,9 +46,6 @@ const Container = styled.div`
     display: flex;
     align-items: center;
     min-width: 0;
-    svg {
-      flex-shrink: 0;
-    }
     span {
       margin: 0 4px;
       min-width: 0;

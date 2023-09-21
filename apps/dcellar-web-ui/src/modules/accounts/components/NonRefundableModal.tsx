@@ -37,16 +37,20 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
       { address: loginAccount, paymentAccount: editDisablePaymentAccount },
       connector,
     );
-    if (error || res && res.code !== 0) {
+    if (error || (res && res.code !== 0)) {
       let msg = error as string;
-      if (error?.toLocaleLowerCase().includes('payment account has already be set as non-refundable')) {
-        msg = 'This payment account has already be set as non-refundable.'
+      if (
+        error?.toLocaleLowerCase().includes('payment account has already be set as non-refundable')
+      ) {
+        msg = 'This payment account has already be set as non-refundable.';
       }
-      return dispatch(setStatusDetail({
-        title: 'Set Failed',
-        icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
-        desc: msg,
-      }));
+      return dispatch(
+        setStatusDetail({
+          title: 'Set Failed',
+          icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
+          desc: msg,
+        }),
+      );
     }
     dispatch(setStatusDetail({} as TStatusDetail));
   };
@@ -55,31 +59,31 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
     <DCModal isOpen={isOpen} onClose={onClose}>
       <ModalCloseButton />
       <ModalBody display={'flex'} flexDirection={'column'} alignItems={'center'}>
-      <Image
-        alt="disable account icon"
-        src={`${assetPrefix}/images/accounts/disable-account.svg`}
-        width="120"
-        height="120"
-      />
-      <Text mb={16} fontSize={24} fontWeight={600}>
-        Set as Non-Refundable
-      </Text>
-      <Text
-        fontSize="18px"
-        lineHeight={'22px'}
-        fontWeight={400}
-        textAlign={'center'}
-        marginTop="8px"
-        color={'readable.secondary'}
-        mb={'32px'}
-      >
-        Making this payment account non-refundable means it can't be refunded anymore and this
-        action can't be undone.
-      </Text>
+        <Image
+          alt="disable account icon"
+          src={`${assetPrefix}/images/accounts/disable-account.svg`}
+          width="120"
+          height="120"
+        />
+        <Text mb={16} fontSize={24} fontWeight={600}>
+          Set as Non-Refundable
+        </Text>
+        <Text
+          fontSize="18px"
+          lineHeight={'22px'}
+          fontWeight={400}
+          textAlign={'center'}
+          marginTop="8px"
+          color={'readable.secondary'}
+          mb={'32px'}
+        >
+          Making this payment account non-refundable means it can't be refunded anymore and this
+          action can't be undone.
+        </Text>
       </ModalBody>
       <ModalFooter margin={0} flexDirection={'row'}>
         <DCButton
-          variant={'dcGhost'}
+          variant="ghost"
           flex={1}
           onClick={onClose}
           gaClickName="dc.payment_account.delete_confirm.cancel.click"
@@ -88,7 +92,7 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
         </DCButton>
         <DCButton
           gaClickName="dc.payment_account.delete_confirm.delete.click"
-          variant={'dcDanger'}
+          variant="scene"
           flex={1}
           onClick={onContinueClick}
           colorScheme="danger"

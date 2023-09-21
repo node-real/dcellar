@@ -140,16 +140,18 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
     }
     // Validation only works to data within the current path.
     const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
-    const uploadingObjectNames = (uploadQueue?.[loginAccount] || []).filter(item => UPLOADING_STATUSES.includes(item.status)).map((item) => {
-      return [
-        item.bucketName,
-        ...item.prefixFolders,
-        item.waitFile.relativePath,
-        item.waitFile.name,
-      ]
-        .filter((item) => !!item)
-        .join('/');
-    });
+    const uploadingObjectNames = (uploadQueue?.[loginAccount] || [])
+      .filter((item) => UPLOADING_STATUSES.includes(item.status))
+      .map((item) => {
+        return [
+          item.bucketName,
+          ...item.prefixFolders,
+          item.waitFile.relativePath,
+          item.waitFile.name,
+        ]
+          .filter((item) => !!item)
+          .join('/');
+      });
     const fullObjectName = [path, relativePath, file.name].filter((item) => !!item).join('/');
     const isExistObjectList = objectListObjectNames.includes(fullObjectName);
     const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
@@ -289,10 +291,13 @@ export const UploadObjects = memo<UploadObjectsProps>(function UploadObjects() {
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"
-            variant={'dcPrimary'}
             onClick={onUploadClick}
             isDisabled={
-              loading || creating || !checkedQueue?.length || !editUpload.isBalanceAvailable || loadingSettlementFee
+              loading ||
+              creating ||
+              !checkedQueue?.length ||
+              !editUpload.isBalanceAvailable ||
+              loadingSettlementFee
             }
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"

@@ -176,7 +176,6 @@ export const EditGroup = memo<EditGroupProps>(function CreateGroup() {
         <Flex width={'100%'} flexDirection={'column'}>
           <DCButton
             w="100%"
-            variant={'dcPrimary'}
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
             disabled={!balanceAvailable || !valid || loading}

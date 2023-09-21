@@ -565,7 +565,6 @@ export const CreateBucket = ({ isOpen, onClose, refetch }: Props) => {
           />
 
           <DCButton
-            variant="dcPrimary"
             disabled={disableCreateButton()}
             backgroundColor={'readable.brand6'}
             height={'48px'}

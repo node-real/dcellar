@@ -109,12 +109,7 @@ export const FileStatusModal = (props: modalProps) => {
       </ModalBody>
       {buttonText && (
         <ModalFooter mt={24}>
-          <DCButton
-            variant={'dcPrimary'}
-            w="100%"
-            onClick={buttonOnClick}
-            gaClickName={gaOptions.closeName}
-          >
+          <DCButton w="100%" onClick={buttonOnClick} gaClickName={gaOptions.closeName}>
             {buttonText}
           </DCButton>
         </ModalFooter>

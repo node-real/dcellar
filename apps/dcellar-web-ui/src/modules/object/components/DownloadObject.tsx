@@ -150,7 +150,6 @@ export const DownloadObject = (props: modalProps) => {
         <DCButton
           gaClickName="dc.file.download_confirm.confirm.click"
           w="100%"
-          variant={'dcPrimary'}
           isLoading={loading}
           onClick={() => {
             onAction();

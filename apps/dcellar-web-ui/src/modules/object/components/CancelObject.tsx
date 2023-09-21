@@ -257,7 +257,7 @@ export const CancelObject = ({ refetch }: modalProps) => {
       <ModalFooter margin={0} flexDirection={'row'}>
         <DCButton
           flex={1}
-          variant={'dcDanger'}
+          variant="scene"
           gaClickName="dc.file.cancel_modal.confirm.click"
           onClick={async () => {
             try {

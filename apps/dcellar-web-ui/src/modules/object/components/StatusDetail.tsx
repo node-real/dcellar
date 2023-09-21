@@ -116,7 +116,6 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
       {(statusDetail.buttonText || NO_QUOTA) && (
         <ModalFooter mt={24}>
           <DCButton
-            variant={'dcPrimary'}
             w="100%"
             onClick={() => {
               statusDetail.buttonOnClick?.();

@@ -273,7 +273,6 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
         />
         <DCButton
           disabled={!valid}
-          variant="dcPrimary"
           backgroundColor={'readable.brand6'}
           height={'48px'}
           width={'100%'}

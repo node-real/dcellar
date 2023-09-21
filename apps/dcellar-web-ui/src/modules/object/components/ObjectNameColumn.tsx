@@ -9,30 +9,25 @@ import {
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { contentIconTypeToExtension } from '@/modules/file/utils';
-import { Image, Tooltip } from '@totejs/uikit';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
+import { Tooltip } from '@totejs/uikit';
 import { encodeObjectName } from '@/utils/string';
 import { trimEnd } from 'lodash-es';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { previewObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import {
-  E_GET_QUOTA_FAILED,
-  E_NO_QUOTA,
-  E_OFF_CHAIN_AUTH,
-  E_UNKNOWN,
-} from '@/facade/error';
+import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { IconFont } from '@/components/IconFont';
 
-interface NameItemProps {
+interface ObjectNameColumnProps {
   item: ObjectItem;
   disabled: Boolean;
 }
 
-export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }) {
+export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ item, disabled }) {
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
@@ -41,14 +36,6 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
   const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
-  const icon = (
-    <Image
-      src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
-      alt={fileType}
-      width={24}
-      height={24}
-    />
-  );
   const onError = (type: string) => {
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
@@ -100,11 +87,11 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
 
   const content = (
     <>
-      {icon} <span title={name}>{name}</span>
+      <IconFont w={20} type={`${fileType}-file`} /> <span title={name}>{name}</span>
       {visibility === 1 && !folder && (
         <Tooltip content={'Public'} placement={'bottom-start'}>
           <span className="access-icon">
-            <PublicFileIcon fillColor="currentColor" />
+            <IconFont type="public" w={20} />
           </span>
         </Tooltip>
       )}
@@ -140,24 +127,10 @@ export const NameItem = memo<NameItemProps>(function NameItem({ item, disabled }
 const Container = styled.div`
   display: flex;
   align-items: center;
-  .access-icon {
-    flex-shrink: 0;
-  }
-  svg {
-    pointer-events: none;
-    width: 24px;
-  }
-  img {
-    flex-shrink: 0;
-    min-width: 24px;
-  }
   a {
     display: flex;
     align-items: center;
     min-width: 0;
-    svg {
-      flex-shrink: 0;
-    }
     span:first-of-type {
       margin: 0 4px;
       min-width: 0;

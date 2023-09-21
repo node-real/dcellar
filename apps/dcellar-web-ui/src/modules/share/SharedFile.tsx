@@ -143,7 +143,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
             leftIcon={action === 'view' ? <Loading iconSize={24} strokeWidth={2} /> : <></>}
             w={188}
             h={48}
-            variant="dcGhost"
+            variant="ghost"
             onClick={() => onAction('view')}
           >
             View
@@ -159,7 +159,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
             }
             w={188}
             h={48}
-            variant="dcPrimary"
             onClick={() => onAction('download')}
           >
             Download

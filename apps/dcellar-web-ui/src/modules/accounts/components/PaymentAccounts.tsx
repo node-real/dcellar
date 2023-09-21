@@ -35,11 +35,11 @@ export const PaymentAccounts = () => {
     PAPageSize,
     paymentAccountSortBy: [sortName, dir],
   } = useAppSelector((root) => root.persist);
-  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount } = useAppSelector(
+  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, paymentAccounts } = useAppSelector(
     (root) => root.accounts,
   );
-  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const ascend = sortBy(paymentAccounts, sortName);
+  const loginPaymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const ascend = sortBy(loginPaymentAccounts, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -134,7 +134,9 @@ export const PaymentAccounts = () => {
     dispatch(setCurrentPAPage(0));
     dispatch(updatePAPageSize(pageSize));
   };
-  const empty = !isLoadingPaymentAccounts && !sortedList.length;
+
+  const spinning = !(loginAccount in paymentAccounts);
+  const empty = !spinning && !sortedList.length;
 
   return (
     <>
@@ -147,7 +149,7 @@ export const PaymentAccounts = () => {
       <DCTable
         rowKey="address"
         loading={{
-          spinning: isLoadingPaymentAccounts,
+          spinning: spinning || isLoadingPaymentAccounts,
           indicator: <Loading />,
         }}
         columns={columns}

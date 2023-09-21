@@ -42,7 +42,6 @@ export const FolderNotEmpty = () => {
       </ModalBody>
       <ModalFooter>
         <DCButton
-          variant="dcPrimary"
           width={'100%'}
           gaClickName="dc.folder.not_empty_modal.close.click"
           onClick={onClose}

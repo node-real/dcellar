@@ -42,7 +42,7 @@ export const CreateBucketFailed = ({
         </Text>
       </ModalBody>
       <ModalFooter>
-        <DCButton variant="dcPrimary" width={'100%'} onClick={onClose}>
+        <DCButton width={'100%'} onClick={onClose}>
           Got It
         </DCButton>
       </ModalFooter>

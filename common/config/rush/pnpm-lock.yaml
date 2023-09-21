@@ -22,8 +22,6 @@ importers:
       '@reduxjs/toolkit': ^1.9.5
       '@sentry/nextjs': ~7.52.1
       '@svgr/webpack': ^6.5.1
-      '@tanstack/react-table': ^8.7.9
-      '@tanstack/react-virtual': 3.0.0-alpha.0
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
@@ -72,8 +70,6 @@ importers:
       '@next/bundle-analyzer': 13.4.18
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.2+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
-      '@tanstack/react-table': 8.9.3_react-dom@18.2.0+react@18.2.0
-      '@tanstack/react-virtual': 3.0.0-alpha.0_react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
       '@totejs/uikit': 2.52.1_aa3274991927adc2766d9259998fdd18
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
@@ -2906,10 +2902,6 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@reach/observe-rect/1.2.0:
-    resolution: {integrity: sha512-Ba7HmkFgfQxZqqaeIWWkNK0rEhpxVQHIoVyW1YDSkGsGIXzcaW4deC8B0pZrNSSyLTdIk7y+5olKt5+g0GmFIQ==}
-    dev: false
-
   /@reduxjs/toolkit/1.9.5_react-redux@8.1.2+react@18.2.0:
     resolution: {integrity: sha512-Rt97jHmfTeaxL4swLRNPD/zV4OxTes4la07Xc4hetpUW/vc75t5m1ANyxG6ymnEQ2FsLQsoMlYB2vV1sO3m8tQ==}
     peerDependencies:
@@ -3523,34 +3515,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       use-sync-external-store: 1.2.0_react@18.2.0
-    dev: false
-
-  /@tanstack/react-table/8.9.3_react-dom@18.2.0+react@18.2.0:
-    resolution: {integrity: sha512-Ng9rdm3JPoSCi6cVZvANsYnF+UoGVRxflMb270tVj0+LjeT/ZtZ9ckxF6oLPLcKesza6VKBqtdF9mQ+vaz24Aw==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      react: '>=16'
-      react-dom: '>=16'
-    dependencies:
-      '@tanstack/table-core': 8.9.3
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
-  /@tanstack/react-virtual/3.0.0-alpha.0_react@18.2.0:
-    resolution: {integrity: sha512-WpHU/dt34NwZZ8qtiE05TF+nX/b1W6qrWZarO+s8jJFpPVicrTbJKp5Bjt4eSJuk7aYw272oEfsH3ABBRgj+3A==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      react: '>=16'
-    dependencies:
-      '@babel/runtime': 7.22.10
-      '@reach/observe-rect': 1.2.0
-      react: 18.2.0
-    dev: false
-
-  /@tanstack/table-core/8.9.3:
-    resolution: {integrity: sha512-NpHZBoHTfqyJk0m/s/+CSuAiwtebhYK90mDuf5eylTvgViNOujiaOaxNDxJkQQAsVvHWZftUGAx1EfO1rkKtLg==}
-    engines: {node: '>=12'}
     dev: false
 
   /@totejs/eslint-config/1.5.2_7229d8f82c498cd2fbe4cd24ed083009:

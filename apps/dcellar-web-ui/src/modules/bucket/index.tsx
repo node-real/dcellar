@@ -1,4 +1,3 @@
-import { BucketContainer, PageTitle, PanelContainer } from '@/modules/bucket/bucket.style';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupBuckets } from '@/store/slices/bucket';
@@ -6,6 +5,7 @@ import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { BucketList } from '@/modules/bucket/components/BucketList';
 import Head from 'next/head';
 import React from 'react';
+import { Box, Flex } from '@totejs/uikit';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
@@ -24,15 +24,17 @@ export const BucketPage = () => {
   }, [loginAccount, dispatch]);
 
   return (
-    <BucketContainer>
+    <>
       <Head>
         <title>Buckets - DCellar</title>
       </Head>
-      <PanelContainer>
-        <PageTitle>Buckets</PageTitle>
+      <Flex mb={16} alignItems="center" justifyContent="space-between">
+        <Box as="h1" fontSize={24} fontWeight={700}>
+          Buckets
+        </Box>
         <NewBucket />
-      </PanelContainer>
+      </Flex>
       <BucketList />
-    </BucketContainer>
+    </>
   );
 };

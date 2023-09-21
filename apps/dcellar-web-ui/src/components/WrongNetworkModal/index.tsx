@@ -40,7 +40,6 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
       <ModalFooter flexDirection={'column'} mt={24} gap={24}>
         <DCButton
           gaClickName="dc.wrongnet.gf_modal.swithtogf.click"
-          variant="dcPrimary"
           width={'100%'}
           onClick={() => {
             switchNetwork?.(GREENFIELD_CHAIN_ID);
@@ -50,7 +49,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
         </DCButton>
         <DCButton
           gaClickName="dc.wrongnet.gf_modal.disconnect.click"
-          variant="dcGhost"
+          variant="ghost"
           width={'100%'}
           height="48px"
           onClick={() => {

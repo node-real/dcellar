@@ -1,7 +1,7 @@
 import { Flex, Text } from '@totejs/uikit';
 import React from 'react';
-import WaringTriangleIcon from '@/public/images/icons/warning-triangle.svg';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/common';
+import { IconFont } from '@/components/IconFont';
 
 export const DiscontinueBanner = ({
   content,
@@ -22,7 +22,7 @@ export const DiscontinueBanner = ({
       background={'rgba(238, 57, 17, 0.1)'}
       color="#CA300E"
     >
-      <WaringTriangleIcon />
+      <IconFont type="colored-error2" w={16} />
       <Text
         fontSize={'14px'}
         marginLeft={'4px'}

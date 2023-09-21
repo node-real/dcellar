@@ -42,7 +42,6 @@ export const DeleteBucketFailed = ({
       </ModalBody>
       <ModalFooter mt={24}>
         <DCButton
-          variant="dcPrimary"
           width={'100%'}
           onClick={onClose}
           gaClickName="dc.bucket.delete_fail_modal.close.click"

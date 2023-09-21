@@ -2,14 +2,22 @@ import React, { memo, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupTmpAvailableBalance } from '@/store/slices/global';
 import { DCModal } from '@/components/common/DCModal/index';
-import { Flex, Link, ModalCloseButton, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
+import {
+  ButtonProps,
+  Flex,
+  Link,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  Text,
+} from '@totejs/uikit';
 import { GAS_FEE_DOC } from '@/modules/file/constant';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/file/utils';
-import { DCButton, DCButtonProps } from '@/components/common/DCButton';
+import { DCButton } from '@/components/common/DCButton';
 import BigNumber from 'bignumber.js';
 import { useUnmount } from 'ahooks';
 
@@ -28,7 +36,7 @@ interface ConfirmModalProps {
   title: string;
   fee: string | number;
   onConfirm: () => void;
-  variant?: DCButtonProps['variant'];
+  variant?: ButtonProps['variant'];
   confirmText: string;
 }
 
@@ -40,7 +48,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
   title,
   fee,
   onConfirm,
-  variant = 'dcDanger',
+  variant = 'brand',
   confirmText,
 }) {
   const {
@@ -149,7 +157,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
         </Text>
       </Flex>
       <ModalFooter margin={0} flexDirection={'row'}>
-        <DCButton variant={'dcGhost'} flex={1} onClick={_onClose} gaClickName={cancelButton}>
+        <DCButton variant="ghost" flex={1} onClick={_onClose} gaClickName={cancelButton}>
           Cancel
         </DCButton>
 

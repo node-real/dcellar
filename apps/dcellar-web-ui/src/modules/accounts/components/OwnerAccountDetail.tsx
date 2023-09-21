@@ -2,10 +2,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount, setEditOwnerDetail, setupAccountDetail } from '@/store/slices/accounts';
-import {
-  Flex,
-  QDrawerFooter,
-} from '@totejs/uikit';
+import { Flex, QDrawerFooter } from '@totejs/uikit';
 import React, { useEffect } from 'react';
 import { useAsyncEffect, useInterval } from 'ahooks';
 import { AccountDetail } from './AccountDetail';
@@ -17,7 +14,9 @@ export const OwnerAccountDetail = () => {
   const dispatch = useAppDispatch();
   const [availableBalance, setAvailableBalance] = React.useState('0');
   const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editOwnerDetail, isLoadingDetail, bankBalance } = useAppSelector((state) => state.accounts);
+  const { editOwnerDetail, isLoadingDetail, bankBalance } = useAppSelector(
+    (state) => state.accounts,
+  );
   const isOpen = !!editOwnerDetail;
   const router = useRouter();
   const onClose = () => {
@@ -39,7 +38,10 @@ export const OwnerAccountDetail = () => {
     const { netflowRate, staticBalance, crudTimestamp } = ownerAccount;
     const ts = getTimestampInSeconds();
     const needSettleRate = BigNumber(netflowRate || 0).times(BigNumber(ts - crudTimestamp));
-    const availableBalance = BigNumber(staticBalance).plus(bankBalance).plus(needSettleRate).toString();
+    const availableBalance = BigNumber(staticBalance)
+      .plus(bankBalance)
+      .plus(needSettleRate)
+      .toString();
     setAvailableBalance(availableBalance);
   }, 1000);
 
@@ -54,11 +56,15 @@ export const OwnerAccountDetail = () => {
       gaShowName="dc.accounts.detail.show"
       gaClickCloseName="dc.accounts.detail.close.click"
     >
-      <AccountDetail loading={!!isLoadingDetail} title="Account Detail" accountDetail={ownerAccount} availableBalance={availableBalance} />
+      <AccountDetail
+        loading={!!isLoadingDetail}
+        title="Account Detail"
+        accountDetail={ownerAccount}
+        availableBalance={availableBalance}
+      />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
           <DCButton
-            variant={'dcPrimary'}
             flex={1}
             borderColor={'readable.normal'}
             gaClickName="dc.file.f_detail_pop.share.click"
@@ -67,18 +73,18 @@ export const OwnerAccountDetail = () => {
             Transfer In
           </DCButton>
           <DCButton
-            variant={'dcGhost'}
+            variant="ghost"
             flex={1}
-            borderColor='#e6e8ea'
+            borderColor="#e6e8ea"
             gaClickName="dc.file.f_detail_pop.download.click"
             onClick={() => onAction('transfer_out')}
           >
             Transfer Out
           </DCButton>
           <DCButton
-            variant={'dcGhost'}
+            variant="ghost"
             flex={1}
-            borderColor='#e6e8ea'
+            borderColor="#e6e8ea"
             gaClickName="dc.file.f_detail_pop.download.click"
             onClick={() => onAction('send')}
           >

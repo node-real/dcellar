@@ -10,7 +10,7 @@ import {
 } from '@/store/slices/bucket';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { ColumnProps } from 'antd/es/table';
-import { NameItem } from '@/modules/bucket/components/NameItem';
+import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
@@ -67,7 +67,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
           Name{sortName === 'BucketName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: BucketItem) => <NameItem item={record} />,
+      render: (_: string, record: BucketItem) => <BucketNameColumn item={record} />,
     },
     {
       key: 'CreateAt',

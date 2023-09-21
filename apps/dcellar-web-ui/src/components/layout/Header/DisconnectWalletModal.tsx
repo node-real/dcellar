@@ -21,11 +21,11 @@ export const DisconnectWalletModal = () => {
         fail.
       </ModalBody>
       <ModalFooter>
-        <DCButton variant={'dcGhost'} flex={1} onClick={onClose} gaClickName={''}>
+        <DCButton variant="ghost" flex={1} onClick={onClose} gaClickName={''}>
           Cancel
         </DCButton>
 
-        <DCButton gaClickName={''} variant={'dcDanger'} flex={1} onClick={() => logout(true)}>
+        <DCButton gaClickName={''} variant={'scene'} flex={1} onClick={() => logout(true)}>
           Disconnect
         </DCButton>
       </ModalFooter>

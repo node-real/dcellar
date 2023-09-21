@@ -233,7 +233,6 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
           setConfirmModal(false);
         }}
         description="Are you sure you want to add members to this group?"
-        variant="dcPrimary"
       />
       <ConfirmModal
         confirmText="Confirm"
@@ -277,7 +276,6 @@ export const AddGroupMember = memo<AddMemberProps>(function AddMember() {
               }
             />
             <DCButton
-              variant="dcPrimary"
               w={90}
               h={48}
               onClick={() => {

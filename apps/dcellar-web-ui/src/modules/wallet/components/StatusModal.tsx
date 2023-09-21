@@ -44,12 +44,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
     if (status === 'pending') return null;
     if (status === 'failed') {
       return (
-        <DCButton
-          variant="dcPrimary"
-          w="100%"
-          onClick={onClose}
-          gaClickName={gaOptions.tryAgainName}
-        >
+        <DCButton w="100%" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
           Try Again
         </DCButton>
       );
@@ -60,7 +55,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                variant="ghost"
                 as="a"
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
@@ -69,7 +64,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in Explorer
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Transfer Again
               </DCButton>
             </>
@@ -78,7 +73,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                variant="ghost"
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
                 href={viewTxUrl}
@@ -87,7 +82,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in GreenfieldScan
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Transfer Again
               </DCButton>
             </>
@@ -96,7 +91,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                variant="ghost"
                 as={'a'}
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
@@ -105,7 +100,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in GreenfieldScan
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Send Again
               </DCButton>
             </>

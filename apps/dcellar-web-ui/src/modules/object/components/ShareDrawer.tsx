@@ -148,7 +148,7 @@ export const ShareDrawer = memo<ShareDrawerProps>(function ShareDrawer() {
           </Box>
         </QDrawerBody>
         <QDrawerFooter>
-          <DCButton variant="dcPrimary" width={'100%'} onClick={onCopy}>
+          <DCButton width={'100%'} onClick={onCopy}>
             {hasCopied ? (
               <>
                 <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />

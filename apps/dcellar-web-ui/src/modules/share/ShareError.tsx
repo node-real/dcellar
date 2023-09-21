@@ -48,7 +48,7 @@ export const ShareError = memo<{ type: ShareErrorType }>(function ShareError({ t
         {errorData.desc}
       </Text>
       <Link href="/buckets" legacyBehavior passHref replace>
-        <DCButton variant="dcPrimary" w={188} h={48} as="a" mb={40} fontSize={16}>
+        <DCButton w={188} h={48} as="a" mb={40} fontSize={16}>
           Back to Home
         </DCButton>
       </Link>

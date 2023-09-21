@@ -8,7 +8,7 @@ export const DCLink = memo<DCLinkProps>(function DCLink(props) {
     <Link
       color="brand.normal"
       textDecoration="underline"
-      _hover={{ color: 'brand.brand5' }}
+      _hover={{ color: 'brand.brand5', textDecoration: 'underline' }}
       {...props}
     />
   );

@@ -1,19 +1,11 @@
 import React, { memo } from 'react';
 import { Flex, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import MenuIcon from '@/public/images/icons/menu.svg';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
 import { isEmpty } from 'lodash-es';
-import ShareIcon from '@/public/images/icons/share.svg';
-import AddMember from '@/public/images/icons/add_member.svg';
-import { DownloadIcon } from '@totejs/icons';
-import TransferInIcon from '@/public/images/icons/transfer-in.svg';
-import TransferOutIcon from '@/public/images/icons/transfer-out.svg';
-import SendIcon from '@/public/images/icons/send.svg';
-import DepositIcon from '@/public/images/icons/deposit.svg';
-import WithdrawIcon from '@/public/images/icons/withdraw.svg';
 import { ActionButton } from './ActionButton';
+import { IconFont } from '@/components/IconFont';
 
 export type ActionMenuItem = { label: string; value: string; disabled?: boolean };
 
@@ -44,7 +36,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 onClick={() => onChange(m)}
                 tip="Add Members"
               >
-                <AddMember />
+                <IconFont type="add-member" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           case 'download':
@@ -57,7 +49,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 tip="Download"
                 onClick={() => onChange(m)}
               >
-                <DownloadIcon size="md" color="readable.brand6" />
+                <IconFont type="download" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           case 'share':
@@ -69,7 +61,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 gaClickName="dc.file.share_btn.0.click"
                 onClick={() => onChange(m)}
               >
-                <ShareIcon />
+                <IconFont type="share" w={24} color={'brand.brand6'} />
               </ActionButton>
             );
           // owner account list
@@ -82,7 +74,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <TransferInIcon color="#00BA34" />
+                <IconFont type="in" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           case 'transfer_out':
@@ -94,7 +86,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <TransferOutIcon color="#00BA34" />
+                <IconFont type="out" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           case 'send':
@@ -106,7 +98,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <SendIcon color="#00BA34" />
+                <IconFont type="send" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           // payment account list
@@ -119,7 +111,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <DepositIcon />
+                <IconFont type="deposit" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
           case 'withdraw':
@@ -131,7 +123,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
                 marginRight={'8px'}
                 onClick={() => onChange(m)}
               >
-                <WithdrawIcon />
+                <IconFont type="withdraw" w={20} color={'brand.brand6'} />
               </ActionButton>
             );
         }
@@ -140,7 +132,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
         {({ isOpen }) => (
           <>
             <StyledMenuButton $open={isOpen} onClick={(e) => e.stopPropagation()}>
-              <MenuIcon />
+              <IconFont w={20} type="dots-v" mx={2} />
             </StyledMenuButton>
             <MenuList>
               <GAShow name="dc.bucket.list_menu.0.show" isShow={isOpen} />
@@ -168,6 +160,7 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
 export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: boolean }>`
   border-radius: 100%;
   width: 24px;
+  height: 24px;
   cursor: pointer;
   transition: all 0.1s;
 

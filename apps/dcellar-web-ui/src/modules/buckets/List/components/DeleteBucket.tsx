@@ -176,7 +176,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
         </ModalBody>
         <ModalFooter>
           <DCButton
-            variant="dcGhost"
+            variant="ghost"
             width={'100%'}
             onClick={onClose}
             gaClickName="dc.bucket.delete_confirm.cancel.click"
@@ -184,7 +184,7 @@ export const DeleteBucket = ({ isOpen, onClose, bucketName, refetch, sp }: any) 
             Cancel
           </DCButton>
           <DCButton
-            variant="dcDanger"
+            variant="scene"
             disabled={isGasLoading || loading || !balanceEnough}
             height={'48px'}
             width={'100%'}
