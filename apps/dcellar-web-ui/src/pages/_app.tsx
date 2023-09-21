@@ -44,12 +44,13 @@ function DcellarApp({ Component, ...rest }: AppProps) {
       </WalletConnectProvider>
     </ThemeProvider>
   );
+
   return (
     <>
       <SEOHead />
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          {process.env.NODE_ENV === 'development' ? CommonComponent : () => CommonComponent}
+          {CommonComponent}
         </PersistGate>
       </Provider>
     </>
