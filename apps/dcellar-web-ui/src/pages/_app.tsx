@@ -16,7 +16,7 @@ import { Layout } from '@/components/layout';
 import { GlobalManagements } from '@/components/layout/GlobalManagements';
 import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthContext';
 
-export const ssrLandingRoutes = ['/pricing-calculator', '/'];
+export const ssrLandingRoutes = ['/pricing-calculator'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {
@@ -47,7 +47,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
     <>
       <SEOHead />
       <Provider store={store}>
-        <PersistGate persistor={persistor}>
+        <PersistGate persistor={persistor} loading={customLayout ? CommonComponent : null}>
           {CommonComponent}
         </PersistGate>
       </Provider>

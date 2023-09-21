@@ -74,7 +74,7 @@ export const FAQ = () => {
     },
   ];
   return (
-    <PriceResponsiveContainer margin={'0 auto'}>
+    <PriceResponsiveContainer>
       <H2>FAQ</H2>
       <QAccordion>
         {data.map((item, index) => (
