@@ -1,4 +1,3 @@
-import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Input, InputProps } from '@totejs/uikit';
 import React from 'react';
 

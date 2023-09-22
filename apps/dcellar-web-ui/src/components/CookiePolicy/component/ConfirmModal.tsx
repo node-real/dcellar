@@ -16,7 +16,7 @@ import {
   QAccordionIcon,
 } from '@totejs/uikit';
 import { SendIcon } from './SendIcon';
-// import { reportEvent } from '@node-real/next';
+import { reportEvent } from '@/utils/reportEvent';
 
 type Props = {
   open: boolean;
@@ -66,8 +66,8 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
                 <Switch
                   onChange={() => {
                     setGaAccept(!gaAccept);
-                    const name = `nr.main.cookie.set_google_${!gaAccept ? 'on' : 'off'}.click`;
-                    // reportEvent({ name, data: {} });
+                    const name = `dc_lp.main.cookie.set_google_${!gaAccept ? 'on' : 'off'}.click`;
+                    reportEvent({ name, data: {} });
                   }}
                   isChecked={gaAccept}
                 />
@@ -124,8 +124,8 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
                     isChecked={stAccept}
                     onChange={() => {
                       setStAccept(!stAccept);
-                      const name = `nr.main.cookie.set_sentry_${!stAccept ? 'on' : 'off'}.click`;
-                      // reportEvent({ name, data: {} });
+                      const name = `dc_lp.main.cookie.set_sentry_${!stAccept ? 'on' : 'off'}.click`;
+                      reportEvent({ name, data: {} });
                     }}
                   />
                 </div>
@@ -175,7 +175,7 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
           <CustomButton
             onClick={() => {
               onConfirmClick();
-              // reportEvent({ name: 'nr.main.cookie.modal.save.click', data: {} });
+              reportEvent({ name: 'dc_lp.main.cookie.modal.save.click', data: {} });
             }}
           >
             Save
