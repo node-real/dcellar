@@ -27,7 +27,7 @@ export const CookiePolicy = ({ onClose }: Props) => {
         margin: '0 auto',
         bottom: '16px',
         width: 'calc(100% - 16px)',
-        borderRadius: '8px',
+        borderRadius: '4px',
         maxWidth: `${isMobile ? '100%' : '590px'}`,
         background: 'rgba(20, 21, 26, 0.8)',
         backdropFilter: 'blur(6px)',

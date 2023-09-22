@@ -1,15 +1,16 @@
-import React, { memo } from 'react';
+import React, { ReactElement, memo } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { WalletConnectModal } from '@/components/ConnectWallet/WalletConnectModal';
-import { useDisclosure } from '@totejs/uikit';
+import { useDisclosure, Text } from '@totejs/uikit';
 
 interface ConnectWalletProps extends DCButtonProps {
+  icon?: ReactElement;
   text?: string;
 }
 
 export const ConnectWallet = memo<ConnectWalletProps>(function ConnectButton(props) {
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const { text, ...restProps } = props;
+  const { icon, text, ...restProps } = props;
   return (
     <>
       <WalletConnectModal isOpen={isOpen} onClose={onClose} />
@@ -22,7 +23,8 @@ export const ConnectWallet = memo<ConnectWalletProps>(function ConnectButton(pro
         {...restProps}
         onClick={onOpen}
       >
-        {text ? text : 'Connect Wallet'}
+        {icon ? icon : ''}
+        <Text>{text ? text : 'Connect Wallet'}</Text>
       </DCButton>
     </>
   );

@@ -4,6 +4,7 @@ import { TaskManagement } from '@/modules/upload/TaskManagement';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { AccountInfo } from '@/components/layout/Header/AccountInfo';
+import { SelectNetwork } from '../Common/SelectNetwork';
 
 interface HeaderProps {
   taskManagement?: boolean;
@@ -26,6 +27,11 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
               <Box w={1} h={44} bg={'readable.border'} />
             </>
           )}
+          {
+            <Box paddingX={16} borderLeft={taskManagement ? '1px solid readable.border' : 'none'}>
+              <SelectNetwork />
+            </Box>
+          }
           <AccountInfo />
         </Content>
       </HeaderContainer>
