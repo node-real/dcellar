@@ -41,21 +41,13 @@ export const CustomTime = ({
   gaClickName,
 }: Props) => {
   const swapTimeUnits = swapObj(TimeUnits);
-  const [y, setY] = useState(window.scrollY);
-
   const handleNavigation = useCallback(
     (e: any) => {
-      const window = e.currentTarget;
-      if (Math.abs(y - window.scrollY) > 2) {
-        onClose();
-      }
-      setY(window.scrollY);
+      isOpen && onClose();
     },
-    [onClose, y],
+    [isOpen, onClose],
   );
-
   useEffect(() => {
-    setY(window.scrollY);
     window.addEventListener('scroll', handleNavigation);
 
     return () => {
