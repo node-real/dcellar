@@ -49,7 +49,7 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
   return (
     <StyledModal isOpen={open} data-testid="modal" onClose={() => cancelFn()}>
       <Title>Cookie Settings</Title>
-      <Subtitle>Statistics</Subtitle>
+      {/* <Subtitle>Statistics</Subtitle> */}
       <Desc>
         Statistic cookies help website owners to understand how visitors interact with websites by
         collecting and reporting information anonymously.
@@ -58,6 +58,10 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
         <QAccordionItem>
           <QAccordionButton p={0}>
             <StyledListItem
+              showBorder={true}
+              // _hover={{
+              //   borderBottom: 'none'
+              // }}
               right={
                 <Switch
                   onChange={() => {
@@ -112,7 +116,7 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
       </StyleQAccordion>
       <StyleQAccordion>
         <QAccordionItem>
-          <QAccordionButton p={0}>
+          <QAccordionButton p={0} >
             <StyledListItem
               right={
                 <div>
@@ -206,6 +210,7 @@ export const Title = styled.div`
   line-height: 32px;
   word-break: break-word;
   margin-bottom: 24px;
+  text-align: center;
 `;
 
 export const Subtitle = styled.div`
@@ -221,6 +226,7 @@ export const Desc = styled.div`
   font-size: 14px;
   line-height: 21px;
   margin-bottom: 16px;
+  text-align: center;
 `;
 
 const StyleQAccordion = styled(QAccordion)`
@@ -233,6 +239,8 @@ const StyleQAccordion = styled(QAccordion)`
 `;
 
 const StyledListItem = styled(QListItem)<any>`
+  // height: 56px;
+  padding-left: 16px;
   :hover {
     background-color: var(--ui-colors-bg-middle);
   }
@@ -240,8 +248,6 @@ const StyledListItem = styled(QListItem)<any>`
     margin-left: 16px;
     font-weight: 600;
   }
-  border-bottom: ${({ showBorder }) =>
-    showBorder ? `1px solid var(--ui-colors-readable-border)` : 'none'};
 `;
 
 const StyledListItemHeader = styled.div`

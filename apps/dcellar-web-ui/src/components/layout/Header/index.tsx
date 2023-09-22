@@ -25,13 +25,14 @@ import { setupAccountDetail } from '@/store/slices/accounts';
 import { StoreFeeParams } from './StoreFeeParams';
 import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
 import { DisconnectWalletModal } from './DisconnectWalletModal';
+import { SelectNetwork } from '../Common/SelectNetwork';
 
 export const renderAvatar = (size?: 'sm' | 'md') => {
   const circleSize = size === 'sm' ? 20 : 36;
   const imgSize = size === 'sm' ? 28 : 32;
   return (
     <Circle size={circleSize} borderRadius="50%" border="1px solid readable.border">
-    <Image alt="avatar" boxSize={imgSize} src={`${assetPrefix}/images/icons/avatar.svg`} />
+      <Image alt="avatar" boxSize={imgSize} src={`${assetPrefix}/images/icons/avatar.svg`} />
     </Circle>
   );
 };
@@ -325,6 +326,11 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
         </Flex>
         <Flex flex={1} />
         {taskManagement && <TaskManagement />}
+        {
+          <Box paddingX={16} borderLeft={taskManagement ? '1px solid readable.border' : 'none'}>
+            <SelectNetwork />
+          </Box>
+        }
         <GAShow isShow={showPanel} name="dc.main.account.popup.show" />
         <GAClick name="dc.main.header.account.click">
           <Flex
@@ -332,7 +338,7 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
             justifyContent="center"
             h="44px"
             borderRadius="22px"
-            border="1px solid #E6E8EA"
+            // border="1px solid #E6E8EA"
             paddingLeft="4px"
             paddingRight="12px"
             cursor="pointer"

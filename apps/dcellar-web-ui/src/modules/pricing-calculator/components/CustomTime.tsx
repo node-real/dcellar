@@ -7,7 +7,7 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from '@totejs/uikit';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
 import { DCButton } from '@/components/common/DCButton';
@@ -41,12 +41,28 @@ export const CustomTime = ({
   gaClickName,
 }: Props) => {
   const swapTimeUnits = swapObj(TimeUnits);
-  // const
-  // const scroll = useScroll(typeof document !== 'undefined' ? '' :  document);
+  const [y, setY] = useState(window.scrollY);
+
+  const handleNavigation = useCallback(
+    (e: any) => {
+      const window = e.currentTarget;
+      if (Math.abs(y - window.scrollY) > 2) {
+        onClose();
+      }
+      setY(window.scrollY);
+    },
+    [onClose, y],
+  );
+
   useEffect(() => {
-    if (isOpen) onClose();
-  }, []);
-  // TODO 滚动消失
+    setY(window.scrollY);
+    window.addEventListener('scroll', handleNavigation);
+
+    return () => {
+      window.removeEventListener('scroll', handleNavigation);
+    };
+  }, [handleNavigation]);
+
   return (
     <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>

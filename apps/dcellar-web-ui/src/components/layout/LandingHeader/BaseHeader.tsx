@@ -3,8 +3,8 @@ import { Logo } from '../Logo';
 import { GAClick } from '@/components/common/GATracker';
 import { ExternalLinkIcon, IconProps } from '@totejs/icons';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
+import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
 
 export const MENUS = [
   {
@@ -33,7 +33,6 @@ export const MENUS = [
 export const BaseHeader = () => {
   const router = useRouter();
   const gaClickName = getGAOptions(router.pathname);
-  const curPath = router.pathname;
 
   return (
     <Flex
@@ -71,6 +70,10 @@ export const BaseHeader = () => {
         fontWeight={500}
         fontSize={14}
         gaClickName={gaClickName}
+        icon={<WalletFilledIcon />}
+        text='Connect wallet'
+        variant='dcGhost'
+        border={'1px solid readable.border'}
       />
     </Flex>
   );

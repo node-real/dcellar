@@ -15,7 +15,12 @@ const LINKS = {
 };
 export const NetworkSwitch = () => {
   const network = ['testnet', 'mainnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
-
+  const onSwitchClick = (net: 'mainnet' | 'testnet') => {
+    if (net === network) {
+      return;
+    }
+    window.open(LINKS[net].fullUrl, '_blank')
+  }
   return (
     <Flex>
       <ButtonGroup
@@ -31,7 +36,7 @@ export const NetworkSwitch = () => {
           variant="dcPrimary"
           borderRadius={4}
           h={35}
-          cursor={'not-allowed'}
+          onClick={() => onSwitchClick('mainnet')}
           sx={
             network === 'mainnet'
               ? {}
@@ -49,12 +54,14 @@ export const NetworkSwitch = () => {
           border="none"
           borderRadius={4}
           h={35}
+          onClick={() => onSwitchClick('testnet')}
           sx={
             network === 'testnet'
               ? {}
               : {
                   bgColor: 'bg.bottom',
                   color: 'readable.normal',
+                  _hover: {},
                 }
           }
         >
