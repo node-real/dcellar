@@ -307,14 +307,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 })
               }
             />
-            <Text fontSize={14} fontWeight={600}>
+            <Box fontSize={14} fontWeight={600}>
               X
-            </Text>
+            </Box>
             <Flex flexDirection={'column'}>
-              <Text fontWeight={600}>{storeNetflowRate}</Text>
-              <Text color="readable.tertiary" fontSize={12}>
+              <Box fontWeight={600}>{storeNetflowRate}</Box>
+              <Box color="readable.tertiary" fontSize={12}>
                 BNB/{storageSize.unit}/month
-              </Text>
+              </Box>
             </Flex>
             <Flex
               sx={{
@@ -334,7 +334,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-        <Divider
+       <Divider
           display={'none'}
           sx={{
             [smMedia]: {
@@ -392,14 +392,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 })
               }
             />
-            <Text fontSize={14} fontWeight={600}>
+            <Box fontSize={14} fontWeight={600}>
               X
-            </Text>
+            </Box>
             <Flex flexDirection={'column'}>
-              <Text fontWeight={600}>{quotaNetflowRate}</Text>
-              <Text color="readable.tertiary" fontSize={12}>
+              <Box fontWeight={600}>{quotaNetflowRate}</Box>
+              <Box color="readable.tertiary" fontSize={12}>
                 BNB/{quotaSize.unit}/month
-              </Text>
+              </Box>
             </Flex>
             <Flex
               flexDirection={'column'}
@@ -419,7 +419,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-        <Divider
+          <Divider
           display={'none'}
           sx={{
             [smMedia]: {
@@ -582,7 +582,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               >
                 Estimated Total Cost
               </Text>
-              <Text
+              <Box
                 textAlign={'right'}
                 wordBreak={'break-all'}
                 sx={{
@@ -592,7 +592,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 }}
               >
                 {costs.totalCost} BNB
-                <Text
+                <Box
                   wordBreak={'break-all'}
                   color={'readable.tertiary'}
                   ml={4}
@@ -600,8 +600,8 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   display={'inline-block'}
                 >
                   &nbsp;({displayUsd(costs.totalCost || '0', bnbPrice)})
-                </Text>
-              </Text>
+                </Box>
+              </Box>
             </Flex>
             <Box
               textAlign={'right'}
@@ -611,8 +611,8 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Text display={'inline-block'}>{costs.averageMonthCost} BNB/month</Text>
-              <Text
+              <Box display={'inline-block'}>{costs.averageMonthCost} BNB/month</Box>
+              <Box
                 display={'inline-block'}
                 sx={{
                   [smMedia]: {
@@ -621,7 +621,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 }}
               >
                 &nbsp;({displayUsd(costs.averageMonthCost, bnbPrice)})
-              </Text>
+              </Box>
             </Box>
           </Box>
           <FeeItem
