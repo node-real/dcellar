@@ -48,7 +48,7 @@ export const SelectNetwork = () => {
             color={'readable.normal'}
             fontSize={14}
             fontWeight={500}
-            rightIcon={isOpen ? <MenuOpenIcon /> : <MenuCloseIcon />}
+            rightIcon={isOpen ? <MenuOpenIcon pointerEvents={'none'} /> : <MenuCloseIcon pointerEvents={'none'} />}
             _hover={{
               bgColor: 'bg.secondary'
             }}
