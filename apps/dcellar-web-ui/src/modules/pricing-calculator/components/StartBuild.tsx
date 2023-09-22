@@ -1,10 +1,10 @@
 import { assetPrefix } from '@/base/env';
-import { DCButton } from '@/components/common/DCButton';
 import { Text } from '@totejs/uikit';
 import React from 'react';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
 import { H2 } from './Common';
+import { ConnectWallet } from '@/components/ConnectWallet';
 
 export const StartBuild = () => (
   <PriceResponsiveContainer
@@ -35,19 +35,19 @@ export const StartBuild = () => (
       Start your business with BNB Greenfield's decentralized storage solution with DCellar, and
       easily expand your operations.
     </Text>
-    <DCButton
-      margin="0 auto"
-      variant="dcPrimary"
+    <ConnectWallet
+      text="Get Started"
       w={'fit-content'}
-      borderRadius={'4px'}
+      margin={'auto auto'}
+      h={54}
+      padding={'16px 48px'}
+      fontWeight={600}
       sx={{
         [smMedia]: {
           height: '33px',
           fontSize: '14px',
         },
       }}
-    >
-      Get Started
-    </DCButton>
+    />
   </PriceResponsiveContainer>
 );

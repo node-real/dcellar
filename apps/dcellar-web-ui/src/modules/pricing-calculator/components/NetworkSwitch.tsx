@@ -19,8 +19,8 @@ export const NetworkSwitch = () => {
     if (net === network) {
       return;
     }
-    window.open(LINKS[net].fullUrl, '_blank')
-  }
+    window.open(LINKS[net].fullUrl, '_blank');
+  };
   return (
     <Flex>
       <ButtonGroup
@@ -61,7 +61,9 @@ export const NetworkSwitch = () => {
               : {
                   bgColor: 'bg.bottom',
                   color: 'readable.normal',
-                  _hover: {},
+                  _hover: {
+                    bgColor: 'bg.secondary',
+                  },
                 }
           }
         >

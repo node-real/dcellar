@@ -74,6 +74,10 @@ export const BaseHeader = () => {
         text='Connect wallet'
         variant='dcGhost'
         border={'1px solid readable.border'}
+        _hover={{
+          color: 'readable.brand6',
+          border:'1px solid readable.brand6'
+        }}
       />
     </Flex>
   );
