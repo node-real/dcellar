@@ -1,18 +1,111 @@
 import {
+  Box,
   Link,
   QAccordion,
   QAccordionButton,
   QAccordionIcon,
   QAccordionItem,
   QAccordionPanel,
+  Table,
   Text,
 } from '@totejs/uikit';
 import { PriceResponsiveContainer } from '..';
 import { H2 } from './Common';
 import { UnderlineLink } from '@/components/layout/Footer';
+import { ReactElement } from 'react';
 
+type TBillingFormula = {
+  id: number;
+  name: string;
+  value: ReactElement;
+};
+const BillingFormula = () => {
+  const columns = [
+    {
+      header: (
+        <Text fontSize={16} fontWeight={600}>
+          Fee
+        </Text>
+      ),
+      width: '20%',
+      cell: (item: TBillingFormula) => {
+        return <Box minW={130}>{item.name}</Box>;
+      },
+    },
+    {
+      header: (
+        <Text fontSize={16} fontWeight={600}>
+          Billing Formula
+        </Text>
+      ),
+      cell: (item: TBillingFormula) => {
+        return <Box>{item.value}</Box>;
+      },
+    },
+  ];
+
+  const data: TBillingFormula[] = [
+    {
+      id: 1,
+      name: 'Storage Fee',
+      value: (
+        <>
+          <Text marginBottom={16} fontWeight={400} wordBreak={'break-all'}>
+            Fee = sum(ChargedSize) * (PrimaryStorePrice + SecondaryStorePrice*SecondarySPNumber) *
+            (1+Validator Tax Rate) * ReserveTime
+          </Text>
+          <Text fontWeight={400}>ReserveTime = 180</Text>
+          <Text fontWeight={400}>Validator Tax Rate = 1%</Text>
+        </>
+      ),
+    },
+    {
+      id: 2,
+      name: 'Download Quota Fee',
+      value: (
+        <Text fontWeight={400} wordBreak={'break-all'}>
+          Fee = ChargedReadQuota * ReadPrice * (1 + Validator Tax Rate) * ReserveTime
+        </Text>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      containerStyle={{
+        padding: '0',
+        marginY: '16px',
+        border: '1px solid readable.border',
+        borderRadius: '4px',
+      }}
+      width={'100%'}
+      columns={columns}
+      data={data}
+      withContainer={true}
+      thProps={{ bgColor: 'bg.bottom', paddingX: '16px' }}
+      tdProps={{
+        padding: '8px 16px',
+        whiteSpace: 'break-spaces',
+      }}
+    ></Table>
+  );
+};
 export const FAQ = () => {
   const data = [
+    {
+      question: <Text id='#billing-formula'>Billing Formula</Text>,
+      answer: (
+        <>
+          <Text>
+            In Greenfield, Besides transaction fee, users are required to pay two kinds of storage
+            service fees: storage fee and download quota fee. These storage service fees are charged
+            by Storage Providers (SPs) in a steam payment. Users need to prelock an amount of
+            storage service fee when they start using the service.
+          </Text>
+          <BillingFormula />
+        </>
+      ),
+    },
     {
       question: 'What is Charged Size?',
       answer: (
@@ -34,9 +127,13 @@ export const FAQ = () => {
           proportion of the Primary SP Store Price (e.g. 12%, which can be governed), and the median
           of all SPs' read prices will be calculated as the Primary SP Read Price. To learn more
           about it, please refer to{' '}
-          <UnderlineLink target='_blank' href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment">
+          <UnderlineLink
+            target="_blank"
+            href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment"
+          >
             https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment
-          </UnderlineLink>.
+          </UnderlineLink>
+          .
         </Text>
       ),
     },
@@ -75,7 +172,7 @@ export const FAQ = () => {
   ];
   return (
     <PriceResponsiveContainer>
-      <H2>FAQ</H2>
+      <H2 id='#faq' marginBottom={'16px'}>FAQ</H2>
       <QAccordion>
         {data.map((item, index) => (
           <QAccordionItem key={index}>
