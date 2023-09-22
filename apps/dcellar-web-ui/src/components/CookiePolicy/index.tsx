@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Text, Button, Flex, useMediaQuery } from '@totejs/uikit';
 import { ConfirmModal } from './component/ConfirmModal';
 import { DCButton } from '../common/DCButton';
-// import { reportEvent } from '@node-real/next';
+import { reportEvent } from '@/utils/reportEvent';
 
 export type TCookieType = 'ga' | 'st' | 'ga_st';
 export type TCookieOperate = 'deny_all' | 'accept_all' | 'optional' | 'close';
@@ -52,10 +52,10 @@ export const CookiePolicy = ({ onClose }: Props) => {
               color="readable.brand6"
               onClick={() => {
                 setOpen(true);
-                // reportEvent({
-                //   name: 'nr.main.cookie.setting.click',
-                //   data: {},
-                // });
+                reportEvent({
+                  name: 'dc_lp.main.cookie.setting.click',
+                  data: {},
+                });
               }}
             >
               cookies setting
@@ -64,7 +64,7 @@ export const CookiePolicy = ({ onClose }: Props) => {
             <Box
               as="a"
               target="_blank"
-              // onClick={() => reportEvent({ name: 'nr.main.cookie.learnmore.click', data: {} })}
+              onClick={() => reportEvent({ name: 'dc_lp.main.cookie.learnmore.click', data: {} })}
               href={'https://docs.nodereal.io/docs/cookie-policy'}
               color="readable.brand6"
             >
@@ -79,7 +79,7 @@ export const CookiePolicy = ({ onClose }: Props) => {
             h={40}
             onClick={() => {
               onClose('ga_st', 'accept_all');
-              // reportEvent({ name: 'nr.main.cookie.accept.click', data: {} });
+              reportEvent({ name: 'dc_lp.main.cookie.accept.click', data: {} });
             }}
             size="md"
           >

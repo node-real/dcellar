@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { GA_ID } from '@/base/env';
 import { forbidGaReport, forbidStReport, startGaReport, startStReport } from './utils';
-import { useMount } from 'ahooks';
+import { GAShow } from '../common/GATracker';
 
 const EXCLUDE_ROUTE_PATH_LIST = ['/terms'];
 const GA_STORAGE_KEY = 'gaTrackingAccept';
@@ -31,10 +31,6 @@ export const CookiePolicyContainer = () => {
       setShow(true);
       forbidStReport();
       forbidGaReport(GA_ID);
-      // reportEvent({
-      //   name: 'nr.main.cookie.banner.show',
-      //   data: {},
-      // });
       return;
     }
     if (gaAccepted && stAccepted) {
@@ -98,5 +94,9 @@ export const CookiePolicyContainer = () => {
     }
   }, []);
 
-  return <>{show && !noShow && <CookiePolicy onClose={onClose} />}</>;
+  return (
+    <GAShow name="dc_lp.main.cookie.banner.show">
+      {show && !noShow && <CookiePolicy onClose={onClose} />}
+    </GAShow>
+  );
 };
