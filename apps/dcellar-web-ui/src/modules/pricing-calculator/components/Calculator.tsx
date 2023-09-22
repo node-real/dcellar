@@ -264,8 +264,13 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   <Link
                     display={'inline-block'}
                     cursor={'pointer'}
-                    href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment"
-                    target='_blank'
+                    onClick={() => {
+                      const anchor = '#faq';
+                      let anchorElement = document.getElementById(anchor);
+                      if (anchorElement) {
+                        anchorElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                      }
+                    }}
                   >
                     the Storage Fee Formula
                   </Link>
