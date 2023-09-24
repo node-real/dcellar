@@ -4,8 +4,8 @@ import Link from 'next/link';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
-import { DcellarDoc, FAQ } from '@/constants/links';
 import { memo } from 'react';
+import { DcellarDoc, FAQ } from '@/utils/constant';
 
 const MENU_ITEMS = [
   {

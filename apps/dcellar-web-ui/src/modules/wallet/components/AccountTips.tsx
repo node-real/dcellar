@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box, Popover, PopoverContent, PopoverTrigger } from '@totejs/uikit';
 import { AccountType } from '@/store/slices/accounts';
 import { getAccountDisplay } from '@/utils/accounts';
 
-type AccountTipsProps = {
+interface AccountTipsProps {
   type: AccountType;
-};
+}
 
-export const AccountTips = ({ type }: AccountTipsProps) => {
+export const AccountTips = memo<AccountTipsProps>(function ({ type }) {
   const accountDisplay = getAccountDisplay(type);
   return (
     <>
@@ -30,4 +30,4 @@ export const AccountTips = ({ type }: AccountTipsProps) => {
       )}
     </>
   );
-};
+});

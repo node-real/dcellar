@@ -1,5 +1,5 @@
 import { Box, Flex, FormLabel, Text } from '@totejs/uikit';
-import React from 'react';
+import React, { memo } from 'react';
 
 import BSCIcon from '@/public/images/icons/bsc.svg';
 import { ChainInfos } from '../constants';
@@ -9,7 +9,12 @@ type Props = {
   type: 'from' | 'to';
 };
 
-export const ChainBox = ({ chainId, type }: Props) => {
+interface ChainBoxProps {
+  chainId: number;
+  type: 'from' | 'to';
+}
+
+export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }: Props) {
   const chain = ChainInfos.find((item) => item.chainId === chainId);
   return (
     <Box>
@@ -38,4 +43,4 @@ export const ChainBox = ({ chainId, type }: Props) => {
       </Flex>
     </Box>
   );
-};
+});

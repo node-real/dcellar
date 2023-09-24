@@ -11,8 +11,8 @@ import {
   Text,
 } from '@totejs/uikit';
 import React, { forwardRef } from 'react';
-import PrivateFileIcon from '../file/components/PrivateFileIcon';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
+import PrivateFileIcon from '../object/components/PrivateFileIcon';
+import PublicFileIcon from '@/modules/object/components/PublicFileIcon';
 import { find } from 'lodash-es';
 import { useMount } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';

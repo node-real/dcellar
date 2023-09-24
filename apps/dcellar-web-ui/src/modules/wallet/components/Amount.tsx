@@ -24,15 +24,14 @@ import {
 } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
 import BNBIcon from '@/public/images/icons/bnb.svg';
-import { trimFloatZero } from '@/utils/trimFloatZero';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
-import { useMount } from 'ahooks';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 import { TxType } from '../Send';
-import { BN } from '@/utils/BigNumber';
+import { trimFloatZero } from '@/utils/string';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
 
 type AmountProps = {
   disabled: boolean;
@@ -84,23 +83,17 @@ export const Amount = ({
   setValue,
   txType,
 }: AmountProps) => {
-  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
   const defaultFee = DefaultFee[transType];
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
   const isSendPage = transType === 'send';
-
-  useMount(() => {
-    dispatch(setupTmpAvailableBalance(address));
-  });
 
   const Balance = useCallback(() => {
     if (isLoading) return null;

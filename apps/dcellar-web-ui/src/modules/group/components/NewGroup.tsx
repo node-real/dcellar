@@ -1,7 +1,7 @@
 import { memo, useCallback } from 'react';
 import { Flex } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setCreatingGroup, setupGroups } from '@/store/slices/group';
+import { setGroupOperation, setupGroups } from '@/store/slices/group';
 import { DCButton } from '@/components/common/DCButton';
 import { debounce } from 'lodash-es';
 import { IconFont } from '@/components/IconFont';
@@ -21,10 +21,6 @@ export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = tr
     [loginAccount],
   );
 
-  const onCreate = () => {
-    dispatch(setCreatingGroup(true));
-  };
-
   return (
     <Flex gap={12}>
       {showRefresh && (
@@ -34,7 +30,9 @@ export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = tr
           onClick={onRefresh}
         />
       )}
-      <DCButton onClick={onCreate}>Create Group</DCButton>
+      <DCButton onClick={() => dispatch(setGroupOperation({ operation: ['', 'create'] }))}>
+        Create Group
+      </DCButton>
     </Flex>
   );
 });

@@ -1,8 +1,7 @@
 import { Box, Flex, Link, Text } from '@totejs/uikit';
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, TFeeData } from '../type';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
@@ -13,18 +12,11 @@ import {
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { GAS_FEE_DOC } from '@/modules/file/constant';
+import { GAS_FEE_DOC } from '@/modules/object/constant';
 import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
-import { renderFeeValue } from '@/modules/file/utils';
+import { currencyFormatter } from '@/utils/formatter';
+import { renderFeeValue } from '@/modules/object/utils';
 
-type FeeProps = {
-  amount: string;
-  showSettlement?: boolean;
-  settlementFee?: string;
-  feeData: TFeeData;
-  isGasLoading: boolean;
-  gaShowTipsName?: string;
-};
 const DefaultFee = {
   // TODO temp down limit fee
   transfer_in: 0.00008 + 0.002,
@@ -38,14 +30,23 @@ const DefaultGasRelayerFee = {
   send: { gasFee: 0, relayerFee: 0 },
 };
 
-export const Fee = ({
+interface FeeProps {
+  amount: string;
+  showSettlement?: boolean;
+  settlementFee?: string;
+  feeData: TFeeData;
+  isGasLoading: boolean;
+  gaShowTipsName?: string;
+}
+
+export const Fee = memo<FeeProps>(function Fee({
   amount,
   showSettlement,
   settlementFee,
   isGasLoading,
   feeData = INIT_FEE_DATA,
   gaShowTipsName,
-}: FeeProps) => {
+}) {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -122,8 +123,7 @@ export const Fee = ({
       {showSettlement && (
         <Flex justifyContent={'space-between'} alignItems="flex-start" gap={'24px'}>
           <Flex justifyContent={'flex-start'} alignItems="center">
-            <Text color="readable.tertiary">Settlement Fee</Text>{' '}
-            <SettlementTips/>
+            <Text color="readable.tertiary">Settlement Fee</Text> <SettlementTips />
           </Flex>
           <Text
             color={'readable.normal'}
@@ -191,4 +191,4 @@ export const Fee = ({
       </Flex>
     </>
   );
-};
+});

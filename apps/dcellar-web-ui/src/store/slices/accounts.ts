@@ -7,20 +7,24 @@ import {
 import { StreamRecord } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/stream_record';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
-import { AppDispatch, GetState } from '..';
-import { BN } from '@/utils/BigNumber';
+import { AppDispatch, AppState, GetState } from '..';
 import { getClientFrozen } from '@/utils/payment';
+import { BN } from '@/utils/math';
 
 export type TAccount = {
   name: string;
   address: string;
 };
+
 export type AccountType =
   | 'unknown_account'
   | 'gnfd_account'
   | 'payment_account'
   | 'non_refundable_payment_account'
   | 'error_account';
+
+export type AccountOperationsType = 'oaDetail' | 'paDetail' | '';
+
 export type TAccountDetail = {
   name: string;
   address: string;
@@ -36,10 +40,7 @@ export type TAccountDetail = {
   lockBalance: string;
   refundable?: boolean;
 };
-export type TBalance = {
-  bankBalance: string;
-  staticBalance: string;
-};
+
 interface AccountsState {
   isLoadingPaymentAccounts: boolean;
   isLoadingDetail: string;
@@ -49,10 +50,9 @@ interface AccountsState {
   currentPAPage: number;
   accountDetails: Record<string, TAccountDetail>;
   accountTypes: Record<string, AccountType>;
-  editOwnerDetail: string;
-  editPaymentDetail: string;
   editDisablePaymentAccount: string;
   bankBalance: string;
+  accountOperation: [string, AccountOperationsType];
 }
 export const getDefaultBalance = () => ({
   bufferBalance: '0',
@@ -78,10 +78,9 @@ const initialState: AccountsState = {
   paymentAccounts: {},
   accountDetails: {},
   accountTypes: {},
-  editOwnerDetail: '',
-  editPaymentDetail: '',
   editDisablePaymentAccount: '',
   bankBalance: '',
+  accountOperation: ['', ''],
 };
 
 export const paymentAccountSlice = createSlice({
@@ -90,6 +89,9 @@ export const paymentAccountSlice = createSlice({
     return { ...initialState };
   },
   reducers: {
+    setAccountOperation(state, { payload }: PayloadAction<[string, AccountOperationsType]>) {
+      state.accountOperation = payload;
+    },
     setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
       state.ownerAccount = payload;
     },
@@ -154,12 +156,6 @@ export const paymentAccountSlice = createSlice({
         };
       }
     },
-    setEditOwnerDetail: (state, { payload }: PayloadAction<string>) => {
-      state.editOwnerDetail = payload;
-    },
-    setEditPaymentDetail: (state, { payload }: PayloadAction<string>) => {
-      state.editPaymentDetail = payload;
-    },
     setEditDisablePaymentAccount: (state, { payload }: PayloadAction<string>) => {
       state.editDisablePaymentAccount = payload;
     },
@@ -190,21 +186,21 @@ export const {
   setPAInfos,
   setBankBalance,
   setAccountDetail,
-  setEditOwnerDetail,
-  setEditPaymentDetail,
   setEditDisablePaymentAccount,
   setCurrentPAPage,
   setAccountType,
+  setAccountOperation,
 } = paymentAccountSlice.actions;
 
 const defaultPaAccount = {} as TAccountDetail;
-export const selectAccount = (address: string) => (state: any) =>
+export const selectAccount = (address: string) => (state: AppState) =>
   state.accounts.accountDetails[address] || defaultPaAccount;
 
 export const defaultPAList = Array<TAccount>();
-export const selectPaymentAccounts = (address: string) => (state: any) =>
+export const selectPaymentAccounts = (address: string) => (state: AppState) =>
   state.accounts.paymentAccounts[address] || defaultPAList;
-export const selectAvailableBalance = (address: string) => (state: any) => {
+
+export const selectAvailableBalance = (address: string) => (state: AppState) => {
   const isOwnerAccount = address === state.persist.loginAccount;
   const accountDetail = state.accounts.accountDetails[address] as TAccountDetail;
   if (isOwnerAccount) {

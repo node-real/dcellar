@@ -9,8 +9,8 @@ import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
+import { InternalRoutePaths } from '@/utils/constant';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);

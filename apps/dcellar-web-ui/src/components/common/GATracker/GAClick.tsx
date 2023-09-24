@@ -12,12 +12,13 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
 
   const reportFuncRef = useReportFuncRef(name, data);
 
-  const clones = useMemo(() => {
+  return useMemo(() => {
     const child: any = React.Children.only(children);
 
-    const clone = React.cloneElement(child, {
+    return React.cloneElement(child, {
       ...restProps,
       ...child.props,
+      ref,
       onClick: (event: React.MouseEvent) => {
         const { isDisabled, onClick: originClick } = child.props;
         originClick?.call(child, event);
@@ -27,9 +28,5 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
         }
       },
     });
-
-    return clone;
   }, [children, ref, reportFuncRef, restProps]);
-
-  return clones;
 });

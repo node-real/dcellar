@@ -1,6 +1,9 @@
 import { EllipsisText } from '@/components/common/EllipsisText';
-import { contentIconTypeToExtension, formatBytes } from '../file/utils';
-import { Box, Flex, Image } from '@totejs/uikit';
+import { Box, Flex } from '@totejs/uikit';
+import { formatBytes } from '@/utils/formatter';
+import { contentIconTypeToExtension } from '@/modules/object/utils';
+import { IconFont } from '@/components/IconFont';
+import React from 'react';
 
 type Props = {
   name: string;
@@ -21,12 +24,7 @@ export const NameItem = ({ name, size, msg, status, ...styleProps }: Props) => {
       justifyContent={'center'}
       marginRight={12}
     >
-      <Image
-        src={`/images/files/icons/${fileType.toLocaleLowerCase()}.svg`}
-        alt={fileType}
-        width={20}
-        height={20}
-      />
+      <IconFont w={20} type={`${fileType}-file`} />
     </Flex>
   );
   return (

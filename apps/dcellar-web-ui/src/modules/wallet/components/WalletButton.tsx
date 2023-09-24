@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isRightChain } from '../utils/isRightChain';
@@ -8,21 +8,21 @@ import { WarningInfo } from '@/components/common/WarningInfo';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useAppSelector } from '@/store';
 
-type Props = {
+interface WalletButtonProps {
   isSubmitting: boolean;
   disabled: boolean;
   isGasLoading: boolean;
   gaClickSubmitName?: string;
   gaClickSwitchName?: string;
-};
+}
 
-export const WalletButton = ({
+export const WalletButton = memo<WalletButtonProps>(function WalletButton({
   isSubmitting,
   disabled,
   isGasLoading,
   gaClickSubmitName,
   gaClickSwitchName,
-}: Props) => {
+}) {
   const { transType } = useAppSelector((root) => root.wallet);
   const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
@@ -66,4 +66,4 @@ export const WalletButton = ({
       {curInfo.text}
     </DCButton>
   );
-};
+});

@@ -4,9 +4,9 @@ import { ColoredWarningIcon } from '@totejs/icons';
 import { Flex, Link } from '@totejs/uikit';
 import React from 'react';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { useUnFreezeAmount } from '@/modules/accounts/hooks';
 import { selectAccount } from '@/store/slices/accounts';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export const InsufficientBalance = () => {
   const router = useRouter();
@@ -19,7 +19,7 @@ export const InsufficientBalance = () => {
   const onTopUpClick = () => {
     const topUpUrl = isOwnerAccount
       ? InternalRoutePaths.transfer_in
-      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${bucket.PaymentAddress}&amount=${amount}`
+      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${bucket.PaymentAddress}&amount=${amount}`;
     router.push(topUpUrl);
   };
 

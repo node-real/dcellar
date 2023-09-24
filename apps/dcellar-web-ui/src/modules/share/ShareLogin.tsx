@@ -3,8 +3,8 @@ import { Image, Text } from '@totejs/uikit';
 import { assetPrefix } from '@/base/env';
 import { css } from '@emotion/react';
 import { useMount } from 'ahooks';
-import { reportEvent } from '@/utils/reportEvent';
 import { ConnectWallet } from '@/components/ConnectWallet';
+import { reportEvent } from '@/utils/gtag';
 
 export const ShareLogin = () => {
   useMount(() => {

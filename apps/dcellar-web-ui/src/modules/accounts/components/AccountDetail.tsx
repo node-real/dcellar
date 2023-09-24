@@ -2,23 +2,22 @@ import { useAppSelector } from '@/store';
 import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import React, { useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
-import { trimAddress } from '@/utils/string';
+import { trimAddress, trimFloatZero } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
   MIN_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
-import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
-import { BN } from '@/utils/BigNumber';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { TAccountDetail } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
+import { BN } from '@/utils/math';
+import { InternalRoutePaths } from '@/utils/constant';
+import { currencyFormatter } from '@/utils/formatter';
 
 type Props = {
   loading: boolean;

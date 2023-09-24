@@ -15,6 +15,9 @@ export const theme: Theme = {
     global: {
       html: {
         lineHeight: 'normal',
+        '&.overflow-hidden': {
+          overflow: 'hidden',
+        },
       },
       body: {
         // todo refactor
@@ -23,13 +26,36 @@ export const theme: Theme = {
           top: 65,
           maxW: '500px',
         },
+        '.ui-modal-content': {
+          boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+          borderRadius: 4,
+        },
+        '.ui-modal-content .ui-modal-close-button': {
+          color: '#76808F',
+        },
         '.ui-drawer .ui-drawer-body': {
+          marginTop: 24,
+        },
+        '.ui-modal-content .ui-modal-header': {
+          lineHeight: 'normal',
+        },
+        '.ui-modal-desc': {
+          fontSize: 16,
+          color: 'readable.tertiary',
+          marginBottom: 32,
+          textAlign: 'center',
+        },
+        '.ui-drawer .ui-drawer-body, .ui-drawer .ui-drawer-footer': {
           width: 'calc(100% + 48px)',
           marginLeft: -24,
           padding: '0 24px',
         },
         '.ui-drawer .ui-drawer-footer': {
-          marginTop: 16,
+          borderTop: '1px solid readable.border',
+          marginTop: 0,
+          marginBottom: -16,
+          padding: '16px 24px',
+          boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
         },
         '.ui-menu-list': {
           borderRadius: 4,
@@ -42,6 +68,14 @@ export const theme: Theme = {
           _hover: {
             color: 'currentColor',
           },
+        },
+        '.ui-input': {
+          borderRadius: 4,
+          fontWeight: 400,
+        },
+        '.ui-textarea': {
+          borderRadius: 4,
+          fontWeight: 400,
         },
       },
     },

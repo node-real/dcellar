@@ -1,5 +1,5 @@
 import { Text } from '@totejs/uikit';
-import React from 'react';
+import React, { memo } from 'react';
 import { useAppSelector } from '@/store';
 
 const HeadContent = {
@@ -17,7 +17,9 @@ const HeadContent = {
   },
 };
 
-export const Head = () => {
+interface HeadProps {}
+
+export const Head = memo<HeadProps>(function Head() {
   const { transType } = useAppSelector((root) => root.wallet);
   const content = HeadContent[transType];
   return (
@@ -45,4 +47,4 @@ export const Head = () => {
       </Text>
     </>
   );
-};
+});

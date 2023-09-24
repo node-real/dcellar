@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 
@@ -11,7 +11,9 @@ import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceCont
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 
-export const Wallet = () => {
+interface WalletProps {}
+
+export const Wallet = memo<WalletProps>(function Wallet() {
   const { transType } = useAppSelector((root) => root.wallet);
   const router = useRouter();
 
@@ -110,4 +112,4 @@ export const Wallet = () => {
       </Box>
     </WalletBalanceProvider>
   );
-};
+});

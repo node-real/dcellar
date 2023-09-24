@@ -1,7 +1,7 @@
 import React from 'react';
 import { QDrawer, QDrawerCloseButton, QDrawerProps } from '@totejs/uikit';
-import { reportEvent } from '@/utils/reportEvent';
 import { GAShow } from '../GATracker';
+import { reportEvent } from '@/utils/gtag';
 export interface DCDrawerProps extends QDrawerProps {
   gaShowName?: string;
   gaShowData?: Record<string, any>;
@@ -26,7 +26,6 @@ export const DCDrawer = (props: DCDrawerProps) => {
       });
     }
     onClose?.();
-    document.documentElement.style.overflowY = '';
   };
 
   return (

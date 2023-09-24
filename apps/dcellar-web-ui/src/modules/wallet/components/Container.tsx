@@ -1,10 +1,9 @@
 import { Box } from '@totejs/uikit';
-import React from 'react';
+import React, { memo, PropsWithChildren } from 'react';
 
-type Props = {
-  children: any;
-};
-export const Container = ({ children }: Props) => {
+interface ContainerProps extends PropsWithChildren {}
+
+export const Container = memo<ContainerProps>(function ({ children }) {
   return (
     <Box
       margin="0 auto"
@@ -18,6 +17,6 @@ export const Container = ({ children }: Props) => {
       {children}
     </Box>
   );
-};
+});
 
 export default Container;

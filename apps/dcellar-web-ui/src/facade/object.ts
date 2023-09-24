@@ -30,7 +30,6 @@ import {
   MsgUpdateObjectInfo,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
-import { getClient } from '@/base/client';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { quotaRemains } from '@/facade/bucket';
@@ -42,16 +41,17 @@ import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
-import { batchDownload, directlyDownload } from '@/modules/file/utils';
 import {
   ActionType,
   Principal,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
-import { GROUP_ID } from '@/utils/regex';
 import { XMLParser } from 'fast-xml-parser';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getClient } from '@/facade/index';
+import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
+import { batchDownload, directlyDownload } from '@/modules/object/utils';
+import { GROUP_ID } from '@/utils/constant';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 

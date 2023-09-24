@@ -1,19 +1,18 @@
 import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditDisablePaymentAccount } from '@/store/slices/accounts';
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 import { assetPrefix } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAccount } from 'wagmi';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { SET_ACCOUNT_NON_REFUNDABLE_ICON } from '@/modules/file/constant';
+import { SET_ACCOUNT_NON_REFUNDABLE_ICON } from '@/modules/object/constant';
 
-type Props = {
-  refreshList: () => void;
-};
-export const NonRefundableModal = ({ refreshList }: Props) => {
+interface NonRefundableModal {}
+
+export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundableModal() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((state) => state.persist);
   const { editDisablePaymentAccount } = useAppSelector((state) => state.accounts);
@@ -102,4 +101,4 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
       </ModalFooter>
     </DCModal>
   );
-};
+});

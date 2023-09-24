@@ -10,9 +10,9 @@ import { Box, Flex, keyframes, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
-import { formatBytes } from '@/modules/file/utils';
 import { antdTheme } from '@/base/theme/antd';
 import { IconFont } from '@/components/IconFont';
+import { formatBytes } from '@/utils/formatter';
 
 export type AlignType = 'left' | 'right' | 'center';
 

@@ -1,5 +1,4 @@
 import BigNumber from 'bignumber.js';
-import { getClient } from '@/base/client';
 import {
   QueryHeadBucketResponse,
   QueryQuoteUpdateTimeResponse,
@@ -14,11 +13,14 @@ import {
 } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import {
+  CreateBucketApprovalRequest,
+  GetUserBucketsResponse,
   IQuotaProps,
   ISimulateGasFee,
   Long,
   ReadQuotaRequest,
   SpResponse,
+  TxResponse,
 } from '@bnb-chain/greenfield-js-sdk';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
@@ -30,7 +32,12 @@ import {
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
 import { get } from 'lodash-es';
-import { getTimestamp, getTimestampInSeconds } from '@/utils/time';
+import { getTimestampInSeconds } from '@/utils/time';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
+import axios from 'axios';
+import { XMLParser } from 'fast-xml-parser';
+import { parseError } from '@/utils/string';
+import { getClient } from '@/facade/index';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -206,3 +213,122 @@ export const getBucketQuotaUpdateTime = async (bucketName: string) => {
     .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
   return Number(res?.updateAt || defaultValue);
 };
+
+export const simulateCreateBucket = async (
+  params: CreateBucketApprovalRequest,
+  authType: AuthType,
+): Promise<[ISimulateGasFee, null, TxResponse] | ErrorResponse> => {
+  const client = await getClient();
+  const [createBucketTx, error1] = await client.bucket
+    .createBucket(params, authType)
+    .then(resolve, createTxFault);
+
+  if (!createBucketTx) return [null, error1];
+
+  const [simulateInfo, error2] = await createBucketTx
+    .simulate({
+      denom: 'BNB',
+    })
+    .then(resolve, simulateFault);
+
+  if (!simulateInfo) return [null, error2];
+
+  return [simulateInfo, null, createBucketTx];
+};
+
+export const createBucket = async (
+  params: CreateBucketApprovalRequest,
+  authType: AuthType,
+  connector: Connector,
+): BroadcastResponse => {
+  const [simulateInfo, error, createBucketTx] = await simulateCreateBucket(params, authType);
+  if (!simulateInfo) return [null, error];
+
+  const payload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: params.creator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+
+  return createBucketTx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const getBucketMeta = async (params: {
+  bucketName: string;
+  address: string;
+  endpoint: string;
+}) => {
+  const { bucketName, endpoint } = params;
+  const url = `${endpoint}/${bucketName}?bucket-meta`;
+
+  return axios.get(url);
+};
+
+// todo refactor
+export const pollingCreateAsync =
+  <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
+  async (...args: T): Promise<any> => {
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+      try {
+        const result = (await fn(...args)) as any;
+        const xmlParser = new XMLParser({
+          isArray: (tagName: string) => {
+            if (tagName === 'Buckets') return true;
+            return false;
+          },
+          numberParseOptions: {
+            hex: false,
+            leadingZeros: true,
+            skipLike: undefined,
+            eNotation: false,
+          },
+        });
+        const xmlData = await result.data;
+        const data = xmlParser.parse(
+          xmlData,
+        ) as GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
+        if (data) {
+          const newBucketInfo = data.BucketInfo;
+          if (newBucketInfo?.BucketName === args[0].BucketName) {
+            return;
+          }
+        }
+      } catch (e: any) {
+        const { code } = parseError(e?.message);
+        if (+code !== 6 && e?.response?.status !== 404) {
+          throw e;
+        }
+      }
+    }
+  };
+
+export const pollingDeleteAsync =
+  <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
+  async (...args: T): Promise<any> => {
+    await new Promise((resolve) => setTimeout(resolve, interval));
+
+    while (true) {
+      try {
+        const res = (await fn(...args)) as any;
+
+        if (res.response.status === 500 || res.response.status === 404) {
+          return;
+        }
+      } catch (e: any) {
+        if (e?.response?.status === 500 || e?.response?.status === 404) {
+          return;
+        }
+        const { code } = parseError(e?.response.message);
+        if (+code !== 6) {
+          throw e;
+        }
+      }
+    }
+  };
+
+export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
+export const pollingDeleteBucket = pollingDeleteAsync(getBucketMeta, 500);

@@ -44,6 +44,7 @@ export function CopyText(props: CopyTextProps) {
       fontSize={14}
       lineHeight="20px"
       fontWeight={500}
+      w="max-content"
       {...restProps}
       onClick={(e) => {
         e.stopPropagation();

@@ -52,13 +52,14 @@ export const buttonConfig = {
     },
 
     lg: (props: any) => {
+      const _px = props.leftIcon || props.rightIcon ? 8 : 16;
+      const px = props.variant === 'ghost' ? _px - 2 : _px;
       return {
         button: {
-          pl: props.leftIcon ? 16 : 24,
-          pr: props.rightIcon ? 16 : 24,
-          h: 50,
-          minW: 50,
-          borderRadius: 8,
+          px,
+          h: 48,
+          minW: 40,
+          borderRadius: 4,
           fontSize: '16px',
         },
       };

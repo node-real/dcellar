@@ -1,24 +1,22 @@
-import React, { memo, ReactNode, useEffect, useState } from 'react';
+import React, { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import { Box, Button, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
-import { transientOptions } from '@/utils/transientOptions';
-// import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
-import { setEditShare, setupObjectPolicies } from '@/store/slices/object';
+import PublicFileIcon from '@/modules/object/components/PublicFileIcon';
+import PrivateFileIcon from '@/modules/object/components/PrivateFileIcon';
+import { transientOptions } from '@/utils/css';
+import { setObjectOperation, setupObjectPolicies } from '@/store/slices/object';
 import { CopyButton } from '@/modules/object/components/CopyButton';
 import { getShareLink } from '@/utils/string';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { useAsyncEffect } from 'ahooks';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
-import { GROUP_MEMBER_AVATARS } from '@/modules/group/components/GroupDetail';
-import Group0 from '@/components/common/SvgIcon/avatars/Group0.svg';
-import Group1 from '@/components/common/SvgIcon/avatars/Group1.svg';
-import Group2 from '@/components/common/SvgIcon/avatars/Group2.svg';
-import Group3 from '@/components/common/SvgIcon/avatars/Group3.svg';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { Avatar } from '@/components/Avatar';
 
-interface SharePermissionProps {}
+interface SharePermissionProps {
+  selectObjectInfo: ObjectMeta;
+}
 
 const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
   [VisibilityType.VISIBILITY_TYPE_PUBLIC_READ]: {
@@ -33,32 +31,20 @@ const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
   },
 };
 
-export const OBJECT_POLICY_GROUP_AVATARS = [Group0, Group1, Group2, Group3];
-
-export const SharePermission = memo<SharePermissionProps>(function SharePermission() {
+export const SharePermission = memo<SharePermissionProps>(function SharePermission({
+  selectObjectInfo,
+}) {
   const dispatch = useAppDispatch();
-  const {
-    editDetail: _editDetail,
-    bucketName,
-    objectPolicies,
-  } = useAppSelector((root) => root.object);
+  const { bucketName, objectPolicies } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
-  const [editDetail, setEditDetailState] = useState(_editDetail);
-
-  useEffect(() => {
-    if (!_editDetail.objectName) return;
-    setEditDetailState(_editDetail);
-  }, [_editDetail]);
+  const objectInfo = selectObjectInfo.ObjectInfo;
 
   useAsyncEffect(async () => {
-    if (!editDetail.name || !bucketName) return;
-    dispatch(setupObjectPolicies(bucketName, editDetail.objectName));
-  }, [dispatch, editDetail.name, bucketName]);
+    dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
+  }, [dispatch]);
 
-  if (!editDetail.name) return <></>;
-
-  const CurrentAccess = Access[editDetail.visibility] ? Access[editDetail.visibility] : Access[2];
-  const path = [bucketName, editDetail.objectName].join('/');
+  const CurrentAccess = Access[objectInfo.Visibility] ? Access[objectInfo.Visibility] : Access[2];
+  const path = [bucketName, objectInfo.ObjectName].join('/');
   const loading = !(path in objectPolicies);
   const members = objectPolicies[path] || [];
   const total = members.length;
@@ -67,7 +53,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
 
   return (
     <>
-      {editDetail.objectStatus === 1 && owner && (
+      {objectInfo.ObjectStatus === 1 && owner && (
         <Container>
           <Title>Share with</Title>
           <AccessRow>
@@ -84,15 +70,9 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
               >
                 <Flex gap={8}>
                   {members.slice(0, 5).map((m, index) => {
-                    const isGroup = !m.PrincipalValue.startsWith('0x');
-                    const lastCharCode =
-                      m.PrincipalValue[m.PrincipalValue.length - 1].charCodeAt(0);
-                    const Avatar = isGroup
-                      ? OBJECT_POLICY_GROUP_AVATARS[lastCharCode % 4]
-                      : GROUP_MEMBER_AVATARS[lastCharCode % 5];
                     return (
                       <Box key={m.PrincipalValue + String(index)} title={m.PrincipalValue}>
-                        <Avatar />
+                        <Avatar id={m.PrincipalValue} w={32} />
                       </Box>
                     );
                   })}
@@ -113,14 +93,21 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
             </Flex>
             <Flex gap={8} flex={1} />
             <ManageAccess
-              onClick={() => dispatch(setEditShare({ record: editDetail, from: 'drawer' }))}
+              onClick={() =>
+                dispatch(
+                  setObjectOperation({
+                    level: 1,
+                    operation: [`${bucketName}/${objectInfo.ObjectName}`, 'share'],
+                  }),
+                )
+              }
             >
               Manage Access
             </ManageAccess>
           </AccessRow>
           <Tip>Only people with access can open with the link.</Tip>
           <Box my={16}>
-            <CopyButton text={getShareLink(bucketName, editDetail.objectName)}>
+            <CopyButton text={getShareLink(bucketName, objectInfo.ObjectName)}>
               Copy Link
             </CopyButton>
           </Box>

@@ -1,14 +1,13 @@
 import React, { memo, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { useAppSelector } from '@/store';
 import { Box, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { MenuCloseIcon } from '@totejs/icons';
+import BigNumber from 'bignumber.js';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
-} from '@/modules/file/utils';
-import { MenuCloseIcon } from '@totejs/icons';
-import BigNumber from 'bignumber.js';
+} from '@/modules/object/utils';
 
 export type FeeItem = {
   label: string;
@@ -22,16 +21,10 @@ interface FeesProps {
 }
 
 export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = () => {} }) {
-  const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { isOpen, onToggle } = useDisclosure();
-
-  useEffect(() => {
-    dispatch(setupTmpAvailableBalance(loginAccount));
-  }, [fees]);
 
   const _fees = fees.map((fee) => ({
     label: fee.label,

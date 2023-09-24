@@ -1,6 +1,10 @@
 import styled from '@emotion/styled';
 import { Image, Heading, Text } from '@totejs/uikit';
-import { FILE_FAILED_URL, NOT_ENOUGH_QUOTA_URL, UNKNOWN_ERROR_URL } from '@/modules/file/constant';
+import {
+  FILE_FAILED_URL,
+  NOT_ENOUGH_QUOTA_URL,
+  UNKNOWN_ERROR_URL,
+} from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import React, { memo } from 'react';

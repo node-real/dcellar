@@ -3,7 +3,6 @@ import { Box, Button, Circle, Fade, Flex, Portal, Text, useOutsideClick } from '
 import { CopyText } from '@/components/common/CopyText';
 import { Tips } from '@/components/common/Tips';
 import { NewBalance } from '@/components/layout/Header/NewBalance';
-import { InternalRoutePaths } from '@/constants/paths';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import { useRouter } from 'next/router';
@@ -15,6 +14,7 @@ import { Avatar } from '@/components/Avatar';
 import styled from '@emotion/styled';
 import { DCLink } from '@/components/common/DCLink';
 import { IconFont } from '@/components/IconFont';
+import { InternalRoutePaths } from '@/utils/constant';
 
 interface AccountInfoProps {}
 

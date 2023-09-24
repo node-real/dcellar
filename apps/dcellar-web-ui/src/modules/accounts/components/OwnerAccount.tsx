@@ -3,7 +3,7 @@ import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditOwnerDetail, TAccount } from '@/store/slices/accounts';
+import { setAccountOperation, TAccount } from '@/store/slices/accounts';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -24,14 +24,16 @@ export const OwnerAccount = () => {
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const data = ownerAccount?.address ? [ownerAccount] : [];
   const router = useRouter();
+
   const onMenuClick = (e: string, record: TAccount) => {
-    if (e === 'detail') {
-      return dispatch(setEditOwnerDetail(record.address));
-    }
-    if (['transfer_in', 'transfer_out', 'send'].includes(e)) {
-      return router.push(`/wallet?type=${e}`);
+    switch (e) {
+      case 'detail':
+        return dispatch(setAccountOperation([record.address, 'oaDetail']));
+      default:
+        return router.push(`/wallet?type=${e}`);
     }
   };
+
   const columns: ColumnProps<TAccount>[] = [
     {
       key: 'name',
@@ -87,9 +89,7 @@ export const OwnerAccount = () => {
         loading={false}
         renderEmpty={() => null}
         onRow={(record: TAccount) => ({
-          onClick: () => {
-            dispatch(setEditOwnerDetail(record.address));
-          },
+          onClick: () => onMenuClick('detail', record),
         })}
       ></DCTable>
     </Container>

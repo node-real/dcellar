@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAccount } from 'wagmi';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { setRemoveGroup, setupGroups } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
@@ -13,7 +13,7 @@ import {
   GROUP_DELETE,
   UNKNOWN_ERROR,
   WALLET_CONFIRM,
-} from '@/modules/file/constant';
+} from '@/modules/object/constant';
 import { toast } from '@totejs/uikit';
 import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { trimLongStr } from '@/utils/string';

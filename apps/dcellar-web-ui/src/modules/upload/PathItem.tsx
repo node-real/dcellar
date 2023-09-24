@@ -1,11 +1,12 @@
 import { EllipsisText } from '@/components/common/EllipsisText';
+import { memo } from 'react';
 
-type Props = {
+interface PathItemProps {
   path: string;
   [key: string]: any;
-};
+}
 
-export const PathItem = ({ path, ...styleProps }: Props) => {
+export const PathItem = memo<PathItemProps>(function ({ path, ...styleProps }) {
   return (
     <EllipsisText
       color={'readable.tertiary'}
@@ -18,4 +19,4 @@ export const PathItem = ({ path, ...styleProps }: Props) => {
       {path}
     </EllipsisText>
   );
-};
+});

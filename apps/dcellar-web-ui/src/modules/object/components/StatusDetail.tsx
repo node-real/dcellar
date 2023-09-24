@@ -17,16 +17,17 @@ import {
   FILE_TITLE_UPLOADING,
   FOLDER_CREATING,
   NOT_ENOUGH_QUOTA,
-} from '@/modules/file/constant';
+} from '@/modules/object/constant';
 import { DCModal } from '@/components/common/DCModal';
 import { DotLoading } from '@/components/common/DotLoading';
 import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import { useUnmount } from 'ahooks';
 import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import { setEditQuota } from '@/store/slices/bucket';
+import { useModalValues } from '@/hooks/useModalValues';
 
 interface StatusDetailProps {}
 
@@ -37,15 +38,10 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const isOpen = !!_statusDetail?.title;
   const gaOptions = getGAOptions(_statusDetail.title);
-  const [statusDetail, setInnerStatusDetail] = useState(_statusDetail);
+  const statusDetail = useModalValues(_statusDetail);
   const quotaBucket = bucketName || statusDetail?.extraParams?.[0];
   const NO_QUOTA =
     OBJECT_ERROR_TYPES['NO_QUOTA'].title === statusDetail.title && !!quotaBucket && !!loginAccount;
-
-  useEffect(() => {
-    if (!_statusDetail.title) return;
-    setInnerStatusDetail(_statusDetail);
-  }, [_statusDetail]);
 
   const onClose = async () => {
     dispatch(setStatusDetail({} as TStatusDetail));
@@ -68,54 +64,33 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
         display={'flex'}
         mt={0}
         overflowY={'hidden'}
+        textAlign="center"
       >
         <Image src={statusDetail.icon || FILE_BOX_IMAGE_URL} w="120px" h="120px" alt="" />
-        <Text
-          fontSize="24px"
-          lineHeight={'36px'}
-          fontWeight={600}
-          marginTop="24px"
-          align={'center'}
-          color={'readable.normal'}
-        >
+        <Text fontSize="24px" fontWeight={600} marginTop="32px">
           {statusDetail.title}
         </Text>
-        <Text
-          fontSize="16px"
-          lineHeight={'20px'}
-          fontWeight={400}
-          marginTop="16px"
-          align={'center'}
-          color={'readable.secondary'}
-        >
-          {/* Sorry. This is a hack.*/}
-          {statusDetail?.desc === FILE_STATUS_DOWNLOADING ? (
+        <Text fontSize="16px" marginTop="8px" color={'readable.tertiary'}>
+          {statusDetail.errorText || (
             <>
-              {FILE_STATUS_DOWNLOADING.replace('...', '')}
-              <Box display={'inline-block'} marginTop={'-0.1em'}>
-                <DotLoading />
-              </Box>
+              {statusDetail?.desc === FILE_STATUS_DOWNLOADING ? (
+                <>
+                  {FILE_STATUS_DOWNLOADING.replace('...', '')}
+                  <Box display={'inline-block'} marginTop={'-0.1em'}>
+                    <DotLoading />
+                  </Box>
+                </>
+              ) : (
+                statusDetail?.desc
+              )}
             </>
-          ) : (
-            statusDetail?.desc
           )}
         </Text>
-        {statusDetail?.errorText && (
-          <Text
-            fontSize="14px"
-            lineHeight={'16px'}
-            fontWeight={400}
-            marginTop="16px"
-            align={'center'}
-            color={'readable.tertiary'}
-          >
-            {statusDetail.errorText}
-          </Text>
-        )}
       </ModalBody>
       {(statusDetail.buttonText || NO_QUOTA) && (
-        <ModalFooter mt={24}>
+        <ModalFooter mt={32}>
           <DCButton
+            size="lg"
             w="100%"
             onClick={() => {
               statusDetail.buttonOnClick?.();

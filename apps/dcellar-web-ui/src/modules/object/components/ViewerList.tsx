@@ -25,14 +25,14 @@ import {
   setupObjectPolicies,
   TStatusDetail,
 } from '@/store/slices/object';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import {
   BUTTON_GOT_IT,
   FILE_ACCESS,
   FILE_ACCESS_URL,
   FILE_FAILED_URL,
   FILE_STATUS_ACCESS,
-} from '@/modules/file/constant';
+} from '@/modules/object/constant';
 import {
   MsgDeletePolicyTypeUrl,
   MsgPutPolicyTypeUrl,
@@ -44,30 +44,28 @@ import GroupIcon from '@/public/images/icons/group_icon.svg';
 import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 import { without } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
-import { ADDRESS_RE } from '@/utils/regex';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { Loading } from '@/components/common/Loading';
-import { GROUP_MEMBER_AVATARS } from '@/modules/group/components/GroupDetail';
 import { trimAddress } from '@/utils/string';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
-import { OBJECT_POLICY_GROUP_AVATARS } from '@/modules/object/components/SharePermission';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { Avatar } from '@/components/Avatar';
+import { ADDRESS_RE } from '@/utils/constant';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
 
-interface ViewerListProps {}
+interface ViewerListProps {
+  selectObjectInfo: ObjectMeta;
+}
 
-export const ViewerList = memo<ViewerListProps>(function ViewerList() {
+export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObjectInfo }) {
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const { connector } = useAccount();
-  const { editShare, bucketName, objectPolicies, objectPoliciesPage } = useAppSelector(
-    (root) => root.object,
-  );
-  const { record: editDetail } = editShare;
+  const { bucketName, objectPolicies, objectPoliciesPage } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
@@ -75,9 +73,10 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [invalidIds, setInvalidIds] = useState<string[]>([]);
-  const path = [bucketName, editDetail.objectName].join('/');
+  const objectInfo = selectObjectInfo.ObjectInfo;
+  const path = [bucketName, objectInfo.ObjectName].join('/');
   const memberList = objectPolicies[path] || [];
-  const memberListLoading = editDetail.name && !(path in objectPolicies);
+  const memberListLoading = !(path in objectPolicies);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -92,9 +91,9 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   });
 
   useAsyncEffect(async () => {
-    if (!editDetail.name || !bucketName) return;
-    dispatch(setupObjectPolicies(bucketName, editDetail.objectName));
-  }, [dispatch, editDetail.name, bucketName]);
+    if (!bucketName) return;
+    dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
+  }, [dispatch, bucketName]);
 
   useUnmount(() => {
     dispatch(setObjectPoliciesPage(0));
@@ -149,7 +148,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
   const updateMemberList = async (checkId: string, remove = false) => {
     dispatch(setMemberListPage(0));
     const fetch = () => {
-      return dispatch(setupObjectPolicies(bucketName, editDetail.objectName));
+      return dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
     };
     const members = await fetch();
 
@@ -191,7 +190,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
       const [res, error, ids] = await putObjectPolicies(
         connector!,
         bucketName,
-        editDetail.objectName,
+        objectInfo.ObjectName,
         payloads,
       );
       setLoading(false);
@@ -217,7 +216,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
     const [res, error] = await deleteObjectPolicy(
       connector!,
       bucketName,
-      editDetail.objectName,
+      objectInfo.ObjectName,
       loginAccount,
       removeAccount,
     );
@@ -416,17 +415,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList() {
             <>
               <Flex direction="column" gap={8}>
                 {page.map((p, index) => {
-                  const isGroup = !p.PrincipalValue.startsWith('0x');
-                  const lastCharCode = p.PrincipalValue[p.PrincipalValue.length - 1].charCodeAt(0);
-                  const Avatar = isGroup
-                    ? OBJECT_POLICY_GROUP_AVATARS[lastCharCode % 4]
-                    : GROUP_MEMBER_AVATARS[lastCharCode % 5];
-
                   const owner = loginAccount === p.PrincipalValue;
                   return (
                     <Flex key={p.PrincipalValue + String(index)} alignItems="center" h={40}>
                       <Box key={p.PrincipalValue} title={p.PrincipalValue}>
-                        <Avatar />
+                        <Avatar id={p.PrincipalValue} w={32} />
                       </Box>
                       <Text flex={1} ml={8} fontWeight={500} title={p.PrincipalValue}>
                         {trimAddress(p.PrincipalValue)}

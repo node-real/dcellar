@@ -1,13 +1,13 @@
 import { Box, Flex } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectPaymentAccounts,
+  setAccountOperation,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
-  setEditPaymentDetail,
   TAccount,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
@@ -50,7 +50,7 @@ export const PaymentAccounts = () => {
 
   const onMenuClick = (e: string, record: TAccount) => {
     if (e === 'detail') {
-      dispatch(setEditPaymentDetail(record.address));
+      dispatch(setAccountOperation([record.address, 'paDetail']));
     }
     if (e === 'setNonRefundable') {
       dispatch(setEditDisablePaymentAccount(record.address));
@@ -126,6 +126,24 @@ export const PaymentAccounts = () => {
 
   const spinning = !(loginAccount in paymentAccounts);
   const empty = !spinning && !sortedList.length;
+  const loadingComponent = {
+    spinning: spinning || isLoadingPaymentAccounts,
+    indicator: <Loading />,
+  };
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty
+        type="empty-account"
+        title="No Payment Accounts"
+        desc="Create payment accounts to pay for storage and bandwidth. "
+        empty={empty}
+        h={274}
+      >
+        <NewPA />
+      </ListEmpty>
+    ),
+    [empty],
+  );
 
   return (
     <>
@@ -137,31 +155,16 @@ export const PaymentAccounts = () => {
       </Flex>
       <DCTable
         rowKey="address"
-        loading={{
-          spinning: spinning || isLoadingPaymentAccounts,
-          indicator: <Loading />,
-        }}
+        loading={loadingComponent}
         columns={columns}
         dataSource={page}
-        renderEmpty={() => (
-          <ListEmpty
-            type="empty-account"
-            title="No Payment Accounts"
-            desc="Create payment accounts to pay for storage and bandwidth. "
-            empty={empty}
-            h={274}
-          >
-            <NewPA />
-          </ListEmpty>
-        )}
+        renderEmpty={renderEmpty}
         pageSize={PAPageSize}
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
         onRow={(record: TAccount) => ({
-          onClick: () => {
-            dispatch(setEditPaymentDetail(record.address));
-          },
+          onClick: () => onMenuClick('detail', record),
         })}
       />
     </>

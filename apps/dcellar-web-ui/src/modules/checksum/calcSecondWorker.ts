@@ -1,5 +1,5 @@
 import { sha256 } from 'hash-wasm';
-import { decodeBase64 } from '@/utils/base64';
+import { decodeBase64 } from '@/utils/coder';
 
 const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
 globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);

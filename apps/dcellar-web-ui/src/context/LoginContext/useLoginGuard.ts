@@ -1,8 +1,8 @@
-import { InternalRoutePaths } from '@/constants/paths';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export function useLoginGuard(inline: boolean) {
   const { loginAccount: address } = useAppSelector((root) => root.persist);

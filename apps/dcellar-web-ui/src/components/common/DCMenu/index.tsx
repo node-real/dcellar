@@ -1,5 +1,5 @@
 import { memo, ReactNode } from 'react';
-import { Menu, MenuListProps, MenuProps } from '@totejs/uikit';
+import { Box, Menu, MenuListProps, MenuProps } from '@totejs/uikit';
 import { DCMenuList, MenuOption } from '@/components/common/DCMenuList';
 
 interface DCMenuProps extends MenuProps {
@@ -9,6 +9,8 @@ interface DCMenuProps extends MenuProps {
   onMenuSelect?: (value: MenuOption) => void;
   selectIcon?: boolean;
   menuListProps?: MenuListProps;
+  renderHeader?: () => ReactNode;
+  renderFooter?: () => ReactNode;
 }
 
 export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
@@ -20,6 +22,8 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     selectIcon,
     renderOption,
     menuListProps,
+    renderHeader,
+    renderFooter,
     ...restProps
   } = props;
   const isFunc = typeof children === 'function';
@@ -28,13 +32,17 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     <Menu strategy="fixed" {...restProps}>
       {(props) => (
         <>
-          {isFunc ? children(props) : children}
+          <Box display="contents" onClick={(e) => e.stopPropagation()}>
+            {isFunc ? children(props) : children}
+          </Box>
           <DCMenuList
             value={value}
             options={options}
             onMenuSelect={onMenuSelect}
             selectIcon={selectIcon}
             renderOption={renderOption}
+            renderHeader={renderHeader}
+            renderFooter={renderFooter}
             {...menuListProps}
           />
         </>

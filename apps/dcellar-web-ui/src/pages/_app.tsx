@@ -9,12 +9,12 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
 import { LoginContextProvider } from '@/context/LoginContext/provider';
 import { WalletConnectProvider } from '@/context/WalletConnectContext';
-import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
 import { ReactNode } from 'react';
 import { Layout } from '@/components/layout';
 import { GlobalManagements } from '@/components/layout/GlobalManagements';
+import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthContext';
 
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);

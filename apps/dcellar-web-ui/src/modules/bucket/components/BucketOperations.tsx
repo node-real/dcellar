@@ -1,11 +1,14 @@
-import { memo, useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { AllBucketInfo, setBucketOperation } from '@/store/slices/bucket';
 import { useModalValues } from '@/hooks/useModalValues';
 import { DCModal } from '@/components/common/DCModal';
-import { DetailOperation } from '@/modules/bucket/components/DetailOperation';
-import { CreateOperation } from '@/modules/bucket/components/CreateOperation';
+import { DetailBucketOperation } from '@/modules/bucket/components/DetailBucketOperation';
+import { CreateBucketOperation } from '@/modules/bucket/components/CreateBucketOperation';
+import { useUnmount } from 'ahooks';
+import { DeleteBucketOperation } from '@/modules/bucket/components/DeleteBucketOperation';
+import { ModalCloseButton } from '@totejs/uikit';
 
 interface BucketOperationsProps {}
 
@@ -23,27 +26,28 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
     dispatch(setBucketOperation(['', '']));
   };
 
+  useUnmount(onClose);
+
   const modalContent = useMemo(() => {
     switch (_operation) {
       case 'detail':
-        return <DetailOperation selectedBucketInfo={_selectBucketInfo} />;
+        return <DetailBucketOperation selectedBucketInfo={_selectBucketInfo} />;
       case 'create':
-        return <CreateOperation onClose={onClose} />;
+        return <CreateBucketOperation onClose={onClose} />;
       case 'delete':
-        return <div>delete</div>;
+        return <DeleteBucketOperation onClose={onClose} selectedBucketInfo={_selectBucketInfo} />;
       default:
         return null;
     }
   }, [_operation, _selectBucketInfo]);
 
-  const modalOpen = !!operation;
-
   return (
     <>
-      <DCDrawer isOpen={modalOpen && isDrawer} onClose={onClose}>
+      <DCDrawer isOpen={!!operation && isDrawer} onClose={onClose}>
         {modalContent}
       </DCDrawer>
-      <DCModal isOpen={modalOpen && isModal} onClose={onClose}>
+      <DCModal isOpen={!!operation && isModal} onClose={onClose}>
+        <ModalCloseButton />
         {modalContent}
       </DCModal>
     </>

@@ -1,4 +1,4 @@
-import { MenuItem, MenuList, MenuListProps } from '@totejs/uikit';
+import { Box, Center, MenuItem, MenuList, MenuListProps, Text } from '@totejs/uikit';
 import { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import cn from 'classnames';
@@ -17,39 +17,68 @@ export interface DCMenuListProps extends MenuListProps {
   renderOption?: (option: MenuOption) => ReactNode;
   onMenuSelect?: (value: MenuOption) => void;
   selectIcon?: boolean;
+  renderHeader?: () => ReactNode;
+  renderFooter?: () => ReactNode;
+  renderEmpty?: () => ReactNode;
 }
 
 export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
-  const { value, options, onMenuSelect = () => {}, selectIcon, renderOption, ...restProps } = props;
-  if (!options.length) return null;
+  const {
+    value,
+    options,
+    onMenuSelect = () => {},
+    selectIcon,
+    renderOption,
+    renderHeader,
+    renderFooter,
+    ...restProps
+  } = props;
 
   return (
     <StyledMenuList {...restProps}>
-      {options.map((option) => {
-        const $selected = option.value === String(value);
-        const classes = cn({
-          'menu-selected-icon': selectIcon,
-          'menu-selected': $selected,
-          'menu-disabled': option.disabled,
-          'menu-variant-danger': option.variant === 'danger',
-        });
+      {renderHeader && renderHeader()}
+      <Box maxH={220} className="menu-items">
+        {options.map((option) => {
+          const $selected = option.value === String(value);
+          const classes = cn({
+            'menu-selected-icon': selectIcon,
+            'menu-selected': $selected,
+            'menu-disabled': option.disabled,
+            'menu-variant-danger': option.variant === 'danger',
+          });
 
-        return (
-          <StyledMenuItem
-            as="div"
-            key={option.value}
-            className={classes}
-            onClick={(e) => {
-              e.stopPropagation();
-              if ($selected || option.disabled) return;
-              onMenuSelect(option);
-            }}
-          >
-            {$selected && selectIcon && <IconFont type="colored-check" w={16} />}
-            {renderOption ? renderOption(option) : option.label}
-          </StyledMenuItem>
-        );
-      })}
+          return (
+            <StyledMenuItem
+              as="div"
+              key={option.value}
+              className={classes}
+              onClick={(e) => {
+                e.stopPropagation();
+                if ($selected || option.disabled) return;
+                onMenuSelect(option);
+              }}
+            >
+              {$selected && selectIcon && <IconFont type="colored-check" w={16} />}
+              {renderOption ? renderOption(option) : option.label}
+            </StyledMenuItem>
+          );
+        })}
+        {!options.length && (
+          <Center flexDir="column" pt={21} minH={220} justifyContent="flex-start">
+            <IconFont type="empty-object" w={120} />
+            <Text
+              mt={12}
+              color="readable.tertiary"
+              fontSize={12}
+              fontWeight={500}
+              lineHeight="15px"
+            >
+              No Result
+            </Text>
+          </Center>
+        )}
+      </Box>
+      {renderFooter && renderFooter()}
     </StyledMenuList>
   );
 });
@@ -102,4 +131,17 @@ const StyledMenuList = styled(MenuList)`
   border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+
+  .menu-items {
+    overflow: auto;
+  }
+  
+  .menu-items::-webkit-scrollbar {
+    width: 4px
+  },
+
+  .menu-items::-webkit-scrollbar-thumb {
+    background: var(--ui-colors-readable-disable);
+    border-radius: 4px
+  },
 `;

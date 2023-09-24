@@ -31,8 +31,8 @@ import {
   PENDING_ICON_URL,
   UNKNOWN_ERROR,
   WALLET_CONFIRM,
-} from '@/modules/file/constant';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+} from '@/modules/object/constant';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import {
   getBucketExtraInfo,
   getBucketQuotaUpdateTime,
@@ -41,14 +41,14 @@ import {
 } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { TotalFees } from '@/modules/object/components/TotalFees';
-import { PaymentInsufficientBalance } from '@/modules/file/utils';
 import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { selectStoreFeeParams, setupStoreFeeParams, TStoreFeeParams } from '@/store/slices/global';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { BN } from '@/utils/BigNumber';
 import { getStoreFeeParams } from '@/facade/payment';
 import BigNumber from 'bignumber.js';
+import { BN } from '@/utils/math';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 
 interface ManageQuotaProps {
   onClose: () => void;

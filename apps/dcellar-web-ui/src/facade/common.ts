@@ -1,9 +1,9 @@
-import { getClient } from '@/base/client';
 import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
 import { commonFault, ErrorMsg } from '@/facade/error';
 import { IQuotaProps, SpResponse } from '@bnb-chain/greenfield-js-sdk';
+import { getClient } from '@/facade/index';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 

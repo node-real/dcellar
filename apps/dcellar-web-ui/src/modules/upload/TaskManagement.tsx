@@ -18,6 +18,7 @@ export const TaskManagement = () => {
   const setClose = () => {
     dispatch(setTaskManagement(false));
   };
+
   const isUploading = useAppSelector(selectHasUploadingTask);
 
   const renderButton = () => {

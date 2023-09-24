@@ -46,7 +46,7 @@ export const ObjectsPage = () => {
   useAsyncEffect(async () => {
     if (!bucket) return;
     // 1. set global primary sp info
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
     // 2. set payment account infos
     dispatch(setupAccountDetail(bucket.PaymentAddress));
   }, [bucket, bucketName]);

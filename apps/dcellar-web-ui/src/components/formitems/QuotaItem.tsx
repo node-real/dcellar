@@ -4,14 +4,14 @@ import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';
 import { DCTooltip } from '@/components/common/DCTooltip';
-import { renderBnb } from '@/modules/file/utils';
 import { G_BYTES } from '@/utils/constant';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';
-import { BN } from '@/utils/BigNumber';
 import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
+import { BN } from '@/utils/math';
+import { renderBnb } from '@/modules/object/utils';
 
 const MAX_SIZE = 100000;
 

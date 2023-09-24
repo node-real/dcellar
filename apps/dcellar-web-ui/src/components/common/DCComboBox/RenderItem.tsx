@@ -4,7 +4,7 @@ import GroupItemIcon from '@/public/images/icons/groups.svg';
 import { trimLongStr } from '@/utils/string';
 import { CloseIcon } from '@totejs/icons';
 import * as React from 'react';
-import { ADDRESS_RE } from '@/utils/regex';
+import { ADDRESS_RE } from '@/utils/constant';
 
 export type CustomTagProps = {
   label: React.ReactNode;

@@ -14,7 +14,7 @@ import {
   Tabs,
   Text,
 } from '@totejs/uikit';
-import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
+import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/object/constant';
 import { ColoredAlertIcon, ColoredSuccessIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';

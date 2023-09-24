@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { debounce, isEmpty } from 'lodash-es';
@@ -24,7 +24,6 @@ import { StatusModal } from '../components/StatusModal';
 import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
 import { TWalletFromValues } from '../type';
-import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { FromAccountSelector } from '../components/FromAccountSelector';
 import {
@@ -47,14 +46,17 @@ import { renderFee } from '@/utils/common';
 import { selectBnbPrice } from '@/store/slices/global';
 import { useRouter } from 'next/router';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { InternalRoutePaths } from '@/constants/paths';
+import { removeTrailingSlash } from '@/utils/string';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export type TxType =
   | 'withdraw_from_payment_account'
   | 'send_to_owner_account'
   | 'send_to_payment_account';
 
-export const Send = () => {
+interface SendProps {}
+
+export const Send = memo<SendProps>(function Send() {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const exchangeRate = useAppSelector(selectBnbPrice);
@@ -104,7 +106,13 @@ export const Send = () => {
     mode: 'all',
   });
   useEffect(() => {
-    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current || initFormRef.current) return;
+    if (
+      isLoadingPaymentAccounts ||
+      isEmpty(ownerAccount) ||
+      initFormRef.current ||
+      initFormRef.current
+    )
+      return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -136,7 +144,9 @@ export const Send = () => {
     if (isEmpty(toAccount) || isEmpty(fromAccount)) return;
     if (
       fromAccount.name.toLowerCase() === 'owner account' &&
-      ['payment_account', 'non_refundable_payment_account'].includes(accountTypes[toAccount.address])
+      ['payment_account', 'non_refundable_payment_account'].includes(
+        accountTypes[toAccount.address],
+      )
     ) {
       return 'send_to_payment_account';
     }
@@ -236,23 +246,26 @@ export const Send = () => {
     await dispatch(setupAccountDetail(account.address));
   };
 
-  const onChangeToAccount = useCallback(debounce(async (account: TAccount) => {
-    setToJsErrors([]);
-    if (!isAddress(account.address)) {
-      dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
-      return setToJsErrors(['Invalid address']);
-    }
-    const accountType = accountTypes[account.address];
-    const accountDetail = accountDetails[account.address];
-    if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
-      return dispatch(setToAccount(account));
-    }
-    setLoadingToAccount(true);
-    dispatch(setToAccount(account));
-    await dispatch(setupAccountDetail(account.address));
-    await dispatch(setupAccountType(account.address));
-    setLoadingToAccount(false);
-  }, 500), [])
+  const onChangeToAccount = useCallback(
+    debounce(async (account: TAccount) => {
+      setToJsErrors([]);
+      if (!isAddress(account.address)) {
+        dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
+        return setToJsErrors(['Invalid address']);
+      }
+      const accountType = accountTypes[account.address];
+      const accountDetail = accountDetails[account.address];
+      if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
+        return dispatch(setToAccount(account));
+      }
+      setLoadingToAccount(true);
+      dispatch(setToAccount(account));
+      await dispatch(setupAccountDetail(account.address));
+      await dispatch(setupAccountType(account.address));
+      setLoadingToAccount(false);
+    }, 500),
+    [],
+  );
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
@@ -403,4 +416,4 @@ export const Send = () => {
       <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
     </Container>
   );
-};
+});

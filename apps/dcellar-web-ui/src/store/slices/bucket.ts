@@ -34,7 +34,6 @@ export interface BucketState {
   // current visit bucket;
   discontinue: boolean;
   owner: boolean;
-  editDelete: BucketItem;
   editQuota: string[];
   bucketOperation: [string, BucketOperationsType];
 }
@@ -48,7 +47,6 @@ const initialState: BucketState = {
   currentPage: 0,
   discontinue: false,
   owner: true,
-  editDelete: {} as BucketItem,
   editQuota: ['', ''],
   bucketOperation: ['', ''],
 };
@@ -66,9 +64,6 @@ export const bucketSlice = createSlice({
     },
     setEditQuota(state, { payload }: PayloadAction<string[]>) {
       state.editQuota = payload;
-    },
-    setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
-      state.editDelete = payload;
     },
     setBucketStatus(state, { payload }: PayloadAction<{ discontinue: boolean; owner: boolean }>) {
       const { discontinue, owner } = payload;
@@ -218,7 +213,6 @@ export const {
   setCurrentBucketPage,
   setBucketInfo,
   setBucketStatus,
-  setEditDelete,
   setReadQuota,
   setEditQuota,
   setQuotaLoading,

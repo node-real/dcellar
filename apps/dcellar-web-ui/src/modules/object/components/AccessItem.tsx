@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import styled from '@emotion/styled';
 import { Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
+import PublicFileIcon from '@/modules/object/components/PublicFileIcon';
+import PrivateFileIcon from '@/modules/object/components/PrivateFileIcon';
 import { find } from 'lodash-es';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { transientOptions } from '@/utils/transientOptions';
+import { transientOptions } from '@/utils/css';
 import { css } from '@emotion/react';
 import { GAClick } from '@/components/common/GATracker';
 import SelectedIcon from '@/public/images/files/icons/selected.svg';

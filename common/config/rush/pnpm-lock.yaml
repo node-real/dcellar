@@ -25,7 +25,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': 2.52.3
+      '@totejs/uikit': 2.52.4
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -72,7 +72,7 @@ importers:
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.2+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.52.3_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.52.4_aa3274991927adc2766d9259998fdd18
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
@@ -3576,8 +3576,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.52.3_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-tzeijKfkhCdWcPb5iP8KBjL/9+m8MhyRhRU8/DDxU169cdMtq9m9dPsidqvL8Hs3fVpU97tfc12p3R8YE+aFAA==}
+  /@totejs/uikit/2.52.4_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-ept4gZ3mjPuflntu6snrBttVdQzf0fNNLrUNJ5LXW4aVnRKRVBTT59uB11NAFqhOBW+W4Dh6D2qJ/CX6ci009g==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'

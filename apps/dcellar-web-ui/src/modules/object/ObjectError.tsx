@@ -1,6 +1,14 @@
-import { SINGLE_OBJECT_MAX_SIZE } from "@/store/slices/object";
-import { FILE_EMPTY_URL, FILE_FAILED_URL, FILE_TITLE_DOWNLOAD_FAILED, FILE_TOO_LARGE_URL, NOT_ENOUGH_QUOTA_URL, UNKNOWN_ERROR_URL } from "../file/constant";
-import { formatBytes } from "../file/utils";
+import { SINGLE_OBJECT_MAX_SIZE } from '@/store/slices/object';
+import {
+  DELETE_BUCKET_FAILED,
+  FILE_EMPTY_URL,
+  FILE_FAILED_URL,
+  FILE_TOO_LARGE_URL,
+  NOT_EMPTY,
+  NOT_ENOUGH_QUOTA_URL,
+  UNKNOWN_ERROR_URL,
+} from './constant';
+import { formatBytes } from '@/utils/formatter';
 
 export const OBJECT_ERROR_TYPES = {
   NO_QUOTA: {
@@ -40,7 +48,7 @@ export const OBJECT_ERROR_TYPES = {
   },
   OBJECT_NAME_EXISTS: {
     title: 'Object name already exists',
-    icon: FILE_FAILED_URL
+    icon: FILE_FAILED_URL,
   },
   FOLDER_NAME_EXISTS: {
     title: 'Folder name already exists',
@@ -65,7 +73,17 @@ export const OBJECT_ERROR_TYPES = {
     title: 'Must be between 1 to 70 characters long.',
     icon: FILE_TOO_LARGE_URL,
     desc: 'Folder name must be between 1 to 70 characters long.',
-  }
-}
+  },
+  BUCKET_NOT_EMPTY: {
+    title: 'Bucket not Empty',
+    desc: 'Only empty bucket can be deleted. Please delete all objects in this bucket first.',
+    icon: NOT_EMPTY,
+  },
+  BUCKET_DELETE_FAILED: {
+    title: 'Deleted Failed',
+    desc: 'Sorry, there&apos;s something wrong when deleting the bucket.',
+    icon: DELETE_BUCKET_FAILED,
+  },
+};
 
 export type ObjectErrorType = keyof typeof OBJECT_ERROR_TYPES;

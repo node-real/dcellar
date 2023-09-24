@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, useProvider, useSigner } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
@@ -25,13 +25,15 @@ import { Fee } from '../components/Fee';
 import { EOperation, TCalculateGas, TFeeData, TTransferInFromValues } from '../type';
 import { CROSS_CHAIN_ABI, INIT_FEE_DATA, TOKENHUB_ABI, WalletOperationInfos } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
-import { InternalRoutePaths } from '@/constants/paths';
-import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { InternalRoutePaths } from '@/utils/constant';
+import { removeTrailingSlash } from '@/utils/string';
 
-export const TransferIn = () => {
+interface TransferInProps {}
+
+export const TransferIn = memo<TransferInProps>(function TransferIn() {
   const {
     TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
     CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
@@ -231,4 +233,4 @@ export const TransferIn = () => {
       <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
     </Container>
   );
-};
+});

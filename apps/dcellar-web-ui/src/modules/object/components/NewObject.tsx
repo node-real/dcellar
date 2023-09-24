@@ -18,14 +18,13 @@ import {
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
-  setEditCreate,
-  setEditUploadStatus,
   setListRefreshing,
   setRestoreCurrent,
   setSelectedRowKeys,
   setupListObjects,
+  setObjectOperation,
 } from '@/store/slices/object';
-import { addToWaitQueue } from '@/store/slices/global';
+import { addToWaitQueue, resetWaitQueue } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -33,9 +32,9 @@ import { MenuCloseIcon } from '@totejs/icons';
 import { debounce } from 'lodash-es';
 import { getTimestamp } from '@/utils/time';
 import { selectAccount } from '@/store/slices/accounts';
-import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
+import { formatBytes } from '@/utils/formatter';
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -64,7 +63,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   const objectList = useAppSelector(selectObjectList);
   const onOpenCreateFolder = () => {
     if (disabled) return;
-    dispatch(setEditCreate(true));
+    dispatch(setObjectOperation({ operation: ['', 'create_folder'] }));
   };
 
   const refreshList = useCallback(
@@ -114,12 +113,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         isClosable: true,
       });
     }
+    dispatch(resetWaitQueue());
     Object.values(files).forEach((file: File) => {
       const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
       dispatch(addToWaitQueue({ id, file, time }));
     });
-    dispatch(setEditUploadStatus(true));
+    dispatch(setObjectOperation({ operation: ['', 'upload'] }));
     e.target.value = '';
   };
 
@@ -192,12 +192,13 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       infos[file.webkitRelativePath] = file;
     });
 
+    dispatch(resetWaitQueue());
     Object.values(infos).forEach((file: File) => {
       const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
       dispatch(addToWaitQueue({ id, file, time }));
     });
-    dispatch(setEditUploadStatus(true));
+    dispatch(setObjectOperation({ operation: ['', 'upload'] }));
     e.target.value = '';
   };
 

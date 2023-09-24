@@ -2,7 +2,6 @@ import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storag
 import React, { memo, useState } from 'react';
 import styled from '@emotion/styled';
 import { Flex, Image, Text } from '@totejs/uikit';
-import { formatBytes } from '@/modules/file/utils';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
@@ -14,17 +13,18 @@ import {
 } from '@/facade/object';
 import { quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { SpItem } from '@/store/slices/sp';
 import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { setStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT } from '@/modules/file/constant';
+import { BUTTON_GOT_IT } from '@/modules/object/constant';
+import { reportEvent } from '@/utils/gtag';
+import { formatBytes } from '@/utils/formatter';
 
 interface SharedFileProps {
   fileName: string;

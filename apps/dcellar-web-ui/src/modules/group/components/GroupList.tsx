@@ -1,13 +1,10 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectGroupList,
-  setAddGroupMember,
   setCurrentGroupPage,
-  setDetailGroup,
-  setEditGroup,
+  setGroupOperation,
   setRemoveGroup,
-  setRemoveGroupMember,
 } from '@/store/slices/group';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
@@ -15,21 +12,18 @@ import { SorterType, updateGroupPageSize, updateGroupSorter } from '@/store/slic
 import { ColumnProps } from 'antd/es/table';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { Loading } from '@/components/common/Loading';
-import { CreateGroup } from '@/modules/group/components/CreateGroup';
 import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
 import { Text } from '@totejs/uikit';
 import { CopyText } from '@/components/common/CopyText';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { EditGroup } from '@/modules/group/components/EditGroup';
 import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
-import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
-import { GroupDetail } from '@/modules/group/components/GroupDetail';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { ethers } from 'ethers';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewGroup } from '@/modules/group/components/NewGroup';
 import { DCLink } from '@/components/common/DCLink';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { GroupOperations } from '@/modules/group/components/GroupOperations';
 
 const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
@@ -61,13 +55,10 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
   const onMenuClick = (menu: string, record: GroupInfo) => {
     switch (menu) {
       case 'detail':
-        return dispatch(setDetailGroup(record));
       case 'edit':
-        return dispatch(setEditGroup(record));
+        return dispatch(setGroupOperation({ operation: [record.id, menu] }));
       case 'add':
-        return dispatch(setAddGroupMember({ record, from: 'menu' }));
-      case 'remove':
-        return dispatch(setRemoveGroupMember(record));
+        return dispatch(setGroupOperation({ level: 1, operation: [record.id, menu] }));
       case 'delete':
         return dispatch(setRemoveGroup(record));
     }
@@ -141,33 +132,38 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
   const spinning = !(loginAccount in groups);
   const empty = !spinning && !sortedList.length;
 
+  const loadingComponent = {
+    spinning: spinning || loading,
+    indicator: <Loading />,
+  };
+
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty type="empty-group" title="No Groups" desc="Create a group!👏" empty={empty}>
+        <NewGroup showRefresh={false} />
+      </ListEmpty>
+    ),
+    [empty],
+  );
+
   return (
     <>
-      <GroupDetail />
-      <CreateGroup />
-      <EditGroup />
       <DeleteGroup />
-      <AddGroupMember />
+      <GroupOperations />
+      <GroupOperations level={1} />
       <DCTable
-        loading={{
-          spinning: spinning || loading,
-          indicator: <Loading />,
-        }}
+        loading={loadingComponent}
         rowKey="id"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => (
-          <ListEmpty type="empty-group" title="No Groups" desc="Create a group!👏" empty={empty}>
-            <NewGroup showRefresh={false} />
-          </ListEmpty>
-        )}
+        renderEmpty={renderEmpty}
         pageSize={groupPageSize}
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
         onRow={(record: GroupInfo) => ({
           onClick: () => {
-            dispatch(setDetailGroup(record));
+            onMenuClick('detail', record);
           },
         })}
       />

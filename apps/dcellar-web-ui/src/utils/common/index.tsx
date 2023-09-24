@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
-import { currencyFormatter } from '../currencyFormatter';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { currencyFormatter } from '@/utils/formatter';
 
 export const parseErrorXml = async (result: any) => {
   try {

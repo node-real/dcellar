@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setBucketOperation, setEditCreate, setupBuckets } from '@/store/slices/bucket';
+import { setBucketOperation, setupBuckets } from '@/store/slices/bucket';
 import { Flex } from '@totejs/uikit';
 import { debounce } from 'lodash-es';
 import { DCButton } from '@/components/common/DCButton';

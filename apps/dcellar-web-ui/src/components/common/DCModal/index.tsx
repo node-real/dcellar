@@ -3,7 +3,7 @@ import React from 'react';
 import { Modal } from '@totejs/uikit';
 import { useLockBodyScroll } from 'react-use';
 import { GAShow } from '@/components/common/GATracker';
-import { reportEvent } from '@/utils/reportEvent';
+import { reportEvent } from '@/utils/gtag';
 
 export interface DCModalProps extends ModalProps {
   gaShowName?: string;
@@ -22,7 +22,6 @@ export const DCModal = (props: DCModalProps) => {
       });
     }
     onClose?.();
-    document.documentElement.style.overflowY = '';
   };
 
   return (

@@ -1,5 +1,4 @@
 import { DCModal, DCModalProps } from '@/components/common/DCModal';
-import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/constants/links';
 import { WalletItem } from '@/components/ConnectWallet/WalletItem';
 import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
 import MetaMaskIcon from '@/public/images/icons/metamask.svg';
@@ -11,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConnectorNotFoundError } from 'wagmi';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { useAppSelector } from '@/store';
+import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/utils/constant';
 
 export interface WalletConnectModalProps extends DCModalProps {}
 

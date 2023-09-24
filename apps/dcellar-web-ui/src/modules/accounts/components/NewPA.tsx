@@ -1,7 +1,6 @@
 import { DCButton } from '@/components/common/DCButton';
-import { InternalRoutePaths } from '@/constants/paths';
 import { createPaymentAccount } from '@/facade/account';
-import { FILE_FAILED_URL, PENDING_ICON_URL } from '@/modules/file/constant';
+import { FILE_FAILED_URL, PENDING_ICON_URL } from '@/modules/object/constant';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
@@ -11,6 +10,7 @@ import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { useAccount } from 'wagmi';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export const NewPA = () => {
   const dispatch = useAppDispatch();

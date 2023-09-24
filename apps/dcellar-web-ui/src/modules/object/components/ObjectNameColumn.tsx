@@ -4,11 +4,10 @@ import styled from '@emotion/styled';
 import {
   ObjectItem,
   setCurrentObjectPage,
-  setEditDownload,
+  setObjectOperation,
   setStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { contentIconTypeToExtension } from '@/modules/file/utils';
 import { Tooltip } from '@totejs/uikit';
 import { encodeObjectName } from '@/utils/string';
 import { trimEnd } from 'lodash-es';
@@ -19,8 +18,9 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { IconFont } from '@/components/IconFont';
+import { contentIconTypeToExtension } from '@/modules/object/utils';
 
 interface ObjectNameColumnProps {
   item: ObjectItem;
@@ -82,7 +82,12 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
       return success;
     }
 
-    return dispatch(setEditDownload({ ...object, action: 'view' }));
+    return dispatch(
+      setObjectOperation({
+        level: 1,
+        operation: [`${object.bucketName}/${object.objectName}`, 'download', { action: 'view' }],
+      }),
+    );
   };
 
   const content = (
@@ -127,10 +132,12 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
 const Container = styled.div`
   display: flex;
   align-items: center;
+
   a {
     display: flex;
     align-items: center;
     min-width: 0;
+
     span:first-of-type {
       margin: 0 4px;
       min-width: 0;

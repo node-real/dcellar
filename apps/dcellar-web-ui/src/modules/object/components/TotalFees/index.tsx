@@ -1,14 +1,14 @@
 import { memo } from 'react';
 import { Flex, Link, Text, useDisclosure } from '@totejs/uikit';
-import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { MenuCloseIcon } from '@totejs/icons';
 import BigNumber from 'bignumber.js';
 import { selectAvailableBalance } from '@/store/slices/accounts';
-import { GAS_FEE_DOC } from '@/modules/file/constant';
+import { GAS_FEE_DOC } from '@/modules/object/constant';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
+import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
 
 interface TotalFeesProps {
   gasFee: string | number;

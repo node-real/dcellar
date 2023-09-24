@@ -1,9 +1,9 @@
 import { Empty, EmptyDescription, Flex, QListItem, Image } from '@totejs/uikit';
 import React, { useMemo } from 'react';
-import { CloseIcon} from '@totejs/icons';
+import { CloseIcon } from '@totejs/icons';
 import { removeFromWaitQueue } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { UPLOAD_TASK_EMPTY_ICON } from '../file/constant';
+import { UPLOAD_TASK_EMPTY_ICON } from '../object/constant';
 import { isEmpty } from 'lodash-es';
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
@@ -67,7 +67,10 @@ export const ListItem = ({ path, type }: ListItemProps) => {
                 msg={selectedFile.msg}
                 size={selectedFile.size}
               />
-              <PathItem path={`${path}/${selectedFile.relativePath ? selectedFile.relativePath + '/' : ''}`} textAlign="left" />
+              <PathItem
+                path={`${path}/${selectedFile.relativePath ? selectedFile.relativePath + '/' : ''}`}
+                textAlign="left"
+              />
             </Flex>
           </QListItem>
         ))}

@@ -2,17 +2,23 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
+export const getUTC0Year = () => {
+  dayjs.extend(utc);
+
+  return dayjs().utc().format('YYYY');
+};
+
 export const getMillisecond = (second: number) => {
   return second * 1000;
 };
 
 export const getTimestamp = () => {
   return +new Date();
-}
+};
 
 export const getTimestampInSeconds = () => {
   return Math.floor(+new Date() / 1000);
-}
+};
 
 export const convertTimeStampToDate = (utcTimestamp: number) => {
   dayjs.extend(utc);
@@ -25,7 +31,7 @@ export const convertTimeStampToDate = (utcTimestamp: number) => {
 
 export const formatTime = (utcZeroTimestamp = 0) => {
   if (String(utcZeroTimestamp).length !== 13) {
-    return '--'
+    return '--';
   }
   dayjs.extend(utc);
   dayjs.extend(timezone);
@@ -46,7 +52,7 @@ export const formatFullTime = (
   format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
 ) => {
   if (String(utcZeroTimestamp).length !== 13) {
-    return '--'
+    return '--';
   }
   const formatStyle = format || 'MMM D, YYYY HH:mm A';
   dayjs.extend(utc);

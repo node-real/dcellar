@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, Loading, Text } from '@totejs/uikit';
-import { IDCSelectOption } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
@@ -10,15 +9,21 @@ import { MenuCloseIcon } from '@totejs/icons';
 import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
 
-type TProps = {
+interface ToAccountSelectorProps {
   value: string;
   loading: boolean;
   isError: boolean;
   disabled?: boolean;
   onChange: (value: TAccount) => void;
-};
+}
 
-export function ToAccountSelector({ onChange, value, loading, isError, disabled = false }: TProps) {
+export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccountSelector({
+  onChange,
+  value,
+  loading,
+  isError,
+  disabled = false,
+}) {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
@@ -59,11 +64,11 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
     );
   };
 
-  const onSearch = (result: IDCSelectOption[]) => {
+  const onSearch = (result: any[]) => {
     setTotal(result?.length);
   };
 
-  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
+  const onSearchFilter = (keyword: string, item: any) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
     const tmpName = item.name.toLowerCase();
@@ -134,7 +139,7 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
       Footer={Footer}
     />
   );
-}
+});
 
 function OptionItem(props: any) {
   const { address, name } = props;

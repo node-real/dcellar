@@ -1,5 +1,5 @@
 import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import React from 'react';
+import React, { memo } from 'react';
 import { useMemo } from 'react';
 
 import { Image } from '@totejs/uikit';
@@ -7,15 +7,8 @@ import SuccessIcon from '@/public/images/icons/success.svg';
 import FailedIcon from '@/public/images/icons/failed.svg';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { PENDING_ICON_URL } from '@/modules/file/constant';
+import { PENDING_ICON_URL } from '@/modules/object/constant';
 import { useAppSelector } from '@/store';
-
-export type ModalProps = {
-  onClose: () => void;
-  viewTxUrl: string;
-  isOpen: boolean;
-  status: 'pending' | 'success' | 'failed';
-};
 
 const contentTexts = {
   pending: {
@@ -35,7 +28,19 @@ const contentTexts = {
   },
 };
 
-export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) => {
+interface StatusModalProps {
+  onClose: () => void;
+  viewTxUrl: string;
+  isOpen: boolean;
+  status: 'pending' | 'success' | 'failed';
+}
+
+export const StatusModal = memo<StatusModalProps>(function StatusModal({
+  viewTxUrl,
+  onClose,
+  isOpen,
+  status,
+}) {
   const { transType } = useAppSelector((root) => root.wallet);
 
   const gaOptions = getGAOptions(transType, status);
@@ -138,7 +143,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
       <ModalFooter marginTop="16px">{FooterButton}</ModalFooter>
     </DCModal>
   );
-};
+});
 
 function getGAOptions(operationType: string, status: string): any {
   const options: Record<string, any> = {

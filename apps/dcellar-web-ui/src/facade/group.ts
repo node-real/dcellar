@@ -1,4 +1,3 @@
-import { getClient } from '@/base/client';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   broadcastFault,
@@ -20,6 +19,7 @@ import { Connector } from 'wagmi';
 import { Long } from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { GroupMember } from '@/store/slices/group';
+import { getClient } from '@/facade/index';
 
 export const getGroups = async (account: string): Promise<ErrorResponse | [GroupInfo[], null]> => {
   const client = await getClient();
