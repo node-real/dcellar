@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { BucketItem, setEditDetail, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { AllBucketInfo, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { formatId, formatQuota, trimAddress } from '@/utils/string';
 import { formatAddress } from '@/modules/buckets/utils/formatAddress';
@@ -20,30 +20,29 @@ import { GAClick } from '@/components/common/GATracker';
 import { CopyText } from '@/components/common/CopyText';
 import { Label } from '@/modules/buckets/List/components/BucketDetail';
 import BucketIcon from '@/public/images/buckets/bucket-icon.svg';
-import { DCDrawer } from '@/components/common/DCDrawer';
-import { getPrimarySpInfo } from '@/store/slices/sp';
-import { useAsyncEffect } from 'ahooks';
+import { selectBucketSp } from '@/store/slices/sp';
 import dayjs from 'dayjs';
 import { DCButton } from '@/components/common/DCButton';
 
-interface DetailDrawerProps {}
+interface DetailOperationProps {
+  selectedBucketInfo: AllBucketInfo;
+}
 
-export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
+export const DetailOperation = memo<DetailOperationProps>(function DetailDrawer({
+  selectedBucketInfo,
+}) {
   const dispatch = useAppDispatch();
-  const { editDetail, quotas, bucketInfo } = useAppSelector((root) => root.bucket);
-  const isOpen = !!editDetail.BucketName;
-  const quota = quotas[editDetail.BucketName];
-  const bucket = bucketInfo[editDetail.BucketName] || {};
+  const { quotas } = useAppSelector((root) => root.bucket);
+  const quota = quotas[selectedBucketInfo.BucketName];
   const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
   const formattedQuota = formatQuota(quota);
-  const { spInfo } = useAppSelector((root) => root.sp);
   const { accountDetails } = useAppSelector((root) => root.accounts);
+  const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
   const getContent = () => {
-    if (!isOpen || !editDetail) return;
-    const CreateAt = getMillisecond(editDetail.CreateAt);
-    const spName = editDetail.PrimarySpAddress && spInfo[editDetail.PrimarySpAddress]?.moniker;
-    const payAccountName = bucket.PaymentAddress && accountDetails[bucket.PaymentAddress]?.name;
+    const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
+    const spName = primarySp.moniker;
+    const payAccountName = accountDetails[selectedBucketInfo.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,
@@ -56,8 +55,8 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
         canCopy: true,
         label: 'Primary SP address',
         name: spName,
-        value: editDetail?.PrimarySpAddress || '--',
-        display: editDetail?.PrimarySpAddress ? trimAddress(editDetail.PrimarySpAddress) : '--',
+        value: primarySp.operatorAddress || '--',
+        display: primarySp.operatorAddress ? trimAddress(primarySp.operatorAddress) : '--',
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
         gaClickName: 'dc.bucket.b_detail_pop.spadd.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
@@ -66,8 +65,8 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
         canCopy: true,
         label: 'Payment address',
         name: payAccountName,
-        value: bucket.PaymentAddress,
-        display: `${trimAddress(bucket.PaymentAddress)}`,
+        value: selectedBucketInfo.PaymentAddress,
+        display: `${trimAddress(selectedBucketInfo.PaymentAddress)}`,
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_payment.click',
         gaClickName: 'dc.bucket.b_detail_pop.payment.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/account`,
@@ -75,8 +74,8 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       {
         canCopy: true,
         label: 'Bucket ID',
-        value: formatId(Number(bucket.Id)),
-        display: formatAddress(formatId(Number(bucket.Id))),
+        value: formatId(Number(selectedBucketInfo.Id)),
+        display: formatAddress(formatId(Number(selectedBucketInfo.Id))),
         copyGaClickName: 'dc.bucket.b_detail_pop.id_copy.click',
         gaClickName: 'dc.bucket.b_detail_pop.id.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/bucket`,
@@ -84,87 +83,77 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
       {
         canCopy: true,
         label: 'Create transaction hash',
-        value: editDetail.CreateTxHash,
-        display: formatAddress(editDetail.CreateTxHash),
+        value: selectedBucketInfo.CreateTxHash,
+        display: formatAddress(selectedBucketInfo.CreateTxHash),
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_create_tx_hash.click',
         gaClickName: 'dc.bucket.b_detail_pop.create_tx_hash.click',
         href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
       },
-      // {
-      //   canCopy: true,
-      //   label: 'Update transaction hash',
-      //   value: editDetail.update_tx_hash,
-      //   display: formatAddress(editDetail.update_tx_hash),
-      //   copyGaClickName: 'dc.bucket.b_detail_pop.copy_update_tx_hash.click',
-      //   gaClickName: 'dc.bucket.b_detail_pop.update_tx_hash.click',
-      //   href: `${GREENFIELD_CHAIN_EXPLORER_URL}/tx`,
-      // },
     ];
 
     return (
       <>
-        {infos &&
-          infos.map((item) => (
-            <Flex
-              key={item.label}
-              justifyContent={'space-between'}
-              color="readable.tertiary"
-              alignItems="center"
-              h={28}
-              _notLast={{
-                mb: 3,
-              }}
-            >
-              <Label>{item.label}</Label>
-              <Flex>
-                {item.label === 'Date created' && (
-                  <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
+        {infos.map((item) => (
+          <Flex
+            key={item.label}
+            justifyContent={'space-between'}
+            color="readable.tertiary"
+            alignItems="center"
+            h={28}
+            _notLast={{
+              mb: 3,
+            }}
+          >
+            <Label>{item.label}</Label>
+            <Flex>
+              {item.label === 'Date created' && (
+                <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
+                  {item.display}
+                </Text>
+              )}
+              {item.label !== 'Date created' &&
+                (item.canCopy ? (
+                  <>
+                    <Text color={'readable.normal'} fontSize={'14px'} fontWeight={500}>
+                      {item.name ? `${item.name} |` : ''}&nbsp;
+                    </Text>
+                    <GAClick name={item.gaClickName}>
+                      <Link
+                        target="_blank"
+                        color="#1184EE"
+                        cursor={'pointer'}
+                        textDecoration={'underline'}
+                        _hover={{
+                          color: '#3C9AF1',
+                        }}
+                        href={`${item.href}/${item.value}`}
+                        fontSize={'14px'}
+                        fontWeight={500}
+                      >
+                        {item.display}
+                      </Link>
+                    </GAClick>
+                  </>
+                ) : (
+                  <Link
+                    target="_blank"
+                    color="#1184EE"
+                    cursor={'pointer'}
+                    textDecoration={'underline'}
+                    _hover={{
+                      color: '#3C9AF1',
+                    }}
+                    href={`${item.href}/${item.value}`}
+                    fontSize={'14px'}
+                    fontWeight={500}
+                  >
                     {item.display}
-                  </Text>
-                )}
-                {item.label !== 'Date created' &&
-                  (item.canCopy ? (
-                    <>
-                      <Text color={'readable.normal'} fontSize={'14px'} fontWeight={500}>
-                        {item.name ? `${item.name} |` : ''}&nbsp;
-                      </Text>
-                      <GAClick name={item.gaClickName}>
-                        <Link
-                          target="_blank"
-                          color="#1184EE"
-                          cursor={'pointer'}
-                          textDecoration={'underline'}
-                          _hover={{
-                            color: '#3C9AF1',
-                          }}
-                          href={`${item.href}/${item.value}`}
-                          fontSize={'14px'}
-                          fontWeight={500}
-                        >
-                          {item.display}
-                        </Link>
-                      </GAClick>
-                    </>
-                  ) : (
-                    <Link
-                      target="_blank"
-                      color="#1184EE"
-                      cursor={'pointer'}
-                      textDecoration={'underline'}
-                      _hover={{
-                        color: '#3C9AF1',
-                      }}
-                      href={`${item.href}/${item.value}`}
-                      fontSize={'14px'}
-                      fontWeight={500}
-                    >
-                      {item.display}
-                    </Link>
-                  ))}
-                {item.canCopy && <CopyText value={item.value} gaClickName={item.copyGaClickName} />}
-              </Flex>
+                  </Link>
+                ))}
+              {item.canCopy && <CopyText value={item.value} gaClickName={item.copyGaClickName} />}
             </Flex>
-          ))}
+          </Flex>
+        ))}
 
         <Flex
           justifyContent={'space-between'}
@@ -210,29 +199,15 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
   };
 
   useEffect(() => {
-    if (!editDetail.BucketName) return;
-    dispatch(setupBucketQuota(editDetail.BucketName));
-  }, [editDetail.BucketName, dispatch]);
-
-  useAsyncEffect(async () => {
-    if (!bucket.BucketName || editDetail.PrimarySpAddress) return;
-    const sp = await dispatch(
-      getPrimarySpInfo(bucket.BucketName, +bucket.GlobalVirtualGroupFamilyId),
-    );
-    if (!sp) return;
-    dispatch(setEditDetail({ ...editDetail, PrimarySpAddress: sp.operatorAddress }));
-  }, [bucket.BucketName, editDetail]);
-
-  const onClose = () => {
-    dispatch(setEditDetail({} as BucketItem));
-  };
+    dispatch(setupBucketQuota(selectedBucketInfo.BucketName));
+  }, [selectedBucketInfo.BucketName, dispatch]);
 
   const manageQuota = () => {
-    dispatch(setEditQuota([editDetail.BucketName, 'drawer']));
+    dispatch(setEditQuota([selectedBucketInfo.BucketName, 'drawer']));
   };
 
   return (
-    <DCDrawer isOpen={isOpen} onClose={onClose}>
+    <>
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
       <QDrawerBody>
         <Flex my={32}>
@@ -242,7 +217,7 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
               Name
             </Text>
             <Text fontSize={'14px'} fontWeight={500} wordBreak="break-all">
-              {editDetail.BucketName}
+              {selectedBucketInfo.BucketName}
             </Text>
             <Text color="readable.tertiary" fontSize={'12px'} marginBottom="4px" marginTop="8px">
               Remaining Quota
@@ -307,6 +282,6 @@ export const DetailDrawer = memo<DetailDrawerProps>(function DetailDrawer() {
           Manage Quota
         </DCButton>
       </QDrawerFooter>
-    </DCDrawer>
+    </>
   );
 });

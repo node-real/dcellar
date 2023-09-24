@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditCreate, setupBuckets } from '@/store/slices/bucket';
+import { setBucketOperation, setEditCreate, setupBuckets } from '@/store/slices/bucket';
 import { Flex } from '@totejs/uikit';
 import { debounce } from 'lodash-es';
 import { DCButton } from '@/components/common/DCButton';
@@ -30,7 +30,9 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket({ showRefresh =
           leftIcon={<IconFont type="refresh" w={24} />}
         />
       )}
-      <DCButton onClick={() => dispatch(setEditCreate(true))}>Create Bucket</DCButton>
+      <DCButton onClick={() => dispatch(setBucketOperation(['', 'create']))}>
+        Create Bucket
+      </DCButton>
     </Flex>
   );
 });

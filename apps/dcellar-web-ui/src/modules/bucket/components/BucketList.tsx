@@ -1,12 +1,12 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   BucketItem,
+  BucketOperationsType,
   selectBucketList,
   selectHasDiscontinue,
+  setBucketOperation,
   setCurrentBucketPage,
-  setEditDelete,
-  setEditDetail,
 } from '@/store/slices/bucket';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { ColumnProps } from 'antd/es/table';
@@ -17,13 +17,11 @@ import { Loading } from '@/components/common/Loading';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
-import { DeleteBucket } from '@/modules/bucket/components/DeleteBucket';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { BucketDrawer } from '@/modules/bucket/components/BucketDrawer';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 
 const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
@@ -51,13 +49,8 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
     dispatch(updateBucketSorter([name, newSort] as SorterType));
   };
 
-  const onMenuClick = (menu: string, record: BucketItem) => {
-    switch (menu) {
-      case 'detail':
-        return dispatch(setEditDetail(record));
-      case 'delete':
-        return dispatch(setEditDelete(record));
-    }
+  const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
+    return dispatch(setBucketOperation([record.BucketName, menu]));
   };
 
   const columns: ColumnProps<BucketItem>[] = [
@@ -91,7 +84,10 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       align: 'center' as AlignType,
       title: <></>,
       render: (_: string, record: BucketItem) => (
-        <ActionMenu menus={Actions} onChange={(e) => onMenuClick(e, record)} />
+        <ActionMenu
+          menus={Actions}
+          onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
+        />
       ),
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
@@ -107,11 +103,27 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   const spinning = !(loginAccount in buckets);
   const empty = !spinning && !sortedList.length;
 
+  const loadingComponent = {
+    spinning: spinning || loading,
+    indicator: <Loading />,
+  };
+
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty
+        type="empty-bucket"
+        empty={empty}
+        title="No Buckets"
+        desc="Create a bucket to get started!👏"
+      >
+        <NewBucket showRefresh={false} />
+      </ListEmpty>
+    ),
+    [empty],
+  );
+
   return (
     <>
-      <BucketDrawer />
-      <DetailDrawer />
-      <DeleteBucket />
       {discontinue && (
         <DiscontinueBanner
           content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
@@ -119,24 +131,13 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
           marginBottom={16}
         />
       )}
+      <BucketOperations />
       <DCTable
-        loading={{
-          spinning: spinning || loading,
-          indicator: <Loading />,
-        }}
+        loading={loadingComponent}
         rowKey="BucketName"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => (
-          <ListEmpty
-            type="empty-bucket"
-            empty={empty}
-            title="No Buckets"
-            desc="Create a bucket to get started!👏"
-          >
-            <NewBucket showRefresh={false} />
-          </ListEmpty>
-        )}
+        renderEmpty={renderEmpty}
         pageSize={bucketPageSize}
         pageChange={onPageChange}
         canNext={canNext}
