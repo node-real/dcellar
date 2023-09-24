@@ -16,17 +16,18 @@ import { Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { DetailDrawer } from '@/modules/bucket/components/DetailDrawer';
 import { DeleteBucket } from '@/modules/bucket/components/DeleteBucket';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { BucketDrawer } from '@/modules/bucket/components/BucketDrawer';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const Actions: ActionMenuItem[] = [
+const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
-  { label: 'Delete', value: 'delete' },
+  { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
 
 interface BucketListProps {}

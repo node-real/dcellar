@@ -18,7 +18,6 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
     const clone = React.cloneElement(child, {
       ...restProps,
       ...child.props,
-      ref,
       onClick: (event: React.MouseEvent) => {
         const { isDisabled, onClick: originClick } = child.props;
         originClick?.call(child, event);

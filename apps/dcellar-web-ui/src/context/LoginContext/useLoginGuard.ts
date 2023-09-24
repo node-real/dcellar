@@ -2,14 +2,20 @@ import { InternalRoutePaths } from '@/constants/paths';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
+import { useMount } from 'ahooks';
 
 export function useLoginGuard(inline: boolean) {
   const { loginAccount: address } = useAppSelector((root) => root.persist);
 
   const router = useRouter();
   const { pathname, asPath } = router;
+  const [mounted, setMounted] = useState(false);
 
-  const [pass, setPass] = useState(false);
+  const [pass, setPass] = useState(inline);
+
+  useMount(() => {
+    setMounted(true);
+  });
 
   useEffect(() => {
     if (!address) {
@@ -35,6 +41,6 @@ export function useLoginGuard(inline: boolean) {
   }, [address, asPath, pathname, router, inline]);
 
   return {
-    pass,
+    pass: (!mounted && inline) || pass,
   };
 }

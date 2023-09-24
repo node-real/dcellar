@@ -1,11 +1,11 @@
 import { memo } from 'react';
 import Head from 'next/head';
-import { GroupContainer, PageTitle, PanelContainer } from '@/modules/group/group.style';
 import { NewGroup } from '@/modules/group/components/NewGroup';
 import { GroupList } from '@/modules/group/components/GroupList';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { setupGroups } from '@/store/slices/group';
+import { Box, Flex } from '@totejs/uikit';
 
 interface GroupsPageProps {}
 
@@ -26,15 +26,17 @@ export const GroupsPage = memo<GroupsPageProps>(function GroupsPage() {
   }, [loginAccount, dispatch]);
 
   return (
-    <GroupContainer>
+    <>
       <Head>
         <title>Groups - DCellar</title>
       </Head>
-      <PanelContainer>
-        <PageTitle>Groups</PageTitle>
+      <Flex mb={16} alignItems="center" justifyContent="space-between">
+        <Box as="h1" fontSize={24} fontWeight={700}>
+          Groups
+        </Box>
         <NewGroup />
-      </PanelContainer>
+      </Flex>
       <GroupList />
-    </GroupContainer>
+    </>
   );
 });

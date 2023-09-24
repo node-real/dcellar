@@ -25,7 +25,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': 2.52.1
+      '@totejs/uikit': 2.52.3
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -37,6 +37,7 @@ importers:
       axios: ^1.3.2
       axios-retry: ^3.4.0
       bignumber.js: ^9.1.1
+      classnames: ^2.3.2
       comlink: ^4.4.1
       dayjs: ^1.11.7
       eslint: 8.39.0
@@ -71,7 +72,7 @@ importers:
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.2+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.52.1_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.52.3_aa3274991927adc2766d9259998fdd18
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
@@ -79,6 +80,7 @@ importers:
       axios: 1.4.0
       axios-retry: 3.6.0
       bignumber.js: 9.1.1
+      classnames: 2.3.2
       comlink: 4.4.1
       dayjs: 1.11.9
       eslint-config-next: 13.3.4_eslint@8.39.0+typescript@5.0.4
@@ -3564,8 +3566,18 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.52.1_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-hG5gVXzSiNVYS+s0DvsBLBrkuw9nIPTn1YgU4nwusnBU1s6eMafvgqPaFd6EJdlrn2dDm8yZVE3eRuy03mmu5Q==}
+  /@totejs/styled-system/2.13.2_react-dom@18.2.0+react@18.2.0:
+    resolution: {integrity: sha512-9ss/zCgiMvZRtHKF3ZgW7lO0ARuhwtTQNBui4vfyuDhxBBEVWwhVO9SCleH5X8oL/li8Q4eABBskCNM/5rHb5g==}
+    peerDependencies:
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
+  /@totejs/uikit/2.52.3_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-tzeijKfkhCdWcPb5iP8KBjL/9+m8MhyRhRU8/DDxU169cdMtq9m9dPsidqvL8Hs3fVpU97tfc12p3R8YE+aFAA==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3576,7 +3588,7 @@ packages:
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@popperjs/core': 2.11.8
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/styled-system': 2.13.0_react-dom@18.2.0+react@18.2.0
+      '@totejs/styled-system': 2.13.2_react-dom@18.2.0+react@18.2.0
       '@xobotyi/scrollbar-width': 1.9.5
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0

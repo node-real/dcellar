@@ -1,4 +1,4 @@
-import { Box, Flex, Link } from '@totejs/uikit';
+import { Box, Flex } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
@@ -11,7 +11,7 @@ import {
   TAccount,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
 import { useRouter } from 'next/router';
@@ -19,8 +19,10 @@ import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/per
 import { NewPA } from './NewPA';
 import { Loading } from '@/components/common/Loading';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const actions: ActionMenuItem[] = [
+const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Deposit', value: 'deposit' },
   { label: 'Withdraw', value: 'withdraw' },
@@ -83,23 +85,11 @@ export const PaymentAccounts = () => {
       render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <Flex>
-            <Link
-              href={addressUrl}
-              target="_blank"
-              textDecoration={'underline'}
-              color={'readable.normal'}
-              _hover={{
-                textDecoration: 'underline',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              {record.address}{' '}
-            </Link>{' '}
-            <CopyText value={record.address} boxSize={16} />
-          </Flex>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+            <DCLink color="currentcolor" href={addressUrl} target="_blank">
+              {record.address}
+            </DCLink>
+          </CopyText>
         );
       },
     },
@@ -113,7 +103,6 @@ export const PaymentAccounts = () => {
           <ActionMenu
             operations={operations}
             menus={actions}
-            justifyContent="flex-end"
             onChange={(e) => onMenuClick(e, record)}
           />
         );

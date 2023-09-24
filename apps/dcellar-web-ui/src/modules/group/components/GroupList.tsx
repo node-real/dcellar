@@ -16,10 +16,10 @@ import { ColumnProps } from 'antd/es/table';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { Loading } from '@/components/common/Loading';
 import { CreateGroup } from '@/modules/group/components/CreateGroup';
-import { NameItem } from '@/modules/group/components/NameItem';
+import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
 import { Text } from '@totejs/uikit';
 import { CopyText } from '@/components/common/CopyText';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { EditGroup } from '@/modules/group/components/EditGroup';
 import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
 import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
@@ -28,12 +28,14 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { ethers } from 'ethers';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewGroup } from '@/modules/group/components/NewGroup';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const Actions: ActionMenuItem[] = [
+const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Edit Group', value: 'edit' },
   { label: 'Manage Members', value: 'add' },
-  { label: 'Delete', value: 'delete' },
+  { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
 
 interface GroupListProps {}
@@ -79,7 +81,7 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
           Name{sortName === 'groupName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, item: GroupInfo) => <NameItem item={item} />,
+      render: (_: string, item: GroupInfo) => <GroupNameColumn item={item} />,
     },
     {
       key: 'id',
@@ -92,22 +94,14 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
       render: (_: string) => {
         const hexString = ethers.utils.hexZeroPad(ethers.BigNumber.from(_).toHexString(), 32);
         return (
-          <CopyText
-            alignItems="center"
-            value={_}
-            fontWeight={400}
-            iconProps={{ boxSize: 16, ml: 4 }}
-            lineHeight={0}
-          >
-            <Text
-              as="a"
-              textDecoration="underline"
-              _hover={{ textDecoration: 'underline' }}
+          <CopyText alignItems="center" value={_} boxSize={16} iconProps={{ mt: 2 }}>
+            <DCLink
+              color="currentcolor"
               target="_blank"
               href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
             >
               {_}
-            </Text>
+            </DCLink>
           </CopyText>
         );
       },

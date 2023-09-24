@@ -33,7 +33,7 @@ import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
 import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { DeleteObject } from './DeleteObject';
 import { DetailObject } from './DetailObject';
 import { DownloadObject } from './DownloadObject';
@@ -61,13 +61,14 @@ import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 import { selectAccount } from '@/store/slices/accounts';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewObject } from '@/modules/object/components/NewObject';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const Actions: ActionMenuItem[] = [
+const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
   { label: 'Cancel', value: 'cancel' },
-  { label: 'Delete', value: 'delete' },
+  { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
 const ImportantActions = ['download', 'share'];
 
@@ -311,7 +312,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           <ActionMenu
             menus={fitActions}
             operations={operations}
-            justifyContent="flex-end"
             onChange={(e) => onMenuClick(e, record)}
           />
         );

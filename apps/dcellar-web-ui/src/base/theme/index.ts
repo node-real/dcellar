@@ -31,6 +31,18 @@ export const theme: Theme = {
         '.ui-drawer .ui-drawer-footer': {
           marginTop: 16,
         },
+        '.ui-menu-list': {
+          borderRadius: 4,
+          boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+        },
+        '.ui-menu-list .ui-menu-item': {
+          padding: 8,
+          lineHeight: 'normal',
+          fontWeight: 400,
+          _hover: {
+            color: 'currentColor',
+          },
+        },
       },
     },
   },

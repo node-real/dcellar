@@ -31,7 +31,7 @@ export const DCTable = memo<DCTable & Omit<SimplePaginationProps, 'loading'>>(fu
   ...props
 }) {
   return (
-    <Container>
+    <Container className="dc-table">
       <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
         <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
@@ -158,7 +158,7 @@ export const SortItem = styled.span`
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 7px 8px;
+  padding: 4px 8px;
   transition: all 0.2s;
   margin-left: -8px;
   margin-top: -7px;
@@ -181,7 +181,6 @@ export const SortItem = styled.span`
 `;
 
 const Container = styled.div`
-  overflow: hidden;
   border-radius: 4px;
   border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
@@ -201,7 +200,7 @@ const Container = styled.div`
     font-weight: 500;
     line-height: 18px;
     padding-top: 13px;
-    padding-bottom: 13px;
+    padding-bottom: 12px;
   }
   .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
@@ -211,7 +210,7 @@ const Container = styled.div`
   .ant-table-tbody > tr > td {
     font-weight: 500;
     background: #fff;
-    padding: 12px 16px;
+    padding: 12px 16px 11px 16px;
   }
 
   .ant-spin-nested-loading > div > .ant-spin {

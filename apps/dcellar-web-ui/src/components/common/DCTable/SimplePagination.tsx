@@ -1,10 +1,12 @@
 import { memo } from 'react';
-import { Box, Button, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
+import { Box, Flex, MenuButton } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/transientOptions';
 import { css } from '@emotion/react';
 import { IconFont } from '@/components/IconFont';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { DCMenu } from '@/components/common/DCMenu';
+import cn from 'classnames';
 
 const defaultPageSizeOptions = [10, 20, 50, 100, 500];
 
@@ -27,116 +29,90 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   simple = false,
   loading = false,
 }) {
+  const options: MenuOption[] = pageSizeOptions.map((i) => ({
+    label: String(i),
+    value: String(i),
+  }));
+
   const menu = (
-    <Menu placement="top">
+    <DCMenu
+      value={pageSize}
+      menuListProps={{ minW: 75 }}
+      placement="top"
+      trigger="click"
+      options={options}
+      onMenuSelect={({ value }) => pageChange(Number(value), false, false)}
+    >
       {({ isOpen }) => (
-        <>
-          <StyledButton
-            $open={isOpen!}
-            as={Button}
-            rightIcon={isOpen ? <MenuOpenIcon /> : <MenuCloseIcon />}
-          >
-            {pageSize}
-          </StyledButton>
-          <MenuList minW={64} borderRadius={4}>
-            {pageSizeOptions.map((p) => (
-              <StyledMenuItem
-                key={p}
-                $active={p === pageSize}
-                onClick={() => {
-                  if (p === pageSize) return;
-                  pageChange(p, false, false);
-                }}
-              >
-                {p}
-              </StyledMenuItem>
-            ))}
-          </MenuList>
-        </>
+        <StyledButton $open={isOpen}>
+          {pageSize} <IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />
+        </StyledButton>
       )}
-    </Menu>
+    </DCMenu>
   );
 
-  if (loading) return <Box h={45} mt={-1} bg="bg.middle" position="relative" />;
+  if (loading) return <Box h={45} mt={-4} bg="bg.middle" position="relative" borderRadius={4} />;
 
   return (
     <Container>
       {!simple && <>Rows per page: {menu}</>}
-      <StyledBack
-        type="back"
-        $disabled={!canPrev}
-        onClick={() => pageChange(pageSize, false, true)}
-      />{' '}
-      <StyledGo type="go" $disabled={!canNext} onClick={() => pageChange(pageSize, true, false)} />
+      <Flex gap={16}>
+        <StyledNav
+          type="back"
+          className={cn({ 'nav-disabled': !canPrev })}
+          onClick={() => canPrev && pageChange(pageSize, false, true)}
+        />{' '}
+        <StyledNav
+          type="go"
+          className={cn({ 'nav-disabled': !canNext })}
+          onClick={() => canNext && pageChange(pageSize, true, false)}
+        />
+      </Flex>
     </Container>
   );
 });
-const disabled = css`
-  pointer-events: none;
-  cursor: not-allowed;
-  color: #e6e8ea;
-`;
-
-const active = css`
+const StyledNav = styled(IconFont)`
   font-size: 24px;
   cursor: pointer;
   transition: all 0.2s;
-  :hover {
+
+  :not(.nav-disabled):hover {
     color: #00ba34;
+  }
+
+  &.nav-disabled {
+    cursor: not-allowed;
+    color: var(--ui-colors-readable-disable);
   }
 `;
 
-const StyledBack = styled(IconFont, transientOptions)<{ $disabled: boolean }>`
-  ${active};
-  ${(props) => props.$disabled && disabled}
-`;
-
-const StyledGo = styled(IconFont, transientOptions)<{ $disabled: boolean }>`
-  ${active};
-  margin-left: 16px;
-  ${(props) => props.$disabled && disabled}
-`;
-
-const StyledMenuItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
-  padding: 8px 12px;
-  height: 28px;
-  font-size: 12px;
-  font-weight: 400;
-  ${(props) =>
-    props.$active &&
-    css`
-      background: rgba(0, 186, 52, 0.1);
-    `}
-`;
-
-const StyledButton = styled(MenuButton, transientOptions)<{ $open: boolean }>`
+const StyledButton = styled(MenuButton, transientOptions)<{ $open?: boolean }>`
   margin-left: 12px;
   margin-right: 24px;
   display: flex;
   padding: 8px 12px;
   align-items: center;
   border-radius: 4px;
+  gap: 4px;
   height: 28px;
   border: 1px solid #e6e8ea;
   background: #fff;
-  font-size: 12px;
+  font-size: 14px;
   color: #1e2026;
-  justify-content: space-between;
-  font-weight: 400;
+  font-weight: 500;
+  cursor: pointer;
+
   :hover {
     border-color: #00ba34;
     background: #fff;
   }
+
   ${(props) =>
     props.$open &&
     css`
       border-color: #00ba34;
       background: #fff;
     `}
-  svg {
-    pointer-events: none;
-    width: 12px;
-  }
 `;
 
 const Container = styled.div`

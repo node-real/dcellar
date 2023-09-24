@@ -4,7 +4,7 @@ import { PaymentAccounts } from './components/PaymentAccounts';
 import { PaymentAccountDetail } from './components/PaymentAccountDetail';
 import { OwnerAccountDetail } from './components/OwnerAccountDetail';
 import { NonRefundableModal } from './components/NonRefundableModal';
-import { setupPaymentAccounts } from '@/store/slices/accounts';
+import { setupOAList, setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
 
@@ -17,6 +17,7 @@ export const Accounts = () => {
   };
 
   useMount(() => {
+    dispatch(setupOAList());
     dispatch(setupPaymentAccounts());
   });
 

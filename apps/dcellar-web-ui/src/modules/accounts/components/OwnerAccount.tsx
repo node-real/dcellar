@@ -1,16 +1,18 @@
-import { Box, Flex, Link } from '@totejs/uikit';
+import { Box } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditOwnerDetail, TAccount } from '@/store/slices/accounts';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const actions: ActionMenuItem[] = [
+const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Transfer In', value: 'transfer_in' },
   { label: 'Transfer Out', value: 'transfer_out' },
@@ -44,23 +46,11 @@ export const OwnerAccount = () => {
       render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <Flex>
-            <Link
-              href={addressUrl}
-              target="_blank"
-              textDecoration={'underline'}
-              color={'readable.normal'}
-              _hover={{
-                textDecoration: 'underline',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              {record.address}{' '}
-            </Link>{' '}
-            <CopyText value={record.address} boxSize={16} />
-          </Flex>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+            <DCLink color="currentcolor" href={addressUrl} target="_blank">
+              {record.address}
+            </DCLink>
+          </CopyText>
         );
       },
     },
@@ -74,7 +64,6 @@ export const OwnerAccount = () => {
           <ActionMenu
             operations={operations}
             menus={actions}
-            justifyContent="flex-end"
             onChange={(e) => onMenuClick(e, record)}
           />
         );
@@ -109,6 +98,10 @@ export const OwnerAccount = () => {
 
 const Container = styled(Box)`
   margin-bottom: 32px;
+
+  .dc-table {
+    overflow: hidden;
+  }
 
   .ant-table-wrapper .ant-table-tbody > tr > td {
     border-bottom: none;

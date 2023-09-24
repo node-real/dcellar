@@ -10,7 +10,6 @@ export const Ga4 = ({ id, disabled }: IGtag) => {
 
   return (
     <>
-      <script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} async />
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -22,6 +21,7 @@ export const Ga4 = ({ id, disabled }: IGtag) => {
         `,
         }}
       />
+      <script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} async />
     </>
   );
 };
