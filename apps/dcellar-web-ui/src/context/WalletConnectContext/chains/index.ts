@@ -16,8 +16,8 @@ const greenFieldChain: Chain = {
   name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
-    name: 'tBNB',
-    symbol: 'tBNB',
+    name: GREENFIELD_CHAIN_ID === 920 ? 'BNB' : 'tBNB',
+    symbol: GREENFIELD_CHAIN_ID === 920 ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -29,18 +29,26 @@ const greenFieldChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
-    default: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
+    etherscan: {
+      name: `${CHAIN_NAMES[GREENFIELD_CHAIN_ID]} Scan`,
+      url: GREENFIELD_CHAIN_EXPLORER_URL,
+    },
+    default: {
+      name: `${CHAIN_NAMES[GREENFIELD_CHAIN_ID]} Scan`,
+      url: GREENFIELD_CHAIN_EXPLORER_URL,
+    },
   },
 };
 
+const bscMainnet = BSC_CHAIN_ID === 56;
+
 const bscChain: Chain = {
   id: BSC_CHAIN_ID,
-  name: 'BNB Smart Chain Testnet',
-  network: 'BNB Smart Chain Testnet',
+  name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'}`,
+  network: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'}`,
   nativeCurrency: {
-    name: 'tBNB',
-    symbol: 'tBNB',
+    name: bscMainnet ? 'BNB' : 'tBNB',
+    symbol: bscMainnet ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -52,8 +60,14 @@ const bscChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
-    default: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
+    etherscan: {
+      name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'} Scan`,
+      url: BSC_EXPLORER_URL,
+    },
+    default: {
+      name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'} Scan`,
+      url: BSC_EXPLORER_URL,
+    },
   },
 };
 
