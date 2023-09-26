@@ -20,7 +20,7 @@ export const Accounts = () => {
       <NonRefundableModal />
       <AccountOperations />
       <>
-        <Box as="h2" fontWeight={700} fontSize={24} marginBottom={16}>
+        <Box mt={8} as="h2" fontWeight={700} fontSize={24} marginBottom={16}>
           Accounts
         </Box>
         <OwnerAccount />

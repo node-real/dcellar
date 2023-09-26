@@ -153,7 +153,9 @@ export const setupBuckets =
     const [res, error] = await getUserBuckets(address, sp.endpoint);
     dispatch(setLoading(false));
     if (error || !res || res.code !== 0) {
-      toast.error({ description: error || res?.message });
+      if (!res?.message?.includes('record not found')) {
+        toast.error({ description: error || res?.message });
+      }
       return;
     }
     const bucketList =

@@ -1,7 +1,6 @@
 import {
   Divider,
   Flex,
-  Image,
   Link,
   QDrawerBody,
   QDrawerFooter,
@@ -13,7 +12,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import React, { memo, useState } from 'react';
-import { EMPTY_TX_HASH, FILE_INFO_IMAGE_URL } from '@/modules/object/constant';
+import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
@@ -31,6 +30,7 @@ import { TAccountDetail } from '@/store/slices/accounts';
 import { SpItem } from '@/store/slices/sp';
 import { last } from 'lodash-es';
 import { formatBytes } from '@/utils/formatter';
+import { IconFont } from '@/components/IconFont';
 
 const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -46,18 +46,7 @@ const renderPropRow = (key: string, value: React.ReactNode) => {
       >
         {key}
       </Text>
-      <Text
-        as="div"
-        flex={1}
-        noOfLines={1}
-        fontWeight={500}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        color={'readable.normal'}
-        textAlign={'right'}
-      >
-        {value}
-      </Text>
+      {value}
     </Flex>
   );
 };
@@ -82,18 +71,7 @@ const renderAddressLink = (
       >
         {key}
       </Text>
-      <Text
-        as="div"
-        flex={1}
-        noOfLines={1}
-        fontWeight={500}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        color={'readable.normal'}
-        textAlign={'right'}
-      >
-        {renderAddressWithLink(value, type, gaClickName, gaCopyClickName)}
-      </Text>
+      {renderAddressWithLink(value, type, gaClickName, gaCopyClickName)}
     </Flex>
   );
 };
@@ -105,11 +83,7 @@ const renderAddressWithLink = (
   gaCopyClickName?: string,
 ) => {
   return (
-    <CopyText
-      value={formatAddress(address)}
-      justifyContent="flex-end"
-      gaClickName={gaCopyClickName}
-    >
+    <CopyText value={formatAddress(address)} gaClickName={gaCopyClickName}>
       <GAClick name={gaClickName}>
         <Link
           target="_blank"
@@ -235,13 +209,11 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
 
   return (
     <>
-      <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
-        Object Detail
-      </QDrawerHeader>
+      <QDrawerHeader>Object Detail</QDrawerHeader>
       <QDrawerBody>
-        <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
+        <Flex mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
           <Flex w="100%" overflow="hidden">
-            <Image src={FILE_INFO_IMAGE_URL} boxSize={48} mr={'24px'} alt="" />
+            <IconFont type="detail-object" w={48} mr={24} />
             <Flex flex={1} flexDirection={'column'}>
               <Text
                 fontSize={18}
@@ -269,7 +241,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
           </Flex>
         </Flex>
         <Divider />
-        <Flex my={24} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
+        <Flex my={8} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
           {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
           {renderAddressLink(
             'Object ID',

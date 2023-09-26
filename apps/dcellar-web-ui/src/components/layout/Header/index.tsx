@@ -38,6 +38,7 @@ const HeaderContainer = styled(Grid)`
   padding: 10px 12px;
   align-items: center;
   gap: 70px;
+  border-bottom: 1px solid var(--ui-colors-readable-border);
 `;
 
 const LogoContainer = styled(Flex)`

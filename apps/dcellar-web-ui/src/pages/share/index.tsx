@@ -5,7 +5,7 @@ import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex, Grid } from '@totejs/uikit';
 import { Logo } from '@/components/layout/Logo';
 import { ShareError } from '@/modules/share/ShareError';
 import { SharedFile } from '@/modules/share/SharedFile';
@@ -31,6 +31,10 @@ const Container = styled.main`
   min-height: calc(100vh - 48px);
   max-height: max-content;
   display: grid;
+  grid-template-areas:
+    'Header'
+    'Content';
+  grid-template-rows: 65px 1fr;
 `;
 
 interface PageProps {
@@ -132,27 +136,29 @@ const SharePage: NextPage<PageProps> = (props) => {
                 top={0}
               />
             )}
-            {quotaData === undefined || objectInfo === undefined ? (
-              <Loading />
-            ) : isPrivate && !walletConnected ? (
-              <ShareLogin />
-            ) : objectInfo === null || quotaData === null ? (
-              <ShareError type={!objectInfo ? E_NOT_FOUND : E_UNKNOWN} />
-            ) : (
-              <>
-                {isPrivate && !isOwner && !getPermission ? (
-                  <ShareError type={E_PERMISSION_DENIED} />
-                ) : (
-                  <SharedFile
-                    primarySp={primarySp}
-                    loginAccount={loginAccount as string}
-                    objectInfo={objectInfo}
-                    quotaData={quotaData}
-                    fileName={fileName}
-                  />
-                )}
-              </>
-            )}
+            <Grid gridArea="Content" placeItems="center">
+              {quotaData === undefined || objectInfo === undefined ? (
+                <Loading />
+              ) : isPrivate && !walletConnected ? (
+                <ShareLogin />
+              ) : objectInfo === null || quotaData === null ? (
+                <ShareError type={!objectInfo ? E_NOT_FOUND : E_UNKNOWN} />
+              ) : (
+                <>
+                  {isPrivate && !isOwner && !getPermission ? (
+                    <ShareError type={E_PERMISSION_DENIED} />
+                  ) : (
+                    <SharedFile
+                      primarySp={primarySp}
+                      loginAccount={loginAccount as string}
+                      objectInfo={objectInfo}
+                      quotaData={quotaData}
+                      fileName={fileName}
+                    />
+                  )}
+                </>
+              )}
+            </Grid>
           </Container>
           <Footer />
         </Box>

@@ -45,7 +45,7 @@ const Container = styled(Flex)`
 
   .ant-select {
     cursor: default;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid #e6e8ea;
 
     &:focus-within {

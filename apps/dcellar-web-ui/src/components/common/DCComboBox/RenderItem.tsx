@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { Flex } from '@totejs/uikit';
-import GroupItemIcon from '@/public/images/icons/groups.svg';
 import { trimLongStr } from '@/utils/string';
 import { CloseIcon } from '@totejs/icons';
 import * as React from 'react';
 import { ADDRESS_RE } from '@/utils/constant';
+import { IconFont } from '@/components/IconFont';
 
 export type CustomTagProps = {
   label: React.ReactNode;
@@ -55,7 +55,7 @@ export const RenderItem = memo<RenderItemProps>(function RenderItem({
       title={value}
       cursor="default"
     >
-      {group && <GroupItemIcon width={16} />}
+      {group && <IconFont type={'group'} w={16} />}
       {address ? label : trimLongStr(label as string, 20, 20, 0)}
       <CloseIcon
         onClick={onClose as any}

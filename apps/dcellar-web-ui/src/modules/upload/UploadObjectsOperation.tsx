@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Flex,
@@ -11,14 +11,7 @@ import {
   TabPanels,
   Tabs,
 } from '@totejs/uikit';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  FILE_STATUS_UPLOADING,
-  FILE_TITLE_UPLOAD_FAILED,
-  FILE_UPLOAD_URL,
-  OBJECT_AUTH_TEMP_ACCOUNT_CREATING,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { Fees } from './Fees';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
@@ -50,7 +43,7 @@ import {
   UPLOADING_STATUSES,
   WaitFile,
 } from '@/store/slices/global';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useScroll } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { isEmpty, round } from 'lodash-es';
@@ -63,6 +56,8 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { SpItem } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
 import { isUTF8 } from '@/utils/coder';
+import { Animates } from '@/components/AnimatePng';
+import cn from 'classnames';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -90,6 +85,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const { tabOptions, activeKey, setActiveKey } = useUploadTab();
     const bucket = bucketInfo[bucketName];
     const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
+    const ref = useRef(null);
+    const scroll = useScroll(ref) || { top: 0 };
 
     const getErrorMsg = (type: string) => {
       return OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -161,10 +158,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       dispatch(
         setStatusDetail({
           title: FILE_TITLE_UPLOAD_FAILED,
-          icon: FILE_FAILED_URL,
+          icon: 'status-failed',
           desc: "Sorry, there's something wrong when signing with the wallet.",
           buttonText: BUTTON_GOT_IT,
-          buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           errorText: 'Error message: ' + error,
         }),
       );
@@ -175,9 +171,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       setCreating(true);
       dispatch(
         setStatusDetail({
-          icon: FILE_UPLOAD_URL,
-          title: OBJECT_AUTH_TEMP_ACCOUNT_CREATING,
-          desc: FILE_STATUS_UPLOADING,
+          icon: Animates.upload,
+          title: 'Uploading',
+          desc: WALLET_CONFIRM,
         }),
       );
       const { totalFee } = actionParams;
@@ -230,40 +226,39 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     return (
       <>
         <QDrawerHeader>Upload Objects</QDrawerHeader>
-        <QDrawerBody marginTop={'16px'}>
-          {!isEmpty(selectedFiles) && (
-            <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
-              <TabList>
-                {tabOptions.map((item) => (
-                  <Tab
-                    h="auto"
-                    key={item.key}
-                    fontWeight={500}
-                    tabKey={item.key}
-                    paddingBottom={'8px'}
-                  >
-                    {item.icon}
-                    {item.title}({item.len})
-                  </Tab>
-                ))}
-              </TabList>
-              <TabPanels>
-                {tabOptions.map((item) => (
-                  <TabPanel key={item.key} panelKey={item.key}>
-                    <ListItem path={path} type={item.key} />
-                  </TabPanel>
-                ))}
-              </TabPanels>
-            </Tabs>
-          )}
+        <QDrawerBody ref={ref}>
+          <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
+            <TabList
+              position="sticky"
+              top={0}
+              bg="bg.middle"
+              className={cn({ 'tab-header-fixed': scroll.top > 0 })}
+            >
+              {tabOptions.map((item) => (
+                <Tab
+                  h="auto"
+                  key={item.key}
+                  fontSize={14}
+                  fontWeight={500}
+                  tabKey={item.key}
+                  paddingBottom={6}
+                >
+                  {item.icon}
+                  {item.title}({item.len})
+                </Tab>
+              ))}
+            </TabList>
+            <TabPanels>
+              {tabOptions.map((item) => (
+                <TabPanel key={item.key} panelKey={item.key}>
+                  <ListItem path={path} type={item.key} />
+                </TabPanel>
+              ))}
+            </TabPanels>
+          </Tabs>
         </QDrawerBody>
-        <QDrawerFooter
-          flexDirection={'column'}
-          marginTop={'12px'}
-          borderTop={'1px solid readable.border'}
-          gap={'8px'}
-        >
-          <Flex alignItems={'center'} justifyContent={'space-between'} marginTop={'8px'}>
+        <QDrawerFooter flexDirection={'column'} borderTop={'1px solid readable.border'} gap={'8px'}>
+          <Flex alignItems={'center'} justifyContent={'space-between'}>
             <AccessItem freeze={loading} value={visibility} onChange={setVisibility} />
             <Box>
               Total Upload:{' '}

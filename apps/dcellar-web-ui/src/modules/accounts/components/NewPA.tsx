@@ -1,16 +1,17 @@
 import { DCButton } from '@/components/common/DCButton';
 import { createPaymentAccount } from '@/facade/account';
-import { FILE_FAILED_URL, PENDING_ICON_URL } from '@/modules/object/constant';
+import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React from 'react';
 import { useAccount } from 'wagmi';
 import { InternalRoutePaths } from '@/utils/constant';
+import { Animates } from '@/components/AnimatePng';
 
 export const NewPA = () => {
   const dispatch = useAppDispatch();
@@ -26,8 +27,8 @@ export const NewPA = () => {
     dispatch(
       setStatusDetail({
         title: 'Creating Payment Account',
-        icon: PENDING_ICON_URL,
-        desc: 'Confirm this transaction in your wallet.',
+        icon: Animates.object,
+        desc: WALLET_CONFIRM,
       }),
     );
     if (!connector) return;
@@ -37,8 +38,9 @@ export const NewPA = () => {
       return dispatch(
         setStatusDetail({
           title: 'Create Failed',
-          icon: FILE_FAILED_URL,
+          icon: 'status-failed',
           desc: error || '',
+          buttonText: BUTTON_GOT_IT,
         }),
       );
     }

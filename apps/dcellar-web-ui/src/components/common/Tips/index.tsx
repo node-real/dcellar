@@ -40,7 +40,7 @@ export const Tips = ({
         <IconFont
           type="colored-info"
           w={iconSize}
-          color={'readable.disabled'}
+          color={'readable.disable'}
           _hover={{ color: 'brand.brand5' }}
           {...iconStyle}
         />

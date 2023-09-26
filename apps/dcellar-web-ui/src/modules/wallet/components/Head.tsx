@@ -27,22 +27,14 @@ export const Head = memo<HeadProps>(function Head() {
       <Text
         fontWeight={'600'}
         fontSize="24px"
-        lineHeight={'32px'}
         textAlign="center"
-        mb={'8px'}
+        mb={'12px'}
         w={'100%'}
         textTransform="capitalize"
       >
         {content?.title}
       </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight="150%"
-        w={'100%'}
-        textAlign="center"
-        mb={'16px'}
-        color="#76808F"
-      >
+      <Text fontSize={'14px'} w={'100%'} textAlign="center" mb={'24px'} color={'readable.tertiary'}>
         {content?.subtitle}
       </Text>
     </>

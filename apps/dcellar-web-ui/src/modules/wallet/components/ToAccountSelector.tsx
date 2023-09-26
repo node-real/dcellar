@@ -1,13 +1,14 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Loading, Text } from '@totejs/uikit';
+import { Box, Grid, Loading, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
-import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 import { MenuCloseIcon } from '@totejs/icons';
 import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
+import { MenuOption } from '@/components/common/DCMenuList';
+import Link from 'next/link';
 
 interface ToAccountSelectorProps {
   value: string;
@@ -24,7 +25,6 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   isError,
   disabled = false,
 }) {
-  const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { accountTypes } = useAppSelector((state) => state.accounts);
@@ -68,10 +68,10 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
     setTotal(result?.length);
   };
 
-  const onSearchFilter = (keyword: string, item: any) => {
+  const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.name.toLowerCase();
+    const tmpName = item.label.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
@@ -81,9 +81,8 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
         .map((item) => {
           const { name, address } = item;
           return {
-            label: <OptionItem address={address} name={name} />,
+            label: name,
             value: address,
-            name,
           };
         })
         .filter((item) => item.value !== loginAccount),
@@ -91,25 +90,13 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   );
 
   const Footer = () => (
-    <Flex
-      height={39}
-      borderTop={'1px solid readable.border'}
-      textAlign={'center'}
-      color="readable.brand5"
-      fontSize={14}
-      fontWeight={500}
-      alignItems={'center'}
-      justifyContent={'center'}
-      cursor={'pointer'}
-      _hover={{
-        bgColor: 'bg.bottom',
-      }}
-      onClick={() => {
-        router.push('/accounts');
-      }}
-    >
-      Manage Accounts
-    </Flex>
+    <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
+      <Link href="/accounts" passHref legacyBehavior>
+        <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+          Manage Accounts
+        </Text>
+      </Link>
+    </Grid>
   );
 
   const RightIcon = () => {
@@ -129,20 +116,21 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
       text={account?.address}
       placeholder="Choose or enter addresses"
       options={options}
-      header={`Accounts (${total})`}
+      header={() => `Accounts (${total})`}
       onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
       }}
-      Footer={Footer}
+      footer={Footer}
+      renderOption={({ value, label }) => <OptionItem value={value} label={label} />}
     />
   );
 });
 
-function OptionItem(props: any) {
-  const { address, name } = props;
+function OptionItem(props: MenuOption) {
+  const { value: address, label: name } = props;
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
       <Text

@@ -6,10 +6,10 @@ import { TransferIn } from './TransferIn';
 import { TransferOut } from './TransferOut';
 import { Send } from './Send';
 import { EOperation } from './type';
-import { INTER_FONT } from './constants';
 import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
+import styled from '@emotion/styled';
 
 interface WalletProps {}
 
@@ -24,92 +24,65 @@ export const Wallet = memo<WalletProps>(function Wallet() {
 
   return (
     <WalletBalanceProvider>
-      <Box>
-        <Text as={'h1'} fontWeight="700" fontSize={'24px'}>
-          Wallet
-        </Text>
-        <Tabs activeKey={transType} onChange={(key) => onChange(key.toString())}>
-          <TabList
-            gap={'97px'}
-            _selected={{
-              fontWeight: '600',
-            }}
-            borderBottom="2px solid readable.border !important"
-          >
-            <GAClick name="dc.wallet.tab.transferin.click">
-              <Tab
-                width={'90px'}
-                textAlign="center"
-                fontFamily={INTER_FONT}
-                tabKey={EOperation.transfer_in}
-                borderBottom={'4px solid transparent'}
-                marginBottom={'-2px'}
-                _hover={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-                _selected={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-              >
-                Transfer In
-              </Tab>
-            </GAClick>
-            <GAClick name="dc.wallet.tab.transferout.click">
-              <Tab
-                fontFamily={INTER_FONT}
-                tabKey={EOperation.transfer_out}
-                textAlign="center"
-                width="105px"
-                marginBottom={'-2px'}
-                borderBottom={'4px solid transparent'}
-                _hover={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-                _selected={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-              >
-                Transfer Out
-              </Tab>
-            </GAClick>
-            <GAClick name="dc.wallet.tab.send.click">
-              <Tab
-                fontFamily={INTER_FONT}
-                tabKey={EOperation.send}
-                textAlign="center"
-                width="45px"
-                marginBottom={'-2px'}
-                borderBottom={'4px solid transparent'}
-                _hover={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-                _selected={{
-                  fontWeight: '600',
-                  borderBottom: '4px solid readable.brand6',
-                }}
-              >
-                Send
-              </Tab>
-            </GAClick>
-          </TabList>
-          <TabPanels>
-            <TabPanel panelKey={EOperation.transfer_in} p={'32px 32px 0'}>
-              <TransferIn />
-            </TabPanel>
-            <TabPanel panelKey={EOperation.transfer_out} p={'32px 32px 0'}>
-              <TransferOut />
-            </TabPanel>
-            <TabPanel panelKey={EOperation.send} p={'32px 32px 0'}>
-              <Send />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </Box>
+      <Container>
+        <Box padding={24}>
+          <Text as={'h1'} fontWeight="700" fontSize={'24px'} mb={16}>
+            Wallet
+          </Text>
+          <Tabs activeKey={transType} onChange={(key) => onChange(key.toString())}>
+            <TabList gap={'24px'} borderBottom="1px solid readable.border !important">
+              <GAClick name="dc.wallet.tab.transferin.click">
+                <Tab tabKey={EOperation.transfer_in}>Transfer In</Tab>
+              </GAClick>
+              <GAClick name="dc.wallet.tab.transferout.click">
+                <Tab tabKey={EOperation.transfer_out}>Transfer Out</Tab>
+              </GAClick>
+              <GAClick name="dc.wallet.tab.send.click">
+                <Tab tabKey={EOperation.send}>Send</Tab>
+              </GAClick>
+            </TabList>
+            <TabPanels>
+              <TabPanel panelKey={EOperation.transfer_in} p="16px 32px 0 32px">
+                <TransferIn />
+              </TabPanel>
+              <TabPanel panelKey={EOperation.transfer_out} p="16px 32px 0 32px">
+                <TransferOut />
+              </TabPanel>
+              <TabPanel panelKey={EOperation.send} p="16px 32px 0 32px">
+                <Send />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </Box>
+      </Container>
     </WalletBalanceProvider>
   );
 });
+
+const Container = styled(Box)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: var(--ui-colors-bg-bottom);
+  overflow: auto;
+
+  .ui-tabs-tab {
+    font-weight: 500;
+    height: 28px;
+    line-height: normal;
+    padding-bottom: 6px;
+    border-bottom: 2px solid transparent;
+    &[data-selected] {
+      font-weight: 500;
+      color: var(--ui-colors-scene-success-normal);
+      border-bottom-color: var(--ui-colors-scene-success-normal);
+    }
+    &:hover {
+      font-weight: 500;
+      color: var(--ui-colors-scene-success-active);
+      border-bottom-color: var(--ui-colors-scene-success-active);
+    }
+  }
+`;

@@ -256,4 +256,9 @@ const Container = styled.div`
       }
     }
   }
+
+  .ant-checkbox-disabled .ant-checkbox-inner {
+    background: #fafafa;
+    border-color: var(--ui-colors-readable-border);
+  }
 `;

@@ -47,12 +47,6 @@ const valueToPercent = (value: number) => {
   return Math.min(98, percent);
 };
 
-const CONST_VALUE = BigNumber(1)
-  .div(10 ** 18)
-  .times(G_BYTES)
-  .times(2_592_000)
-  .dividedBy(10 ** 18);
-
 export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
   value,
   current,
@@ -119,7 +113,14 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
     document.addEventListener('mouseup', mouseup);
   };
 
-  const price = useMemo(() => BN(readPrice).times(CONST_VALUE).toString(), [readPrice]);
+  const price = useMemo(() => {
+    return BN(readPrice)
+      .div(10 ** 18)
+      .times(G_BYTES)
+      .times(2_592_000)
+      .div(10 ** 18)
+      .toString();
+  }, [readPrice]);
 
   return (
     <FormItem>

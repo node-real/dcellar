@@ -1,28 +1,24 @@
 import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import React, { memo } from 'react';
-import { useMemo } from 'react';
-
-import { Image } from '@totejs/uikit';
-import SuccessIcon from '@/public/images/icons/success.svg';
-import FailedIcon from '@/public/images/icons/failed.svg';
+import React, { memo, useMemo } from 'react';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { PENDING_ICON_URL } from '@/modules/object/constant';
 import { useAppSelector } from '@/store';
+import { AnimatePng } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
 
 const contentTexts = {
   pending: {
-    icon: <Image src={PENDING_ICON_URL} w={'120px'} h={'120px'} alt={'pending'} />,
+    icon: <AnimatePng type="object" />,
     title: 'Waiting for Confirmation',
     subtitle: 'Confirm this transaction in your wallet.',
   },
   success: {
-    icon: <SuccessIcon />,
+    icon: <IconFont w={120} type="status-success" />,
     title: 'Transaction Submitted',
     subtitle: '',
   },
   failed: {
-    icon: <FailedIcon />,
+    icon: <IconFont w={120} type="status-failed" />,
     title: 'Transaction Failed',
     subtitle: '',
   },

@@ -14,26 +14,15 @@ type Props = {
 };
 export const NameItem = ({ name, size, msg, status, ...styleProps }: Props) => {
   const fileType = contentIconTypeToExtension(name);
-  const icon = (
-    <Flex
-      width={27}
-      height={27}
-      border={'1px solid readable.border'}
-      borderRadius={4}
-      alignItems={'center'}
-      justifyContent={'center'}
-      marginRight={12}
-    >
-      <IconFont w={20} type={`${fileType}-file`} />
-    </Flex>
-  );
   return (
     <Flex alignItems="center" {...styleProps}>
-      {icon}
-      <Box w="calc(100% - 39px)">
-        <EllipsisText marginRight={'12px'}>{name}</EllipsisText>
+      <IconFont mr={8} w={20} type={`${fileType}-file`} />
+      <Box w="calc(100% - 39px)" lineHeight="normal">
+        <EllipsisText marginRight={'12px'} mb={4}>
+          {name}
+        </EllipsisText>
         {(status && ['CANCEL', 'ERROR'].includes(status)) || msg ? (
-          <EllipsisText fontWeight={400} color={'red'}>
+          <EllipsisText fontWeight={400} color={'scene.danger.normal'}>
             {msg}
           </EllipsisText>
         ) : (

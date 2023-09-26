@@ -54,6 +54,9 @@ const Container = styled(Flex)`
   border-radius: 4px;
   border: 1px solid #e6e8ea;
   background: #fff;
+  :hover {
+    background: var(--ui-colors-bg-bottom);
+  }
 `;
 
 const Track = styled.div`

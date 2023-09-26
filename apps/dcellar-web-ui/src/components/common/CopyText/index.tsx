@@ -68,7 +68,7 @@ export function CopyText(props: CopyTextProps) {
             alignSelf="flex-start"
             size="sm"
             variant="link"
-            color={'readable.normal'}
+            color={'readable.tertiary'}
             icon={<IconFont type="copy" w={boxSize} />}
             onClick={onCopy}
             _hover={{

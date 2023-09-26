@@ -10,7 +10,7 @@ export const PathItem = memo<PathItemProps>(function ({ path, ...styleProps }) {
   return (
     <EllipsisText
       color={'readable.tertiary'}
-      w={126}
+      flex={1}
       textAlign={'left'}
       marginRight={'12px'}
       fontWeight={400}

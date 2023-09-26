@@ -1,9 +1,10 @@
-import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import BigNumber from 'bignumber.js';
 import {
   Box,
   Flex,
   FormControl,
+  FormLabel,
   Link,
   QDrawerBody,
   QDrawerFooter,
@@ -16,15 +17,12 @@ import { DCButton } from '@/components/common/DCButton';
 import {
   BUTTON_GOT_IT,
   DUPLICATE_OBJECT_NAME,
-  FILE_FAILED_URL,
-  FILE_STATUS_UPLOADING,
   FOLDER_CREATE_FAILED,
-  FOLDER_CREATING,
   FOLDER_DESCRIPTION_CREATE_ERROR,
   GET_GAS_FEE_LACK_BALANCE_ERROR,
   LOCK_FEE_LACK_BALANCE_ERROR,
-  PENDING_ICON_URL,
   UNKNOWN_ERROR,
+  WALLET_CONFIRM,
 } from '@/modules/object/constant';
 import { DotLoading } from '@/components/common/DotLoading';
 import { CreateObjectApprovalRequest, MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -59,6 +57,7 @@ import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
+import { Animates } from '@/components/AnimatePng';
 
 interface CreateFolderOperationProps {
   selectBucket: AllBucketInfo;
@@ -183,11 +182,9 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     }
     dispatch(
       setStatusDetail({
-        icon: PENDING_ICON_URL,
-        title: FOLDER_CREATING,
-        errorText: '',
-        desc: FILE_STATUS_UPLOADING,
-        buttonText: '',
+        icon: Animates.object,
+        title: 'Creating Folder',
+        desc: WALLET_CONFIRM,
       }),
     );
 
@@ -201,12 +198,11 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       }
       dispatch(
         setStatusDetail({
-          icon: FILE_FAILED_URL,
+          icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
           buttonText: BUTTON_GOT_IT,
           errorText: bcError ? `Error Message: ${bcError}` : '',
-          buttonOnClick: onCloseStatusModal,
         }),
       );
       return;
@@ -215,7 +211,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     if (txRes?.code !== 0) {
       dispatch(
         setStatusDetail({
-          icon: FILE_FAILED_URL,
+          icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
           buttonText: BUTTON_GOT_IT,
@@ -338,22 +334,31 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   return (
     <>
       <QDrawerHeader flexDirection={'column'}>
-        <Box mb={4}>Create a Folder</Box>
-        <Text color="readable.tertiary" fontWeight={400} fontSize={16}>
+        <Box>Create a Folder</Box>
+        <Text className="ui-drawer-sub">
           Use folders to group objects in your bucket. Folder names can't contain "/".
         </Text>
       </QDrawerHeader>
       <QDrawerBody>
         <Flex flexDirection="column" alignItems="center">
           <FormControl isInvalid={!!formErrors.length} w="100%">
-            <InputItem
-              value={inputFolderName}
-              onChange={onFolderNameChange}
-              tips={{
-                title: 'Naming Rules',
-                rules: ['Must be between 1 and 70 characters long.', 'Cannot consist of slash(/).'],
-              }}
-            />
+            <FormLabel>
+              <Text fontSize={14} fontWeight={500} mb={8}>
+                Name
+              </Text>
+              <InputItem
+                value={inputFolderName}
+                onChange={onFolderNameChange}
+                tips={{
+                  title: 'Naming Rules',
+                  rules: [
+                    'Must be between 1 and 70 characters long.',
+                    'Cannot consist of slash(/).',
+                  ],
+                }}
+              />
+            </FormLabel>
+
             {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
           </FormControl>
         </Flex>

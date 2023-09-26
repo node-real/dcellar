@@ -3,15 +3,14 @@ import { useAppSelector } from '@/store';
 import { DCModal } from '@/components/common/DCModal/index';
 import {
   ButtonProps,
+  Divider,
   Flex,
-  Link,
   ModalBody,
   ModalCloseButton,
   ModalFooter,
   ModalHeader,
   Text,
 } from '@totejs/uikit';
-import { GAS_FEE_DOC } from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import BigNumber from 'bignumber.js';
 import { useUnmount } from 'ahooks';
@@ -20,6 +19,7 @@ import {
   renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/object/utils';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 
 interface ConfirmModalProps {
   onClose?: () => void;
@@ -98,61 +98,64 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
       <ModalBody>
         <Text className="ui-modal-desc">{description}</Text>
         <Flex
-          bg={'bg.secondary'}
-          padding={'16px'}
-          width={'100%'}
           flexDirection={'column'}
-          borderRadius="12px"
-          gap={'4px'}
+          bg={'bg.bottom'}
+          padding={'8px 12px'}
+          width={'100%'}
+          borderRadius="4px"
+          gap={'8px'}
+          alignItems={'stretch'}
         >
-          <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-            <Flex alignItems="center" mb="4px">
-              <Text
-                fontSize={'14px'}
-                lineHeight={'28px'}
-                fontWeight={400}
-                color={'readable.tertiary'}
-              >
-                Gas Fee (
-                <Link
-                  href={GAS_FEE_DOC}
-                  textDecoration={'underline'}
-                  color="readable.disabled"
-                  target="_blank"
-                >
-                  Pay by Owner Account
-                </Link>
-                )
-              </Text>
-            </Flex>
-            <Text
-              fontSize={'14px'}
-              lineHeight={'28px'}
-              fontWeight={400}
-              color={'readable.tertiary'}
+          <Flex
+            fontSize={'14px'}
+            fontWeight={600}
+            justifyContent={'space-between'}
+            alignItems={'center'}
+          >
+            <Text>Total Fees</Text>
+            <Flex
+              color={'readable.secondary'}
+              alignItems="center"
+              gap={4}
+              justifySelf={'flex-end'}
+              fontWeight={'400'}
             >
               {renderFeeValue(String(fee), exchangeRate)}
+            </Flex>
+          </Flex>
+          <Divider borderColor={'readable.disable'} />
+          <Flex alignItems={'center'} justifyContent={'space-between'} color={'readable.secondary'}>
+            <Flex alignItems="center">
+              <Text>Gas Fee</Text>
+              <GasFeeTips />
+            </Flex>
+            <Text>{renderFeeValue(String(fee), exchangeRate)}</Text>
+          </Flex>
+          <Flex justifyContent={'flex-end'}>
+            <Text fontSize={'12px'} color={'readable.disabled'}>
+              Owner Account balance: {renderBalanceNumber(availableBalance || '0')}
             </Text>
           </Flex>
         </Flex>
-        <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
-          <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-            {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
-              gaShowName: balanceShowName,
-              gaClickName: balanceClickName,
-            })}
-          </Text>
-          <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-            Available balance: {renderBalanceNumber(availableBalance || '0')}
-          </Text>
-        </Flex>
+        {buttonDisabled && (
+          <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
+            <Text fontSize={'14px'} color={'scene.danger.normal'}>
+              {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
+                gaShowName: balanceShowName,
+                gaClickName: balanceClickName,
+              })}
+            </Text>
+          </Flex>
+        )}
       </ModalBody>
-      <ModalFooter margin={0} flexDirection={'row'}>
+      <ModalFooter flexDirection={'row'}>
         <DCButton size="lg" variant="ghost" flex={1} onClick={_onClose} gaClickName={cancelButton}>
           Cancel
         </DCButton>
 
         <DCButton
+          variant={variant !== 'brand' ? 'scene' : 'brand'}
+          colorScheme={'danger'}
           size="lg"
           gaClickName={confirmButton}
           flex={1}

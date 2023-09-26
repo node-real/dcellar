@@ -1,8 +1,8 @@
 import { Box, Flex, FormLabel, Text } from '@totejs/uikit';
 import React, { memo } from 'react';
 
-import BSCIcon from '@/public/images/icons/bsc.svg';
 import { ChainInfos } from '../constants';
+import { IconFont } from '@/components/IconFont';
 
 type Props = {
   chainId: number;
@@ -22,22 +22,22 @@ export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }:
         textTransform={'capitalize'}
         fontWeight={500}
         fontSize="14px"
-        lineHeight="150%"
         htmlFor={chain?.name}
       >
         {type}
       </FormLabel>
       <Flex
         backgroundColor={'#F5F5F5'}
-        borderRadius="8px"
+        borderRadius="4px"
         alignItems={'center'}
-        justifyContent="center"
         w={'182px'}
-        h="52px"
+        h="44px"
         mt={'8px'}
+        px={10}
+        border={'1px solid readable.border'}
       >
-        <BSCIcon />
-        <Text ml={'8px'} fontSize={'14px'} fontWeight="600" lineHeight={'28px'}>
+        <IconFont type={'bsc'} w={24} color={'#F0B90B'} />
+        <Text ml={'2px'} fontSize={'14px'} fontWeight="500">
           {chain?.name}
         </Text>
       </Flex>

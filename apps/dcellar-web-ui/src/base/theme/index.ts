@@ -26,6 +26,9 @@ export const theme: Theme = {
           top: 65,
           maxW: '500px',
         },
+        '.ui-toast': {
+          borderRadius: 4,
+        },
         '.ui-modal-content': {
           boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
           borderRadius: 4,
@@ -35,6 +38,13 @@ export const theme: Theme = {
         },
         '.ui-drawer .ui-drawer-body': {
           marginTop: 24,
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'readable.border',
+            borderRadius: '6px',
+          },
         },
         '.ui-modal-content .ui-modal-header': {
           lineHeight: 'normal',
@@ -56,6 +66,21 @@ export const theme: Theme = {
           marginBottom: -16,
           padding: '16px 24px',
           boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+          gap: 8,
+        },
+        '.tab-header-fixed': {
+          boxShadow: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+        },
+        '.ui-drawer-header': {
+          lineHeight: 'normal',
+        },
+        '.ui-drawer-header .ui-drawer-sub': {
+          lineHeight: 'normal',
+          mt: 4,
+          // mb: -8,
+          fontWeight: 400,
+          fontSize: 16,
+          color: 'readable.tertiary',
         },
         '.ui-menu-list': {
           borderRadius: 4,
@@ -72,6 +97,12 @@ export const theme: Theme = {
         '.ui-input': {
           borderRadius: 4,
           fontWeight: 400,
+          '&[disabled],&[disabled]:hover': {
+            border: '1px solid readable.border',
+            bg: 'bg.bottom',
+            opacity: 1,
+            color: 'readable.disable',
+          },
         },
         '.ui-textarea': {
           borderRadius: 4,

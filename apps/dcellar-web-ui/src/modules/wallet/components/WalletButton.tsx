@@ -40,8 +40,8 @@ export const WalletButton = memo<WalletButtonProps>(function WalletButton({
     return (
       <>
         <DCButton
+          size={'lg'}
           as="div"
-          variant="scene"
           width={'100%'}
           cursor={'pointer'}
           textTransform="-moz-initial"
@@ -57,6 +57,7 @@ export const WalletButton = memo<WalletButtonProps>(function WalletButton({
 
   return (
     <DCButton
+      size={'lg'}
       width={'100%'}
       isLoading={isSubmitting || isGasLoading}
       disabled={disabled}

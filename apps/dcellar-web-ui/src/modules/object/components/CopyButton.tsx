@@ -1,8 +1,7 @@
 import { memo, PropsWithChildren, useEffect } from 'react';
 import { Button, useClipboard } from '@totejs/uikit';
-import LinkIcon from '@/components/common/SvgIcon/LinkIcon.svg';
-import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 import styled from '@emotion/styled';
+import { IconFont } from '@/components/IconFont';
 
 interface CopyButtonProps extends PropsWithChildren {
   text: string;
@@ -16,7 +15,11 @@ export const CopyButton = memo<CopyButtonProps>(function CopyButton({ text, chil
   }, [setValue, text]);
 
   return (
-    <Copy iconSpacing={4} leftIcon={hasCopied ? <TickIcon /> : <LinkIcon />} onClick={onCopy}>
+    <Copy
+      iconSpacing={4}
+      leftIcon={<IconFont type={hasCopied ? 'tick' : 'link'} w={16} />}
+      onClick={onCopy}
+    >
       {children}
     </Copy>
   );

@@ -41,13 +41,14 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { selectBucketList, setupBuckets } from '@/store/slices/bucket';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, PENDING_ICON_URL, WALLET_CONFIRM } from '@/modules/object/constant';
+import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { createBucket, pollingGetBucket, simulateCreateBucket } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
 import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { Animates } from '@/components/AnimatePng';
 
 type ValidateNameAndGas = {
   isValidating: boolean;
@@ -290,7 +291,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const onSubmit = async (data: any) => {
     dispatch(
-      setStatusDetail({ icon: PENDING_ICON_URL, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.object, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
     );
     const { seedString } = await dispatch(
       getSpOffChainData(address, selectedSpRef.current.operatorAddress),
@@ -388,16 +389,16 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   return (
     <>
       <QDrawerHeader flexDirection="column">
-        <Box mb={4}>Create a Bucket</Box>
-        <Box fontSize={16} color={'readable.tertiary'} fontWeight={400}>
+        <Box>Create a Bucket</Box>
+        <Box className="ui-drawer-sub">
           Buckets are containers for data stored on BNB Greenfield. Bucket name must be globally
           unique.
         </Box>
       </QDrawerHeader>
-      <QDrawerBody mt={0}>
+      <QDrawerBody>
         <Box>
           <form id="create-bucket-drawer" onSubmit={handleSubmit(onSubmit)}>
-            <Flex flexDir="column" gap={16}>
+            <Flex flexDir="column" gap={24}>
               <FormControl isInvalid={!isEmpty(errors?.bucketName)}>
                 <FormLabel fontWeight={500} fontSize={14} mb={8}>
                   Name

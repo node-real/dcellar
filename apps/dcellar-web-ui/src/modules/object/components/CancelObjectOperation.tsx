@@ -4,12 +4,9 @@ import React, { memo, useEffect, useState } from 'react';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_CANCEL_ERROR,
-  FILE_FAILED_URL,
-  FILE_STATUS_CANCELING,
   FILE_TITLE_CANCEL_FAILED,
-  FILE_TITLE_CANCELING,
   GAS_FEE_DOC,
-  PENDING_ICON_URL,
+  WALLET_CONFIRM,
 } from '@/modules/object/constant';
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { Tips } from '@/components/common/Tips';
@@ -34,6 +31,7 @@ import {
 } from '@/modules/object/utils';
 import { getClient } from '@/facade';
 import { signTypedDataCallback } from '@/facade/wallet';
+import { Animates } from '@/components/AnimatePng';
 
 export const renderFee = (
   key: string,
@@ -154,7 +152,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
 
     const setFailedStatusModal = (description: string, error: any) => {
       setStatusDetail({
-        icon: FILE_FAILED_URL,
+        icon: 'status-failed',
         title: FILE_TITLE_CANCEL_FAILED,
         desc: description,
         buttonText: BUTTON_GOT_IT,
@@ -228,11 +226,9 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                 onClose();
                 dispatch(
                   setStatusDetail({
-                    icon: PENDING_ICON_URL,
-                    title: FILE_TITLE_CANCELING,
-                    desc: FILE_STATUS_CANCELING,
-                    buttonText: '',
-                    errorText: '',
+                    icon: Animates.object,
+                    title: 'Canceling Uploading',
+                    desc: WALLET_CONFIRM,
                   }),
                 );
                 const client = await getClient();

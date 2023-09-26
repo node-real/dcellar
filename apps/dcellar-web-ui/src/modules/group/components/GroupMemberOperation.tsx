@@ -11,44 +11,32 @@ import {
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  GROUP_ICON,
-  GROUP_UPDATE_EXTRA,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAsyncEffect, useUnmount } from 'ahooks';
-import {
-  Box,
-  Flex,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  QDrawerBody,
-  QDrawerHeader,
-  rgba,
-  Text,
-  toast,
-} from '@totejs/uikit';
+import { Box, Flex, MenuButton, QDrawerBody, QDrawerHeader, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { MsgUpdateGroupMemberTypeUrl, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { trimAddress } from '@/utils/string';
-import TickIcon from '@/components/common/SvgIcon/TickIconLarge.svg';
 import styled from '@emotion/styled';
 import { Loading } from '@/components/common/Loading';
 import { getTimestampInSeconds } from '@/utils/time';
 import { Avatar } from '@/components/Avatar';
 import { ADDRESS_RE } from '@/utils/constant';
+import { IconFont } from '@/components/IconFont';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { Animates } from '@/components/AnimatePng';
+
+const menus: MenuOption[] = [
+  { label: 'Member', value: 'member' },
+  { label: 'Remove', value: 'remove', variant: 'danger' },
+];
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -97,7 +85,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         dispatch(
           setStatusDetail({
             title: 'Update Failed',
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
@@ -140,7 +128,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   const onAddMember = async () => {
     setLoading(true);
     dispatch(
-      setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const curTimeStamp = await getTimestampInSeconds();
     const expirationTimestamp = Math.floor(curTimeStamp + 10 * 60 * 60);
@@ -170,7 +158,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   const onRemoveMember = async () => {
     setLoading(true);
     dispatch(
-      setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const payload = {
       operator: loginAccount,
@@ -223,7 +211,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         description="Are you sure you want to add members to this group?"
       />
       <ConfirmModal
-        confirmText="Confirm"
+        confirmText="Remove"
         isOpen={deleteModal}
         ga={{
           gaClickCloseName: 'dc.group.remove_member_confirm.modal.show',
@@ -239,14 +227,13 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         onClose={() => {
           setDeleteModal(false);
         }}
+        variant={'scene'}
         description={`Are you sure you want to remove ${trimAddress(
           removeAccount,
         )} from this group?`}
       />
       <>
-        <QDrawerHeader alignItems="center" lineHeight="normal">
-          Group Members
-        </QDrawerHeader>
+        <QDrawerHeader>Group Members</QDrawerHeader>
         <QDrawerBody>
           <Flex gap={12}>
             <DCComboBox
@@ -264,8 +251,8 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
               }
             />
             <DCButton
+              size={'lg'}
               w={90}
-              h={48}
               onClick={() => {
                 _onChange(values);
                 if (!values.length || loading || invalid) return;
@@ -298,37 +285,24 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                         {owner ? (
                           'Owner'
                         ) : (
-                          <Menu placement="bottom-start">
+                          <DCMenu
+                            value="member"
+                            selectIcon
+                            placement="bottom-start"
+                            options={menus}
+                            onMenuSelect={({ value }) => {
+                              if (value !== 'remove') return;
+                              setRemoveAccount(p.AccountId);
+                              setDeleteModal(true);
+                            }}
+                          >
                             {({ isOpen }) => (
-                              <>
-                                <StyledMenuButton as={Text}>
-                                  Member
-                                  {isOpen ? (
-                                    <MenuOpenIcon boxSize={16} color="#76808F" />
-                                  ) : (
-                                    <MenuCloseIcon boxSize={16} color="#76808F" />
-                                  )}
-                                </StyledMenuButton>
-                                <StyledMenuList>
-                                  <MenuItem bg={rgba('#00BA34', 0.1)} _hover={{ bg: undefined }}>
-                                    <Tick />
-                                    Member
-                                  </MenuItem>
-                                  <MenuItem
-                                    _hover={{
-                                      bg: 'bg.bottom',
-                                    }}
-                                    onClick={() => {
-                                      setRemoveAccount(p.AccountId);
-                                      setDeleteModal(true);
-                                    }}
-                                  >
-                                    <Text color="#EE3911">Remove</Text>
-                                  </MenuItem>
-                                </StyledMenuList>
-                              </>
+                              <StyledMenuButton as={Text}>
+                                Viewer
+                                <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
+                              </StyledMenuButton>
                             )}
-                          </Menu>
+                          </DCMenu>
                         )}
                       </Flex>
                     );
@@ -353,6 +327,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
 });
 
 const StyledMenuButton = styled(MenuButton)`
+  display: inline-flex;
   cursor: pointer;
   padding: 2px 0 2px 4px;
   border-radius: 2px;
@@ -364,22 +339,4 @@ const StyledMenuButton = styled(MenuButton)`
   svg {
     pointer-events: none;
   }
-`;
-
-const StyledMenuList = styled(MenuList)`
-  border-radius: 4px;
-  border: 1px solid #e6e8ea;
-  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
-  margin-top: -6px;
-
-  .ui-menu-item {
-    padding-left: 32px;
-    font-weight: 400;
-  }
-`;
-
-const Tick = styled(TickIcon)`
-  color: #00ba34;
-  position: absolute;
-  left: 8px;
 `;

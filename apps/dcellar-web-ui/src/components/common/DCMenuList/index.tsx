@@ -111,17 +111,17 @@ const StyledMenuItem = styled(MenuItem)`
       color: var(--ui-colors-readable-disable);
       background: var(--ui-colors-bg-middle);
     }
-  }
 
-  &.menu-selected-icon {
-    padding-left: 32px;
-    padding-right: 24px;
+    &.menu-selected-icon {
+      padding-left: 32px;
+      padding-right: 24px;
 
-    > svg {
-      position: absolute;
-      left: 4px;
-      top: 50%;
-      transform: translateY(-50%);
+      > svg {
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
     }
   }
 `;

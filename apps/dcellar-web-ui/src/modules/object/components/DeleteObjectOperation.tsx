@@ -1,36 +1,29 @@
-import { Box, Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
 import { useAccount } from 'wagmi';
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import {
   BUTTON_GOT_IT,
-  FILE_DELETE_GIF,
   FILE_DESCRIPTION_DELETE_ERROR,
-  FILE_FAILED_URL,
-  FILE_STATUS_DELETING,
   FILE_TITLE_DELETE_FAILED,
-  FILE_TITLE_DELETING,
   FOLDER_DESC_NOT_EMPTY,
-  FOLDER_NOT_EMPTY_ICON,
-  FOLDER_TITLE_DELETING,
   FOLDER_TITLE_NOT_EMPTY,
+  WALLET_CONFIRM,
 } from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { broadcastFault, E_USER_REJECT_STATUS_NUM } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { addDeletedObject, setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import {
+  addDeletedObject,
+  setObjectList,
+  setStatusDetail,
+  TStatusDetail,
+} from '@/store/slices/object';
 import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect } from 'ahooks';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
-import { renderFee } from './CancelObjectOperation';
-import { Tips } from '@/components/common/Tips';
-import {
-  selectAccount,
-  selectAvailableBalance,
-  setupAccountDetail,
-  TAccountDetail,
-} from '@/store/slices/accounts';
+import { selectAccount, setupAccountDetail, TAccountDetail } from '@/store/slices/accounts';
 import { getStoreFeeParams } from '@/facade/payment';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
@@ -41,14 +34,12 @@ import { AllBucketInfo } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { useModalValues } from '@/hooks/useModalValues';
 import { BN } from '@/utils/math';
-import {
-  renderBalanceNumber,
-  renderInsufficientBalance,
-  renderPaymentInsufficientBalance,
-} from '@/modules/object/utils';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { getClient } from '@/facade';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { reportEvent } from '@/utils/gtag';
+import { Animates } from '@/components/AnimatePng';
+import { TotalFees } from '@/modules/object/components/TotalFees';
 
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -75,16 +66,14 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const { loginAccount } = useAppSelector((root) => root.persist);
     // Since reserveTime rarely change, we can optimize performance by using global data.
     const { reserveTime } = useAppSelector(selectStoreFeeParams);
-    const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-    const { bucketName } = useAppSelector((root) => root.object);
-    const exchangeRate = +bnbPrice ?? 0;
+    const { bucketName, path } = useAppSelector((root) => root.object);
+    const [balanceEnough, setBalanceEnough] = useState(true);
     const [loading, setLoading] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
     const objectInfo = selectObjectInfo.ObjectInfo || {};
     const objectName = useModalValues(_objectName);
     const isFolder = objectName.endsWith('/');
     const { bankBalance } = useAppSelector((root) => root.accounts);
-    const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
     const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(
       bucket.PaymentAddress,
     );
@@ -98,23 +87,19 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
 
     useAsyncEffect(async () => {
-      if (isStoredAtMinimumTime === null) return;
-      if (!isStoredAtMinimumTime) {
-        return setRefundAmount('0');
-      }
+      if (!objectInfo.CreateAt) return;
       const curTime = getTimestampInSeconds();
       const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
       const netflowRate = getStoreNetflowRate(objectInfo.PayloadSize, latestStoreFeeParams);
-      if (BN(curTime).gt(BN(latestStoreFeeParams.reserveTime).plus(crudTimestamp))) {
-        return setRefundAmount('0');
-      }
+      const offsetTime = curTime - objectInfo.CreateAt;
+      const refundTime = Math.min(offsetTime, Number(latestStoreFeeParams.reserveTime));
       const refundAmount = BN(netflowRate)
-        .times(BN(crudTimestamp).plus(latestStoreFeeParams.reserveTime).minus(curTime))
+        .times(refundTime)
         .dividedBy(10 ** 18)
         .abs()
         .toString();
       setRefundAmount(refundAmount);
-    }, []);
+    }, [crudTimestamp, objectInfo.CreateAt]);
 
     const isFolderEmpty = async (objectName: string) => {
       const _query = new URLSearchParams();
@@ -133,11 +118,16 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       const [res, error] = await getListObjects(params);
       if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
       const { GfSpListObjectsByBucketNameResponse } = res.body!;
+      // 更新文件夹objectInfo
+      dispatch(
+        setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
+      );
       return (
         GfSpListObjectsByBucketNameResponse.KeyCount === '1' &&
         GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName
       );
     };
+
     useAsyncEffect(async () => {
       if (!isFolder) return;
       setLoading(true);
@@ -146,7 +136,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       if (!folderEmpty) {
         dispatch(
           setStatusDetail({
-            icon: FOLDER_NOT_EMPTY_ICON,
+            icon: 'empty-bucket',
             title: FOLDER_TITLE_NOT_EMPTY,
             desc: '',
             buttonText: BUTTON_GOT_IT,
@@ -162,18 +152,6 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       dispatch(setStatusDetail({} as TStatusDetail));
     }, [isFolder]);
 
-    useEffect(() => {
-      if (!simulateGasFee || Number(simulateGasFee) < 0) {
-        setButtonDisabled(false);
-        return;
-      }
-      const currentBalance = Number(availableBalance);
-      if (currentBalance >= Number(simulateGasFee)) {
-        setButtonDisabled(false);
-        return;
-      }
-      setButtonDisabled(true);
-    }, [simulateGasFee, availableBalance]);
     const filePath = objectName.split('/');
 
     const showName = filePath[filePath.length - 1];
@@ -184,7 +162,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const setFailedStatusModal = (description: string, error: any) => {
       dispatch(
         setStatusDetail({
-          icon: FILE_FAILED_URL,
+          icon: 'status-failed',
           title: FILE_TITLE_DELETE_FAILED,
           desc: description,
           buttonText: BUTTON_GOT_IT,
@@ -224,59 +202,31 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
             </Text>
           )}
           <Text className="ui-modal-desc">{description}</Text>
-          <Flex
-            bg={'bg.secondary'}
-            padding={'16px'}
-            width={'100%'}
-            flexDirection={'column'}
-            borderRadius="12px"
-            gap={'4px'}
-          >
-            {renderFee(
-              'Prepaid fee refund',
-              refundAmount || '',
-              exchangeRate,
-              <Tips
-                iconSize={'14px'}
-                containerWidth={'308px'}
-                tips={
-                  <Box width={'308px'} p="8px 12px">
-                    <Box
-                      color={'readable.secondary'}
-                      fontSize="14px"
-                      lineHeight={'150%'}
-                      wordBreak={'break-word'}
-                    >
-                      We will unlock the storage fee after you delete the file.
-                    </Box>
-                  </Box>
-                }
-              />,
-            )}
-            {renderFee('Settlement fee', settlementFee + '', exchangeRate, loading)}
-            {renderFee('Gas Fee', simulateGasFee + '', exchangeRate, loading)}
-          </Flex>
-          <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
-            <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-              {renderInsufficientBalance(simulateGasFee + '', '0', availableBalance || '0', {
-                gaShowName: 'dc.file.delete_confirm.depost.show',
-                gaClickName: 'dc.file.delete_confirm.transferin.click',
-              })}
-              {renderPaymentInsufficientBalance({
-                gasFee: simulateGasFee,
-                refundFee: refundAmount || '',
-                settlementFee,
-                storeFee: '0',
-                payGasFeeBalance: bankBalance,
-                payStoreFeeBalance: accountDetail.staticBalance,
-                ownerAccount: loginAccount,
-                payAccount: bucket.PaymentAddress,
-              })}
-            </Text>
-            <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-              Available balance: {renderBalanceNumber(availableBalance || '0')}
-            </Text>
-          </Flex>
+          <TotalFees
+            expandable={false}
+            refund={true}
+            gasFee={simulateGasFee}
+            prepaidFee={refundAmount || ''}
+            settlementFee={settlementFee}
+            payStoreFeeAddress={bucket.PaymentAddress}
+          />
+          {!balanceEnough && (
+            <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
+              <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
+                <PaymentInsufficientBalance
+                  gasFee={simulateGasFee}
+                  storeFee={'0'}
+                  refundFee={refundAmount || ''}
+                  settlementFee={settlementFee}
+                  payGasFeeBalance={bankBalance}
+                  payStoreFeeBalance={accountDetail.staticBalance}
+                  ownerAccount={loginAccount}
+                  payAccount={bucket.PaymentAddress}
+                  onValidate={setBalanceEnough}
+                />
+              </Text>
+            </Flex>
+          )}
         </ModalBody>
 
         <ModalFooter mt={32} flexDirection={'row'}>
@@ -290,6 +240,8 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
             Cancel
           </DCButton>
           <DCButton
+            variant={'scene'}
+            colorScheme={'danger'}
             size="lg"
             gaClickName="dc.file.delete_confirm.delete.click"
             flex={1}
@@ -299,11 +251,9 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                 onClose();
                 dispatch(
                   setStatusDetail({
-                    icon: FILE_DELETE_GIF,
-                    title: isFolder ? FOLDER_TITLE_DELETING : FILE_TITLE_DELETING,
-                    desc: FILE_STATUS_DELETING,
-                    buttonText: '',
-                    errorText: '',
+                    icon: Animates.delete,
+                    title: isFolder ? 'Deleting Folder' : 'Deleting File',
+                    desc: WALLET_CONFIRM,
                   }),
                 );
                 const client = await getClient();
@@ -365,7 +315,9 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
               }
             }}
             isLoading={loading || refundAmount === null || loadingSettlementFee}
-            isDisabled={buttonDisabled || refundAmount === null || loadingSettlementFee}
+            isDisabled={
+              buttonDisabled || refundAmount === null || loadingSettlementFee || !balanceEnough
+            }
           >
             Delete
           </DCButton>

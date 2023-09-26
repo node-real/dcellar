@@ -1,18 +1,7 @@
 import * as React from 'react';
 import { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import {
-  Box,
-  Flex,
-  Grid,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  rgba,
-  Text,
-  toast,
-} from '@totejs/uikit';
+import { Box, Flex, Grid, MenuButton, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { deleteObjectPolicy, putObjectPolicies } from '@/facade/object';
@@ -26,13 +15,7 @@ import {
   TStatusDetail,
 } from '@/store/slices/object';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import {
-  BUTTON_GOT_IT,
-  FILE_ACCESS,
-  FILE_ACCESS_URL,
-  FILE_FAILED_URL,
-  FILE_STATUS_ACCESS,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, FILE_ACCESS, WALLET_CONFIRM } from '@/modules/object/constant';
 import {
   MsgDeletePolicyTypeUrl,
   MsgPutPolicyTypeUrl,
@@ -40,22 +23,28 @@ import {
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
 import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
-import GroupIcon from '@/public/images/icons/group_icon.svg';
-import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
 import { without } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { Loading } from '@/components/common/Loading';
 import { trimAddress } from '@/utils/string';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { Avatar } from '@/components/Avatar';
 import { ADDRESS_RE } from '@/utils/constant';
+import { Animates } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
+
+const menus: MenuOption[] = [
+  { label: 'Viewer', value: 'viewer' },
+  { label: 'Remove', value: 'remove', variant: 'danger' },
+];
 
 interface ViewerListProps {
   selectObjectInfo: ObjectMeta;
@@ -135,7 +124,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         dispatch(
           setStatusDetail({
             title: FILE_ACCESS,
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             buttonText: BUTTON_GOT_IT,
             buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
             errorText: 'Error message: ' + type,
@@ -185,7 +174,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     if (payloads.length) {
       setLoading(true);
       dispatch(
-        setStatusDetail({ title: FILE_ACCESS, icon: FILE_ACCESS_URL, desc: FILE_STATUS_ACCESS }),
+        setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
       );
       const [res, error, ids] = await putObjectPolicies(
         connector!,
@@ -211,7 +200,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const onRemoveMember = async () => {
     setLoading(true);
     dispatch(
-      setStatusDetail({ title: FILE_ACCESS, icon: FILE_ACCESS_URL, desc: FILE_STATUS_ACCESS }),
+      setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
     );
     const [res, error] = await deleteObjectPolicy(
       connector!,
@@ -253,7 +242,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
           cancelButton: 'dc.object.add_object_policy_confirm.cancel.click',
           confirmButton: 'dc.object.add_object_policy_confirm.delete.click',
         }}
-        title="Confirm Action"
+        title="Allow Access"
         fee={putFee}
         onConfirm={onAddMember}
         onClose={() => {
@@ -262,7 +251,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         description="Confirm this transaction in your wallet."
       />
       <ConfirmModal
-        confirmText="Confirm"
+        confirmText="Remove"
         isOpen={deleteModal}
         ga={{
           gaClickCloseName: 'dc.object.remove_object_policy_confirm.modal.show',
@@ -272,12 +261,13 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
           cancelButton: 'dc.object.remove_object_policy_confirm.cancel.click',
           confirmButton: 'dc.object.remove_object_policy_confirm.delete.click',
         }}
-        title="Confirm Action"
+        title="Remove Permission"
         fee={deleteFee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
         }}
+        variant={'scene'}
         description="Confirm this transaction in your wallet."
       />
       <FormItem>
@@ -350,7 +340,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                             placeItems="center"
                             visibility={selected ? 'visible' : 'hidden'}
                           >
-                            <TickIcon color="#00BA34" />
+                            <IconFont type="colored-check" w={16} />
                           </Grid>
                           <Box flex={1} minW={0}>
                             <Flex>
@@ -381,7 +371,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                             </Flex>
                           </Box>
                           <Grid mx={8}>
-                            <GroupIcon />
+                            <IconFont type="group-thumbnail" w={20} />
                           </Grid>
                         </Flex>
                       );
@@ -392,13 +382,13 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
             }
           />
           <DCButton
+            size={'lg'}
             onClick={() => {
               _onChange(values);
               if (!values.length || loading || invalid) return;
               setConfirmModal(true);
             }}
             w={90}
-            h={48}
           >
             Add
           </DCButton>
@@ -428,37 +418,24 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                       {owner ? (
                         'Owner'
                       ) : (
-                        <Menu placement="bottom-start">
+                        <DCMenu
+                          value="viewer"
+                          selectIcon
+                          placement="bottom-start"
+                          options={menus}
+                          onMenuSelect={({ value }) => {
+                            if (value !== 'remove') return;
+                            setRemoveAccount(p.PrincipalValue);
+                            setDeleteModal(true);
+                          }}
+                        >
                           {({ isOpen }) => (
-                            <>
-                              <StyledMenuButton as={Text}>
-                                Viewer
-                                {isOpen ? (
-                                  <MenuOpenIcon boxSize={16} color="#76808F" />
-                                ) : (
-                                  <MenuCloseIcon boxSize={16} color="#76808F" />
-                                )}
-                              </StyledMenuButton>
-                              <StyledMenuList>
-                                <MenuItem bg={rgba('#00BA34', 0.1)} _hover={{ bg: undefined }}>
-                                  <Tick />
-                                  Viewer
-                                </MenuItem>
-                                <MenuItem
-                                  _hover={{
-                                    bg: 'bg.bottom',
-                                  }}
-                                  onClick={() => {
-                                    setRemoveAccount(p.PrincipalValue);
-                                    setDeleteModal(true);
-                                  }}
-                                >
-                                  <Text color="#EE3911">Remove</Text>
-                                </MenuItem>
-                              </StyledMenuList>
-                            </>
+                            <StyledMenuButton as={Text}>
+                              Viewer
+                              <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
+                            </StyledMenuButton>
                           )}
-                        </Menu>
+                        </DCMenu>
                       )}
                     </Flex>
                   );
@@ -503,8 +480,8 @@ const ScrollContent = styled.div`
     border-radius: 4px
 `;
 
-// todo refactor
 const StyledMenuButton = styled(MenuButton)`
+  display: inline-flex;
   cursor: pointer;
   padding: 2px 0 2px 4px;
   border-radius: 2px;
@@ -512,26 +489,4 @@ const StyledMenuButton = styled(MenuButton)`
   :hover {
     background: #f5f5f5;
   }
-
-  svg {
-    pointer-events: none;
-  }
-`;
-
-const StyledMenuList = styled(MenuList)`
-  border-radius: 4px;
-  border: 1px solid #e6e8ea;
-  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
-  margin-top: -6px;
-
-  .ui-menu-item {
-    padding-left: 32px;
-    font-weight: 400;
-  }
-`;
-
-const Tick = styled(TickIcon)`
-  color: #00ba34;
-  position: absolute;
-  left: 8px;
 `;

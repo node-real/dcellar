@@ -243,10 +243,6 @@ const TD = styled(Box, transientOptions)<{ $dot?: number }>`
   font-size: 14px;
   font-weight: 400;
 
-  &:first-of-type {
-    padding-left: 24px;
-  }
-
   ${(props) =>
     props.$dot &&
     css`

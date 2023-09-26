@@ -29,7 +29,7 @@ export function ActionButton(props: ActionButtonProps) {
           transitionDuration="normal"
           _hover={{
             bgColor: 'rgba(0, 186, 52, 0.2)',
-            color: 'readable.brand6',
+            color: 'brand.brand6',
           }}
           onClick={onBeforeClick}
           {...restProps}

@@ -23,7 +23,6 @@ import {
   WalletOperationInfos,
 } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
-import BNBIcon from '@/public/images/icons/bnb.svg';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { useAppSelector } from '@/store';
@@ -32,6 +31,7 @@ import { TxType } from '../Send';
 import { trimFloatZero } from '@/utils/string';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
+import { IconFont } from '@/components/IconFont';
 
 type AmountProps = {
   disabled: boolean;
@@ -131,7 +131,6 @@ export const Amount = ({
         <FormLabel
           fontWeight={500}
           fontSize="14px"
-          lineHeight="150%"
           htmlFor="amount"
           mb={'8px'}
           display="inline-block"
@@ -163,9 +162,9 @@ export const Amount = ({
             placeholder="0.0"
             disabled={!isRight || disabled}
             fontSize="18px"
-            fontWeight={700}
+            fontWeight="700 !important"
             step={MIN_AMOUNT}
-            height="52px"
+            height="44px"
             onKeyPress={(e) => {
               if (e.key === 'e' || e.key === '-' || e.key === '+') {
                 e.preventDefault();
@@ -220,8 +219,8 @@ export const Amount = ({
           />
 
           <InputRightElement width={'80px'} zIndex="0">
-            <BNBIcon />
-            <Text fontSize={'16px'} fontWeight="600" ml="8px" mr={'12px'}>
+            <IconFont type={'bnb'} color="#F0B90B" w={24} />
+            <Text fontSize={'14px'} fontWeight="600" ml="4px" mr={'12px'}>
               BNB
             </Text>
           </InputRightElement>
@@ -231,7 +230,7 @@ export const Amount = ({
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
         {!isSendPage && (
-          <FormHelperText textAlign={'right'} color="#76808F">
+          <FormHelperText mt={8} textAlign={'right'} color="#76808F">
             <Balance />
           </FormHelperText>
         )}

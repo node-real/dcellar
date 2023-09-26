@@ -11,6 +11,7 @@ import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { useAppSelector } from '@/store';
 import { InternalRoutePaths } from '@/utils/constant';
+import { IconFont } from '@/components/IconFont';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -70,16 +71,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
         />
         <Content>
           {isNoBucket ? (
-            <Image
-              alt="Oops, something went wrong"
-              src={`${assetPrefix}/images/common/no_bucket.png`}
-              w={120}
-              h={120}
-              m="auto"
-              sx={{
-                aspectRatio: '120/120',
-              }}
-            />
+            <IconFont type={'status-failed'} w={120} />
           ) : (
             <Image
               alt="Oops, something went wrong"

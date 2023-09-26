@@ -6,19 +6,13 @@ import { setRemoveGroup, setupGroups } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  FILE_DELETE_GIF,
-  FILE_FAILED_URL,
-  GROUP_DELETE,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { toast } from '@totejs/uikit';
 import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { trimLongStr } from '@/utils/string';
 import { deleteGroup } from '@/facade/group';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { Animates } from '@/components/AnimatePng';
 
 interface DeleteGroupProps {}
 
@@ -40,11 +34,10 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
         dispatch(
           setStatusDetail({
             title: 'Delete Failed',
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           }),
         );
     }
@@ -54,7 +47,9 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
       operator: loginAccount,
       groupName: removeGroup.groupName,
     };
-    dispatch(setStatusDetail({ icon: FILE_DELETE_GIF, title: GROUP_DELETE, desc: WALLET_CONFIRM }));
+    dispatch(
+      setStatusDetail({ icon: Animates.group, title: 'GROUP_DELETE', desc: WALLET_CONFIRM }),
+    );
     const [txRes, txError] = await deleteGroup(payload, connector!);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
     dispatch(setStatusDetail({} as TStatusDetail));
@@ -88,6 +83,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
       onClose={() => {
         dispatch(setRemoveGroup({} as GroupInfo));
       }}
+      variant={'scene'}
       description={description}
     />
   );

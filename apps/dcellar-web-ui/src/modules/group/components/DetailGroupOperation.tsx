@@ -3,14 +3,15 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setGroupOperation, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect } from 'ahooks';
-import { Box, Button, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
-import DetailIcon from '@/components/common/SvgIcon/GroupDetail.svg';
+import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
 import { ethers } from 'ethers';
 import { Avatar } from '@/components/Avatar';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
 
 interface DetailGroupOperationProps {
   selectGroup: GroupInfo;
@@ -41,9 +42,9 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
     <>
       <QDrawerHeader>Group Detail</QDrawerHeader>
       <QDrawerBody>
-        <Flex mt={8} mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
+        <Flex mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
           <Flex w="100%" overflow="hidden">
-            <DetailIcon />
+            <IconFont w={48} type={'detail-group'} />
             <Flex ml={24} flex={1} flexDirection={'column'}>
               <Text
                 fontSize={18}
@@ -133,6 +134,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
               </LoadingAdaptor>
             </Flex>
             <ManageMembers
+              variant={'ghost'}
               onClick={() =>
                 dispatch(setGroupOperation({ level: 1, operation: [selectGroup.id, 'add'] }))
               }
@@ -146,19 +148,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
   );
 });
 
-const ManageMembers = styled(Button)`
-  padding: 8px 12px;
+const ManageMembers = styled(DCButton)`
   font-size: 12px;
-  font-weight: 500;
-  border-radius: 4px;
-  border: 1px solid #e6e8ea;
-  background: #fff;
-  color: #474d57;
   height: 33px;
-
-  :hover {
-    background: #1e2026;
-    color: #ffffff;
-    border-color: #1e2026;
-  }
 `;

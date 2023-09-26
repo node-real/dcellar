@@ -1,8 +1,6 @@
 import { DCModal, DCModalProps } from '@/components/common/DCModal';
 import { WalletItem } from '@/components/ConnectWallet/WalletItem';
 import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
-import MetaMaskIcon from '@/public/images/icons/metamask.svg';
-import TrustWalletIcon from '@/public/images/icons/trust_wallet.svg';
 import { GAClick } from '@/components/common/GATracker';
 import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -11,6 +9,7 @@ import { ConnectorNotFoundError } from 'wagmi';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { useAppSelector } from '@/store';
 import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/utils/constant';
+import { IconFont } from '@/components/IconFont';
 
 export interface WalletConnectModalProps extends DCModalProps {}
 
@@ -113,12 +112,12 @@ function getOptionsByWalletName(walletName: string) {
   switch (walletName) {
     case 'MetaMask':
       return {
-        icon: <MetaMaskIcon />,
+        icon: <IconFont w={52} type={'metamask'} />,
         gaClickName: 'dc.walletconnect.modal.metamak.click',
       };
     case 'Trust Wallet':
       return {
-        icon: <TrustWalletIcon />,
+        icon: <IconFont w={52} type={'trustwallet'} />,
         gaClickName: 'dc.walletconnect.modal.trustwallet.click',
       };
     default:

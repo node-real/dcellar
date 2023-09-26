@@ -7,27 +7,22 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { deleteBucket, pollingDeleteBucket, preExecDeleteBucket } from '@/facade/bucket';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { selectAccount } from '@/store/slices/accounts';
 import { useAsyncEffect } from 'ahooks';
 import { getQuotaNetflowRate } from '@/utils/payment';
-import { renderFee } from '@/modules/object/components/CancelObjectOperation';
 import { MsgDeleteBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { setStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  DELETE_ICON_URL,
-  FILE_FAILED_URL,
-  FILE_TITLE_DELETE_FAILED,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { AllBucketInfo, setupBuckets } from '@/store/slices/bucket';
 import { selectBucketSp } from '@/store/slices/sp';
 import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';
-import { PaymentInsufficientBalance, renderBalanceNumber } from '@/modules/object/utils';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { Animates } from '@/components/AnimatePng';
+import { TotalFees } from '@/modules/object/components/TotalFees';
 
 interface DeleteBucketOperationProps {
   selectedBucketInfo: AllBucketInfo;
@@ -38,8 +33,6 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
   function DeleteBucketOperation({ selectedBucketInfo: bucket, onClose = () => {} }) {
     const dispatch = useAppDispatch();
     const [isGasLoading, setIsGasLoading] = useState(false);
-    const { price: bnbPrice } = useAppSelector((root) => root.global.bnb);
-    const exchangeRate = +bnbPrice ?? 0;
     // pending, fetching, failed, notEmpty
     const { connector } = useAccount();
     const { loginAccount } = useAppSelector((root) => root.persist);
@@ -53,7 +46,6 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
     const storeFeeParams = useAppSelector(selectStoreFeeParams);
     const chargeQuota = bucket.ChargedReadQuota;
     const { gasFee } = gasObjects?.[MsgDeleteBucketTypeUrl] || {};
-    const availableBalance = useAppSelector(selectAvailableBalance(PaymentAddress));
     const [loading, setLoading] = useState(false);
     const { setOpenAuthModal } = useOffChainAuth();
     const bucketName = bucket.BucketName;
@@ -74,7 +66,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
           dispatch(
             setStatusDetail({
               title: FILE_TITLE_DELETE_FAILED,
-              icon: FILE_FAILED_URL,
+              icon: 'status-failed',
               buttonText: BUTTON_GOT_IT,
               errorText: 'Error message: ' + error,
             }),
@@ -117,10 +109,11 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
       dispatch(
         setStatusDetail({
           title: 'Deleting Bucket',
-          icon: DELETE_ICON_URL,
+          icon: Animates.delete,
           desc: WALLET_CONFIRM,
         }),
       );
+      onClose();
       setLoading(true);
       const [txRes, error] = await deleteBucket({
         address: loginAccount,
@@ -137,8 +130,8 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         endpoint: primarySp.endpoint,
       });
       setLoading(false);
+      dispatch(setStatusDetail({} as TStatusDetail));
       dispatch(setupBuckets(loginAccount));
-      onClose();
       toast.success({
         description: `Bucket deleted successfully!`,
       });
@@ -154,36 +147,31 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
           <Box className="ui-modal-desc">
             {`Are you sure to delete this bucket "${bucketName}"?`}
           </Box>
-          <Flex
-            bg={'bg.secondary'}
-            padding={'16px'}
-            width={'100%'}
-            flexDirection={'column'}
-            borderRadius="12px"
-            gap={'4px'}
-          >
-            {renderFee('Prepaid fee refund', quotaFee || '', exchangeRate, loading)}
-            {renderFee('Settlement fee', !chargeQuota ? '0' : settlementFee, exchangeRate, loading)}
-            {renderFee('Gas Fee', gasFee + '', exchangeRate, loading)}
-          </Flex>
-          <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
-            <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-              <PaymentInsufficientBalance
-                gasFee={gasFee}
-                storeFee={'0'}
-                refundFee={quotaFee}
-                settlementFee={!chargeQuota ? '0' : settlementFee}
-                payGasFeeBalance={bankBalance}
-                payStoreFeeBalance={accountDetail.staticBalance}
-                ownerAccount={loginAccount}
-                payAccount={PaymentAddress}
-                onValidate={setBalanceEnough}
-              />
-            </Text>
-            <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-              Available balance: {renderBalanceNumber(availableBalance || '0')}
-            </Text>
-          </Flex>
+          <TotalFees
+            expandable={false}
+            refund={true}
+            gasFee={gasFee}
+            prepaidFee={quotaFee}
+            settlementFee={settlementFee}
+            payStoreFeeAddress={PaymentAddress}
+          />
+          {!balanceEnough && (
+            <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
+              <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
+                <PaymentInsufficientBalance
+                  gasFee={gasFee}
+                  storeFee={'0'}
+                  refundFee={quotaFee}
+                  settlementFee={!chargeQuota ? '0' : settlementFee}
+                  payGasFeeBalance={bankBalance}
+                  payStoreFeeBalance={accountDetail.staticBalance}
+                  ownerAccount={loginAccount}
+                  payAccount={PaymentAddress}
+                  onValidate={setBalanceEnough}
+                />
+              </Text>
+            </Flex>
+          )}
         </ModalBody>
         <ModalFooter>
           <DCButton
@@ -196,6 +184,8 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
             Cancel
           </DCButton>
           <DCButton
+            variant={'scene'}
+            colorScheme={'danger'}
             disabled={isGasLoading || loading || !balanceEnough}
             size={'lg'}
             width={'100%'}

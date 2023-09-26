@@ -25,10 +25,10 @@ export function WalletItem(props: WalletItemProps) {
       h={68}
       borderRadius={8}
       borderWidth={2}
-      borderColor={isActive ? 'readable.brand6' : 'transparent'}
+      borderColor={isActive ? 'brand.brand6' : 'transparent'}
       cursor={isDisabled ? 'not-allowed' : 'pointer'}
       _hover={{
-        borderColor: isDisabled && !isActive ? 'transparent' : 'readable.brand6',
+        borderColor: isDisabled && !isActive ? 'transparent' : 'brand.brand6',
       }}
       bg="bg.bottom"
       position="relative"

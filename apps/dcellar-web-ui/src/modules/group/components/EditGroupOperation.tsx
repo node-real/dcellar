@@ -20,19 +20,13 @@ import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { updateGroupExtra } from '@/facade/group';
 import { useAccount } from 'wagmi';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  GROUP_ICON,
-  GROUP_UPDATE_EXTRA,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useMount } from 'ahooks';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { Animates } from '@/components/AnimatePng';
 
 interface EditGroupOperationProps {
   selectGroup: GroupInfo;
@@ -79,11 +73,10 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
         dispatch(
           setStatusDetail({
             title: 'Update Failed',
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           }),
         );
     }
@@ -110,7 +103,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
       return;
     }
     dispatch(
-      setStatusDetail({ icon: GROUP_ICON, title: GROUP_UPDATE_EXTRA, desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const [txRes, txError] = await updateGroupExtra(payload, connector!);
     setLoading(false);
@@ -127,11 +120,11 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
 
   return (
     <>
-      <QDrawerHeader flexDirection="column">Edit Description</QDrawerHeader>
+      <QDrawerHeader>Edit Description</QDrawerHeader>
       <QDrawerBody>
         <FormControl mb={16} isInvalid={!!error.name}>
           <FormLabel>
-            <Text fontSize={14} fontWeight={500} lineHeight="17px" mb={8}>
+            <Text fontSize={14} fontWeight={500} mb={8}>
               Name
             </Text>
             <InputItem
@@ -145,7 +138,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
         </FormControl>
         <FormControl mb={16} isInvalid={!!error.desc}>
           <FormLabel>
-            <Text fontSize={14} fontWeight={500} lineHeight="17px" mb={8}>
+            <Text fontSize={14} fontWeight={500} mb={8}>
               Description
             </Text>
             <TextareaItem

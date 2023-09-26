@@ -1,12 +1,12 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Grid, Text } from '@totejs/uikit';
 import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
-import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { MenuOption } from '@/components/common/DCMenuList';
+import Link from 'next/link';
 
 interface FromAccountSelectorProps {
   onChange: (value: TAccount) => void;
@@ -16,7 +16,6 @@ interface FromAccountSelectorProps {
 export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromAccountSelector(
   props,
 ) {
-  const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const accountList = useMemo(
@@ -73,25 +72,13 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromA
   );
 
   const Footer = () => (
-    <Flex
-      height={39}
-      borderTop={'1px solid readable.border'}
-      textAlign={'center'}
-      color="readable.brand5"
-      fontSize={14}
-      fontWeight={500}
-      alignItems={'center'}
-      justifyContent={'center'}
-      cursor={'pointer'}
-      _hover={{
-        bgColor: 'bg.bottom',
-      }}
-      onClick={() => {
-        router.push('/accounts');
-      }}
-    >
-      Manage Accounts
-    </Flex>
+    <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
+      <Link href="/accounts" passHref legacyBehavior>
+        <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+          Manage Accounts
+        </Text>
+      </Link>
+    </Grid>
   );
 
   return (

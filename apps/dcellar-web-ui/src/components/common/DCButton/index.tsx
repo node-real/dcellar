@@ -38,9 +38,8 @@ export const DCButton = forwardRef<HTMLButtonElement, DCButtonProps>(function DC
 
   return (
     <GAShow name={gaShowName} data={gaShowData}>
-      <GAClick name={gaClickName} data={gaClickData}>
+      <GAClick name={gaClickName} data={gaClickData} ref={ref}>
         <Button
-          ref={ref}
           size={size}
           variant={variant}
           {...buttonStyle}

@@ -16,21 +16,15 @@ import { setStatusDetail, TStatusDetail, updateObjectVisibility } from '@/store/
 import { updateObjectInfo } from '@/facade/object';
 import { useAccount } from 'wagmi';
 import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
-import {
-  AUTH_EXPIRED,
-  BUTTON_GOT_IT,
-  COPY_SUCCESS_ICON,
-  FILE_ACCESS,
-  FILE_ACCESS_URL,
-  FILE_FAILED_URL,
-  FILE_STATUS_ACCESS,
-} from '@/modules/object/constant';
+import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { getShareLink } from '@/utils/string';
 import { DCButton } from '@/components/common/DCButton';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { last } from 'lodash-es';
+import { Animates } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -61,8 +55,8 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
       default:
         dispatch(
           setStatusDetail({
-            title: FILE_ACCESS,
-            icon: FILE_FAILED_URL,
+            title: 'Updating Access',
+            icon: 'status-failed',
             buttonText: BUTTON_GOT_IT,
             buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
             errorText: 'Error message: ' + msg,
@@ -82,11 +76,12 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
 
     dispatch(
       setStatusDetail({
-        icon: FILE_ACCESS_URL,
-        title: FILE_ACCESS,
-        desc: FILE_STATUS_ACCESS,
+        icon: Animates.access,
+        title: 'Updating Access',
+        desc: WALLET_CONFIRM,
       }),
     );
+
     const [_, error] = await updateObjectInfo(payload, connector!);
 
     if (error) return handleError(error);
@@ -128,7 +123,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
         </Text>
       </QDrawerHeader>
       <QDrawerBody>
-        <Box mt={8} mb={24}>
+        <Box mb={24}>
           <AccessItem value={objectInfo.Visibility} onChange={onAccessChange} />
         </Box>
         <Box mb={24}>
@@ -139,7 +134,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
         <DCButton size="lg" width={'100%'} onClick={onCopy}>
           {hasCopied ? (
             <>
-              <Image alt="copy" src={COPY_SUCCESS_ICON} w="20px" mr={4} color={'white'} />
+              <IconFont type={'colored-success2'} w={20} />
               <Text fontWeight={500}>Copied</Text>
             </>
           ) : (

@@ -1,7 +1,7 @@
 import { useAppSelector } from '@/store';
-import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import React, { useMemo } from 'react';
-import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { trimAddress, trimFloatZero } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
@@ -18,6 +18,7 @@ import { formatFullTime, getMillisecond } from '@/utils/time';
 import { BN } from '@/utils/math';
 import { InternalRoutePaths } from '@/utils/constant';
 import { currencyFormatter } from '@/utils/formatter';
+import { IconFont } from '@/components/IconFont';
 
 type Props = {
   loading: boolean;
@@ -151,18 +152,10 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
 
   return (
     <>
-      <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
-        {title}
-      </QDrawerHeader>
+      <QDrawerHeader>{title}</QDrawerHeader>
       <QDrawerBody>
         <Flex alignItems={'flex-start'}>
-          <Image
-            alt="account icon"
-            src={`${assetPrefix}/images/accounts/filled-account.svg`}
-            width={48}
-            height={48}
-            marginRight={24}
-          />
+          <IconFont type={'detail-account'} w={48} mr={24} />
           <Box>
             <Flex alignItems={'center'}>
               <Text fontSize={14} fontWeight={500}>
@@ -225,7 +218,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
         <Divider marginY={24} />
         <Flex gap={8} flexDirection={'column'}>
           {detailItems.map((item, index) => (
-            <Flex justifyContent={'space-between'} key={index}>
+            <Flex justifyContent={'space-between'} key={index} h={24}>
               <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
                 {item.label}
               </Text>

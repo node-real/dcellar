@@ -189,9 +189,15 @@ export const objectSlice = createSlice({
     },
     setObjectList(
       state,
-      { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>,
+      {
+        payload,
+      }: PayloadAction<{
+        path: string;
+        list: GfSPListObjectsByBucketNameResponse;
+        infoOnly?: boolean;
+      }>,
     ) {
-      const { path, list } = payload;
+      const { path, list, infoOnly = false } = payload;
       const [bucketName] = path.split('/');
       // keep order
       const folders = list?.CommonPrefixes.reverse()
@@ -252,6 +258,7 @@ export const objectSlice = createSlice({
         });
 
       // TODO
+      if (infoOnly) return;
       state.objects[path] = folders.concat(objects as any[]);
     },
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {

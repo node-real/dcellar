@@ -2,13 +2,12 @@ import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditDisablePaymentAccount } from '@/store/slices/accounts';
 import React, { memo } from 'react';
-import { Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import { assetPrefix } from '@/base/env';
+import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAccount } from 'wagmi';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { SET_ACCOUNT_NON_REFUNDABLE_ICON } from '@/modules/object/constant';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { IconFont } from '@/components/IconFont';
 
 interface NonRefundableModal {}
 
@@ -27,7 +26,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
     onClose();
     dispatch(
       setStatusDetail({
-        icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
+        icon: 'account-failed',
         title: 'Set as Non-Refundable',
         desc: 'Confirm this transaction in your wallet.',
       }),
@@ -46,7 +45,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
       return dispatch(
         setStatusDetail({
           title: 'Set Failed',
-          icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
+          icon: 'account-failed',
           desc: msg,
         }),
       );
@@ -58,12 +57,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
     <DCModal isOpen={isOpen} onClose={onClose}>
       <ModalCloseButton />
       <ModalBody display={'flex'} flexDirection={'column'} alignItems={'center'}>
-        <Image
-          alt="disable account icon"
-          src={`${assetPrefix}/images/accounts/disable-account.svg`}
-          width="120"
-          height="120"
-        />
+        <IconFont type={'account-failed'} w={120} />
         <Text mb={16} fontSize={24} fontWeight={600}>
           Set as Non-Refundable
         </Text>
@@ -82,6 +76,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
       </ModalBody>
       <ModalFooter margin={0} flexDirection={'row'}>
         <DCButton
+          size={'lg'}
           variant="ghost"
           flex={1}
           onClick={onClose}
@@ -90,11 +85,10 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
           Cancel
         </DCButton>
         <DCButton
+          size={'lg'}
           gaClickName="dc.payment_account.delete_confirm.delete.click"
-          variant="scene"
           flex={1}
           onClick={onContinueClick}
-          colorScheme="danger"
         >
           Continue
         </DCButton>

@@ -1,8 +1,8 @@
 import { createContext, useCallback, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { Image, ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
+import { ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
-import { GREENFIELD_CHAIN_ID, assetPrefix } from '@/base/env';
+import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
 import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
@@ -15,6 +15,7 @@ import { useUpdateEffect } from 'ahooks';
 import { setAuthModalOpen } from '@/store/slices/global';
 import { getDomain } from '@/utils/bom';
 import { getClient } from '@/facade';
+import { IconFont } from '@/components/IconFont';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
@@ -119,11 +120,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       {children}
       <DCModal isOpen={isOpen} onClose={() => {}} gaShowName="dc.off_chain_auth.auth_modal.0.show">
         <ModalBody mt={0} textAlign={'center'}>
-          <Image
-            alt="auth failed icon"
-            src={`${assetPrefix}/images/icons/error_auth.svg`}
-            margin={'0 auto 16px'}
-          />
+          <IconFont type={'error-auth'} w={120} margin={'0 auto 16px'} />
           <Text fontSize={'24px'} lineHeight={'150%'} fontWeight={600} marginBottom={'16px'}>
             Authentication Expired
           </Text>
@@ -131,6 +128,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
             Please connect your wallet to authenticate again to continue.
           </Text>
           <DCButton
+            size="lg"
             width={'100%'}
             marginTop={'24px'}
             isLoading={isAuthPending}

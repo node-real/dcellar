@@ -22,38 +22,27 @@ export const TaskManagement = () => {
   const isUploading = useAppSelector(selectHasUploadingTask);
 
   const renderButton = () => {
-    if (isUploading) {
-      return (
-        <DCButton
-          marginRight={'12px'}
-          variant="ghost"
-          onClick={() => onToggle()}
-          alignItems={'center'}
-          justifyContent={'center'}
-        >
-          <Loading />
-          <Text fontWeight={500} fontSize={'14px'} marginLeft={'8px'}>
-            Uploading...
-          </Text>
-        </DCButton>
-      );
-    }
     return (
       <Box cursor={'pointer'} alignSelf={'center'} onClick={() => onToggle()}>
         <DCButton
           variant="ghost"
-          fontWeight={500}
           border="none"
-          fontSize={14}
-          paddingX={8}
-          borderRadius={4}
           h={44}
           color="readable.secondary"
           _hover={{
             bg: 'bg.bottom',
           }}
+          fontSize={'14px'}
+          px={8}
         >
-          Task Management
+          {isUploading ? (
+            <>
+              <Loading strokeWidth={2} iconSize={16} />
+              <Text>Uploading...</Text>
+            </>
+          ) : (
+            <>Task Management</>
+          )}
         </DCButton>
       </Box>
     );

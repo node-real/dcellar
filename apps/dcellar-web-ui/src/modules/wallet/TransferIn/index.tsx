@@ -190,7 +190,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   return (
     <Container>
       <Head />
-      <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
+      <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={BSC_CHAIN_ID} />
         <GAClick name="dc.wallet.transferin.exchange_btn.click">
           <SwapIcon onClick={onChangeTransfer} />
@@ -211,7 +211,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
         />
         {isShowFee() ? (
           <>
-            <Divider margin={'12px 0'} />
+            <Divider margin={'24px 0'} />
             <Fee
               isGasLoading={isGasLoading}
               feeData={feeData}

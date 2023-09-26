@@ -105,7 +105,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
   return (
     <Container>
       <Head />
-      <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
+      <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={GREENFIELD_CHAIN_ID} />
         <GAClick name="dc.wallet.transferout.exchange_btn.click">
           <SwapIcon onClick={onChangeTransfer} />
@@ -127,7 +127,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
         </FormControl>
         {isShowFee() ? (
           <>
-            <Divider margin={'12px 0'} />
+            <Divider margin={'24px 0'} />
             <Fee
               isGasLoading={isLoading}
               feeData={feeData}

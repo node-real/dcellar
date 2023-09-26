@@ -20,17 +20,11 @@ import { MsgCreateGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { createGroup } from '@/facade/group';
 import { useAccount } from 'wagmi';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  GROUP_CREATE,
-  GROUP_ICON,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { Animates } from '@/components/AnimatePng';
 
 interface CreateGroupOperationProps {
   onClose?: () => void;
@@ -86,11 +80,10 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
         dispatch(
           setStatusDetail({
             title: 'Create Failed',
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           }),
         );
     }
@@ -110,7 +103,9 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
       extra: form.desc,
       members: [loginAccount],
     };
-    dispatch(setStatusDetail({ icon: GROUP_ICON, title: GROUP_CREATE, desc: WALLET_CONFIRM }));
+    dispatch(
+      setStatusDetail({ icon: Animates.group, title: 'Creating Group', desc: WALLET_CONFIRM }),
+    );
     const [txRes, txError] = await createGroup(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
@@ -124,14 +119,14 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     <>
       <QDrawerHeader flexDirection="column">
         Create a Group
-        <Text fontSize={14} lineHeight="17px" fontWeight={400} color="#76808F">
+        <Text className="ui-drawer-sub">
           Groups are collections of accounts that share the same permissions.
         </Text>
       </QDrawerHeader>
       <QDrawerBody>
         <FormControl mb={16} isInvalid={!!error.name}>
           <FormLabel>
-            <Text fontSize={14} fontWeight={500} lineHeight="17px" mb={8}>
+            <Text fontSize={14} fontWeight={500} mb={8}>
               Name
             </Text>
             <InputItem
@@ -151,7 +146,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
         </FormControl>
         <FormControl mb={16} isInvalid={!!error.desc}>
           <FormLabel>
-            <Text fontSize={14} fontWeight={500} lineHeight="17px" mb={8}>
+            <Text fontSize={14} fontWeight={500} mb={8}>
               Description
             </Text>
             <TextareaItem

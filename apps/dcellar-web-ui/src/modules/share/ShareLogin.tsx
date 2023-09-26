@@ -1,10 +1,11 @@
 import styled from '@emotion/styled';
-import { Image, Text } from '@totejs/uikit';
+import { Text } from '@totejs/uikit';
 import { assetPrefix } from '@/base/env';
 import { css } from '@emotion/react';
 import { useMount } from 'ahooks';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { reportEvent } from '@/utils/gtag';
+import { IconFont } from '@/components/IconFont';
 
 export const ShareLogin = () => {
   useMount(() => {
@@ -17,7 +18,7 @@ export const ShareLogin = () => {
       <Cube2 />
       <Cube3 />
       <Cube4 />
-      <Image w={242} src={`${assetPrefix}/images/icons/logo.svg`} alt="Dcellar" />
+      <IconFont type={'logo'} w={242} h={45} />
       <Text mt={48} mb={4} fontSize={24} fontWeight={600}>
         Connect wallet to view objects in DCellar.
       </Text>

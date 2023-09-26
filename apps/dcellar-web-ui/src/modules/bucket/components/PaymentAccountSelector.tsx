@@ -109,7 +109,7 @@ function OptionItem(props: MenuOption) {
   const { value, label } = props;
 
   return (
-    <Box pl={24} key={value} display="flex" flexDir="column" alignItems="flex-start" gap={2}>
+    <Box key={value} display="flex" flexDir="column" alignItems="flex-start" gap={2}>
       <Text fontSize={14} color="readable.top.secondary" noOfLines={1}>
         {label}
       </Text>

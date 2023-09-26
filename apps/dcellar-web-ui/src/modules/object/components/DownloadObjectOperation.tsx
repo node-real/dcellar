@@ -16,13 +16,9 @@ import { formatBytes } from '@/utils/formatter';
 
 const renderProp = (key: string, value: string) => {
   return (
-    <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {key}
-      </Text>
-      <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-        {value}
-      </Text>
+    <Flex fontSize={14} alignItems={'center'} justifyContent={'space-between'}>
+      <Text>{key}</Text>
+      <Text>{value}</Text>
     </Flex>
   );
 };
@@ -106,34 +102,26 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
 
   return (
     <>
-      <ModalHeader>Confirm</ModalHeader>
+      <ModalHeader>Confirm Action</ModalHeader>
       <ModalBody>
         <Text className="ui-modal-desc">
           You are going to cost quota. The process cannot be interrupted.
         </Text>
         <Flex
-          bg={'bg.secondary'}
-          padding={'8px 16px'}
-          width={'100%'}
+          bg={'bg.bottom'}
+          padding={'8px 12px'}
           flexDirection={'column'}
-          mb={'32px'}
-          borderRadius="12px"
+          borderRadius="4px"
+          gap={8}
+          color={'readable.tertiary'}
         >
           {renderProp('Required quota', formatBytes(selectObject.PayloadSize))}
-          <Text
-            fontSize={'12px'}
-            lineHeight={'15px'}
-            mt={'4px'}
-            fontWeight={400}
-            textAlign={'right'}
-            width={'100%'}
-            color={'readable.disabled'}
-          >
+          <Text fontSize={'12px'} textAlign={'right'} color={'readable.disabled'}>
             {`Remaining quota: ${transformedRemainingQuota}`}
           </Text>
         </Flex>
       </ModalBody>
-      <ModalFooter margin={0} flexDirection={'column'} gap={0}>
+      <ModalFooter flexDirection={'column'} gap={0}>
         <DCButton
           size="lg"
           gaClickName="dc.file.download_confirm.confirm.click"

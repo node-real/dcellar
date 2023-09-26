@@ -1,7 +1,7 @@
 import { Flex, FlexProps } from '@totejs/uikit';
 import React, { memo } from 'react';
 
-import SwapSvgIcon from '@/public/images/icons/swap.svg';
+import { IconFont } from '@/components/IconFont';
 
 type SwapIconProps = FlexProps & {
   onClick: React.MouseEventHandler<HTMLDivElement>;
@@ -20,14 +20,14 @@ export const SwapIcon = memo<SwapIconProps>(function ({ onClick, ...props }) {
       mt="28px"
       cursor="pointer"
       _hover={{
-        backgroundColor: 'readable.brand6',
+        backgroundColor: 'brand.brand6',
         color: 'white',
         border: 'none',
       }}
       onClick={onClick}
       {...props}
     >
-      <SwapSvgIcon />
+      <IconFont w={16} type={'revert-h'} />
     </Flex>
   );
 });

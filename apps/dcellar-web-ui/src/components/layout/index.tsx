@@ -34,7 +34,6 @@ const LayoutHeader = styled.header`
   max-width: 100%;
   z-index: 1000;
   height: 65px;
-  border-bottom: 1px solid var(--ui-colors-readable-border);
   background: var(--ui-colors-bg-middle);
 `;
 
@@ -61,4 +60,5 @@ const Content = styled.main`
   grid-area: Content;
   background: var(--ui-colors-bg-middle);
   padding: 16px 24px;
+  position: relative;
 `;

@@ -1,9 +1,7 @@
 import React, { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
-import { Box, Button, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import PublicFileIcon from '@/modules/object/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/object/components/PrivateFileIcon';
 import { transientOptions } from '@/utils/css';
 import { setObjectOperation, setupObjectPolicies } from '@/store/slices/object';
 import { CopyButton } from '@/modules/object/components/CopyButton';
@@ -13,6 +11,8 @@ import { useAsyncEffect } from 'ahooks';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { Avatar } from '@/components/Avatar';
+import { DCButton } from '@/components/common/DCButton';
+import { IconFont } from '@/components/IconFont';
 
 interface SharePermissionProps {
   selectObjectInfo: ObjectMeta;
@@ -20,12 +20,12 @@ interface SharePermissionProps {
 
 const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
   [VisibilityType.VISIBILITY_TYPE_PUBLIC_READ]: {
-    icon: <PublicFileIcon fillColor={'#1E2026'} w={16} h={16} />,
+    icon: <IconFont type="public" w={16} />,
     text: 'Public',
     bg: '#E7F3FD',
   },
   [VisibilityType.VISIBILITY_TYPE_PRIVATE]: {
-    icon: <PrivateFileIcon fillColor={'#1E2026'} w={16} h={16} />,
+    icon: <IconFont type="private" w={16} />,
     text: 'Private',
     bg: '#E6E8EA',
   },
@@ -93,6 +93,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
             </Flex>
             <Flex gap={8} flex={1} />
             <ManageAccess
+              variant={'ghost'}
               onClick={() =>
                 dispatch(
                   setObjectOperation({
@@ -117,21 +118,9 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
   );
 });
 
-const ManageAccess = styled(Button)`
-  padding: 8px 12px;
+const ManageAccess = styled(DCButton)`
   font-size: 12px;
-  font-weight: 500;
-  border-radius: 4px;
-  border: 1px solid #e6e8ea;
-  background: #fff;
-  color: #474d57;
   height: 33px;
-
-  :hover {
-    background: #1e2026;
-    color: #ffffff;
-    border-color: #1e2026;
-  }
 `;
 
 const AccessType = styled(Flex, transientOptions)<{ $bg: string }>`

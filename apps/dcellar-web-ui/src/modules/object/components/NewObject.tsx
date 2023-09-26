@@ -1,40 +1,29 @@
 import React, { ChangeEvent, memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import {
-  Button,
-  Flex,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Text,
-  Tooltip,
-  toast,
-} from '@totejs/uikit';
-import UploadIcon from '@/public/images/files/upload_transparency.svg';
+import { Flex, Menu, MenuButton, MenuItem, MenuList, Text, toast, Tooltip } from '@totejs/uikit';
 import {
   ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,
-  SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
   setListRefreshing,
+  setObjectOperation,
   setRestoreCurrent,
   setSelectedRowKeys,
   setupListObjects,
-  setObjectOperation,
+  SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
 import { addToWaitQueue, resetWaitQueue } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { MenuCloseIcon } from '@totejs/icons';
 import { debounce } from 'lodash-es';
 import { getTimestamp } from '@/utils/time';
 import { selectAccount } from '@/store/slices/accounts';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
 import { formatBytes } from '@/utils/formatter';
+
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -231,7 +220,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           </GAClick>
         </div>
       </Tooltip>
-      <Menu>
+      <Menu matchWidth>
         <Tooltip
           placement="top-end"
           content={
@@ -246,54 +235,41 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
           }
         >
-          <MenuButton
-            as={Button}
-            height={'40px'}
-            bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
-            _hover={{ bg: uploadDisabled ? 'readable.tertiary' : 'readable.brand5' }}
-            _disabled={{
-              bg: 'readable.tertiary',
-              cursor: 'default',
-              _hover: { bg: 'readable.tertiary' },
-            }}
-            position="relative"
-            paddingRight={'0'}
-            alignItems="center"
-            borderRadius={'8px'}
-            paddingLeft={'16px'}
-            disabled={uploadDisabled}
-            _expanded={{
-              '.ui-icon': {
-                transform: 'rotate(-180deg)',
-              },
-              '.ui-icon__container': {
-                bgColor: 'readable.brand7',
-              },
-            }}
-          >
-            <UploadIcon color="#fff" w="24px" h="24px" alt="" />{' '}
-            <Text
-              color="readable.white"
-              fontWeight={500}
-              fontSize="16px"
-              lineHeight="20px"
-              marginLeft={'8px'}
+          <div>
+            <MenuButton
+              as={DCButton}
+              position="relative"
+              paddingRight={'0'}
+              disabled={uploadDisabled}
+              _expanded={{
+                '.ui-icon': {
+                  transform: 'rotate(-270deg)',
+                },
+                '.ui-icon__container': {
+                  bgColor: '#009E2C',
+                },
+              }}
             >
+              <IconFont type="upload" w={24} />
               Upload
-            </Text>
-            <Flex
-              className="ui-icon__container"
-              paddingX={'4px'}
-              marginLeft={'8px'}
-              height={'40px'}
-              borderRightRadius={'8px'}
-              alignItems={'center'}
-              bgColor={uploadDisabled ? 'readable.tertiary' : 'readable.brand4'}
-              borderLeft={uploadDisabled ? '1px solid readable.tertiary' : '1px solid #5ED47F'}
-            >
-              <MenuCloseIcon />
-            </Flex>
-          </MenuButton>
+              <Flex
+                className="ui-icon__container"
+                paddingX={'4px'}
+                height={'40px'}
+                borderRightRadius={4}
+                alignItems={'center'}
+                borderLeft={uploadDisabled ? '1px solid readable.border' : '1px solid #5ED47F'}
+              >
+                <IconFont
+                  transform="rotate(-90deg)"
+                  className="ui-icon"
+                  type="back"
+                  w={16}
+                  mx={4}
+                />
+              </Flex>
+            </MenuButton>
+          </div>
         </Tooltip>
         {!uploadDisabled && (
           <MenuList>
@@ -301,7 +277,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               <GAClick name={gaUploadClickName}>
                 <MenuItem
                   _hover={{
-                    color: 'readable.brand7',
+                    color: 'brand.brand7',
                     backgroundColor: 'rgba(0, 186, 52, 0.10)',
                   }}
                 >
@@ -331,7 +307,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               <GAClick name={gaUploadClickName}>
                 <MenuItem
                   _hover={{
-                    color: 'readable.brand7',
+                    color: 'brand.brand7',
                     backgroundColor: 'rgba(0, 186, 52, 0.10)',
                   }}
                   isDisabled={disabled}

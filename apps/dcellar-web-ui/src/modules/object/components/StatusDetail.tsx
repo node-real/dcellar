@@ -1,7 +1,6 @@
 import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 
 import {
-  FILE_BOX_IMAGE_URL,
   FILE_STATUS_DOWNLOADING,
   FILE_TITLE_CANCEL_FAILED,
   FILE_TITLE_CANCELING,
@@ -28,6 +27,8 @@ import { useUnmount } from 'ahooks';
 import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import { setEditQuota } from '@/store/slices/bucket';
 import { useModalValues } from '@/hooks/useModalValues';
+import { AnimatePng, AnimatePngProps, Animates } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
 
 interface StatusDetailProps {}
 
@@ -49,6 +50,9 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
 
   useUnmount(onClose);
 
+  const animateType =
+    statusDetail.icon in Animates ? (statusDetail.icon as AnimatePngProps['type']) : '';
+
   return (
     <DCModal
       isOpen={isOpen}
@@ -66,7 +70,13 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
         overflowY={'hidden'}
         textAlign="center"
       >
-        <Image src={statusDetail.icon || FILE_BOX_IMAGE_URL} w="120px" h="120px" alt="" />
+        {animateType ? (
+          <AnimatePng type={animateType} />
+        ) : statusDetail.icon?.includes('.') ? (
+          <Image src={statusDetail.icon} w="120px" h="120px" alt="" />
+        ) : (
+          <IconFont type={statusDetail.icon} w={120} />
+        )}
         <Text fontSize="24px" fontWeight={600} marginTop="32px">
           {statusDetail.title}
         </Text>

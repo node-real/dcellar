@@ -1,12 +1,12 @@
 import React from 'react';
 import { Flex, ModalBody, ModalFooter, Text } from '@totejs/uikit';
 
-import CreateFailedIcon from '@/public/images/common/wrong-network.svg';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '../common/DCModal';
 import { DCButton } from '../common/DCButton';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useLogin } from '@/hooks/useLogin';
+import { IconFont } from '@/components/IconFont';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { logout } = useLogin();
@@ -21,7 +21,7 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
     <DCModal isOpen={isOpen} onClose={() => {}} gaShowName="dc.wrongnet.gf_modal.0.show">
       <ModalBody textAlign={'center'} mt={0}>
         <Flex justifyContent={'center'}>
-          <CreateFailedIcon />
+          <IconFont w={120} type={'error-network'} />
         </Flex>
         <Text fontSize={'24px'} fontWeight={600} lineHeight="150%" marginY={'16px'}>
           Wrong Network

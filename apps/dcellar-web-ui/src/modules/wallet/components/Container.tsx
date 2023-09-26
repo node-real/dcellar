@@ -10,9 +10,9 @@ export const Container = memo<ContainerProps>(function ({ children }) {
       w={'484px'}
       h={'auto'}
       p={'40px 24px'}
-      borderRadius="12px"
-      boxShadow={'0px 4px 20px rgba(0, 0, 0, 0.04)'}
+      borderRadius="8px"
       backgroundColor="readable.white"
+      border={'1px solid readable.border'}
     >
       {children}
     </Box>
