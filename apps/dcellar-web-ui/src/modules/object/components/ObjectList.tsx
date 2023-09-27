@@ -296,7 +296,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const curObjectInfo = objectsInfo[key];
         // if this object is not yours, you only can download it
         if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
-          fitActions = fitActions.filter((a) => a.value === 'download');
+          fitActions = fitActions.filter((a) => a.value === 'detail');
         }
         //if this folder is yours, you only can delete it
         if (isFolder && owner) {
@@ -383,15 +383,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   return (
     <>
-      {discontinue && (
-        <DiscontinueBanner
-          content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
-          height={44}
-          marginBottom={16}
-        />
+      {discontinue && owner && (
+        <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
       )}
       <ObjectOperations />
-      <ObjectOperations level={1} />
       <DCTable
         rowSelection={owner ? rowSelection : undefined}
         loading={loadingComponent}

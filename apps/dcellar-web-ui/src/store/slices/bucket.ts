@@ -202,7 +202,7 @@ export const setupBucketQuota =
       if (error === 'invalid signature') {
         dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
       } else {
-        toast.error({ description: error || 'Get bucket read quota error' });
+        console.error({ description: error || 'Get bucket read quota error' });
       }
       return;
     }

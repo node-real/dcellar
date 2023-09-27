@@ -23,6 +23,7 @@ import { QuotaCard } from '@/modules/object/components/QuotaCard';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
 import { IconFont } from '@/components/IconFont';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -109,7 +110,17 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
-      <InsufficientBalance />
+      {owner ? (
+        <InsufficientBalance />
+      ) : (
+        <DiscontinueBanner
+          bg={'#FDF9E7'}
+          color={'#1E2026'}
+          icon={<IconFont w={16} type={'colored-info'} color={'#EEBE11'} />}
+          content="You are browsing a bucket created by someone else. Certain functions may be restricted."
+        />
+      )}
+
       <ObjectList />
     </ObjectContainer>
   );

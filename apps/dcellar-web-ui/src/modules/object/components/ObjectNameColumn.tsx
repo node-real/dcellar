@@ -8,7 +8,7 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { Tooltip } from '@totejs/uikit';
+import { toast, Tooltip } from '@totejs/uikit';
 import { encodeObjectName } from '@/utils/string';
 import { trimEnd } from 'lodash-es';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
@@ -33,6 +33,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
   const { folder, objectName, name, visibility } = item;
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const { bucketName } = useAppSelector((root) => root.object);
+  const { owner } = useAppSelector((root) => root.bucket);
   const primarySp = primarySpInfo[bucketName];
   const fileType = contentIconTypeToExtension(objectName);
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
@@ -108,6 +109,12 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
       <Link
         href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
+          if (!owner) {
+            toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+          }
           if (disabled) {
             e.stopPropagation();
             e.preventDefault();

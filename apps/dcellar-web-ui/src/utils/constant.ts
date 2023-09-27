@@ -13,7 +13,7 @@ export const ADDRESS_RE = /^0x[a-z0-9]{40}$/i;
 
 export const GROUP_ID = /^[1-9][0-9]{0,10}$/;
 
-export const DISCONTINUED_BANNER_HEIGHT = 44;
+export const DISCONTINUED_BANNER_HEIGHT = 33;
 export const DISCONTINUED_BANNER_MARGIN_BOTTOM = 16;
 
 export const TIME = {

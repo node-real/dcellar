@@ -41,7 +41,8 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(
     null,
   );
-  const { bucketName } = useAppSelector((root) => root.object);
+  const { bucketName: _bucketName } = useAppSelector((root) => root.object);
+  const bucketName = actionParams?.bucketName || _bucketName;
   const quotas = useAppSelector((root) => root.bucket.quotas);
   const directDownload = accounts[loginAccount].directDownload;
   const { setOpenAuthModal } = useOffChainAuth();

@@ -53,7 +53,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
 
   return (
     <>
-      {objectInfo.ObjectStatus === 1 && owner && (
+      {objectInfo.ObjectStatus === 1 && (
         <Container>
           <Title>Share with</Title>
           <AccessRow>
@@ -92,19 +92,21 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
               </LoadingAdaptor>
             </Flex>
             <Flex gap={8} flex={1} />
-            <ManageAccess
-              variant={'ghost'}
-              onClick={() =>
-                dispatch(
-                  setObjectOperation({
-                    level: 1,
-                    operation: [`${bucketName}/${objectInfo.ObjectName}`, 'share'],
-                  }),
-                )
-              }
-            >
-              Manage Access
-            </ManageAccess>
+            {owner && (
+              <ManageAccess
+                variant={'ghost'}
+                onClick={() =>
+                  dispatch(
+                    setObjectOperation({
+                      level: 1,
+                      operation: [`${bucketName}/${objectInfo.ObjectName}`, 'share'],
+                    }),
+                  )
+                }
+              >
+                Manage Access
+              </ManageAccess>
+            )}
           </AccessRow>
           <Tip>Only people with access can open with the link.</Tip>
           <Box my={16}>

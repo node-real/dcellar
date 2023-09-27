@@ -149,8 +149,10 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
                         msg={task.msg}
                         status={task.status}
                         w={240}
+                        task={task}
                       />
                       <PathItem
+                        status={task.status}
                         path={
                           [task.bucketName, ...task.prefixFolders]
                             .filter((item) => !!item)

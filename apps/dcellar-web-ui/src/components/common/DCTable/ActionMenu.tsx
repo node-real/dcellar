@@ -44,6 +44,8 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   operations = [],
   menus = [],
 }) {
+  if (!menus.length) return null;
+
   return (
     <Flex justifyContent="flex-end">
       {operations.map((m) => (

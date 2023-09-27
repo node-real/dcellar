@@ -76,7 +76,18 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     [loginAccount, primarySp?.operatorAddress, bucketName],
   );
 
-  if (!owner) return <></>;
+  if (!owner)
+    return (
+      <>
+        {showRefresh && (
+          <DCButton
+            variant="ghost"
+            onClick={refreshList}
+            leftIcon={<IconFont type="refresh" w={24} />}
+          />
+        )}
+      </>
+    );
 
   const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
 

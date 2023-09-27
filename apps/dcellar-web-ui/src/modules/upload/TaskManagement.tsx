@@ -6,7 +6,7 @@ import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global
 import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { useThrottleFn } from 'ahooks';
+import { useThrottleFn, useUnmount } from 'ahooks';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();

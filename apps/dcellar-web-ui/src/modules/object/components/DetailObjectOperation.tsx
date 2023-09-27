@@ -154,6 +154,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
   const { directDownload: allowDirectDownload } = accounts?.[loginAccount] || {};
   const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName } = useAppSelector((root) => root.object);
+  const { owner } = useAppSelector((root) => root.bucket);
   const objectInfo = selectObjectInfo.ObjectInfo;
   const name = last(objectInfo.ObjectName.split('/'));
 
@@ -300,7 +301,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
         <Divider />
         <SharePermission selectObjectInfo={selectObjectInfo} />
       </QDrawerBody>
-      {objectInfo.ObjectStatus === 1 && (
+      {objectInfo.ObjectStatus === 1 && owner && (
         <QDrawerFooter flexDirection={'column'}>
           <Flex w={'100%'} gap={16}>
             <DCButton

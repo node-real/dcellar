@@ -34,9 +34,14 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
 }) {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { objectOperation, objectsInfo, bucketName } = useAppSelector((root) => root.object);
+  const {
+    objectOperation,
+    objectsInfo,
+    bucketName: _bucketName,
+  } = useAppSelector((root) => root.object);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const [id, operation, params] = objectOperation[level];
+  const bucketName = params?.bucketName || _bucketName;
   const isDrawer = ['detail', 'create_folder', 'share', 'upload'].includes(operation);
   const isModal = ['delete', 'cancel', 'download', 'batch_delete'].includes(operation);
   const _operation = useModalValues<ObjectOperationsType>(operation);
