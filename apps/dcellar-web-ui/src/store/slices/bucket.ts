@@ -156,6 +156,7 @@ export const setupBuckets =
       if (!res?.message?.includes('record not found')) {
         toast.error({ description: error || res?.message });
       }
+      dispatch(setBucketList({ address, buckets: [] }));
       return;
     }
     const bucketList =
