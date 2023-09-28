@@ -5,7 +5,7 @@ import { noderealUrl } from '@/utils/constant';
 import { GAClick } from '@/components/common/GATracker';
 import { useRouter } from 'next/router';
 import { smMedia } from '@/modules/responsive';
-import { InternalRoutePaths } from '@/constants/paths';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export const UnderlineLink = (props: LinkProps) => (
   <Link
@@ -13,7 +13,7 @@ export const UnderlineLink = (props: LinkProps) => (
     color="readable.tertiary"
     textDecoration={'underline'}
     target="_blank"
-    _hover={{ color: 'readable.brand7' }}
+    _hover={{ color: 'brand.brand7' }}
     href={noderealUrl}
     {...props}
   >
@@ -56,17 +56,22 @@ export const Footer = (props: FlexProps) => {
       >
         © {utcYear}&nbsp;
         <GAClick name={'dc_lp.main.footer.nodereal.click'}>
-          <UnderlineLink href={noderealUrl} target='_blank'>NodeReal</UnderlineLink>
+          <UnderlineLink href={noderealUrl} target="_blank">
+            NodeReal
+          </UnderlineLink>
         </GAClick>
         . All rights reserved.
       </Text>
       <GAClick name="dc_lp.main.Footer.terms.click">
-        <UnderlineLink href={InternalRoutePaths.terms} target='_blank'>Terms of Use</UnderlineLink>
+        <UnderlineLink href={InternalRoutePaths.terms} target="_blank">
+          Terms of Use
+        </UnderlineLink>
       </GAClick>
       <GAClick name="dc_lp.main.Footer.privacy.click">
-        <UnderlineLink href={'https://docs.nodereal.io/docs/cookie-policy'} target='_blank'>Privacy Policy</UnderlineLink>
+        <UnderlineLink href={'https://docs.nodereal.io/docs/cookie-policy'} target="_blank">
+          Privacy Policy
+        </UnderlineLink>
       </GAClick>
     </Flex>
   );
 };
-

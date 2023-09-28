@@ -12,7 +12,7 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       w={200}
       h={44}
       fontSize={18}
-      fontWeight={600}
+      fontWeight="600 !important"
       {...restProps}
       value={value}
       borderRadius={4}
@@ -31,8 +31,8 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       }}
       onChange={(e) => {
         const value = e.target.value;
-        if (parseFloat(value) < 0 || value.length >15 ) return;
-        onChangeValue(value.replace(/^0+/, '') );
+        if (parseFloat(value) < 0 || value.length > 15) return;
+        onChangeValue(value.replace(/^0+/, ''));
       }}
     />
   );

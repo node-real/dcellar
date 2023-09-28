@@ -7,7 +7,7 @@ export const REQUEST_PENDING_NUM = -32002;
 
 export const reverseVisibilityType = convertVisibility();
 
-const CHAIN_NAMES: { [key: number | string]: string } = {
+export const CHAIN_NAMES: { [key: number | string]: string } = {
   5600: 'Greenfield Testnet',
   97: 'BNB Smart Chain Testnet',
   9000: 'Greenfield Devnet',
@@ -43,4 +43,5 @@ export const InternalRoutePaths = {
   transfer_out: '/wallet?type=transfer_out',
   send: '/wallet?type=send',
   buckets: '/buckets',
+  terms: '/terms',
 };

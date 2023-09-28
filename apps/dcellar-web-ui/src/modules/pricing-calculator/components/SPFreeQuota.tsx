@@ -1,6 +1,5 @@
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { Loading } from '@/components/common/Loading';
-import { formatBytes } from '@/modules/file/utils';
 import { ExternalLinkIcon } from '@totejs/icons';
 import { Flex, Text, Link } from '@totejs/uikit';
 import { isEmpty } from 'lodash-es';
@@ -8,6 +7,7 @@ import React from 'react';
 import { PriceResponsiveContainer } from '../index';
 import { smMedia } from '@/modules/responsive';
 import { H2 } from './Common';
+import { formatBytes } from '@/utils/formatter';
 
 type SPFreeQuotaProps = {
   sps: any[];

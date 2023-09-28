@@ -4,7 +4,7 @@ import { GAClick } from '@/components/common/GATracker';
 import { ExternalLinkIcon, IconProps } from '@totejs/icons';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useRouter } from 'next/router';
-import WalletFilledIcon from '@/public/images/icons/wallet-filled.svg';
+import { IconFont } from '@/components/IconFont';
 
 export const MENUS = [
   {
@@ -54,7 +54,7 @@ export const BaseHeader = () => {
         {MENUS.map((item, index) => (
           <GAClick name={item.gaName} key={index}>
             <Link
-              color={router.pathname === item.link ? 'readable.brand6' : 'readable.normal'}
+              color={router.pathname === item.link ? 'brand.brand6' : 'readable.normal'}
               href={item.link}
               target={item.target}
             >
@@ -70,13 +70,13 @@ export const BaseHeader = () => {
         fontWeight={500}
         fontSize={14}
         gaClickName={gaClickName}
-        icon={<WalletFilledIcon />}
-        text='Connect wallet'
-        variant='dcGhost'
+        icon={<IconFont type={'wallet-filled'} w={24} />}
+        text="Connect wallet"
+        variant="ghost"
         border={'1px solid readable.border'}
         _hover={{
-          color: 'readable.brand6',
-          border:'1px solid readable.brand6'
+          color: 'brand.brand6',
+          border: '1px solid brand.brand6',
         }}
       />
     </Flex>

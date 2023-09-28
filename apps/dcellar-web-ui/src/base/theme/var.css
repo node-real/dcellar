@@ -16,6 +16,7 @@
     --ui-colors-readable-label-normal: #EEBE11;
     --ui-colors-readable-label-active: #F1CA3C;
     --ui-colors-bg-bottom-secondary: #fafafa;
+    --ui-colors-bg-secondary: #fafafa;
     --ui-colors-scene-success-opacity-normal: rgba(0, 186, 52, 0.1);
     --ui-colors-scene-success-opacity-active: rgba(0, 186, 52, 0.15);
     --ui-colors-scene-danger-opacity-normal: rgba(238, 57, 17, 0.1);

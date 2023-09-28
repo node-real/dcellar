@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import {
-  Button,
-  Modal,
   Divider,
   Flex,
   Link,
   ModalFooter,
-  Switch,
-  QListItem,
   QAccordion,
-  QAccordionItem,
-  QAccordionPanel,
   QAccordionButton,
   QAccordionIcon,
+  QAccordionItem,
+  QAccordionPanel,
+  QListItem,
+  Switch,
 } from '@totejs/uikit';
 import { SendIcon } from './SendIcon';
-import { reportEvent } from '@/utils/reportEvent';
+import { reportEvent } from '@/utils/gtag';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
 
 type Props = {
   open: boolean;
@@ -47,7 +47,7 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
   };
 
   return (
-    <StyledModal isOpen={open} data-testid="modal" onClose={() => cancelFn()}>
+    <DCModal isOpen={open} data-testid="modal" onClose={() => cancelFn()}>
       <Title>Cookie Settings</Title>
       {/* <Subtitle>Statistics</Subtitle> */}
       <Desc>
@@ -116,7 +116,7 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
       </StyleQAccordion>
       <StyleQAccordion>
         <QAccordionItem>
-          <QAccordionButton p={0} >
+          <QAccordionButton p={0}>
             <StyledListItem
               right={
                 <div>
@@ -182,24 +182,11 @@ export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => 
           </CustomButton>
         </Flex>
       </ModalFooter>
-    </StyledModal>
+    </DCModal>
   );
 };
 
-const StyledModal = styled(Modal)`
-  .ui-modal-content {
-    overflow: auto;
-  }
-`;
-
-export const ButtonGroup = styled.div`
-  display: flex;
-  width: 100%;
-  max-width: 406px;
-  margin: 0 auto;
-`;
-
-export const CustomButton = styled(Button)`
+export const CustomButton = styled(DCButton)`
   width: 200px;
   margin: 0 auto;
 `;
@@ -211,14 +198,6 @@ export const Title = styled.div`
   word-break: break-word;
   margin-bottom: 24px;
   text-align: center;
-`;
-
-export const Subtitle = styled.div`
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 24px;
-  word-break: break-word;
-  margin-bottom: 16px;
 `;
 
 export const Desc = styled.div`
@@ -233,6 +212,7 @@ const StyleQAccordion = styled(QAccordion)`
   border: 1ps solid var(--ui-colors-readable-border);
   border-radius: 8px;
   margin-bottom: 16px;
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -241,9 +221,11 @@ const StyleQAccordion = styled(QAccordion)`
 const StyledListItem = styled(QListItem)<any>`
   // height: 56px;
   padding-left: 16px;
+
   :hover {
     background-color: var(--ui-colors-bg-middle);
   }
+
   .title {
     margin-left: 16px;
     font-weight: 600;
@@ -261,12 +243,14 @@ const StyledChild = styled.div`
   border-radius: 8px;
   margin: 16px 12px;
   padding: 16px;
+
   .cookie_item_title {
     font-weight: 600;
     font-size: 12px;
     line-height: 18px;
     margin-bottom: 16px;
   }
+
   .cookie_item_text {
     font-weight: 400;
     font-size: 12px;

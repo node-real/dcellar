@@ -33,8 +33,6 @@ export const NetworkSwitch = () => {
         h={35}
       >
         <DCButton
-          variant="dcPrimary"
-          borderRadius={4}
           h={35}
           onClick={() => onSwitchClick('mainnet')}
           sx={
@@ -50,9 +48,7 @@ export const NetworkSwitch = () => {
           Mainnet
         </DCButton>
         <DCButton
-          variant="dcPrimary"
           border="none"
-          borderRadius={4}
           h={35}
           onClick={() => onSwitchClick('testnet')}
           sx={

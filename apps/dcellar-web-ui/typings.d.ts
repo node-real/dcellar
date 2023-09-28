@@ -17,6 +17,7 @@ declare module '@totejs/uikit' {
       | 'readable.white'
       | 'bg.bottom'
       | 'bg.bottom.secondary'
+      | 'bg.secondary'
       | 'bg.middle'
       | 'bg.top.normal'
       | 'bg.top.active'

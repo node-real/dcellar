@@ -7,12 +7,11 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from '@totejs/uikit';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
 import { DCButton } from '@/components/common/DCButton';
-import { TTimeOption, TimeUnits, swapObj } from '../utils';
-import { useScroll } from 'ahooks';
+import { swapObj, TimeUnits, TTimeOption } from '../utils';
 import { smMedia } from '@/modules/responsive';
 
 type Props = {
@@ -60,7 +59,7 @@ export const CustomTime = ({
       <PopoverTrigger>
         <DCButton
           variant="ghost"
-          borderColor={selected ? 'readable.brand6' : 'readable.border'}
+          borderColor={selected ? 'brand.brand6' : 'readable.border'}
           onClick={() => {
             onChangeButton();
             onToggle();
@@ -111,9 +110,7 @@ export const CustomTime = ({
           />
         </PopoverBody>
         <PopoverFooter justifyContent={'flex-start'}>
-          <DCButton h={40} w={94} variant="dcPrimary" onClick={() => onClose()}>
-            Confirm
-          </DCButton>
+          <DCButton onClick={() => onClose()}>Confirm</DCButton>
         </PopoverFooter>
       </PopoverContent>
     </Popover>

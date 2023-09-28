@@ -5,12 +5,16 @@ import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { AccountInfo } from '@/components/layout/Header/AccountInfo';
 import { SelectNetwork } from '../Common/SelectNetwork';
+import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 interface HeaderProps {
   taskManagement?: boolean;
 }
 
 export const Header = memo<HeaderProps>(function Header({ taskManagement = true }) {
+  console.log(runtimeEnv);
   return (
     <>
       <HeaderContainer>
@@ -18,22 +22,19 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
           <Link href="/buckets" data-track-id="dc.main.nav.logo.click">
             <IconFont type="logo" w={122} h={24} />
           </Link>
-          <Badge>Testnet</Badge>
+          <Badge>{networkTag(runtimeEnv)}</Badge>
         </LogoContainer>
         <Content>
           {taskManagement && (
             <>
               <TaskManagement />
               <Box w={1} h={44} bg={'readable.border'} />
+              <SelectNetwork />
             </>
           )}
-          {
-            <Box paddingX={16} borderLeft={taskManagement ? '1px solid readable.border' : 'none'}>
-              <SelectNetwork />
-            </Box>
-          }
           <AccountInfo />
         </Content>
+        <CookiePolicyContainer />
       </HeaderContainer>
     </>
   );

@@ -1,24 +1,27 @@
 import { runtimeEnv } from '@/base/env';
 import { capitalizeFLetter } from '@/utils/common';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { Box, Button, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
+import { Button, MenuButton } from '@totejs/uikit';
 import { useRouter } from 'next/router';
-import SelectedIcon from '@/public/images/files/icons/selected.svg';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
 
-type TNetwork = {
-  title: string;
-  id: string;
+interface TNetwork extends MenuOption {
+  label: string;
+  value: string;
   domain: string;
-};
+}
+
 const networks: TNetwork[] = [
   {
-    title: 'Mainnet',
-    id: 'mainnet',
+    label: 'Mainnet',
+    value: 'mainnet',
     domain: 'https://dcellar.io',
   },
   {
-    title: 'Testnet',
-    id: 'testnet',
+    label: 'Testnet',
+    value: 'testnet',
     domain: 'https://testnet.dcellar.io',
   },
 ];
@@ -27,43 +30,43 @@ export const SelectNetwork = () => {
   const router = useRouter();
   const selected = ['mainnet', 'testnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
   const onItemClick = (net: TNetwork) => {
-    if (runtimeEnv === net.id) {
+    if (runtimeEnv === net.value) {
       return;
     }
     const url = `${net.domain}${router.asPath}`;
-    window.open(url, '_blank');
+    const a = document.createElement('a');
+    a.target = '_blank';
+    a.href = url;
+    a.click();
   };
+
   return (
-    <Menu>
+    <DCMenu
+      selectIcon
+      value={selected}
+      options={networks}
+      onMenuSelect={(v) => onItemClick(v as TNetwork)}
+    >
       {({ isOpen }) => (
-        <>
-          <MenuButton
-            isActive={isOpen}
-            as={Button}
-            h={32}
-            bgColor={'bg.bottom'}
-            padding={'8px 8px 8px 12px'}
-            border={'1px solid readable.border'}
-            borderRadius={24}
-            color={'readable.normal'}
-            fontSize={14}
-            fontWeight={500}
-            rightIcon={isOpen ? <MenuOpenIcon pointerEvents={'none'} /> : <MenuCloseIcon pointerEvents={'none'} />}
-            _hover={{
-              bgColor: 'bg.secondary'
-            }}
-          >
-            {capitalizeFLetter(selected)}
-          </MenuButton>
-          <MenuList>
-            {networks.map((item, index) => (
-              <MenuItem padding={'8px 16px 8px 8px'} key={index} onClick={() => onItemClick(item)}>
-                {selected === item.id ? <SelectedIcon/> : <Box w={16}></Box>}<Text marginLeft={8}>{item.title}</Text>
-              </MenuItem>
-            ))}
-          </MenuList>
-        </>
+        <MenuButton
+          as={DCButton}
+          h={32}
+          bgColor={'bg.bottom'}
+          padding={'8px 8px 8px 12px'}
+          border={'1px solid readable.border'}
+          borderRadius={24}
+          color={'readable.normal'}
+          fontSize={14}
+          fontWeight={500}
+          gap={4}
+          _hover={{
+            bgColor: '#fafafa',
+          }}
+        >
+          {capitalizeFLetter(selected)}
+          <IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />
+        </MenuButton>
       )}
-    </Menu>
+    </DCMenu>
   );
 };

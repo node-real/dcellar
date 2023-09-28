@@ -2,8 +2,6 @@ import { DCButton } from '@/components/common/DCButton';
 import { Tips } from '@/components/common/Tips';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { TStoreFeeParams } from '@/store/slices/global';
-import { BN } from '@/utils/BigNumber';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0Month } from '@/utils/time';
 import { Box, Divider, Flex, Link, Loading, Text, useDisclosure } from '@totejs/uikit';
@@ -17,6 +15,8 @@ import { isEmpty } from 'lodash-es';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
 import { NetworkSwitch } from './NetworkSwitch';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -334,7 +334,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-       <Divider
+        <Divider
           display={'none'}
           sx={{
             [smMedia]: {
@@ -419,7 +419,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-          <Divider
+        <Divider
           display={'none'}
           sx={{
             [smMedia]: {
@@ -513,7 +513,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   <DCButton
                     key={item.title}
                     variant="ghost"
-                    borderColor={item.id === storageTime.id ? 'readable.brand6' : 'readable.border'}
+                    borderColor={item.id === storageTime.id ? 'brand.brand6' : 'readable.border'}
                     onClick={() => setStorageTime(item)}
                     gaClickName={item.gaClickName}
                     sx={{

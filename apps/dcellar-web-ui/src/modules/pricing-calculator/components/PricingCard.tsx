@@ -6,11 +6,11 @@ import { Flex, Text, Box, Menu, MenuButton, Button, MenuList, MenuItem } from '@
 import React, { useMemo, useState } from 'react';
 import { Sizes, TSize, TTime, Times } from '../utils';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { BN } from '@/utils/BigNumber';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
 import { H2 } from './Common';
+import { BN } from '@/utils/math';
 
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
@@ -98,7 +98,7 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           Global prices will update monthly based on all the SPs' suggested prices.{' '}
           <UnderlineLink href="#">Learn More</UnderlineLink>
         </Text>
-        <Menu>
+        <Menu matchWidth>
           {({ isOpen }) => (
             <>
               <MenuButton
