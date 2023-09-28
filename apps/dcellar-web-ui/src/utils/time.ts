@@ -65,3 +65,15 @@ export const formatFullTime = (
     .tz(curTimezone)
     .format('Z')})`;
 };
+
+export const getUTC0Month = () => {
+  dayjs.extend(utc);
+
+  return `${dayjs().utc().format('YYYY.MM')} (UTC${dayjs.utc().format('Z')})`;
+}
+
+export const getUTC0FullMonth = () => {
+  dayjs.extend(utc);
+
+  return `${dayjs().utc().startOf('M').format('MMM D')} - ${dayjs().utc().endOf('M').format('MMM DD, YYYY')}`
+}
