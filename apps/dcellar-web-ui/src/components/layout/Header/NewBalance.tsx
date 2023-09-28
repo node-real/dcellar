@@ -45,7 +45,7 @@ const NewBalance = memo<NewBalanceProps>(function NewBalance() {
           alignItems={'center'}
         >
           <Circle backgroundColor={'#F0B90B'} size="24px" marginRight={10}>
-            <IconFont type="bsc" />
+            <IconFont color={'#fff'} type="bsc" />
           </Circle>{' '}
           {renderBalanceNumber()}
         </Flex>
