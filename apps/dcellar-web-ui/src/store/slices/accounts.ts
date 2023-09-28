@@ -234,7 +234,12 @@ export const setupPaymentAccounts =
     }
     const [data, error] = await getPaymentAccountsByOwner(loginAccount);
     dispatch(setLoadingPaymentAccounts(false));
-    if (!data) return;
+    if (!data) {
+      if (!loginPaymentAccounts.length) {
+        dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
+      }
+      return;
+    }
     const newData = data.paymentAccounts;
     dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
     dispatch(setPAInfos({ loginAccount }));
