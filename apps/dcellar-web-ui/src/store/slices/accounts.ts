@@ -229,12 +229,13 @@ export const setupPaymentAccounts =
     const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
     const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
     if (isLoadingPaymentAccounts) return;
-    if (!loginPaymentAccounts.length || forceLoading) {
+    if (!(loginAccount in paymentAccounts) || forceLoading) {
       dispatch(setLoadingPaymentAccounts(true));
     }
     const [data, error] = await getPaymentAccountsByOwner(loginAccount);
     dispatch(setLoadingPaymentAccounts(false));
     if (!data) {
+      // todo for empty 404 loading
       if (!loginPaymentAccounts.length) {
         dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
       }
