@@ -17,7 +17,7 @@ import { previewObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { quotaRemains } from '@/facade/bucket';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { IconFont } from '@/components/IconFont';
 import { contentIconTypeToExtension } from '@/modules/object/utils';
@@ -71,6 +71,8 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
         return onError(E_GET_QUOTA_FAILED);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+      // update quota data.
+      dispatch(setReadQuota({ bucketName, quota: quotaData }));
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
         primarySp,

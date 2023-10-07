@@ -71,7 +71,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
         />
         <Content>
           {isNoBucket ? (
-            <IconFont type={'status-failed'} w={120} />
+            <IconFont type={'status-failed'} w={120} display="inline-block" />
           ) : (
             <Image
               alt="Oops, something went wrong"

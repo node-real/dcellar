@@ -29,7 +29,7 @@ import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import {
@@ -150,6 +150,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return onError(E_OBJECT_NAME_EXISTS);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+      // update quota data.
+      dispatch(setReadQuota({ bucketName, quota: quotaData }));
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
         primarySp,

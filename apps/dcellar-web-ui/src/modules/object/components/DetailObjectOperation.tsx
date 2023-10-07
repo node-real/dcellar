@@ -25,7 +25,7 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { AllBucketInfo, setReadQuota } from '@/store/slices/bucket';
 import { TAccountDetail } from '@/store/slices/accounts';
 import { SpItem } from '@/store/slices/sp';
 import { last } from 'lodash-es';
@@ -186,13 +186,16 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
-    const [_, accessError, _objectInfo] = await getCanObjectAccess(
+    const [_, accessError, _objectInfo, quota] = await getCanObjectAccess(
       bucketName,
       objectName,
       endpoint,
       loginAccount,
       seedString,
     );
+    if (quota) {
+      dispatch(setReadQuota({ bucketName, quota }));
+    }
     if (accessError) return onError(accessError);
 
     const params = {

@@ -9,7 +9,7 @@ import { setStatusDetail } from '@/store/slices/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { formatBytes } from '@/utils/formatter';
@@ -74,13 +74,16 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
-    const [_, accessError, objectInfo] = await getCanObjectAccess(
+    const [_, accessError, objectInfo, quota] = await getCanObjectAccess(
       bucketName,
       objectName,
       endpoint,
       loginAccount,
       seedString,
     );
+    if (quota) {
+      dispatch(setReadQuota({ bucketName, quota }));
+    }
     if (accessError) return onError(accessError);
     const params = {
       primarySp,
