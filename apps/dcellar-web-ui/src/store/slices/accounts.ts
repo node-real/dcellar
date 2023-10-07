@@ -226,16 +226,23 @@ export const setupOAList = () => async (dispatch: AppDispatch, getState: GetStat
 
 export const setupPaymentAccounts =
   (forceLoading = false) =>
-    async (dispatch: any, getState: GetState) => {
+    async (dispatch: AppDispatch, getState: GetState) => {
       const { loginAccount } = getState().persist;
       const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+      const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
       if (isLoadingPaymentAccounts) return;
-      if (!paymentAccounts.length || forceLoading) {
+      if (!(loginAccount in paymentAccounts) || forceLoading) {
         dispatch(setLoadingPaymentAccounts(true));
       }
       const [data, error] = await getPaymentAccountsByOwner(loginAccount);
       dispatch(setLoadingPaymentAccounts(false));
-      if (!data) return;
+      if (!data) {
+        // todo for empty 404 loading
+        if (!loginPaymentAccounts.length) {
+          dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
+        }
+        return;
+      }
       const newData = data.paymentAccounts;
       dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: newData }));
       dispatch(setPAInfos({ loginAccount }));
@@ -263,7 +270,7 @@ export const setupAccountDetail =
       refundable: PARes?.paymentAccount?.refundable,
     }
     dispatch(
-      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME}),
+      setAccountDetail({ ...accountDetail, bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME }),
     );
   };
 
