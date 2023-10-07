@@ -108,12 +108,12 @@ export const createTmpAccount = async ({
     })
     .then(resolve, simulateFault);
 
-  if (simulateError) return [null, simulateError];
+  if (simulateInfo === null || simulateError) return [null, simulateError];
 
   const payload = {
     denom: 'BNB',
-    gasLimit: Number(210000),
-    gasPrice: '5000000000',
+    gasLimit: Number(simulateInfo.gasLimit),
+    gasPrice: simulateInfo.gasPrice,
     payer: address,
     granter: '',
     signTypedDataCallback: signTypedDataCallback(connector),
