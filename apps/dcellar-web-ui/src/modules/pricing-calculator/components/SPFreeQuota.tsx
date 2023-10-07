@@ -53,7 +53,7 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
             alignItems={'center'}
             color={'readable.normal'}
           >
-            <Text fontWeight={600} fontSize={13} display={'inline-block'}>
+            <Text fontWeight={600} fontSize={14} display={'inline-block'}>
               {item.name}
             </Text>
             <ExternalLinkIcon w={12} />

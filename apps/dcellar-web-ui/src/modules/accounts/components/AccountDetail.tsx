@@ -53,7 +53,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
   };
   const detailItems = [
     {
-      label: 'Account Address',
+      label: 'Account address',
       value: (
         <Flex>
           <Text fontSize={'14px'} fontWeight={500}>

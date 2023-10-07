@@ -1,11 +1,7 @@
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  selectAccount,
-  setEditPaymentDetail,
-  setupAccountDetail,
-} from '@/store/slices/accounts';
+import { selectAccount, setEditPaymentDetail, setupAccountDetail } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
 import { useAsyncEffect, useInterval } from 'ahooks';
 import React, { useEffect } from 'react';
@@ -71,25 +67,25 @@ export const PaymentAccountDetail = () => {
       />
       <QDrawerFooter>
         <Flex w={'100%'} gap={16}>
-          {!isLoadingDetail && isNonRefundable && !isFrozen && (
-            <DCButton
-              variant={'dcPrimary'}
-              flex={1}
-              gaClickName="dc.file.f_detail_pop.share.click"
-              onClick={() => onAction('withdraw')}
-            >
-              Withdraw
-            </DCButton>
-          )}
           {!isLoadingDetail && (
             <DCButton
-              variant={!isNonRefundable || isFrozen ? 'dcPrimary' : 'dcGhost'}
+              variant={'dcPrimary'}
               flex={1}
               borderColor="#e6e8ea"
               gaClickName="dc.file.f_detail_pop.download.click"
               onClick={() => onAction('deposit')}
             >
               Deposit
+            </DCButton>
+          )}
+          {!isLoadingDetail && isNonRefundable && !isFrozen && (
+            <DCButton
+              variant={!isNonRefundable || isFrozen ? 'dcPrimary' : 'dcGhost'}
+              flex={1}
+              gaClickName="dc.file.f_detail_pop.share.click"
+              onClick={() => onAction('withdraw')}
+            >
+              Withdraw
             </DCButton>
           )}
           {/* {!isLoadingDetail && isNonRefundable && (

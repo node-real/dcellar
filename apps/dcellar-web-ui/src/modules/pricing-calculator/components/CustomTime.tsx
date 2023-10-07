@@ -65,6 +65,7 @@ export const CustomTime = ({
             onChangeButton();
             onToggle();
           }}
+          borderRadius={4}
           gaClickName={gaClickName}
           sx={{
             [smMedia]: {

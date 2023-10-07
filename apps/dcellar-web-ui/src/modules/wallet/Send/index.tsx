@@ -342,20 +342,22 @@ export const Send = () => {
             loading={loadingToAccount}
             onChange={(e) => onChangeToAccount(e)}
           />
-          <FormHelperText
-            display={'flex'}
-            alignItems={'center'}
-            justifyContent={'flex-end'}
-            textAlign={'right'}
-            color="#76808F"
-          >
-            Balance on Greenfield:{' '}
-            {loadingToAccount ? (
-              <Loading size={12} marginX={4} color="readable.normal" />
-            ) : (
-              renderFee(toBalance, exchangeRate + '')
-            )}
-          </FormHelperText>
+          {accountTypes[toAccount.address] !== 'gnfd_account' && (
+            <FormHelperText
+              display={'flex'}
+              alignItems={'center'}
+              justifyContent={'flex-end'}
+              textAlign={'right'}
+              color="#76808F"
+            >
+              Balance on Greenfield:{' '}
+              {loadingToAccount ? (
+                <Loading size={12} marginX={4} color="readable.normal" />
+              ) : (
+                renderFee(toBalance, exchangeRate + '')
+              )}
+            </FormHelperText>
+          )}
           <FormErrorMessage textAlign={'left'}>
             {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
           </FormErrorMessage>
