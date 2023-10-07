@@ -134,7 +134,7 @@ export const getCanObjectAccess = async (
   // only own can get bucket quota
   if (loginAccount === info.owner) {
     if (!quota) return [false, E_UNKNOWN];
-    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
+    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA, undefined, quota];
   }
   return [true, '', info, quota!];
 };
