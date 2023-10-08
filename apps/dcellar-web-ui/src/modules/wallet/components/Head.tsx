@@ -6,18 +6,15 @@ import { runtimeEnv } from '@/base/env';
 const HeadContent = {
   transfer_in: {
     title: 'transfer in',
-    subtitle: (
-      <>
-        Transfer BNB from BNB Smart Chain to your BNB Greenfield account.{' '}
-        {runtimeEnv === 'testnet' ? (
-          <Link target="_blank" href="https://testnet.bnbchain.org/faucet-smart">
-            faucet
-          </Link>
-        ) : (
-          ''
-        )}
-      </>
-    ),
+    subtitle: `Transfer BNB from BNB Smart Chain to your BNB Greenfield account. ${
+      runtimeEnv === 'testnet' ? (
+        <Link target="_blank" href="https://testnet.bnbchain.org/faucet-smart">
+          faucet
+        </Link>
+      ) : (
+        ''
+      )
+    }`,
   },
   transfer_out: {
     title: 'transfer out',

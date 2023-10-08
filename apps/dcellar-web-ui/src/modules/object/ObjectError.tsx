@@ -61,20 +61,25 @@ export const OBJECT_ERROR_TYPES = {
     desc: 'Get storage price failed, please select another SP.',
   },
   FOLDER_NAME_TOO_LONG: {
-    title: 'Must be between 1 to 70 characters long.',
-    icon: 'too-large',
-    desc: 'Folder name must be between 1 to 70 characters long.',
+    title: 'The folder name must be between 1 and 70 characters long.',
+    icon: 'status-failed',
+    desc: 'The folder name must be between 1 and 70 characters long.',
+  },
+  OBJECT_NAME_TOO_LONG: {
+    title: 'The object name must be between 1 and 256 characters long.',
+    icon: 'status-failed',
+    desc: 'The object name must be between 1 and 256 characters long.',
+  },
+  FULL_OBJECT_NAME_TOO_LONG: {
+    title: 'The full object name must be between 1 and 1024 characters long.',
+    icon: 'status-failed',
+    desc: 'The full object name must be between 1 and 1024 characters long.',
   },
   BUCKET_NOT_EMPTY: {
     title: 'Bucket not Empty',
     desc: 'Only empty bucket can be deleted. Please delete all objects in this bucket first.',
     icon: 'empty-bucket',
   },
-  BUCKET_DELETE_FAILED: {
-    title: 'Deleted Failed',
-    desc: 'Sorry, there&apos;s something wrong when deleting the bucket.',
-    icon: 'status-failed',
-  },
-};
+}
 
 export type ObjectErrorType = keyof typeof OBJECT_ERROR_TYPES;

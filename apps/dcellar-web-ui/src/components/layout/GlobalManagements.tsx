@@ -12,6 +12,7 @@ import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
 interface GlobalManagementsProps {}
 
 export const GlobalManagements = memo<GlobalManagementsProps>(function GlobalManagements() {
+  console.log('21312321321')
   return (
     <>
       <GAPageView />

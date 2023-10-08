@@ -12,7 +12,7 @@ type Props = {
 
 export const SizeMenu = ({ value, sizes, onItemClick, buttonStyles = {} }: Props) => {
   return (
-    <Menu matchWidth>
+    <Menu>
       {({ isOpen }) => (
         <>
           <MenuButton
@@ -20,6 +20,7 @@ export const SizeMenu = ({ value, sizes, onItemClick, buttonStyles = {} }: Props
             as={Button}
             h={44}
             w={80}
+            borderRadius={4}
             color={'readable.normal'}
             bgColor={'bg.bottom'}
             _hover={{
@@ -43,9 +44,10 @@ export const SizeMenu = ({ value, sizes, onItemClick, buttonStyles = {} }: Props
           >
             {value}
           </MenuButton>
-          <MenuList>
+          <MenuList borderRadius={4}>
             {sizes.map((item) => (
               <MenuItem
+                w={80}
                 key={item}
                 onClick={() => {
                   onItemClick(item);

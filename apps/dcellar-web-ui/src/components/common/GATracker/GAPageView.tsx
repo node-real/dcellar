@@ -14,7 +14,7 @@ export function GAPageView() {
           name = 'dc.shared_ui.preview.all.pv';
           break;
         case pathname === '/':
-          name = 'dc.welcome.main.all.pv';
+          name = 'dc_lp.homepage.main.all.pv';
           break;
         case /\/buckets$/gi.test(asPath):
           name = 'dc.bucket.main.all.pv';

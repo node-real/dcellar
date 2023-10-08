@@ -284,7 +284,7 @@ export const globalSlice = createSlice({
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
             gasFee = +gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * +gasPrice;
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * (+gasPrice);
           }
 
           return {

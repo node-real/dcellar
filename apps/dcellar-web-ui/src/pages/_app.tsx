@@ -15,8 +15,10 @@ import { ReactNode } from 'react';
 import { Layout } from '@/components/layout';
 import { GlobalManagements } from '@/components/layout/GlobalManagements';
 import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthContext';
+import { register } from 'swiper/element/bundle';
 
-export const ssrLandingRoutes = ['/pricing-calculator', '/terms'];
+register();
+export const ssrLandingRoutes = ['/', '/pricing-calculator', '/terms'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {

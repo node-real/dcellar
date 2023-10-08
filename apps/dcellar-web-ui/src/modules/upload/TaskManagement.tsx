@@ -23,7 +23,7 @@ export const TaskManagement = () => {
 
   const renderButton = () => {
     return (
-      <Box cursor={'pointer'} alignSelf={'center'} onClick={() => onToggle()}>
+      <Box cursor={'pointer'} alignSelf={'center'} marginRight={16} onClick={() => onToggle()}>
         <DCButton
           variant="ghost"
           border="none"

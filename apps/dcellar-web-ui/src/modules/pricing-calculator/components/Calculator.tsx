@@ -648,7 +648,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             fee={costs.totalGasCost}
             bnbPrice={bnbPrice}
           />
-          <Text>*1 month=30 day</Text>
+          <Text color={'readable.disabled'}>*1 month=30 day</Text>
         </Flex>
       </Flex>
     </PriceResponsiveContainer>

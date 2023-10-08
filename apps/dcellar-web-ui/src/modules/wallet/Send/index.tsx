@@ -162,7 +162,15 @@ export const Send = memo<SendProps>(function Send() {
       return 'send_to_owner_account';
     }
   }, [accountTypes, fromAccount, toAccount]);
-  const txCallback = (res: any, error: string | null, address?: string) => {
+  const txCallback = ({
+    res,
+    error,
+    freshAddress = [],
+  }: {
+    res: any;
+    error: string | null;
+    freshAddress?: string[];
+  }) => {
     if (!res || error) {
       setStatus('failed');
       setErrorMsg(error);
@@ -173,7 +181,11 @@ export const Send = memo<SendProps>(function Send() {
       res?.transactionHash
     }`;
     setViewTxUrl(txUrl);
-    address && dispatch(setupAccountDetail(address));
+    if (!isEmpty(freshAddress)) {
+      freshAddress.forEach((address) => {
+        dispatch(setupAccountDetail(address));
+      });
+    }
     setStatus('success');
     reset();
     !isOpen && onOpen();
@@ -203,7 +215,7 @@ export const Send = memo<SendProps>(function Send() {
           },
           connector,
         );
-        txCallback(pRes, pError);
+        txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address]});
         break;
       case 'withdraw_from_payment_account':
         onOpen();
@@ -215,7 +227,7 @@ export const Send = memo<SendProps>(function Send() {
           },
           connector,
         );
-        txCallback(wRes, wError, fromAccount.address);
+        txCallback({ res: wRes, error: wError, freshAddress: [fromAccount.address] });
         break;
       case 'send_to_owner_account':
         onOpen();
@@ -227,7 +239,7 @@ export const Send = memo<SendProps>(function Send() {
           },
           connector,
         );
-        txCallback(sRes, sError);
+        txCallback({ res: sRes, error: sError });
       default:
         break;
     }
@@ -359,21 +371,25 @@ export const Send = memo<SendProps>(function Send() {
               loading={loadingToAccount}
               onChange={(e) => onChangeToAccount(e)}
             />
-            <FormHelperText
-              display={'flex'}
-              alignItems={'center'}
-              justifyContent={'flex-end'}
-              textAlign={'right'}
-              color="#76808F"
-              mt={8}
-            >
-              Balance on Greenfield:{' '}
-              {loadingToAccount ? (
-                <Loading size={12} marginX={4} color="readable.normal" />
-              ) : (
-                renderFee(toBalance, exchangeRate + '')
-              )}
-            </FormHelperText>
+            {!['gnfd_account', 'unknown_account', 'error_account'].includes(
+              accountTypes[toAccount.address],
+            ) && (
+              <FormHelperText
+                display={'flex'}
+                alignItems={'center'}
+                justifyContent={'flex-end'}
+                textAlign={'right'}
+                color="#76808F"
+                mt={8}
+              >
+                Balance on Greenfield:{' '}
+                {loadingToAccount ? (
+                  <Loading size={12} marginX={4} color="readable.normal" />
+                ) : (
+                  renderFee(toBalance, exchangeRate + '')
+                )}
+              </FormHelperText>
+            )}
             <FormErrorMessage textAlign={'left'}>
               {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
             </FormErrorMessage>

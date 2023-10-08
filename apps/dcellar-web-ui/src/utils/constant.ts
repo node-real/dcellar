@@ -11,7 +11,7 @@ export const CHAIN_NAMES: { [key: number | string]: string } = {
   5600: 'Greenfield Testnet',
   97: 'BNB Smart Chain Testnet',
   9000: 'Greenfield Devnet',
-  920: 'Greenfield Mainnet',
+  1017: 'Greenfield Mainnet',
 };
 
 export const G_BYTES = 1024 * 1024 * 1024;

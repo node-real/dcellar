@@ -200,6 +200,14 @@ export const Title = styled.div`
   text-align: center;
 `;
 
+export const Subtitle = styled.div`
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  word-break: break-word;
+  margin-bottom: 16px;
+`;
+
 export const Desc = styled.div`
   font-weight: 400;
   font-size: 14px;
@@ -226,6 +234,9 @@ const StyledListItem = styled(QListItem)<any>`
     background-color: var(--ui-colors-bg-middle);
   }
 
+  :hover {
+    background-color: var(--ui-colors-bg-middle);
+  }
   .title {
     margin-left: 16px;
     font-weight: 600;

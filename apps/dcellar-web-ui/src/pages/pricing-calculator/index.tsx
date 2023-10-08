@@ -3,7 +3,9 @@ import { PriceCalculator } from '@/modules/pricing-calculator';
 import { ReactElement } from 'react';
 
 export default function PriceCalculatorPage() {
-  return <PriceCalculator />;
+  return (
+    <PriceCalculator/>
+  );
 }
 
 PriceCalculatorPage.getLayout = (page: ReactElement) => {
