@@ -167,6 +167,7 @@ export const Send = memo<SendProps>(function Send() {
       setStatus('failed');
       setErrorMsg(error);
       !isOpen && onOpen();
+      return;
     }
     const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
       res?.transactionHash

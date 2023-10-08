@@ -24,6 +24,7 @@ import { getClient } from '@/facade';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
 import { InternalRoutePaths } from '@/utils/constant';
+import { broadcastFault } from '@/facade/error';
 
 interface TransferOutProps {}
 
@@ -84,11 +85,11 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
       reset();
       setStatus('success');
       !isOpen && onOpen();
-    } catch (e) {
+    } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log('transfer out error', e);
       setStatus('failed');
-      setErrorMsg(e);
+      setErrorMsg(broadcastFault(e)[1]);
       !isOpen && onOpen();
     }
   };

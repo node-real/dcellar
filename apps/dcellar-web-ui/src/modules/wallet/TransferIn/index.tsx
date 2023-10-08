@@ -30,6 +30,7 @@ import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { InternalRoutePaths } from '@/utils/constant';
 import { removeTrailingSlash } from '@/utils/string';
+import { broadcastFault } from '@/facade/error';
 
 interface TransferInProps {}
 
@@ -158,12 +159,12 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
       reset();
       !isOpen && onOpen();
       setStatus('success');
-    } catch (e) {
+    } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log('transfer in error', e);
       !isOpen && onOpen();
       setStatus('failed');
-      setErrorMsg(e);
+      setErrorMsg(broadcastFault(e)[1]);
     }
   };
 

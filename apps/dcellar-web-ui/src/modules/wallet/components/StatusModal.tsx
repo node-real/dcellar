@@ -47,7 +47,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
     if (status === 'pending') return null;
     if (status === 'failed') {
       return (
-        <DCButton w="100%" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+        <DCButton size={'lg'} w="100%" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
           Try Again
         </DCButton>
       );
@@ -129,10 +129,10 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
     >
       <ModalCloseButton />
       <ModalBody mt={0}>
-        <Flex justifyContent={'center'} marginBottom="16px">
+        <Flex justifyContent={'center'} marginBottom="32px">
           {contentText?.icon}
         </Flex>
-        <Text textAlign={'center'} fontSize={'24px'} fontWeight="600" marginBottom={'16px'}>
+        <Text textAlign={'center'} fontSize={'24px'} fontWeight="600" marginBottom={'8px'}>
           {contentText?.title}
         </Text>
         {contentText?.subtitle ? (
@@ -140,10 +140,12 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
             {contentText?.subtitle}
           </Text>
         ) : !!errorMsg && status === 'failed' ? (
-          errorMsg
+          <Text color="readable.tertiary" textAlign={'center'}>
+            {errorMsg}
+          </Text>
         ) : null}
       </ModalBody>
-      <ModalFooter marginTop="16px">{FooterButton}</ModalFooter>
+      <ModalFooter marginTop="32px">{FooterButton}</ModalFooter>
     </DCModal>
   );
 });

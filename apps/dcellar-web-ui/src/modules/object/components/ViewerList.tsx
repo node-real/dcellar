@@ -32,7 +32,7 @@ import { trimAddress } from '@/utils/string';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { Avatar } from '@/components/Avatar';
-import { ADDRESS_RE } from '@/utils/constant';
+import { ADDRESS_RE, GROUP_ID } from '@/utils/constant';
 import { Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';
@@ -406,13 +406,14 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
               <Flex direction="column" gap={8}>
                 {page.map((p, index) => {
                   const owner = loginAccount === p.PrincipalValue;
+                  const isGroup = p.PrincipalValue.match(GROUP_ID);
                   return (
                     <Flex key={p.PrincipalValue + String(index)} alignItems="center" h={40}>
                       <Box key={p.PrincipalValue} title={p.PrincipalValue}>
                         <Avatar id={p.PrincipalValue} w={32} />
                       </Box>
                       <Text flex={1} ml={8} fontWeight={500} title={p.PrincipalValue}>
-                        {trimAddress(p.PrincipalValue)}
+                        {isGroup ? p.PrincipalValue : trimAddress(p.PrincipalValue)}
                         {owner && <> (you)</>}
                       </Text>
                       {owner ? (
