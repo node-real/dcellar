@@ -16,8 +16,8 @@ const greenFieldChain: Chain = {
   name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
-    name: GREENFIELD_CHAIN_ID === 920 ? 'BNB' : 'tBNB',
-    symbol: GREENFIELD_CHAIN_ID === 920 ? 'BNB' : 'tBNB',
+    name: GREENFIELD_CHAIN_ID === 1017 ? 'BNB' : 'tBNB',
+    symbol: GREENFIELD_CHAIN_ID === 1017 ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {

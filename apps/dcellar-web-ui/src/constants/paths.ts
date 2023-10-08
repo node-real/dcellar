@@ -7,4 +7,5 @@ export const InternalRoutePaths = {
   send: '/wallet?type=send',
   buckets: '/buckets',
   terms: '/terms',
+  pricing_calculator: '/pricing-calculator'
 };

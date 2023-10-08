@@ -6,6 +6,6 @@ export default function Home() {
   return <Welcome />;
 }
 
-// Home.getLayout = (page: ReactElement) => {
-//   return <LandingPage page={page} />;
-// };
+Home.getLayout = (page: ReactElement) => {
+  return <LandingPage page={page} />;
+};

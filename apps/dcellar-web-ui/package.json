@@ -50,7 +50,8 @@
     "next-redux-wrapper": "^8.1.0",
     "redux-persist":  "^6.0.0",
     "@wagmi/core": "^0.10.13",
-    "fast-xml-parser": "~4.2.7"
+    "fast-xml-parser": "~4.2.7",
+    "swiper": "~10.3.1"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",

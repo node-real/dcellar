@@ -60,6 +60,7 @@ importers:
       react-redux: ^8.1.1
       react-use: ^17.4.0
       redux-persist: ^6.0.0
+      swiper: ~10.3.1
       tsc-files: ~1.1.4
       typescript: 5.0.4
       wagmi: ^0.12.9
@@ -100,6 +101,7 @@ importers:
       react-redux: 8.1.2_8e70b46749da2f914bfa002f2c2020cc
       react-use: 17.4.0_react-dom@18.2.0+react@18.2.0
       redux-persist: 6.0.0
+      swiper: 10.3.1
       typescript: 5.0.4
       wagmi: 0.12.19_66ef97441d5706a665436ba432bb4d01
     devDependencies:
@@ -9406,6 +9408,11 @@ packages:
       picocolors: 1.0.0
       stable: 0.1.8
     dev: true
+
+  /swiper/10.3.1:
+    resolution: {integrity: sha512-24Wk3YUdZHxjc9faID97GTu6xnLNia+adMt6qMTZG/HgdSUt4fS0REsGUXJOgpTED0Amh/j+gRGQxsLayJUlBQ==}
+    engines: {node: '>= 4.7.0'}
+    dev: false
 
   /symbol-observable/2.0.3:
     resolution: {integrity: sha512-sQV7phh2WCYAn81oAkakC5qjq2Ml0g8ozqz03wOGnx9dDlG1de6yrF+0RAzSJD8fPUow3PTSMf2SAbOGxb93BA==}

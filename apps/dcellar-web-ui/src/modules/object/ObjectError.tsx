@@ -62,9 +62,19 @@ export const OBJECT_ERROR_TYPES = {
     desc: 'Get storage price failed, please select another SP.',
   },
   FOLDER_NAME_TOO_LONG: {
-    title: 'Must be between 1 to 70 characters long.',
+    title: 'The folder name must be between 1 and 70 characters long.',
     icon: FILE_TOO_LARGE_URL,
-    desc: 'Folder name must be between 1 to 70 characters long.',
+    desc: 'The folder name must be between 1 and 70 characters long.',
+  },
+  OBJECT_NAME_TOO_LONG: {
+    title: 'The object name must be between 1 and 256 characters long.',
+    icon: FILE_TOO_LARGE_URL,
+    desc: 'The object name must be between 1 and 256 characters long.',
+  },
+  FULL_OBJECT_NAME_TOO_LONG: {
+    title: 'The full object name must be between 1 and 1024 characters long.',
+    icon: FILE_TOO_LARGE_URL,
+    desc: 'The full object name must be between 1 and 1024 characters long.',
   }
 }
 

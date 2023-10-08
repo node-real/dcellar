@@ -1,7 +1,7 @@
 import { runtimeEnv } from '@/base/env';
 import { capitalizeFLetter } from '@/utils/common';
 import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { Box, Button, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
+import { Box, Button, Menu, MenuButton, MenuItem, MenuList, Portal, Text } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import SelectedIcon from '@/public/images/files/icons/selected.svg';
 
@@ -34,7 +34,7 @@ export const SelectNetwork = () => {
     window.open(url, '_blank');
   };
   return (
-    <Menu>
+    <Menu strategy="fixed">
       {({ isOpen }) => (
         <>
           <MenuButton
@@ -48,20 +48,33 @@ export const SelectNetwork = () => {
             color={'readable.normal'}
             fontSize={14}
             fontWeight={500}
-            rightIcon={isOpen ? <MenuOpenIcon pointerEvents={'none'} /> : <MenuCloseIcon pointerEvents={'none'} />}
+            rightIcon={
+              isOpen ? (
+                <MenuOpenIcon pointerEvents={'none'} />
+              ) : (
+                <MenuCloseIcon pointerEvents={'none'} />
+              )
+            }
             _hover={{
-              bgColor: 'bg.secondary'
+              bgColor: 'bg.secondary',
             }}
           >
             {capitalizeFLetter(selected)}
           </MenuButton>
-          <MenuList>
-            {networks.map((item, index) => (
-              <MenuItem padding={'8px 16px 8px 8px'} key={index} onClick={() => onItemClick(item)}>
-                {selected === item.id ? <SelectedIcon/> : <Box w={16}></Box>}<Text marginLeft={8}>{item.title}</Text>
-              </MenuItem>
-            ))}
-          </MenuList>
+          <Portal>
+            <MenuList>
+              {networks.map((item, index) => (
+                <MenuItem
+                  padding={'8px 16px 8px 8px'}
+                  key={index}
+                  onClick={() => onItemClick(item)}
+                >
+                  {selected === item.id ? <SelectedIcon /> : <Box w={16}></Box>}
+                  <Text marginLeft={8}>{item.title}</Text>
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Portal>
         </>
       )}
     </Menu>

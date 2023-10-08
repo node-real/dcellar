@@ -1,14 +1,26 @@
-import { Box, Button, Circle, Flex, Image, Link, Text, useOutsideClick } from '@totejs/uikit';
+import {
+  Box,
+  Button,
+  Circle,
+  Flex,
+  Image,
+  Link,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
+  Text,
+  useOutsideClick,
+} from '@totejs/uikit';
 import React, { useRef, useState } from 'react';
 import { useRouter } from 'next/router';
-
+import { ColoredInfoIcon } from '@totejs/icons';
 import { NewBalance } from '@/components/layout/Header/NewBalance';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import { assetPrefix } from '@/base/env';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CopyText } from '@/components/common/CopyText';
 import { GAClick, GAShow } from '@/components/common/GATracker';
-import { Tips } from '@/components/common/Tips';
 import { Logo } from '@/components/layout/Logo';
 import { useDebounceEffect } from 'ahooks';
 import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
@@ -117,27 +129,31 @@ export const Header = ({ taskManagement = true }: { taskManagement?: boolean }) 
           <Text color="readable.tertiary" fontWeight="500" fontSize="12px" lineHeight="20px">
             Greenfield Available Balance
           </Text>
-          <Tips
-            iconSize={'16px'}
-            containerWidth={'200px'}
-            tips={
-              <Box fontSize={'12px'} lineHeight="14px" width={'200px'}>
-                <Box>
+          <Popover trigger='hover' placement='bottom-end'>
+            <PopoverTrigger>
+              <Flex alignItems={'center'} ml="4px" cursor="pointer">
+                <ColoredInfoIcon width={16} height={16} _hover={{ color: '#2EC659' }} size={'sm'} />
+              </Flex>
+            </PopoverTrigger>
+            <PopoverContent bg={'#fff'} color={'readable.normal'} padding={8} border={'1px solid readable.border'} borderRadius={4} w={200} >
+              <PopoverBody>
+                <Text fontSize={12}>
                   Please notice that due to the locked fee, Greenfield available balance is not
                   equal to your account overall balance, which is shown at your wallet.
-                </Box>
+                </Text>
                 <Link
                   href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is-greenfield-available-balance"
                   target="_blank"
                   color="readable.primary"
                   textDecoration="underline"
                   _hover={{ color: 'readable.brand5' }}
+                  fontSize={12}
                 >
                   Learn more
                 </Link>
-              </Box>
-            }
-          />
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
         </Flex>
         {showPanel && <NewBalance />}
         <Flex

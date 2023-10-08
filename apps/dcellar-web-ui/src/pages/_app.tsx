@@ -16,8 +16,10 @@ import { setupStorageProviders } from '@/store/slices/sp';
 import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
 import { StatusDetail } from '@/modules/object/components/StatusDetail';
+import { register } from 'swiper/element/bundle';
 
-export const ssrLandingRoutes = ['/pricing-calculator', '/terms'];
+register();
+export const ssrLandingRoutes = ['/', '/pricing-calculator', '/terms'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {

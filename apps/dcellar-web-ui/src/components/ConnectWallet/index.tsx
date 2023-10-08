@@ -2,6 +2,7 @@ import React, { ReactElement, memo } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { WalletConnectModal } from '@/components/ConnectWallet/WalletConnectModal';
 import { useDisclosure, Text } from '@totejs/uikit';
+import { smMedia } from '@/modules/responsive';
 
 type ConnectWalletProps = DCButtonProps & {
   icon?: ReactElement;
@@ -23,6 +24,14 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
         {...restProps}
         onClick={onOpen}
         borderRadius={4}
+        sx={{
+          [smMedia]: {
+            h: 33,
+            fontWeight: 500,
+            fontSize: 14,
+            paddingX: 16
+          }
+        }}
       >
         {icon ? icon : ''}
         <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>

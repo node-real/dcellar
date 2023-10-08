@@ -21,11 +21,13 @@ export const Tips = ({
   offset = [0, 0],
   gaShowName,
   iconStyle,
+  visibility,
   ...restProps
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Tooltip
+      // visibility={visibility || 'visible'}
       content={tips}
       w={containerWidth}
       strategy="fixed"
