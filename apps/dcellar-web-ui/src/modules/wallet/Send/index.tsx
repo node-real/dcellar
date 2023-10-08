@@ -76,6 +76,7 @@ export const Send = memo<SendProps>(function Send() {
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const [loadingToAccount, setLoadingToAccount] = useState(false);
   const { feeData, isLoading } = useSendFee();
@@ -164,6 +165,7 @@ export const Send = memo<SendProps>(function Send() {
   const txCallback = (res: any, error: string | null, address?: string) => {
     if (!res || error) {
       setStatus('failed');
+      setErrorMsg(error);
       !isOpen && onOpen();
     }
     const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
@@ -417,7 +419,13 @@ export const Send = memo<SendProps>(function Send() {
             gaClickSubmitName="dc.wallet.send.transferout_btn.click"
           />
         </form>
-        <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+        <StatusModal
+          viewTxUrl={viewTxUrl}
+          isOpen={isOpen}
+          onClose={onModalClose}
+          status={status}
+          errorMsg={errorMsg}
+        />
       </FormContent>
     </Container>
   );

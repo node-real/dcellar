@@ -8,17 +8,23 @@ import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { memo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { InternalRoutePaths } from '@/utils/constant';
 import { Animates } from '@/components/AnimatePng';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { MsgCreatePaymentAccountTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
-export const NewPA = () => {
+interface NewPAProps {}
+
+export const NewPA = memo<NewPAProps>(function NewPA() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { connector } = useAccount();
   const { loginAccount } = useAppSelector((state) => state.persist);
   const { bankBalance } = useAppSelector((state) => state.accounts);
+  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const [confirmModal, setConfirmModal] = useState(false);
   const hasBankBalance = BigNumber(bankBalance).gt(BigNumber(MIN_AMOUNT));
   const refreshPAList = () => {
     dispatch(setupPaymentAccounts());
@@ -48,43 +54,66 @@ export const NewPA = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 
+  const fee = gasObjects?.[MsgCreatePaymentAccountTypeUrl]?.gasFee || 0;
+
   return (
-    <Popover trigger={'hover'}>
-      <PopoverTrigger>
-        <Box>
-          <DCButton
-            h={40}
-            gaClickName="dc.file.f_detail_pop.download.click"
-            onClick={() => onCreatePaymentClick()}
-            disabled={!hasBankBalance}
-          >
-            Create Payment Account
-          </DCButton>
-        </Box>
-      </PopoverTrigger>
-      <PopoverContent
-        bg="#fff"
-        padding="8px"
-        color={'readable.normal'}
-        border={'1px solid readable.border'}
-        borderRadius={4}
-        visibility={hasBankBalance ? 'hidden' : 'visible'}
-      >
-        <PopoverBody>
-          <Box w={232} textAlign={'left'}>
-            Insufficient balance in Owner Account.{' '}
-            <Link
-              textDecoration={'underline'}
-              onClick={() => router.push(InternalRoutePaths.transfer_in)}
-              _hover={{
-                textDecoration: 'underline',
-              }}
+    <>
+      <ConfirmModal
+        confirmText="Confirm"
+        isOpen={confirmModal}
+        ga={{
+          gaClickCloseName: 'dc.account.create_payment_account.modal.show',
+          gaShowName: 'dc.account.create_payment_account.close.click',
+          balanceClickName: 'dc.account.create_payment_account.depost.show',
+          balanceShowName: 'dc.account.create_payment_account.transferin.click',
+          cancelButton: 'dc.account.create_payment_account.cancel.click',
+          confirmButton: 'dc.account.create_payment_account.delete.click',
+        }}
+        title="Create Payment Account"
+        fee={fee}
+        onConfirm={onCreatePaymentClick}
+        onClose={() => {
+          setConfirmModal(false);
+        }}
+        description="Are you sure you want to create a new payment account?"
+      />
+      <Popover trigger={'hover'}>
+        <PopoverTrigger>
+          <Box>
+            <DCButton
+              h={40}
+              gaClickName="dc.file.f_detail_pop.download.click"
+              onClick={() => setConfirmModal(true)}
+              disabled={!hasBankBalance}
             >
-              Transfer In
-            </Link>
+              Create Payment Account
+            </DCButton>
           </Box>
-        </PopoverBody>
-      </PopoverContent>
-    </Popover>
+        </PopoverTrigger>
+        <PopoverContent
+          bg="#fff"
+          padding="8px"
+          color={'readable.normal'}
+          border={'1px solid readable.border'}
+          borderRadius={4}
+          visibility={hasBankBalance ? 'hidden' : 'visible'}
+        >
+          <PopoverBody>
+            <Box w={232} textAlign={'left'}>
+              Insufficient balance in Owner Account.{' '}
+              <Link
+                textDecoration={'underline'}
+                onClick={() => router.push(InternalRoutePaths.transfer_in)}
+                _hover={{
+                  textDecoration: 'underline',
+                }}
+              >
+                Transfer In
+              </Link>
+            </Box>
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
+    </>
   );
-};
+});

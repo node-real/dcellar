@@ -32,6 +32,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
   const router = useRouter();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { feeData, isLoading } = useTransferOutFee();
   const { all } = useChainsBalance();
@@ -87,6 +88,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
       // eslint-disable-next-line no-console
       console.log('transfer out error', e);
       setStatus('failed');
+      setErrorMsg(e);
       !isOpen && onOpen();
     }
   };
@@ -146,7 +148,13 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
           gaClickSwitchName="dc.wallet.transferout.switch_network.click"
         />
       </form>
-      <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+      <StatusModal
+        viewTxUrl={viewTxUrl}
+        isOpen={isOpen}
+        onClose={onModalClose}
+        status={status}
+        errorMsg={errorMsg}
+      />
     </Container>
   );
 });

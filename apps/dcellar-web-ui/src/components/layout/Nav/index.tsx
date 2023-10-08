@@ -14,11 +14,6 @@ const MENU_ITEMS = [
     trackId: 'dc.main.nav.bucket.click',
   },
   {
-    icon: 'account',
-    text: 'Accounts',
-    trackId: 'dc.main.nav.accounts.click',
-  },
-  {
     icon: 'group',
     text: 'Groups',
     trackId: 'dc.main.nav.groups.click',
@@ -28,11 +23,16 @@ const MENU_ITEMS = [
     text: 'Wallet',
     trackId: 'dc.main.nav.wallet.click',
   },
+  {
+    icon: 'account',
+    text: 'Accounts',
+    trackId: 'dc.main.nav.accounts.click',
+  },
 ];
 
 const ASIDE = [
-  { link: DcellarDoc, trackId: 'dc.main.nav.doc.click', icon: 'doc', text: 'Documentation' },
-  { link: FAQ, trackId: 'dc.main.nav.faq.click', icon: 'help', text: 'FAQ' },
+  { link: DcellarDoc, trackId: 'dc.main.nav.doc.click', icon: 'doc', text: 'BNB Greenfield Docs' },
+  { link: FAQ, trackId: 'dc.main.nav.faq.click', icon: 'help', text: 'About DCellar' },
 ];
 
 interface NavProps {}

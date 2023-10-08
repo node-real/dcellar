@@ -41,6 +41,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const router = useRouter();
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
@@ -162,6 +163,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
       console.log('transfer in error', e);
       !isOpen && onOpen();
       setStatus('failed');
+      setErrorMsg(e);
     }
   };
 
@@ -230,7 +232,13 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
           gaClickSwitchName="dc.wallet.transferin.switch_network.click"
         />
       </form>
-      <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+      <StatusModal
+        viewTxUrl={viewTxUrl}
+        isOpen={isOpen}
+        onClose={onModalClose}
+        status={status}
+        errorMsg={errorMsg}
+      />
     </Container>
   );
 });

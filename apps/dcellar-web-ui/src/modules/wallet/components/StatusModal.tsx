@@ -28,6 +28,7 @@ interface StatusModalProps {
   onClose: () => void;
   viewTxUrl: string;
   isOpen: boolean;
+  errorMsg?: string;
   status: 'pending' | 'success' | 'failed';
 }
 
@@ -36,6 +37,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
   onClose,
   isOpen,
   status,
+  errorMsg,
 }) {
   const { transType } = useAppSelector((root) => root.wallet);
 
@@ -56,6 +58,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
           return (
             <>
               <DCButton
+                size={'lg'}
                 variant="ghost"
                 as="a"
                 /*@ts-ignore TODO how to inherit as function */
@@ -65,7 +68,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
               >
                 View in Explorer
               </DCButton>
-              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton size={'lg'} onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Transfer Again
               </DCButton>
             </>
@@ -74,6 +77,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
           return (
             <>
               <DCButton
+                size={'lg'}
                 variant="ghost"
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
@@ -92,6 +96,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
           return (
             <>
               <DCButton
+                size={'lg'}
                 variant="ghost"
                 as={'a'}
                 /*@ts-ignore TODO how to inherit as function */
@@ -101,7 +106,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
               >
                 View in GreenfieldScan
               </DCButton>
-              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton size={'lg'} onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Send Again
               </DCButton>
             </>
@@ -130,11 +135,13 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
         <Text textAlign={'center'} fontSize={'24px'} fontWeight="600" marginBottom={'16px'}>
           {contentText?.title}
         </Text>
-        {contentText?.subtitle && (
+        {contentText?.subtitle ? (
           <Text color="readable.tertiary" textAlign={'center'}>
             {contentText?.subtitle}
           </Text>
-        )}
+        ) : !!errorMsg && status === 'failed' ? (
+          errorMsg
+        ) : null}
       </ModalBody>
       <ModalFooter marginTop="16px">{FooterButton}</ModalFooter>
     </DCModal>
