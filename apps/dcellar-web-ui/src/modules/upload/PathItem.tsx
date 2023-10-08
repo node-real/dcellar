@@ -36,10 +36,17 @@ export const PathItem = memo<PathItemProps>(function ({ path, status, ...stylePr
     >
       <Link href={`/buckets/${encodeObjectName(path)}`} legacyBehavior passHref>
         <Text
-          borderBottom={'1px solid'}
+          borderBottom={finished ? '1px solid' : ''}
           as={'a'}
           _hover={hoverStyles}
-          onClick={() => dispatch(setTaskManagement(false))}
+          onClick={(e) => {
+            if (!finished) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            dispatch(setTaskManagement(false));
+          }}
         >
           {path}
         </Text>

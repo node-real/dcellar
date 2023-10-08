@@ -51,7 +51,7 @@ export const displayTime = (intervalTime: number | string) => {
     }
   });
 
-  return display;
+  return display.replace(/(months?)(.*)/, '$1 ($2)');
 };
 
 export const capitalizeFLetter = (str: string) => {
@@ -61,4 +61,4 @@ export const capitalizeFLetter = (str: string) => {
 
 export const networkTag = (runtimeEnv: TRuntimeEnv) => {
   return ['mainnet', 'testnet'].includes(runtimeEnv) ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
-}
+};

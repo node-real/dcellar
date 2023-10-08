@@ -166,7 +166,7 @@ export const objectSlice = createSlice({
       if (object) {
         object.objectStatus = objectStatus;
       }
-      const info = state.objectsInfo[path];
+      const info = state.objectsInfo[[path, objectName].join('/')];
       if (!info) return;
       info.ObjectInfo.ObjectStatus = objectStatus as any; // number
     },

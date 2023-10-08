@@ -94,7 +94,7 @@ export interface GlobalState {
   authModalOpen: [boolean, AuthPostAction];
   disconnectWallet: boolean;
 }
-export const GAS_PRICE = '0.000000005'
+export const GAS_PRICE = '0.000000005';
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'];
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
@@ -284,7 +284,7 @@ export const globalSlice = createSlice({
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
             gasFee = +gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * (+gasPrice);
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * +gasPrice;
           }
 
           return {
@@ -475,14 +475,17 @@ export const uploadQueueAndRefresh =
     const { loginAccount } = getState().persist;
     await dispatch(refreshTaskFolder(task));
     dispatch(updateUploadStatus({ ids: [task.id], status: 'FINISH', account: loginAccount }));
-    dispatch(
-      updateObjectStatus({
-        bucketName: task.bucketName,
-        folders: task.prefixFolders,
-        name: task.waitFile.name,
-        objectStatus: 1,
-      }),
-    );
+    // for setupListObjects ready
+    setTimeout(() => {
+      dispatch(
+        updateObjectStatus({
+          bucketName: task.bucketName,
+          folders: task.prefixFolders,
+          name: task.waitFile.name,
+          objectStatus: 1,
+        }),
+      );
+    });
   };
 
 const fetchedList: Record<string, boolean> = {};
