@@ -40,6 +40,8 @@ export const WalletButton = memo<WalletButtonProps>(function WalletButton({
     return (
       <>
         <DCButton
+          variant="scene"
+          colorScheme={'warning'}
           size={'lg'}
           as="div"
           width={'100%'}
