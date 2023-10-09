@@ -30,11 +30,13 @@ interface DownloadObjectOperationProps {
   actionParams?: Record<string, any>;
 }
 
+const defaultActionParams = {} as Record<string, any>;
+
 export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(function DownloadObject({
   selectObjectInfo,
   onClose = () => {},
   primarySp,
-  actionParams = {},
+  actionParams = defaultActionParams,
 }) {
   const dispatch = useAppDispatch();
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);

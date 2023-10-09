@@ -1,4 +1,5 @@
 import { convertVisibility } from './object';
+import { assetPrefix } from '@/base/env';
 
 export const getLoginLocalStorageKey = (prefix = '') => `${prefix}_GREENFIELD_LOGIN_STORAGE`;
 
@@ -17,7 +18,7 @@ export const CHAIN_NAMES: { [key: number | string]: string } = {
 
 export const GNFD_TESTNET = 5600;
 
-export const GNFD_MAINNET = 1107;
+export const GNFD_MAINNET = 1017;
 
 export const G_BYTES = 1024 * 1024 * 1024;
 
@@ -50,3 +51,11 @@ export const InternalRoutePaths = {
   buckets: '/buckets',
   terms: '/terms',
 };
+
+export const LCP_IMAGES = [
+  `${assetPrefix}/images/animate/access.png`,
+  `${assetPrefix}/images/animate/delete.png`,
+  `${assetPrefix}/images/animate/group.png`,
+  `${assetPrefix}/images/animate/object.png`,
+  `${assetPrefix}/images/animate/upload.png`,
+];

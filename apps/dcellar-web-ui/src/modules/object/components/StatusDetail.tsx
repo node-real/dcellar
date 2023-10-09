@@ -29,6 +29,8 @@ import { setEditQuota } from '@/store/slices/bucket';
 import { useModalValues } from '@/hooks/useModalValues';
 import { AnimatePng, AnimatePngProps, Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
+import Head from 'next/head';
+import { LCP_IMAGES } from '@/utils/constant';
 
 interface StatusDetailProps {}
 
@@ -54,68 +56,77 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
     statusDetail.icon in Animates ? (statusDetail.icon as AnimatePngProps['type']) : '';
 
   return (
-    <DCModal
-      isOpen={isOpen}
-      onClose={onClose}
-      w="568px"
-      gaShowName={gaOptions.showName}
-      gaClickCloseName={gaOptions.closeName}
-    >
-      <ModalCloseButton />
-      <ModalBody
-        flexDirection={'column'}
-        alignItems={'center'}
-        display={'flex'}
-        mt={0}
-        overflowY={'hidden'}
-        textAlign="center"
+    <>
+      <Head>
+        <>
+          {LCP_IMAGES.map((url: string) => (
+            <link key={url} rel="preload" href={url} as="image" />
+          ))}
+        </>
+      </Head>
+      <DCModal
+        isOpen={isOpen}
+        onClose={onClose}
+        w="568px"
+        gaShowName={gaOptions.showName}
+        gaClickCloseName={gaOptions.closeName}
       >
-        {animateType ? (
-          <AnimatePng type={animateType} />
-        ) : statusDetail.icon?.includes('.') ? (
-          <Image src={statusDetail.icon} w="120px" h="120px" alt="" />
-        ) : (
-          <IconFont type={statusDetail.icon} w={120} />
-        )}
-        <Text fontSize="24px" fontWeight={600} marginTop="32px">
-          {statusDetail.title}
-        </Text>
-        <Text fontSize="16px" marginTop="8px" color={'readable.tertiary'}>
-          {statusDetail.errorText || (
-            <>
-              {statusDetail?.desc === FILE_STATUS_DOWNLOADING ? (
-                <>
-                  {FILE_STATUS_DOWNLOADING.replace('...', '')}
-                  <Box display={'inline-block'} marginTop={'-0.1em'}>
-                    <DotLoading />
-                  </Box>
-                </>
-              ) : (
-                statusDetail?.desc
-              )}
-            </>
+        <ModalCloseButton />
+        <ModalBody
+          flexDirection={'column'}
+          alignItems={'center'}
+          display={'flex'}
+          mt={0}
+          overflowY={'hidden'}
+          textAlign="center"
+        >
+          {animateType ? (
+            <AnimatePng type={animateType} />
+          ) : statusDetail.icon?.includes('.') ? (
+            <Image src={statusDetail.icon} w="120px" h="120px" alt="" />
+          ) : (
+            <IconFont type={statusDetail.icon} w={120} />
           )}
-        </Text>
-      </ModalBody>
-      {(statusDetail.buttonText || NO_QUOTA) && (
-        <ModalFooter mt={32}>
-          <DCButton
-            size="lg"
-            w="100%"
-            onClick={() => {
-              statusDetail.buttonOnClick?.();
-              onClose();
-              if (NO_QUOTA) {
-                dispatch(setEditQuota([String(quotaBucket), 'modal']));
-              }
-            }}
-            gaClickName={gaOptions.closeName}
-          >
-            {NO_QUOTA ? 'Increase Quota' : statusDetail.buttonText}
-          </DCButton>
-        </ModalFooter>
-      )}
-    </DCModal>
+          <Text fontSize="24px" fontWeight={600} marginTop="32px">
+            {statusDetail.title}
+          </Text>
+          <Text fontSize="16px" marginTop="8px" color={'readable.tertiary'}>
+            {statusDetail.errorText || (
+              <>
+                {statusDetail?.desc === FILE_STATUS_DOWNLOADING ? (
+                  <>
+                    {FILE_STATUS_DOWNLOADING.replace('...', '')}
+                    <Box display={'inline-block'} marginTop={'-0.1em'}>
+                      <DotLoading />
+                    </Box>
+                  </>
+                ) : (
+                  statusDetail?.desc
+                )}
+              </>
+            )}
+          </Text>
+        </ModalBody>
+        {(statusDetail.buttonText || NO_QUOTA) && (
+          <ModalFooter mt={32}>
+            <DCButton
+              size="lg"
+              w="100%"
+              onClick={() => {
+                statusDetail.buttonOnClick?.();
+                onClose();
+                if (NO_QUOTA) {
+                  dispatch(setEditQuota([String(quotaBucket), 'modal']));
+                }
+              }}
+              gaClickName={gaOptions.closeName}
+            >
+              {NO_QUOTA ? 'Increase Quota' : statusDetail.buttonText}
+            </DCButton>
+          </ModalFooter>
+        )}
+      </DCModal>
+    </>
   );
 });
 

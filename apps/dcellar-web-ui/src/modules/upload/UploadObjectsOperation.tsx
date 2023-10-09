@@ -43,7 +43,7 @@ import {
   UPLOADING_STATUSES,
   WaitFile,
 } from '@/store/slices/global';
-import { useAsyncEffect, useScroll } from 'ahooks';
+import { useAsyncEffect, useScroll, useUnmount, useWhyDidYouUpdate } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { isEmpty, round } from 'lodash-es';
@@ -65,9 +65,16 @@ interface UploadObjectsOperationProps {
   primarySp: SpItem;
 }
 
+const defaultScroll = { top: 0 };
+const defaultActionParams = {} as TEditUploadContent;
+
 // add memo avoid parent state change rerender
 export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
-  function UploadObjectsOperation({ onClose = () => {}, actionParams = {}, primarySp }) {
+  function UploadObjectsOperation({
+    onClose = () => {},
+    actionParams = defaultActionParams,
+    primarySp,
+  }) {
     const dispatch = useAppDispatch();
     const { bankBalance } = useAppSelector((root) => root.accounts);
     const { bucketName, path, objects } = useAppSelector((root) => root.object);
@@ -86,7 +93,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const bucket = bucketInfo[bucketName];
     const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
     const ref = useRef(null);
-    const scroll = useScroll(ref) || { top: 0 };
+    const scroll = useScroll(ref) || defaultScroll;
 
     const getErrorMsg = (type: string) => {
       return OBJECT_ERROR_TYPES[type as ObjectErrorType]

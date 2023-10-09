@@ -7,6 +7,7 @@ import {
   setObjectOperation,
   setupDummyFolder,
   setupListObjects,
+  TEditUploadContent,
 } from '@/store/slices/object';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { DCModal } from '@/components/common/DCModal';
@@ -170,7 +171,7 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
         return (
           <UploadObjectsOperation
             primarySp={primarySp}
-            actionParams={params as any}
+            actionParams={params as TEditUploadContent}
             onClose={onClose}
           />
         );

@@ -166,7 +166,7 @@ function OptionItem(props: any) {
   return (
     <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
       <TD
-        w={280}
+        w={251}
         key={address}
         display="flex"
         flexDir="column"

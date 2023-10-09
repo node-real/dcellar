@@ -29,6 +29,9 @@ export const theme: Theme = {
           top: 65,
           maxW: '500px',
         },
+        '.ui-list-item > div': {
+          minW: 0,
+        },
         '.ui-toast': {
           borderRadius: 4,
         },

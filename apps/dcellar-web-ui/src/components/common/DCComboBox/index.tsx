@@ -15,6 +15,7 @@ export const DCComboBox = memo<DCComboBoxProps>(function DCComboBox({ addon, ...
     <Container ref={ref}>
       <ConfigProvider theme={antdTheme}>
         <Select
+          maxTagTextLength={42}
           getPopupContainer={() => ref.current!}
           dropdownStyle={{
             ...props.dropdownStyle,
