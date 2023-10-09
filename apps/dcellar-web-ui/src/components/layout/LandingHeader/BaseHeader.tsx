@@ -6,6 +6,7 @@ import { ExternalLinkIcon, IconProps } from '@totejs/icons';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useRouter } from 'next/router';
 import { IconFont } from '@/components/IconFont';
+import { useDetectScroll } from './useDetectScroll';
 
 export const MENUS = [
   {
@@ -34,7 +35,8 @@ export const MENUS = [
 export const BaseHeader = () => {
   const router = useRouter();
   const gaClickName = getGAOptions(router.pathname);
-
+  const isScroll = useDetectScroll();
+  console.log('isScroll', isScroll);
   return (
     <Flex
       as="header"
@@ -47,7 +49,7 @@ export const BaseHeader = () => {
       position={'fixed'}
       zIndex={1100}
       backdropFilter={'blur(10px)'}
-      boxShadow={'0px 4px 24px 0px rgba(0, 0, 0, 0.08)'}
+      boxShadow={isScroll ? '0px 4px 24px 0px rgba(0, 0, 0, 0.08)' : 'none'}
     >
       <GAClick name="dc_lp.main.header.logo.click">
         <Logo href="/" />

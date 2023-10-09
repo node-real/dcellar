@@ -37,7 +37,6 @@ export const KeyFeaturesPC = memo(() => {
           alignItems={'center'}
           justifyContent={'center'}
           isLazy={false}
-          lazyBehavior="keepMounted"
         >
           <TabList flexWrap={'wrap'} justifyContent={'center'}>
             {keyFeatureList &&

@@ -5,10 +5,12 @@ import { GAClick } from '@/components/common/GATracker';
 import { Logo } from '../Logo';
 import { MENUS } from './BaseHeader';
 import NextLink from 'next/link';
+import { useDetectScroll } from './useDetectScroll';
 
 export const MobileHeader = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const drawTriggerRef = React.useRef(null);
+  const isScroll = useDetectScroll();
   return (
     <Flex
       as="header"
@@ -21,7 +23,7 @@ export const MobileHeader = () => {
       position={'fixed'}
       zIndex={1600}
       backdropFilter={'blur(10px)'}
-      boxShadow={'0px 4px 24px 0px rgba(0, 0, 0, 0.08)'}
+      boxShadow={isScroll ? '0px 4px 24px 0px rgba(0, 0, 0, 0.08)' : 'none'}
     >
       <GAClick name="dc.main.nav.logo.click">
         <Logo href="/" />
