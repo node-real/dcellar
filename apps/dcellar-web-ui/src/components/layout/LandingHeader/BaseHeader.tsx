@@ -1,4 +1,5 @@
 import { Flex, Link } from '@totejs/uikit';
+import NextLink from 'next/link';
 import { Logo } from '../Logo';
 import { GAClick } from '@/components/common/GATracker';
 import { ExternalLinkIcon, IconProps } from '@totejs/icons';
@@ -53,14 +54,15 @@ export const BaseHeader = () => {
       <Flex gap={32}>
         {MENUS.map((item, index) => (
           <GAClick name={item.gaName} key={index}>
-            <Link
-              color={router.pathname === item.link ? 'brand.brand6' : 'readable.normal'}
-              href={item.link}
-              target={item.target}
-            >
-              {item.title}
-              <item.Icon />
-            </Link>
+            <NextLink href={item.link} passHref legacyBehavior>
+              <Link
+                color={router.pathname === item.link ? 'brand.brand6' : 'readable.normal'}
+                target={item.target}
+              >
+                {item.title}
+                <item.Icon />
+              </Link>
+            </NextLink>
           </GAClick>
         ))}
       </Flex>
