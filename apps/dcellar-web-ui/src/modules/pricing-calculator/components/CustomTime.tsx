@@ -83,9 +83,10 @@ export const CustomTime = ({
         p={16}
         borderRadius={4}
         bgColor={'#fff'}
+        border='1px solid readable.border'
         boxShadow={'0px 4px 20px 0px rgba(0, 0, 0, 0.04)'}
       >
-        <PopoverCloseButton onClick={onClose} color={'readable.tertiary'} />
+        {/* <PopoverCloseButton onClick={onClose} color={'readable.tertiary'} /> */}
         <PopoverHeader fontSize={14} fontWeight={600} color={'readable.normal'}>
           Custom Storage Time
         </PopoverHeader>
@@ -106,6 +107,9 @@ export const CustomTime = ({
             onItemClick={(item: string) => {
               const unit = swapTimeUnits[item];
               onChangeInput({ ...customStorageTime, unit });
+            }}
+            iconStyles={{
+              w: 16,
             }}
           />
         </PopoverBody>

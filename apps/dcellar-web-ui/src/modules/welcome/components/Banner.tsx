@@ -3,11 +3,12 @@ import { Flex, Image, Text } from '@totejs/uikit';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { smMedia } from '@/modules/responsive';
 import { LandingResponsiveContainer, lgMedia, mdMedia } from '..';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
 export const Banner = () => {
   return (
     <LandingResponsiveContainer>
-      <Flex paddingTop={104} bg={`url(${assetPrefix}/images/welcome/bg.png) no-repeat top/auto 100%`} sx={{
+      <Flex paddingTop={144} bg={`url(${assetPrefix}/images/welcome/bg.png) no-repeat top/auto 100%`} sx={{
         [smMedia]: {
           flexDirection: 'column'
         }
@@ -29,6 +30,7 @@ export const Banner = () => {
             as={'h1'}
             fontSize={48}
             fontWeight={700}
+            fontFamily={INTER_FONT}
             sx={{
               [lgMedia]: {
                 fontSize: '32px',
@@ -47,6 +49,9 @@ export const Banner = () => {
             as="h2"
             my={20}
             fontSize={20}
+            fontWeight={400}
+            fontFamily={INTER_FONT}
+            color={'readable.secondary'}
             sx={{
               [lgMedia]: {
                 fontSize: '20px',
@@ -62,7 +67,7 @@ export const Banner = () => {
             Empower developers to build with BNB Greenfield Network at ease, assist in development
             process and team collaboration.
           </Text>
-          <ConnectWallet gaClickName="dc_lp.homepage.hero.get_started.click" text="Get Started" />
+          <ConnectWallet gaClickName="dc_lp.homepage.hero.get_started.click" text="Get Started" marginBottom={40}/>
         </Flex>
         <Flex justifySelf={'flex-end'} alignSelf={'flex-end'}>
           <Image

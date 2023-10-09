@@ -1,16 +1,22 @@
 import { smMedia } from '@/modules/responsive';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
+import { IconProps, MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
 import { Button, ButtonProps, Menu, MenuButton, MenuItem, MenuList } from '@totejs/uikit';
-import React from 'react';
 
 type Props = {
   value: string;
   sizes: string[];
   onItemClick: (item: string) => void;
   buttonStyles?: ButtonProps;
+  iconStyles?: IconProps;
 };
 
-export const SizeMenu = ({ value, sizes, onItemClick, buttonStyles = {} }: Props) => {
+export const SizeMenu = ({
+  value,
+  sizes,
+  onItemClick,
+  buttonStyles = {},
+  iconStyles = {},
+}: Props) => {
   return (
     <Menu>
       {({ isOpen }) => (
@@ -35,9 +41,9 @@ export const SizeMenu = ({ value, sizes, onItemClick, buttonStyles = {} }: Props
             }}
             rightIcon={
               isOpen ? (
-                <MenuOpenIcon pointerEvents={'none'} color="readable.normal" />
+                <MenuOpenIcon pointerEvents={'none'} color="readable.normal" {...iconStyles} />
               ) : (
-                <MenuCloseIcon pointerEvents={'none'} color="readable.normal" />
+                <MenuCloseIcon pointerEvents={'none'} color="readable.normal" {...iconStyles} />
               )
             }
             {...buttonStyles}

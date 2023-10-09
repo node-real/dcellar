@@ -1,5 +1,5 @@
 import React, { memo, useRef, useState } from 'react';
-import { Box, Button, Circle, Fade, Flex, Portal, Text, useOutsideClick } from '@totejs/uikit';
+import { Box, Button, Circle, Fade, Flex, Portal, Text, useDisclosure, useOutsideClick } from '@totejs/uikit';
 import { CopyText } from '@/components/common/CopyText';
 import { Tips } from '@/components/common/Tips';
 import { NewBalance } from '@/components/layout/Header/NewBalance';

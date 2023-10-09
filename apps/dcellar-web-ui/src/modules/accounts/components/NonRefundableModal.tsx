@@ -1,6 +1,6 @@
 import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditDisablePaymentAccount } from '@/store/slices/accounts';
+import { setEditDisablePaymentAccount, setupAccountDetail } from '@/store/slices/accounts';
 import React, { memo } from 'react';
 import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
@@ -50,6 +50,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
         }),
       );
     }
+    dispatch(setupAccountDetail(editDisablePaymentAccount));
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 

@@ -3,6 +3,7 @@ import { LandingH2, LandingResponsiveContainer } from '..';
 import { Box, Flex, Text, Image } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
 const datas = [
   {
@@ -28,7 +29,7 @@ export const HelpDevelopers = () => {
   return (
     <LandingResponsiveContainer>
       <Flex
-        my={40}
+        my={80}
         alignItems={'center'}
         flexDirection={'column'}
         sx={{
@@ -41,6 +42,7 @@ export const HelpDevelopers = () => {
         <Text
           marginBottom={40}
           fontSize={16}
+          fontFamily={INTER_FONT}
           sx={{
             [smMedia]: {
               margin: '8px auto 20px',
@@ -65,6 +67,7 @@ export const HelpDevelopers = () => {
                   <Text
                     as="h3"
                     py={24}
+                    fontFamily={INTER_FONT}
                     textAlign={'center'}
                     fontSize={24}
                     fontWeight={600}

@@ -47,6 +47,7 @@ export const BaseHeader = () => {
       position={'fixed'}
       zIndex={1100}
       backdropFilter={'blur(10px)'}
+      boxShadow={'0px 4px 24px 0px rgba(0, 0, 0, 0.08)'}
     >
       <GAClick name="dc_lp.main.header.logo.click">
         <Logo href="/" />
@@ -67,7 +68,7 @@ export const BaseHeader = () => {
         ))}
       </Flex>
       <ConnectWallet
-        h={36}
+        h={40}
         p={'10px 16px'}
         fontWeight={500}
         fontSize={14}

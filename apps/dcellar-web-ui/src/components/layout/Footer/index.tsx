@@ -32,7 +32,7 @@ export const Footer = (props: FlexProps) => {
       height={49}
       gridArea={'footer'}
       bgColor="bg.middle"
-      color="readable.secondary"
+      color="readable.tertiary"
       gap={24}
       flexWrap={'wrap'}
       sx={{

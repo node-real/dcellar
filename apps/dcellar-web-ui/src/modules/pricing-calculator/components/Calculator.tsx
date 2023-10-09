@@ -4,7 +4,16 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0Month } from '@/utils/time';
-import { Box, Divider, Flex, Link, Loading, Text, useDisclosure } from '@totejs/uikit';
+import {
+  Box,
+  Divider,
+  Flex,
+  Link,
+  Loading,
+  Text,
+  useDisclosure,
+  useMediaQuery,
+} from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 import { FeeItem } from './FeeItem';
 import { SizeMenu } from './SizeMenu';
@@ -39,6 +48,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
   );
 };
 export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) => {
+  const [isMobile] = useMediaQuery('(max-width: 767px)');
   const TOKEN_SYMBOL = displayTokenSymbol();
   const { isOpen, onClose, onToggle } = useDisclosure();
   const updateMonth = getUTC0Month();
@@ -291,6 +301,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   size: value,
                 })
               }
+              placeholder="0.0"
               sx={{
                 [smMedia]: {
                   flex: '1',
@@ -329,7 +340,9 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               flex={1}
               textAlign={'right'}
             >
-              <Text fontWeight={600}>= {storageFee} {TOKEN_SYMBOL}/month</Text>
+              <Text fontWeight={600}>
+                = {storageFee} {TOKEN_SYMBOL}/month
+              </Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(storageFee || '0', bnbPrice)})
               </Text>
@@ -369,6 +382,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
           <Text fontSize={12}>How much monthly download quota do you require? </Text>
           <Flex alignItems={'center'} gap={12} flexWrap={'wrap'}>
             <NumInput
+              placeholder="0.0"
               value={quotaSize.size}
               onChangeValue={(value) =>
                 setQuotaSize({
@@ -414,7 +428,9 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Text fontWeight={600}>= {quotaFee} {TOKEN_SYMBOL}/month</Text>
+              <Text fontWeight={600}>
+                = {quotaFee} {TOKEN_SYMBOL}/month
+              </Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(quotaFee || '0', bnbPrice)})
               </Text>
@@ -447,6 +463,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
           </Text>
           <Flex alignItems={'center'} gap={12} flexWrap={'wrap'}>
             <NumInput
+              placeholder="0"
               value={gasTimes}
               onChangeValue={(value) => setGasTimes(value)}
               sx={{
@@ -480,7 +497,9 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Text fontWeight={600}>= {totalGasFee} {TOKEN_SYMBOL}/month</Text>
+              <Text fontWeight={600}>
+                = {totalGasFee} {TOKEN_SYMBOL}/month
+              </Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(totalGasFee || '0', bnbPrice)})
               </Text>
@@ -582,7 +601,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   },
                 }}
               >
-                Estimated Total Cost
+                {isMobile ? 'Total' : 'Estimated Total Cost'}
               </Text>
               <Box
                 textAlign={'right'}
@@ -599,7 +618,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   color={'readable.tertiary'}
                   ml={4}
                   fontWeight={400}
-                  display={'inline-block'}
+                  display={isMobile ? 'inline' : 'inline-block'}
                 >
                   &nbsp;({displayUsd(costs.totalCost || '0', bnbPrice)})
                 </Box>
@@ -613,12 +632,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Box display={'inline-block'}>{costs.averageMonthCost} {TOKEN_SYMBOL}/month</Box>
+              <Box display={'inline-block'}>
+                {costs.averageMonthCost} {TOKEN_SYMBOL}/month
+              </Box>
               <Box
                 display={'inline-block'}
                 sx={{
                   [smMedia]: {
-                    display: 'block',
+                    display: 'inline',
                   },
                 }}
               >

@@ -4,6 +4,7 @@ import { Flex, Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
 import { IconFont, IconFontProps } from '@/components/IconFont';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
 const ResponsiveIcon = ({ type, ...restProps }: IconFontProps) => {
   return (
@@ -74,7 +75,7 @@ export const DeveloperTools = () => {
   return (
     <LandingResponsiveContainer>
       <Flex
-        my={40}
+        my={80}
         flexDirection={'column'}
         alignItems={'center'}
         gap={40}
@@ -138,6 +139,7 @@ export const DeveloperTools = () => {
                     {item.icon}
                   </Flex>
                   <Text
+                    fontFamily={INTER_FONT}
                     marginLeft={16}
                     fontSize={16}
                     fontWeight={600}

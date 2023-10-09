@@ -4,6 +4,7 @@ import { keyFeatureList } from './KeyFeatures';
 import FeatureItem from './FeatureItem';
 import { memo } from 'react';
 import { GAClick } from '@/components/common/GATracker';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
 export const KeyFeaturesPC = memo(() => {
   const styles = {
@@ -29,7 +30,7 @@ export const KeyFeaturesPC = memo(() => {
 
   return (
     <LandingResponsiveContainer>
-      <Flex flexDirection={'column'} alignItems={'center'} my={40}>
+      <Flex flexDirection={'column'} alignItems={'center'} my={80}>
         <LandingH2 marginBottom={40}>Key Features</LandingH2>
         <Tabs
           variant="squared"
@@ -42,10 +43,17 @@ export const KeyFeaturesPC = memo(() => {
             {keyFeatureList &&
               keyFeatureList.map((item, index) => (
                 <GAClick key={index} name={item.gaClickName}>
-                  <Tab key={index} {...styles}>
-                    <Text>{item.label}</Text>
+                  <Tab key={index} {...styles} position={'relative'} marginBottom={33}>
+                    <Text fontFamily={INTER_FONT}>{item.label}</Text>
                     {item.tag && (
-                      <Text fontSize={12} fontWeight={500} color={'readable.disabled'}>
+                      <Text
+                        position={'absolute'}
+                        bottom={0}
+                        fontFamily={INTER_FONT}
+                        fontSize={12}
+                        fontWeight={500}
+                        color={'readable.disabled'}
+                      >
                         {item.tag}
                       </Text>
                     )}

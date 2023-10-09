@@ -3,6 +3,7 @@ import { LandingH2, LandingResponsiveContainer } from '..';
 import { Box, Flex, Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { IconFont } from '@/components/IconFont';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
 const datas = [
   {
@@ -56,7 +57,7 @@ export const Building = () => {
     <LandingResponsiveContainer>
       <Flex
         display={'flex'}
-        my={40}
+        my={80}
         sx={{
           [smMedia]: {
             flexDirection: 'column',
@@ -66,6 +67,7 @@ export const Building = () => {
       >
         <Flex
           flexDirection={'column'}
+          marginRight={40}
           sx={{
             [smMedia]: {
               alignItems: 'center',
@@ -75,7 +77,7 @@ export const Building = () => {
           }}
         >
           <LandingH2>Building on BNB Greenfield</LandingH2>
-          <Text>
+          <Text fontFamily={INTER_FONT} color='readable.secondary'>
             BNB Greenfield is an innovative blockchain and storage platform that seeks to unleash
             the power of decentralized technology on data ownership and the data economy.
           </Text>
@@ -110,11 +112,30 @@ export const Building = () => {
                     {item.icon}
                   </Flex>
                 </Box>
-                <Flex gap={12} flexDirection={'column'}>
-                  <Text as="h3" fontSize={20} fontWeight={700}>
+                <Flex gap={12} flexDirection={'column'} sx={{
+                  [smMedia]: {
+                    gap: 8
+                  }
+                }}>
+                  <Text fontFamily={INTER_FONT} as="h3" fontSize={20} fontWeight={700} sx={{
+                    [smMedia]: {
+                      fontSize: 16
+                    }
+                  }}>
                     {item.title}
                   </Text>
-                  <Text fontSize={16}>{item.desc}</Text>
+                  <Text
+                    fontFamily={INTER_FONT}
+                    fontSize={16}
+                    color="readable.tertiary"
+                    sx={{
+                      [smMedia]: {
+                        fontSize: 12,
+                      },
+                    }}
+                  >
+                    {item.desc}
+                  </Text>
                 </Flex>
               </Flex>
             ))}

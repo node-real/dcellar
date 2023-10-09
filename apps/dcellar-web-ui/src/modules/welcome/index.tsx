@@ -8,6 +8,7 @@ import { HelpDevelopers } from './components/HelpDevelopers';
 import { Building } from './components/Building';
 import { PricingCalculator } from './components/PricingCalculator';
 import { DeveloperTools } from './components/DeveloperTools';
+import { INTER_FONT } from '../wallet/constants';
 
 export const xlMedia = `@media (min-width: 1440px)`;
 export const lgMedia = `@media (min-width: 954px) and (max-width: 1439px)`;
@@ -63,12 +64,20 @@ export function Welcome() {
 }
 
 export const LandingH2 = ({ children, ...restProps }: HeadingProps) => (
-  <Heading as="h2" fontSize={40} fontWeight={700} marginBottom={16} sx={{
-    [smMedia]: {
-      fontSize: 20,
-      marginBottom: 8
-    }
-  }} {...restProps}>
+  <Heading
+    as="h2"
+    fontSize={40}
+    fontWeight={700}
+    fontFamily={INTER_FONT}
+    marginBottom={16}
+    sx={{
+      [smMedia]: {
+        fontSize: 20,
+        marginBottom: 8,
+      },
+    }}
+    {...restProps}
+  >
     {children}
   </Heading>
 );

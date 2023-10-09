@@ -20,7 +20,7 @@ export const NetworkSwitch = () => {
       return;
     }
     const a = document.createElement('a');
-    a.target = '_blank';
+    // a.target = '_blank';
     a.href = LINKS[net].fullUrl;
     a.click();
   };
@@ -33,10 +33,11 @@ export const NetworkSwitch = () => {
         isAttached
         border={'1px solid readable.border'}
         borderRadius={4}
-        h={35}
+        h={37}
       >
         <DCButton
           h={35}
+          borderRadius={3}
           onClick={() => onSwitchClick('mainnet')}
           sx={
             network === 'mainnet'
@@ -53,6 +54,7 @@ export const NetworkSwitch = () => {
         <DCButton
           border="none"
           h={35}
+          borderRadius={3}
           onClick={() => onSwitchClick('testnet')}
           sx={
             network === 'testnet'

@@ -21,6 +21,7 @@ export const MobileHeader = () => {
       position={'fixed'}
       zIndex={1600}
       backdropFilter={'blur(10px)'}
+      boxShadow={'0px 4px 24px 0px rgba(0, 0, 0, 0.08)'}
     >
       <GAClick name="dc.main.nav.logo.click">
         <Logo href="/" />

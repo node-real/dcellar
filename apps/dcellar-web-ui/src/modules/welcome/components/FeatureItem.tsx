@@ -1,8 +1,9 @@
 import { Flex, Text, Image } from '@totejs/uikit';
 import { TFeatureItem } from './KeyFeatures';
 import { smMedia } from '@/modules/responsive';
+import { INTER_FONT } from '@/modules/wallet/constants';
 
-export const FeatureItem = ({ title, desc, tag, introImg, gaClickName }: TFeatureItem) => {
+export const FeatureItem = ({ title, desc, tag, introImg }: TFeatureItem) => {
   return (
     <Flex
       borderRadius={'4px'}
@@ -31,6 +32,7 @@ export const FeatureItem = ({ title, desc, tag, introImg, gaClickName }: TFeatur
           as="h3"
           fontSize={24}
           fontWeight={700}
+          fontFamily={INTER_FONT}
           sx={{
             [smMedia]: {
               fontSize: 16,
@@ -43,6 +45,7 @@ export const FeatureItem = ({ title, desc, tag, introImg, gaClickName }: TFeatur
           <Text
             fontSize={16}
             fontWeight={500}
+            fontFamily={INTER_FONT}
             sx={{
               [smMedia]: {
                 fontSize: 14,
@@ -52,7 +55,14 @@ export const FeatureItem = ({ title, desc, tag, introImg, gaClickName }: TFeatur
             {tag}
           </Text>
         )}
-        <Text>{desc}</Text>
+        <Text
+          fontFamily={INTER_FONT}
+          sx={{
+            fontWeight: 400,
+          }}
+        >
+          {desc}
+        </Text>
       </Flex>
       <Image
         alt={`${title} image`}
