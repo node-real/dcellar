@@ -1,10 +1,8 @@
 import { assetPrefix } from '@/base/env';
-import { Box, Flex, Image, Text } from '@totejs/uikit';
+import { Flex, Image, Text } from '@totejs/uikit';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { smMedia } from '@/modules/responsive';
-import { LandingResponsiveContainer, lgMedia, mdMedia, xlMedia } from '..';
-
-const MIN_WIDTH_1440 = '@media screen and (min-width: 1440px)';
+import { LandingResponsiveContainer, lgMedia, mdMedia } from '..';
 
 export const Banner = () => {
   return (

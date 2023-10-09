@@ -44,13 +44,14 @@ export const StartBuild = () => (
     p={['16px', '40px 48px']}
     gap={24}
     flexDirection={'column'}
-    bg={`url(${assetPrefix}/images/price/start-bg-lt.svg) no-repeat left/auto 100%, url(${assetPrefix}/images/price/start-bg-rt.svg) no-repeat right/auto 100%, url(${assetPrefix}/images/price/start-bg-rb.svg) no-repeat right/auto 100%`}
+    bg={`url(${assetPrefix}/images/price/start-bg-lt-2.png) no-repeat left/auto 100%, url(${assetPrefix}/images/price/start-bg-rt.png) no-repeat right 20% top 0, url(${assetPrefix}/images/price/start-bg-rb.png) no-repeat right 0% bottom 0%`}
     bgColor={'#F9F9F9'}
     margin={'0 auto'}
     textAlign={'center'}
     sx={{
       [smMedia]: {
         padding: '16px',
+        bg: `url(${assetPrefix}/images/price/start-bg-lt-2.png) no-repeat left/auto 100%`
       },
     }}
   >
