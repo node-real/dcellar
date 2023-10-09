@@ -22,7 +22,12 @@ export default function Document() {
         <Ga4 id={GA_ID} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
+            __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)};(function() {
+            var l = '(prefers-color-scheme:dark)'
+              , e = window.matchMedia(l).matches ? 'dark' : 'light'
+              , d = document.documentElement;
+            return ((d.style.colorScheme = e), (d.dataset.theme = e), e);
+          })();`,
           }}
         ></script>
         <script defer src={`${assetPrefix}/js/iconfont.min.js?v2`}></script>

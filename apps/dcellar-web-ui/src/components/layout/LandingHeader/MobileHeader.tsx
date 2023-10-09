@@ -30,7 +30,7 @@ export const MobileHeader = () => {
       backdropFilter={'blur(10px)'}
     >
       <GAClick name="dc.main.nav.logo.click">
-        <Logo href="/buckets" />
+        <Logo href="/" />
       </GAClick>
       <Box
         display="flex"
@@ -58,7 +58,7 @@ export const MobileHeader = () => {
               borderBottom={'none'}
             >
               {item.title}
-              <item.Icon w={16}/>
+              <item.Icon w={16} />
             </QListItem>
           ))}
         </QDrawerBody>

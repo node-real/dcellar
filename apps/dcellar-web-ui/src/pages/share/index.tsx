@@ -116,7 +116,10 @@ const SharePage: NextPage<PageProps> = (props) => {
 
   const header = (
     <Head>
-      <title>{title}{networkTag(runtimeEnv)}</title>
+      <title>
+        {title}
+        {networkTag(runtimeEnv)}
+      </title>
     </Head>
   );
 
@@ -131,7 +134,8 @@ const SharePage: NextPage<PageProps> = (props) => {
             {!isPrivate && !walletConnected && (
               <Logo
                 zIndex={1}
-                href="/buckets"
+                href="/"
+                target="_blank"
                 margin="20px 24px"
                 position="absolute"
                 left={0}

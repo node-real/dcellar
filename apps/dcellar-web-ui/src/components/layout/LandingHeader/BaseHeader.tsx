@@ -48,7 +48,7 @@ export const BaseHeader = () => {
       backdropFilter={'blur(10px)'}
     >
       <GAClick name="dc_lp.main.header.logo.click">
-        <Logo href="/buckets" />
+        <Logo href="/" />
       </GAClick>
       <Flex gap={32}>
         {MENUS.map((item, index) => (

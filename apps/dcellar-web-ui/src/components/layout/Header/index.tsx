@@ -19,7 +19,7 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
     <>
       <HeaderContainer>
         <LogoContainer>
-          <Link href="/buckets" data-track-id="dc.main.nav.logo.click">
+          <Link href="/" target="_blank" data-track-id="dc.main.nav.logo.click">
             <IconFont type="logo" w={122} h={24} />
           </Link>
           <Badge>{networkTag(runtimeEnv)}</Badge>
