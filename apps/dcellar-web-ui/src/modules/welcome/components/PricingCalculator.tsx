@@ -29,11 +29,11 @@ export const PricingCalculator = () => {
       >
         <LandingH2>Pricing Calculator</LandingH2>
         <Text
-          my={24}
+          mb={24}
           maxW={560}
           sx={{
             [smMedia]: {
-              my: 16,
+              mb: 16,
             },
           }}
         >
