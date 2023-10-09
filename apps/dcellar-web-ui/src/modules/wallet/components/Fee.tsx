@@ -17,6 +17,7 @@ import { currencyFormatter } from '@/utils/formatter';
 import { renderFeeValue } from '@/modules/object/utils';
 import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 import { renderFee } from '@/utils/common';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 const DefaultFee = {
   // TODO temp down limit fee
@@ -53,6 +54,7 @@ export const Fee = memo<FeeProps>(function Fee({
   staticBalance = '0',
 }) {
   const bnbPrice = useAppSelector(selectBnbPrice);
+  const TOKEN_SYMBOL = displayTokenSymbol();
   const { fromAccount } = useAppSelector((root) => root.wallet);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -66,6 +68,7 @@ export const Fee = memo<FeeProps>(function Fee({
     feeUsdPrice &&
     currencyFormatter(feeUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
 
+
   const totalAmount = BigNumber(amount || 0)
     .plus(totalFee)
     .plus(settlementFee || '0')
@@ -77,20 +80,20 @@ export const Fee = memo<FeeProps>(function Fee({
 
   // const TotalFeeContent = `${totalFee
   //   .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
-  //   .toString(DECIMAL_NUMBER)} BNB (${formatFeeUsdPrice})`;
+  //   .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
 
   //show defalut fee if cannot get fee data in 3000ms
   const TotalFeeContent = useMemo(() => {
     let total = totalFee;
     if (isShowDefault) {
       total = BigNumber(defaultFee);
-      return `~${total.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)} BNB`;
+      return `~${total.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL}`;
     }
     return `${totalFee
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
-      .toString(DECIMAL_NUMBER)} BNB (${formatFeeUsdPrice})`;
-  }, [defaultFee, formatFeeUsdPrice, isShowDefault, totalFee]);
-  const TotalAmountContent = `${totalAmount} BNB (${formatTotalUsdPrice})`;
+      .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
+  }, [TOKEN_SYMBOL, defaultFee, formatFeeUsdPrice, isShowDefault, totalFee]);
+  const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
     if (transType === EOperation.send) {
@@ -105,7 +108,7 @@ export const Fee = memo<FeeProps>(function Fee({
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
                 .toString(DECIMAL_NUMBER)
             : gasFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)}{' '}
-          BNB
+          {TOKEN_SYMBOL}
         </Text>
         <Text>
           Relayer fee:{' '}
@@ -114,7 +117,7 @@ export const Fee = memo<FeeProps>(function Fee({
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
                 .toString(DECIMAL_NUMBER)
             : relayerFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString()}{' '}
-          BNB
+          {TOKEN_SYMBOL}
         </Text>
         <Text>
           BNB Gas fee covers the gas cost for sending your transfer on the destination chain.
@@ -122,7 +125,7 @@ export const Fee = memo<FeeProps>(function Fee({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [gasFee, relayerFee, transType, defaultGasRelayerFee]);
+  }, [transType, gasFee, defaultGasRelayerFee.gasFee, defaultGasRelayerFee.relayerFee, TOKEN_SYMBOL, relayerFee]);
 
   const amountUsd = currencyFormatter(
     BigNumber(amount || 0)
@@ -131,7 +134,7 @@ export const Fee = memo<FeeProps>(function Fee({
       .toString(DECIMAL_NUMBER),
   );
 
-  const sendingAmount = `${amount} BNB (${amountUsd})`;
+  const sendingAmount = `${amount} ${TOKEN_SYMBOL} (${amountUsd})`;
   const paymentAccount = fromAccount.address?.substring(38);
   const paymentLabel = `${fromAccount?.name} (${paymentAccount}) balance:`;
   const showPaymentAccountBalance =

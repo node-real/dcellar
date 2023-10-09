@@ -22,7 +22,7 @@ export const SHARE_ERROR_TYPES = {
   },
   SP_NOT_FOUND: {
     title: 'Something Wrong',
-    desc: 'Sp address info is mismatched, please retry.',
+    desc: 'SP address information mismatch. Please retry.',
     icon: 'discontinue',
   },
   UNKNOWN: {

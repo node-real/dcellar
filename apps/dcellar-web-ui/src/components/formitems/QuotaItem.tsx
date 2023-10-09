@@ -12,6 +12,7 @@ import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
 import { BN } from '@/utils/math';
 import { renderBnb } from '@/modules/object/utils';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 const MAX_SIZE = 100000;
 
@@ -133,7 +134,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           />
         </Flex>
         <Text color="#76808F" fontWeight={400}>
-          Price: {renderBnb(price)} BNB/GB/month
+          Price: {renderBnb(price)} {displayTokenSymbol()}/GB/month
         </Text>
       </FormLabel>
       <Flex position="relative" alignItems="center" id="buy-quota-progress-bar">

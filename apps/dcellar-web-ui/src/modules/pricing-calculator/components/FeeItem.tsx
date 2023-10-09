@@ -2,6 +2,7 @@ import { Flex, Text, Box } from '@totejs/uikit';
 import React from 'react';
 import { displayUsd } from './Calculator';
 import { smMedia } from '@/modules/responsive';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type FeeItemProps = {
   title: string;
@@ -77,7 +78,7 @@ export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItem
           },
         }}
       >
-        {fee || 0} BNB
+        {fee || 0} {displayTokenSymbol()}
       </Text>
       <Text
         textAlign={'right'}

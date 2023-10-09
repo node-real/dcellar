@@ -277,7 +277,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                   .then(resolve, broadcastFault);
                 if (txRes === null) {
                   dispatch(setStatusDetail({} as TStatusDetail));
-                  return toast.error({ description: error || 'Delete object error.' });
+                  return toast.error({ description: error || 'Object deletion failed.' });
                 }
                 if (txRes.code === 0) {
                   await dispatch(setupAccountDetail(bucket.PaymentAddress));
@@ -296,7 +296,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                     }),
                   );
                 } else {
-                  toast.error({ description: 'Delete object error.' });
+                  toast.error({ description: 'Object deletion failed.' });
                 }
                 refetch();
                 onClose();
@@ -310,7 +310,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                   return;
                 }
                 // eslint-disable-next-line no-console
-                console.error('Delete object error.', error);
+                console.error('Object deletion failed.', error);
                 setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
               }
             }}

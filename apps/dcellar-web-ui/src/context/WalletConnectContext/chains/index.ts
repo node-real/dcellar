@@ -11,13 +11,15 @@ import {
 } from '@/base/env';
 import { CHAIN_NAMES } from '@/utils/constant';
 
+const isGnfdMainnet = GREENFIELD_CHAIN_ID === 1017;
+
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
   name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
-    name: GREENFIELD_CHAIN_ID === 1017 ? 'BNB' : 'tBNB',
-    symbol: GREENFIELD_CHAIN_ID === 1017 ? 'BNB' : 'tBNB',
+    name: isGnfdMainnet ? 'BNB' : 'tBNB',
+    symbol: isGnfdMainnet ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -40,15 +42,15 @@ const greenFieldChain: Chain = {
   },
 };
 
-const bscMainnet = BSC_CHAIN_ID === 56;
+const isBscMainnet = BSC_CHAIN_ID === 56;
 
 const bscChain: Chain = {
   id: BSC_CHAIN_ID,
-  name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'}`,
-  network: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'}`,
+  name: CHAIN_NAMES[BSC_CHAIN_ID],
+  network: CHAIN_NAMES[BSC_CHAIN_ID],
   nativeCurrency: {
-    name: bscMainnet ? 'BNB' : 'tBNB',
-    symbol: bscMainnet ? 'BNB' : 'tBNB',
+    name: isBscMainnet ? 'BNB' : 'tBNB',
+    symbol: isBscMainnet ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -61,11 +63,11 @@ const bscChain: Chain = {
   },
   blockExplorers: {
     etherscan: {
-      name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'} Scan`,
+      name: `${CHAIN_NAMES[BSC_CHAIN_ID]} Scan`,
       url: BSC_EXPLORER_URL,
     },
     default: {
-      name: `BNB Smart Chain ${bscMainnet ? 'Mainnet' : 'Testnet'} Scan`,
+      name: `${CHAIN_NAMES[BSC_CHAIN_ID]} Scan`,
       url: BSC_EXPLORER_URL,
     },
   },

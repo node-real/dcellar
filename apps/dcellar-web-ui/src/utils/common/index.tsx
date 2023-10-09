@@ -2,6 +2,7 @@ import BigNumber from 'bignumber.js';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
 import { TRuntimeEnv } from '@/base/env';
+import { displayTokenSymbol } from '../wallet';
 
 export const parseErrorXml = async (result: any) => {
   try {
@@ -21,7 +22,8 @@ export const parseErrorXml = async (result: any) => {
   }
 };
 
-export const renderFee = (amount: string | number, usdPrice: string | number, symbol = 'BNB') => {
+export const renderFee = (amount: string | number, usdPrice: string | number) => {
+  const TOKEN_SYMBOL = displayTokenSymbol();
   const amountFormat = BigNumber(amount || 0)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
@@ -31,7 +33,7 @@ export const renderFee = (amount: string | number, usdPrice: string | number, sy
       .toString(),
   );
 
-  return `${amountFormat} ${symbol} (${fiatValue})`;
+  return `${amountFormat} ${TOKEN_SYMBOL} (${fiatValue})`;
 };
 
 export const displayTime = (intervalTime: number | string) => {

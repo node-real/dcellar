@@ -19,6 +19,7 @@ import { BN } from '@/utils/math';
 import { InternalRoutePaths } from '@/utils/constant';
 import { currencyFormatter } from '@/utils/formatter';
 import { IconFont } from '@/components/IconFont';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type Props = {
   loading: boolean;
@@ -84,7 +85,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
+                {BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} {displayTokenSymbol()}
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
                 &nbsp;(
@@ -107,7 +108,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
               {BN(accountDetail.bufferBalance || 0)
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
                 .toString()}{' '}
-              BNB
+              {displayTokenSymbol()}
             </Text>
           </LoadingAdaptor>
         </Flex>
@@ -123,7 +124,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                 .dp(MIN_DISPLAY_PRECISION)
                 .toString(),
             )}{' '}
-            BNB/s
+            {displayTokenSymbol()}/s
           </Text>
         </LoadingAdaptor>
       ),
@@ -182,7 +183,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                       <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
                         Your account is suspended due to insufficient balance. To reactivate your
                         account, please deposit at least &nbsp;
-                        <strong>{unFreezeAmount} &nbsp;BNB</strong>&nbsp; immediately.
+                        <strong>{unFreezeAmount} &nbsp;{displayTokenSymbol()}</strong>&nbsp; immediately.
                       </Text>
                       <Link
                         cursor={'pointer'}

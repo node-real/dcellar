@@ -11,23 +11,24 @@ import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
 import { H2 } from './Common';
 import { BN } from '@/utils/math';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
 };
 const UnitOptions = [
   {
-    title: 'BNB/MB/month',
+    title: `${displayTokenSymbol()}/MB/month`,
     size: 'MB',
     time: 'm',
   },
   {
-    title: 'BNB/GB/month',
+    title: `${displayTokenSymbol()}/GB/month`,
     size: 'GB',
     time: 'm',
   },
   {
-    title: 'BNB/TB/month',
+    title: `${displayTokenSymbol()}/TB/month`,
     size: 'TB',
     time: 'm',
   },

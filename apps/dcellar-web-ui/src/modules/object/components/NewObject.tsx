@@ -147,7 +147,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     const isRootFolderNameToLong = relativeRootFolder.length > MAX_FOLDER_NAME_LEN;
     if (isRootFolderNameToLong) {
       return toast.error({
-        description: `The folder name cannot exceed ${MAX_FOLDER_NAME_LEN} characters.`,
+        description: `Folder name must not exceed ${MAX_FOLDER_NAME_LEN} characters.`,
         isClosable: true,
       });
     }
@@ -158,7 +158,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     if (isFolderExist) {
       e.target.value = '';
       return toast.error({
-        description: 'The folder already exists in the current path.',
+        description: 'Folder already exists in the current path.',
         isClosable: true,
       });
     }

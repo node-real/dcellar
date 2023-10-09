@@ -16,9 +16,7 @@ import Container from '../components/Container';
 import {
   BSC_CHAIN_ID,
   BSC_EXPLORER_URL,
-  CROSS_CHAIN_CONTRACT_ADDRESS,
   GREENFIELD_CHAIN_ID,
-  TOKEN_HUB_CONTRACT_ADDRESS,
 } from '@/base/env';
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
@@ -77,7 +75,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
         try {
           setIsGasLoading(true);
           const crossChainContract = new ethers.Contract(
-            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
+            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
             CROSS_CHAIN_ABI,
             signer!,
           );
@@ -96,7 +94,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
               ? amountInFormat.add(ackRelayFee).add(relayFee)
               : amountInFormat;
           const tokenHubContract = new ethers.Contract(
-            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
+            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
             TOKENHUB_ABI,
             signer!,
           );
@@ -135,12 +133,12 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
 
     try {
       const crossChainContract = new ethers.Contract(
-        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
+        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
         CROSS_CHAIN_ABI,
         signer!,
       );
       const tokenHubContract = new ethers.Contract(
-        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
+        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
         TOKENHUB_ABI,
         signer!,
       );

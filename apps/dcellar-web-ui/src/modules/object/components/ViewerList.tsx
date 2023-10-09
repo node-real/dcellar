@@ -248,7 +248,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         onClose={() => {
           setConfirmModal(false);
         }}
-        description="Confirm this transaction in your wallet."
+        description="Please confirm the transaction in your wallet."
       />
       <ConfirmModal
         confirmText="Remove"
@@ -268,7 +268,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
           setDeleteModal(false);
         }}
         variant={'scene'}
-        description="Confirm this transaction in your wallet."
+        description="Please confirm the transaction in your wallet."
       />
       <FormItem>
         <FormLabel>People with Access</FormLabel>

@@ -32,6 +32,7 @@ import { trimFloatZero } from '@/utils/string';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { IconFont } from '@/components/IconFont';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type AmountProps = {
   disabled: boolean;
@@ -54,7 +55,7 @@ const AmountErrors = {
   min: 'Please enter a minimum amount of 0.00000001.',
   withdrawError: (
     <>
-      No withdrawals allowed over 100 BNB.{' '}
+      No withdrawals allowed over 100 {displayTokenSymbol()}.{' '}
       <Link
         href="#"
         color="readable.danger"
@@ -108,7 +109,7 @@ export const Amount = ({
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
       <>
-        Balance on {curInfo?.chainName}: {val} BNB ({unifyUsdPrice})
+        Balance on {curInfo?.chainName}: {val} {displayTokenSymbol()} ({unifyUsdPrice})
       </>
     );
   }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
@@ -221,7 +222,7 @@ export const Amount = ({
           <InputRightElement width={'80px'} zIndex="0">
             <IconFont type={'bnb'} color="#F0B90B" w={24} />
             <Text fontSize={'14px'} fontWeight="600" ml="4px" mr={'12px'}>
-              BNB
+              {displayTokenSymbol()}
             </Text>
           </InputRightElement>
         </InputGroup>

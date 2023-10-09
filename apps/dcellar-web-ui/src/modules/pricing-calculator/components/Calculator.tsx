@@ -17,6 +17,7 @@ import { smMedia } from '@/modules/responsive';
 import { NetworkSwitch } from './NetworkSwitch';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -38,6 +39,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
   );
 };
 export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) => {
+  const TOKEN_SYMBOL = displayTokenSymbol();
   const { isOpen, onClose, onToggle } = useDisclosure();
   const updateMonth = getUTC0Month();
   const [storageSize, setStorageSize] = useState<{
@@ -313,7 +315,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'}>
               <Box fontWeight={600}>{storeNetflowRate}</Box>
               <Box color="readable.tertiary" fontSize={12}>
-                BNB/{storageSize.unit}/month
+                {TOKEN_SYMBOL}/{storageSize.unit}/month
               </Box>
             </Flex>
             <Flex
@@ -327,7 +329,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               flex={1}
               textAlign={'right'}
             >
-              <Text fontWeight={600}>= {storageFee} BNB/month</Text>
+              <Text fontWeight={600}>= {storageFee} {TOKEN_SYMBOL}/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(storageFee || '0', bnbPrice)})
               </Text>
@@ -398,7 +400,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'}>
               <Box fontWeight={600}>{quotaNetflowRate}</Box>
               <Box color="readable.tertiary" fontSize={12}>
-                BNB/{quotaSize.unit}/month
+                {TOKEN_SYMBOL}/{quotaSize.unit}/month
               </Box>
             </Flex>
             <Flex
@@ -412,7 +414,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Text fontWeight={600}>= {quotaFee} BNB/month</Text>
+              <Text fontWeight={600}>= {quotaFee} {TOKEN_SYMBOL}/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(quotaFee || '0', bnbPrice)})
               </Text>
@@ -464,7 +466,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             <Flex flexDirection={'column'}>
               <Text fontWeight={600}>～{gasFee}</Text>
               <Text color="readable.tertiary" fontSize={12}>
-                BNB/operation
+                {TOKEN_SYMBOL}/operation
               </Text>
             </Flex>
             <Flex
@@ -478,7 +480,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Text fontWeight={600}>= {totalGasFee} BNB/month</Text>
+              <Text fontWeight={600}>= {totalGasFee} {TOKEN_SYMBOL}/month</Text>
               <Text color="readable.tertiary" wordBreak={'break-all'}>
                 &nbsp;({displayUsd(totalGasFee || '0', bnbPrice)})
               </Text>
@@ -591,7 +593,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                   },
                 }}
               >
-                {costs.totalCost} BNB
+                {costs.totalCost} {TOKEN_SYMBOL}
                 <Box
                   wordBreak={'break-all'}
                   color={'readable.tertiary'}
@@ -611,7 +613,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 },
               }}
             >
-              <Box display={'inline-block'}>{costs.averageMonthCost} BNB/month</Box>
+              <Box display={'inline-block'}>{costs.averageMonthCost} {TOKEN_SYMBOL}/month</Box>
               <Box
                 display={'inline-block'}
                 sx={{

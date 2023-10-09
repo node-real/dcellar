@@ -3,9 +3,9 @@ export const PREPAID_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-re
 export const SETTLEMENT_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
 
 // status_TITLE
-const FILE_TITLE_UPLOADING = 'Uploading File';
-const FILE_TITLE_DOWNLOADING = 'Downloading File';
-const FILE_TITLE_DELETING = 'Deleting File';
+const FILE_TITLE_UPLOADING = 'Uploading Object';
+const FILE_TITLE_DOWNLOADING = 'Downloading Object';
+const FILE_TITLE_DELETING = 'Deleting Object';
 const FILE_TITLE_CANCELING = 'Canceling Uploading';
 const FOLDER_CREATING = 'Creating Folder';
 const FILE_ACCESS = 'Updating Access';
@@ -14,17 +14,17 @@ const FILE_TITLE_UPLOAD_FAILED = 'Upload Failed';
 const FILE_TITLE_DOWNLOAD_FAILED = 'Download Failed';
 const FILE_TITLE_DELETE_FAILED = 'Delete Failed';
 const FILE_TITLE_CANCEL_FAILED = 'Cancel Failed';
-const NOT_ENOUGH_QUOTA = 'Not Enough Quota';
+const NOT_ENOUGH_QUOTA = 'Quota Insufficient';
 const FOLDER_CREATE_FAILED = 'Create Failed';
-const FOLDER_TITLE_NOT_EMPTY = 'Folder not Empty';
+const FOLDER_TITLE_NOT_EMPTY = 'Non-Empty Folder';
 
-const FILE_TITLE_FILE_TOO_LARGE = 'File is too large';
-const FILE_TITLE_FILE_EMPTY = 'File is empty';
-const FILE_TITLE_FILE_NAME_ERROR = 'File Name Error';
+const FILE_TITLE_FILE_TOO_LARGE = 'Object Exceeds Size Limit';
+const FILE_TITLE_FILE_EMPTY = 'Object is Empty';
+const FILE_TITLE_FILE_NAME_ERROR = 'Invalid Object Name';
 const FILE_TITLE_SP_REJECTED = 'SP Rejected';
 
 // status description
-const FILE_STATUS_DOWNLOADING = `Downloading file now, please wait...`;
+const FILE_STATUS_DOWNLOADING = `Downloading Object now, please wait...`;
 // error description
 const FILE_DESCRIPTION_DELETE_ERROR = `Sorry, there’s something wrong when deleting the file.`;
 const FILE_DESCRIPTION_CANCEL_ERROR = `Sorry, there’s something wrong when canceling the file.`;
@@ -36,12 +36,12 @@ const FOLDER_DESC_NOT_EMPTY =
 // file status
 const OBJECT_SEALED_STATUS = 1;
 
-const GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
+const GET_GAS_FEE_LACK_BALANCE_ERROR = `Gas fee estimation error, please retry later.`;
 const LOCK_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for prepaid fee, please check.`;
 const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 const AUTH_EXPIRED = 'Authentication Expired';
-const WALLET_CONFIRM = 'Confirm this transaction in your wallet.';
+const WALLET_CONFIRM = 'Please confirm the transaction in your wallet.';
 
 export const EMPTY_TX_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
 export {

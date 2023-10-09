@@ -10,7 +10,7 @@ const contentTexts = {
   pending: {
     icon: <AnimatePng type="object" />,
     title: 'Waiting for Confirmation',
-    subtitle: 'Confirm this transaction in your wallet.',
+    subtitle: 'Please confirm the transaction in your wallet.',
   },
   success: {
     icon: <IconFont w={120} type="status-success" />,

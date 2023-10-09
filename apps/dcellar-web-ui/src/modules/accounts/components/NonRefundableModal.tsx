@@ -28,7 +28,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
       setStatusDetail({
         icon: 'account-failed',
         title: 'Set as Non-Refundable',
-        desc: 'Confirm this transaction in your wallet.',
+        desc: 'Please confirm the transaction in your wallet.',
       }),
     );
     const [res, error] = await disablePaymentAccountRefund(

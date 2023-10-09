@@ -200,7 +200,7 @@ export const Send = memo<SendProps>(function Send() {
     if (!connector) return;
     if (txType !== 'withdraw_from_payment_account' && fromAccount.address === toAccount.address) {
       return toast.error({
-        description: 'The sender and recipient cannot be the same',
+        description: 'Sender and recipient cannot be the same.',
         isClosable: true,
       });
     }

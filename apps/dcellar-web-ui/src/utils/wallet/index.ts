@@ -1,3 +1,6 @@
+import { GREENFIELD_CHAIN_ID } from "@/base/env";
+import { GNFD_MAINNET, GNFD_TESTNET } from "../constant";
+
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
   if (address.length <= 7) return address;
@@ -36,5 +39,16 @@ const getNumInDigits = (
 
   return fixDigits ? Number(numberString).toFixed(digits) : numberString;
 };
+
+export const isGNFDTestnet = () => {
+  return GNFD_TESTNET === GREENFIELD_CHAIN_ID;
+}
+export const isGNFDMainnet = () => {
+  return GNFD_MAINNET === GREENFIELD_CHAIN_ID;
+}
+
+export const displayTokenSymbol = () => {
+  return GNFD_MAINNET === GREENFIELD_CHAIN_ID ? 'BNB' : 'tBNB'
+}
 
 export { getShortenWalletAddress, getNumInDigits };

@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 
 import { ChainInfos } from '../constants';
 import { IconFont } from '@/components/IconFont';
+import { isGNFDTestnet } from '@/utils/wallet';
 
 type Props = {
   chainId: number;
@@ -16,8 +17,9 @@ interface ChainBoxProps {
 
 export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }: Props) {
   const chain = ChainInfos.find((item) => item.chainId === chainId);
+  const isTestnet = isGNFDTestnet();
   return (
-    <Box>
+    <Box position={'relative'}>
       <FormLabel
         textTransform={'capitalize'}
         fontWeight={500}
@@ -41,6 +43,21 @@ export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }:
           {chain?.name}
         </Text>
       </Flex>
+      {isTestnet && (
+        <Box
+          position={'absolute'}
+          right={'-6px'}
+          borderRadius={2}
+          border={'1px solid readable.border'}
+          bgColor={'#E6F9EB'}
+          px={3}
+          fontSize={12}
+          fontWeight={500}
+          top={17}
+        >
+          Testnet
+        </Box>
+      )}
     </Box>
   );
 });

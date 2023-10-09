@@ -252,11 +252,11 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                   .then(resolve, commonFault);
                 dispatch(setStatusDetail({} as TStatusDetail));
                 if (txRes === null) {
-                  toast.error({ description: error || 'Uploading cancelled failed.' });
+                  toast.error({ description: error || 'Upload cancellation failed.' });
                   return;
                 }
                 if (txRes && txRes.code === 0) {
-                  toast.success({ description: 'Uploading cancelled successfully.' });
+                  toast.success({ description: 'Upload cancelled successfully.' });
                   dispatch(
                     addDeletedObject({
                       path: [bucketName, objectInfo.ObjectName].join('/'),
@@ -266,7 +266,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                   refetch();
                   dispatch(setupBucketQuota(bucketName));
                 } else {
-                  toast.error({ description: 'Uploading cancelled failed.' });
+                  toast.error({ description: 'Upload cancellation failed.' });
                 }
                 setLoading(false);
               } catch (error: any) {

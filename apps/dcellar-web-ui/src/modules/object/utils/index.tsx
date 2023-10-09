@@ -1,5 +1,5 @@
 import { Flex, Link, toast } from '@totejs/uikit';
-import { getNumInDigits } from '@/utils/wallet';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
@@ -17,7 +17,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
     return '--';
   }
 
-  return `${renderBnb(bnbValue)} BNB (${renderUsd(bnbValue, exchangeRate)})`;
+  return `${renderBnb(bnbValue)} ${displayTokenSymbol()} (${renderUsd(bnbValue, exchangeRate)})`;
 };
 const renderUsd = (bnbValue: string, exchangeRate: number | string) => {
   const numberInUsd = Number(bnbValue ?? 0) * Number(exchangeRate);
@@ -134,7 +134,7 @@ const contentIconTypeToExtension = (fileName: string) => {
 
 const renderBalanceNumber = (availableBalance: string) => {
   if (Number(availableBalance) < 0) return 'Fetching balance...';
-  return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
+  return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
 };
 
 // bankBalance + gasFee, 校验余额够不够，
@@ -168,7 +168,7 @@ const renderInsufficientBalance = (
 const directlyDownload = (url: string, target = '_self', name?: string) => {
   if (!url) {
     toast.error({
-      description: 'Download url not existed. Please check.',
+      description: 'Download URL does not exist. Please check.',
     });
   }
   const link = document.createElement('a');

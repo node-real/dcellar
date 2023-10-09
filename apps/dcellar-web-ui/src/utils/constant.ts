@@ -8,11 +8,16 @@ export const REQUEST_PENDING_NUM = -32002;
 export const reverseVisibilityType = convertVisibility();
 
 export const CHAIN_NAMES: { [key: number | string]: string } = {
-  5600: 'Greenfield Testnet',
+  56: 'BNB Smart Chain Mainnet',
   97: 'BNB Smart Chain Testnet',
   9000: 'Greenfield Devnet',
+  5600: 'Greenfield Testnet',
   1017: 'Greenfield Mainnet',
 };
+
+export const GNFD_TESTNET = 5600;
+
+export const GNFD_MAINNET = 1107;
 
 export const G_BYTES = 1024 * 1024 * 1024;
 

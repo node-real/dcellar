@@ -16,7 +16,7 @@ export const AccountOperations = memo<AccountOperationsProps>(function AccountOp
   const { accountOperation } = useAppSelector((root) => root.accounts);
   const [id, operation] = accountOperation;
   const isDrawer = ['oaDetail', 'paDetail'].includes(operation);
-  const isModal = ['delete'].includes(operation);
+  const isModal = ['delete', 'paCreate'].includes(operation);
   const _operation = useModalValues<AccountOperationsProps>(operation);
   const accountDetail = useAppSelector(selectAccount(id));
   const _accountDetail = useModalValues(accountDetail);

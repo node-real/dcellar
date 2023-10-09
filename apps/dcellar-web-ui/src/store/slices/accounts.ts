@@ -23,7 +23,7 @@ export type AccountType =
   | 'non_refundable_payment_account'
   | 'error_account';
 
-export type AccountOperationsType = 'oaDetail' | 'paDetail' | '';
+export type AccountOperationsType = 'oaDetail' | 'paDetail' | 'paCreate' | '';
 
 export type TAccountDetail = {
   name: string;

@@ -195,7 +195,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
         return true;
       }
 
-      toast.info({ description: 'Objects deleting', icon: <ColoredWaitingIcon /> });
+      toast.info({ description: 'Deleting objects', icon: <ColoredWaitingIcon /> });
       const success = await deleteInRow();
       refetch();
       onClose();

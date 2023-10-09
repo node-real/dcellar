@@ -1,5 +1,5 @@
 import { Flex, Text, Circle } from '@totejs/uikit';
-import { getNumInDigits } from '@/utils/wallet';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
@@ -25,7 +25,7 @@ const NewBalance = memo<NewBalanceProps>(function NewBalance() {
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';
-    return `${getNumInDigits(bankBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} BNB`;
+    return `${getNumInDigits(bankBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
   };
 
   const renderUsd = () => {
