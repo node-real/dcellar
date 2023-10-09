@@ -129,11 +129,11 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
     dispatch(updateGroupPageSize(pageSize));
   };
 
-  const spinning = !(loginAccount in groups);
+  const spinning = !(loginAccount in groups) || loading;
   const empty = !spinning && !sortedList.length;
 
   const loadingComponent = {
-    spinning: spinning || loading,
+    spinning: spinning,
     indicator: <Loading />,
   };
 

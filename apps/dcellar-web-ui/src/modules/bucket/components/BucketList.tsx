@@ -100,11 +100,11 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
     dispatch(updateBucketPageSize(pageSize));
   };
 
-  const spinning = !(loginAccount in buckets);
+  const spinning = !(loginAccount in buckets) || loading;
   const empty = !spinning && !sortedList.length;
 
   const loadingComponent = {
-    spinning: spinning || loading,
+    spinning: spinning,
     indicator: <Loading />,
   };
 

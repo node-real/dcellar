@@ -124,10 +124,10 @@ export const PaymentAccounts = () => {
     dispatch(updatePAPageSize(pageSize));
   };
 
-  const spinning = !(loginAccount in paymentAccounts);
+  const spinning = !(loginAccount in paymentAccounts) || isLoadingPaymentAccounts;
   const empty = !spinning && !sortedList.length;
   const loadingComponent = {
-    spinning: spinning || isLoadingPaymentAccounts,
+    spinning: spinning,
     indicator: <Loading />,
   };
   const renderEmpty = useCallback(
