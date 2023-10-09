@@ -14,7 +14,6 @@ interface HeaderProps {
 }
 
 export const Header = memo<HeaderProps>(function Header({ taskManagement = true }) {
-  console.log(runtimeEnv);
   return (
     <>
       <HeaderContainer>

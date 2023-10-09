@@ -6,7 +6,7 @@ import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global
 import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { useThrottleFn, useUnmount } from 'ahooks';
+import { useThrottleFn } from 'ahooks';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();
@@ -23,7 +23,7 @@ export const TaskManagement = () => {
 
   const renderButton = () => {
     return (
-      <Box cursor={'pointer'} alignSelf={'center'} marginRight={16} onClick={() => onToggle()}>
+      <Box cursor={'pointer'} alignSelf={'center'} onClick={() => onToggle()}>
         <DCButton
           variant="ghost"
           border="none"

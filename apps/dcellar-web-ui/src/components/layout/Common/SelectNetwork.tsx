@@ -1,6 +1,6 @@
 import { runtimeEnv } from '@/base/env';
 import { capitalizeFLetter } from '@/utils/common';
-import { Button, MenuButton } from '@totejs/uikit';
+import { MenuButton } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
@@ -33,11 +33,7 @@ export const SelectNetwork = () => {
     if (runtimeEnv === net.value) {
       return;
     }
-    const url = `${net.domain}${router.asPath}`;
-    const a = document.createElement('a');
-    a.target = '_blank';
-    a.href = url;
-    a.click();
+    window.location.href = `${net.domain}${router.asPath}`;
   };
 
   return (

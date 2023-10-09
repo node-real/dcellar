@@ -49,7 +49,7 @@ export const CookiePolicy = ({ onClose }: Props) => {
             NodeReal uses cookies to provide a better experience. Check here to manage{' '}
             <Box
               as="button"
-              color="readable.brand6"
+              color="scene.success.normal"
               _hover={{
                 color: 'scene.success.active',
               }}
@@ -69,7 +69,7 @@ export const CookiePolicy = ({ onClose }: Props) => {
               target="_blank"
               onClick={() => reportEvent({ name: 'dc_lp.main.cookie.learnmore.click', data: {} })}
               href={'https://docs.nodereal.io/docs/cookie-policy'}
-              color="readable.brand6"
+              color="scene.success.normal"
               _hover={{
                 color: 'scene.success.active',
               }}
@@ -81,13 +81,10 @@ export const CookiePolicy = ({ onClose }: Props) => {
         </Box>
         <Flex align={'center'} justify={'center'}>
           <DCButton
-            variant='brand'
-            h={40}
             onClick={() => {
               onClose('ga_st', 'accept_all');
               reportEvent({ name: 'dc_lp.main.cookie.accept.click', data: {} });
             }}
-            size="md"
           >
             Accept
           </DCButton>

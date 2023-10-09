@@ -24,7 +24,6 @@ export const UnderlineLink = (props: LinkProps) => (
 export const Footer = (props: FlexProps) => {
   const utcYear = getUTC0Year();
   const { ...restProps } = props;
-  const { pathname } = useRouter();
 
   return (
     <Flex

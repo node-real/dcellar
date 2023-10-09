@@ -19,7 +19,10 @@ export const NetworkSwitch = () => {
     if (net === network) {
       return;
     }
-    window.open(LINKS[net].fullUrl, '_blank');
+    const a = document.createElement('a');
+    a.target = '_blank';
+    a.href = LINKS[net].fullUrl;
+    a.click();
   };
   return (
     <Flex>
