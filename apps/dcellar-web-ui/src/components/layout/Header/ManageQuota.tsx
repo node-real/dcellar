@@ -239,12 +239,20 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
           <Value>{formattedQuota.totalFreeText}</Value>
         </Field>
         <Divider mt={8} mb={-8} />
-        <QuotaItem
-          current={!quota ? 0 : currentQuota / G_BYTES}
-          value={newChargedQuota}
-          onChange={setNewChargedQuota}
-          quotaUpdateAt={quotaUpdateTime}
-        />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!valid) return;
+            onConfirm();
+          }}
+        >
+          <QuotaItem
+            current={!quota ? 0 : currentQuota / G_BYTES}
+            value={newChargedQuota}
+            onChange={setNewChargedQuota}
+            quotaUpdateAt={quotaUpdateTime}
+          />
+        </form>
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
         <TotalFees

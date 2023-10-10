@@ -105,6 +105,8 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const { settlementFee } = useSettlementFee(PaymentAddress);
   const accountDetail = useAppSelector(selectAccount(PaymentAddress));
   const [balanceEnough, setBalanceEnough] = useState(true);
+  const [spUpdate, setSpUpdate] = useState(false);
+  const [paUpdate, setPaUpdate] = useState(false);
 
   useAsyncEffect(async () => {
     if (!isEmpty(storeFeeParams)) return;
@@ -209,8 +211,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const debounceValidate = debounce(async (value, curNonce) => {
     if (curNonce !== nonceRef.current) return;
-
-    clearErrors();
     const bucketName = value;
     setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
     const sp = selectedSpRef.current;
@@ -262,26 +262,31 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       debounceValidate && debounceValidate.cancel();
       const curNonce = nonceRef.current + 1;
       nonceRef.current = curNonce;
-
       debounceValidate(value, curNonce);
     },
     [debounceValidate],
   );
+
+  const validateName = (value: string) => {
+    // 1. validate name rules
+    const types = validateNameRules(value);
+    if (Object.values(types).length > 0) {
+      setError('bucketName', { types });
+      setValidateNameAndGas(initValidateNameAndGas);
+      return false;
+    } else {
+      clearErrors();
+    }
+    return true;
+  };
 
   const handleInputChange = useCallback(
     (event: any) => {
       const value = event.target.value;
       setValue('bucketName', value);
 
-      // 1. validate name rules
-      const types = validateNameRules(value);
-      if (Object.values(types).length > 0) {
-        setError('bucketName', { types });
-        setValidateNameAndGas(initValidateNameAndGas);
-        return;
-      } else {
-        clearErrors();
-      }
+      const valid = validateName(value);
+      if (!valid) return;
 
       // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
       checkGasFee(value);
@@ -367,11 +372,18 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     (sp: SpItem) => {
       selectedSpRef.current = sp;
       const { value, available } = validateNameAndGas.name;
+      if (spUpdate) {
+        // todo for reset gas simulator error
+        const valid = validateName(bucketName || '');
+        if (!valid) return;
+      } else {
+        setSpUpdate(true);
+      }
       if (available && value) {
         checkGasFee(value);
       }
     },
-    [checkGasFee, validateNameAndGas.name],
+    [checkGasFee, validateNameAndGas.name, bucketName],
   );
 
   const onChangePA = useCallback(
@@ -379,11 +391,18 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       selectedPaRef.current = pa;
       await dispatch(setupAccountDetail(pa.address));
       const { value, available } = validateNameAndGas.name;
+      if (paUpdate) {
+        // todo for reset gas simulator error
+        const valid = validateName(bucketName || '');
+        if (!valid) return;
+      } else {
+        setPaUpdate(true);
+      }
       if (available && value) {
         checkGasFee(value);
       }
     },
-    [checkGasFee, dispatch, validateNameAndGas.name],
+    [checkGasFee, dispatch, validateNameAndGas.name, bucketName],
   );
 
   return (
