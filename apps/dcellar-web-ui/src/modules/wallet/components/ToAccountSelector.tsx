@@ -116,7 +116,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
       text={account?.address}
       placeholder="Choose or enter addresses"
       options={options}
-      header={() => `Accounts (${total})`}
+      header={() => `Payment Accounts (${total})`}
       onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
@@ -125,6 +125,8 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
       }}
       footer={Footer}
       renderOption={({ value, label }) => <OptionItem value={value} label={label} />}
+      emptyIcon="empty-account"
+      emptyText="No Payment Accounts"
     />
   );
 });

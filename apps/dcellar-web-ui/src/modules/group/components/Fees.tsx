@@ -1,7 +1,6 @@
 import React, { memo, useEffect } from 'react';
 import { useAppSelector } from '@/store';
-import { Box, Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
-import { MenuCloseIcon } from '@totejs/icons';
+import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
 import BigNumber from 'bignumber.js';
 import {
   renderBalanceNumber,
@@ -25,7 +24,7 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { isOpen, onToggle } = useDisclosure();
+  const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
 
   const _fees = fees.map((fee) => ({
     label: fee.label,
@@ -64,31 +63,31 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
             alignItems={'center'}
           >
             {renderFeeValue(allFees.toString(), exchangeRate)}
-            <IconFont
-              color={'readable.normal'}
-              type={!isOpen ? 'menu-open' : 'menu-close'}
-              w={20}
-            />
+            <IconFont color={'readable.normal'} type={isOpen ? 'menu-open' : 'menu-close'} w={20} />
           </Flex>
         </Flex>
-        <Divider borderColor={'readable.disable'} />
-        {_fees.map((item, index) => (
-          <Flex key={index} w="100%" alignItems={'center'} justifyContent={'space-between'}>
-            <Flex alignItems="center">
-              <Text color={'readable.tertiary'} as="p">
-                {item.label}
+        {isOpen && (
+          <>
+            <Divider borderColor={'readable.disable'} />
+            {_fees.map((item, index) => (
+              <Flex key={index} w="100%" alignItems={'center'} justifyContent={'space-between'}>
+                <Flex alignItems="center">
+                  <Text color={'readable.tertiary'} as="p">
+                    {item.label}
+                  </Text>
+                </Flex>
+                <Text color={'readable.tertiary'}>
+                  {renderFeeValue(String(item.value), exchangeRate)}
+                </Text>
+              </Flex>
+            ))}
+            <Flex w={'100%'} justifyContent={'flex-end'}>
+              <Text fontSize={'12px'} color={'readable.disable'}>
+                Owner Account balance: {renderBalanceNumber(bankBalance || '0')}
               </Text>
             </Flex>
-            <Text color={'readable.tertiary'}>
-              {renderFeeValue(String(item.value), exchangeRate)}
-            </Text>
-          </Flex>
-        ))}
-        <Flex w={'100%'} justifyContent={'flex-end'}>
-          <Text fontSize={'12px'} color={'readable.disable'}>
-            Owner Account balance: {renderBalanceNumber(bankBalance || '0')}
-          </Text>
-        </Flex>
+          </>
+        )}
       </Flex>
       {!enoughBalance && (
         <Text fontSize={'14px'} color={'scene.danger.normal'}>

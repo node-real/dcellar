@@ -36,6 +36,8 @@ export interface DCSelectProps extends MenuProps {
   onSearchFilter?: (value: string, item: MenuOption) => boolean;
   onSearch?: (result: Array<MenuOption>) => void;
   renderOption?: (option: MenuOption) => ReactNode;
+  emptyIcon?: string;
+  emptyText?: string;
 }
 
 export function DCInputSelect(props: DCSelectProps) {
@@ -56,6 +58,8 @@ export function DCInputSelect(props: DCSelectProps) {
     isDisabled,
     RightIcon,
     renderOption,
+    emptyIcon,
+    emptyText,
     ...restProps
   } = props;
 
@@ -109,6 +113,9 @@ console.log('DCInputSelect', placeholder, text)
       renderOption={renderOption}
       selectIcon
       onMenuSelect={onSelectItem}
+      emptyIcon={emptyIcon}
+      emptyText={emptyText}
+      menuListProps={listProps}
       renderHeader={() =>
         header && (
           <Box

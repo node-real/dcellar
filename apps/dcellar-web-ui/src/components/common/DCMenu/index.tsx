@@ -11,6 +11,8 @@ interface DCMenuProps extends MenuProps {
   menuListProps?: MenuListProps;
   renderHeader?: () => ReactNode;
   renderFooter?: () => ReactNode;
+  emptyIcon?: string;
+  emptyText?: string;
 }
 
 export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
@@ -24,6 +26,8 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     menuListProps,
     renderHeader,
     renderFooter,
+    emptyIcon,
+    emptyText,
     ...restProps
   } = props;
   const isFunc = typeof children === 'function';
@@ -44,6 +48,8 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
               renderOption={renderOption}
               renderHeader={renderHeader}
               renderFooter={renderFooter}
+              emptyIcon={emptyIcon}
+              emptyText={emptyText}
               {...menuListProps}
             />
           </Portal>

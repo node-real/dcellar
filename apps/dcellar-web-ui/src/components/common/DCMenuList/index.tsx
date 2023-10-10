@@ -20,6 +20,8 @@ export interface DCMenuListProps extends MenuListProps {
   renderHeader?: () => ReactNode;
   renderFooter?: () => ReactNode;
   renderEmpty?: () => ReactNode;
+  emptyIcon?: string;
+  emptyText?: string;
 }
 
 export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
@@ -31,6 +33,8 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
     renderOption,
     renderHeader,
     renderFooter,
+    emptyText = 'No Result',
+    emptyIcon = 'empty-object',
     ...restProps
   } = props;
 
@@ -64,16 +68,10 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
           );
         })}
         {!options.length && (
-          <Center flexDir="column" pt={21} minH={220} justifyContent="flex-start">
-            <IconFont type="empty-object" w={120} />
-            <Text
-              mt={12}
-              color="readable.tertiary"
-              fontSize={12}
-              fontWeight={500}
-              lineHeight="15px"
-            >
-              No Result
+          <Center flexDir="column" pt={24} h={160} justifyContent="flex-start">
+            <IconFont type={emptyIcon} w={64} />
+            <Text mt={8} color="readable.normal" fontSize={14} fontWeight={600}>
+              {emptyText}
             </Text>
           </Center>
         )}

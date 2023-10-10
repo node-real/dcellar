@@ -126,7 +126,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
           <Divider borderColor={'readable.disable'} />
           <Flex alignItems={'center'} justifyContent={'space-between'} color={'readable.secondary'}>
             <Flex alignItems="center">
-              <Text>Gas Fee</Text>
+              <Text>Gas fee</Text>
               <GasFeeTips />
             </Flex>
             <Text>{renderFeeValue(String(fee), exchangeRate)}</Text>

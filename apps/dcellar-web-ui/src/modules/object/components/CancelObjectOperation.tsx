@@ -195,7 +195,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
               />,
             )}
             {renderFee('Settlement fee', settlementFee, exchangeRate)}
-            {renderFee('Gas Fee', simulateGasFee, exchangeRate)}
+            {renderFee('Gas fee', simulateGasFee, exchangeRate)}
           </Flex>
           <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
             <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>

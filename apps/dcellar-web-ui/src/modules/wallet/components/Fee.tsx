@@ -68,7 +68,6 @@ export const Fee = memo<FeeProps>(function Fee({
     feeUsdPrice &&
     currencyFormatter(feeUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
 
-
   const totalAmount = BigNumber(amount || 0)
     .plus(totalFee)
     .plus(settlementFee || '0')
@@ -83,16 +82,24 @@ export const Fee = memo<FeeProps>(function Fee({
   //   .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
 
   //show defalut fee if cannot get fee data in 3000ms
+  const defaultFeeUsdPrice = currencyFormatter(
+    BigNumber(defaultFee)
+      .times(BigNumber(bnbPrice))
+      .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
+      .toString(DECIMAL_NUMBER),
+  );
   const TotalFeeContent = useMemo(() => {
     let total = totalFee;
     if (isShowDefault) {
       total = BigNumber(defaultFee);
-      return `~${total.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL}`;
+      return `~${total
+        .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+        .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${defaultFeeUsdPrice})`;
     }
     return `${totalFee
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
       .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
-  }, [TOKEN_SYMBOL, defaultFee, formatFeeUsdPrice, isShowDefault, totalFee]);
+  }, [TOKEN_SYMBOL, defaultFee, formatFeeUsdPrice, isShowDefault, totalFee, defaultFeeUsdPrice]);
   const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
@@ -125,7 +132,14 @@ export const Fee = memo<FeeProps>(function Fee({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [transType, gasFee, defaultGasRelayerFee.gasFee, defaultGasRelayerFee.relayerFee, TOKEN_SYMBOL, relayerFee]);
+  }, [
+    transType,
+    gasFee,
+    defaultGasRelayerFee.gasFee,
+    defaultGasRelayerFee.relayerFee,
+    TOKEN_SYMBOL,
+    relayerFee,
+  ]);
 
   const amountUsd = currencyFormatter(
     BigNumber(amount || 0)
@@ -150,7 +164,7 @@ export const Fee = memo<FeeProps>(function Fee({
       padding={'8px 12px'}
     >
       <Flex justifyContent={'space-between'} fontWeight={600} color={'readable.normal'}>
-        <Text>Total amount</Text>
+        <Text>Total Amount</Text>
         <Text color={'readable.secondary'} fontWeight={500}>
           {isGasLoading ? '--' : TotalAmountContent}
         </Text>
@@ -186,7 +200,7 @@ export const Fee = memo<FeeProps>(function Fee({
         <Flex>
           {transType !== 'send' && (
             <Flex justifyContent={'flex-start'}>
-              <Text>{'Gas Fee'}</Text>{' '}
+              <Text>{'Gas fee'}</Text>{' '}
               <Tips
                 containerWidth={'308px'}
                 tips={TipContent}
