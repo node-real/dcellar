@@ -7,10 +7,11 @@ import { INTER_FONT } from '@/modules/wallet/constants';
 
 export const Banner = () => {
   return (
-    <LandingResponsiveContainer>
-      <Flex paddingTop={144} bg={`url(${assetPrefix}/images/welcome/bg.png) no-repeat top/auto 100%`} sx={{
+    <LandingResponsiveContainer bg={`url(${assetPrefix}/images/welcome/bg.png) no-repeat top/auto 100%`}>
+      <Flex paddingTop={144}  sx={{
         [smMedia]: {
-          flexDirection: 'column'
+          flexDirection: 'column',
+          pt: 104
         }
       }}>
         <Flex

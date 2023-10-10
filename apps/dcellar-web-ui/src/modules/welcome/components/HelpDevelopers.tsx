@@ -1,6 +1,6 @@
 import { assetPrefix } from '@/base/env';
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text, Image } from '@totejs/uikit';
+import { Box, Flex, Text, Image, useMediaQuery } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
 import { INTER_FONT } from '@/modules/wallet/constants';
@@ -9,19 +9,19 @@ const datas = [
   {
     intro: 'NFT Storage and Minting',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#nft-metadata-and-medium-storage',
-    img: `${assetPrefix}/images/welcome/d_nft.png`,
+    img: `${assetPrefix}/images/welcome/nft.png`,
     gaClickName: 'dc_lp.homepage.use_case.nft.click',
   },
   {
     intro: 'SP Functional Verification',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#verify-your-storage-provider-sp-with-dcellar',
-    img: `${assetPrefix}/images/welcome/d_security.png`,
+    img: `${assetPrefix}/images/welcome/security.png`,
     gaClickName: 'dc_lp.homepage.use_case.sp.click',
   },
   {
     intro: 'Web Hosting',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#web-hosting',
-    img: `${assetPrefix}/images/welcome/d_host.png`,
+    img: `${assetPrefix}/images/welcome/host.png`,
     gaClickName: 'dc_lp.homepage.use_case.hosting.click',
   },
 ];
@@ -43,6 +43,7 @@ export const HelpDevelopers = () => {
           marginBottom={40}
           fontSize={16}
           fontFamily={INTER_FONT}
+          textAlign={'center'}
           sx={{
             [smMedia]: {
               margin: '8px auto 20px',

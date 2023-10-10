@@ -265,7 +265,7 @@ export const Send = memo<SendProps>(function Send() {
   const onChangeToAccount = useCallback(
     debounce(async (account: TAccount) => {
       setToJsErrors([]);
-      if (!isAddress(account.address)) {
+      if (!!account.address && !isAddress(account.address)) {
         dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
         return setToJsErrors(['Invalid address']);
       }

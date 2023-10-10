@@ -95,7 +95,7 @@ export function DCInputSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
-
+console.log('DCInputSelect', placeholder, text)
   return (
     <DCMenu
       value={value}
@@ -131,7 +131,7 @@ export function DCInputSelect(props: DCSelectProps) {
         as={SelectInput}
         requestFocus={isOpen}
         onClick={onOpen}
-        placeholder={text}
+        placeholder={text || placeholder}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
         onBlur={onClose}
@@ -153,6 +153,7 @@ interface SelectInputProps extends InputProps {
 }
 
 const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
+  console.log('select input props', props)
   const {
     requestFocus,
     placeholder = '',

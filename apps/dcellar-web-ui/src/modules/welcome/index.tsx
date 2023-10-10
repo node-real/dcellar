@@ -29,14 +29,17 @@ export const LandingResponsiveContainer = ({
           width: '1280px',
         },
         [lgMedia]: {
-          width: 'calc(100% - 80px)',
+          width: '100%',
+          paddingX: 40,
         },
         [mdMedia]: {
-          width: 'calc(100% - 40px)',
+          width: '100%',
+          paddingX: 20,
           minWidth: '351px',
         },
         [smMedia]: {
-          width: 'calc(100% - 40px)',
+          width: '100%',
+          paddingX: 20,
           minWidth: '351px',
         },
       }}

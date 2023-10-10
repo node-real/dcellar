@@ -32,6 +32,9 @@ export const SizeMenu = ({
             _hover={{
               bg: 'bg.secondary',
             }}
+            _expanded={{
+              border: '1px solid brand.brand5'
+            }}
             sx={{
               [smMedia]: {
                 w: '60px',

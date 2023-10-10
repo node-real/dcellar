@@ -1,9 +1,10 @@
-import { Flex, Text, Image } from '@totejs/uikit';
+import { Flex, Text, Image, useMediaQuery } from '@totejs/uikit';
 import { TFeatureItem } from './KeyFeatures';
 import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
 
-export const FeatureItem = ({ title, desc, tag, introImg }: TFeatureItem) => {
+export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeatureItem) => {
+  const [isMobile] = useMediaQuery('(max-width: 767px)');
   return (
     <Flex
       borderRadius={'4px'}
@@ -67,7 +68,7 @@ export const FeatureItem = ({ title, desc, tag, introImg }: TFeatureItem) => {
       <Image
         alt={`${title} image`}
         w={'50%'}
-        src={introImg}
+        src={isMobile ? introImgSm : introImg}
         sx={{
           [smMedia]: {
             w: '100%',

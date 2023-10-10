@@ -25,7 +25,7 @@ const datas = [
     icon: <ResponsiveIcon type="w-search" color={'readable.white'}/>,
     iconBg: '#C372F6',
     name: 'BNB Greenfield Whitepaper',
-    link: 'https://greenfield.bnbchain.org/docs',
+    link: 'https://github.com/bnb-chain/greenfield-whitepaper',
     gaClickName: 'dc_lp.homepage.tool.whitepaper.click',
   },
   {
@@ -53,7 +53,7 @@ const datas = [
     icon: <ResponsiveIcon type="w-calculator" color={'readable.white'}/>,
     iconBg: '#69B2F4',
     name: 'BNB Greenfield Calculator',
-    link: 'https://dcellar.io/pricing-calculator',
+    link: '/pricing-calculator',
     gaClickName: 'dc_lp.homepage.tool.pricingcalculator.click',
   },
   {

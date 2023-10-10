@@ -25,7 +25,7 @@ export const MENUS = [
   },
   {
     title: 'Docs',
-    link: '#',
+    link: 'https://docs.nodereal.io/docs/dcellar-get-started',
     target: '_blank',
     Icon: (props: IconProps) => <ExternalLinkIcon w={12} ml={2} mt={-1} {...props} />,
     gaName: 'dc_lp.main.header.docs.click',
@@ -76,7 +76,7 @@ export const BaseHeader = () => {
         fontSize={14}
         gaClickName={gaClickName}
         icon={<IconFont type={'wallet-filled'} w={24} />}
-        text="Connect wallet"
+        text="Connect Wallet"
         variant="ghost"
         border={'1px solid readable.border'}
         _hover={{

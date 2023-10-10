@@ -41,7 +41,7 @@ export const PricingCalculator = () => {
             },
           }}
         >
-          With our price calculator, you can easily get an estimate for your project on BNB
+          With our pricing calculator, you can easily get an estimate for your project on BNB
           Greenfield.
         </Text>
         <DCButton
