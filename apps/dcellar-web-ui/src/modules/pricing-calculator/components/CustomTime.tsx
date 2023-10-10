@@ -6,8 +6,9 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
+  useOutsideClick,
 } from '@totejs/uikit';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
 import { DCButton } from '@/components/common/DCButton';
@@ -39,6 +40,7 @@ export const CustomTime = ({
   onChangeInput,
   gaClickName,
 }: Props) => {
+  const ref = useRef(null);
   const swapTimeUnits = swapObj(TimeUnits);
   const handleNavigation = useCallback(
     (e: any) => {
@@ -53,9 +55,13 @@ export const CustomTime = ({
       window.removeEventListener('scroll', handleNavigation);
     };
   }, [handleNavigation]);
+  useOutsideClick({
+    ref,
+    handler: () => isOpen && onClose(),
+  });
 
   return (
-    <Popover isOpen={isOpen} placement="bottom">
+    <Popover isOpen={isOpen} placement="bottom" >
       <PopoverTrigger>
         <DCButton
           variant="ghost"
@@ -79,6 +85,7 @@ export const CustomTime = ({
         </DCButton>
       </PopoverTrigger>
       <PopoverContent
+        ref={ref}
         w={226}
         p={16}
         borderRadius={4}
