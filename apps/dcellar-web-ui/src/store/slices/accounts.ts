@@ -225,7 +225,6 @@ export const setupOAList = () => async (dispatch: AppDispatch, getState: GetStat
 export const setupPaymentAccounts =
   (forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    console.log('invoke setupPaymentAccounts')
     const { loginAccount } = getState().persist;
     const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
     const loginPaymentAccounts = paymentAccounts[loginAccount] || [];

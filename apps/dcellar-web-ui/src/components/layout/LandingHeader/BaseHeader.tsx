@@ -36,7 +36,6 @@ export const BaseHeader = () => {
   const router = useRouter();
   const gaClickName = getGAOptions(router.pathname);
   const isScroll = useDetectScroll();
-  console.log('isScroll', isScroll);
   return (
     <Flex
       as="header"

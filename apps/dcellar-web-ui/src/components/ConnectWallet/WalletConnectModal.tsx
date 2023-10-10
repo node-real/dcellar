@@ -35,7 +35,16 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
       !!address &&
       ssrLandingRoutes.some((item) => item === router.pathname)
     ) {
-      setTimeout(() => router.push(InternalRoutePaths.buckets), 100);
+      const originPathname = decodeURIComponent(router.query.originAsPath as string);
+      setTimeout(
+        () =>
+          router.push(
+            !!originPathname && originPathname !== 'undefined'
+              ? originPathname
+              : InternalRoutePaths.buckets,
+          ),
+        100,
+      );
     }
   }, [address, hasTrigger, isAuthPending, isOpen, router]);
 
