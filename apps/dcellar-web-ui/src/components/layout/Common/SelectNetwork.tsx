@@ -47,7 +47,7 @@ export const SelectNetwork = () => {
         <MenuButton
           as={DCButton}
           h={32}
-          bgColor={'bg.bottom'}
+          bgColor={'bg.middle'}
           padding={'8px 8px 8px 12px'}
           border={'1px solid readable.border'}
           borderRadius={24}

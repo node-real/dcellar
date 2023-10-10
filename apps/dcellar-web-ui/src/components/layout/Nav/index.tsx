@@ -5,7 +5,6 @@ import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 import { memo } from 'react';
-import { DcellarDoc, FAQ } from '@/utils/constant';
 
 const MENU_ITEMS = [
   {
@@ -31,8 +30,18 @@ const MENU_ITEMS = [
 ];
 
 const ASIDE = [
-  { link: DcellarDoc, trackId: 'dc.main.nav.doc.click', icon: 'doc', text: 'BNB Greenfield Docs' },
-  { link: FAQ, trackId: 'dc.main.nav.faq.click', icon: 'help', text: 'About DCellar' },
+  {
+    link: 'https://docs.bnbchain.org/greenfield-docs/',
+    trackId: 'dc.main.nav.doc.click',
+    icon: 'doc',
+    text: 'BNB Greenfield Docs',
+  },
+  {
+    link: 'https://docs.nodereal.io/docs/dcellar-get-started',
+    trackId: 'dc.main.nav.faq.click',
+    icon: 'help',
+    text: 'About DCellar',
+  },
 ];
 
 interface NavProps {}

@@ -190,6 +190,10 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
             max={MAX_SIZE}
             precision={0}
             status={invalid ? 'error' : undefined}
+            onKeyDown={(e) => {
+              if (!e.key.match(/[0-9]|backspace|delete|arrow(left|right|up|down)/i))
+                e.preventDefault();
+            }}
           />
           <Text ml={8} fontSize={16} fontWeight={600} lineHeight="normal">
             GB/month
