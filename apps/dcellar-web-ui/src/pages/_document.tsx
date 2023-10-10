@@ -5,7 +5,7 @@ import { GA_ID, assetPrefix } from '@/base/env';
 // todo refactor
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html lang="en" style={{ colorScheme: 'light' }} data-theme="light">
       <Head>
         <meta
           name="google-site-verification"
@@ -22,12 +22,7 @@ export default function Document() {
         <Ga4 id={GA_ID} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)};(function() {
-            var l = '(prefers-color-scheme:dark)'
-              , e = window.matchMedia(l).matches ? 'dark' : 'light'
-              , d = document.documentElement;
-            return ((d.style.colorScheme = e), (d.dataset.theme = e), e);
-          })();`,
+            __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
         <script defer src={`${assetPrefix}/js/iconfont.min.js?v2`}></script>
