@@ -17,14 +17,14 @@ export const PageProtect: React.FC<any> = ({ children }) => {
   useEffect(() => {
     if (!chain?.id) return;
     if (pathname === '/') return;
-    const inProtectGNFDPaths = protectGNFDPaths.some((path) => pathname === path);
+    const inProtectGNFDPath = protectGNFDPaths.some((path) => pathname === path);
+    const isNoProtectGNFDPath = noProtectPaths.some((path) => pathname === path);
     const isGNFD = isRightChain(chain?.id, GREENFIELD_CHAIN_ID);
     const isDcellarChains = [GREENFIELD_CHAIN_ID, BSC_CHAIN_ID].includes(chain?.id);
 
-    console.log('inProtectGNFDPaths', inProtectGNFDPaths, isDcellarChains, GREENFIELD_CHAIN_ID, BSC_CHAIN_ID, chain?.id)
-    if (noProtectPaths) {
+    if (isNoProtectGNFDPath) {
       return onClose();
-    } else if (inProtectGNFDPaths) {
+    } else if (inProtectGNFDPath) {
       isGNFD ? onClose() : onOpen();
     } else {
       isDcellarChains ? onClose() : onOpen();

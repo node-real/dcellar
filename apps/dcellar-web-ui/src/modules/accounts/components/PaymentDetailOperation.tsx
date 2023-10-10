@@ -54,25 +54,26 @@ export const PaymentDetailOperation = memo<PaymentDetailOperationProps>(
         {!isLoadingDetail && (
           <QDrawerFooter>
             <Flex w={'100%'} gap={16}>
-              {isNonRefundable && !isFrozen && (
-                <DCButton
-                  size={'lg'}
-                  flex={1}
-                  gaClickName="dc.file.f_detail_pop.share.click"
-                  onClick={() => onAction('withdraw')}
-                >
-                  Withdraw
-                </DCButton>
-              )}
               <DCButton
                 size={'lg'}
-                variant={'ghost'}
+                variant={'brand'}
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.download.click"
                 onClick={() => onAction('deposit')}
               >
                 Deposit
               </DCButton>
+              {isNonRefundable && !isFrozen && (
+                <DCButton
+                  size={'lg'}
+                  flex={1}
+                  variant="ghost"
+                  gaClickName="dc.file.f_detail_pop.share.click"
+                  onClick={() => onAction('withdraw')}
+                >
+                  Withdraw
+                </DCButton>
+              )}
             </Flex>
           </QDrawerFooter>
         )}
