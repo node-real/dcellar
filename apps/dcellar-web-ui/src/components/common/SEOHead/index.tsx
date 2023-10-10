@@ -18,6 +18,8 @@ export const SEOHead = () => {
         property="og:title"
         content="DCellar - Storage console for developers on BNB Greenfield"
       />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:site" content="@Nodereal_io" />
       <meta
         name="twitter:title"
         content="DCellar - Storage console for developers on BNB Greenfield"
@@ -34,10 +36,8 @@ export const SEOHead = () => {
         name="twitter:description"
         content="DCellar is a storage tool that empowers developers to get started with BNB Greenfield decentralized storage blockchain and BNB Smart Chain (BSC)."
       />
-      <meta
-        property="twitter:image"
-        content={`${assetPrefix}/images/homepage_thumbnail.png`}
-      />
+      <meta property="twitter:image" content={`${assetPrefix}/images/homepage_thumbnail.png`} />
+      <meta property="twitter:image:src" content={`${assetPrefix}/images/homepage_thumbnail.png`} />
     </Head>
   );
 };
