@@ -8,6 +8,7 @@ import { PaymentAccounts } from '@/components/layout/Header/PaymentAccounts';
 import { StoreFeeParams } from '@/components/layout/Header/StoreFeeParams';
 import { DisconnectWalletModal } from '@/components/layout/Header/DisconnectWalletModal';
 import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
+import { WalletConnectModal } from '../ConnectWallet/WalletConnectModal';
 
 interface GlobalManagementsProps {}
 
@@ -24,6 +25,7 @@ export const GlobalManagements = memo<GlobalManagementsProps>(function GlobalMan
       <DisconnectWalletModal />
       {/* for global download confirm modal */}
       <ObjectOperations level={1} />
+      <WalletConnectModal />
     </>
   );
 });

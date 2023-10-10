@@ -13,17 +13,21 @@ import { InternalRoutePaths } from '@/utils/constant';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/utils/constant';
 import { IconFont } from '@/components/IconFont';
+import { setConnectWallet } from '@/store/slices/global';
+import { useDispatch } from 'react-redux';
 
-export interface WalletConnectModalProps extends DCModalProps {}
-export function WalletConnectModal(props: WalletConnectModalProps) {
+export interface WalletConnectModalProps {}
+export function WalletConnectModal() {
   const router = useRouter();
-  const { isOpen, onClose } = props;
+  const dispatch = useDispatch();
   const [hasTrigger, setHasTrigger] = useState(false);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
-
+  const { connectWallet: isOpen } = useAppSelector((state) => state.global);
   const { isAuthPending } = useAppLogin(currentAddress);
-
+  const onClose = useCallback(() => {
+    dispatch(setConnectWallet(false))
+  }, [dispatch]);
   const onSuccess = useCallback((address?: string) => {
     setCurrentAddress(address);
   }, []);
@@ -35,6 +39,7 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
       !!address &&
       ssrLandingRoutes.some((item) => item === router.pathname)
     ) {
+      onClose();
       const originPathname = decodeURIComponent(router.query.originAsPath as string);
       setTimeout(
         () =>
@@ -46,7 +51,7 @@ export function WalletConnectModal(props: WalletConnectModalProps) {
         100,
       );
     }
-  }, [address, hasTrigger, isAuthPending, isOpen, router]);
+  }, [address, hasTrigger, isAuthPending, isOpen, onClose, router]);
 
   const onConnectError = useCallback((err: Error, args: any) => {
     if (err instanceof ConnectorNotFoundError) {

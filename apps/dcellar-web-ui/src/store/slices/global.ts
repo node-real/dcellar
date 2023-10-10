@@ -93,6 +93,7 @@ export interface GlobalState {
   sealingTs: Record<string, number>;
   authModalOpen: [boolean, AuthPostAction];
   disconnectWallet: boolean;
+  connectWallet: boolean;
 }
 export const GAS_PRICE = '0.000000005';
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'];
@@ -111,6 +112,7 @@ const initialState: GlobalState = {
   sealingTs: {},
   authModalOpen: [false, {} as AuthPostAction],
   disconnectWallet: false,
+  connectWallet: false,
 };
 
 export const globalSlice = createSlice({
@@ -369,6 +371,9 @@ export const globalSlice = createSlice({
     setDisconnectWallet(state, { payload }: PayloadAction<boolean>) {
       state.disconnectWallet = payload;
     },
+    setConnectWallet(state, { payload }: PayloadAction<boolean>) {
+      state.connectWallet = payload;
+    },
   },
 });
 
@@ -392,6 +397,7 @@ export const {
   setisLoadingPLF,
   setAuthModalOpen,
   setDisconnectWallet,
+  setConnectWallet,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();

@@ -1,8 +1,9 @@
 import React, { ReactElement, memo } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
-import { WalletConnectModal } from '@/components/ConnectWallet/WalletConnectModal';
-import { useDisclosure, Text } from '@totejs/uikit';
+import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
+import { useDispatch } from 'react-redux';
+import { setConnectWallet } from '@/store/slices/global';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -10,11 +11,13 @@ interface ConnectWalletProps extends DCButtonProps {
 }
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
-  const { isOpen, onClose, onOpen } = useDisclosure();
+  const dispatch = useDispatch();
   const { icon, text, ...restProps } = props;
+  const onOpen = () => {
+    dispatch(setConnectWallet(true));
+  }
   return (
     <>
-      <WalletConnectModal isOpen={isOpen} onClose={onClose} />
       <DCButton
         px={48}
         h={54}
