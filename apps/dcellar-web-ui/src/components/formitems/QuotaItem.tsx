@@ -191,7 +191,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
             precision={0}
             status={invalid ? 'error' : undefined}
             onKeyDown={(e) => {
-              if (!e.key.match(/[0-9]|backspace|delete|arrow(left|right|up|down)/i))
+              if (!e.key.match(/[0-9]|backspace|enter|delete|arrow(left|right|up|down)/i))
                 e.preventDefault();
             }}
           />

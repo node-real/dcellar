@@ -347,6 +347,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
                 Name
               </Text>
               <InputItem
+                onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
                 value={inputFolderName}
                 onChange={onFolderNameChange}
                 tips={{

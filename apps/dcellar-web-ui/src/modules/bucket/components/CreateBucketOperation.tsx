@@ -415,7 +415,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
                     lineHeight={'19px'}
                     fontWeight={500}
                     height="52px"
-                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                     // disabled={!isEnoughBalance}
                     {...register('bucketName')}
                     onChange={handleInputChange}

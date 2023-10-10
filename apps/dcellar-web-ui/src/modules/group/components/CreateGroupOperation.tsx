@@ -130,6 +130,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
               Name
             </Text>
             <InputItem
+              onKeyDown={(e) => e.key === 'Enter' && onCreate()}
               value={form.name}
               placeholder="Enter a group name"
               onChange={(e) => onFormChange(e.target.value, 'name')}
@@ -150,6 +151,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
               Description
             </Text>
             <TextareaItem
+              onKeyDown={(e) => e.key === 'Enter' && onCreate()}
               value={form.desc}
               h={100}
               resize="none"

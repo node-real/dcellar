@@ -142,6 +142,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
               Description
             </Text>
             <TextareaItem
+              onKeyDown={(e) => e.key === 'Enter' && onCreate()}
               value={form.desc}
               h={100}
               resize="none"
