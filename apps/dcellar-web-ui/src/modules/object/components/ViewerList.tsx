@@ -284,6 +284,10 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
             options={options}
             searchValue={searchValue}
             onSearch={setSearchValue}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              if (values.includes(searchValue)) setSearchValue('');
+            }}
             open={open && !!_options.length}
             onFocus={() => setOpen(true)}
             onBlur={() => setOpen(false)}
