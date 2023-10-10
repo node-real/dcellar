@@ -1,6 +1,39 @@
 import BigNumber from 'bignumber.js';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 
+export const trimFloatZero = (str: string) => {
+  const [intStr, floatStr] = str.split('.');
+
+  if (floatStr) {
+    const trimFloatStr = floatStr.replaceAll(/0+$/g, '');
+
+    return !!trimFloatStr ? `${intStr}.${trimFloatStr}` : intStr;
+  }
+
+  return str;
+};
+
+export const removeTrailingSlash = (url: string) => {
+  const regex = /\/+$/;
+  return url.replace(regex, '');
+};
+
+export const isActivePath = (
+  currentPath: string,
+  path: string,
+  basePath = '',
+  enablePrefix = false,
+) => {
+  if (currentPath === '/') {
+    return basePath ? path?.endsWith(basePath) : false;
+  }
+  if (enablePrefix) {
+    return currentPath.includes(path);
+  }
+
+  return path?.endsWith(basePath + currentPath);
+};
+
 export const trimLongStr = (
   str: string,
   maxLength: number = 12,
@@ -25,15 +58,6 @@ export const trimAddress = (
   footLen: number = 6,
 ) => {
   return trimLongStr(formatAddress(address), maxLength, headLen, footLen);
-};
-
-export const formatAddress = (address = '') => {
-  if (!address) return address;
-  return isAddress(address) ? address : `0x${address}`;
-};
-
-export const isAddress = (address = '') => {
-  return address.startsWith('0x');
 };
 
 // encodeURIComponent() uses the same encoding algorithm as described in encodeURI(). It escapes all characters except:
@@ -159,4 +183,24 @@ export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
     readRemainPercent: (value.remainRead / value.total) * 100,
     show: `${f(value.remain, false)} / ${f(value.total, false)}`,
   };
+};
+
+export const parseError = (errorMessage: string) => {
+  const regex = /\((\d+)\):\s+([^:]+):/;
+
+  const match = errorMessage.match(regex);
+
+  return {
+    isError: !match,
+    code: (match && match[1]) || -1,
+    message: (match && match[2]) || '',
+  };
+};
+
+export const formatAddress = (address: string) => {
+  const prefix = address.slice(0, 15);
+  const suffix = address.slice(-13);
+  const middle = '...';
+
+  return `${prefix}${middle}${suffix}`;
 };

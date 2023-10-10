@@ -2,12 +2,12 @@ import { Flex } from '@totejs/uikit';
 import React from 'react';
 import { Text } from '@totejs/uikit';
 
-import WarningIcon from '@/public/images/icons/warning.svg';
+import { IconFont } from '@/components/IconFont';
 
 export const WarningInfo = ({ content }: { content: string }) => {
   return (
     <Flex alignItems={'center'} mt="8px">
-      <WarningIcon color="#EE7C11" />
+      <IconFont color="#EE7C11" type={'warning'} w={16} />
       <Text
         ml="4px"
         fontSize={'14px'}

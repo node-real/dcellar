@@ -1,12 +1,17 @@
 import { Text, TextProps, Tooltip } from '@totejs/uikit';
 import React, { memo } from 'react';
 
-interface EllipsisTextProps extends TextProps {}
+interface EllipsisTextProps extends TextProps {
+  text?: string;
+}
 
 export const EllipsisText = memo((props: EllipsisTextProps) => {
   const [isOverflowing, setIsOverflowing] = React.useState(false);
   return (
-    <Tooltip content={props.children} visibility={isOverflowing ? 'visible' : 'hidden'}>
+    <Tooltip
+      content={props.text || props.children}
+      visibility={isOverflowing ? 'visible' : 'hidden'}
+    >
       <Text
         ref={(ref) => {
           if (!ref) return;

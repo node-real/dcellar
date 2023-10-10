@@ -23,16 +23,16 @@ import {
   WalletOperationInfos,
 } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
-import BNBIcon from '@/public/images/icons/bnb.svg';
-import { trimFloatZero } from '@/utils/trimFloatZero';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice, setupTmpAvailableBalance } from '@/store/slices/global';
-import { useMount } from 'ahooks';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
 import { TxType } from '../Send';
-import { BN } from '@/utils/BigNumber';
+import { trimFloatZero } from '@/utils/string';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
+import { IconFont } from '@/components/IconFont';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type AmountProps = {
   disabled: boolean;
@@ -55,7 +55,7 @@ const AmountErrors = {
   min: 'Please enter a minimum amount of 0.00000001.',
   withdrawError: (
     <>
-      No withdrawals allowed over 100 BNB.{' '}
+      No withdrawals allowed over 100 {displayTokenSymbol()}.{' '}
       <Link
         href="#"
         color="readable.danger"
@@ -84,23 +84,17 @@ export const Amount = ({
   setValue,
   txType,
 }: AmountProps) => {
-  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
   const defaultFee = DefaultFee[transType];
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
   const isSendPage = transType === 'send';
-
-  useMount(() => {
-    dispatch(setupTmpAvailableBalance(address));
-  });
 
   const Balance = useCallback(() => {
     if (isLoading) return null;
@@ -115,7 +109,7 @@ export const Amount = ({
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
       <>
-        Balance on {curInfo?.chainName}: {val} BNB ({unifyUsdPrice})
+        Balance on {curInfo?.chainName}: {val} {displayTokenSymbol()} ({unifyUsdPrice})
       </>
     );
   }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
@@ -138,7 +132,6 @@ export const Amount = ({
         <FormLabel
           fontWeight={500}
           fontSize="14px"
-          lineHeight="150%"
           htmlFor="amount"
           mb={'8px'}
           display="inline-block"
@@ -170,9 +163,9 @@ export const Amount = ({
             placeholder="0.0"
             disabled={!isRight || disabled}
             fontSize="18px"
-            fontWeight={700}
+            fontWeight="700 !important"
             step={MIN_AMOUNT}
-            height="52px"
+            height="44px"
             onKeyPress={(e) => {
               if (e.key === 'e' || e.key === '-' || e.key === '+') {
                 e.preventDefault();
@@ -227,9 +220,9 @@ export const Amount = ({
           />
 
           <InputRightElement width={'80px'} zIndex="0">
-            <BNBIcon />
-            <Text fontSize={'16px'} fontWeight="600" ml="8px" mr={'12px'}>
-              BNB
+            <IconFont type={'bnb'} color="#F0B90B" w={24} />
+            <Text fontSize={'14px'} fontWeight="600" ml="4px" mr={'12px'}>
+              {displayTokenSymbol()}
             </Text>
           </InputRightElement>
         </InputGroup>
@@ -238,7 +231,7 @@ export const Amount = ({
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
         {!isSendPage && (
-          <FormHelperText textAlign={'right'} color="#76808F">
+          <FormHelperText mt={8} textAlign={'right'} color="#76808F">
             <Balance />
           </FormHelperText>
         )}

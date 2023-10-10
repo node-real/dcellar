@@ -4,14 +4,15 @@ import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';
 import { DCTooltip } from '@/components/common/DCTooltip';
-import { renderBnb } from '@/modules/file/utils';
 import { G_BYTES } from '@/utils/constant';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';
-import { BN } from '@/utils/BigNumber';
 import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
+import { BN } from '@/utils/math';
+import { renderBnb } from '@/modules/object/utils';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 const MAX_SIZE = 100000;
 
@@ -46,12 +47,6 @@ const valueToPercent = (value: number) => {
   }
   return Math.min(98, percent);
 };
-
-const CONST_VALUE = BigNumber(1)
-  .div(10 ** 18)
-  .times(G_BYTES)
-  .times(2_592_000)
-  .dividedBy(10 ** 18);
 
 export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
   value,
@@ -119,7 +114,14 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
     document.addEventListener('mouseup', mouseup);
   };
 
-  const price = useMemo(() => BN(readPrice).times(CONST_VALUE).toString(), [readPrice]);
+  const price = useMemo(() => {
+    return BN(readPrice)
+      .div(10 ** 18)
+      .times(G_BYTES)
+      .times(2_592_000)
+      .div(10 ** 18)
+      .toString();
+  }, [readPrice]);
 
   return (
     <FormItem>
@@ -132,7 +134,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           />
         </Flex>
         <Text color="#76808F" fontWeight={400}>
-          Price: {renderBnb(price)} BNB/GB/month
+          Price: {renderBnb(price)} {displayTokenSymbol()}/GB/month
         </Text>
       </FormLabel>
       <Flex position="relative" alignItems="center" id="buy-quota-progress-bar">
@@ -188,6 +190,10 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
             max={MAX_SIZE}
             precision={0}
             status={invalid ? 'error' : undefined}
+            onKeyDown={(e) => {
+              if (!e.key.match(/[0-9]|backspace|enter|delete|arrow(left|right|up|down)/i))
+                e.preventDefault();
+            }}
           />
           <Text ml={8} fontSize={16} fontWeight={600} lineHeight="normal">
             GB/month

@@ -1,23 +1,49 @@
 /// <reference types="redux-persist" />
 import { BaseThemeTypings } from '@totejs/uikit';
+import type { SwiperSlideProps, SwiperProps } from 'swiper/react';
 
 declare module '@totejs/uikit' {
   export interface CustomThemeTypings {
     colors:
       | BaseThemeTypings['colors']
+      | 'brand.normal.hight'
+      | 'brand.normal'
+      | 'brand.disable'
+      | 'readable.normal'
       | 'readable.primary'
+      | 'readable.secondary'
       | 'readable.tertiary'
-      | 'readable.placeholder'
-      | 'readable.neutral1'
-      | 'readable.neutral2'
-      | 'readable.neutral3'
-      | 'readable.neutral4'
-      | 'readable.neutral5'
-      | 'readable.neutral6'
-      | 'readable.brand5'
-      | 'readable.brand6'
-      | 'readable.brand7'
-      | 'bg.secondary';
+      | 'readable.disable'
+      | 'readable.border'
+      | 'readable.white'
+      | 'bg.bottom'
+      | 'bg.bottom.secondary'
+      | 'bg.secondary'
+      | 'bg.middle'
+      | 'bg.top.normal'
+      | 'bg.top.active'
+      | 'readable.label.normal'
+      | 'readable.label.active'
+      | 'brand.brand1'
+      | 'brand.brand2'
+      | 'brand.brand3'
+      | 'brand.brand4'
+      | 'brand.brand5'
+      | 'brand.brand6'
+      | 'brand.brand7'
+      | 'brand.brand8'
+      | 'brand.brand9'
+      | 'brand.brand10'
+      | 'opacity1'
+      | 'opacity2'
+      | 'opacity3'
+      | 'opacity4'
+      | 'opacity5'
+      | 'opacity6'
+      | 'opacity7'
+      | 'opacity8'
+      | 'opacity9'
+      | 'opacity10';
     shadows: BaseThemeTypings['shadows'];
   }
 }
@@ -33,9 +59,16 @@ declare global {
     // zk.wasm export
     eddsaSign: any;
   }
-}
-
-declare module '*.svg' {
-  const content: any;
-  export default content;
+  namespace JSX {
+    interface IntrinsicElements {
+      "swiper-container": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & SwiperProps,
+        HTMLElement
+      >;
+      "swiper-slide": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & SwiperSlideProps,
+        HTMLElement
+      >;
+    }
+  }
 }

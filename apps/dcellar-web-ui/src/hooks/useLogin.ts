@@ -1,8 +1,7 @@
 import { useContext } from 'react';
 
-import { LoginContext } from '../context/LoginContext/index';
+import { LoginContext } from '@/context/LoginContext';
 
 export const useLogin = () => {
-  const val = useContext(LoginContext);
-  return val;
+  return useContext(LoginContext);
 };

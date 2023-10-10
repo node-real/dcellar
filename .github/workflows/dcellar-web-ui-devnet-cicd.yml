@@ -9,12 +9,12 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "release project by manually"
+        description: "Release the project manually."
         required: true
         default: "dcellar-web-ui"
         type: string
       env:
-        description: "which env to deploy"
+        description: "Choose the environment for deployment."
         required: true
         default: "devnet"
         type: string

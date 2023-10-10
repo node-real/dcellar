@@ -1,21 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Text } from '@totejs/uikit';
-import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Grid, Text } from '@totejs/uikit';
+import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
 import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { keyBy } from 'lodash-es';
+import { MenuOption } from '@/components/common/DCMenuList';
+import Link from 'next/link';
 
 type Props = {
   onChange: (value: TAccount) => void;
 };
 
 export function PaymentAccountSelector(props: Props) {
-  const { isLoadingDetail, ownerAccount } = useAppSelector((root) => root.accounts);
+  const { ownerAccount } = useAppSelector((root) => root.accounts);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const accountList = useMemo(() => [ownerAccount, ...(paymentAccounts || [])], [paymentAccounts, ownerAccount]);
+  const accountList = useMemo(
+    () => [ownerAccount, ...(paymentAccounts || [])],
+    [paymentAccounts, ownerAccount],
+  );
   const len = accountList.length;
   const keyAccountList = keyBy(accountList, 'address');
   const [pa, setPA] = useState({} as TAccount);
@@ -39,14 +44,14 @@ export function PaymentAccountSelector(props: Props) {
     setPA(keyAccountList[value]);
   };
 
-  const onSearch = (result: IDCSelectOption[]) => {
+  const onSearch = (result: MenuOption[]) => {
     setTotal(result.length);
   };
 
-  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
+  const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.name.toLowerCase();
+    const tmpName = item.label.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
@@ -55,23 +60,40 @@ export function PaymentAccountSelector(props: Props) {
       accountList.map((item) => {
         const { address, name } = item;
         return {
-          label: <OptionItem address={address} name={name} />,
+          label: name,
           value: address,
-          name,
         };
       }),
     [accountList],
   );
+
+  const renderOption = ({ label, value }: MenuOption) => {
+    return <OptionItem label={label} value={value} />;
+  };
+
+  const renderFooter = useCallback(() => {
+    return (
+      <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
+        <Link href="/accounts" passHref legacyBehavior>
+          <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+            Manage Accounts
+          </Text>
+        </Link>
+      </Grid>
+    );
+  }, []);
 
   return (
     <DCSelect
       value={pa.address}
       text={renderItem(pa.name, pa.address)}
       options={options}
-      header={`Accounts (${total})`}
+      header={() => `Accounts (${total})`}
       onChange={onChangePA}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
+      renderOption={renderOption}
+      footer={renderFooter}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
       }}
@@ -83,35 +105,17 @@ const renderItem = (moniker: string, address: string) => {
   return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
 };
 
-function OptionItem(props: any) {
-  const { address, name, endpoint } = props;
+function OptionItem(props: MenuOption) {
+  const { value, label } = props;
 
   return (
-    <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
-      <Text
-        fontSize={16}
-        lineHeight="19px"
-        fontWeight={400}
-        w="100%"
-        color="readable.top.secondary"
-        noOfLines={1}
-      >
-        {renderItem(name, address)}
+    <Box key={value} display="flex" flexDir="column" alignItems="flex-start" gap={2}>
+      <Text fontSize={14} color="readable.top.secondary" noOfLines={1}>
+        {label}
       </Text>
-      {name && (
-        <Text
-          mt={2}
-          fontSize={12}
-          transformOrigin="0 50%"
-          transform={'scale(0.85)'}
-          lineHeight="18px"
-          fontWeight={400}
-          color="readable.secondary"
-          noOfLines={1}
-        >
-          {endpoint}
-        </Text>
-      )}
+      <Text color={'readable.tertiary'} fontSize={12}>
+        {value}
+      </Text>
     </Box>
   );
 }

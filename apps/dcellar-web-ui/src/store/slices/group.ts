@@ -14,18 +14,16 @@ export type GroupMember = {
   ExpirationTime: number;
 };
 
+export type GroupOperationsType = 'create' | 'detail' | 'edit' | 'add' | 'remove' | 'delete' | '';
+
 interface GroupState {
   groups: Record<string, GroupInfo[]>;
   loading: boolean;
   currentPage: number;
   memberListPage: number;
-  creatingGroup: boolean;
-  editGroup: GroupInfo;
   removeGroup: GroupInfo;
-  addGroupMember: { record: GroupInfo; from: string };
-  removeGroupMember: GroupInfo;
-  detailGroup: GroupInfo;
   groupMembers: Record<string, GroupMember[]>;
+  groupOperation: Record<0 | 1, [string, GroupOperationsType, Record<string, any>?]>;
 }
 
 const initialState: GroupState = {
@@ -33,40 +31,32 @@ const initialState: GroupState = {
   loading: false,
   currentPage: 0,
   memberListPage: 0,
-  creatingGroup: false,
-  editGroup: {} as GroupInfo,
   removeGroup: {} as GroupInfo,
-  addGroupMember: { record: {} as GroupInfo, from: '' },
-  removeGroupMember: {} as GroupInfo,
-  detailGroup: {} as GroupInfo,
   groupMembers: {},
+  groupOperation: { 0: ['', '', {}], 1: ['', '', {}] },
 };
 
 export const groupSlice = createSlice({
   name: 'group',
   initialState,
   reducers: {
+    setGroupOperation(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        level?: 0 | 1;
+        operation: [string, GroupOperationsType, Record<string, any>?];
+      }>,
+    ) {
+      state.groupOperation[payload.level || 0] = payload.operation;
+    },
     setGroupMembers(state, { payload }: PayloadAction<{ id: string; members: GroupMember[] }>) {
       const { id, members } = payload;
       state.groupMembers[id] = members;
     },
-    setDetailGroup(state, { payload }: PayloadAction<GroupInfo>) {
-      state.detailGroup = payload;
-    },
-    setAddGroupMember(state, { payload }: PayloadAction<{ record: GroupInfo; from: string }>) {
-      state.addGroupMember = payload;
-    },
-    setRemoveGroupMember(state, { payload }: PayloadAction<GroupInfo>) {
-      state.removeGroupMember = payload;
-    },
     setRemoveGroup(state, { payload }: PayloadAction<GroupInfo>) {
       state.removeGroup = payload;
-    },
-    setEditGroup(state, { payload }: PayloadAction<GroupInfo>) {
-      state.editGroup = payload;
-    },
-    setCreatingGroup(state, { payload }: PayloadAction<boolean>) {
-      state.creatingGroup = payload;
     },
     setCurrentGroupPage(state, { payload }: PayloadAction<number>) {
       state.currentPage = payload;
@@ -88,14 +78,10 @@ export const {
   setGroups,
   setLoading,
   setCurrentGroupPage,
-  setCreatingGroup,
   setRemoveGroup,
-  setEditGroup,
-  setRemoveGroupMember,
-  setAddGroupMember,
-  setDetailGroup,
   setGroupMembers,
   setMemberListPage,
+  setGroupOperation,
 } = groupSlice.actions;
 
 export const setupGroupMembers =

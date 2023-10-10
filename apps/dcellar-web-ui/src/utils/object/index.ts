@@ -5,7 +5,7 @@ export type TReverseVisibilityType = {
   [K in number]: TKey;
 };
 
-const StringIsNumber = (value: string) => isNaN(Number(value)) === false;
+const StringIsNumber = (value: string) => !isNaN(Number(value));
 
 export const convertVisibility = () => {
   const reverseVisibilityType: any = {} as TReverseVisibilityType;

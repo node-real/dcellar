@@ -1,26 +1,24 @@
 import styled from '@emotion/styled';
-import { Box, Image, Text } from '@totejs/uikit';
-import { assetPrefix } from '@/base/env';
+import { Box, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import React from 'react';
 import { GAClick } from '@/components/common/GATracker';
+import { IconFont } from '@/components/IconFont';
+import { DCLink } from '@/components/common/DCLink';
 
 export const ShareCTA = () => {
   return (
     <Content>
-      <Image w={40} src={`${assetPrefix}/images/icons/storage_icon.svg`} alt="Dcellar" />
+      <IconFont type={'light-logo'} w={40} />
       <Text fontWeight={600} fontSize={16} lineHeight="19px" m={24}>
         Start your journey of BNB Greenfield decentralized data network with DCellar Now.🥳
       </Text>
       <Link href="/buckets" legacyBehavior passHref replace>
         <DCButton
           gaClickName="dc.shared_ui.preview.get_stated.click"
-          variant="scene"
-          bgColor={'readable.normal'}
-          _hover={{ bg: 'readable.tertiary' }}
+          variant="second"
           w={126}
-          h={40}
           as="a"
           mb={12}
           padding={0}
@@ -28,18 +26,17 @@ export const ShareCTA = () => {
           Get Started
         </DCButton>
       </Link>
-      <Link
+      <DCLink
+        color={'readable.normal'}
+        target="_blank"
         href="https://docs.nodereal.io/docs/dcellar-get-started"
-        legacyBehavior
-        passHref
-        replace
       >
         <GAClick name="dc.shared_ui.preview.learn_more.click">
-          <Box fontWeight={500} as="a" lineHeight="20px" _hover={{ textDecoration: 'underline' }}>
+          <Box fontWeight={500} as="a" lineHeight="20px">
             Learn More
           </Box>
         </GAClick>
-      </Link>
+      </DCLink>
     </Content>
   );
 };

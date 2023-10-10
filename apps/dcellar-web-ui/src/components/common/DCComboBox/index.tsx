@@ -2,7 +2,7 @@ import { memo, ReactNode, useRef } from 'react';
 import { ConfigProvider, Select, SelectProps } from 'antd';
 import { Flex } from '@totejs/uikit';
 import styled from '@emotion/styled';
-import { theme } from '@/base/theme/antd';
+import { antdTheme } from '@/base/theme/antd';
 
 interface DCComboBoxProps extends SelectProps {
   addon?: ReactNode;
@@ -13,8 +13,9 @@ export const DCComboBox = memo<DCComboBoxProps>(function DCComboBox({ addon, ...
 
   return (
     <Container ref={ref}>
-      <ConfigProvider theme={theme}>
+      <ConfigProvider theme={antdTheme}>
         <Select
+          maxTagTextLength={42}
           getPopupContainer={() => ref.current!}
           dropdownStyle={{
             ...props.dropdownStyle,
@@ -45,7 +46,7 @@ const Container = styled(Flex)`
 
   .ant-select {
     cursor: default;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid #e6e8ea;
 
     &:focus-within {

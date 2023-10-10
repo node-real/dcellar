@@ -1,8 +1,7 @@
-import { Box, Flex, Link, Text } from '@totejs/uikit';
-import React, { useMemo } from 'react';
+import { Box, Divider, Flex, Text } from '@totejs/uikit';
+import React, { memo, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import { EOperation, TFeeData } from '../type';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
@@ -13,18 +12,13 @@ import {
 import { Tips } from '@/components/common/Tips';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { GAS_FEE_DOC } from '@/modules/file/constant';
 import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
-import { renderFeeValue } from '@/modules/file/utils';
+import { currencyFormatter } from '@/utils/formatter';
+import { renderFeeValue } from '@/modules/object/utils';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import { renderFee } from '@/utils/common';
+import { displayTokenSymbol } from '@/utils/wallet';
 
-type FeeProps = {
-  amount: string;
-  showSettlement?: boolean;
-  settlementFee?: string;
-  feeData: TFeeData;
-  isGasLoading: boolean;
-  gaShowTipsName?: string;
-};
 const DefaultFee = {
   // TODO temp down limit fee
   transfer_in: 0.00008 + 0.002,
@@ -38,15 +32,30 @@ const DefaultGasRelayerFee = {
   send: { gasFee: 0, relayerFee: 0 },
 };
 
-export const Fee = ({
+interface FeeProps {
+  amount: string;
+  showSettlement?: boolean;
+  settlementFee?: string;
+  feeData: TFeeData;
+  isGasLoading: boolean;
+  gaShowTipsName?: string;
+  bankBalance?: string;
+  staticBalance?: string;
+}
+
+export const Fee = memo<FeeProps>(function Fee({
   amount,
   showSettlement,
   settlementFee,
   isGasLoading,
   feeData = INIT_FEE_DATA,
   gaShowTipsName,
-}: FeeProps) => {
+  bankBalance = '0',
+  staticBalance = '0',
+}) {
   const bnbPrice = useAppSelector(selectBnbPrice);
+  const TOKEN_SYMBOL = displayTokenSymbol();
+  const { fromAccount } = useAppSelector((root) => root.wallet);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { transType } = useAppSelector((root) => root.wallet);
   const { gasFee, relayerFee } = feeData;
@@ -70,20 +79,28 @@ export const Fee = ({
 
   // const TotalFeeContent = `${totalFee
   //   .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
-  //   .toString(DECIMAL_NUMBER)} BNB (${formatFeeUsdPrice})`;
+  //   .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
 
   //show defalut fee if cannot get fee data in 3000ms
+  const defaultFeeUsdPrice = currencyFormatter(
+    BigNumber(defaultFee)
+      .times(BigNumber(bnbPrice))
+      .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
+      .toString(DECIMAL_NUMBER),
+  );
   const TotalFeeContent = useMemo(() => {
     let total = totalFee;
     if (isShowDefault) {
       total = BigNumber(defaultFee);
-      return `~${total.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)} BNB`;
+      return `~${total
+        .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+        .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${defaultFeeUsdPrice})`;
     }
     return `${totalFee
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
-      .toString(DECIMAL_NUMBER)} BNB (${formatFeeUsdPrice})`;
-  }, [defaultFee, formatFeeUsdPrice, isShowDefault, totalFee]);
-  const TotalAmountContent = `${totalAmount} BNB (${formatTotalUsdPrice})`;
+      .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
+  }, [TOKEN_SYMBOL, defaultFee, formatFeeUsdPrice, isShowDefault, totalFee, defaultFeeUsdPrice]);
+  const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
     if (transType === EOperation.send) {
@@ -98,7 +115,7 @@ export const Fee = ({
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
                 .toString(DECIMAL_NUMBER)
             : gasFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(DECIMAL_NUMBER)}{' '}
-          BNB
+          {TOKEN_SYMBOL}
         </Text>
         <Text>
           Relayer fee:{' '}
@@ -107,7 +124,7 @@ export const Fee = ({
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
                 .toString(DECIMAL_NUMBER)
             : relayerFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString()}{' '}
-          BNB
+          {TOKEN_SYMBOL}
         </Text>
         <Text>
           BNB Gas fee covers the gas cost for sending your transfer on the destination chain.
@@ -115,80 +132,102 @@ export const Fee = ({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [gasFee, relayerFee, transType, defaultGasRelayerFee]);
+  }, [
+    transType,
+    gasFee,
+    defaultGasRelayerFee.gasFee,
+    defaultGasRelayerFee.relayerFee,
+    TOKEN_SYMBOL,
+    relayerFee,
+  ]);
+
+  const amountUsd = currencyFormatter(
+    BigNumber(amount || 0)
+      .times(bnbPrice)
+      .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
+      .toString(DECIMAL_NUMBER),
+  );
+
+  const sendingAmount = `${amount} ${TOKEN_SYMBOL} (${amountUsd})`;
+  const paymentAccount = fromAccount.address?.substring(38);
+  const paymentLabel = `${fromAccount?.name} (${paymentAccount}) balance:`;
+  const showPaymentAccountBalance =
+    transType === 'send' && fromAccount && fromAccount.name.includes('Payment');
 
   return (
-    <>
+    <Flex
+      gap={8}
+      flexDirection={'column'}
+      bg={'bg.bottom'}
+      borderRadius={4}
+      mb={24}
+      padding={'8px 12px'}
+    >
+      <Flex justifyContent={'space-between'} fontWeight={600} color={'readable.normal'}>
+        <Text>Total Amount</Text>
+        <Text color={'readable.secondary'} fontWeight={500}>
+          {isGasLoading ? '--' : TotalAmountContent}
+        </Text>
+      </Flex>
+      <Divider borderColor={'readable.disable'} />
       {showSettlement && (
-        <Flex justifyContent={'space-between'} alignItems="flex-start" gap={'24px'}>
+        <Flex justifyContent={'space-between'} color="readable.tertiary">
           <Flex justifyContent={'flex-start'} alignItems="center">
-            <Text color="readable.tertiary">Settlement Fee</Text>{' '}
-            <SettlementTips/>
+            <Text>Settlement Fee</Text> <SettlementTips />
           </Flex>
-          <Text
-            color={'readable.normal'}
-            textAlign="right"
-            fontWeight="500"
-            fontSize={'14px'}
-            lineHeight="28px"
-            wordBreak={'break-all'}
-          >
+          <Text textAlign="right">
             {isGasLoading ? '--' : renderFeeValue(String(settlementFee), exchangeRate)}
           </Text>
         </Flex>
       )}
-      <Flex justifyContent={'space-between'} mb="8px" alignItems={'center'}>
+      <Flex color="readable.tertiary" justifyContent={'space-between'} alignItems={'center'}>
+        <Flex justifyContent={'flex-start'}>
+          <Text>{'Sending amount'}</Text>{' '}
+        </Flex>
+        <Text>{isGasLoading ? '--' : sendingAmount}</Text>
+      </Flex>
+      {showPaymentAccountBalance && (
+        <Flex
+          fontSize={12}
+          color="readable.disable"
+          justifyContent={'flex-end'}
+          alignItems={'center'}
+        >
+          {paymentLabel} {renderFee(staticBalance, exchangeRate)}
+        </Flex>
+      )}
+      <Flex color="readable.tertiary" justifyContent={'space-between'} alignItems={'center'}>
         <Flex>
           {transType !== 'send' && (
             <Flex justifyContent={'flex-start'}>
-              <Text color="readable.tertiary">{'Fee'}</Text>{' '}
+              <Text>{'Gas fee'}</Text>{' '}
               <Tips
                 containerWidth={'308px'}
                 tips={TipContent}
                 placement="top"
                 gaShowName={gaShowTipsName}
-              ></Tips>
+              />
             </Flex>
           )}
           {transType === 'send' && (
-            <Text color="readable.tertiary">
-              Gas fee (
-              <Link
-                href={GAS_FEE_DOC}
-                textDecoration={'underline'}
-                color="readable.disabled"
-                target="_blank"
-              >
-                Pay by Owner Account
-              </Link>
-              )
-            </Text>
+            <>
+              <Text>Gas fee</Text>
+              <GasFeeTips />
+            </>
           )}
         </Flex>
-
-        <Text
-          color={'readable.normal'}
-          fontWeight="500"
-          textAlign={'right'}
-          fontSize={'14px'}
-          lineHeight="28px"
-        >
-          {isGasLoading ? '--' : TotalFeeContent}
-        </Text>
+        <Text>{isGasLoading ? '--' : TotalFeeContent}</Text>
       </Flex>
-      <Flex mb={'40px'} justifyContent={'space-between'} alignItems="flex-start" gap={'24px'}>
-        <Text color="readable.tertiary">Total amount</Text>
-        <Text
-          color={'readable.normal'}
-          textAlign="right"
-          fontWeight="500"
-          fontSize={'14px'}
-          lineHeight="28px"
-          wordBreak={'break-all'}
+      {transType === 'send' && (
+        <Flex
+          fontSize={12}
+          color="readable.disable"
+          justifyContent={'flex-end'}
+          alignItems={'center'}
         >
-          {isGasLoading ? '--' : TotalAmountContent}
-        </Text>
-      </Flex>
-    </>
+          Owner Account balance: {renderFee(bankBalance, exchangeRate)}
+        </Flex>
+      )}
+    </Flex>
   );
-};
+});

@@ -1,17 +1,25 @@
 import React, { memo, useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
+import { useAppSelector } from '@/store';
 import { DCModal } from '@/components/common/DCModal/index';
-import { Flex, Link, ModalCloseButton, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
-import { GAS_FEE_DOC } from '@/modules/file/constant';
+import {
+  ButtonProps,
+  Divider,
+  Flex,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  Text,
+} from '@totejs/uikit';
+import { DCButton } from '@/components/common/DCButton';
+import BigNumber from 'bignumber.js';
+import { useUnmount } from 'ahooks';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
-} from '@/modules/file/utils';
-import { DCButton, DCButtonProps } from '@/components/common/DCButton';
-import BigNumber from 'bignumber.js';
-import { useUnmount } from 'ahooks';
+} from '@/modules/object/utils';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 
 interface ConfirmModalProps {
   onClose?: () => void;
@@ -28,7 +36,7 @@ interface ConfirmModalProps {
   title: string;
   fee: string | number;
   onConfirm: () => void;
-  variant?: DCButtonProps['variant'];
+  variant?: ButtonProps['variant'];
   confirmText: string;
 }
 
@@ -40,7 +48,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
   title,
   fee,
   onConfirm,
-  variant = 'dcDanger',
+  variant = 'brand',
   confirmText,
 }) {
   const {
@@ -51,9 +59,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
     cancelButton,
     confirmButton,
   } = ga;
-  const dispatch = useAppDispatch();
   const [open, setOpen] = useState(isOpen);
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [loading, setLoading] = useState(false);
@@ -67,10 +73,6 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
     setOpen(false);
     setTimeout(onClose, 200);
   };
-
-  useEffect(() => {
-    dispatch(setupTmpAvailableBalance(loginAccount));
-  }, [isOpen]);
 
   useUnmount(_onClose);
 
@@ -93,69 +95,69 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
     >
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton />
-      <Text
-        fontSize="18px"
-        lineHeight={'22px'}
-        fontWeight={400}
-        textAlign={'center'}
-        marginTop="8px"
-        color={'readable.secondary'}
-        mb={'32px'}
-      >
-        {description}
-      </Text>
-      <Flex
-        bg={'bg.secondary'}
-        padding={'16px'}
-        width={'100%'}
-        flexDirection={'column'}
-        borderRadius="12px"
-        gap={'4px'}
-      >
-        <Flex w="100%" alignItems={'center'} justifyContent={'space-between'}>
-          <Flex alignItems="center" mb="4px">
-            <Text
-              fontSize={'14px'}
-              lineHeight={'28px'}
-              fontWeight={400}
-              color={'readable.tertiary'}
+      <ModalBody>
+        <Text className="ui-modal-desc">{description}</Text>
+        <Flex
+          flexDirection={'column'}
+          bg={'bg.bottom'}
+          padding={'8px 12px'}
+          width={'100%'}
+          borderRadius="4px"
+          gap={'8px'}
+          alignItems={'stretch'}
+        >
+          <Flex
+            fontSize={'14px'}
+            fontWeight={600}
+            justifyContent={'space-between'}
+            alignItems={'center'}
+          >
+            <Text>Total Fees</Text>
+            <Flex
+              color={'readable.secondary'}
+              alignItems="center"
+              gap={4}
+              justifySelf={'flex-end'}
+              fontWeight={'400'}
             >
-              Gas Fee (
-              <Link
-                href={GAS_FEE_DOC}
-                textDecoration={'underline'}
-                color="readable.disabled"
-                target="_blank"
-              >
-                Pay by Owner Account
-              </Link>
-              )
+              {renderFeeValue(String(fee), exchangeRate)}
+            </Flex>
+          </Flex>
+          <Divider borderColor={'readable.disable'} />
+          <Flex alignItems={'center'} justifyContent={'space-between'} color={'readable.secondary'}>
+            <Flex alignItems="center">
+              <Text>Gas fee</Text>
+              <GasFeeTips />
+            </Flex>
+            <Text>{renderFeeValue(String(fee), exchangeRate)}</Text>
+          </Flex>
+          <Flex justifyContent={'flex-end'}>
+            <Text fontSize={'12px'} color={'readable.disabled'}>
+              Owner Account balance: {renderBalanceNumber(availableBalance || '0')}
             </Text>
           </Flex>
-          <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
-            {renderFeeValue(String(fee), exchangeRate)}
-          </Text>
         </Flex>
-      </Flex>
-      <Flex w={'100%'} justifyContent={'space-between'} mt="8px" mb={'36px'}>
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-          {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
-            gaShowName: balanceShowName,
-            gaClickName: balanceClickName,
-          })}
-        </Text>
-        <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-          Available balance: {renderBalanceNumber(availableBalance || '0')}
-        </Text>
-      </Flex>
-      <ModalFooter margin={0} flexDirection={'row'}>
-        <DCButton variant={'dcGhost'} flex={1} onClick={_onClose} gaClickName={cancelButton}>
+        {buttonDisabled && (
+          <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
+            <Text fontSize={'14px'} color={'scene.danger.normal'}>
+              {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
+                gaShowName: balanceShowName,
+                gaClickName: balanceClickName,
+              })}
+            </Text>
+          </Flex>
+        )}
+      </ModalBody>
+      <ModalFooter flexDirection={'row'}>
+        <DCButton size="lg" variant="ghost" flex={1} onClick={_onClose} gaClickName={cancelButton}>
           Cancel
         </DCButton>
 
         <DCButton
+          variant={variant !== 'brand' ? 'scene' : 'brand'}
+          colorScheme={'danger'}
+          size="lg"
           gaClickName={confirmButton}
-          variant={variant}
           flex={1}
           onClick={_onConfirm}
           isLoading={loading}

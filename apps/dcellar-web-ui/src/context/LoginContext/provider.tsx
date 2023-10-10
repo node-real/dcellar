@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { checkSpOffChainMayExpired, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
+import { ssrLandingRoutes } from '@/pages/_app';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button
@@ -77,7 +78,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   const { pass } = useLoginGuard(inline);
 
-  if (!pass) {
+  if (!pass && !ssrLandingRoutes.some(item => item === pathname)) {
     return null;
   }
 

@@ -1,5 +1,5 @@
-import { Loading } from '@totejs/uikit';
 import React, { ReactNode } from 'react';
+import { Loading } from '@totejs/uikit';
 
 type Props = {
   loading: boolean;

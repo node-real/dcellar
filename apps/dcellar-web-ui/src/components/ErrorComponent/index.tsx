@@ -9,8 +9,9 @@ import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
+import { InternalRoutePaths } from '@/utils/constant';
+import { IconFont } from '@/components/IconFont';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -70,16 +71,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
         />
         <Content>
           {isNoBucket ? (
-            <Image
-              alt="Oops, something went wrong"
-              src={`${assetPrefix}/images/common/no_bucket.png`}
-              w={120}
-              h={120}
-              m="auto"
-              sx={{
-                aspectRatio: '120/120',
-              }}
-            />
+            <IconFont type={'status-failed'} w={120} display="inline-block" />
           ) : (
             <Image
               alt="Oops, something went wrong"
@@ -107,15 +99,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
             {desc}
           </Text>
           <Link href={address ? InternalRoutePaths.buckets : '/'} legacyBehavior passHref replace>
-            <DCButton
-              variant="dcPrimary"
-              w={132}
-              h={32}
-              as="a"
-              mb={40}
-              fontSize={12}
-              borderRadius={4}
-            >
+            <DCButton w={132} h={32} as="a" mb={40} fontSize={12} borderRadius={4}>
               {isNoBucket ? 'Back to Home' : 'Go to Home'}
             </DCButton>
           </Link>

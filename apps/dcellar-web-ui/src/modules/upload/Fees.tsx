@@ -1,4 +1,3 @@
-import { renderPaymentInsufficientBalance } from '@/modules/file/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   MsgCreateObjectTypeUrl,
@@ -7,16 +6,17 @@ import {
 } from '@bnb-chain/greenfield-js-sdk';
 import { Text } from '@totejs/uikit';
 import React, { useEffect, useMemo } from 'react';
-import { useAsyncEffect, useMount } from 'ahooks';
-import { WaitFile, setupStoreFeeParams, setupTmpAvailableBalance } from '@/store/slices/global';
+import { useAsyncEffect } from 'ahooks';
+import { WaitFile, setupStoreFeeParams } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
-import { selectLocateBucket, setEditUpload } from '@/store/slices/object';
+import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
 import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
 import { DECIMAL_NUMBER } from '../wallet/constants';
 import { getStoreNetflowRate } from '@/utils/payment';
-import { BN } from '@/utils/BigNumber';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { TotalFees } from '../object/components/TotalFees';
+import { BN } from '@/utils/math';
+import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
 
 export const Fees = () => {
   const dispatch = useAppDispatch();
@@ -96,18 +96,21 @@ export const Fees = () => {
   useEffect(() => {
     if (gasFee && storeFee) {
       dispatch(
-        setEditUpload({
-          gasFee: BN(gasFee).toString(DECIMAL_NUMBER),
-          preLockFee: BN(storeFee).toString(DECIMAL_NUMBER),
-          totalFee: BN(gasFee).plus(BN(storeFee)).plus(settlementFee).toString(DECIMAL_NUMBER),
-          isBalanceAvailable: isBalanceAvailable,
+        setObjectOperation({
+          operation: [
+            '',
+            'upload',
+            {
+              gasFee: BN(gasFee).toString(DECIMAL_NUMBER),
+              preLockFee: BN(storeFee).toString(DECIMAL_NUMBER),
+              totalFee: BN(gasFee).plus(BN(storeFee)).plus(settlementFee).toString(DECIMAL_NUMBER),
+              isBalanceAvailable: isBalanceAvailable,
+            },
+          ],
         }),
       );
     }
   }, [availableBalance, dispatch, gasFee, isBalanceAvailable, settlementFee, storeFee]);
-  useMount(() => {
-    dispatch(setupTmpAvailableBalance(loginAccount));
-  });
 
   return (
     <>

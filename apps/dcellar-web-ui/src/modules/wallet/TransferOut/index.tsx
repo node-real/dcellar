@@ -1,6 +1,6 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useMemo, useState } from 'react';
-import { useAccount, useNetwork } from 'wagmi';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { isEmpty } from 'lodash-es';
 import { ethers } from 'ethers';
@@ -16,21 +16,24 @@ import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from
 import { StatusModal } from '../components/StatusModal';
 import { useTransferOutFee } from '../hooks';
 import { Fee } from '../components/Fee';
-import { InternalRoutePaths } from '@/constants/paths';
 import { TTransferOutFromValues } from '../type';
-import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
-import { getClient } from '@/base/client';
-import { signTypedDataV4 } from '@/utils/signDataV4';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { getClient } from '@/facade';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { removeTrailingSlash } from '@/utils/string';
+import { InternalRoutePaths } from '@/utils/constant';
+import { broadcastFault } from '@/facade/error';
 
-export const TransferOut = () => {
-  const { chain } = useNetwork();
+interface TransferOutProps {}
+
+export const TransferOut = memo<TransferOutProps>(function TransferOut() {
   const { connector } = useAccount();
   const router = useRouter();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { feeData, isLoading } = useTransferOutFee();
   const { all } = useChainsBalance();
@@ -73,10 +76,7 @@ export const TransferOut = () => {
         gasPrice: simulateInfo.gasPrice,
         payer: address,
         granter: '',
-        signTypedDataCallback: async (addr: string, message: string) => {
-          const provider = await connector?.getProvider();
-          return await signTypedDataV4(provider, addr, message);
-        },
+        signTypedDataCallback: signTypedDataCallback(connector!),
       });
       const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
         toutTxRes.transactionHash
@@ -85,10 +85,11 @@ export const TransferOut = () => {
       reset();
       setStatus('success');
       !isOpen && onOpen();
-    } catch (e) {
+    } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log('transfer out error', e);
       setStatus('failed');
+      setErrorMsg(broadcastFault(e)[1]);
       !isOpen && onOpen();
     }
   };
@@ -107,7 +108,7 @@ export const TransferOut = () => {
   return (
     <Container>
       <Head />
-      <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
+      <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={GREENFIELD_CHAIN_ID} />
         <GAClick name="dc.wallet.transferout.exchange_btn.click">
           <SwapIcon onClick={onChangeTransfer} />
@@ -129,7 +130,7 @@ export const TransferOut = () => {
         </FormControl>
         {isShowFee() ? (
           <>
-            <Divider margin={'12px 0'} />
+            <Divider margin={'24px 0'} />
             <Fee
               isGasLoading={isLoading}
               feeData={feeData}
@@ -148,7 +149,13 @@ export const TransferOut = () => {
           gaClickSwitchName="dc.wallet.transferout.switch_network.click"
         />
       </form>
-      <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+      <StatusModal
+        viewTxUrl={viewTxUrl}
+        isOpen={isOpen}
+        onClose={onModalClose}
+        status={status}
+        errorMsg={errorMsg}
+      />
     </Container>
   );
-};
+});

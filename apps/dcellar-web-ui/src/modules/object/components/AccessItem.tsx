@@ -1,14 +1,14 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
-import PublicFileIcon from '@/modules/file/components/PublicFileIcon';
-import PrivateFileIcon from '@/modules/file/components/PrivateFileIcon';
+import { Button, Flex, MenuButton, Text } from '@totejs/uikit';
 import { find } from 'lodash-es';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { transientOptions } from '@/utils/transientOptions';
-import { css } from '@emotion/react';
 import { GAClick } from '@/components/common/GATracker';
-import SelectedIcon from '@/public/images/files/icons/selected.svg';
+import { IconFont } from '@/components/IconFont';
+import { DCMenu } from '@/components/common/DCMenu';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import * as React from 'react';
+import { useAppSelector } from '@/store';
+import { MsgUpdateObjectInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 interface AccessItemProps {
   value: number;
@@ -17,17 +17,17 @@ interface AccessItemProps {
 
 const options = [
   {
-    icon: <PrivateFileIcon fillColor="#1E2026" w={16} h={16} />,
+    icon: <IconFont w={16} type="private" />,
     label: 'Private',
     desc: 'Only peoples with permission can access the objects.',
-    value: 2,
+    value: '2',
     bg: '#E6E8EA',
   },
   {
-    icon: <PublicFileIcon fillColor="#1E2026" w={16} h={16} />,
+    icon: <IconFont w={16} type="public" />,
     label: 'Public',
     desc: 'Anyone with a shared link can access objects.',
-    value: 1,
+    value: '1',
     bg: '#E7F3FD',
   },
 ];
@@ -36,60 +36,80 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
   value,
   onChange = () => {},
 }) {
+  const [_value, setValue] = useState<number>(1);
   const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
+  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const [confirmModal, setConfirmModal] = useState(false);
+  const fee = gasObjects?.[MsgUpdateObjectInfoTypeUrl]?.gasFee || 0;
 
   return (
-    <FormItem>
-      <FormLabel>General Access</FormLabel>
-      <Flex alignItems="center" py={8}>
-        <AccessStatus $bg={valueOption.bg}>{valueOption.icon}</AccessStatus>
-        <Flex flexDirection="column" py={2} alignItems="flex-start">
-          <Menu placement="bottom-start">
-            {({ isOpen }) => (
-              <>
+    <>
+      <ConfirmModal
+        confirmText="Confirm"
+        isOpen={confirmModal}
+        ga={{
+          gaClickCloseName: 'dc.object.update_object_info_confirm.modal.show',
+          gaShowName: 'dc.object.update_object_info_confirm.close.click',
+          balanceClickName: 'dc.object.update_object_info_confirm.depost.show',
+          balanceShowName: 'dc.object.update_object_info_confirm.transferin.click',
+          cancelButton: 'dc.object.update_object_info_confirm.cancel.click',
+          confirmButton: 'dc.object.update_object_info_confirm.delete.click',
+        }}
+        title="Access Update"
+        fee={fee}
+        onConfirm={() => onChange(_value)}
+        onClose={() => {
+          setConfirmModal(false);
+        }}
+        description={`Are you sure to change the object to "${
+          _value === 1 ? 'Public' : 'Private'
+        }"?`}
+      />
+      <FormItem>
+        <FormLabel>General Access</FormLabel>
+        <Flex alignItems="center" py={8}>
+          <AccessStatus $bg={valueOption.bg}>{valueOption.icon}</AccessStatus>
+          <Flex flexDirection="column" py={2} alignItems="flex-start">
+            <DCMenu
+              placement="bottom-start"
+              selectIcon
+              value={valueOption.value}
+              options={options}
+              menuListProps={{ w: 456 }}
+              onMenuSelect={({ value }) => {
+                setValue(Number(value));
+                setConfirmModal(true);
+              }}
+              renderOption={({ value, label }) => (
+                <Flex flexDirection={'column'}>
+                  <OptionTitle>{label}</OptionTitle>
+                  <OptionDesc>{options[value === '1' ? 1 : 0].desc}</OptionDesc>
+                </Flex>
+              )}
+            >
+              {({ isOpen }) => (
                 <GAClick name="dc.file.share_m.access.click">
                   <StyledButton
                     as={Button}
-                    rightIcon={isOpen ? <MenuOpenIcon /> : <MenuCloseIcon />}
+                    rightIcon={<IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />}
                   >
                     {valueOption.label}
                   </StyledButton>
                 </GAClick>
-                <StyledMenuList w={456}>
-                  {options.map((option) => {
-                    const active = String(option.value) === String(value);
-                    return (
-                      <StyledItem
-                        $active={active}
-                        key={option.value}
-                        onClick={() => {
-                          if (active) return;
-                          onChange(option.value);
-                        }}
-                      >
-                        <OptionTitle>
-                          {active && <SelectedIcon />}
-                          {option.label}
-                        </OptionTitle>
-                        <OptionDesc>{option.desc}</OptionDesc>
-                      </StyledItem>
-                    );
-                  })}
-                </StyledMenuList>
-              </>
-            )}
-          </Menu>
-          <Text fontWeight="400" fontSize={12} lineHeight="15px" color="#76808F">
-            {valueOption.desc}
-          </Text>
+              )}
+            </DCMenu>
+            <Text fontWeight="400" fontSize={12} lineHeight="15px" color="#76808F">
+              {valueOption.desc}
+            </Text>
+          </Flex>
+          {valueOption.value === '1' && (
+            <Text flex={1} align="right">
+              Viewer
+            </Text>
+          )}
         </Flex>
-        {valueOption.value === 1 && (
-          <Text flex={1} align="right">
-            Viewer
-          </Text>
-        )}
-      </Flex>
-    </FormItem>
+      </FormItem>
+    </>
   );
 });
 const OptionTitle = styled(Text)`
@@ -108,22 +128,6 @@ const OptionDesc = styled(Text)`
   line-height: 18px;
   color: #76808f;
 `;
-
-const StyledItem = styled(MenuItem, transientOptions)<{ $active: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 8px 24px 8px 32px;
-  ${(props) =>
-    props.$active &&
-    css`
-      &.ui-menu-item {
-        background: rgba(0, 186, 52, 0.1);
-      }
-    `}
-`;
-
-const StyledMenuList = styled(MenuList)``;
 
 const StyledButton = styled(MenuButton)`
   height: auto;

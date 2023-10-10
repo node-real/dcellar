@@ -1,9 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { memo, useCallback, useRef } from 'react';
 import {
   Empty,
-  EmptyDescription,
   Flex,
-  Image,
   QDrawerBody,
   QDrawerHeader,
   QListItem,
@@ -14,8 +12,6 @@ import {
   Tabs,
   Text,
 } from '@totejs/uikit';
-import { FILE_UPLOAD_STATIC_URL, UPLOAD_TASK_EMPTY_ICON } from '@/modules/file/constant';
-import { ColoredAlertIcon, ColoredSuccessIcon } from '@totejs/icons';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
 import { useTaskManagementTab } from './useTaskManagementTab';
@@ -23,15 +19,22 @@ import styled from '@emotion/styled';
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
 import { UploadProgress } from './UploadProgress';
+import { IconFont } from '@/components/IconFont';
+import cn from 'classnames';
+import { useScroll } from 'ahooks';
 
-export const UploadingObjects = () => {
+interface UploadingObjectsProps {}
+
+export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingObjects() {
+  const ref = useRef(null);
+  const scroll = useScroll(ref) || { top: 0 };
   const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
   const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
     switch (task.status) {
       case 'WAIT':
         return (
           <>
-            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Loading iconSize={12} justifyContent={'flex-end'} />
             <Text marginLeft={'4px'} fontWeight={400}>
               Waiting
             </Text>
@@ -40,7 +43,7 @@ export const UploadingObjects = () => {
       case 'HASH':
         return (
           <>
-            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Loading iconSize={12} justifyContent={'flex-end'} />
             <Text marginLeft={'4px'} fontWeight={400}>
               Hashing
             </Text>
@@ -53,66 +56,62 @@ export const UploadingObjects = () => {
       case 'SEAL':
         return (
           <>
-            <Loading iconSize={16} justifyContent={'flex-end'} />
+            <Loading iconSize={12} justifyContent={'flex-end'} />
             <Text marginLeft={'4px'} fontWeight={400}>
               Sealing
             </Text>
           </>
         );
       case 'FINISH':
-        return <ColoredSuccessIcon />;
+        return <IconFont type="colored-success" w={16} mr={8} />;
       case 'ERROR':
-        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
+        return <IconFont type="colored-error2" w={20} mr={6} />;
       case 'CANCEL':
-        return <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />;
+        return <IconFont type="colored-error2" w={20} mr={6} />;
       default:
         return null;
     }
   }, []);
-  if (!queue.length) {
-    return (
-      <>
-        <QDrawerHeader>Task Management</QDrawerHeader>
-        <QDrawerBody>
-          <Flex
-            flexDirection={'column'}
-            width={'100%'}
-            height={'100%'}
-            alignItems={'center'}
-            justifyContent={'center'}
-          >
-            <Image alt="upload" src={FILE_UPLOAD_STATIC_URL} width={'120px'} />
-            <Text marginTop={'12px'}>You don't have upload tasks.</Text>
-          </Flex>
-        </QDrawerBody>
-      </>
-    );
-  }
+
+  // if (!queue.length) {
+  //   return (
+  //     <>
+  //       <QDrawerHeader>Task Management</QDrawerHeader>
+  //       <QDrawerBody>
+  //         <Flex
+  //           flexDirection={'column'}
+  //           width={'100%'}
+  //           height={'100%'}
+  //           alignItems={'center'}
+  //           justifyContent={'center'}
+  //         >
+  //           <IconFont type="empty-upload" w={120} />
+  //           <Text marginTop={'16px'} fontWeight={500} color={'readable.secondary'}>
+  //             You don't have upload tasks.
+  //           </Text>
+  //         </Flex>
+  //       </QDrawerBody>
+  //     </>
+  //   );
+  // }
 
   return (
     <>
       <QDrawerHeader>Task Management</QDrawerHeader>
-      <QDrawerBody>
+      <QDrawerBody ref={ref}>
         <Tabs activeKey={activeKey} onChange={(key: any) => setActiveKey(key)}>
-          <StyledTabList overflowX={'scroll'}>
+          <StyledTabList
+            overflowX={'scroll'}
+            className={cn({ 'tab-header-fixed': scroll.top > 0 })}
+          >
             {tabOptions.map((item) => (
               <Tab
                 h="auto"
-                borderBottom={'3px solid red'}
                 key={item.key}
-                tabKey={item.key}
-                paddingBottom={'8px'}
+                fontSize={14}
                 fontWeight={500}
-                _hover={{
-                  color: 'readable.brand6',
-                  fontWeight: '500',
-                  borderBottom: '3px solid readable.brand6',
-                }}
-                _selected={{
-                  color: 'readable.brand6',
-                  fontWeight: '500',
-                  borderBottom: '3px solid readable.brand6',
-                }}
+                tabKey={item.key}
+                paddingBottom={6}
               >
                 {item.icon}
                 {item.title}({item.data.length})
@@ -124,54 +123,48 @@ export const UploadingObjects = () => {
               <TabPanel key={item.key} panelKey={item.key}>
                 {item.data.length === 0 && (
                   <Empty>
-                    <Image
-                      alt="Empty"
-                      src={UPLOAD_TASK_EMPTY_ICON}
-                      width={'100px'}
-                      marginBottom={16}
-                    />
-                    {/* <EmptyTitle>Title</EmptyTitle> */}
-                    <EmptyDescription color="readable.secondary">
+                    <IconFont type="empty-object" w={120} />
+                    <Text marginTop={'16px'} fontWeight={500} color={'readable.secondary'}>
                       There are no objects in the list.
-                    </EmptyDescription>
+                    </Text>
                   </Empty>
                 )}
-                {item.data &&
-                  item.data.map((task) => (
-                    <QListItem
-                      cursor={'default'}
-                      _hover={{}}
-                      maxW={'520px'}
-                      key={task.id}
-                      paddingX={'0'}
-                      right={null}
-                      display="block"
-                    >
-                      <Flex
-                        fontSize={'12px'}
-                        alignItems={'center'}
-                        justifyContent={'space-between'}
-                      >
-                        <NameItem
-                          name={task.waitFile.name}
-                          size={task.waitFile.size}
-                          msg={task.msg}
-                          status={task.status}
-                          w={300}
-                        />
-                        <PathItem
-                          path={
-                            [task.bucketName, ...task.prefixFolders]
-                              .filter((item) => !!item)
-                              .join('/') + '/'
-                          }
-                        />
-                        <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
-                          <FileStatus task={task} />
-                        </Flex>
+                {item.data?.map((task) => (
+                  <QListItem
+                    cursor={'default'}
+                    _hover={{
+                      bg: 'opacity1',
+                    }}
+                    h={48}
+                    maxW={'520px'}
+                    key={task.id}
+                    paddingX={'0'}
+                    right={null}
+                    display="block"
+                  >
+                    <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
+                      <NameItem
+                        name={task.waitFile.name}
+                        size={task.waitFile.size}
+                        msg={task.msg}
+                        status={task.status}
+                        w={240}
+                        task={task}
+                      />
+                      <PathItem
+                        status={task.status}
+                        path={
+                          [task.bucketName, ...task.prefixFolders]
+                            .filter((item) => !!item)
+                            .join('/') + '/'
+                        }
+                      />
+                      <Flex width={'70px'} justifyContent={'flex-end'} alignItems={'center'}>
+                        <FileStatus task={task} />
                       </Flex>
-                    </QListItem>
-                  ))}
+                    </Flex>
+                  </QListItem>
+                ))}
               </TabPanel>
             ))}
           </TabPanels>
@@ -179,7 +172,7 @@ export const UploadingObjects = () => {
       </QDrawerBody>
     </>
   );
-};
+});
 
 const StyledTabList = styled(TabList)`
   &::-webkit-scrollbar {
@@ -188,4 +181,8 @@ const StyledTabList = styled(TabList)`
   scrollbar-width: none; /* firefox */
   -ms-overflow-style: none; /* IE 10+ */
   overflow-x: scroll;
+
+  position: sticky;
+  top: 0;
+  background: var(--ui-colors-bg-middle);
 `;

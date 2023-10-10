@@ -7,6 +7,8 @@ import {
 import { AppDispatch, GetState } from '@/store';
 import { find, omit, random, sortBy } from 'lodash-es';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
+import { AllBucketInfo } from '@/store/slices/bucket';
+import { RootState } from '@/store/reducers';
 
 const defaultDescription = (): Description => ({
   moniker: '',
@@ -109,6 +111,11 @@ export const spSlice = createSlice({
     },
   },
 });
+
+export const selectBucketSp = (bucket: AllBucketInfo) => (state: RootState) => {
+  const { allSps } = state.sp;
+  return find<SpItem>(allSps, (sp) => sp.id === bucket.Vgf.PrimarySpId);
+};
 
 export const { setStorageProviders, setPrimarySpInfo, setPrimarySpInfos, updateSps, setSpMeta } =
   spSlice.actions;

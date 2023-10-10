@@ -1,6 +1,8 @@
 import BigNumber from 'bignumber.js';
-import { currencyFormatter } from '../currencyFormatter';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { currencyFormatter } from '@/utils/formatter';
+import { TRuntimeEnv } from '@/base/env';
+import { displayTokenSymbol } from '../wallet';
 
 export const parseErrorXml = async (result: any) => {
   try {
@@ -20,7 +22,8 @@ export const parseErrorXml = async (result: any) => {
   }
 };
 
-export const renderFee = (amount: string | number, usdPrice: string | number, symbol = 'BNB') => {
+export const renderFee = (amount: string | number, usdPrice: string | number) => {
+  const TOKEN_SYMBOL = displayTokenSymbol();
   const amountFormat = BigNumber(amount || 0)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
@@ -30,7 +33,7 @@ export const renderFee = (amount: string | number, usdPrice: string | number, sy
       .toString(),
   );
 
-  return `${amountFormat} ${symbol} (${fiatValue})`;
+  return `${amountFormat} ${TOKEN_SYMBOL} (${fiatValue})`;
 };
 
 export const displayTime = (intervalTime: number | string) => {
@@ -50,5 +53,14 @@ export const displayTime = (intervalTime: number | string) => {
     }
   });
 
-  return display;
+  return display.replace(/(months?)(.*)/, '$1 ($2)');
+};
+
+export const capitalizeFLetter = (str: string) => {
+  if (!str) return '';
+  return str.replace(/^./, str[0].toUpperCase());
+};
+
+export const networkTag = (runtimeEnv: TRuntimeEnv) => {
+  return ['mainnet', 'testnet'].includes(runtimeEnv) ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
 };

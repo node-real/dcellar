@@ -1,41 +1,44 @@
 import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import React from 'react';
-import { useMemo } from 'react';
-
-import { Image } from '@totejs/uikit';
-import SuccessIcon from '@/public/images/icons/success.svg';
-import FailedIcon from '@/public/images/icons/failed.svg';
+import React, { memo, useMemo } from 'react';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';
-import { PENDING_ICON_URL } from '@/modules/file/constant';
 import { useAppSelector } from '@/store';
-
-export type ModalProps = {
-  onClose: () => void;
-  viewTxUrl: string;
-  isOpen: boolean;
-  status: 'pending' | 'success' | 'failed';
-};
+import { AnimatePng } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
 
 const contentTexts = {
   pending: {
-    icon: <Image src={PENDING_ICON_URL} w={'120px'} h={'120px'} alt={'pending'} />,
+    icon: <AnimatePng type="object" />,
     title: 'Waiting for Confirmation',
-    subtitle: 'Confirm this transaction in your wallet.',
+    subtitle: 'Please confirm the transaction in your wallet.',
   },
   success: {
-    icon: <SuccessIcon />,
+    icon: <IconFont w={120} type="status-success" />,
     title: 'Transaction Submitted',
     subtitle: '',
   },
   failed: {
-    icon: <FailedIcon />,
+    icon: <IconFont w={120} type="status-failed" />,
     title: 'Transaction Failed',
     subtitle: '',
   },
 };
 
-export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) => {
+interface StatusModalProps {
+  onClose: () => void;
+  viewTxUrl: string;
+  isOpen: boolean;
+  errorMsg?: string;
+  status: 'pending' | 'success' | 'failed';
+}
+
+export const StatusModal = memo<StatusModalProps>(function StatusModal({
+  viewTxUrl,
+  onClose,
+  isOpen,
+  status,
+  errorMsg,
+}) {
   const { transType } = useAppSelector((root) => root.wallet);
 
   const gaOptions = getGAOptions(transType, status);
@@ -44,12 +47,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
     if (status === 'pending') return null;
     if (status === 'failed') {
       return (
-        <DCButton
-          variant="dcPrimary"
-          w="100%"
-          onClick={onClose}
-          gaClickName={gaOptions.tryAgainName}
-        >
+        <DCButton size={'lg'} w="100%" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
           Try Again
         </DCButton>
       );
@@ -60,7 +58,8 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                size={'lg'}
+                variant="ghost"
                 as="a"
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
@@ -69,7 +68,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in Explorer
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton size={'lg'} onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Transfer Again
               </DCButton>
             </>
@@ -78,7 +77,8 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                size={'lg'}
+                variant="ghost"
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
                 href={viewTxUrl}
@@ -87,7 +87,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in GreenfieldScan
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Transfer Again
               </DCButton>
             </>
@@ -96,7 +96,8 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
           return (
             <>
               <DCButton
-                variant="dcGhost"
+                size={'lg'}
+                variant="ghost"
                 as={'a'}
                 /*@ts-ignore TODO how to inherit as function */
                 target={'_blank'}
@@ -105,7 +106,7 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
               >
                 View in GreenfieldScan
               </DCButton>
-              <DCButton variant="dcPrimary" onClick={onClose} gaClickName={gaOptions.tryAgainName}>
+              <DCButton size={'lg'} onClick={onClose} gaClickName={gaOptions.tryAgainName}>
                 Send Again
               </DCButton>
             </>
@@ -128,22 +129,26 @@ export const StatusModal = ({ viewTxUrl, onClose, isOpen, status }: ModalProps) 
     >
       <ModalCloseButton />
       <ModalBody mt={0}>
-        <Flex justifyContent={'center'} marginBottom="16px">
+        <Flex justifyContent={'center'} marginBottom="32px">
           {contentText?.icon}
         </Flex>
-        <Text textAlign={'center'} fontSize={'24px'} fontWeight="600" marginBottom={'16px'}>
+        <Text textAlign={'center'} fontSize={'24px'} fontWeight="600" marginBottom={'8px'}>
           {contentText?.title}
         </Text>
-        {contentText?.subtitle && (
+        {contentText?.subtitle ? (
           <Text color="readable.tertiary" textAlign={'center'}>
             {contentText?.subtitle}
           </Text>
-        )}
+        ) : !!errorMsg && status === 'failed' ? (
+          <Text color="readable.tertiary" textAlign={'center'}>
+            {errorMsg}
+          </Text>
+        ) : null}
       </ModalBody>
-      <ModalFooter marginTop="16px">{FooterButton}</ModalFooter>
+      <ModalFooter marginTop="32px">{FooterButton}</ModalFooter>
     </DCModal>
   );
-};
+});
 
 function getGAOptions(operationType: string, status: string): any {
   const options: Record<string, any> = {

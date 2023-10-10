@@ -1,8 +1,8 @@
-import { getClient } from '@/base/client';
 import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import BigNumber from 'bignumber.js';
 import { Long } from '@bnb-chain/greenfield-js-sdk';
 import { getTimestampInSeconds } from '@/utils/time';
+import { getClient } from '@/facade/index';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();

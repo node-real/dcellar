@@ -1,71 +1,85 @@
-import { SINGLE_OBJECT_MAX_SIZE } from "@/store/slices/object";
-import { FILE_EMPTY_URL, FILE_FAILED_URL, FILE_TITLE_DOWNLOAD_FAILED, FILE_TOO_LARGE_URL, NOT_ENOUGH_QUOTA_URL, UNKNOWN_ERROR_URL } from "../file/constant";
-import { formatBytes } from "../file/utils";
+import { SINGLE_OBJECT_MAX_SIZE } from '@/store/slices/object';
+import { formatBytes } from '@/utils/formatter';
 
 export const OBJECT_ERROR_TYPES = {
   NO_QUOTA: {
     title: 'No Enough Quota',
     desc: 'This bucket where this file is stored don’t have enough download quota, contact the file owner to increase the download quota.',
-    icon: NOT_ENOUGH_QUOTA_URL,
+    icon: 'empty-quota',
   },
   GET_QUOTA_FAILED: {
     title: 'Get Quota Failed',
     desc: 'Get quota failed, please retry.',
-    icon: UNKNOWN_ERROR_URL,
+    icon: 'discontinue',
   },
   PERMISSION_DENIED: {
     title: 'You Need Access',
     desc: 'You don’t have permission to download. You can ask the person who shared the link to invite you directly.',
-    icon: FILE_FAILED_URL,
+    icon: 'status-failed',
   },
   UNKNOWN: {
     title: 'Something Wrong',
     desc: 'Oops, there’s something wrong. ',
-    icon: UNKNOWN_ERROR_URL,
+    icon: 'discontinue',
   },
   FILE_TOO_LARGE_URL: {
     title: 'Object is too large',
-    icon: FILE_TOO_LARGE_URL,
+    icon: 'too-large',
     desc: `Object size exceeded the maximum allowed size (${formatBytes(SINGLE_OBJECT_MAX_SIZE)}.`,
   },
   FILE_IS_EMPTY: {
     title: 'Object is empty',
-    icon: FILE_EMPTY_URL,
+    icon: 'empty-upload',
     desc: 'Object size is zero, please check.',
   },
   OBJECT_TOO_LARGE: {
     title: 'Object is too large',
-    icon: FILE_TOO_LARGE_URL,
+    icon: 'too-large',
     desc: `Object size exceeded the maximum allowed size (${formatBytes(SINGLE_OBJECT_MAX_SIZE)}).`,
   },
   OBJECT_NAME_EXISTS: {
     title: 'Object name already exists',
-    icon: FILE_FAILED_URL
+    icon: 'status-failed',
   },
   FOLDER_NAME_EXISTS: {
     title: 'Folder name already exists',
-    icon: FILE_FAILED_URL,
+    icon: 'status-failed',
   },
   ACCOUNT_BALANCE_NOT_ENOUGH: {
     title: 'Account balance is not enough',
-    icon: FILE_FAILED_URL,
+    icon: 'status-failed',
     desc: 'Account balance is not enough, please recharge.',
   },
   NO_PERMISSION: {
     title: 'You need Access',
-    icon: FILE_FAILED_URL,
+    icon: 'status-failed',
     desc: "You don't have permission to download. You can ask the person who shared the link to invite you directly.",
   },
   SP_STORAGE_PRICE_FAILED: {
     title: 'Get storage price failed',
-    icon: FILE_FAILED_URL,
+    icon: 'status-failed',
     desc: 'Get storage price failed, please select another SP.',
   },
   FOLDER_NAME_TOO_LONG: {
-    title: 'Must be between 1 to 70 characters long.',
-    icon: FILE_TOO_LARGE_URL,
-    desc: 'Folder name must be between 1 to 70 characters long.',
-  }
+    title: 'The folder name must be between 1 and 70 characters long.',
+    icon: 'status-failed',
+    desc: 'The folder name must be between 1 and 70 characters long.',
+  },
+  OBJECT_NAME_TOO_LONG: {
+    title: 'The object name must be between 1 and 256 characters long.',
+    icon: 'status-failed',
+    desc: 'The object name must be between 1 and 256 characters long.',
+  },
+  FULL_OBJECT_NAME_TOO_LONG: {
+    title: 'The full object name must be between 1 and 1024 characters long.',
+    icon: 'status-failed',
+    desc: 'The full object name must be between 1 and 1024 characters long.',
+  },
+  BUCKET_NOT_EMPTY: {
+    title: 'Bucket not Empty',
+    desc: 'Only empty bucket can be deleted. Please delete all objects in this bucket first.',
+    icon: 'empty-bucket',
+  },
 }
 
 export type ObjectErrorType = keyof typeof OBJECT_ERROR_TYPES;

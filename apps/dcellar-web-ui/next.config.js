@@ -55,7 +55,7 @@ const nextConfig = {
   headers: async () => [
     {
       // cache public folder assets (default max-age: 0).
-      source: `${assetPrefix}/:public(fonts|images|wasm|zk-crypto)/:path*`,
+      source: `${assetPrefix}/:public(fonts|images|wasm|zk-crypto|js)/:path*`,
       locale: false,
       headers: [
         {
@@ -86,6 +86,9 @@ const nextConfig = {
   },
   experimental: {
     instrumentationHook: true,
+  },
+  compiler: {
+    emotion: true,
   },
 };
 

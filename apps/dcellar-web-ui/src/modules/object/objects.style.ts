@@ -1,10 +1,8 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { Box, Button, Text } from '@totejs/uikit';
+import { Flex, Text } from '@totejs/uikit';
 
-export const ObjectContainer = styled.div`
-  margin: 24px;
-`;
+export const ObjectContainer = styled.div``;
 
 export const PanelContainer = styled.div`
   margin-bottom: 16px;
@@ -16,6 +14,21 @@ export const PanelContent = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-top: 16px;
+  gap: 16px;
+`;
+
+export const GoBack = styled(Flex)`
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  max-width: max-content;
+
+  :hover {
+    color: var(--ui-colors-readable-secondary);
+  }
 `;
 
 export const ObjectName = styled.h1`
@@ -35,23 +48,11 @@ export const StyledRow = styled.div<{ $disabled: boolean }>`
     props.$disabled &&
     css`
       color: #aeb4bc;
+
       a {
         pointer-events: none;
       }
     `}
-`;
-
-export const GoBack = styled(Box)`
-  margin-right: 16px;
-  svg {
-    transform: rotate(180deg);
-  }
-  background: transparent;
-  border-radius: 100%;
-  cursor: pointer;
-  :hover {
-    background-color: #f5f5f5;
-  }
 `;
 
 export const SelectedText = styled(Text)`
@@ -60,22 +61,4 @@ export const SelectedText = styled(Text)`
   font-style: normal;
   font-weight: 600;
   line-height: 19px;
-`;
-
-export const GhostButton = styled(Button)`
-  height: 40px;
-  background: #fff;
-  border-color: #e6e8ea;
-  &:hover {
-    background: #1e2026;
-    color: #ffffff;
-    border-color: #1e2026;
-  }
-  &[disabled],
-  &[disabled]:hover {
-    background: #fff;
-    opacity: 1;
-    color: #aeb4bc;
-    border-color: #e6e8ea;
-  }
 `;

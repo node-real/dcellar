@@ -1,5 +1,5 @@
 import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@totejs/uikit';
-import { memo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Tips } from '@/components/common/Tips';
 
 interface InputItemProps extends InputProps {
@@ -15,6 +15,10 @@ export const InputItem = memo<InputItemProps>(function InputItem({
 }) {
   const [input, setInput] = useState(value);
   const compositingRef = useRef(false);
+
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
 
   return (
     <InputGroup>

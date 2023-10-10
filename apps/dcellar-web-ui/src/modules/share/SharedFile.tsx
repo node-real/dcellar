@@ -1,10 +1,8 @@
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import React, { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Image, Text } from '@totejs/uikit';
-import { formatBytes } from '@/modules/file/utils';
+import { Flex, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
-import { assetPrefix } from '@/base/env';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import {
   downloadObject,
@@ -14,17 +12,19 @@ import {
 } from '@/facade/object';
 import { quotaRemains } from '@/facade/bucket';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { reportEvent } from '@/utils/reportEvent';
 import { Loading } from '@/components/common/Loading';
 import { useAppDispatch } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { SpItem } from '@/store/slices/sp';
 import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { setStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT } from '@/modules/file/constant';
+import { BUTTON_GOT_IT } from '@/modules/object/constant';
+import { reportEvent } from '@/utils/gtag';
+import { formatBytes } from '@/utils/formatter';
+import { IconFont } from '@/components/IconFont';
 
 interface SharedFileProps {
   fileName: string;
@@ -122,12 +122,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     <Content>
       <>
         <Flex gap={24}>
-          <Image
-            w={120}
-            h={120}
-            src={`${assetPrefix}/images/files/upload_file.svg`}
-            alt={fileName}
-          />
+          <IconFont w={120} type="detail-object" />
           <Flex flexDirection="column" gap={8}>
             <Text w={248} fontWeight={600} fontSize={16} lineHeight="19px" wordBreak="break-all">
               {fileName}
@@ -139,16 +134,17 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
         </Flex>
         <Flex gap={16}>
           <DCButton
+            size={'lg'}
             iconSpacing={6}
             leftIcon={action === 'view' ? <Loading iconSize={24} strokeWidth={2} /> : <></>}
             w={188}
-            h={48}
-            variant="dcGhost"
+            variant="ghost"
             onClick={() => onAction('view')}
           >
             View
           </DCButton>
           <DCButton
+            size={'lg'}
             iconSpacing={6}
             leftIcon={
               action === 'download' ? (
@@ -158,8 +154,6 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
               )
             }
             w={188}
-            h={48}
-            variant="dcPrimary"
             onClick={() => onAction('download')}
           >
             Download
@@ -174,7 +168,7 @@ const Content = styled.div`
   margin: auto;
   background: #ffffff;
   border: 1px solid #e6e8ea;
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 48px 24px;
   display: flex;
   flex-direction: column;

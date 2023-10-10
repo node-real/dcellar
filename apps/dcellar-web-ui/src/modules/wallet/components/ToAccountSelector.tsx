@@ -1,25 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Loading, Text } from '@totejs/uikit';
-import { IDCSelectOption } from '@/components/common/DCSelect';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Grid, Loading, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
-import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 import { MenuCloseIcon } from '@totejs/icons';
 import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
+import { MenuOption } from '@/components/common/DCMenuList';
+import Link from 'next/link';
 
-type TProps = {
+interface ToAccountSelectorProps {
   value: string;
   loading: boolean;
   isError: boolean;
   disabled?: boolean;
   onChange: (value: TAccount) => void;
-};
+}
 
-export function ToAccountSelector({ onChange, value, loading, isError, disabled = false }: TProps) {
-  const router = useRouter();
+export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccountSelector({
+  onChange,
+  value,
+  loading,
+  isError,
+  disabled = false,
+}) {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { accountTypes } = useAppSelector((state) => state.accounts);
@@ -59,14 +64,14 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
     );
   };
 
-  const onSearch = (result: IDCSelectOption[]) => {
+  const onSearch = (result: any[]) => {
     setTotal(result?.length);
   };
 
-  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
+  const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.name.toLowerCase();
+    const tmpName = item.label.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
@@ -76,9 +81,8 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
         .map((item) => {
           const { name, address } = item;
           return {
-            label: <OptionItem address={address} name={name} />,
+            label: name,
             value: address,
-            name,
           };
         })
         .filter((item) => item.value !== loginAccount),
@@ -86,25 +90,13 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
   );
 
   const Footer = () => (
-    <Flex
-      height={39}
-      borderTop={'1px solid readable.border'}
-      textAlign={'center'}
-      color="readable.brand5"
-      fontSize={14}
-      fontWeight={500}
-      alignItems={'center'}
-      justifyContent={'center'}
-      cursor={'pointer'}
-      _hover={{
-        bgColor: 'bg.bottom',
-      }}
-      onClick={() => {
-        router.push('/accounts');
-      }}
-    >
-      Manage Accounts
-    </Flex>
+    <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
+      <Link href="/accounts" passHref legacyBehavior>
+        <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+          Manage Accounts
+        </Text>
+      </Link>
+    </Grid>
   );
 
   const RightIcon = () => {
@@ -124,20 +116,23 @@ export function ToAccountSelector({ onChange, value, loading, isError, disabled 
       text={account?.address}
       placeholder="Choose or enter addresses"
       options={options}
-      header={`Accounts (${total})`}
+      header={() => `Payment Accounts (${total})`}
       onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
       }}
-      Footer={Footer}
+      footer={Footer}
+      renderOption={({ value, label }) => <OptionItem value={value} label={label} />}
+      emptyIcon="empty-account"
+      emptyText="No Payment Accounts"
     />
   );
-}
+});
 
-function OptionItem(props: any) {
-  const { address, name } = props;
+function OptionItem(props: MenuOption) {
+  const { value: address, label: name } = props;
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
       <Text

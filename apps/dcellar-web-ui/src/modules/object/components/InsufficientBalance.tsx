@@ -4,9 +4,10 @@ import { ColoredWarningIcon } from '@totejs/icons';
 import { Flex, Link } from '@totejs/uikit';
 import React from 'react';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { useUnFreezeAmount } from '@/modules/accounts/hooks';
 import { selectAccount } from '@/store/slices/accounts';
+import { InternalRoutePaths } from '@/utils/constant';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 export const InsufficientBalance = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ export const InsufficientBalance = () => {
   const onTopUpClick = () => {
     const topUpUrl = isOwnerAccount
       ? InternalRoutePaths.transfer_in
-      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${bucket.PaymentAddress}&amount=${amount}`
+      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${bucket.PaymentAddress}&amount=${amount}`;
     router.push(topUpUrl);
   };
 
@@ -28,7 +29,7 @@ export const InsufficientBalance = () => {
       {isFrozen && (
         <Flex bgColor={'#FDEBE7'} p={8} alignItems={'center'} mb={16} borderRadius={4}>
           <ColoredWarningIcon color={'#EE3911'} width={16} mr={8} />
-          Insufficient Balance. Please deposit at least <strong>&nbsp;{amount}&nbsp;</strong> BNB to
+          Insufficient Balance. Please deposit at least <strong>&nbsp;{amount}&nbsp;</strong> {displayTokenSymbol()} to
           renew your service, or your objects may be permanently deleted.&nbsp;
           <Link
             fontWeight={500}

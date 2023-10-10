@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
-import { find, get, last, trimEnd } from 'lodash-es';
+import { find, last, trimEnd } from 'lodash-es';
 import {
   GfSPListObjectsByBucketNameResponse,
   ListObjectsByBucketNameRequest,
@@ -11,7 +11,8 @@ import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getObjectPolicies } from '@/facade/bucket';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 10;
@@ -41,13 +42,23 @@ export type TStatusDetail = {
 
 export type ObjectActionType = 'view' | 'download' | '';
 
+export type ObjectOperationsType =
+  | 'detail'
+  | 'delete'
+  | 'share'
+  | 'download'
+  | 'upload'
+  | 'cancel'
+  | 'create_folder'
+  | 'batch_delete'
+  | '';
+
 export type TEditUploadContent = {
   gasFee: string;
   preLockFee: string;
   totalFee: string;
   isBalanceAvailable: boolean;
 };
-export type TEditUpload = TEditUploadContent & { isOpen: boolean };
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -57,20 +68,13 @@ export interface ObjectState {
   objectsInfo: Record<string, ObjectMeta>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
-  editDetail: ObjectItem;
-  editDelete: ObjectItem;
-  editCreate: boolean;
-  editDownload: ObjectItem & { action?: ObjectActionType };
-  editShare: {
-    record: ObjectItem;
-    from: string;
-  };
-  editCancel: ObjectItem;
   statusDetail: TStatusDetail;
-  editUpload: TEditUpload;
   selectedRowKeys: Key[];
   deletedObjects: Record<string, number>;
   refreshing: boolean;
+  objectPolicies: Record<string, PolicyMeta[]>;
+  objectPoliciesPage: number;
+  objectOperation: Record<0 | 1, [string, ObjectOperationsType, Record<string, any>?]>;
 }
 
 const initialState: ObjectState = {
@@ -82,26 +86,37 @@ const initialState: ObjectState = {
   objectsInfo: {},
   currentPage: {},
   restoreCurrent: true,
-  editDetail: {} as ObjectItem,
-  editDelete: {} as ObjectItem,
-  editCreate: false,
-  editDownload: {} as ObjectItem & { action?: ObjectActionType },
-  editShare: {
-    record: {} as ObjectItem,
-    from: 'menu',
-  },
-  editCancel: {} as ObjectItem,
   statusDetail: {} as TStatusDetail,
-  editUpload: {} as TEditUpload,
   selectedRowKeys: [],
   deletedObjects: {},
   refreshing: false,
+  objectPolicies: {},
+  objectPoliciesPage: 0,
+  objectOperation: { 0: ['', '', {}], 1: ['', '', {}] },
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setObjectOperation(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        level?: 0 | 1;
+        operation: [string, ObjectOperationsType, Record<string, any>?];
+      }>,
+    ) {
+      state.objectOperation[payload.level || 0] = payload.operation;
+    },
+    setObjectPoliciesPage(state, { payload }: PayloadAction<number>) {
+      state.objectPoliciesPage = payload;
+    },
+    setObjectPolicies(state, { payload }: PayloadAction<{ path: string; policies: PolicyMeta[] }>) {
+      const { path, policies } = payload;
+      state.objectPolicies[path] = policies;
+    },
     addDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
       const { path, ts } = payload;
       state.deletedObjects[path] = ts;
@@ -111,20 +126,11 @@ export const objectSlice = createSlice({
     },
     updateObjectVisibility(
       state,
-      { payload }: PayloadAction<{ object: ObjectItem; visibility: number }>,
+      { payload }: PayloadAction<{ objectName: string; visibility: number }>,
     ) {
-      const { object, visibility } = payload;
+      const { objectName, visibility } = payload;
       const path = state.path;
-      const item = find<ObjectItem>(
-        state.objects[path] || [],
-        (i) => i.objectName === object.objectName,
-      );
-      if (state.editDetail.objectName === object.objectName) {
-        state.editDetail.visibility = visibility;
-      }
-      if (get(state.editShare, 'record.objectName') === object.objectName) {
-        state.editShare.record.visibility = visibility;
-      }
+      const item = find<ObjectItem>(state.objects[path] || [], (i) => i.objectName === objectName);
       if (!item) return;
       item.visibility = visibility;
       const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
@@ -160,7 +166,7 @@ export const objectSlice = createSlice({
       if (object) {
         object.objectStatus = objectStatus;
       }
-      const info = state.objectsInfo[path];
+      const info = state.objectsInfo[[path, objectName].join('/')];
       if (!info) return;
       info.ObjectInfo.ObjectStatus = objectStatus as any; // number
     },
@@ -178,45 +184,20 @@ export const objectSlice = createSlice({
       state.prefix = !folders.length ? '' : folders.join('/') + '/';
       state.path = [bucketName, ...folders].join('/');
     },
-    setEditCreate(state, { payload }: PayloadAction<boolean>) {
-      state.editCreate = payload;
-    },
-    setEditDetail(state, { payload }: PayloadAction<ObjectItem>) {
-      state.editDetail = payload;
-    },
-    setEditDelete(state, { payload }: PayloadAction<ObjectItem>) {
-      state.editDelete = payload;
-    },
     setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
       state.statusDetail = payload;
     },
-    setEditUploadStatus(state, { payload }: PayloadAction<boolean>) {
-      state.editUpload.isOpen = payload;
-    },
-    setEditUpload(state, { payload }: PayloadAction<TEditUploadContent>) {
-      state.editUpload = {
-        ...state.editUpload,
-        ...payload,
-      };
-    },
-    setEditCancel(state, { payload }: PayloadAction<ObjectItem>) {
-      state.editCancel = payload;
-    },
-    setEditShare(state, { payload }: PayloadAction<{ record: ObjectItem; from: string }>) {
-      const { record, from } = payload;
-      state.editShare = {
-        record,
-        from,
-      };
-    },
-    setEditDownload(state, { payload }: PayloadAction<ObjectItem & { action?: ObjectActionType }>) {
-      state.editDownload = payload;
-    },
     setObjectList(
       state,
-      { payload }: PayloadAction<{ path: string; list: GfSPListObjectsByBucketNameResponse }>,
+      {
+        payload,
+      }: PayloadAction<{
+        path: string;
+        list: GfSPListObjectsByBucketNameResponse;
+        infoOnly?: boolean;
+      }>,
     ) {
-      const { path, list } = payload;
+      const { path, list, infoOnly = false } = payload;
       const [bucketName] = path.split('/');
       // keep order
       const folders = list?.CommonPrefixes.reverse()
@@ -277,6 +258,7 @@ export const objectSlice = createSlice({
         });
 
       // TODO
+      if (infoOnly) return;
       state.objects[path] = folders.concat(objects as any[]);
     },
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {
@@ -358,9 +340,6 @@ export const setupListObjects =
     }
   };
 
-export const closeStatusDetail = () => async (dispatch: AppDispatch) => {
-  dispatch(setStatusDetail({} as TStatusDetail));
-};
 export const selectPathLoading = (root: AppState) => {
   const { objects, path, refreshing } = root.object;
   return !(path in objects) || refreshing;
@@ -384,26 +363,41 @@ export const selectObjectList = (root: AppState) => {
   return objects[path] || defaultObjectList;
 };
 
+export const setupObjectPolicies =
+  (bucketName: string, objectName: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const policies = await getObjectPolicies(bucketName, objectName);
+    if (!policies.some((p) => p.PrincipalValue === loginAccount)) {
+      policies.unshift({
+        CreateTimestamp: Date.now(),
+        ExpirationTime: 0,
+        PrincipalType: 2,
+        PrincipalValue: loginAccount,
+        ResourceId: '',
+        ResourceType: 2,
+        UpdateTimestamp: 0,
+      });
+    }
+    const path = [bucketName, objectName].join('/');
+    dispatch(setObjectPolicies({ path, policies }));
+    return policies;
+  };
+
 export const {
   setFolders,
   setCurrentObjectPage,
   setObjectList,
   setRestoreCurrent,
-  setEditDetail,
-  setEditDelete,
-  setEditCreate,
-  setEditDownload,
   setStatusDetail,
-  setEditShare,
-  setEditUpload,
-  setEditUploadStatus,
-  setEditCancel,
   updateObjectStatus,
   setDummyFolder,
   updateObjectVisibility,
   addDeletedObject,
   setListRefreshing,
   setSelectedRowKeys,
+  setObjectPolicies,
+  setObjectPoliciesPage,
+  setObjectOperation,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

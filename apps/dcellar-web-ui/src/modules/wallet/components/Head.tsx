@@ -1,11 +1,20 @@
-import { Text } from '@totejs/uikit';
-import React from 'react';
+import { Link, Text } from '@totejs/uikit';
+import React, { memo } from 'react';
 import { useAppSelector } from '@/store';
+import { runtimeEnv } from '@/base/env';
 
 const HeadContent = {
   transfer_in: {
     title: 'transfer in',
-    subtitle: 'Transfer BNB from BNB Smart Chain to your BNB Greenfield account.',
+    subtitle: `Transfer BNB from BNB Smart Chain to your BNB Greenfield account. ${
+      runtimeEnv === 'testnet' ? (
+        <Link target="_blank" href="https://testnet.bnbchain.org/faucet-smart">
+          faucet
+        </Link>
+      ) : (
+        ''
+      )
+    }`,
   },
   transfer_out: {
     title: 'transfer out',
@@ -17,7 +26,9 @@ const HeadContent = {
   },
 };
 
-export const Head = () => {
+interface HeadProps {}
+
+export const Head = memo<HeadProps>(function Head() {
   const { transType } = useAppSelector((root) => root.wallet);
   const content = HeadContent[transType];
   return (
@@ -25,24 +36,16 @@ export const Head = () => {
       <Text
         fontWeight={'600'}
         fontSize="24px"
-        lineHeight={'32px'}
         textAlign="center"
-        mb={'8px'}
+        mb={'12px'}
         w={'100%'}
         textTransform="capitalize"
       >
         {content?.title}
       </Text>
-      <Text
-        fontSize={'14px'}
-        lineHeight="150%"
-        w={'100%'}
-        textAlign="center"
-        mb={'16px'}
-        color="#76808F"
-      >
+      <Text fontSize={'14px'} w={'100%'} textAlign="center" mb={'24px'} color={'readable.tertiary'}>
         {content?.subtitle}
       </Text>
     </>
   );
-};
+});

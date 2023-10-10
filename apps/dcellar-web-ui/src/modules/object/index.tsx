@@ -19,10 +19,11 @@ import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { getPrimarySpInfo } from '@/store/slices/sp';
-import { ForwardIcon } from '@totejs/icons';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
+import { IconFont } from '@/components/IconFont';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -46,7 +47,7 @@ export const ObjectsPage = () => {
   useAsyncEffect(async () => {
     if (!bucket) return;
     // 1. set global primary sp info
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
     // 2. set payment account infos
     dispatch(setupAccountDetail(bucket.PaymentAddress));
   }, [bucket, bucketName]);
@@ -81,15 +82,13 @@ export const ObjectsPage = () => {
         <title>{bucketName} - DCellar</title>
       </Head>
       <PanelContainer>
-        <Flex justifyContent="space-between" mt={-8} alignItems="center">
+        <Flex justifyContent="space-between" alignItems="center">
           <ObjectBreadcrumb />
           {owner && <QuotaCard />}
         </Flex>
         <PanelContent>
           <GoBack onClick={goBack}>
-            <ForwardIcon />
-          </GoBack>
-          <Flex flex={1} minW={0}>
+            <IconFont type="backward" w={24} />
             {selected > 0 ? (
               <SelectedText>
                 {selected} File{selected > 1 && 's'} Selected
@@ -103,7 +102,7 @@ export const ObjectsPage = () => {
                 <ObjectName>{title}</ObjectName>
               </Tooltip>
             )}
-          </Flex>
+          </GoBack>
           <NewObject
             showRefresh={true}
             gaFolderClickName="dc.file.list.create_folder.click"
@@ -111,7 +110,17 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
-      <InsufficientBalance />
+      {owner ? (
+        <InsufficientBalance />
+      ) : (
+        <DiscontinueBanner
+          bg={'#FDF9E7'}
+          color={'#1E2026'}
+          icon={<IconFont w={16} type={'colored-info'} color={'#EEBE11'} />}
+          content="You are browsing a bucket created by someone else. Certain functions may be restricted."
+        />
+      )}
+
       <ObjectList />
     </ObjectContainer>
   );

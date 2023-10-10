@@ -1,11 +1,14 @@
 import { Tips } from '@/components/common/Tips';
-import { PREPAID_FEE_DOC } from '@/modules/file/constant';
+import { PREPAID_FEE_DOC } from '@/modules/object/constant';
 import { Box, Link } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { displayTime } from '@/utils/common';
+import { memo } from 'react';
 
-export const PrePaidTips = () => {
+interface PrePaidTipsProps {}
+
+export const PrePaidTips = memo<PrePaidTipsProps>(function PrePaidTips() {
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const reserveTime = displayTime(storeFeeParams?.reserveTime || 0);
 
@@ -29,4 +32,4 @@ export const PrePaidTips = () => {
       }
     />
   );
-};
+});

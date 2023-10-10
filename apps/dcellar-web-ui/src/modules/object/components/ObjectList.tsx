@@ -1,21 +1,18 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   ObjectItem,
+  ObjectOperationsType,
   selectObjectList,
   selectPathCurrent,
   selectPathLoading,
   setCurrentObjectPage,
-  setEditCancel,
-  setEditDelete,
-  setEditDetail,
-  setEditDownload,
-  setEditShare,
+  setObjectOperation,
   setRestoreCurrent,
   setSelectedRowKeys,
   setStatusDetail,
-  setupDummyFolder,
   setupListObjects,
+  SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
 import { find, uniq, without, xor } from 'lodash-es';
 import { ColumnProps } from 'antd/es/table';
@@ -28,16 +25,11 @@ import {
 import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
-import { ListEmpty } from '@/modules/object/components/ListEmpty';
 import { useAsyncEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
-import { contentTypeToExtension, formatBytes } from '@/modules/file/utils';
-import { NameItem } from '@/modules/object/components/NameItem';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
-import { DeleteObject } from './DeleteObject';
-import { DetailObject } from './DetailObject';
-import { DownloadObject } from './DownloadObject';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import {
@@ -49,23 +41,25 @@ import {
 } from '@/facade/error';
 import { downloadObject } from '@/facade/object';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { UploadObjects } from '@/modules/upload/UploadObjects';
-import { OBJECT_SEALED_STATUS } from '@/modules/file/constant';
-import { CancelObject } from './CancelObject';
-import { CreateFolder } from './CreateFolder';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { OBJECT_SEALED_STATUS } from '@/modules/object/constant';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { StyledRow } from '@/modules/object/objects.style';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { ShareDrawer } from '@/modules/object/components/ShareDrawer';
 import { selectAccount } from '@/store/slices/accounts';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { NewObject } from '@/modules/object/components/NewObject';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
+import { contentTypeToExtension } from '@/modules/object/utils';
+import { formatBytes } from '@/utils/formatter';
 
-const Actions: ActionMenuItem[] = [
+const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
-  { label: 'Cancel', value: 'cancel' },
-  { label: 'Delete', value: 'delete' },
+  { label: 'Cancel', value: 'cancel', variant: 'danger' },
+  { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
 const ImportantActions = ['download', 'share'];
 
@@ -84,10 +78,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
+  const { setOpenAuthModal } = useOffChainAuth();
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
-  const { editDelete, editDetail, editDownload, editCancel, editCreate, editUpload } =
-    useAppSelector((root) => root.object);
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
@@ -158,6 +150,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         return onError(E_OBJECT_NAME_EXISTS);
       }
       let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+      // update quota data.
+      dispatch(setReadQuota({ bucketName, quota: quotaData }));
       if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
         primarySp,
@@ -173,25 +167,38 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       return success;
     }
 
-    return dispatch(setEditDownload({ ...object, action: 'download' }));
+    return dispatch(
+      setObjectOperation({
+        level: 1,
+        operation: [
+          `${object.bucketName}/${object.objectName}`,
+          'download',
+          { action: 'download' },
+        ],
+      }),
+    );
   };
 
-  const onMenuClick = async (menu: string, record: ObjectItem) => {
+  const onMenuClick = async (menu: ObjectOperationsType, record: ObjectItem) => {
     switch (menu) {
       case 'detail':
-        return dispatch(setEditDetail(record));
       case 'delete':
-        return dispatch(setEditDelete(record));
-      case 'share':
-        // copy(getShareLink(bucketName, record.objectName));
-        // toast.success({ description: 'Successfully copied to your clipboard.' });
-        return dispatch(setEditShare({ record, from: 'menu' }));
+      case 'cancel':
+        return dispatch(
+          setObjectOperation({ operation: [`${record.bucketName}/${record.objectName}`, menu] }),
+        );
       case 'download':
         return download(record);
-      case 'cancel':
-        return dispatch(setEditCancel(record));
+      case 'share':
+        return dispatch(
+          setObjectOperation({
+            level: 1,
+            operation: [`${record.bucketName}/${record.objectName}`, menu],
+          }),
+        );
     }
   };
+
   const columns: ColumnProps<ObjectItem>[] = [
     {
       key: 'objectName',
@@ -202,7 +209,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       ),
       render: (_: string, record: ObjectItem) => (
         <StyledRow $disabled={record.objectStatus !== 1}>
-          <NameItem item={record} disabled={accountDetail.clientFrozen} />
+          <ObjectNameColumn item={record} disabled={accountDetail.clientFrozen} />
         </StyledRow>
       ),
     },
@@ -291,7 +298,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         const curObjectInfo = objectsInfo[key];
         // if this object is not yours, you only can download it
         if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
-          fitActions = fitActions.filter((a) => a.value === 'download');
+          fitActions = fitActions.filter((a) => a.value === 'detail');
         }
         //if this folder is yours, you only can delete it
         if (isFolder && owner) {
@@ -311,8 +318,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           <ActionMenu
             menus={fitActions}
             operations={operations}
-            justifyContent="flex-end"
-            onChange={(e) => onMenuClick(e, record)}
+            onChange={(e) => onMenuClick(e as ObjectOperationsType, record)}
           />
         );
       },
@@ -355,51 +361,41 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     }),
   };
 
-  const refetch = async (name?: string) => {
-    if (!primarySp) return;
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
-    const query = new URLSearchParams();
-    const params = {
-      seedString,
-      query,
-      endpoint: primarySp.endpoint,
-    };
-    if (name) {
-      await dispatch(setupListObjects(params));
-      // if folder not exist in list, then add dummy folder
-      dispatch(setupDummyFolder(name));
-    } else {
-      dispatch(setupListObjects(params));
-    }
-  };
-
   const empty = !loading && !sortedList.length;
+  const loadingComponent = { spinning: loading, indicator: <Loading /> };
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty
+        type={discontinue ? 'discontinue' : 'empty-object'}
+        title={discontinue ? 'Discontinue Notice' : 'Upload Objects and Start Your Work Now'}
+        desc={
+          discontinue
+            ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
+            : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
+                SINGLE_OBJECT_MAX_SIZE,
+              )}.`
+        }
+        empty={empty}
+      >
+        <NewObject showRefresh={false} />
+      </ListEmpty>
+    ),
+    [discontinue, empty],
+  );
 
   return (
     <>
-      {editCreate && <CreateFolder refetch={refetch} />}
-      {editDelete?.objectName && <DeleteObject refetch={refetch} />}
-      {editDetail?.objectName && <DetailObject accountFrozen={accountDetail?.clientFrozen} />}
-      <ShareDrawer />
-      {editDownload?.objectName && <DownloadObject />}
-      {editCancel.objectName && <CancelObject refetch={refetch} />}
-      {editUpload.isOpen && <UploadObjects />}
-      {discontinue && (
-        <DiscontinueBanner
-          content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
-          height={44}
-          marginBottom={16}
-        />
+      {discontinue && owner && (
+        <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
       )}
+      <ObjectOperations />
       <DCTable
         rowSelection={owner ? rowSelection : undefined}
-        loading={{ spinning: loading, indicator: <Loading /> }}
+        loading={loadingComponent}
         rowKey="objectName"
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <ListEmpty empty={empty} />}
+        renderEmpty={renderEmpty}
         pageSize={objectPageSize}
         pageChange={onPageChange}
         canNext={canNext}

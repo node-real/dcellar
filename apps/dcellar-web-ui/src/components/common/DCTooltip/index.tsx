@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { ConfigProvider, Tooltip, TooltipProps } from 'antd';
-import { theme } from '@/base/theme/antd';
+import { antdTheme } from '@/base/theme/antd';
 
 type DCTooltipProps = TooltipProps & {};
 
@@ -10,7 +10,7 @@ export const DCTooltip = memo<DCTooltipProps>(function DCTooltip({
   ...props
 }) {
   return (
-    <ConfigProvider theme={theme}>
+    <ConfigProvider theme={antdTheme}>
       <Tooltip
         overlayInnerStyle={{
           borderRadius: 4,

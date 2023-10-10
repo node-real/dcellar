@@ -1,6 +1,7 @@
-import { Box, Flex, Link, Menu, MenuButton, MenuList, Text } from '@totejs/uikit';
+import { Box, Flex, Menu, MenuButton, MenuList, Text } from '@totejs/uikit';
 import React from 'react';
-import WaringTriangleIcon from '@/public/images/icons/warning-triangle.svg';
+import { DCLink } from '@/components/common/DCLink';
+import { IconFont } from '@/components/IconFont';
 
 export const DiscontinueNotice = ({
   content,
@@ -13,7 +14,7 @@ export const DiscontinueNotice = ({
     <Menu strategy="fixed" trigger="hover" placement="right-start">
       <>
         <MenuButton onClick={(e) => e.stopPropagation()}>
-          <WaringTriangleIcon />
+          <IconFont type="colored-error2" w={16} />
         </MenuButton>
         <MenuList>
           <Box width={'280px'} padding="8px 12px" onClick={(e) => e.stopPropagation()}>
@@ -22,22 +23,9 @@ export const DiscontinueNotice = ({
             </Text>
             <Text>{content}</Text>
             <Flex justifyContent={'right'}>
-              <Link
-                textDecoration={'underline'}
-                color={'#1184EE'}
-                _hover={{ color: '#1184EE' }}
-                marginRight={0}
-                fontWeight={500}
-                href={learnMore}
-                fontSize={'14px'}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.open(learnMore, '_blank', 'noopener noreferrer');
-                }}
-              >
+              <DCLink href={learnMore} target="_blank" onClick={(e) => e.stopPropagation()}>
                 Learn More
-              </Link>
+              </DCLink>
             </Flex>
           </Box>
         </MenuList>

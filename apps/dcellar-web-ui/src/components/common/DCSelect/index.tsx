@@ -1,55 +1,40 @@
-import { MenuCloseIcon, SearchIcon } from '@totejs/icons';
 import {
-  Image,
   Box,
   BoxProps,
   Input,
   InputGroup,
+  InputProps,
   InputRightElement,
-  Menu,
   MenuButton,
-  Text,
-  MenuItem,
   MenuItemProps,
-  MenuList,
   MenuListProps,
   MenuProps,
-  rgba,
-  Center,
   useDisclosure,
-  InputProps,
 } from '@totejs/uikit';
-import React, { useEffect, useRef, useState } from 'react';
-import TickIcon from '@/components/common/SvgIcon/TickIcon.svg';
-
-import noResultImage from '@/public/images/common/no-result.png';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { useKeyDown } from '@/hooks/useKeyDown';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { GAClick } from '@/components/common/GATracker';
-import styled from '@emotion/styled';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { IconFont } from '@/components/IconFont';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
-export interface IDCSelectOption {
-  label: React.ReactNode;
-  value: any;
-  [x: string]: any;
-}
-
 export interface DCSelectProps extends MenuProps {
-  header?: React.ReactNode;
-  Footer?: () => JSX.Element;
+  header?: () => ReactNode;
+  footer?: () => ReactNode;
   value?: string;
   text: string;
-  options?: Array<IDCSelectOption>;
+  options?: MenuOption[];
   headerProps?: BoxProps;
   listProps?: MenuListProps;
   itemProps?: ListItemProps;
   onChange?: (value: any) => void;
-  onSearchFilter?: (value: string, item: IDCSelectOption) => boolean;
-  onSearch?: (result: Array<IDCSelectOption>) => void;
+  onSearchFilter?: (value: string, item: MenuOption) => boolean;
+  onSearch?: (result: Array<MenuOption>) => void;
+  renderOption?: (option: MenuOption) => ReactNode;
 }
 
 export function DCSelect(props: DCSelectProps) {
@@ -61,16 +46,17 @@ export function DCSelect(props: DCSelectProps) {
     itemProps,
     headerProps,
     header,
-    Footer,
+    footer,
     onChange,
     onSearchFilter,
     onSearch,
     children,
+    renderOption,
     ...restProps
   } = props;
 
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const [resultOptions, setResultOptions] = useState<Array<IDCSelectOption>>();
+  const [resultOptions, setResultOptions] = useState<MenuOption[]>();
 
   const saveOnSearchRef = useSaveFuncRef(onSearch);
   useEffect(() => {
@@ -87,12 +73,12 @@ export function DCSelect(props: DCSelectProps) {
     }
   };
 
-  const onSelectItem = (item: IDCSelectOption) => {
+  const onSelectItem = (item: MenuOption) => {
     onChange?.(item.value);
   };
 
   const onChangeKeyword = (value: string) => {
-    const result: Array<IDCSelectOption> = value ? [] : options;
+    const result: Array<MenuOption> = value ? [] : options;
 
     if (value) {
       options.forEach((item) => {
@@ -107,13 +93,34 @@ export function DCSelect(props: DCSelectProps) {
   };
 
   return (
-    <Menu
+    <DCMenu
+      value={value}
       isOpen={isOpen}
       isDisabled={isOpen}
       matchWidth={true}
       placement="bottom-start"
       onClose={onClose}
       flip={false}
+      options={resultOptions || []}
+      renderOption={renderOption}
+      selectIcon
+      onMenuSelect={onSelectItem}
+      renderHeader={() =>
+        header && (
+          <Box
+            fontSize={12}
+            bg="bg.bottom"
+            py={8}
+            px={12}
+            fontWeight={500}
+            borderBottom="1px solid readable.border"
+            {...headerProps}
+          >
+            {header()}
+          </Box>
+        )
+      }
+      renderFooter={() => footer && footer()}
       {...restProps}
     >
       <MenuButton
@@ -123,74 +130,9 @@ export function DCSelect(props: DCSelectProps) {
         placeholder={text}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
+        onBlur={onClose}
       />
-
-      <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
-        {header && (
-          <Box
-            fontSize={12}
-            lineHeight="15px"
-            bg="bg.bottom"
-            py={8}
-            px={24}
-            fontWeight={500}
-            borderBottom="1px solid readable.border"
-            {...headerProps}
-          >
-            {header}
-          </Box>
-        )}
-
-        <Box
-          maxH={220}
-          overflowY="auto"
-          sx={{
-            '&::-webkit-scrollbar': {
-              width: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: 'readable.disabled',
-              borderRadius: '4px',
-            },
-          }}
-        >
-          {resultOptions?.map((item) => {
-            const isSelected = value === item.value;
-            // not disabled
-            const { access = true } = item;
-            const { gaClickName, ...restItemProps } = itemProps ?? {};
-
-            return (
-              <GAClick key={item.value} name={gaClickName}>
-                <MenuItem
-                  as="div"
-                  position="relative"
-                  px={24}
-                  py={8}
-                  fontSize={14}
-                  transitionDuration="normal"
-                  transitionProperty="colors"
-                  bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
-                  _hover={{
-                    bg: isSelected || !access ? undefined : 'bg.bottom',
-                  }}
-                  onClick={() => access && onSelectItem(item)}
-                  // _last={{
-                  //   mb: 8,
-                  // }}
-                  {...restItemProps}
-                >
-                  {isSelected && <Tick />} {item.label}
-                </MenuItem>
-              </GAClick>
-            );
-          })}
-
-          {!resultOptions?.length && <NoResult />}
-        </Box>
-        {Footer && <Footer />}
-      </MenuList>
-    </Menu>
+    </DCMenu>
   );
 }
 
@@ -242,34 +184,18 @@ const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
   return (
     <InputGroup ref={ref} {...restProps}>
       <Input
+        fontSize={16}
         ref={inputRef}
         h={52}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         cursor={requestFocus ? 'auto' : 'pointer'}
-        borderColor={requestFocus ? 'scene.primary.active' : '#EAECF0'}
+        borderColor={requestFocus ? 'scene.primary.active' : 'readable.border'}
       />
-      <InputRightElement color="readable.tertiary" pointerEvents="none">
-        {requestFocus ? <SearchIcon /> : <MenuCloseIcon />}
+      <InputRightElement color="readable.tertiary" pointerEvents="none" mr={4}>
+        <IconFont type={requestFocus ? 'search' : 'menu-close'} w={24} />
       </InputRightElement>
     </InputGroup>
   );
 });
-
-const NoResult = () => {
-  return (
-    <Center flexDir="column" pt={21} minH={220} justifyContent="flex-start">
-      <Image boxSize={120} src={noResultImage.src} alt="" />
-      <Text mt={12} color="readable.tertiary" fontSize={12} fontWeight={500} lineHeight="15px">
-        No Result
-      </Text>
-    </Center>
-  );
-};
-
-const Tick = styled(TickIcon)`
-  color: #00ba34;
-  position: absolute;
-  left: 8px;
-`;

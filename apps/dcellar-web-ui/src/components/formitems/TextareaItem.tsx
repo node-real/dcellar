@@ -1,5 +1,5 @@
 import { Textarea, TextareaProps } from '@totejs/uikit';
-import { memo, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 interface TextareaItemProps extends TextareaProps {
   onChange: TextareaProps['onChange'];
@@ -12,6 +12,10 @@ export const TextareaItem = memo<TextareaItemProps>(function InputItem({
 }) {
   const [input, setInput] = useState(value);
   const compositingRef = useRef(false);
+
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
 
   return (
     <Textarea

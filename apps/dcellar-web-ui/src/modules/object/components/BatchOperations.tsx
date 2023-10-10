@@ -3,16 +3,15 @@ import { Box, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
-import { setSelectedRowKeys, setStatusDetail, setupListObjects } from '@/store/slices/object';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { setObjectOperation, setSelectedRowKeys, setStatusDetail } from '@/store/slices/object';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { useMount, useUnmount } from 'ahooks';
 import { setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { quotaRemains } from '@/facade/bucket';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { downloadObject } from '@/facade/object';
-import { GhostButton } from '@/modules/object/objects.style';
-import { BatchDeleteObject } from '@/modules/object/components/batch-delete/BatchDeleteObject';
 import { DCTooltip } from '@/components/common/DCTooltip';
+import { DCButton } from '@/components/common/DCButton';
 
 interface BatchOperationsProps {}
 
@@ -24,7 +23,6 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   const { bucketName, objects, path } = useAppSelector((root) => root.object);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
   const quotas = useAppSelector((root) => root.bucket.quotas);
-  const [isBatchDeleteOpen, setBatchDeleteOpen] = React.useState(false);
   const quotaData = quotas[bucketName] || {};
   const primarySp = primarySpInfo[bucketName];
   const [quotaTooltip, setQuotaTooltip] = useState(false);
@@ -76,25 +74,11 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   };
 
   const onBatchDelete = async () => {
-    setBatchDeleteOpen(true);
+    dispatch(setObjectOperation({ operation: ['', 'batch_delete'] }));
   };
 
   const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
   const downloadable = remainQuota && showDownload && !!items.length;
-
-  const refetch = async () => {
-    if (!primarySp || !loginAccount) return;
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
-    const query = new URLSearchParams();
-    const params = {
-      seedString,
-      query,
-      endpoint: primarySp.endpoint,
-    };
-    dispatch(setupListObjects(params));
-  };
 
   const openQuotaManage = () => {
     setQuotaTooltip(false);
@@ -109,13 +93,6 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
 
   return (
     <>
-      {isBatchDeleteOpen && (
-        <BatchDeleteObject
-          refetch={refetch}
-          isOpen={isBatchDeleteOpen}
-          cancelFn={() => setBatchDeleteOpen(false)}
-        />
-      )}
       <Text as="div" fontWeight={500} alignItems="center" display="flex" gap={12}>
         {showDownload && (
           <DCTooltip
@@ -138,21 +115,19 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
               </Box>
             }
           >
-            <div>
-              <GhostButton
-                as={!downloadable ? 'span' : 'button'}
-                disabled={!downloadable}
-                variant="ghost"
-                onClick={onBatchDownload}
-              >
-                Download
-              </GhostButton>
-            </div>
+            <DCButton
+              as={!downloadable ? 'span' : 'button'}
+              disabled={!downloadable}
+              variant="ghost"
+              onClick={onBatchDownload}
+            >
+              Download
+            </DCButton>
           </DCTooltip>
         )}
-        <GhostButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
+        <DCButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
           Delete
-        </GhostButton>
+        </DCButton>
       </Text>
     </>
   );

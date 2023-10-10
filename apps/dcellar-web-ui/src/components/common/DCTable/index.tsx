@@ -6,39 +6,38 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import Descend from '@/components/common/SvgIcon/Descend.svg';
-import Ascend from '@/components/common/SvgIcon/Ascend.svg';
 import { Box, Flex, keyframes, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
-import { formatBytes } from '@/modules/file/utils';
-import { theme } from '@/base/theme/antd';
+import { antdTheme } from '@/base/theme/antd';
+import { IconFont } from '@/components/IconFont';
+import { formatBytes } from '@/utils/formatter';
 
 export type AlignType = 'left' | 'right' | 'center';
-
-export type FixedType = 'left' | 'right' | boolean;
 
 interface DCTable extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
 
-export const DCTable = memo<DCTable & SimplePaginationProps>(function DCTable({
+export const DCTable = memo<DCTable & Omit<SimplePaginationProps, 'loading'>>(function DCTable({
   renderEmpty,
   pageSize,
   pageChange,
   canNext,
   canPrev,
   pagination = true,
+  dataSource,
   ...props
 }) {
   return (
-    <Container>
-      <ConfigProvider renderEmpty={renderEmpty} theme={theme}>
-        <Table {...props} pagination={false} tableLayout="fixed" />
+    <Container className="dc-table">
+      <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
+        <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
       </ConfigProvider>
       {pagination && (
         <SimplePagination
+          loading={!dataSource?.length}
           pageSize={pageSize}
           canNext={canNext}
           canPrev={canPrev}
@@ -151,17 +150,17 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 };
 
 export const SortIcon = {
-  descend: <Descend />,
-  ascend: <Ascend />,
+  descend: <IconFont type="sort-descend" w={18} />,
+  ascend: <IconFont type="sort-ascend" w={18} />,
 };
 
 export const SortItem = styled.span`
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  padding: 7px 16px;
+  padding: 4px 8px;
   transition: all 0.2s;
-  margin-left: -16px;
+  margin-left: -8px;
   margin-top: -7px;
   margin-bottom: -7px;
   user-select: none;
@@ -182,13 +181,18 @@ export const SortItem = styled.span`
 `;
 
 const Container = styled.div`
-  border-radius: 16px;
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
-  padding: 0 16px;
   position: relative;
+
+  .ant-table-wrapper .ant-table {
+    line-height: normal;
+  }
+
   .ant-table-thead > tr > th {
-    background: #fff;
+    color: var(--ui-colors-readable-normal);
+    background: var(--ui-colors-bg-bottom);
     &:before {
       display: none;
     }
@@ -196,7 +200,7 @@ const Container = styled.div`
     font-weight: 500;
     line-height: 18px;
     padding-top: 13px;
-    padding-bottom: 13px;
+    padding-bottom: 12px;
   }
   .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
@@ -206,6 +210,7 @@ const Container = styled.div`
   .ant-table-tbody > tr > td {
     font-weight: 500;
     background: #fff;
+    padding: 12px 16px 11px 16px;
   }
 
   .ant-spin-nested-loading > div > .ant-spin {
@@ -250,5 +255,10 @@ const Container = styled.div`
         visibility: visible;
       }
     }
+  }
+
+  .ant-checkbox-disabled .ant-checkbox-inner {
+    background: #fafafa;
+    border-color: var(--ui-colors-readable-border);
   }
 `;

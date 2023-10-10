@@ -1,14 +1,15 @@
 import { memo } from 'react';
-import { Flex, Link, Text, useDisclosure } from '@totejs/uikit';
-import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/file/utils';
+import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { MenuCloseIcon } from '@totejs/icons';
 import BigNumber from 'bignumber.js';
-import { selectAvailableBalance } from '@/store/slices/accounts';
-import { GAS_FEE_DOC } from '@/modules/file/constant';
+import { selectAvailableBalance, selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
+import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
+import { IconFont } from '@/components/IconFont';
+import { find } from 'lodash-es';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 
 interface TotalFeesProps {
   gasFee: string | number;
@@ -16,13 +17,27 @@ interface TotalFeesProps {
   settlementFee: string;
   payStoreFeeAddress: string;
   refund?: boolean;
+  expandable?: boolean;
 }
 
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
-  const { gasFee, prepaidFee, settlementFee, payStoreFeeAddress, refund = false } = props;
+  const {
+    gasFee,
+    prepaidFee,
+    settlementFee,
+    payStoreFeeAddress = '',
+    refund = false,
+    expandable = true,
+  } = props;
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
-  const availableBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
+  const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const paymentAccount = find<TAccount>(paymentAccounts, (a) => a.address === payStoreFeeAddress);
+  const str = payStoreFeeAddress.substring(38);
+  const paymentLabel = paymentAccount && `${paymentAccount.name} (${str}) balance:`;
 
   return (
     <Flex
@@ -30,94 +45,89 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
       padding={'8px 12px'}
       borderRadius={4}
       w="100%"
-      bg="bg.secondary"
+      bg="bg.bottom"
       flexDirection="column"
     >
       <Flex
         fontSize={'14px'}
         fontWeight={600}
-        onClick={onToggleFees}
+        onClick={() => expandable && onToggleFees()}
         justifyContent={'space-between'}
         alignItems={'center'}
-        cursor={'pointer'}
+        cursor={expandable ? 'pointer' : 'default'}
       >
         <Text>Total Fees</Text>
-        <Text justifySelf={'flex-end'} fontWeight={'normal'}>
+        <Flex
+          color={'readable.secondary'}
+          alignItems="center"
+          gap={4}
+          justifySelf={'flex-end'}
+          fontWeight={'400'}
+        >
           {renderFeeValue(
             BigNumber(gasFee).plus(BigNumber(prepaidFee)).plus(settlementFee).toString(),
             exchangeRate,
           )}
-          <MenuCloseIcon
-            sx={{
-              transform: isOpenFees ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}
-          />
-        </Text>
+          {expandable && (
+            <IconFont
+              color={'readable.normal'}
+              type={isOpenFees ? 'menu-open' : 'menu-close'}
+              w={20}
+            />
+          )}
+        </Flex>
       </Flex>
+      {isOpenFees && <Divider borderColor={'readable.disable'} />}
       {isOpenFees && (
         <>
-          <Flex h={18} w="100%" alignItems="center" justifyContent="space-between">
+          <Flex w="100%" alignItems="center" justifyContent="space-between">
             <Flex alignItems="center">
-              <Text
-                fontSize={14}
-                lineHeight="28px"
-                fontWeight={400}
-                color="readable.tertiary"
-                as="p"
-              >
+              <Text color="readable.tertiary" as="p">
                 {refund ? 'Prepaid fee refund' : 'Prepaid fee'}
               </Text>
               <PrePaidTips />
             </Flex>
-            <Text fontSize={14} lineHeight="28px" fontWeight={400} color="readable.tertiary">
+            <Text color="readable.tertiary">
+              {refund && (
+                <Text as="span" color={'#EEBE11'} mr={4}>
+                  Refund
+                </Text>
+              )}
               {renderFeeValue(prepaidFee, exchangeRate)}
             </Text>
           </Flex>
-          <Flex h={18} w="100%" alignItems="center" justifyContent="space-between">
+
+          <Flex w="100%" alignItems="center" justifyContent="space-between">
             <Flex alignItems="center">
-              <Text
-                fontSize={14}
-                lineHeight="28px"
-                fontWeight={400}
-                color="readable.tertiary"
-                as="p"
-              >
+              <Text color="readable.tertiary" as="p">
                 Settlement fee
               </Text>
               <SettlementTips />
             </Flex>
-            <Text fontSize={14} lineHeight="28px" fontWeight={400} color="readable.tertiary">
-              {renderFeeValue(settlementFee, exchangeRate)}
-            </Text>
+            <Text color="readable.tertiary">{renderFeeValue(settlementFee, exchangeRate)}</Text>
           </Flex>
-          <Flex h={18} w="100%" alignItems="center" justifyContent="space-between">
-            <Flex alignItems="center">
-              <Text
-                fontSize={14}
-                lineHeight="28px"
-                fontWeight={400}
-                color="readable.tertiary"
-                as="p"
-              >
-                Gas fee (
-                <Link
-                  href={GAS_FEE_DOC}
-                  textDecoration={'underline'}
-                  color="readable.disabled"
-                  target="_blank"
-                >
-                  Pay by Owner Account
-                </Link>
-                )
+          {paymentAccount && (
+            <Flex w="100%" alignItems="center" justifyContent="space-between">
+              <Flex alignItems="center" />
+              <Text fontSize={12} color="readable.disable">
+                {paymentLabel} {renderBalanceNumber(staticBalance || '0')} (
+                {renderUsd(staticBalance || '0', exchangeRate)})
               </Text>
             </Flex>
-            <Text fontSize={14} lineHeight="28px" fontWeight={400} color="readable.tertiary">
-              {renderFeeValue(String(gasFee), exchangeRate)}
-            </Text>
+          )}
+
+          <Flex w="100%" alignItems="center" justifyContent="space-between">
+            <Flex alignItems="center">
+              <Text color="readable.tertiary" as="p">
+                Gas fee
+              </Text>
+              <GasFeeTips />
+            </Flex>
+            <Text color="readable.tertiary">{renderFeeValue(String(gasFee), exchangeRate)}</Text>
           </Flex>
           <Text fontSize={12} lineHeight="16px" color="readable.disabled" alignSelf="flex-end">
-            Available balance: {renderBalanceNumber(availableBalance || '0')} (
-            {renderUsd(availableBalance || '0', exchangeRate)})
+            Owner Account balance: {renderBalanceNumber(bankBalance || '0')} (
+            {renderUsd(bankBalance || '0', exchangeRate)})
           </Text>
         </>
       )}

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { debounce, isEmpty } from 'lodash-es';
@@ -24,7 +24,6 @@ import { StatusModal } from '../components/StatusModal';
 import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
 import { TWalletFromValues } from '../type';
-import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { FromAccountSelector } from '../components/FromAccountSelector';
 import {
@@ -47,14 +46,18 @@ import { renderFee } from '@/utils/common';
 import { selectBnbPrice } from '@/store/slices/global';
 import { useRouter } from 'next/router';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { InternalRoutePaths } from '@/constants/paths';
+import { removeTrailingSlash } from '@/utils/string';
+import { InternalRoutePaths } from '@/utils/constant';
+import styled from '@emotion/styled';
 
 export type TxType =
   | 'withdraw_from_payment_account'
   | 'send_to_owner_account'
   | 'send_to_payment_account';
 
-export const Send = () => {
+interface SendProps {}
+
+export const Send = memo<SendProps>(function Send() {
   const dispatch = useAppDispatch();
   const initFormRef = useRef(false);
   const exchangeRate = useAppSelector(selectBnbPrice);
@@ -73,6 +76,7 @@ export const Send = () => {
   const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const [loadingToAccount, setLoadingToAccount] = useState(false);
   const { feeData, isLoading } = useSendFee();
@@ -104,7 +108,13 @@ export const Send = () => {
     mode: 'all',
   });
   useEffect(() => {
-    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current || initFormRef.current) return;
+    if (
+      isLoadingPaymentAccounts ||
+      isEmpty(ownerAccount) ||
+      initFormRef.current ||
+      initFormRef.current
+    )
+      return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -136,7 +146,9 @@ export const Send = () => {
     if (isEmpty(toAccount) || isEmpty(fromAccount)) return;
     if (
       fromAccount.name.toLowerCase() === 'owner account' &&
-      ['payment_account', 'non_refundable_payment_account'].includes(accountTypes[toAccount.address])
+      ['payment_account', 'non_refundable_payment_account'].includes(
+        accountTypes[toAccount.address],
+      )
     ) {
       return 'send_to_payment_account';
     }
@@ -150,16 +162,30 @@ export const Send = () => {
       return 'send_to_owner_account';
     }
   }, [accountTypes, fromAccount, toAccount]);
-  const txCallback = (res: any, error: string | null, address?: string) => {
+  const txCallback = ({
+    res,
+    error,
+    freshAddress = [],
+  }: {
+    res: any;
+    error: string | null;
+    freshAddress?: string[];
+  }) => {
     if (!res || error) {
       setStatus('failed');
+      setErrorMsg(error);
       !isOpen && onOpen();
+      return;
     }
     const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
       res?.transactionHash
     }`;
     setViewTxUrl(txUrl);
-    address && dispatch(setupAccountDetail(address));
+    if (!isEmpty(freshAddress)) {
+      freshAddress.forEach((address) => {
+        dispatch(setupAccountDetail(address));
+      });
+    }
     setStatus('success');
     reset();
     !isOpen && onOpen();
@@ -174,7 +200,7 @@ export const Send = () => {
     if (!connector) return;
     if (txType !== 'withdraw_from_payment_account' && fromAccount.address === toAccount.address) {
       return toast.error({
-        description: 'The sender and recipient cannot be the same',
+        description: 'Sender and recipient cannot be the same.',
         isClosable: true,
       });
     }
@@ -189,7 +215,7 @@ export const Send = () => {
           },
           connector,
         );
-        txCallback(pRes, pError);
+        txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address]});
         break;
       case 'withdraw_from_payment_account':
         onOpen();
@@ -201,7 +227,7 @@ export const Send = () => {
           },
           connector,
         );
-        txCallback(wRes, wError, fromAccount.address);
+        txCallback({ res: wRes, error: wError, freshAddress: [fromAccount.address] });
         break;
       case 'send_to_owner_account':
         onOpen();
@@ -213,7 +239,7 @@ export const Send = () => {
           },
           connector,
         );
-        txCallback(sRes, sError);
+        txCallback({ res: sRes, error: sError });
       default:
         break;
     }
@@ -236,23 +262,26 @@ export const Send = () => {
     await dispatch(setupAccountDetail(account.address));
   };
 
-  const onChangeToAccount = useCallback(debounce(async (account: TAccount) => {
-    setToJsErrors([]);
-    if (!isAddress(account.address)) {
-      dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
-      return setToJsErrors(['Invalid address']);
-    }
-    const accountType = accountTypes[account.address];
-    const accountDetail = accountDetails[account.address];
-    if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
-      return dispatch(setToAccount(account));
-    }
-    setLoadingToAccount(true);
-    dispatch(setToAccount(account));
-    await dispatch(setupAccountDetail(account.address));
-    await dispatch(setupAccountType(account.address));
-    setLoadingToAccount(false);
-  }, 500), [])
+  const onChangeToAccount = useCallback(
+    debounce(async (account: TAccount) => {
+      setToJsErrors([]);
+      if (!!account.address && !isAddress(account.address)) {
+        dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
+        return setToJsErrors(['Invalid address']);
+      }
+      const accountType = accountTypes[account.address];
+      const accountDetail = accountDetails[account.address];
+      if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
+        return dispatch(setToAccount(account));
+      }
+      setLoadingToAccount(true);
+      dispatch(setToAccount(account));
+      await dispatch(setupAccountDetail(account.address));
+      await dispatch(setupAccountType(account.address));
+      setLoadingToAccount(false);
+    }, 500),
+    [],
+  );
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
@@ -288,119 +317,140 @@ export const Send = () => {
   return (
     <Container>
       <Head />
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <FormControl isInvalid={!isEmpty(fromErrors)}>
-          <FormLabel
-            marginBottom={'8px'}
-            fontWeight={500}
-            fontSize="14px"
-            lineHeight="150%"
-            htmlFor="text"
-            display={'inline-block'}
-          >
-            From
-          </FormLabel>
-          <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e)} />
-          <FormErrorMessage textAlign={'left'}>
-            {fromErrors && fromErrors.map((error, index) => <Box key={index}>{error}</Box>)}
-          </FormErrorMessage>
-          <FormHelperText
-            display={'flex'}
-            alignItems={'center'}
-            justifyContent={'flex-end'}
-            textAlign={'right'}
-            color="#76808F"
-          >
-            Balance on Greenfield:{' '}
-            {isLoadingDetail === fromAccount.address ? (
-              <Loading size={12} marginX={4} color="readable.normal" />
-            ) : (
-              renderFee(balance, exchangeRate + '')
-            )}
-          </FormHelperText>
-        </FormControl>
-        <FormControl isInvalid={!isEmpty(toErrors)} marginY={24}>
-          <FormLabel
-            marginBottom={'8px'}
-            fontWeight={500}
-            fontSize="14px"
-            lineHeight="150%"
-            htmlFor="text"
-            display={'flex'}
-          >
-            To
-            <Tips
-              tips={
-                'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
-              }
+      <FormContent>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <FormControl className="form-select" isInvalid={!isEmpty(fromErrors)}>
+            <FormLabel
+              marginBottom={'8px'}
+              fontWeight={500}
+              fontSize="14px"
+              htmlFor="text"
+              display={'inline-block'}
+            >
+              From
+            </FormLabel>
+            <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e)} />
+            <FormErrorMessage textAlign={'left'}>
+              {fromErrors && fromErrors.map((error, index) => <Box key={index}>{error}</Box>)}
+            </FormErrorMessage>
+            <FormHelperText
+              mt={8}
+              display={'flex'}
+              alignItems={'center'}
+              justifyContent={'flex-end'}
+              textAlign={'right'}
+              color="#76808F"
+            >
+              Balance on Greenfield:{' '}
+              {isLoadingDetail === fromAccount.address ? (
+                <Loading size={12} marginX={4} color="readable.normal" />
+              ) : (
+                renderFee(balance, exchangeRate + '')
+              )}
+            </FormHelperText>
+          </FormControl>
+          <FormControl className="form-select" isInvalid={!isEmpty(toErrors)} mt={8} mb={24}>
+            <FormLabel
+              marginBottom={'8px'}
+              fontWeight={500}
+              fontSize="14px"
+              htmlFor="text"
+              display={'flex'}
+            >
+              To
+              <Tips
+                tips={
+                  'Only send to BNB Greenfield addresses. Sending to other network addresses may result in permanent loss.'
+                }
+              />
+            </FormLabel>
+            <ToAccountSelector
+              value={to}
+              isError={!isEmpty(toJsErrors)}
+              disabled={isDisableToAccount}
+              loading={loadingToAccount}
+              onChange={(e) => onChangeToAccount(e)}
             />
-          </FormLabel>
-          <ToAccountSelector
-            value={to}
-            isError={!isEmpty(toJsErrors)}
-            disabled={isDisableToAccount}
-            loading={loadingToAccount}
-            onChange={(e) => onChangeToAccount(e)}
+            {!['gnfd_account', 'unknown_account', 'error_account'].includes(
+              accountTypes[toAccount.address],
+            ) && (
+              <FormHelperText
+                display={'flex'}
+                alignItems={'center'}
+                justifyContent={'flex-end'}
+                textAlign={'right'}
+                color="#76808F"
+                mt={8}
+              >
+                Balance on Greenfield:{' '}
+                {loadingToAccount ? (
+                  <Loading size={12} marginX={4} color="readable.normal" />
+                ) : (
+                  renderFee(toBalance, exchangeRate + '')
+                )}
+              </FormHelperText>
+            )}
+            <FormErrorMessage textAlign={'left'}>
+              {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
+            </FormErrorMessage>
+          </FormControl>
+          <Amount
+            balance={balance}
+            errors={errors}
+            txType={txType === 'withdraw_from_payment_account' ? txType : undefined}
+            register={register}
+            disabled={isSubmitting}
+            watch={watch}
+            feeData={feeData}
+            setValue={setValue}
+            maxDisabled={isLoading}
           />
-          <FormHelperText
-            display={'flex'}
-            alignItems={'center'}
-            justifyContent={'flex-end'}
-            textAlign={'right'}
-            color="#76808F"
-          >
-            Balance on Greenfield:{' '}
-            {loadingToAccount ? (
-              <Loading size={12} marginX={4} color="readable.normal" />
-            ) : (
-              renderFee(toBalance, exchangeRate + '')
-            )}
-          </FormHelperText>
-          <FormErrorMessage textAlign={'left'}>
-            {toErrors && toErrors.map((error, index) => <Box key={index}>{error}</Box>)}
-          </FormErrorMessage>
-        </FormControl>
-        <Amount
-          balance={balance}
-          errors={errors}
-          txType={txType === 'withdraw_from_payment_account' ? txType : undefined}
-          register={register}
-          disabled={isSubmitting}
-          watch={watch}
-          feeData={feeData}
-          setValue={setValue}
-          maxDisabled={isLoading}
+          {isShowFee() ? (
+            <>
+              <Divider margin={'24px 0'} />
+              <Fee
+                isGasLoading={isLoading || isLoadingSettlementFee}
+                feeData={feeData}
+                showSettlement={txType === 'withdraw_from_payment_account'}
+                settlementFee={settlementFee}
+                amount={inputAmount}
+                bankBalance={bankBalance}
+                staticBalance={balance}
+              />
+            </>
+          ) : (
+            <Box height={'32px'} w="100%"></Box>
+          )}
+          <WalletButton
+            isGasLoading={false}
+            disabled={
+              !isEmpty(errors) ||
+              !isEmpty(fromErrors) ||
+              (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
+              isSubmitting ||
+              isLoading ||
+              (!!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet)
+            }
+            isSubmitting={isSubmitting}
+            gaClickSwitchName="dc.wallet.send.switch_network.click"
+            gaClickSubmitName="dc.wallet.send.transferout_btn.click"
+          />
+        </form>
+        <StatusModal
+          viewTxUrl={viewTxUrl}
+          isOpen={isOpen}
+          onClose={onModalClose}
+          status={status}
+          errorMsg={errorMsg}
         />
-        {isShowFee() ? (
-          <>
-            <Divider margin={'12px 0'} />
-            <Fee
-              isGasLoading={isLoading || isLoadingSettlementFee}
-              feeData={feeData}
-              showSettlement={txType === 'withdraw_from_payment_account'}
-              settlementFee={settlementFee}
-              amount={inputAmount}
-            />
-          </>
-        ) : (
-          <Box height={'32px'} w="100%"></Box>
-        )}
-        <WalletButton
-          isGasLoading={false}
-          disabled={
-            !isEmpty(errors) ||
-            !isEmpty(fromErrors) ||
-            (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
-            isSubmitting ||
-            isLoading ||
-            (!!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet)
-          }
-          isSubmitting={isSubmitting}
-          gaClickSwitchName="dc.wallet.send.switch_network.click"
-          gaClickSubmitName="dc.wallet.send.transferout_btn.click"
-        />
-      </form>
-      <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+      </FormContent>
     </Container>
   );
-};
+});
+
+const FormContent = styled.div`
+  .form-select .ui-input {
+    height: 44px;
+    font-size: 14px;
+  }
+`;
