@@ -81,7 +81,7 @@ export const Banner = () => {
           <Flex justifySelf={'flex-end'} alignSelf={'flex-end'}>
             <Image
               alt="dcellar function screenshot"
-              src={`${assetPrefix}/images/welcome/banner-1.png`}
+              src={`${assetPrefix}/images/welcome/banner-2.png`}
               w={553}
               sx={{
                 [mdMedia]: {

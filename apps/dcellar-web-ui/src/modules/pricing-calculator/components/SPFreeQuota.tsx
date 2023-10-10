@@ -32,10 +32,17 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
           key={index}
           border={'1px solid readable.border'}
           p={12}
+          as='a'
+          href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.operatorAddress}`}
+          target="_blank"
           w={'50%'}
           justifyContent={'space-between'}
           borderLeftColor={index % 2 !== 0 ? 'transparent' : 'readable.border'}
           borderTopColor={index > 1 ? 'transparent' : 'readable.border'}
+          color='readable.normal'
+          _hover={{
+            color: 'brand.brand5'
+          }}
           sx={{
             [smMedia]: {
               width: '100%',
@@ -45,19 +52,12 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
             },
           }}
         >
-          <Link
-            href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.operatorAddress}`}
-            target="_blank"
-            cursor={'pointer'}
-            display={'flex'}
-            alignItems={'center'}
-            color={'readable.normal'}
-          >
+          <Flex alignItems={'center'}>
             <Text fontWeight={600} fontSize={14} display={'inline-block'}>
               {item.name}
             </Text>
             <ExternalLinkIcon w={12} />
-          </Link>
+          </Flex>
           <Text color="readable.tertiary">{formatBytes(item.freeQuota)}</Text>
         </Flex>
       ))}

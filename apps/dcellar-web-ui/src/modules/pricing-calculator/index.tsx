@@ -68,9 +68,7 @@ export const PriceCalculator = () => {
     setStoreParams(latestStoreParams);
   }, []);
   useAsyncEffect(async () => {
-    console.log('invoke client render');
     const bnbPrice = await getBnbPrice();
-    console.log('invoke client render bnbPrice', bnbPrice);
     setBnbPrice(bnbPrice.price);
     const [gasFees, error] = await getGasFees();
     const gasLimit =

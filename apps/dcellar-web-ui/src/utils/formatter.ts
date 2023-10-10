@@ -6,15 +6,15 @@ export const formatBytes = (bytes: number | string, isFloor = false) => {
     bytes = parseInt(bytes);
   }
   if (bytes < 1024) {
-    return bytes + 'B';
+    return bytes + ' B';
   } else if (bytes < 1048576) {
-    return getNumInDigits(bytes / 1024, 1, false, isFloor) + 'KB';
+    return getNumInDigits(bytes / 1024, 1, false, isFloor) + ' KB';
   } else if (bytes < 1073741824) {
-    return getNumInDigits(bytes / 1048576, 1, false, isFloor) + 'MB';
+    return getNumInDigits(bytes / 1048576, 1, false, isFloor) + ' MB';
   } else if (bytes < 1099511627776) {
-    return getNumInDigits(bytes / 1073741824, 1, false, isFloor) + 'GB';
+    return getNumInDigits(bytes / 1073741824, 1, false, isFloor) + ' GB';
   } else {
-    return getNumInDigits(bytes / 1099511627776, 1, false, isFloor) + 'TB';
+    return getNumInDigits(bytes / 1099511627776, 1, false, isFloor) + ' TB';
   }
 };
 

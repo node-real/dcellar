@@ -1,3 +1,4 @@
+import { assetPrefix } from '@/base/env';
 import Head from 'next/head';
 import React from 'react';
 
@@ -33,11 +34,10 @@ export const SEOHead = () => {
         name="twitter:description"
         content="DCellar is a storage tool that empowers developers to get started with BNB Greenfield decentralized storage blockchain and BNB Smart Chain (BSC)."
       />
-      {/* TODO add welcome page image */}
-      {/* <meta
+      <meta
         property="twitter:image"
-        content={`${assetPrefix}/images/pricing-calculator_thumbnail.png`}
-      /> */}
+        content={`${assetPrefix}/images/homepage_thumbnail.png`}
+      />
     </Head>
   );
 };

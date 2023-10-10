@@ -47,7 +47,7 @@ export const PricingCalculator = () => {
         <DCButton
           variant="brand"
           onClick={() => {
-            window.open(InternalRoutePaths.pricing_calculator, '_blank');
+            window.open(InternalRoutePaths.pricing_calculator);
           }}
           w={'fit-content'}
           sx={{
