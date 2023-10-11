@@ -12,6 +12,7 @@ export const light = {
     opacity8: 'rgba(17, 132, 238, 0.15)',
     opacity9: 'rgba(0, 0, 0, 0.15)',
     opacity10: 'rgba(255, 255, 255, 0.10)',
+    opacity11: 'rgba(255, 255, 255, 0.80)',
     brand: {
       'normal-hight': '#009e2c',
       normal: '#00ba34',

@@ -31,6 +31,7 @@ export const SizeMenu = ({
             bgColor={'bg.bottom'}
             _hover={{
               bg: 'bg.secondary',
+              border: '1px solid brand.brand5',
             }}
             _expanded={{
               border: '1px solid brand.brand5'

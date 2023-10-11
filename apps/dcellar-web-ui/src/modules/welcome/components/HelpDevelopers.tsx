@@ -1,6 +1,6 @@
 import { assetPrefix } from '@/base/env';
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text, Image, useMediaQuery } from '@totejs/uikit';
+import { Box, Flex, Text, Image, useMediaQuery, Square } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
 import { INTER_FONT } from '@/modules/wallet/constants';
@@ -10,22 +10,26 @@ const datas = [
     intro: 'NFT Storage and Minting',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#nft-metadata-and-medium-storage',
     img: `${assetPrefix}/images/welcome/nft.png`,
+    imgSm: `${assetPrefix}/images/welcome/nft_sm.png`,
     gaClickName: 'dc_lp.homepage.use_case.nft.click',
   },
   {
     intro: 'SP Functional Verification',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#verify-your-storage-provider-sp-with-dcellar',
     img: `${assetPrefix}/images/welcome/security.png`,
+    imgSm: `${assetPrefix}/images/welcome/security_sm.png`,
     gaClickName: 'dc_lp.homepage.use_case.sp.click',
   },
   {
     intro: 'Web Hosting',
     link: 'https://docs.nodereal.io/docs/dcellar-as-developer-tool#web-hosting',
     img: `${assetPrefix}/images/welcome/host.png`,
+    imgSm: `${assetPrefix}/images/welcome/host_sm.png`,
     gaClickName: 'dc_lp.homepage.use_case.hosting.click',
   },
 ];
 export const HelpDevelopers = () => {
+  const [isMobile] = useMediaQuery('(max-width: 767px)');
   return (
     <LandingResponsiveContainer>
       <Flex
@@ -64,13 +68,18 @@ export const HelpDevelopers = () => {
             datas.map((item, index) => (
               <GAClick name={item.gaClickName} key={index}>
                 <Box as="a" href={item.link} key={index} target="_blank">
-                  <Image alt={`${item.intro} icon`} src={item.img}></Image>
+                  <Image
+                    alt={`${item.intro} icon`}
+                    src={isMobile ? item.imgSm : item.img}
+                    fallbackStrategy="beforeLoadOrError"
+                    fallback={<Square size={191} color="white"></Square>}
+                  ></Image>
                   <Text
                     as="h3"
-                    py={24}
+                    py={18}
                     fontFamily={INTER_FONT}
                     textAlign={'center'}
-                    fontSize={24}
+                    fontSize={18}
                     fontWeight={600}
                     sx={{
                       [smMedia]: {

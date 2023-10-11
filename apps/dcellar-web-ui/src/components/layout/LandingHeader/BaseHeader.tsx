@@ -44,11 +44,11 @@ export const BaseHeader = () => {
       paddingX="40px"
       alignItems="center"
       justifyContent={'space-between'}
-      bg={'transparent'}
       position={'fixed'}
       zIndex={1100}
       backdropFilter={'blur(10px)'}
       boxShadow={isScroll ? '0px 4px 24px 0px rgba(0, 0, 0, 0.08)' : 'none'}
+      background={isScroll ? 'opacity11' : 'transparent'}
     >
       <GAClick name="dc_lp.main.header.logo.click">
         <Logo href="/" />
