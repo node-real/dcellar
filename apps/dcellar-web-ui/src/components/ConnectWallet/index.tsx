@@ -4,6 +4,9 @@ import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { useDispatch } from 'react-redux';
 import { setConnectWallet } from '@/store/slices/global';
+import { useAppSelector } from '@/store';
+import { useRouter } from 'next/router';
+import { InternalRoutePaths } from '@/utils/constant';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -12,8 +15,23 @@ interface ConnectWalletProps extends DCButtonProps {
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
   const dispatch = useDispatch();
+  const router = useRouter();
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const { icon, text, ...restProps } = props;
   const onOpen = () => {
+    if (loginAccount) {
+      const originPathname = decodeURIComponent(router.query.originAsPath as string);
+      setTimeout(
+        () =>
+          router.push(
+            !!originPathname && originPathname !== 'undefined'
+              ? originPathname
+              : InternalRoutePaths.buckets,
+          ),
+        100,
+      );
+      return;
+    };
     dispatch(setConnectWallet(true));
   }
   return (

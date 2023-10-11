@@ -43,10 +43,14 @@ export function WalletConnectModal() {
     if (
       hasTrigger &&
       !isAuthPending &&
-      !!address &&
-      ssrLandingRoutes.some((item) => item === router.pathname)
+      !!address
     ) {
       onClose();
+      // Only user trigger login at landing page that app needs redirect to the main page.
+      if (!ssrLandingRoutes.some((item) => item === router.pathname)) {
+        return;
+      }
+      // Redirect to the main page after user login manually.
       const originPathname = decodeURIComponent(router.query.originAsPath as string);
       setTimeout(
         () =>

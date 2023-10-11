@@ -75,7 +75,7 @@ export const BaseHeader = () => {
         fontSize={14}
         gaClickName={gaClickName}
         icon={<IconFont type={'wallet-filled'} w={24} />}
-        text="Connect Wallet"
+        text="Get Started"
         variant="ghost"
         border={'1px solid readable.border'}
         _hover={{
