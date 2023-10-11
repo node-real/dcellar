@@ -6,6 +6,7 @@ import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
+import { InternalRoutePaths } from '@/utils/constant';
 
 interface TNetwork extends MenuOption {
   label: string;
@@ -33,7 +34,10 @@ export const SelectNetwork = () => {
     if (runtimeEnv === net.value) {
       return;
     }
-    window.location.href = `${net.domain}${router.asPath}`;
+    const isBucketsPath = router.pathname.includes(InternalRoutePaths.buckets);
+    window.location.href = isBucketsPath
+      ? `${net.domain}${InternalRoutePaths.buckets}`
+      : `${net.domain}${router.asPath}`;
   };
 
   return (

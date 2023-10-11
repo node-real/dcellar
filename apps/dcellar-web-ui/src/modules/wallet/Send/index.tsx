@@ -49,6 +49,7 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { removeTrailingSlash } from '@/utils/string';
 import { InternalRoutePaths } from '@/utils/constant';
 import styled from '@emotion/styled';
+import { Loading as PageLoading } from '@/components/common/Loading';
 
 export type TxType =
   | 'withdraw_from_payment_account'
@@ -108,13 +109,7 @@ export const Send = memo<SendProps>(function Send() {
     mode: 'all',
   });
   useEffect(() => {
-    if (
-      isLoadingPaymentAccounts ||
-      isEmpty(ownerAccount) ||
-      initFormRef.current ||
-      initFormRef.current
-    )
-      return;
+    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -215,7 +210,7 @@ export const Send = memo<SendProps>(function Send() {
           },
           connector,
         );
-        txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address]});
+        txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address] });
         break;
       case 'withdraw_from_payment_account':
         onOpen();
@@ -310,7 +305,7 @@ export const Send = memo<SendProps>(function Send() {
   if (!initFormRef.current)
     return (
       <Flex justifyContent="center" my={50}>
-        <Loading />
+        <PageLoading />
       </Flex>
     );
 
