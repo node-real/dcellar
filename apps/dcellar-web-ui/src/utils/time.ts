@@ -51,7 +51,7 @@ export const formatFullTime = (
   utcZeroTimestamp = 0,
   format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
 ) => {
-  if (String(utcZeroTimestamp).length !== 13) {
+  if (!utcZeroTimestamp) {
     return '--';
   }
   const formatStyle = format || 'MMM D, YYYY HH:mm A';
