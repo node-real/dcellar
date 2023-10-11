@@ -56,7 +56,7 @@ import { BN } from '@/utils/math';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
-import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
 
 interface CreateFolderOperationProps {
@@ -89,6 +89,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const { settlementFee } = useSettlementFee(PaymentAddress);
   const { setOpenAuthModal } = useOffChainAuth();
   const isOwnerAccount = accountDetail.address === loginAccount;
+  const [balanceEnough, setBalanceEnough] = useState(true);
 
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
@@ -371,22 +372,23 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
           prepaidFee={storeFee}
           settlementFee={settlementFee}
         />
-        {renderPaymentInsufficientBalance({
-          gasFee,
-          storeFee,
-          refundFee: '0',
-          settlementFee,
-          payGasFeeBalance: bankBalance,
-          payStoreFeeBalance: accountDetail.staticBalance,
-          ownerAccount: loginAccount,
-          payAccount: accountDetail.address,
-        })}
+        <PaymentInsufficientBalance
+          gasFee={gasFee}
+          storeFee={storeFee}
+          settlementFee={settlementFee}
+          refundFee={'0'}
+          payGasFeeBalance={bankBalance}
+          payStoreFeeBalance={accountDetail.staticBalance}
+          ownerAccount={loginAccount}
+          payAccount={accountDetail.address}
+          onValidate={setBalanceEnough}
+        />
         <Flex w="100%">
           <DCButton
             size="lg"
             w="100%"
             onClick={onCreateFolder}
-            isDisabled={loading || !!formErrors.length}
+            isDisabled={loading || !!formErrors.length || !balanceEnough}
             justifyContent="center"
             gaClickName="dc.file.create_folder_m.create.click"
           >
