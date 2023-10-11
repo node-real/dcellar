@@ -1,4 +1,4 @@
-import { DCModal, DCModalProps } from '@/components/common/DCModal';
+import { DCModal } from '@/components/common/DCModal';
 import { WalletItem } from '@/components/ConnectWallet/WalletItem';
 import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
@@ -9,25 +9,32 @@ import { ConnectorNotFoundError } from 'wagmi';
 import { useAppLogin } from '@/modules/welcome/hooks/useAppLogin';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/utils/constant';
+import {
+  InternalRoutePaths,
+  METAMASK_DOWNLOAD_URL,
+  TRUST_WALLET_DOWNLOAD_URL,
+} from '@/utils/constant';
 import { ssrLandingRoutes } from '@/pages/_app';
-import { METAMASK_DOWNLOAD_URL, TRUST_WALLET_DOWNLOAD_URL } from '@/utils/constant';
 import { IconFont } from '@/components/IconFont';
 import { setConnectWallet } from '@/store/slices/global';
 import { useDispatch } from 'react-redux';
+import { openLink } from '@/utils/bom';
 
 export interface WalletConnectModalProps {}
+
 export function WalletConnectModal() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [hasTrigger, setHasTrigger] = useState(false);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const [currentAddress, setCurrentAddress] = useState<string | undefined>(address);
+  const [currentAddress, setCurrentAddress] = useState<string | undefined>('');
   const { connectWallet: isOpen } = useAppSelector((state) => state.global);
   const { isAuthPending } = useAppLogin(currentAddress);
+
   const onClose = useCallback(() => {
-    dispatch(setConnectWallet(false))
+    dispatch(setConnectWallet(false));
   }, [dispatch]);
+
   const onSuccess = useCallback((address?: string) => {
     setCurrentAddress(address);
   }, []);
@@ -56,12 +63,8 @@ export function WalletConnectModal() {
   const onConnectError = useCallback((err: Error, args: any) => {
     if (err instanceof ConnectorNotFoundError) {
       const { connector } = args;
-
-      if (connector.id === 'trust') {
-        window.open(TRUST_WALLET_DOWNLOAD_URL, '_blank');
-      } else if (connector.id === 'metaMask') {
-        window.open(METAMASK_DOWNLOAD_URL, '_blank');
-      }
+      const link = connector.id === 'trust' ? TRUST_WALLET_DOWNLOAD_URL : METAMASK_DOWNLOAD_URL;
+      openLink(link);
     }
   }, []);
 

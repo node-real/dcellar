@@ -16,13 +16,8 @@ const LINKS = {
 export const NetworkSwitch = () => {
   const network = ['testnet', 'mainnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
   const onSwitchClick = (net: 'mainnet' | 'testnet') => {
-    if (net === network) {
-      return;
-    }
-    const a = document.createElement('a');
-    // a.target = '_blank';
-    a.href = LINKS[net].fullUrl;
-    a.click();
+    if (net === network) return;
+    window.location.href = LINKS[net].fullUrl;
   };
   return (
     <Flex>

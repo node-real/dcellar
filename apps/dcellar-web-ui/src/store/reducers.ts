@@ -12,6 +12,7 @@ import object from '@/store/slices/object';
 import apollo from '@/store/slices/apollo';
 import group from '@/store/slices/group';
 import accounts from '@/store/slices/accounts';
+import { runtimeEnv } from '@/base/env';
 
 const rootReducer = combineReducers({
   global,
@@ -43,7 +44,7 @@ export const persistConfig = {
   storage,
   whitelist: ['persist'],
   throttle: 300,
-  keyPrefix: `Dcellar_`,
+  keyPrefix: `Dcellar_${runtimeEnv}`,
   stateReconciler: autoMergeLevel2,
 };
 

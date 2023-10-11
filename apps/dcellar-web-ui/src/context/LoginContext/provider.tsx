@@ -69,16 +69,17 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   }, [connector, inline, loginAccount, logout, pathname, walletAddress]);
 
   useAsyncEffect(async () => {
-    if (loginAccount === walletAddress) {
+    // ssr pages loginAccount initial value ''
+    if (loginAccount && loginAccount === walletAddress) {
       // expire date less than 24h，remove sp auth & logout
       const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
       if (spMayExpired) logout(true);
     }
-  }, [walletAddress]);
+  }, [walletAddress, loginAccount]);
 
   const { pass } = useLoginGuard(inline);
 
-  if (!pass && !ssrLandingRoutes.some(item => item === pathname)) {
+  if (!pass && !ssrLandingRoutes.some((item) => item === pathname)) {
     return null;
   }
 
