@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Flex } from '@totejs/uikit';
-import { trimLongStr } from '@/utils/string';
+import { trimAddress, trimLongStr } from '@/utils/string';
 import { CloseIcon } from '@totejs/icons';
 import * as React from 'react';
 import { ADDRESS_RE } from '@/utils/constant';
@@ -56,7 +56,7 @@ export const RenderItem = memo<RenderItemProps>(function RenderItem({
       cursor="default"
     >
       {group && <IconFont type={'group'} w={16} />}
-      {address ? label : trimLongStr(label as string, 20, 20, 0)}
+      {address ? trimAddress(label as string) : trimLongStr(label as string, 20, 20, 0)}
       <CloseIcon
         onClick={onClose as any}
         cursor="pointer"

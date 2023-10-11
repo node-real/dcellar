@@ -111,7 +111,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   return (
     <DCInputSelect
       isDisabled={disabled}
-      RightIcon={RightIcon}
+      RightIcon={() => <Box onClick={(e) => e.stopPropagation()}>{RightIcon()}</Box>}
       value={account?.address}
       text={account?.address}
       placeholder="Choose or enter addresses"
