@@ -15,6 +15,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   addDeletedObject,
   setObjectList,
+  setSelectedRowKeys,
   setStatusDetail,
   TStatusDetail,
 } from '@/store/slices/object';
@@ -40,6 +41,7 @@ import { signTypedDataCallback } from '@/facade/wallet';
 import { reportEvent } from '@/utils/gtag';
 import { Animates } from '@/components/AnimatePng';
 import { TotalFees } from '@/modules/object/components/TotalFees';
+import { without } from 'lodash-es';
 
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -66,7 +68,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const { loginAccount } = useAppSelector((root) => root.persist);
     // Since reserveTime rarely change, we can optimize performance by using global data.
     const { reserveTime } = useAppSelector(selectStoreFeeParams);
-    const { bucketName, path } = useAppSelector((root) => root.object);
+    const { bucketName, path, selectedRowKeys } = useAppSelector((root) => root.object);
     const [balanceEnough, setBalanceEnough] = useState(true);
     const [loading, setLoading] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
@@ -295,6 +297,8 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                       ts: Date.now(),
                     }),
                   );
+                  // unselected
+                  dispatch(setSelectedRowKeys(without(selectedRowKeys, objectInfo.ObjectName)));
                 } else {
                   toast.error({ description: 'Object deletion failed.' });
                 }

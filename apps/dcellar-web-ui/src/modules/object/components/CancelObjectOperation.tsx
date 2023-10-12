@@ -11,7 +11,12 @@ import {
 import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
 import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
-import { addDeletedObject, setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import {
+  addDeletedObject,
+  setSelectedRowKeys,
+  setStatusDetail,
+  TStatusDetail,
+} from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
@@ -32,6 +37,7 @@ import {
 import { getClient } from '@/facade';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { Animates } from '@/components/AnimatePng';
+import { without } from 'lodash-es';
 
 export const renderFee = (
   key: string,
@@ -99,7 +105,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
     const {
       bnb: { price: bnbPrice },
     } = useAppSelector((root) => root.global);
-    const { bucketName } = useAppSelector((root) => root.object);
+    const { bucketName, selectedRowKeys } = useAppSelector((root) => root.object);
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
     const exchangeRate = +bnbPrice ?? 0;
     const [loading, setLoading] = useState(false);
@@ -263,6 +269,8 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                       ts: Date.now(),
                     }),
                   );
+                  // unselected
+                  dispatch(setSelectedRowKeys(without(selectedRowKeys, objectInfo.ObjectName)));
                   refetch();
                   dispatch(setupBucketQuota(bucketName));
                 } else {
