@@ -504,7 +504,13 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                           <Box key={p.PrincipalValue} title={p.PrincipalValue}>
                             <Avatar id={p.PrincipalValue} w={32} />
                           </Box>
-                          <Text flex={1} ml={8} fontWeight={500} title={p.PrincipalValue}>
+                          <Text
+                            flex={1}
+                            ml={8}
+                            fontWeight={500}
+                            title={p.PrincipalValue}
+                            color={'readable.normal'}
+                          >
                             {isGroup ? p.PrincipalValue : trimAddress(p.PrincipalValue)}
                             {owner && <> (you)</>}
                           </Text>

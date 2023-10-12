@@ -354,7 +354,13 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                             <Box key={p.AccountId} title={p.AccountId}>
                               <Avatar id={p.AccountId} w={32} />
                             </Box>
-                            <Text flex={1} ml={8} fontWeight={500} title={p.AccountId}>
+                            <Text
+                              flex={1}
+                              ml={8}
+                              fontWeight={500}
+                              title={p.AccountId}
+                              color={'readable.normal'}
+                            >
                               {trimAddress(p.AccountId)}
                               {owner && <> (you)</>}
                             </Text>
