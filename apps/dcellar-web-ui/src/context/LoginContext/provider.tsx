@@ -45,7 +45,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   });
 
   const { pathname } = useRouter();
-  const { address: walletAddress, connector } = useAccount();
+  const { address: walletAddress, isConnected } = useAccount();
 
   useEffect(() => {
     if (pathname === '/' || inline) return;
@@ -58,7 +58,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     // but if wallet is locked, we can't get the connector from wagmi
     // to avoid errors when using the connector, we treat this situation as logout.
     const timer = setTimeout(() => {
-      if (!connector) {
+      if (!isConnected) {
         logout();
       }
     }, 1000);
@@ -66,7 +66,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     return () => {
       clearTimeout(timer);
     };
-  }, [connector, inline, loginAccount, logout, pathname, walletAddress]);
+  }, [inline, isConnected, loginAccount, logout, pathname, walletAddress]);
 
   useAsyncEffect(async () => {
     // ssr pages loginAccount initial value ''

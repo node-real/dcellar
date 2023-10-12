@@ -18,12 +18,12 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   const dispatch = useDispatch();
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { isConnected } = useAccount();
+  const { isConnecting, isConnected, connector } = useAccount();
   const { icon, text, ...restProps } = props;
   const onOpen = () => {
     // The window.trustwallet.request method is undefined when the app is loaded. So add a delay to avoid.
     setTimeout(() => {
-      if (loginAccount && isConnected) {
+      if (loginAccount && isConnected && !isConnecting) {
         const originPathname = decodeURIComponent(router.query.originAsPath as string);
         return router.push(
           !!originPathname && originPathname !== 'undefined'

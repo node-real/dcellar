@@ -11,9 +11,9 @@ export const reverseVisibilityType = convertVisibility();
 export const CHAIN_NAMES: { [key: number | string]: string } = {
   56: 'BNB Smart Chain Mainnet',
   97: 'BNB Smart Chain Testnet',
-  9000: 'Greenfield Devnet',
-  5600: 'Greenfield Testnet',
-  1017: 'Greenfield Mainnet',
+  9000: 'BNB Greenfield Devnet',
+  5600: 'BNB Greenfield Testnet',
+  1017: 'BNB Greenfield Mainnet',
 };
 
 export const GNFD_TESTNET = 5600;

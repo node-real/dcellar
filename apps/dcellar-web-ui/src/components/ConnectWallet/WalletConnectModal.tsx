@@ -86,11 +86,11 @@ export function WalletConnectModal() {
 
   const isLoading = isWalletConnecting || isAuthPending;
 
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     disconnect();
-  //   }
-  // }, [disconnect, isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      disconnect();
+    }
+  }, [disconnect, isOpen]);
 
   return (
     <DCModal
