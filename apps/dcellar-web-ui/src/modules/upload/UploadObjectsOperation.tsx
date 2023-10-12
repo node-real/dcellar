@@ -44,7 +44,7 @@ import {
   UPLOADING_STATUSES,
   WaitFile,
 } from '@/store/slices/global';
-import { useAsyncEffect, useScroll, useUnmount, useWhyDidYouUpdate } from 'ahooks';
+import { useAsyncEffect, useScroll } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { isEmpty, round } from 'lodash-es';

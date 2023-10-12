@@ -6,6 +6,7 @@ import {
   GroupMember,
   selectMemberList,
   setMemberListPage,
+  setSelectedGroupMember,
   setupGroupMembers,
 } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
@@ -13,7 +14,16 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAsyncEffect, useUnmount } from 'ahooks';
-import { Box, Flex, MenuButton, QDrawerBody, QDrawerHeader, Text, toast } from '@totejs/uikit';
+import {
+  Box,
+  Divider,
+  Flex,
+  MenuButton,
+  QDrawerBody,
+  QDrawerHeader,
+  Text,
+  toast,
+} from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
@@ -31,6 +41,9 @@ import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { Animates } from '@/components/AnimatePng';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { uniq, without, xor } from 'lodash-es';
+import cn from 'classnames';
 
 const menus: MenuOption[] = [
   { label: 'Member', value: 'member' },
@@ -46,12 +59,14 @@ interface GroupMemberOperationProps {
 }
 
 export const GroupMemberOperation = memo<GroupMemberOperationProps>(function GroupMemberOperation({
-                                                                                                    selectGroup: addGroupMember,
-                                                                                                  }) {
+  selectGroup: addGroupMember,
+}) {
   const dispatch = useAppDispatch();
   const [values, setValues] = useState<string[]>([]);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { memberListPage, groupMembers } = useAppSelector((root) => root.group);
+  const { memberListPage, groupMembers, selectedGroupMember } = useAppSelector(
+    (root) => root.group,
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
@@ -60,7 +75,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [removeAccount, setRemoveAccount] = useState('');
+  const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const memberList = useAppSelector(selectMemberList(addGroupMember.id));
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const memberListLoading = addGroupMember.id && !(addGroupMember.id in groupMembers);
@@ -163,14 +178,15 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
       groupOwner: loginAccount,
       groupName: addGroupMember.groupName,
       membersToAdd: [],
-      membersToDelete: [removeAccount],
+      membersToDelete: removeAccount,
     };
     const [txRes, txError] = await removeMemberFromGroup(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Members removed successfully!' });
-    updateMemberList(removeAccount, true);
+    updateMemberList(removeAccount[0], true);
+    dispatch(setSelectedGroupMember(without(selectedGroupMember, ...removeAccount)));
   };
 
   const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
@@ -186,6 +202,33 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   }, [dispatch, addGroupMember.id]);
 
   const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
+
+  const onSelectChange = (value: string) => {
+    dispatch(setSelectedGroupMember(xor(selectedGroupMember, [value])));
+  };
+
+  const indeterminate = page.some((i) => selectedGroupMember.includes(i.AccountId));
+  const accounts = without(
+    page.map((i) => i.AccountId),
+    loginAccount,
+  );
+  const allChecked = accounts.every((i) => selectedGroupMember.includes(i)) && !!accounts.length;
+
+  const onSelectAllChange = () => {
+    if (allChecked) {
+      // cancel all
+      dispatch(setSelectedGroupMember(without(selectedGroupMember, ...accounts)));
+    } else {
+      // select all
+      dispatch(setSelectedGroupMember(uniq(selectedGroupMember.concat(accounts))));
+    }
+  };
+
+  useUnmount(() => {
+    dispatch(setSelectedGroupMember([]));
+  });
+
+  const members = selectedGroupMember.length;
 
   return (
     <>
@@ -219,16 +262,16 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
           cancelButton: 'dc.group.remove_member_confirm.cancel.click',
           confirmButton: 'dc.group.remove_member_confirm.delete.click',
         }}
-        title="Confirm Action"
+        title="Remove Member"
         fee={fee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
         }}
         variant={'scene'}
-        description={`Are you sure you want to remove ${trimAddress(
-          removeAccount,
-        )} from this group?`}
+        description={`Are you sure you want to remove ${
+          removeAccount.length === 1 ? trimAddress(removeAccount[0]) : 'these members'
+        } from the group?`}
       />
       <>
         <QDrawerHeader>Group Members</QDrawerHeader>
@@ -263,46 +306,86 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
           {invalid && (
             <Text color="#EE3911">{!invalidIds.length ? error : 'Invalid addresses.'}</Text>
           )}
-          <Box my={8}>
+          <Box my={16}>
+            <Divider />
             {memberListLoading ? (
               <Loading my={24} />
             ) : (
               <>
+                <Thead>
+                  <DCCheckbox
+                    indeterminate={indeterminate && !allChecked}
+                    checked={allChecked}
+                    onChange={onSelectAllChange}
+                    disabled={!accounts.length}
+                  >
+                    <Text fontWeight={600} color={'readable.normal'}>
+                      Members{members > 0 && `(${members})`}
+                    </Text>
+                  </DCCheckbox>
+                  <RemoveBtn
+                    className={cn({ disabled: !members })}
+                    onClick={() => {
+                      if (!members) return;
+                      setRemoveAccount(selectedGroupMember);
+                      setDeleteModal(true);
+                    }}
+                  >
+                    Remove
+                  </RemoveBtn>
+                </Thead>
                 <Flex direction="column" gap={8}>
                   {page.map((p) => {
                     const owner = loginAccount === p.AccountId;
                     return (
-                      <Flex key={p.AccountId} alignItems="center" h={40}>
-                        <Box key={p.AccountId} title={p.AccountId}>
-                          <Avatar id={p.AccountId} w={32} />
-                        </Box>
-                        <Text flex={1} ml={8} fontWeight={500} title={p.AccountId}>
-                          {trimAddress(p.AccountId)}
-                          {owner && <> (you)</>}
-                        </Text>
-                        {owner ? (
-                          'Owner'
-                        ) : (
-                          <DCMenu
-                            value="member"
-                            selectIcon
-                            placement="bottom-start"
-                            options={menus}
-                            onMenuSelect={({ value }) => {
-                              if (value !== 'remove') return;
-                              setRemoveAccount(p.AccountId);
-                              setDeleteModal(true);
-                            }}
-                          >
-                            {({ isOpen }) => (
-                              <StyledMenuButton as={Text}>
-                                Viewer
-                                <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
-                              </StyledMenuButton>
-                            )}
-                          </DCMenu>
-                        )}
-                      </Flex>
+                      <Row
+                        key={p.AccountId}
+                        className={cn({
+                          'select-disabled': owner,
+                          selected: selectedGroupMember.includes(p.AccountId),
+                        })}
+                      >
+                        <DCCheckbox
+                          disabled={owner}
+                          checked={selectedGroupMember.includes(p.AccountId)}
+                          onChange={() => onSelectChange(p.AccountId)}
+                        >
+                          <Flex alignItems="center" h={40}>
+                            <Box key={p.AccountId} title={p.AccountId}>
+                              <Avatar id={p.AccountId} w={32} />
+                            </Box>
+                            <Text flex={1} ml={8} fontWeight={500} title={p.AccountId}>
+                              {trimAddress(p.AccountId)}
+                              {owner && <> (you)</>}
+                            </Text>
+                          </Flex>
+                        </DCCheckbox>
+                        <Operation>
+                          {owner ? (
+                            <Text mr={4}>Owner</Text>
+                          ) : (
+                            <DCMenu
+                              value="member"
+                              selectIcon
+                              placement="bottom-start"
+                              options={menus}
+                              stopPropagation={false}
+                              onMenuSelect={({ value }) => {
+                                if (value !== 'remove') return;
+                                setRemoveAccount([p.AccountId]);
+                                setDeleteModal(true);
+                              }}
+                            >
+                              {({ isOpen }) => (
+                                <StyledMenuButton as={Text}>
+                                  Viewer
+                                  <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
+                                </StyledMenuButton>
+                              )}
+                            </DCMenu>
+                          )}
+                        </Operation>
+                      </Row>
                     );
                   })}
                 </Flex>
@@ -324,17 +407,61 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   );
 });
 
+const RemoveBtn = styled.span`
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  &.disabled {
+    cursor: not-allowed;
+    color: var(--ui-colors-readable-disable);
+  }
+  :not(.disabled):hover {
+    background: #f5f5f5;
+  }
+`;
+
+const Thead = styled(Flex)`
+  justify-content: space-between;
+  align-items: center;
+  height: 36px;
+  margin: 8px 0;
+  position: relative;
+  .ant-checkbox {
+    margin: 2px;
+  }
+`;
+
+const Row = styled(Flex)`
+  position: relative;
+  .ant-checkbox-wrapper {
+    flex: 1;
+  }
+  :not(.select-disabled, .selected):hover {
+    background: var(--ui-colors-bg-bottom);
+  }
+  .ant-checkbox {
+    margin: 2px;
+  }
+  &.selected {
+    background: #00ba341a;
+  }
+`;
+
+const Operation = styled.div`
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+`;
+
 const StyledMenuButton = styled(MenuButton)`
   display: inline-flex;
   cursor: pointer;
   padding: 2px 0 2px 4px;
   border-radius: 2px;
 
-  :hover {
-    background: #f5f5f5;
-  }
-
-  svg {
-    pointer-events: none;
-  }
+  //:hover {
+  //  background: #f5f5f5;
+  //}
 `;

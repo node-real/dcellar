@@ -106,13 +106,12 @@ const renderAddressWithLink = (
 };
 
 const renderUrlWithLink = (
-  text: string,
+  encodedText: string,
   needSlim = true,
   reservedNumber = 32,
   gaClickName?: string,
   gaCopyClickName?: string,
 ) => {
-  const encodedText = encodeURI(text);
   const finalText = needSlim ? encodedText.substring(0, reservedNumber) + '...' : encodedText;
   return (
     <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaCopyClickName}>

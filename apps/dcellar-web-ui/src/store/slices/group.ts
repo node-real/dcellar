@@ -24,6 +24,7 @@ interface GroupState {
   removeGroup: GroupInfo;
   groupMembers: Record<string, GroupMember[]>;
   groupOperation: Record<0 | 1, [string, GroupOperationsType, Record<string, any>?]>;
+  selectedGroupMember: string[];
 }
 
 const initialState: GroupState = {
@@ -34,12 +35,16 @@ const initialState: GroupState = {
   removeGroup: {} as GroupInfo,
   groupMembers: {},
   groupOperation: { 0: ['', '', {}], 1: ['', '', {}] },
+  selectedGroupMember: [],
 };
 
 export const groupSlice = createSlice({
   name: 'group',
   initialState,
   reducers: {
+    setSelectedGroupMember(state, { payload }: PayloadAction<string[]>) {
+      state.selectedGroupMember = payload;
+    },
     setGroupOperation(
       state,
       {
@@ -82,6 +87,7 @@ export const {
   setGroupMembers,
   setMemberListPage,
   setGroupOperation,
+  setSelectedGroupMember,
 } = groupSlice.actions;
 
 export const setupGroupMembers =

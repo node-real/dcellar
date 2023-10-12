@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Box, Flex, Grid, MenuButton, Text, toast } from '@totejs/uikit';
+import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { deleteObjectPolicy, putObjectPolicies } from '@/facade/object';
@@ -10,6 +10,7 @@ import { useAccount } from 'wagmi';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import {
   setObjectPoliciesPage,
+  setSelectedShareMembers,
   setStatusDetail,
   setupObjectPolicies,
   TStatusDetail,
@@ -23,7 +24,7 @@ import {
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
 import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
-import { without } from 'lodash-es';
+import { uniq, without, xor } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
@@ -37,9 +38,12 @@ import { Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import cn from 'classnames';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
+const MAX_GROUP = 10;
 
 const menus: MenuOption[] = [
   { label: 'Viewer', value: 'viewer' },
@@ -54,7 +58,9 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const { connector } = useAccount();
-  const { bucketName, objectPolicies, objectPoliciesPage } = useAppSelector((root) => root.object);
+  const { bucketName, objectPolicies, objectPoliciesPage, selectedShareMembers } = useAppSelector(
+    (root) => root.object,
+  );
   const { loginAccount } = useAppSelector((root) => root.persist);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
@@ -69,7 +75,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [removeAccount, setRemoveAccount] = useState('');
+  const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const [error, setError] = useState('');
 
   const { page, canPrev, canNext } = useTableNav<PolicyMeta>({
@@ -113,7 +119,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     dispatch(setObjectPoliciesPage(0));
   };
 
-  const invalid = !!error || !!invalidIds.length;
+  const groups = uniq(
+    values.concat(memberList.map((l) => l.PrincipalValue)).filter((v) => v.match(GROUP_ID)),
+  );
+
+  const invalid = !!error || !!invalidIds.length || groups.length > MAX_GROUP;
 
   const onError = (type: string) => {
     switch (type) {
@@ -213,7 +223,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     if (error) return onError(error);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Access updated!' });
-    updateMemberList(removeAccount, true);
+    updateMemberList(removeAccount[0], true);
+    dispatch(setSelectedShareMembers(without(selectedShareMembers, ...removeAccount)));
   };
 
   useMount(() => {
@@ -227,7 +238,42 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   );
 
   const putFee = (gasObjects?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
-  const deleteFee = gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0;
+  const deleteFee = (gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * removeAccount.length;
+
+  const onSelectChange = (value: string) => {
+    dispatch(setSelectedShareMembers(xor(selectedShareMembers, [value])));
+  };
+
+  const indeterminate = page.some((i) => selectedShareMembers.includes(i.PrincipalValue));
+  const accounts = without(
+    page.map((i) => i.PrincipalValue),
+    loginAccount,
+  );
+  const allChecked = accounts.every((i) => selectedShareMembers.includes(i)) && !!accounts.length;
+
+  const onSelectAllChange = () => {
+    if (allChecked) {
+      // cancel all
+      dispatch(setSelectedShareMembers(without(selectedShareMembers, ...accounts)));
+    } else {
+      // select all
+      dispatch(setSelectedShareMembers(uniq(selectedShareMembers.concat(accounts))));
+    }
+  };
+
+  useUnmount(() => {
+    dispatch(setSelectedShareMembers([]));
+  });
+
+  const members = selectedShareMembers.length;
+
+  useEffect(() => {
+    if (members > MAX_COUNT) {
+      toast.error({
+        description: `Exceed the permission limit (${MAX_COUNT}). Please select fewer items or repeat this action multiple times.`,
+      });
+    }
+  }, [members]);
 
   return (
     <>
@@ -261,17 +307,20 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
           cancelButton: 'dc.object.remove_object_policy_confirm.cancel.click',
           confirmButton: 'dc.object.remove_object_policy_confirm.delete.click',
         }}
-        title="Remove Permission"
+        title="Remove Access"
         fee={deleteFee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
         }}
         variant={'scene'}
-        description="Please confirm the transaction in your wallet."
+        description={
+          removeAccount.length === 1
+            ? 'Please confirm the transaction in your wallet.'
+            : 'Are you sure you want to remove access to these addresses?'
+        }
       />
       <FormItem>
-        <FormLabel>People with Access</FormLabel>
         <Flex gap={12}>
           <DCComboBox
             mode="tags"
@@ -399,50 +448,93 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         </Flex>
         {invalid && (
           <Text color="#EE3911">
-            {!invalidIds.length ? error : 'Invalid addresses or group IDs.\n'}
+            {!invalidIds.length
+              ? groups.length > MAX_GROUP
+                ? `Exceed the group limit (${MAX_GROUP})`
+                : error
+              : 'Invalid addresses or group IDs.\n'}
           </Text>
         )}
-        <Box my={8}>
+        <Box my={24}>
+          <Divider />
           {memberListLoading ? (
             <Loading my={24} />
           ) : (
             <>
+              <Thead>
+                <DCCheckbox
+                  indeterminate={indeterminate && !allChecked}
+                  checked={allChecked}
+                  onChange={onSelectAllChange}
+                  disabled={!accounts.length}
+                >
+                  <Text fontWeight={600} color={'readable.normal'}>
+                    Members{members > 0 && `(${members})`}
+                  </Text>
+                </DCCheckbox>
+                <RemoveBtn
+                  className={cn({ disabled: !members || members > MAX_COUNT })}
+                  onClick={() => {
+                    if (!members || members > MAX_COUNT) return;
+                    setRemoveAccount(selectedShareMembers);
+                    setDeleteModal(true);
+                  }}
+                >
+                  Remove
+                </RemoveBtn>
+              </Thead>
               <Flex direction="column" gap={8}>
                 {page.map((p, index) => {
                   const owner = loginAccount === p.PrincipalValue;
                   const isGroup = p.PrincipalValue.match(GROUP_ID);
                   return (
-                    <Flex key={p.PrincipalValue + String(index)} alignItems="center" h={40}>
-                      <Box key={p.PrincipalValue} title={p.PrincipalValue}>
-                        <Avatar id={p.PrincipalValue} w={32} />
-                      </Box>
-                      <Text flex={1} ml={8} fontWeight={500} title={p.PrincipalValue}>
-                        {isGroup ? p.PrincipalValue : trimAddress(p.PrincipalValue)}
-                        {owner && <> (you)</>}
-                      </Text>
-                      {owner ? (
-                        'Owner'
-                      ) : (
-                        <DCMenu
-                          value="viewer"
-                          selectIcon
-                          placement="bottom-start"
-                          options={menus}
-                          onMenuSelect={({ value }) => {
-                            if (value !== 'remove') return;
-                            setRemoveAccount(p.PrincipalValue);
-                            setDeleteModal(true);
-                          }}
-                        >
-                          {({ isOpen }) => (
-                            <StyledMenuButton as={Text}>
-                              Viewer
-                              <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
-                            </StyledMenuButton>
-                          )}
-                        </DCMenu>
-                      )}
-                    </Flex>
+                    <Row
+                      key={p.PrincipalValue}
+                      className={cn({
+                        'select-disabled': owner,
+                        selected: selectedShareMembers.includes(p.PrincipalValue),
+                      })}
+                    >
+                      <DCCheckbox
+                        disabled={owner}
+                        checked={selectedShareMembers.includes(p.PrincipalValue)}
+                        onChange={() => onSelectChange(p.PrincipalValue)}
+                      >
+                        <Flex key={p.PrincipalValue + String(index)} alignItems="center" h={40}>
+                          <Box key={p.PrincipalValue} title={p.PrincipalValue}>
+                            <Avatar id={p.PrincipalValue} w={32} />
+                          </Box>
+                          <Text flex={1} ml={8} fontWeight={500} title={p.PrincipalValue}>
+                            {isGroup ? p.PrincipalValue : trimAddress(p.PrincipalValue)}
+                            {owner && <> (you)</>}
+                          </Text>
+                        </Flex>
+                      </DCCheckbox>
+                      <Operation>
+                        {owner ? (
+                          <Text mr={4}>Owner</Text>
+                        ) : (
+                          <DCMenu
+                            value="viewer"
+                            selectIcon
+                            placement="bottom-start"
+                            options={menus}
+                            onMenuSelect={({ value }) => {
+                              if (value !== 'remove') return;
+                              setRemoveAccount([p.PrincipalValue]);
+                              setDeleteModal(true);
+                            }}
+                          >
+                            {({ isOpen }) => (
+                              <StyledMenuButton as={Text}>
+                                Viewer
+                                <IconFont type={isOpen ? 'menu-open' : 'menu-close'} w={16} />
+                              </StyledMenuButton>
+                            )}
+                          </DCMenu>
+                        )}
+                      </Operation>
+                    </Row>
                   );
                 })}
               </Flex>
@@ -463,14 +555,55 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   );
 });
 
-const FormItem = styled.div``;
-
-const FormLabel = styled(Text)`
-  font-size: 14px;
-  font-weight: 600;
-  line-height: normal;
-  margin-bottom: 8px;
+const RemoveBtn = styled.span`
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  &.disabled {
+    cursor: not-allowed;
+    color: var(--ui-colors-readable-disable);
+  }
+  :not(.disabled):hover {
+    background: #f5f5f5;
+  }
 `;
+
+const Thead = styled(Flex)`
+  justify-content: space-between;
+  align-items: center;
+  height: 36px;
+  margin: 8px 0;
+  position: relative;
+  .ant-checkbox {
+    margin: 2px;
+  }
+`;
+
+const Row = styled(Flex)`
+  position: relative;
+  .ant-checkbox-wrapper {
+    flex: 1;
+  }
+  :not(.select-disabled, .selected):hover {
+    background: var(--ui-colors-bg-bottom);
+  }
+  .ant-checkbox {
+    margin: 2px;
+  }
+  &.selected {
+    background: #00ba341a;
+  }
+`;
+
+const Operation = styled.div`
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+`;
+
+const FormItem = styled.div``;
 
 const ScrollContent = styled.div`
   overflow: auto;
@@ -490,8 +623,8 @@ const StyledMenuButton = styled(MenuButton)`
   cursor: pointer;
   padding: 2px 0 2px 4px;
   border-radius: 2px;
-
-  :hover {
-    background: #f5f5f5;
-  }
+  //
+  //:hover {
+  //  background: #f5f5f5;
+  //}
 `;

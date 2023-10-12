@@ -13,6 +13,7 @@ interface DCMenuProps extends MenuProps {
   renderFooter?: () => ReactNode;
   emptyIcon?: string;
   emptyText?: string;
+  stopPropagation?: boolean;
 }
 
 export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
@@ -28,6 +29,7 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     renderFooter,
     emptyIcon,
     emptyText,
+    stopPropagation = true,
     ...restProps
   } = props;
   const isFunc = typeof children === 'function';
@@ -36,7 +38,7 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     <Menu strategy="fixed" {...restProps}>
       {(props) => (
         <>
-          <Box display="contents" onClick={(e) => e.stopPropagation()}>
+          <Box display="contents" onClick={(e) => stopPropagation && e.stopPropagation()}>
             {isFunc ? children(props) : children}
           </Box>
           <Portal>
