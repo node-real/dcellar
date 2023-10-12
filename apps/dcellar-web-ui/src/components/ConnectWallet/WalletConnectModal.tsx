@@ -1,6 +1,14 @@
 import { DCModal } from '@/components/common/DCModal';
 import { WalletItem } from '@/components/ConnectWallet/WalletItem';
-import { Link, ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
+import {
+  Flex,
+  Link,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  ModalHeader,
+  Text,
+} from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
 import { useWallet } from '@/context/WalletConnectContext/hooks/useWallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -40,11 +48,7 @@ export function WalletConnectModal() {
   }, []);
 
   useEffect(() => {
-    if (
-      hasTrigger &&
-      !isAuthPending &&
-      !!address
-    ) {
+    if (hasTrigger && !isAuthPending && !!address) {
       onClose();
       // Only user trigger login at landing page that app needs redirect to the main page.
       if (!ssrLandingRoutes.some((item) => item === router.pathname)) {
@@ -86,11 +90,11 @@ export function WalletConnectModal() {
 
   const isLoading = isWalletConnecting || isAuthPending;
 
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     disconnect();
-  //   }
-  // }, [disconnect, isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      disconnect();
+    }
+  }, [disconnect, isOpen]);
 
   return (
     <DCModal
@@ -101,8 +105,28 @@ export function WalletConnectModal() {
       gaClickCloseName="dc.walletconnect.modal.close.click"
     >
       <ModalCloseButton />
-      <ModalHeader>Connect a Wallet</ModalHeader>
-      <ModalBody mt={34}>
+      <ModalHeader flexDirection={'column'} alignItems={'center'} gap={8}>
+        <Text>Connect a Wallet</Text>
+        <Flex fontSize={14} fontWeight={400} color={'readable.tertiary'}>
+          By connecting your wallet, you agree to our&nbsp;
+          <Link
+            href={InternalRoutePaths.terms}
+            isExternal
+            color="inherit"
+            alignItems={'center'}
+            gap={8}
+            _hover={{
+              textDecoration: 'underline',
+              color: 'brand.brand6'
+            }}
+          >
+            Terms of Use
+          </Link>
+          .
+        </Flex>
+      </ModalHeader>
+
+      <ModalBody mt={32}>
         {connectors?.map((item) => {
           const options = getOptionsByWalletName(item.name);
           const isActive = isLoading && connector?.name === item.name;
@@ -125,21 +149,21 @@ export function WalletConnectModal() {
       </ModalBody>
 
       <ModalFooter
-        mt={40}
+        mt={16}
         fontSize={14}
-        fontWeight={400}
+        fontWeight={600}
         lineHeight="17px"
         color="readable.tertiary"
-        gap={4}
       >
-        Don’t have a wallet?
         <Link
           href={TRUST_WALLET_DOWNLOAD_URL}
           isExternal
           color="inherit"
-          textDecoration="underline"
+          display={'flex'}
+          alignItems={'center'}
+          gap={8}
         >
-          Get one here!
+          <IconFont type="wallet" w={24} />I don't have a wallet.
         </Link>
       </ModalFooter>
     </DCModal>

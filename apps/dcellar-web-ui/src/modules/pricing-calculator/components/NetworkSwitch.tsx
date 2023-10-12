@@ -16,6 +16,7 @@ const LINKS = {
 export const NetworkSwitch = () => {
   const network = ['testnet', 'mainnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
   const onSwitchClick = (net: 'mainnet' | 'testnet') => {
+    console.log('on switch click', net, network, LINKS)
     if (net === network) return;
     window.location.href = LINKS[net].fullUrl;
   };
@@ -50,7 +51,10 @@ export const NetworkSwitch = () => {
           border="none"
           h={35}
           borderRadius={3}
-          onClick={() => onSwitchClick('testnet')}
+          onClick={(e) => {
+            e.preventDefault();
+            onSwitchClick('testnet');
+          }}
           sx={
             network === 'testnet'
               ? {}

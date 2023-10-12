@@ -1,4 +1,4 @@
-import { Flex, Text, Image, useMediaQuery } from '@totejs/uikit';
+import { Flex, Text, Image, useMediaQuery, Square } from '@totejs/uikit';
 import { TFeatureItem } from './KeyFeatures';
 import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
@@ -69,6 +69,8 @@ export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeature
         alt={`${title} image`}
         w={'50%'}
         src={isMobile ? introImgSm : introImg}
+        fallbackStrategy="beforeLoadOrError"
+        fallback={<Square size={300} color="white"></Square>}
         sx={{
           [smMedia]: {
             w: '100%',

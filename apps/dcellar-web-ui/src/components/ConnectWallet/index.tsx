@@ -7,6 +7,7 @@ import { setConnectWallet } from '@/store/slices/global';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/utils/constant';
+import { useAccount } from 'wagmi';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -17,23 +18,23 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   const dispatch = useDispatch();
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const { isConnecting, isConnected, connector } = useAccount();
   const { icon, text, ...restProps } = props;
   const onOpen = () => {
-    if (loginAccount) {
-      const originPathname = decodeURIComponent(router.query.originAsPath as string);
-      setTimeout(
-        () =>
-          router.push(
-            !!originPathname && originPathname !== 'undefined'
-              ? originPathname
-              : InternalRoutePaths.buckets,
-          ),
-        100,
-      );
-      return;
-    };
-    dispatch(setConnectWallet(true));
+    // The window.trustwallet.request method is undefined when the app is loaded. So add a delay to avoid.
+    setTimeout(() => {
+      if (loginAccount && isConnected && !isConnecting) {
+        const originPathname = decodeURIComponent(router.query.originAsPath as string);
+        return router.push(
+          !!originPathname && originPathname !== 'undefined'
+            ? originPathname
+            : InternalRoutePaths.buckets,
+        );
+      };
+      dispatch(setConnectWallet(true));
+    }, 200)
   }
+
   return (
     <>
       <DCButton
