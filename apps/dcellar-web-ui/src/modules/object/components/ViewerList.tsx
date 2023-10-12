@@ -469,7 +469,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                   disabled={!accounts.length}
                 >
                   <Text fontWeight={600} color={'readable.normal'}>
-                    Members{members > 0 && `(${members})`}
+                    People with Access{members > 0 && `(${members})`}
                   </Text>
                 </DCCheckbox>
                 <RemoveBtn
