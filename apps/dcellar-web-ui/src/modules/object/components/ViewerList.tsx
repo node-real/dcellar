@@ -23,7 +23,7 @@ import {
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
 import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
-import { without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
@@ -40,6 +40,7 @@ import { MenuOption } from '@/components/common/DCMenuList';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
+const MAX_GROUP = 10;
 
 const menus: MenuOption[] = [
   { label: 'Viewer', value: 'viewer' },
@@ -113,7 +114,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     dispatch(setObjectPoliciesPage(0));
   };
 
-  const invalid = !!error || !!invalidIds.length;
+  const groups = uniq(
+    values.concat(memberList.map((l) => l.PrincipalValue)).filter((v) => v.match(GROUP_ID)),
+  );
+
+  const invalid = !!error || !!invalidIds.length || groups.length > MAX_GROUP;
 
   const onError = (type: string) => {
     switch (type) {
@@ -399,7 +404,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         </Flex>
         {invalid && (
           <Text color="#EE3911">
-            {!invalidIds.length ? error : 'Invalid addresses or group IDs.\n'}
+            {!invalidIds.length
+              ? groups.length > MAX_GROUP
+                ? `Exceed the group limit (${MAX_GROUP})`
+                : error
+              : 'Invalid addresses or group IDs.\n'}
           </Text>
         )}
         <Box my={8}>

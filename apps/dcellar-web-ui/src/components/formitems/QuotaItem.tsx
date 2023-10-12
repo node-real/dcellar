@@ -55,6 +55,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
   quotaUpdateAt,
 }) {
   const dispatch = useAppDispatch();
+  const [_, forceUpdate] = useState(0);
   const percent = valueToPercent(value);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
   const originPercent = valueToPercent(current || 0);
@@ -87,7 +88,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
     onChange(percentToValue(percent));
   };
 
-  const onDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onDragStart = () => {
     const container = document.getElementById('buy-quota-progress-bar')!;
     const movingClass = 'indicator-moving';
 
@@ -109,6 +110,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
       container.classList.remove(movingClass);
       document.removeEventListener('mousemove', mousemove);
       document.removeEventListener('mouseup', mouseup);
+      forceUpdate((v) => v + 1);
     };
     document.addEventListener('mousemove', mousemove);
     document.addEventListener('mouseup', mouseup);
@@ -233,6 +235,7 @@ const Indicator = styled(Box)`
   right: -7px;
   top: -3px;
   cursor: pointer;
+
   .indicator-moving & {
     background: #009e2c;
   }
@@ -244,6 +247,7 @@ const Progress = styled(Box)`
   position: absolute;
   left: 0;
   top: 0;
+
   .indicator-moving & {
     background: #009e2c;
   }
