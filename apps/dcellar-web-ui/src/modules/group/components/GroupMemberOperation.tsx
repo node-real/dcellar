@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAccount } from 'wagmi';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
@@ -203,6 +203,8 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
 
   const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
 
+  const removeFee = (gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0) * removeAccount.length;
+
   const onSelectChange = (value: string) => {
     dispatch(setSelectedGroupMember(xor(selectedGroupMember, [value])));
   };
@@ -229,6 +231,14 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   });
 
   const members = selectedGroupMember.length;
+
+  useEffect(() => {
+    if (members > MAX_COUNT) {
+      toast.error({
+        description: `Exceed the permission limit (${MAX_COUNT}). Please select fewer items or repeat this action multiple times.`,
+      });
+    }
+  }, [members]);
 
   return (
     <>
@@ -263,7 +273,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
           confirmButton: 'dc.group.remove_member_confirm.delete.click',
         }}
         title="Remove Member"
-        fee={fee}
+        fee={removeFee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
@@ -324,9 +334,9 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                     </Text>
                   </DCCheckbox>
                   <RemoveBtn
-                    className={cn({ disabled: !members })}
+                    className={cn({ disabled: !members || members > MAX_COUNT })}
                     onClick={() => {
-                      if (!members) return;
+                      if (!members || members > MAX_COUNT) return;
                       setRemoveAccount(selectedGroupMember);
                       setDeleteModal(true);
                     }}

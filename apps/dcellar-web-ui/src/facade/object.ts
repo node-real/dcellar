@@ -369,7 +369,9 @@ export const deleteObjectPolicy = async (
     ),
   );
 
-  if (tasks.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  for (const [opt, error] of tasks) {
+    if (!!error) return [null, error];
+  }
 
   const _tasks = tasks.map((task) => task[0] as TxResponse);
 
@@ -406,7 +408,10 @@ export const putObjectPolicies = async (
     ),
   );
 
-  if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  for (const [opt, error] of opts) {
+    if (!!error) return [null, error];
+  }
+
   const _opts = opts.map((opt) => opt[0] as TxResponse);
 
   const groups = srcMsg
