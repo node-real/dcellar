@@ -3,6 +3,10 @@ import BigNumber from 'bignumber.js';
 import { Long } from '@bnb-chain/greenfield-js-sdk';
 import { getTimestampInSeconds } from '@/utils/time';
 import { getClient } from '@/facade/index';
+import { ListUserPaymentAccountsResquest } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListUserPaymentAccounts';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
+import { resolve } from './common';
+import { commonFault } from './error';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();
@@ -78,3 +82,8 @@ export const getStoreFeeParams = async (time?: number) => {
 
   return storeFeeParamsPayload;
 };
+
+export const listUserPaymentAccounts = async (params: ListUserPaymentAccountsResquest, authType: AuthType) => {
+  const client = await getClient()
+  return await client.payment.listUserPaymentAccounts(params, authType).then(resolve, commonFault);
+}
