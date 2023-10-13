@@ -144,6 +144,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           {current !== undefined && (
             <ProgressOrigin w={`${originPercent}%`} minW={6}>
               <DCTooltip
+                zIndex={1}
                 autoAdjustOverflow={false}
                 open={true}
                 title={
@@ -169,6 +170,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           )}
           <Progress w={`${percent}%`} minW={6}>
             <DCTooltip
+              zIndex={2}
               key={invalid ? percent : current}
               color={invalid ? '#EE3911' : '#14151A'}
               open={current !== undefined || value > 0}
