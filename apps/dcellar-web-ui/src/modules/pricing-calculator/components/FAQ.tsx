@@ -174,12 +174,12 @@ export const FAQ = () => {
       <H2 id='#faq' marginBottom={'16px'}>FAQ</H2>
       <QAccordion>
         {data.map((item, index) => (
-          <QAccordionItem key={index}>
-            <QAccordionButton h={56} fontSize={16} fontWeight={600}>
+          <QAccordionItem key={index} px={0} >
+            <QAccordionButton h={56} fontSize={16} fontWeight={600} px={0}>
               {item.question}
               <QAccordionIcon />
             </QAccordionButton>
-            <QAccordionPanel color={'readable.tertiary'} fontSize={14}>
+            <QAccordionPanel px={0} color={'readable.tertiary'} fontSize={14}>
               {item.answer}
             </QAccordionPanel>
           </QAccordionItem>

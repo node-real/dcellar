@@ -235,6 +235,7 @@ const Indicator = styled(Box)`
   right: -7px;
   top: -3px;
   cursor: pointer;
+
   .indicator-moving & {
     background: #009e2c;
   }
@@ -246,6 +247,7 @@ const Progress = styled(Box)`
   position: absolute;
   left: 0;
   top: 0;
+
   .indicator-moving & {
     background: #009e2c;
   }

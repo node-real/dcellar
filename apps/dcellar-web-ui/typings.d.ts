@@ -43,7 +43,8 @@ declare module '@totejs/uikit' {
       | 'opacity7'
       | 'opacity8'
       | 'opacity9'
-      | 'opacity10';
+      | 'opacity10'
+      | 'opacity11';
     shadows: BaseThemeTypings['shadows'];
   }
 }
