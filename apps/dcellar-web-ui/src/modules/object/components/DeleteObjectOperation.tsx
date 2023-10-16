@@ -91,7 +91,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     useAsyncEffect(async () => {
       if (!objectInfo.CreateAt) return;
       const curTime = getTimestampInSeconds();
-      const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
+      const latestStoreFeeParams = await getStoreFeeParams({ time: crudTimestamp });
       const netflowRate = getStoreNetflowRate(objectInfo.PayloadSize, latestStoreFeeParams);
       const offsetTime = curTime - objectInfo.CreateAt;
       const refundTime = Math.min(offsetTime, Number(latestStoreFeeParams.reserveTime));

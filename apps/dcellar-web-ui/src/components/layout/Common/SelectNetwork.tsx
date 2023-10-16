@@ -1,6 +1,6 @@
 import { runtimeEnv } from '@/base/env';
 import { capitalizeFLetter } from '@/utils/common';
-import { MenuButton } from '@totejs/uikit';
+import { ButtonProps, MenuButton } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
@@ -26,8 +26,10 @@ const networks: TNetwork[] = [
     domain: 'https://testnet.dcellar.io',
   },
 ];
-
-export const SelectNetwork = () => {
+type SelectNetworkProps = {
+  buttonStyles?: ButtonProps;
+};
+export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
   const router = useRouter();
   const selected = ['mainnet', 'testnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
   const onItemClick = (net: TNetwork) => {
@@ -62,6 +64,7 @@ export const SelectNetwork = () => {
           _hover={{
             bgColor: '#fafafa',
           }}
+          {...buttonStyles}
         >
           {capitalizeFLetter(selected)}
           <IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />

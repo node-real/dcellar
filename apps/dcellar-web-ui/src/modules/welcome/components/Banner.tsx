@@ -1,4 +1,4 @@
-import { assetPrefix } from '@/base/env';
+import { assetPrefix, runtimeEnv } from '@/base/env';
 import { Box, Flex, Image, Text } from '@totejs/uikit';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { smMedia } from '@/modules/responsive';
@@ -48,7 +48,28 @@ export const Banner = () => {
                 },
               }}
             >
-              Storage Console for Developers on BNB Greenfield Network
+              <Box>Storage Console for</Box>
+              <Box>Developers on</Box>
+              <Box position={'relative'} whiteSpace={'nowrap'}>
+                BNB Greenfield Network
+                {runtimeEnv === 'testnet' && (
+                  <Box
+                    fontSize={16}
+                    fontWeight={500}
+                    padding={'3px 4px'}
+                    color={'brand.brand7'}
+                    bgColor={'opacity1'}
+                    w={'fit-content'}
+                    borderRadius={2}
+                    position={'absolute'}
+                    right={-24}
+                    top={-20}
+                    textTransform={'capitalize'}
+                  >
+                    {runtimeEnv}
+                  </Box>
+                )}
+              </Box>
             </Text>
             <Text
               as="h2"
@@ -81,7 +102,7 @@ export const Banner = () => {
           <Flex justifySelf={'flex-end'} alignSelf={'flex-end'}>
             <Image
               alt="dcellar function screenshot"
-              src={`${assetPrefix}/images/welcome/banner-2.png`}
+              src={`${assetPrefix}/images/welcome/banner_3.png`}
               w={553}
               sx={{
                 [mdMedia]: {

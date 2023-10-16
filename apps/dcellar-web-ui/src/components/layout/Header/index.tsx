@@ -58,7 +58,7 @@ const Content = styled(Flex)`
   gap: 16px;
 `;
 
-const Badge = styled.span`
+export const Badge = styled.span`
   display: inline-flex;
   border-radius: 2px;
   color: var(--ui-colors-brand-normal-hight);

@@ -59,8 +59,8 @@ export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
   return res as BnbPriceInfo;
 };
 
-export const getGasFees = async () => {
-  const client = await getClient();
+export const getGasFees = async (network?: 'mainnet') => {
+  const client = await getClient(network);
   return await client.gashub.getMsgGasParams({
     msgTypeUrls: [],
     pagination: {

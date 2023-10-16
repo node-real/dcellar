@@ -48,8 +48,9 @@ export const getStreamRecord = async (address: string) => {
   };
 };
 
-export const getStoreFeeParams = async (time?: number) => {
-  const client = await getClient();
+export const getStoreFeeParams = async (props: { time?: number, network?: 'mainnet' }) => {
+  const { time = undefined, network } = props || {};
+  const client = await getClient(network);
   const now = getTimestampInSeconds();
   const [globalSpStoragePrice, { params: storageParams }, { params: paymentParams }] =
     await Promise.all([

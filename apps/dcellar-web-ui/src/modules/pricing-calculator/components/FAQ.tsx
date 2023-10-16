@@ -92,7 +92,7 @@ const BillingFormula = () => {
 export const FAQ = () => {
   const data = [
     {
-      question: <Text id='#billing-formula'>Billing Formula</Text>,
+      question: <Text>Billing Formula</Text>,
       answer: (
         <>
           <Text as='div'>

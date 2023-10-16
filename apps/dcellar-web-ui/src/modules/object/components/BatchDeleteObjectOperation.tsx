@@ -91,7 +91,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     useAsyncEffect(async () => {
       if (!crudTimestamp || !deleteObjects.length) return;
       const curTime = getTimestampInSeconds();
-      const latestStoreFeeParams = await getStoreFeeParams(crudTimestamp);
+      const latestStoreFeeParams = await getStoreFeeParams({ time: crudTimestamp });
 
       const refundAmount = deleteObjects.reduce((acc, cur) => {
         const netflowRate = getStoreNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);

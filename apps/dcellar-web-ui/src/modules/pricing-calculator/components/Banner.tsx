@@ -18,8 +18,8 @@ export const Banner = () => {
     >
       <H1>BNB Greenfield Pricing Calculator</H1>
       <SubTitle>
-        With our pricing calculator, you can easily get an estimate for your project on BNB
-        Greenfield{networkTag(runtimeEnv)}.
+        With our pricing calculator, you can easily get an estimate for your project on <strong>BNB
+        Greenfield Mainnet</strong>.
       </SubTitle>
     </Box>
   );

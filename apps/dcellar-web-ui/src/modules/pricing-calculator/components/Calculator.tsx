@@ -26,7 +26,6 @@ import { smMedia } from '@/modules/responsive';
 import { NetworkSwitch } from './NetworkSwitch';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { displayTokenSymbol } from '@/utils/wallet';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -49,7 +48,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
 };
 export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
-  const TOKEN_SYMBOL = displayTokenSymbol();
+  const TOKEN_SYMBOL = 'BNB';
   const { isOpen, onClose, onToggle } = useDisclosure();
   const updateMonth = getUTC0Month();
   const [storageSize, setStorageSize] = useState<{
@@ -222,8 +221,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       padding={['16px', '16px 40px']}
     >
       <Flex
-        marginBottom={40}
-        justifyContent={'space-between'}
+        justifyContent={'flex-end'}
         sx={{
           [smMedia]: {
             flexDirection: 'column-reverse',
@@ -231,7 +229,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
           },
         }}
       >
-        <NetworkSwitch />
+        {/* <NetworkSwitch /> */}
         <Text
           fontSize={14}
           fontWeight={500}
