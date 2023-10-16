@@ -449,7 +449,7 @@ export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState:
   const { isLoadingPLF } = getState().global;
   if (isLoadingPLF) return;
   dispatch(setisLoadingPLF(true));
-  const storeFeeParams = await getStoreFeeParams();
+  const storeFeeParams = await getStoreFeeParams({});
   dispatch(
     globalSlice.actions.setStoreFeeParams({
       storeFeeParams,
