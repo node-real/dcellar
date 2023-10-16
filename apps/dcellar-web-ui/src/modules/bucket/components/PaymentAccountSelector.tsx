@@ -8,12 +8,14 @@ import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { keyBy } from 'lodash-es';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 type Props = {
   onChange: (value: TAccount) => void;
 };
 
 export function PaymentAccountSelector(props: Props) {
+  const router = useRouter();
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
@@ -75,7 +77,13 @@ export function PaymentAccountSelector(props: Props) {
     return (
       <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
         <Link href="/accounts" passHref legacyBehavior>
-          <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+          <Text
+            fontWeight={500}
+            as="a"
+            color="brand.normal"
+            _hover={{ color: 'brand.brand5' }}
+            onMouseDown={() => router.push('/accounts')}
+          >
             Manage Accounts
           </Text>
         </Link>
