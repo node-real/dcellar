@@ -23,7 +23,6 @@ import { CustomTime } from './CustomTime';
 import { isEmpty } from 'lodash-es';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
-import { NetworkSwitch } from './NetworkSwitch';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 
@@ -221,39 +220,44 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       padding={['16px', '16px 40px']}
     >
       <Flex
-        justifyContent={'flex-end'}
-        sx={{
-          [smMedia]: {
-            flexDirection: 'column-reverse',
-            gap: '12px',
-          },
-        }}
-      >
-        {/* <NetworkSwitch /> */}
-        <Text
-          fontSize={14}
-          fontWeight={500}
-          color={'readable.tertiary'}
-          textAlign={'right'}
-          sx={{
-            [smMedia]: {
-              fontSize: '12px',
-              textAlign: 'left',
-            },
-          }}
-        >
-          Prices are updated monthly: {updateMonth}
-        </Text>
-      </Flex>
-      <Flex
         flexDirection={'column'}
         gap={40}
+        marginTop={8}
         sx={{
           [smMedia]: {
             gap: '0',
           },
         }}
       >
+        <Flex
+          justifyContent={'space-between'}
+          sx={{
+            [smMedia]: {
+              flexDirection: 'column',
+              gap: '12px',
+              marginBottom: '24px',
+            },
+          }}
+        >
+          {/* <NetworkSwitch /> */}
+          <Text fontSize={18} fontWeight={600}>
+            BNB Greenfield Mainnet
+          </Text>
+          <Text
+            fontSize={14}
+            fontWeight={500}
+            color={'readable.tertiary'}
+            textAlign={'right'}
+            sx={{
+              [smMedia]: {
+                fontSize: '12px',
+                textAlign: 'left',
+              },
+            }}
+          >
+            Prices are updated monthly: {updateMonth}
+          </Text>
+        </Flex>
         <Flex gap={8} flexDirection={'column'}>
           <Flex
             fontSize={16}
