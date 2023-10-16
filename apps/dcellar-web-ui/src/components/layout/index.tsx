@@ -32,7 +32,7 @@ const LayoutHeader = styled.header`
   position: sticky;
   top: 0;
   max-width: 100%;
-  z-index: 1000;
+  z-index: 1001;
   height: 65px;
   background: var(--ui-colors-bg-middle);
 `;
@@ -61,4 +61,5 @@ const Content = styled.main`
   background: var(--ui-colors-bg-middle);
   padding: 16px 24px;
   position: relative;
+  z-index: 1;
 `;

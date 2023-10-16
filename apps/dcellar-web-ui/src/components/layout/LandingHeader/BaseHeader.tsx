@@ -1,4 +1,4 @@
-import { Flex, Link } from '@totejs/uikit';
+import { Badge, Box, Flex, Link } from '@totejs/uikit';
 import NextLink from 'next/link';
 import { Logo } from '../Logo';
 import { GAClick } from '@/components/common/GATracker';
@@ -7,6 +7,9 @@ import { ConnectWallet } from '@/components/ConnectWallet';
 import { useRouter } from 'next/router';
 import { IconFont } from '@/components/IconFont';
 import { useDetectScroll } from './useDetectScroll';
+import { SelectNetwork } from '../Common/SelectNetwork';
+import { networkTag } from '@/utils/common';
+import { runtimeEnv } from '@/base/env';
 
 export const MENUS = [
   {
@@ -51,9 +54,18 @@ export const BaseHeader = () => {
       background={isScroll ? 'opacity11' : 'transparent'}
     >
       <GAClick name="dc_lp.main.header.logo.click">
-        <Logo href="/" />
+        <Flex alignItems={'center'}>
+          <Logo href="/" />
+          {runtimeEnv === 'testnet' && <Badge borderRadius={2} color={'brand.brand7'} padding={'3px 4px'} fontSize={12} transform={'scale(0.83333)'} bgColor={'opacity1'}>{networkTag(runtimeEnv)}</Badge>}
+        </Flex>
       </GAClick>
-      <Flex gap={32}>
+      <Flex
+        gap={32}
+        position={'absolute'}
+        top={'50%'}
+        left={'50%'}
+        transform={'translate(-50%, -50%)'}
+      >
         {MENUS.map((item, index) => (
           <GAClick name={item.gaName} key={index}>
             <NextLink href={item.link} passHref legacyBehavior>
@@ -68,21 +80,24 @@ export const BaseHeader = () => {
           </GAClick>
         ))}
       </Flex>
-      <ConnectWallet
-        h={40}
-        p={'10px 16px'}
-        fontWeight={500}
-        fontSize={14}
-        gaClickName={gaClickName}
-        icon={<IconFont type={'wallet-filled'} w={24} />}
-        text="Get Started"
-        variant="ghost"
-        border={'1px solid readable.border'}
-        _hover={{
-          color: 'brand.brand6',
-          border: '1px solid brand.brand6',
-        }}
-      />
+      <Flex alignItems={'center'} gap={16}>
+        <SelectNetwork buttonStyles={{ h: 40, background: 'transparent' }} />
+        <ConnectWallet
+          h={40}
+          p={'10px 16px'}
+          fontWeight={500}
+          fontSize={14}
+          gaClickName={gaClickName}
+          icon={<IconFont type={'wallet-filled'} w={24} />}
+          text="Get Started"
+          variant="ghost"
+          border={'1px solid readable.border'}
+          _hover={{
+            color: 'brand.brand6',
+            border: '1px solid brand.brand6',
+          }}
+        />
+      </Flex>
     </Flex>
   );
 };

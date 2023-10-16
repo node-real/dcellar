@@ -97,7 +97,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
       .reduce((a, b) => a.plus(Number(b.totalChargeSize)), BigNumber(0))
       .toNumber();
     setChargeSize(totalChargeSize);
-    const preStoreFeeParams = await getStoreFeeParams(Number(priceTime));
+    const preStoreFeeParams = await getStoreFeeParams({ time: Number(priceTime) });
     setPreStoreFeeParams(preStoreFeeParams);
   }, [PaymentAddress]);
 

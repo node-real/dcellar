@@ -344,27 +344,45 @@ export const deleteObjectPolicy = async (
   bucketName: string,
   objectName: string,
   operator: string,
-  principalAddr: string,
+  principalAddrs: string[],
 ): Promise<ErrorResponse | [DeliverResponse, null]> => {
   const client = await getClient();
   const resource = GRNToString(newObjectGRN(bucketName, objectName));
-  const principal: Principal = {
-    type: principalAddr.match(GROUP_ID)
-      ? PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP
-      : PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
-    value: principalAddr,
-  };
-  const [tx, error1] = await client.storage
-    .deletePolicy({
-      resource,
-      principal,
-      operator,
-    })
-    .then(resolve, createTxFault);
-  if (!tx) return [null, error1];
-  const [simulateInfo, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+  const principals: Principal[] = principalAddrs.map((principalAddr) => {
+    return {
+      type: principalAddr.match(GROUP_ID)
+        ? PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP
+        : PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+      value: principalAddr,
+    };
+  });
 
-  if (!simulateInfo) return [null, error2];
+  const tasks = await Promise.all(
+    principals.map((principal) =>
+      client.storage
+        .deletePolicy({
+          resource,
+          principal,
+          operator,
+        })
+        .then(resolve, createTxFault),
+    ),
+  );
+
+  for (const [opt, error] of tasks) {
+    if (!!error) return [null, error];
+  }
+
+  const _tasks = tasks.map((task) => task[0] as TxResponse);
+
+  const txs = await client.txClient.multiTx(_tasks);
+
+  const [simulateInfo, simulateError] = await txs
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+
+  if (!simulateInfo) return [null, simulateError];
+
   const broadcastPayload = {
     denom: 'BNB',
     gasLimit: Number(simulateInfo?.gasLimit),
@@ -373,7 +391,7 @@ export const deleteObjectPolicy = async (
     granter: '',
     signTypedDataCallback: signTypedDataCallback(connector),
   };
-  return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
+  return txs.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
 export const putObjectPolicies = async (
@@ -390,7 +408,10 @@ export const putObjectPolicies = async (
     ),
   );
 
-  if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  for (const [opt, error] of opts) {
+    if (!!error) return [null, error];
+  }
+
   const _opts = opts.map((opt) => opt[0] as TxResponse);
 
   const groups = srcMsg

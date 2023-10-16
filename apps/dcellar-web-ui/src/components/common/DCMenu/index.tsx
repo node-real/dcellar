@@ -1,6 +1,7 @@
 import { memo, ReactNode } from 'react';
 import { Box, Menu, MenuListProps, MenuProps, Portal } from '@totejs/uikit';
 import { DCMenuList, MenuOption } from '@/components/common/DCMenuList';
+import styled from '@emotion/styled';
 
 interface DCMenuProps extends MenuProps {
   options: Array<MenuOption>;
@@ -13,6 +14,8 @@ interface DCMenuProps extends MenuProps {
   renderFooter?: () => ReactNode;
   emptyIcon?: string;
   emptyText?: string;
+  stopPropagation?: boolean;
+  zIndex?: number;
 }
 
 export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
@@ -28,33 +31,51 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     renderFooter,
     emptyIcon,
     emptyText,
+    stopPropagation = false,
     ...restProps
   } = props;
   const isFunc = typeof children === 'function';
+  const strategy = restProps.strategy || 'absolute';
 
   return (
-    <Menu strategy="fixed" {...restProps}>
-      {(props) => (
-        <>
-          <Box display="contents" onClick={(e) => e.stopPropagation()}>
-            {isFunc ? children(props) : children}
-          </Box>
-          <Portal>
-            <DCMenuList
-              value={value}
-              options={options}
-              onMenuSelect={onMenuSelect}
-              selectIcon={selectIcon}
-              renderOption={renderOption}
-              renderHeader={renderHeader}
-              renderFooter={renderFooter}
-              emptyIcon={emptyIcon}
-              emptyText={emptyText}
-              {...menuListProps}
-            />
-          </Portal>
-        </>
-      )}
+    <Menu strategy={strategy} {...restProps}>
+      {(props) => {
+        const menuList = (
+          <DCMenuList
+            value={value}
+            options={options}
+            onMenuSelect={onMenuSelect}
+            selectIcon={selectIcon}
+            renderOption={renderOption}
+            renderHeader={renderHeader}
+            renderFooter={renderFooter}
+            emptyIcon={emptyIcon}
+            emptyText={emptyText}
+            {...menuListProps}
+          />
+        );
+        return (
+          <>
+            <Box display="contents" onClick={(e) => stopPropagation && e.stopPropagation()}>
+              {isFunc ? children(props) : children}
+            </Box>
+            {strategy === 'fixed' ? (
+              <Portal>
+                <Container zIndex={restProps.zIndex || ''}>{menuList}</Container>
+              </Portal>
+            ) : (
+              menuList
+            )}
+          </>
+        );
+      }}
     </Menu>
   );
 });
+
+const Container = styled(Box)`
+  display: contents;
+  .ui-menu {
+    z-index: ${(props) => props.zIndex};
+  }
+`;

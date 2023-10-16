@@ -67,7 +67,7 @@ export const Footer = (props: FlexProps) => {
         </UnderlineLink>
       </GAClick>
       <GAClick name="dc_lp.main.Footer.privacy.click">
-        <UnderlineLink href={'https://docs.nodereal.io/docs/cookie-policy'} target="_blank">
+        <UnderlineLink href={'https://nodereal.io/privacy-policy'} target="_blank">
           Privacy Policy
         </UnderlineLink>
       </GAClick>

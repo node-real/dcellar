@@ -48,7 +48,11 @@ export const Banner = () => {
                 },
               }}
             >
-              Storage Console for Developers on BNB Greenfield Network
+              <Box>Storage Console for</Box>
+              <Box>Developers on</Box>
+              <Box position={'relative'} whiteSpace={'nowrap'}>
+                BNB Greenfield Network
+              </Box>
             </Text>
             <Text
               as="h2"
@@ -81,7 +85,7 @@ export const Banner = () => {
           <Flex justifySelf={'flex-end'} alignSelf={'flex-end'}>
             <Image
               alt="dcellar function screenshot"
-              src={`${assetPrefix}/images/welcome/banner-2.png`}
+              src={`${assetPrefix}/images/welcome/banner_3.png`}
               w={553}
               sx={{
                 [mdMedia]: {

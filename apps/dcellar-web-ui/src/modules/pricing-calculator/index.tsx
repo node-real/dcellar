@@ -61,23 +61,22 @@ export const PriceCalculator = () => {
   const [sps, setSps] = useState<TQuotaSP[]>([]);
   const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
   useAsyncEffect(async () => {
-    const curTime = getTimestampInSeconds();
     console.time('getStoreFeeParams');
-    const latestStoreParams = await getStoreFeeParams(curTime);
+    const latestStoreParams = await getStoreFeeParams({network: 'mainnet'});
     console.timeEnd('getStoreFeeParams');
     setStoreParams(latestStoreParams);
   }, []);
   useAsyncEffect(async () => {
     const bnbPrice = await getBnbPrice();
     setBnbPrice(bnbPrice.price);
-    const [gasFees, error] = await getGasFees();
+    const [gasFees, error] = await getGasFees('mainnet');
     const gasLimit =
       gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
         .low || DEFAULT_GAS_LIMIT;
     const gasFee = +GAS_PRICE * gasLimit;
     setGasFee(gasFee + '');
-    const sps = await getStorageProviders();
-    const spMeta = await getSpMeta();
+    const sps = await getStorageProviders('mainnet');
+    const spMeta = await getSpMeta('mainnet');
     const keySpMeta = keyBy(spMeta, 'SPAddress');
     const fullSps = sps.map((item) => {
       return {
