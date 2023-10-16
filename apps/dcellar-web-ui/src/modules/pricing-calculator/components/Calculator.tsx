@@ -240,7 +240,11 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
           }}
         >
           {/* <NetworkSwitch /> */}
-          <Text fontSize={18} fontWeight={600}>
+          <Text fontSize={18} fontWeight={600} sx={{
+            [smMedia]: {
+              fontSize: 16,
+            }
+          }}>
             BNB Greenfield Mainnet
           </Text>
           <Text
