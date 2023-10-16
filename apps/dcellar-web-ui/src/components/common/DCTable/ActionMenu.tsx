@@ -60,6 +60,9 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
         </ActionButton>
       ))}
       <DCMenu
+        strategy="fixed"
+        zIndex={1000}
+        stopPropagation={true}
         placement="bottom-end"
         trigger="hover"
         options={menus}
