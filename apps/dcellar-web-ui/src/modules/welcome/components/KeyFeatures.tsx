@@ -41,8 +41,8 @@ export const keyFeatureList: TFeatureItem[] = [
     label: 'Accounts Management',
     title: 'Accounts Management',
     desc: 'Users can create multiple payment accounts and have the permission to link buckets to different payment accounts to pay for storage and data package.',
-    introImg: `${assetPrefix}/images/welcome/accounts.png`,
-    introImgSm: `${assetPrefix}/images/welcome/accounts_sm.png`,
+    introImg: `${assetPrefix}/images/welcome/accounts_1.png`,
+    introImgSm: `${assetPrefix}/images/welcome/accounts_sm1.png`,
     gaClickName: 'dc_lp.homepage.key_f.accounts.click'
   },
   {

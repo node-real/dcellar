@@ -78,7 +78,7 @@ export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItem
           },
         }}
       >
-        {fee || 0} {displayTokenSymbol()}
+        {fee || 0} {'BNB'}
       </Text>
       <Text
         textAlign={'right'}

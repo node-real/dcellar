@@ -23,10 +23,8 @@ import { CustomTime } from './CustomTime';
 import { isEmpty } from 'lodash-es';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
-import { NetworkSwitch } from './NetworkSwitch';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { displayTokenSymbol } from '@/utils/wallet';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
@@ -49,7 +47,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
 };
 export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
-  const TOKEN_SYMBOL = displayTokenSymbol();
+  const TOKEN_SYMBOL = 'BNB';
   const { isOpen, onClose, onToggle } = useDisclosure();
   const updateMonth = getUTC0Month();
   const [storageSize, setStorageSize] = useState<{
@@ -222,40 +220,48 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       padding={['16px', '16px 40px']}
     >
       <Flex
-        marginBottom={40}
-        justifyContent={'space-between'}
-        sx={{
-          [smMedia]: {
-            flexDirection: 'column-reverse',
-            gap: '12px',
-          },
-        }}
-      >
-        <NetworkSwitch />
-        <Text
-          fontSize={14}
-          fontWeight={500}
-          color={'readable.tertiary'}
-          textAlign={'right'}
-          sx={{
-            [smMedia]: {
-              fontSize: '12px',
-              textAlign: 'left',
-            },
-          }}
-        >
-          Prices are updated monthly: {updateMonth}
-        </Text>
-      </Flex>
-      <Flex
         flexDirection={'column'}
         gap={40}
+        marginTop={8}
         sx={{
           [smMedia]: {
             gap: '0',
           },
         }}
       >
+        <Flex
+          justifyContent={'space-between'}
+          sx={{
+            [smMedia]: {
+              flexDirection: 'column',
+              gap: '12px',
+              marginBottom: '24px',
+            },
+          }}
+        >
+          {/* <NetworkSwitch /> */}
+          <Text fontSize={18} fontWeight={600} sx={{
+            [smMedia]: {
+              fontSize: 16,
+            }
+          }}>
+            BNB Greenfield Mainnet
+          </Text>
+          <Text
+            fontSize={14}
+            fontWeight={500}
+            color={'readable.tertiary'}
+            textAlign={'right'}
+            sx={{
+              [smMedia]: {
+                fontSize: '12px',
+                textAlign: 'left',
+              },
+            }}
+          >
+            Prices are updated monthly: {updateMonth}
+          </Text>
+        </Flex>
         <Flex gap={8} flexDirection={'column'}>
           <Flex
             fontSize={16}
