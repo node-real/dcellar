@@ -50,6 +50,7 @@ import { removeTrailingSlash } from '@/utils/string';
 import { InternalRoutePaths } from '@/utils/constant';
 import styled from '@emotion/styled';
 import { Loading as PageLoading } from '@/components/common/Loading';
+import { useTimeout } from 'ahooks';
 
 export type TxType =
   | 'withdraw_from_payment_account'
@@ -63,6 +64,7 @@ export const Send = memo<SendProps>(function Send() {
   const initFormRef = useRef(false);
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const [timeout, setTimeout] = useState(false);
   const {
     isLoadingDetail,
     bankBalance,
@@ -302,7 +304,12 @@ export const Send = memo<SendProps>(function Send() {
     return errors;
   }, [isLoadingDetail, toAccount, toJsErrors]);
 
-  if (!initFormRef.current)
+  // force remove loading
+  useTimeout(() => {
+    setTimeout(true);
+  }, 3000);
+
+  if (!initFormRef.current && !timeout)
     return (
       <Flex justifyContent="center" my={50}>
         <PageLoading />

@@ -16,37 +16,39 @@ import { formatBytes } from '@/utils/formatter';
 
 export type AlignType = 'left' | 'right' | 'center';
 
-interface DCTable extends TableProps<any> {
+interface DCTableProps extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
 
-export const DCTable = memo<DCTable & Omit<SimplePaginationProps, 'loading'>>(function DCTable({
-  renderEmpty,
-  pageSize,
-  pageChange,
-  canNext,
-  canPrev,
-  pagination = true,
-  dataSource,
-  ...props
-}) {
-  return (
-    <Container className="dc-table">
-      <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
-        <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
-      </ConfigProvider>
-      {pagination && (
-        <SimplePagination
-          loading={!dataSource?.length}
-          pageSize={pageSize}
-          canNext={canNext}
-          canPrev={canPrev}
-          pageChange={pageChange}
-        />
-      )}
-    </Container>
-  );
-});
+export const DCTable = memo<DCTableProps & Omit<SimplePaginationProps, 'loading'>>(
+  function DCTable({
+    renderEmpty,
+    pageSize,
+    pageChange,
+    canNext,
+    canPrev,
+    pagination = true,
+    dataSource,
+    ...props
+  }) {
+    return (
+      <Container className="dc-table">
+        <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
+          <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
+        </ConfigProvider>
+        {pagination && (
+          <SimplePagination
+            loading={!dataSource?.length}
+            pageSize={pageSize}
+            canNext={canNext}
+            canPrev={canPrev}
+            pageChange={pageChange}
+          />
+        )}
+      </Container>
+    );
+  },
+);
 
 export const SealLoading = () => {
   const loading = keyframes`

@@ -75,6 +75,7 @@ export interface ObjectState {
   objectPolicies: Record<string, PolicyMeta[]>;
   objectPoliciesPage: number;
   objectOperation: Record<0 | 1, [string, ObjectOperationsType, Record<string, any>?]>;
+  selectedShareMembers: string[];
 }
 
 const initialState: ObjectState = {
@@ -93,12 +94,16 @@ const initialState: ObjectState = {
   objectPolicies: {},
   objectPoliciesPage: 0,
   objectOperation: { 0: ['', '', {}], 1: ['', '', {}] },
+  selectedShareMembers: [],
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setSelectedShareMembers(state, { payload }: PayloadAction<string[]>) {
+      state.selectedShareMembers = payload;
+    },
     setObjectOperation(
       state,
       {
@@ -398,6 +403,7 @@ export const {
   setObjectPolicies,
   setObjectPoliciesPage,
   setObjectOperation,
+  setSelectedShareMembers,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

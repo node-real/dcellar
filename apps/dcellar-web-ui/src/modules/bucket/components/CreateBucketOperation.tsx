@@ -415,7 +415,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
         </Box>
       </QDrawerHeader>
       <QDrawerBody>
-        <Box>
+        <Box position="relative">
           <form id="create-bucket-drawer" onSubmit={handleSubmit(onSubmit)}>
             <Flex flexDir="column" gap={24}>
               <FormControl isInvalid={!isEmpty(errors?.bucketName)}>

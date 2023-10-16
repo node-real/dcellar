@@ -165,7 +165,9 @@ const AccessStatus = styled.div<{ $bg: string }>`
   background: ${(props) => props.$bg};
 `;
 
-const FormItem = styled.div``;
+const FormItem = styled.div`
+  position: relative;
+`;
 
 const FormLabel = styled(Text)`
   font-size: 14px;

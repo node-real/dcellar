@@ -44,6 +44,8 @@ export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
 
   return (
     <DCMenu
+      strategy={'fixed'}
+      zIndex={1400}
       selectIcon
       value={selected}
       options={networks}

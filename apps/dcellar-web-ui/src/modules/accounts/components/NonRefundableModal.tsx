@@ -59,23 +59,15 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
       <ModalCloseButton />
       <ModalBody display={'flex'} flexDirection={'column'} alignItems={'center'}>
         <IconFont type={'account-failed'} w={120} />
-        <Text mb={16} fontSize={24} fontWeight={600}>
+        <Text mt={32} fontSize={24} fontWeight={600}>
           Set as Non-Refundable
         </Text>
-        <Text
-          fontSize="18px"
-          lineHeight={'22px'}
-          fontWeight={400}
-          textAlign={'center'}
-          marginTop="8px"
-          color={'readable.secondary'}
-          mb={'32px'}
-        >
+        <Text fontSize="16px" textAlign={'center'} marginTop="8px" color={'readable.tertiary'}>
           Making this payment account non-refundable means it can't be refunded anymore and this
           action can't be undone.
         </Text>
       </ModalBody>
-      <ModalFooter margin={0} flexDirection={'row'}>
+      <ModalFooter flexDirection={'row'}>
         <DCButton
           size={'lg'}
           variant="ghost"
