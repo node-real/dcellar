@@ -94,7 +94,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     dispatch(setObjectPoliciesPage(0));
   });
 
-  const _onChange = (e: string[]) => {
+  const _onChange = (_e: string[]) => {
+    const e = _e.map((i) => i.trim());
     setValues(e);
     setInvalidIds((ids) => ids.filter((id) => e.includes(id)));
     setSearchValue('');

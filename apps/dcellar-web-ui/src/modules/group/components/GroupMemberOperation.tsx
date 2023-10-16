@@ -109,7 +109,8 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     }
   };
 
-  const _onChange = (e: string[]) => {
+  const _onChange = (_e: string[]) => {
+    const e = _e.map((i) => i.trim());
     setValues(e);
     const invalid = e.filter((i) => !i.match(ADDRESS_RE));
     setInvalidIds(invalid);
