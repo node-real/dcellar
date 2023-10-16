@@ -284,6 +284,7 @@ export const Send = memo<SendProps>(function Send() {
     const errors: string[] = [];
     if (isLoadingDetail || isEmpty(fromAccount)) return errors;
     const fromAccountDetail = accountDetails[fromAccount?.address];
+    if (isEmpty(fromAccountDetail)) return errors;
     const isPaymentAccount = fromAccountDetail.name.toLocaleLowerCase().includes('payment account');
     if (!isPaymentAccount) {
       return errors;
