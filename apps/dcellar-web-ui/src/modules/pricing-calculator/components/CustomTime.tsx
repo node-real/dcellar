@@ -101,6 +101,7 @@ export const CustomTime = ({
           <NumInput
             w={120}
             h={32}
+            type='inter'
             borderRadius={4}
             value={customStorageTime.value}
             onChangeValue={(item) => {

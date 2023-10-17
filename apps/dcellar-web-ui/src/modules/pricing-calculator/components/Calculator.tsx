@@ -472,6 +472,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               placeholder="0"
               value={gasTimes}
               onChangeValue={(value) => setGasTimes(value)}
+              type='inter'
               sx={{
                 [smMedia]: {
                   flex: '1',
