@@ -6,6 +6,7 @@ import {
   setupOwnerAccount,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
+import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
 import { useRouter } from 'next/router';
 import { useBalance } from 'wagmi';
@@ -19,6 +20,7 @@ export const PaymentAccounts = () => {
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
+    dispatch(setupBnbPrice());
     dispatch(setupOwnerAccount());
     // dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);

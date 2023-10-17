@@ -5,7 +5,7 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbPrice, setupBnbPrice } from '@/store/slices/global';
 import { useMount } from 'ahooks';
 import { setupAccountDetail } from '@/store/slices/accounts';
 import React, { memo } from 'react';
