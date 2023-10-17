@@ -2,10 +2,10 @@ import React from 'react';
 import { LandingH2, LandingResponsiveContainer } from '..';
 import { DCButton } from '@/components/common/DCButton';
 import { Flex, Text } from '@totejs/uikit';
-import { InternalRoutePaths } from '@/constants/paths';
 import { smMedia } from '@/modules/responsive';
 import { assetPrefix } from '@/base/env';
 import { INTER_FONT } from '@/modules/wallet/constants';
+import { InternalRoutePaths } from '@/utils/constant';
 
 export const PricingCalculator = () => {
   return (
