@@ -74,6 +74,7 @@ export const HelpDevelopers = () => {
                   target="_blank"
                   overflow={'hidden'}
                   borderRadius={4}
+                  transition={'all 0.2s'}
                   _hover={{
                     boxShadow: isMobile ? 'none' : '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
                   }}
