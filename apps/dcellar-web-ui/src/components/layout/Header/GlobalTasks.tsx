@@ -278,12 +278,18 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
         const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus!;
         const preTs = sealingTs[task.id] || Date.now();
+
+        // for folder object not sync to meta service
+        if (error?.code === 404) {
+          return 0;
+        }
+
         if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
               task,
-              errorMsg: error ? error : 'Something went wrong.',
+              errorMsg: error?.message || 'Something went wrong.',
             }),
           );
           return -1;

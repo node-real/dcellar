@@ -24,19 +24,21 @@ const renderProp = (key: string, value: string) => {
 };
 
 interface DownloadObjectOperationProps {
-  selectObjectInfo: ObjectMeta;
   primarySp: SpItem;
   onClose?: () => void;
   actionParams?: Record<string, any>;
+  objectName: string;
+  payloadSize: number;
 }
 
 const defaultActionParams = {} as Record<string, any>;
 
 export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(function DownloadObject({
-  selectObjectInfo,
   onClose = () => {},
   primarySp,
   actionParams = defaultActionParams,
+  objectName,
+  payloadSize,
 }) {
   const dispatch = useAppDispatch();
   const { loginAccount, accounts } = useAppSelector((root) => root.persist);
@@ -49,7 +51,6 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
   const directDownload = accounts[loginAccount].directDownload;
   const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
-  const selectObject = selectObjectInfo.ObjectInfo;
 
   const quotaData = quotas[bucketName];
 
@@ -71,11 +72,13 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
 
   const onAction = async () => {
     setLoading(true);
-    const objectName = selectObject.ObjectName;
     const endpoint = primarySp.endpoint;
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
+
+    console.log(bucketName, objectName);
+
     const [_, accessError, objectInfo, quota] = await getCanObjectAccess(
       bucketName,
       objectName,
@@ -121,7 +124,7 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
           gap={8}
           color={'readable.tertiary'}
         >
-          {renderProp('Required quota', formatBytes(selectObject.PayloadSize))}
+          {renderProp('Required quota', formatBytes(payloadSize))}
           <Text fontSize={'12px'} textAlign={'right'} color={'readable.disabled'}>
             {`Remaining quota: ${transformedRemainingQuota}`}
           </Text>

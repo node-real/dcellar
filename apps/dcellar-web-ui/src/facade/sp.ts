@@ -11,7 +11,7 @@ export const getStorageProviders = async (network?: 'mainnet') => {
 };
 
 export const getSpMeta = async (network?: 'mainnet') => {
-  const baseUrl = 'api/sp-meta';
+  const baseUrl = '/api/sp-meta';
   const url = network ? `${baseUrl}?network=${network}` : baseUrl;
   const { data } = await axios.get<Array<SpMeta>>(url);
   return data;

@@ -13,7 +13,7 @@ import { DCDrawer } from '@/components/common/DCDrawer';
 import { DCModal } from '@/components/common/DCModal';
 import { selectAccount } from '@/store/slices/accounts';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { isEmpty } from 'lodash-es';
+import { get, isEmpty } from 'lodash-es';
 import { Loading } from '@/components/common/Loading';
 import { DetailObjectOperation } from '@/modules/object/components/DetailObjectOperation';
 import { DeleteObjectOperation } from '@/modules/object/components/DeleteObjectOperation';
@@ -25,6 +25,7 @@ import { ShareOperation } from '@/modules/object/components/ShareOperation';
 import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDeleteObjectOperation';
 import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
 import { useUnmount } from 'ahooks';
+import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
@@ -134,10 +135,13 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
           />
         );
       case 'download':
-        if (isEmpty(_selectObjectInfo)) return <Loading />;
+        if (isEmpty(_selectObjectInfo) && isEmpty(params)) return <Loading />;
+        const ObjectInfo = get(_selectObjectInfo, 'ObjectInfo');
+
         return (
           <DownloadObjectOperation
-            selectObjectInfo={_selectObjectInfo}
+            objectName={params?.objectName || ObjectInfo?.ObjectName || ''}
+            payloadSize={params?.payloadSize || ObjectInfo?.PayloadSize || 0}
             primarySp={primarySp}
             onClose={onClose}
             actionParams={params}
