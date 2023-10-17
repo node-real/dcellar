@@ -43,7 +43,7 @@ export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItem
           },
         }}
       >
-        {size.replace(/^0+/, '') || 0} {unit}
+        {size || 0} {unit}
       </Text>
       <Text
         sx={{
