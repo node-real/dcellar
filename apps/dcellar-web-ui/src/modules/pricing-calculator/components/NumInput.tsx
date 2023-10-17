@@ -32,7 +32,7 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       onChange={(e) => {
         const value = e.target.value;
         if (parseFloat(value) < 0 || value.length > 15) return;
-        onChangeValue(value.replace(/^0+/, ''));
+        onChangeValue(value.replace(/^00+/, '0'));
       }}
     />
   );
