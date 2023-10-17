@@ -271,23 +271,25 @@ export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
     if (items.length === 0) return <></>;
 
     return (
-      <Flex color={'#EE3911'}>
+      <Flex color={'#EE3911'} flexDirection={'column'} gap={4}>
         {items.map((item, index) => (
           <GAShow key={index} name={gaOptions?.gaShowName}>
-            Insufficient balance.&nbsp;
-            <GAClick name={gaOptions?.gaClickName}>
-              <NextLink href={item.link} passHref legacyBehavior>
-                <Text
-                  cursor={'pointer'}
-                  display={'inline'}
-                  style={{ textDecoration: 'underline' }}
-                  color="#EE3911"
-                  _hover={{ color: '#EE3911' }}
-                >
-                  {item.text}
-                </Text>
-              </NextLink>
-            </GAClick>
+            <Flex>
+              Insufficient balance.&nbsp;
+              <GAClick name={gaOptions?.gaClickName}>
+                <NextLink href={item.link} passHref legacyBehavior>
+                  <Text
+                    cursor={'pointer'}
+                    display={'inline'}
+                    style={{ textDecoration: 'underline' }}
+                    color="#EE3911"
+                    _hover={{ color: '#EE3911' }}
+                  >
+                    {item.text}
+                  </Text>
+                </NextLink>
+              </GAClick>
+            </Flex>
           </GAShow>
         ))}
       </Flex>
@@ -351,22 +353,24 @@ const renderPaymentInsufficientBalance = ({
   if (items.length === 0) return <></>;
 
   return (
-    <Flex color={'#EE3911'}>
+    <Flex color={'#EE3911'} flexDirection={'column'} gap={4}>
       {items.map((item, index) => (
         <GAShow key={index} name={gaOptions?.gaShowName}>
-          Insufficient balance.&nbsp;
-          <GAClick name={gaOptions?.gaClickName}>
-            <NextLink href={item.link} passHref legacyBehavior>
-              <Text
-                display={'inline'}
-                style={{ textDecoration: 'underline' }}
-                color="#EE3911"
-                _hover={{ color: '#EE3911' }}
-              >
-                {item.text}
-              </Text>
-            </NextLink>
-          </GAClick>
+          <Flex>
+            Insufficient balance.&nbsp;
+            <GAClick name={gaOptions?.gaClickName}>
+              <NextLink href={item.link} passHref legacyBehavior>
+                <Text
+                  display={'inline'}
+                  style={{ textDecoration: 'underline' }}
+                  color="#EE3911"
+                  _hover={{ color: '#EE3911' }}
+                >
+                  {item.text}
+                </Text>
+              </NextLink>
+            </GAClick>
+          </Flex>
         </GAShow>
       ))}
     </Flex>
