@@ -149,7 +149,7 @@ export function WalletConnectModal() {
       </ModalBody>
 
       <ModalFooter
-        mt={16}
+        mt={32}
         fontSize={14}
         fontWeight={600}
         lineHeight="17px"
