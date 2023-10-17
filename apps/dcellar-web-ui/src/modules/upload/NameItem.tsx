@@ -6,7 +6,9 @@ import { IconFont } from '@/components/IconFont';
 import React from 'react';
 import { useAppDispatch } from '@/store';
 import { setObjectOperation } from '@/store/slices/object';
-import { UploadFile } from '@/store/slices/global';
+import { setTaskManagement, UploadFile } from '@/store/slices/global';
+import { useRouter } from 'next/router';
+import { encodeObjectName } from '@/utils/string';
 
 type Props = {
   name: string;
@@ -18,6 +20,7 @@ type Props = {
 };
 export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props) => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const fileType = contentIconTypeToExtension(name);
   const finished = status === 'FINISH';
   const hoverStyles = finished
@@ -29,11 +32,27 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
 
   const onClick = () => {
     if (!finished || !task) return;
-    const id = [task.bucketName, ...task.prefixFolders, name].join('/');
+    const id = [task.bucketName, ...task.prefixFolders, task.waitFile.relativePath, name].join('/');
+    const objectName = [...task.prefixFolders, task.waitFile.relativePath, name].join('/');
+
+    if (name.endsWith('/')) {
+      dispatch(setTaskManagement(false));
+      return router.push(`/buckets/${task.bucketName}/${encodeObjectName(objectName)}`);
+    }
+
     dispatch(
       setObjectOperation({
         level: 1,
-        operation: [id, 'download', { action: 'view', bucketName: task.bucketName }],
+        operation: [
+          id,
+          'download',
+          {
+            action: 'view',
+            bucketName: task.bucketName,
+            payloadSize: task.waitFile.size,
+            objectName,
+          },
+        ],
       }),
     );
   };

@@ -512,7 +512,7 @@ export const getObjectMeta = async (
   bucketName: string,
   objectName: string,
   endpoint: string,
-): Promise<[ObjectMeta, null] | ErrorResponse> => {
+): Promise<[ObjectMeta, null] | [null, { code: number; message: string }]> => {
   const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
     objectName,
   )}?object-meta`;
@@ -523,11 +523,12 @@ export const getObjectMeta = async (
       return [data, null];
     },
     (e) => {
+      const { response } = e;
       const error =
-        e.status === 429
-          ? { code: e.status, message: 'SP not available. Try later.' }
-          : xmlParser.parse(e.data);
-      return commonFault(error);
+        response.status === 429
+          ? { code: response.status, message: 'SP not available. Try later.' }
+          : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
+      return [null, error];
     },
   );
 };
