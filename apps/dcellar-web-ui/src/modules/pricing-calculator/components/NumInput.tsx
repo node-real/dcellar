@@ -32,10 +32,14 @@ export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }:
       }}
       onChange={(e) => {
         const value = e.target.value;
+        // TODO opt it
         if (parseFloat(value) < 0 || value.length > 15) return;
         if (value === '') {
           onChangeValue(value);
         } else if (type === 'float') {
+          if (value.includes('.')) {
+            return onChangeValue(value.replace(/^00+/, '0')+'');
+          }
           onChangeValue(Number(value.replace(/^00+/, '0'))+'');
         } else {
           onChangeValue(Number(value.replace(/\D/g, '0'))+'');
