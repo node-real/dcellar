@@ -57,7 +57,7 @@ const AmountErrors = {
     <>
       No withdrawals allowed over 100 {displayTokenSymbol()}.{' '}
       <Link
-        href="#"
+        href="https://docs.nodereal.io/docs/dcellar-faq#wallet-related"
         color="readable.danger"
         _hover={{ color: 'readable.danger' }}
         textDecoration={'underline'}
