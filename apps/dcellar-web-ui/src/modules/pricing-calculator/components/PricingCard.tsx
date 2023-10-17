@@ -96,7 +96,7 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           }}
         >
           Global prices will update monthly based on all the SPs' suggested prices.{' '}
-          <UnderlineLink href="#">Learn More</UnderlineLink>
+          <UnderlineLink href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment">Learn More</UnderlineLink>
         </Text>
         <Menu matchWidth>
           {({ isOpen }) => (
