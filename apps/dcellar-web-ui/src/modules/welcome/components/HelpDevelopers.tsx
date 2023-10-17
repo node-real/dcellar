@@ -77,7 +77,6 @@ export const HelpDevelopers = () => {
                   transition={'all 0.2s'}
                   _hover={{
                     boxShadow: isMobile ? 'none' : '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
-                    transition: 'all 0.15s'
                   }}
                 >
                   <Image
