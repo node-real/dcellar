@@ -1,4 +1,4 @@
-import { Flex, Link, toast } from '@totejs/uikit';
+import { Flex, Text, toast } from '@totejs/uikit';
 import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
@@ -9,6 +9,7 @@ import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useMount } from 'ahooks';
 import { InternalRoutePaths } from '@/utils/constant';
 import { BN } from '@/utils/math';
+import NextLink from 'next/link';
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   // loading status
@@ -134,7 +135,10 @@ const contentIconTypeToExtension = (fileName: string) => {
 
 const renderBalanceNumber = (availableBalance: string) => {
   if (Number(availableBalance) < 0) return 'Fetching balance...';
-  return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
+  return `${getNumInDigits(
+    availableBalance,
+    CRYPTOCURRENCY_DISPLAY_PRECISION,
+  )} ${displayTokenSymbol()}`;
 };
 
 // bankBalance + gasFee, 校验余额够不够，
@@ -153,13 +157,11 @@ const renderInsufficientBalance = (
     <GAShow name={gaOptions?.gaShowName}>
       Insufficient balance.&nbsp;
       <GAClick name={gaOptions?.gaClickName}>
-        <Link
-          href={InternalRoutePaths.transfer_in}
-          style={{ textDecoration: 'underline' }}
-          color="#EE3911"
-        >
-          Transfer in
-        </Link>
+        <NextLink href={InternalRoutePaths.transfer_in} passHref legacyBehavior>
+          <Text style={{ textDecoration: 'underline' }} color="#EE3911" cursor={'pointer'}>
+            Transfer in
+          </Text>
+        </NextLink>
       </GAClick>
     </GAShow>
   );
@@ -274,15 +276,17 @@ export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
           <GAShow key={index} name={gaOptions?.gaShowName}>
             Insufficient balance.&nbsp;
             <GAClick name={gaOptions?.gaClickName}>
-              <Link
-                display={'inline'}
-                href={item.link}
-                style={{ textDecoration: 'underline' }}
-                color="#EE3911"
-                _hover={{ color: '#EE3911' }}
-              >
-                {item.text}
-              </Link>
+              <NextLink href={item.link} passHref legacyBehavior>
+                <Text
+                  cursor={'pointer'}
+                  display={'inline'}
+                  style={{ textDecoration: 'underline' }}
+                  color="#EE3911"
+                  _hover={{ color: '#EE3911' }}
+                >
+                  {item.text}
+                </Text>
+              </NextLink>
             </GAClick>
           </GAShow>
         ))}
@@ -352,15 +356,16 @@ const renderPaymentInsufficientBalance = ({
         <GAShow key={index} name={gaOptions?.gaShowName}>
           Insufficient balance.&nbsp;
           <GAClick name={gaOptions?.gaClickName}>
-            <Link
-              display={'inline'}
-              href={item.link}
-              style={{ textDecoration: 'underline' }}
-              color="#EE3911"
-              _hover={{ color: '#EE3911' }}
-            >
-              {item.text}
-            </Link>
+            <NextLink href={item.link} passHref legacyBehavior>
+              <Text
+                display={'inline'}
+                style={{ textDecoration: 'underline' }}
+                color="#EE3911"
+                _hover={{ color: '#EE3911' }}
+              >
+                {item.text}
+              </Text>
+            </NextLink>
           </GAClick>
         </GAShow>
       ))}
