@@ -32,8 +32,12 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
 
   const onClick = () => {
     if (!finished || !task) return;
-    const id = [task.bucketName, ...task.prefixFolders, task.waitFile.relativePath, name].join('/');
-    const objectName = [...task.prefixFolders, task.waitFile.relativePath, name].join('/');
+    const id = [task.bucketName, ...task.prefixFolders, task.waitFile.relativePath, name]
+      .filter(Boolean)
+      .join('/');
+    const objectName = [...task.prefixFolders, task.waitFile.relativePath, name]
+      .filter(Boolean)
+      .join('/');
 
     if (name.endsWith('/')) {
       dispatch(setTaskManagement(false));
