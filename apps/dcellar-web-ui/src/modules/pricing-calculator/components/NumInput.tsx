@@ -3,9 +3,10 @@ import React from 'react';
 
 type NumInputProps = InputProps & {
   value: string;
+  type?: 'inter' | 'float';
   onChangeValue: (value: string) => void;
 };
-export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) => {
+export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }: NumInputProps) => {
   return (
     <Input
       type="number"
@@ -32,7 +33,13 @@ export const NumInput = ({ value, onChangeValue, ...restProps }: NumInputProps) 
       onChange={(e) => {
         const value = e.target.value;
         if (parseFloat(value) < 0 || value.length > 15) return;
-        onChangeValue(value.replace(/^00+/, '0'));
+        if (value === '') {
+          onChangeValue(value);
+        } else if (type === 'float') {
+          onChangeValue(Number(value.replace(/^00+/, '0'))+'');
+        } else {
+          onChangeValue(Number(value.replace(/\D/g, '0'))+'');
+        }
       }}
     />
   );
