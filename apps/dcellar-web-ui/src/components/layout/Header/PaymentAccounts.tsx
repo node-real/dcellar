@@ -6,6 +6,7 @@ import {
   setupOAList,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
+import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
 import { useRouter } from 'next/router';
 import { useBalance } from 'wagmi';
@@ -19,6 +20,8 @@ export const PaymentAccounts = () => {
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
+    // TODO opt balance to a new component
+    dispatch(setupBnbPrice());
     dispatch(setupOAList());
     dispatch(setupPaymentAccounts());
     dispatch(setupAccountDetail(loginAccount));
