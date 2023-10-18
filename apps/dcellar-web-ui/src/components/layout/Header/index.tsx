@@ -23,7 +23,7 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
           <Link href="/" target="_blank" data-track-id="dc.main.nav.logo.click">
             <IconFont type="logo" w={122} h={24} />
           </Link>
-          <Badge>{networkTag(runtimeEnv)}</Badge>
+          {runtimeEnv === 'testnet' && <Badge>{networkTag(runtimeEnv)}</Badge>}
         </LogoContainer>
         <Content>
           <Box onClick={() => {
@@ -68,8 +68,8 @@ const Content = styled(Flex)`
 export const Badge = styled.span`
   display: inline-flex;
   border-radius: 2px;
-  color: var(--ui-colors-brand-normal-hight);
-  background-color: var(--ui-colors-scene-success-opacity-normal);
+  color: var(--ui-colors-brand-brand7);
+  background-color: var(--ui-colors-opacity1);
   padding: 3px 4px;
   font-size: 12px;
   transform: scale(0.83333);
