@@ -184,6 +184,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'detail':
       case 'delete':
       case 'cancel':
+        const folder = record.objectName.endsWith('/');
+        if (folder) {
+          return dispatch(
+            setObjectOperation({
+              operation: [`${record.bucketName}/${record.objectName}`, 'folder_detail'],
+            }),
+          );
+        }
         return dispatch(
           setObjectOperation({ operation: [`${record.bucketName}/${record.objectName}`, menu] }),
         );
@@ -301,11 +309,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((a) => a.value === 'detail');
         }
         //if this folder is yours, you only can delete it
-        if (isFolder && owner) {
-          fitActions = Actions.filter((a) => a.value === 'delete');
-        }
-        if (isFolder && !owner) {
-          fitActions = [];
+        if (isFolder) {
+          fitActions = Actions.filter((a) =>
+            (owner ? ['detail', 'delete'] : ['detail']).includes(a.value),
+          );
         }
 
         fitActions.forEach((item) => {
@@ -402,8 +409,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         canPrev={canPrev}
         onRow={(record) => ({
           onClick: () => {
-            const isFolder = record.objectName.endsWith('/');
-            !isFolder && onMenuClick('detail', record);
+            onMenuClick('detail', record);
           },
         })}
         scroll={{ x: 800 }}

@@ -118,7 +118,8 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
         seedString: '',
       };
       const [res, error] = await getListObjects(params);
-      if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
+      // should never happen
+      if (error || !res || res.code !== 0) return false;
       const { GfSpListObjectsByBucketNameResponse } = res.body!;
       // 更新文件夹objectInfo
       dispatch(

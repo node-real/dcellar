@@ -44,6 +44,7 @@ export type ObjectActionType = 'view' | 'download' | '';
 
 export type ObjectOperationsType =
   | 'detail'
+  | 'folder_detail'
   | 'delete'
   | 'share'
   | 'download'
