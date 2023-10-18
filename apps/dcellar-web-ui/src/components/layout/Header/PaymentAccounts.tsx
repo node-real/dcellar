@@ -4,7 +4,6 @@ import {
   setBankBalance,
   setupAccountDetail,
   setupOwnerAccount,
-  setupPaymentAccounts,
 } from '@/store/slices/accounts';
 import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
