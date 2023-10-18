@@ -5,9 +5,7 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice, setupBnbPrice } from '@/store/slices/global';
-import { useMount } from 'ahooks';
-import { setupAccountInfo } from '@/store/slices/accounts';
+import { selectBnbPrice } from '@/store/slices/global';
 import React, { memo } from 'react';
 import { IconFont } from '@/components/IconFont';
 
@@ -16,12 +14,7 @@ interface NewBalanceProps {}
 const NewBalance = memo<NewBalanceProps>(function NewBalance() {
   const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
-  // const { loginAccount } = useAppSelector((root) => root.persist);
   const { bankBalance } = useAppSelector((root) => root.accounts);
-
-  // useMount(() => {
-  //   dispatch(setupAccountInfo(loginAccount));
-  // });
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';
