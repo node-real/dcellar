@@ -21,6 +21,7 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
           <Link href="/" target="_blank" data-track-id="dc.main.nav.logo.click">
             <IconFont type="logo" w={122} h={24} />
           </Link>
+          <Badge>{networkTag(runtimeEnv)}</Badge>
         </LogoContainer>
         <Content>
           {taskManagement && (
