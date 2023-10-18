@@ -32,6 +32,8 @@ import {
   setAccountType,
   setupAccountDetail,
   setupAccountType,
+  setupOwnerAccount,
+  setupPaymentAccounts,
 } from '@/store/slices/accounts';
 import { ToAccountSelector } from '../components/ToAccountSelector';
 import {
@@ -50,7 +52,7 @@ import { removeTrailingSlash } from '@/utils/string';
 import { InternalRoutePaths } from '@/utils/constant';
 import styled from '@emotion/styled';
 import { Loading as PageLoading } from '@/components/common/Loading';
-import { useTimeout } from 'ahooks';
+import { useMount, useTimeout } from 'ahooks';
 
 export type TxType =
   | 'withdraw_from_payment_account'
@@ -109,6 +111,15 @@ export const Send = memo<SendProps>(function Send() {
     setValue,
   } = useForm<TWalletFromValues>({
     mode: 'all',
+  });
+  useMount(async () => {
+    dispatch(setupOwnerAccount());
+    const error = await dispatch(setupPaymentAccounts());
+    if (error) {
+      toast.error({
+        description: error,
+      })
+    }
   });
   useEffect(() => {
     if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;

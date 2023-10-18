@@ -16,12 +16,12 @@ interface NewBalanceProps {}
 const NewBalance = memo<NewBalanceProps>(function NewBalance() {
   const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  // const { loginAccount } = useAppSelector((root) => root.persist);
   const { bankBalance } = useAppSelector((root) => root.accounts);
 
-  useMount(() => {
-    dispatch(setupAccountDetail(address));
-  });
+  // useMount(() => {
+  //   dispatch(setupAccountDetail(loginAccount));
+  // });
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBankBalance,
   setupAccountDetail,
-  setupOAList,
+  setupOwnerAccount,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
@@ -19,9 +19,8 @@ export const PaymentAccounts = () => {
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
-    dispatch(setupOAList());
-    dispatch(setupPaymentAccounts());
-    dispatch(setupAccountDetail(loginAccount));
+    dispatch(setupOwnerAccount());
+    // dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
 
   const { data: gnfdBalance, refetch } = useBalance({

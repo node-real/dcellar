@@ -1,8 +1,8 @@
-import { Box } from '@totejs/uikit';
+import { Box, toast } from '@totejs/uikit';
 import { OwnerAccount } from './components/OwnerAccount';
 import { PaymentAccounts } from './components/PaymentAccounts';
 import { NonRefundableModal } from './components/NonRefundableModal';
-import { setupOAList, setupPaymentAccounts } from '@/store/slices/accounts';
+import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch } from '@/store';
 import { useMount } from 'ahooks';
 import { AccountOperations } from '@/modules/accounts/components/AccountOperations';
@@ -13,9 +13,14 @@ import { runtimeEnv } from '@/base/env';
 export const Accounts = () => {
   const dispatch = useAppDispatch();
 
-  useMount(() => {
-    dispatch(setupOAList());
-    dispatch(setupPaymentAccounts());
+  useMount(async () => {
+    dispatch(setupOwnerAccount());
+    const error = await dispatch(setupPaymentAccounts());
+    if (error) {
+      toast.error({
+        description: error,
+      });
+    }
   });
 
   return (
