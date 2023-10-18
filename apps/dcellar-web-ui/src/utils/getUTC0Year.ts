@@ -6,3 +6,4 @@ export const getUTC0Year = () => {
 
   return dayjs().utc().format('YYYY');
 };
+

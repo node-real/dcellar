@@ -1,6 +1,6 @@
 import { ThemeConfig } from 'antd';
 
-export const theme: ThemeConfig = {
+export const antdTheme: ThemeConfig = {
   token: {
     colorPrimary: '#00BA34',
     colorBorderSecondary: '#e6e8ea',
@@ -12,6 +12,7 @@ export const theme: ThemeConfig = {
     fontFamily: 'Inter, sans-serif',
     colorError: '#EE3911',
     colorErrorBorderHover: '#FC6E75',
+    borderRadius: 4,
   },
   components: {
     Tooltip: {

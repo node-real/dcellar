@@ -1,19 +1,17 @@
 import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditDisablePaymentAccount } from '@/store/slices/accounts';
-import React from 'react';
-import { Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import { assetPrefix } from '@/base/env';
+import { setEditDisablePaymentAccount, setupAccountDetail } from '@/store/slices/accounts';
+import React, { memo } from 'react';
+import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAccount } from 'wagmi';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { SET_ACCOUNT_NON_REFUNDABLE_ICON } from '@/modules/file/constant';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { IconFont } from '@/components/IconFont';
 
-type Props = {
-  refreshList: () => void;
-};
-export const NonRefundableModal = ({ refreshList }: Props) => {
+interface NonRefundableModal {}
+
+export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundableModal() {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((state) => state.persist);
   const { editDisablePaymentAccount } = useAppSelector((state) => state.accounts);
@@ -28,26 +26,31 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
     onClose();
     dispatch(
       setStatusDetail({
-        icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
+        icon: 'account-failed',
         title: 'Set as Non-Refundable',
-        desc: 'Confirm this transaction in your wallet.',
+        desc: 'Please confirm the transaction in your wallet.',
       }),
     );
     const [res, error] = await disablePaymentAccountRefund(
       { address: loginAccount, paymentAccount: editDisablePaymentAccount },
       connector,
     );
-    if (error || res && res.code !== 0) {
+    if (error || (res && res.code !== 0)) {
       let msg = error as string;
-      if (error?.toLocaleLowerCase().includes('payment account has already be set as non-refundable')) {
-        msg = 'This payment account has already be set as non-refundable.'
+      if (
+        error?.toLocaleLowerCase().includes('payment account has already be set as non-refundable')
+      ) {
+        msg = 'This payment account has already be set as non-refundable.';
       }
-      return dispatch(setStatusDetail({
-        title: 'Set Failed',
-        icon: SET_ACCOUNT_NON_REFUNDABLE_ICON,
-        desc: msg,
-      }));
+      return dispatch(
+        setStatusDetail({
+          title: 'Set Failed',
+          icon: 'account-failed',
+          desc: msg,
+        }),
+      );
     }
+    dispatch(setupAccountDetail(editDisablePaymentAccount));
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 
@@ -55,31 +58,19 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
     <DCModal isOpen={isOpen} onClose={onClose}>
       <ModalCloseButton />
       <ModalBody display={'flex'} flexDirection={'column'} alignItems={'center'}>
-      <Image
-        alt="disable account icon"
-        src={`${assetPrefix}/images/accounts/disable-account.svg`}
-        width="120"
-        height="120"
-      />
-      <Text mb={16} fontSize={24} fontWeight={600}>
-        Set as Non-Refundable
-      </Text>
-      <Text
-        fontSize="18px"
-        lineHeight={'22px'}
-        fontWeight={400}
-        textAlign={'center'}
-        marginTop="8px"
-        color={'readable.secondary'}
-        mb={'32px'}
-      >
-        Making this payment account non-refundable means it can't be refunded anymore and this
-        action can't be undone.
-      </Text>
+        <IconFont type={'account-failed'} w={120} />
+        <Text mt={32} fontSize={24} fontWeight={600}>
+          Set as Non-Refundable
+        </Text>
+        <Text fontSize="16px" textAlign={'center'} marginTop="8px" color={'readable.tertiary'}>
+          Making this payment account non-refundable means it can't be refunded anymore and this
+          action can't be undone.
+        </Text>
       </ModalBody>
-      <ModalFooter margin={0} flexDirection={'row'}>
+      <ModalFooter flexDirection={'row'}>
         <DCButton
-          variant={'dcGhost'}
+          size={'lg'}
+          variant="ghost"
           flex={1}
           onClick={onClose}
           gaClickName="dc.payment_account.delete_confirm.cancel.click"
@@ -87,15 +78,14 @@ export const NonRefundableModal = ({ refreshList }: Props) => {
           Cancel
         </DCButton>
         <DCButton
+          size={'lg'}
           gaClickName="dc.payment_account.delete_confirm.delete.click"
-          variant={'dcDanger'}
           flex={1}
           onClick={onContinueClick}
-          colorScheme="danger"
         >
           Continue
         </DCButton>
       </ModalFooter>
     </DCModal>
   );
-};
+});

@@ -1,6 +1,6 @@
-import { reportEvent } from '@/utils/reportEvent';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { reportEvent } from '@/utils/gtag';
 
 export function GAPageView() {
   const { isReady, pathname, asPath } = useRouter();
@@ -14,7 +14,7 @@ export function GAPageView() {
           name = 'dc.shared_ui.preview.all.pv';
           break;
         case pathname === '/':
-          name = 'dc.welcome.main.all.pv';
+          name = 'dc_lp.homepage.main.all.pv';
           break;
         case /\/buckets$/gi.test(asPath):
           name = 'dc.bucket.main.all.pv';
@@ -31,6 +31,12 @@ export function GAPageView() {
           break;
         case /\/wallet\?type=send/gi.test(asPath):
           name = 'dc.wallet.send.all.pv';
+          break;
+        case /\/pricing-calculator$/gi.test(asPath):
+          name = 'dc_lp.calculator.main.all.pv';
+          break;
+        case /\/pricing-calculator\/.*/gi.test(asPath):
+          name = 'dc_lp.calculator.main.all.pv';
           break;
       }
 

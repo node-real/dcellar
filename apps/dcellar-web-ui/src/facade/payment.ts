@@ -1,8 +1,8 @@
-import { getClient } from '@/base/client';
 import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import BigNumber from 'bignumber.js';
 import { Long } from '@bnb-chain/greenfield-js-sdk';
 import { getTimestampInSeconds } from '@/utils/time';
+import { getClient } from '@/facade/index';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();
@@ -48,8 +48,9 @@ export const getStreamRecord = async (address: string) => {
   };
 };
 
-export const getStoreFeeParams = async (time?: number) => {
-  const client = await getClient();
+export const getStoreFeeParams = async (props: { time?: number, network?: 'mainnet' }) => {
+  const { time = undefined, network } = props || {};
+  const client = await getClient(network);
   const now = getTimestampInSeconds();
   const [globalSpStoragePrice, { params: storageParams }, { params: paymentParams }] =
     await Promise.all([

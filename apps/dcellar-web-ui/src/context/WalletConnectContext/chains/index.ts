@@ -6,19 +6,20 @@ import {
   BSC_RPC_URL,
   GREENFIELD_CHAIN_RPC_URL,
   GREENFIELD_CHAIN_ID,
-  runtimeEnv,
   GREENFIELD_CHAIN_EXPLORER_URL,
   BSC_EXPLORER_URL,
 } from '@/base/env';
 import { CHAIN_NAMES } from '@/utils/constant';
 
+const isGnfdMainnet = GREENFIELD_CHAIN_ID === 1017;
+
 const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
   name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
-  network: 'greenfield',
+  network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   nativeCurrency: {
-    name: 'tBNB',
-    symbol: 'tBNB',
+    name: isGnfdMainnet ? 'BNB' : 'tBNB',
+    symbol: isGnfdMainnet ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -30,18 +31,26 @@ const greenFieldChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
-    default: { name: 'Greenfield Mekong Testnet Scan', url: GREENFIELD_CHAIN_EXPLORER_URL },
+    etherscan: {
+      name: `${CHAIN_NAMES[GREENFIELD_CHAIN_ID]} Scan`,
+      url: GREENFIELD_CHAIN_EXPLORER_URL,
+    },
+    default: {
+      name: `${CHAIN_NAMES[GREENFIELD_CHAIN_ID]} Scan`,
+      url: GREENFIELD_CHAIN_EXPLORER_URL,
+    },
   },
 };
 
+const isBscMainnet = BSC_CHAIN_ID === 56;
+
 const bscChain: Chain = {
   id: BSC_CHAIN_ID,
-  name: 'BNB Smart Chain Testnet',
-  network: 'BNB Smart Chain Testnet',
+  name: CHAIN_NAMES[BSC_CHAIN_ID],
+  network: CHAIN_NAMES[BSC_CHAIN_ID],
   nativeCurrency: {
-    name: 'tBNB',
-    symbol: 'tBNB',
+    name: isBscMainnet ? 'BNB' : 'tBNB',
+    symbol: isBscMainnet ? 'BNB' : 'tBNB',
     decimals: 18,
   },
   rpcUrls: {
@@ -53,8 +62,14 @@ const bscChain: Chain = {
     },
   },
   blockExplorers: {
-    etherscan: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
-    default: { name: 'BNB Smart Chain Testnet Scan', url: BSC_EXPLORER_URL },
+    etherscan: {
+      name: `${CHAIN_NAMES[BSC_CHAIN_ID]} Scan`,
+      url: BSC_EXPLORER_URL,
+    },
+    default: {
+      name: `${CHAIN_NAMES[BSC_CHAIN_ID]} Scan`,
+      url: BSC_EXPLORER_URL,
+    },
   },
 };
 

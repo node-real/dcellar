@@ -1,14 +1,13 @@
 import React, { memo, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupTmpAvailableBalance } from '@/store/slices/global';
-import { Box, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { useAppSelector } from '@/store';
+import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
+import BigNumber from 'bignumber.js';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
-} from '@/modules/file/utils';
-import { MenuCloseIcon } from '@totejs/icons';
-import BigNumber from 'bignumber.js';
+} from '@/modules/object/utils';
+import { IconFont } from '@/components/IconFont';
 
 export type FeeItem = {
   label: string;
@@ -22,16 +21,10 @@ interface FeesProps {
 }
 
 export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = () => {} }) {
-  const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { isOpen, onToggle } = useDisclosure();
-
-  useEffect(() => {
-    dispatch(setupTmpAvailableBalance(loginAccount));
-  }, [fees]);
+  const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
 
   const _fees = fees.map((fee) => ({
     label: fee.label,
@@ -40,77 +33,70 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
 
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));
 
+  const enoughBalance = new BigNumber(bankBalance).minus(allFees).isPositive();
   useEffect(() => {
-    setBalanceAvailable(new BigNumber(bankBalance).minus(allFees).isPositive());
-  }, [allFees.toString(), bankBalance]);
+    setBalanceAvailable(enoughBalance);
+  }, [enoughBalance]);
 
   return (
-    <Flex
-      mt={16}
-      flexDirection={'column'}
-      w="100%"
-      padding={'8px'}
-      bg={'bg.secondary'}
-      borderRadius="4px"
-    >
+    <>
       <Flex
-        paddingBottom={'4px'}
-        fontSize={'14px'}
-        fontWeight={600}
-        onClick={onToggle}
-        justifyContent={'space-between'}
-        alignItems={'center'}
-        cursor={'pointer'}
+        gap={8}
+        padding={'8px 12px'}
+        flexDirection={'column'}
+        bg={'bg.bottom'}
+        borderRadius="4px"
       >
-        <Text>Total Fees</Text>
-        <Text justifySelf={'flex-end'} fontWeight={'normal'}>
-          {renderFeeValue(allFees.toString(), exchangeRate)}
-          <MenuCloseIcon
-            sx={{
-              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            }}
-          />
-        </Text>
-      </Flex>
-      <Box borderTop="1px solid #AEB4BC" display={isOpen ? 'none' : 'block'}>
-        <Flex display={'flex'} flexDirection={'column'} gap={'4px'} paddingTop={'4px'}>
-          {_fees.map((item, index) => (
-            <Flex key={index} w="100%" alignItems={'center'} justifyContent={'space-between'}>
-              <Flex alignItems="center" mb="4px">
-                <Text
-                  fontSize={'14px'}
-                  lineHeight={'17px'}
-                  fontWeight={400}
-                  color={'readable.tertiary'}
-                  as="p"
-                >
-                  {item.label}
+        <Flex
+          fontSize={'14px'}
+          fontWeight={600}
+          onClick={onToggle}
+          justifyContent={'space-between'}
+          alignItems={'center'}
+          cursor={'pointer'}
+        >
+          <Text>Total Fees</Text>
+          <Flex
+            color="readable.secondary"
+            justifySelf={'flex-end'}
+            fontWeight={'normal'}
+            alignItems={'center'}
+          >
+            {renderFeeValue(allFees.toString(), exchangeRate)}
+            <IconFont color={'readable.normal'} type={isOpen ? 'menu-open' : 'menu-close'} w={20} />
+          </Flex>
+        </Flex>
+        {isOpen && (
+          <>
+            <Divider borderColor={'readable.disable'} />
+            {_fees.map((item, index) => (
+              <Flex key={index} w="100%" alignItems={'center'} justifyContent={'space-between'}>
+                <Flex alignItems="center">
+                  <Text color={'readable.tertiary'} as="p">
+                    {item.label}
+                  </Text>
+                </Flex>
+                <Text color={'readable.tertiary'}>
+                  {renderFeeValue(String(item.value), exchangeRate)}
                 </Text>
               </Flex>
-              <Text
-                fontSize={'14px'}
-                lineHeight={'17px'}
-                fontWeight={400}
-                color={'readable.tertiary'}
-              >
-                {renderFeeValue(String(item.value), exchangeRate)}
+            ))}
+            <Flex w={'100%'} justifyContent={'flex-end'}>
+              <Text fontSize={'12px'} color={'readable.disable'}>
+                Owner Account balance: {renderBalanceNumber(bankBalance || '0')}
               </Text>
             </Flex>
-          ))}
-        </Flex>
-        <Flex w={'100%'} justifyContent={'space-between'}>
-          {/*todo correct the error showing logics*/}
-          <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
-            {renderInsufficientBalance(allFees.toString(), '0', bankBalance || '0', {
-              gaShowName: 'dc.group.create_group.show',
-              gaClickName: 'dc.group.create_group.click',
-            })}
-          </Text>
-          <Text fontSize={'12px'} lineHeight={'16px'} color={'readable.disabled'}>
-            Available balance: {renderBalanceNumber(bankBalance || '0')}
-          </Text>
-        </Flex>
-      </Box>
-    </Flex>
+          </>
+        )}
+      </Flex>
+      {!enoughBalance && (
+        <Text fontSize={'14px'} color={'scene.danger.normal'}>
+          {renderInsufficientBalance(allFees.toString(), '0', bankBalance || '0', {
+            gaShowName: 'dc.group.create_group.show',
+            gaClickName: 'dc.group.create_group.click',
+          })}
+        </Text>
+      )}
+    </>
   );
 });

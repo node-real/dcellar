@@ -13,17 +13,19 @@ import {
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { setAuthModalOpen } from '@/store/slices/global';
 
+export type BucketOperationsType = 'detail' | 'delete' | 'create' | '';
+
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
+export type AllBucketInfo = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
+
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
   CreateAt: number;
   BucketStatus: number;
 };
 
-export type TEditDetailItem = BucketItem & { PrimarySpAddress?: string };
-
 export interface BucketState {
-  bucketInfo: Record<string, BucketProps['BucketInfo']>;
+  bucketInfo: Record<string, AllBucketInfo>;
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
@@ -32,10 +34,8 @@ export interface BucketState {
   // current visit bucket;
   discontinue: boolean;
   owner: boolean;
-  editDetail: TEditDetailItem;
-  editDelete: BucketItem;
-  editCreate: boolean;
   editQuota: string[];
+  bucketOperation: [string, BucketOperationsType];
 }
 
 const initialState: BucketState = {
@@ -47,31 +47,23 @@ const initialState: BucketState = {
   currentPage: 0,
   discontinue: false,
   owner: true,
-  editDetail: {} as BucketItem,
-  editDelete: {} as BucketItem,
-  editCreate: false,
   editQuota: ['', ''],
+  bucketOperation: ['', ''],
 };
 
 export const bucketSlice = createSlice({
   name: 'bucket',
   initialState,
   reducers: {
+    setBucketOperation(state, { payload }: PayloadAction<[string, BucketOperationsType]>) {
+      state.bucketOperation = payload;
+    },
     setReadQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
       const { bucketName, quota } = payload;
       state.quotas[bucketName] = quota;
     },
-    setEditCreate(state, { payload }: PayloadAction<boolean>) {
-      state.editCreate = payload;
-    },
-    setEditDetail(state, { payload }: PayloadAction<TEditDetailItem>) {
-      state.editDetail = payload;
-    },
     setEditQuota(state, { payload }: PayloadAction<string[]>) {
       state.editQuota = payload;
-    },
-    setEditDelete(state, { payload }: PayloadAction<BucketItem>) {
-      state.editDelete = payload;
     },
     setBucketStatus(state, { payload }: PayloadAction<{ discontinue: boolean; owner: boolean }>) {
       const { discontinue, owner } = payload;
@@ -115,7 +107,10 @@ export const bucketSlice = createSlice({
       state.buckets[address] = buckets
         .map((bucket) => {
           const { BucketName, CreateAt, BucketStatus } = bucket.BucketInfo;
-          state.bucketInfo[BucketName] = bucket.BucketInfo;
+          state.bucketInfo[BucketName] = {
+            ...bucket,
+            ...bucket.BucketInfo,
+          };
           return {
             ...omit(bucket, 'BucketInfo'),
             BucketName,
@@ -158,7 +153,12 @@ export const setupBuckets =
     const [res, error] = await getUserBuckets(address, sp.endpoint);
     dispatch(setLoading(false));
     if (error || !res || res.code !== 0) {
-      toast.error({ description: error || res?.message });
+      if (!res?.message?.includes('record not found')) {
+        toast.error({ description: error || res?.message });
+      }
+      if (!buckets[address]?.length) {
+        dispatch(setBucketList({ address, buckets: [] }));
+      }
       return;
     }
     const bucketList =
@@ -205,7 +205,7 @@ export const setupBucketQuota =
       if (error === 'invalid signature') {
         dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
       } else {
-        toast.error({ description: error || 'Get bucket read quota error' });
+        console.error({ description: error || 'Get bucket read quota error' });
       }
       return;
     }
@@ -218,12 +218,10 @@ export const {
   setCurrentBucketPage,
   setBucketInfo,
   setBucketStatus,
-  setEditDetail,
-  setEditDelete,
   setReadQuota,
-  setEditCreate,
   setEditQuota,
   setQuotaLoading,
+  setBucketOperation,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

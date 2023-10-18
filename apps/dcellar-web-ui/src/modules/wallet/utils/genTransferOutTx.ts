@@ -1,15 +1,13 @@
-import { getClient } from "@/base/client";
+import { getClient } from '@/facade';
 
 export const genTransferOutTx = async (configParam: {
   from: string;
   to: string;
   amount: {
-    denom: 'BNB',
+    denom: 'BNB';
     amount: string;
-  }
+  };
 }) => {
   const client = await getClient();
-  const sendTx = await client.crosschain.transferOut(configParam);
-
-  return sendTx;
+  return await client.crosschain.transferOut(configParam);
 };

@@ -1,8 +1,8 @@
 import { getStreamRecord } from '@/facade/account';
-import { BN } from '../BigNumber';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getTimestampInSeconds } from '../time';
+import { BN } from '@/utils/math';
 
 export const getSettlementFee = async (address: string) => {
   const [res, error] = await getStreamRecord(address);

@@ -1,5 +1,5 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { useAccount, useNetwork } from 'wagmi';
 import { useAppDispatch } from '@/store';
 import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';

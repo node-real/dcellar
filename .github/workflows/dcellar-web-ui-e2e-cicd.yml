@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       app_name:
-        description: 'app name in gitops, only used in branch name'
+        description: 'App name in GitOps is used for branch naming only.'
         type: string
         required: true
         default: 'dcellar-web-ui'

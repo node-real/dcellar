@@ -1,12 +1,14 @@
 import {
+  generateUrlByBucketName,
+  GRNToString,
   IQuotaProps,
   ISimulateGasFee,
-  ListObjectsByBucketNameResponse,
-  PermissionTypes,
-  TxResponse,
-  generateUrlByBucketName,
   ListObjectsByBucketNameRequest,
+  ListObjectsByBucketNameResponse,
+  newObjectGRN,
+  PermissionTypes,
   SpResponse,
+  TxResponse,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   broadcastFault,
@@ -28,7 +30,6 @@ import {
   MsgUpdateObjectInfo,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
-import { getClient } from '@/base/client';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { quotaRemains } from '@/facade/bucket';
@@ -40,15 +41,17 @@ import {
   QueryHeadObjectResponse,
   QueryLockFeeRequest,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { generateGetObjectOptions } from '@/modules/file/utils/generateGetObjectOptions';
-import { batchDownload, directlyDownload } from '@/modules/file/utils';
 import {
   ActionType,
+  Principal,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
-import { GROUP_ID } from '@/utils/regex';
 import { XMLParser } from 'fast-xml-parser';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getClient } from '@/facade/index';
+import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
+import { batchDownload, directlyDownload } from '@/modules/object/utils';
+import { GROUP_ID } from '@/utils/constant';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -131,7 +134,7 @@ export const getCanObjectAccess = async (
   // only own can get bucket quota
   if (loginAccount === info.owner) {
     if (!quota) return [false, E_UNKNOWN];
-    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA];
+    if (!quotaRemains(quota, size)) return [false, E_NO_QUOTA, undefined, quota];
   }
   return [true, '', info, quota!];
 };
@@ -336,6 +339,61 @@ export const putObjectPolicy = async (
   return tx.broadcast(broadcastPayload).then(resolve, broadcastFault);
 };
 
+export const deleteObjectPolicy = async (
+  connector: Connector,
+  bucketName: string,
+  objectName: string,
+  operator: string,
+  principalAddrs: string[],
+): Promise<ErrorResponse | [DeliverResponse, null]> => {
+  const client = await getClient();
+  const resource = GRNToString(newObjectGRN(bucketName, objectName));
+  const principals: Principal[] = principalAddrs.map((principalAddr) => {
+    return {
+      type: principalAddr.match(GROUP_ID)
+        ? PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP
+        : PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+      value: principalAddr,
+    };
+  });
+
+  const tasks = await Promise.all(
+    principals.map((principal) =>
+      client.storage
+        .deletePolicy({
+          resource,
+          principal,
+          operator,
+        })
+        .then(resolve, createTxFault),
+    ),
+  );
+
+  for (const [opt, error] of tasks) {
+    if (!!error) return [null, error];
+  }
+
+  const _tasks = tasks.map((task) => task[0] as TxResponse);
+
+  const txs = await client.txClient.multiTx(_tasks);
+
+  const [simulateInfo, simulateError] = await txs
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+
+  if (!simulateInfo) return [null, simulateError];
+
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return txs.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
 export const putObjectPolicies = async (
   connector: Connector,
   bucketName: string,
@@ -350,7 +408,10 @@ export const putObjectPolicies = async (
     ),
   );
 
-  if (opts.some(([opt, error]) => !!error)) return [null, E_OFF_CHAIN_AUTH];
+  for (const [opt, error] of opts) {
+    if (!!error) return [null, error];
+  }
+
   const _opts = opts.map((opt) => opt[0] as TxResponse);
 
   const groups = srcMsg
@@ -451,7 +512,7 @@ export const getObjectMeta = async (
   bucketName: string,
   objectName: string,
   endpoint: string,
-): Promise<[ObjectMeta, null] | ErrorResponse> => {
+): Promise<[ObjectMeta, null] | [null, { code: number; message: string }]> => {
   const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
     objectName,
   )}?object-meta`;
@@ -462,11 +523,12 @@ export const getObjectMeta = async (
       return [data, null];
     },
     (e) => {
+      const { response } = e;
       const error =
-        e.status === 429
-          ? { code: e.status, message: 'SP not available. Try later.' }
-          : xmlParser.parse(e.data);
-      return commonFault(error);
+        response.status === 429
+          ? { code: response.status, message: 'SP not available. Try later.' }
+          : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
+      return [null, error];
     },
   );
 };

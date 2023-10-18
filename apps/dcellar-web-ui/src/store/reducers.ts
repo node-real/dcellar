@@ -10,9 +10,9 @@ import bucket from '@/store/slices/bucket';
 import wallet from '@/store/slices/wallet';
 import object from '@/store/slices/object';
 import apollo from '@/store/slices/apollo';
-import balance from '@/store/slices/balance';
 import group from '@/store/slices/group';
 import accounts from '@/store/slices/accounts';
+import { runtimeEnv } from '@/base/env';
 
 const rootReducer = combineReducers({
   global,
@@ -22,14 +22,13 @@ const rootReducer = combineReducers({
   wallet,
   object,
   apollo,
-  balance,
   group,
   accounts,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
 
-const reducer = (state: RootState, action: AnyAction) => {
+export const reducer = (state: RootState, action: AnyAction) => {
   if (action.type === HYDRATE) {
     return {
       ...state, // use previous state
@@ -45,7 +44,7 @@ export const persistConfig = {
   storage,
   whitelist: ['persist'],
   throttle: 300,
-  keyPrefix: `Dcellar_`,
+  keyPrefix: `Dcellar_${runtimeEnv}`,
   stateReconciler: autoMergeLevel2,
 };
 

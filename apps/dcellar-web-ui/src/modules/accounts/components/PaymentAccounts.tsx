@@ -1,25 +1,28 @@
-import { Box, Flex, Link, Loading } from '@totejs/uikit';
+import { Box, Flex } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectPaymentAccounts,
+  setAccountOperation,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
-  setEditPaymentDetail,
   TAccount,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
 import { useRouter } from 'next/router';
 import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/persist';
-import { PAListEmpty } from './PAListEmpty';
 import { NewPA } from './NewPA';
+import { Loading } from '@/components/common/Loading';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const actions: ActionMenuItem[] = [
+const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Deposit', value: 'deposit' },
   { label: 'Withdraw', value: 'withdraw' },
@@ -34,11 +37,11 @@ export const PaymentAccounts = () => {
     PAPageSize,
     paymentAccountSortBy: [sortName, dir],
   } = useAppSelector((root) => root.persist);
-  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount } = useAppSelector(
+  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, paymentAccounts } = useAppSelector(
     (root) => root.accounts,
   );
-  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const ascend = sortBy(paymentAccounts, sortName);
+  const loginPaymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const ascend = sortBy(loginPaymentAccounts, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -47,7 +50,7 @@ export const PaymentAccounts = () => {
 
   const onMenuClick = (e: string, record: TAccount) => {
     if (e === 'detail') {
-      dispatch(setEditPaymentDetail(record.address));
+      dispatch(setAccountOperation([record.address, 'paDetail']));
     }
     if (e === 'setNonRefundable') {
       dispatch(setEditDisablePaymentAccount(record.address));
@@ -82,23 +85,11 @@ export const PaymentAccounts = () => {
       render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <Flex>
-            <Link
-              href={addressUrl}
-              target="_blank"
-              textDecoration={'underline'}
-              color={'readable.normal'}
-              _hover={{
-                textDecoration: 'underline',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              {record.address}{' '}
-            </Link>{' '}
-            <CopyText value={record.address} />
-          </Flex>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+            <DCLink color="currentcolor" href={addressUrl} target="_blank">
+              {record.address}
+            </DCLink>
+          </CopyText>
         );
       },
     },
@@ -112,7 +103,6 @@ export const PaymentAccounts = () => {
           <ActionMenu
             operations={operations}
             menus={actions}
-            justifyContent="flex-end"
             onChange={(e) => onMenuClick(e, record)}
           />
         );
@@ -133,35 +123,50 @@ export const PaymentAccounts = () => {
     dispatch(setCurrentPAPage(0));
     dispatch(updatePAPageSize(pageSize));
   };
-  const empty = !isLoadingPaymentAccounts && !sortedList.length;
+
+  const spinning = !(loginAccount in paymentAccounts) || isLoadingPaymentAccounts;
+  const empty = !spinning && !sortedList.length;
+  const loadingComponent = {
+    spinning: spinning,
+    indicator: <Loading />,
+  };
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty
+        type="empty-account"
+        title="No Payment Accounts"
+        desc="Create payment accounts to pay for storage and bandwidth. "
+        empty={empty}
+        h={274}
+      >
+        <NewPA />
+      </ListEmpty>
+    ),
+    [empty],
+  );
 
   return (
     <>
-      <Flex justifyContent={'space-between'} marginBottom={16}>
-        <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
+      <Flex justifyContent={'space-between'} marginBottom={16} alignItems="center">
+        <Box as="h3" fontSize={16} fontWeight={600}>
           Payment Account
         </Box>
         <NewPA />
       </Flex>
       <DCTable
         rowKey="address"
-        loading={{
-          spinning: isLoadingPaymentAccounts,
-          indicator: <Loading />,
-        }}
+        loading={loadingComponent}
         columns={columns}
         dataSource={page}
-        renderEmpty={() => <PAListEmpty empty={empty} />}
+        renderEmpty={renderEmpty}
         pageSize={PAPageSize}
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record: TAccount, index) => ({
-          onClick: () => {
-            dispatch(setEditPaymentDetail(record.address));
-          },
+        onRow={(record: TAccount) => ({
+          onClick: () => onMenuClick('detail', record),
         })}
-      ></DCTable>
+      />
     </>
   );
 };

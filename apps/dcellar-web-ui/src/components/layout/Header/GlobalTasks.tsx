@@ -15,14 +15,10 @@ import {
 import { useChecksumApi } from '@/modules/checksum';
 import { useAsyncEffect } from 'ahooks';
 import { getSpOffChainData } from '@/store/slices/persist';
-import {
-  TMakePutObjectHeaders,
-  makePutObjectHeaders,
-} from '@/modules/file/utils/generatePubObjectOptions';
+
 import axios from 'axios';
 import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/utils/constant';
-import { genCreateObjectTx } from '@/modules/file/utils/genCreateObjectTx';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { parseErrorXml } from '@/utils/common';
@@ -30,8 +26,13 @@ import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { setupAccountDetail } from '@/store/slices/accounts';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import {
+  makePutObjectHeaders,
+  TMakePutObjectHeaders,
+} from '@/modules/object/utils/generatePubObjectOptions';
 
 interface GlobalTasksProps {}
 
@@ -277,12 +278,18 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
         const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus!;
         const preTs = sealingTs[task.id] || Date.now();
+
+        // for folder object not sync to meta service
+        if (error?.code === 404) {
+          return 0;
+        }
+
         if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
               task,
-              errorMsg: error ? error : 'Something went wrong.',
+              errorMsg: error?.message || 'Something went wrong.',
             }),
           );
           return -1;

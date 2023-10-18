@@ -8,6 +8,7 @@ import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { WrongNetworkModal } from '@/components/WrongNetworkModal';
 
 const protectGNFDPaths = ['/buckets', '/buckets/[bucketName]', '/groups', '/accounts'];
+const noProtectPaths = ['/', '/terms', '/pricing-calculator']
 // TODO unify the wallet page protect
 export const PageProtect: React.FC<any> = ({ children }) => {
   const { chain } = useNetwork();
@@ -16,11 +17,14 @@ export const PageProtect: React.FC<any> = ({ children }) => {
   useEffect(() => {
     if (!chain?.id) return;
     if (pathname === '/') return;
-    const inProtectGNFDPaths = protectGNFDPaths.some((path) => pathname === path);
+    const inProtectGNFDPath = protectGNFDPaths.some((path) => pathname === path);
+    const isNoProtectGNFDPath = noProtectPaths.some((path) => pathname === path);
     const isGNFD = isRightChain(chain?.id, GREENFIELD_CHAIN_ID);
     const isDcellarChains = [GREENFIELD_CHAIN_ID, BSC_CHAIN_ID].includes(chain?.id);
 
-    if (inProtectGNFDPaths) {
+    if (isNoProtectGNFDPath) {
+      return onClose();
+    } else if (inProtectGNFDPath) {
       isGNFD ? onClose() : onOpen();
     } else {
       isDcellarChains ? onClose() : onOpen();

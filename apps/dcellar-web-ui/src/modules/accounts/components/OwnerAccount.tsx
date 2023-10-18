@@ -1,17 +1,18 @@
-import { Box, Flex, Link } from '@totejs/uikit';
+import { Box } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccount, setEditOwnerDetail } from '@/store/slices/accounts';
-import { isEmpty } from 'lodash-es';
-import { ActionMenu, ActionMenuItem } from '@/components/common/DCTable/ActionMenu';
+import { setAccountOperation, TAccount } from '@/store/slices/accounts';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
 
-const actions: ActionMenuItem[] = [
+const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Transfer In', value: 'transfer_in' },
   { label: 'Transfer Out', value: 'transfer_out' },
@@ -23,15 +24,16 @@ export const OwnerAccount = () => {
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const data = ownerAccount?.address ? [ownerAccount] : [];
   const router = useRouter();
+
   const onMenuClick = (e: string, record: TAccount) => {
-    if (e === 'detail') {
-      return dispatch(setEditOwnerDetail(record.address));
-    }
-    if (['transfer_in', 'transfer_out', 'send'].includes(e)) {
-      return router.push(`/wallet?type=${e}`);
+    switch (e) {
+      case 'detail':
+        return dispatch(setAccountOperation([record.address, 'oaDetail']));
+      default:
+        return router.push(`/wallet?type=${e}`);
     }
   };
-  const ownerAccountLoading = isEmpty(ownerAccount);
+
   const columns: ColumnProps<TAccount>[] = [
     {
       key: 'name',
@@ -46,23 +48,11 @@ export const OwnerAccount = () => {
       render: (_: string, record: TAccount) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <Flex>
-            <Link
-              href={addressUrl}
-              target="_blank"
-              textDecoration={'underline'}
-              color={'readable.normal'}
-              _hover={{
-                textDecoration: 'underline',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              {record.address}{' '}
-            </Link>{' '}
-            <CopyText value={record.address} />
-          </Flex>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+            <DCLink color="currentcolor" href={addressUrl} target="_blank">
+              {record.address}
+            </DCLink>
+          </CopyText>
         );
       },
     },
@@ -76,7 +66,6 @@ export const OwnerAccount = () => {
           <ActionMenu
             operations={operations}
             menus={actions}
-            justifyContent="flex-end"
             onChange={(e) => onMenuClick(e, record)}
           />
         );
@@ -97,11 +86,10 @@ export const OwnerAccount = () => {
         canPrev={false}
         pageSize={10}
         pagination={false}
-        loading={ownerAccountLoading}
-        onRow={(record: TAccount, index) => ({
-          onClick: () => {
-            dispatch(setEditOwnerDetail(record.address));
-          },
+        loading={false}
+        renderEmpty={() => null}
+        onRow={(record: TAccount) => ({
+          onClick: () => onMenuClick('detail', record),
         })}
       ></DCTable>
     </Container>
@@ -110,6 +98,11 @@ export const OwnerAccount = () => {
 
 const Container = styled(Box)`
   margin-bottom: 32px;
+
+  .dc-table {
+    overflow: hidden;
+  }
+
   .ant-table-wrapper .ant-table-tbody > tr > td {
     border-bottom: none;
   }

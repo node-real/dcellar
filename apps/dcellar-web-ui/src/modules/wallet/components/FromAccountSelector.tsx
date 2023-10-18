@@ -1,21 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { IDCSelectOption, DCSelect } from '@/components/common/DCSelect';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Grid, Text } from '@totejs/uikit';
+import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';
-import { useRouter } from 'next/router';
 import { keyBy } from 'lodash-es';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
+import { MenuOption } from '@/components/common/DCMenuList';
+import Link from 'next/link';
 
-type TAccountSelector = {
+interface FromAccountSelectorProps {
   onChange: (value: TAccount) => void;
   from: string;
-};
+}
 
-export function FromAccountSelector(props: TAccountSelector) {
-  const router = useRouter();
+export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromAccountSelector(
+  props,
+) {
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const paymentAccounts= useAppSelector(selectPaymentAccounts(loginAccount));
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const accountList = useMemo(
     () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],
@@ -45,14 +47,14 @@ export function FromAccountSelector(props: TAccountSelector) {
     setAccount(keyAccountList[value]);
   };
 
-  const onSearch = (result: IDCSelectOption[]) => {
+  const onSearch = (result: MenuOption[]) => {
     setTotal(result.length);
   };
 
-  const onSearchFilter = (keyword: string, item: IDCSelectOption) => {
+  const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.name.toLowerCase();
+    const tmpName = item.label.toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
@@ -61,7 +63,7 @@ export function FromAccountSelector(props: TAccountSelector) {
       accountList.map((item) => {
         const { name, address } = item;
         return {
-          label: <OptionItem address={address} name={name} />,
+          label: name,
           value: address,
           name,
         };
@@ -70,25 +72,13 @@ export function FromAccountSelector(props: TAccountSelector) {
   );
 
   const Footer = () => (
-    <Flex
-      height={39}
-      borderTop={'1px solid readable.border'}
-      textAlign={'center'}
-      color="readable.brand5"
-      fontSize={14}
-      fontWeight={500}
-      alignItems={'center'}
-      justifyContent={'center'}
-      cursor={'pointer'}
-      _hover={{
-        bgColor: 'bg.bottom'
-      }}
-      onClick={() => {
-        router.push('/accounts');
-      }}
-    >
-      Manage Accounts
-    </Flex>
+    <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
+      <Link href="/accounts" passHref legacyBehavior>
+        <Text fontWeight={500} as="a" color="brand.normal" _hover={{ color: 'brand.brand5' }}>
+          Manage Accounts
+        </Text>
+      </Link>
+    </Grid>
   );
 
   return (
@@ -96,23 +86,24 @@ export function FromAccountSelector(props: TAccountSelector) {
       value={account?.address}
       text={renderItem(account?.name, account?.address)}
       options={options}
-      header={`Accounts (${total})`}
+      header={() => `Accounts (${total})`}
       onChange={onChangeAccount}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
         gaClickName: 'dc.bucket.create_modal.select_sp.click',
       }}
-      Footer={Footer}
+      footer={Footer}
+      renderOption={({ value, label }) => <OptionItem value={value} label={label} />}
     />
   );
-}
+});
 const renderItem = (name: string, address: string) => {
   return [name, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
 };
 
-function OptionItem(props: any) {
-  const { address, name } = props;
+function OptionItem(props: MenuOption) {
+  const { value: address, label: name } = props;
 
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">

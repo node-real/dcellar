@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { checkSpOffChainMayExpired, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
+import { ssrLandingRoutes } from '@/pages/_app';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button
@@ -44,7 +45,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   });
 
   const { pathname } = useRouter();
-  const { address: walletAddress, connector } = useAccount();
+  const { address: walletAddress, isConnected } = useAccount();
 
   useEffect(() => {
     if (pathname === '/' || inline) return;
@@ -57,7 +58,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     // but if wallet is locked, we can't get the connector from wagmi
     // to avoid errors when using the connector, we treat this situation as logout.
     const timer = setTimeout(() => {
-      if (!connector) {
+      if (!isConnected) {
         logout();
       }
     }, 1000);
@@ -65,19 +66,20 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     return () => {
       clearTimeout(timer);
     };
-  }, [connector, inline, loginAccount, logout, pathname, walletAddress]);
+  }, [inline, isConnected, loginAccount, logout, pathname, walletAddress]);
 
   useAsyncEffect(async () => {
-    if (loginAccount === walletAddress) {
+    // ssr pages loginAccount initial value ''
+    if (loginAccount && loginAccount === walletAddress) {
       // expire date less than 24h，remove sp auth & logout
       const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
       if (spMayExpired) logout(true);
     }
-  }, [walletAddress]);
+  }, [walletAddress, loginAccount]);
 
   const { pass } = useLoginGuard(inline);
 
-  if (!pass) {
+  if (!pass && !ssrLandingRoutes.some((item) => item === pathname)) {
     return null;
   }
 

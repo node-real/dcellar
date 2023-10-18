@@ -1,11 +1,10 @@
 import { memo, useCallback } from 'react';
-import { CreateBucketButton } from '@/modules/bucket/bucket.style';
-import { AddIcon } from '@totejs/icons';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditCreate, setupBuckets } from '@/store/slices/bucket';
+import { setBucketOperation, setupBuckets } from '@/store/slices/bucket';
 import { Flex } from '@totejs/uikit';
-import RefreshIcon from '@/public/images/icons/refresh.svg';
 import { debounce } from 'lodash-es';
+import { DCButton } from '@/components/common/DCButton';
+import { IconFont } from '@/components/IconFont';
 
 interface NewBucketProps {
   showRefresh?: boolean;
@@ -25,18 +24,15 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket({ showRefresh =
   return (
     <Flex gap={12}>
       {showRefresh && (
-        <Flex onClick={onRefresh} alignItems="center" height={40} mr={12} cursor="pointer">
-          <RefreshIcon />
-        </Flex>
+        <DCButton
+          variant="ghost"
+          onClick={onRefresh}
+          leftIcon={<IconFont type="refresh" w={24} />}
+        />
       )}
-      <CreateBucketButton
-        variant="dcPrimary"
-        leftIcon={<AddIcon />}
-        iconSpacing={8}
-        onClick={() => dispatch(setEditCreate(true))}
-      >
-        New Bucket
-      </CreateBucketButton>
+      <DCButton onClick={() => dispatch(setBucketOperation(['', 'create']))}>
+        Create Bucket
+      </DCButton>
     </Flex>
   );
 });

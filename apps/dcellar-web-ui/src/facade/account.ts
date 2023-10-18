@@ -1,4 +1,3 @@
-import { getClient } from '@/base/client';
 import {
   GRNToString,
   MsgCreateObjectTypeUrl,
@@ -13,9 +12,8 @@ import { Wallet, ethers } from 'ethers';
 import { parseEther } from 'ethers/lib/utils.js';
 import { resolve } from './common';
 import { ErrorResponse, broadcastFault, simulateFault, createTxFault, commonFault } from './error';
-import { UNKNOWN_ERROR } from '@/modules/file/constant';
+import { UNKNOWN_ERROR } from '@/modules/object/constant';
 import { TTmpAccount } from '@/store/slices/global';
-import { signTypedDataV4 } from '@/utils/signDataV4';
 import { signTypedDataCallback } from './wallet';
 import {
   QueryGetStreamRecordResponse,
@@ -25,6 +23,7 @@ import {
 import { Connector } from 'wagmi';
 import { getTimestamp } from '@/utils/time';
 import { BaseAccount } from '@bnb-chain/greenfield-cosmos-types/cosmos/auth/v1beta1/auth';
+import { getClient } from '@/facade/index';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -108,26 +107,17 @@ export const createTmpAccount = async ({
     })
     .then(resolve, simulateFault);
 
-  if (simulateError) return [null, simulateError];
+  if (simulateInfo === null || simulateError) return [null, simulateError];
 
   const payload = {
     denom: 'BNB',
-    gasLimit: Number(210000),
-    gasPrice: '5000000000',
+    gasLimit: Number(simulateInfo.gasLimit),
+    gasPrice: simulateInfo.gasPrice,
     payer: address,
     granter: '',
     signTypedDataCallback: signTypedDataCallback(connector),
   };
-  const payloadParam = isDelete
-    ? {
-        ...payload,
-        signTypedDataCallback: async (addr: string, message: string) => {
-          const provider = await connector?.getProvider();
-          return await signTypedDataV4(provider, addr, message);
-        },
-      }
-    : payload;
-  const [res, error] = await txs.broadcast(payloadParam).then(resolve, broadcastFault);
+  const [res, error] = await txs.broadcast(payload).then(resolve, broadcastFault);
 
   if ((res && res.code !== 0) || error) {
     return [null, error || UNKNOWN_ERROR];

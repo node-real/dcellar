@@ -1,24 +1,25 @@
 import { useAppSelector } from '@/store';
-import { Box, Divider, Flex, Image, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import React, { useMemo } from 'react';
-import { GREENFIELD_CHAIN_EXPLORER_URL, assetPrefix } from '@/base/env';
-import { trimAddress } from '@/utils/string';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { trimAddress, trimFloatZero } from '@/utils/string';
 import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
-import { currencyFormatter } from '@/utils/currencyFormatter';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
   MIN_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
-import { trimFloatZero } from '@/utils/trimFloatZero';
 import { Tips } from '@/components/common/Tips';
-import { BN } from '@/utils/BigNumber';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
 import { TAccountDetail } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
+import { BN } from '@/utils/math';
+import { InternalRoutePaths } from '@/utils/constant';
+import { currencyFormatter } from '@/utils/formatter';
+import { IconFont } from '@/components/IconFont';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 type Props = {
   loading: boolean;
@@ -53,7 +54,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
   };
   const detailItems = [
     {
-      label: 'Account Address',
+      label: 'Account address',
       value: (
         <Flex>
           <Text fontSize={'14px'} fontWeight={500}>
@@ -84,7 +85,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
           <LoadingAdaptor loading={loading} empty={false}>
             <>
               <Text fontSize={14} fontWeight={500}>
-                {BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} BNB
+                {BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()} {displayTokenSymbol()}
               </Text>
               <Text color="readable.tertiary" fontSize={12}>
                 &nbsp;(
@@ -107,7 +108,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
               {BN(accountDetail.bufferBalance || 0)
                 .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
                 .toString()}{' '}
-              BNB
+              {displayTokenSymbol()}
             </Text>
           </LoadingAdaptor>
         </Flex>
@@ -123,7 +124,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                 .dp(MIN_DISPLAY_PRECISION)
                 .toString(),
             )}{' '}
-            BNB/s
+            {displayTokenSymbol()}/s
           </Text>
         </LoadingAdaptor>
       ),
@@ -152,18 +153,10 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
 
   return (
     <>
-      <QDrawerHeader fontWeight={600} fontSize={24} lineHeight="32px">
-        {title}
-      </QDrawerHeader>
+      <QDrawerHeader>{title}</QDrawerHeader>
       <QDrawerBody>
         <Flex alignItems={'flex-start'}>
-          <Image
-            alt="account icon"
-            src={`${assetPrefix}/images/accounts/filled-account.svg`}
-            width={48}
-            height={48}
-            marginRight={24}
-          />
+          <IconFont type={'detail-account'} w={48} mr={24} />
           <Box>
             <Flex alignItems={'center'}>
               <Text fontSize={14} fontWeight={500}>
@@ -190,7 +183,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
                       <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
                         Your account is suspended due to insufficient balance. To reactivate your
                         account, please deposit at least &nbsp;
-                        <strong>{unFreezeAmount} &nbsp;BNB</strong>&nbsp; immediately.
+                        <strong>{unFreezeAmount} &nbsp;{displayTokenSymbol()}</strong>&nbsp; immediately.
                       </Text>
                       <Link
                         cursor={'pointer'}
@@ -226,7 +219,7 @@ export const AccountDetail = ({ loading, title, accountDetail, availableBalance 
         <Divider marginY={24} />
         <Flex gap={8} flexDirection={'column'}>
           {detailItems.map((item, index) => (
-            <Flex justifyContent={'space-between'} key={index}>
+            <Flex justifyContent={'space-between'} key={index} h={24}>
               <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
                 {item.label}
               </Text>

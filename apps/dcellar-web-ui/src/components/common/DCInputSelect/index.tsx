@@ -6,45 +6,38 @@ import {
   InputGroup,
   InputProps,
   InputRightElement,
-  Menu,
   MenuButton,
-  MenuItem,
   MenuItemProps,
-  MenuList,
   MenuListProps,
   MenuProps,
-  rgba,
   useDisclosure,
 } from '@totejs/uikit';
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { ReactElement, ReactNode, useEffect, useState } from 'react';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { GAClick } from '@/components/common/GATracker';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { DCMenu } from '@/components/common/DCMenu';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
-export interface IDCSelectOption {
-  label: React.ReactNode;
-  value: any;
-
-  [x: string]: any;
-}
-
 export interface DCSelectProps extends MenuProps {
-  header?: React.ReactNode;
-  Footer?: () => JSX.Element;
+  header?: () => ReactNode;
+  footer?: () => ReactNode;
   value?: string;
   text: string;
   RightIcon?: () => ReactElement;
   placeholder?: string;
-  options?: Array<IDCSelectOption>;
+  options?: Array<MenuOption>;
   headerProps?: BoxProps;
   listProps?: MenuListProps;
   itemProps?: ListItemProps;
   onChange?: (value: any) => void;
-  onSearchFilter?: (value: string, item: IDCSelectOption) => boolean;
-  onSearch?: (result: Array<IDCSelectOption>) => void;
+  onSearchFilter?: (value: string, item: MenuOption) => boolean;
+  onSearch?: (result: Array<MenuOption>) => void;
+  renderOption?: (option: MenuOption) => ReactNode;
+  emptyIcon?: string;
+  emptyText?: string;
 }
 
 export function DCInputSelect(props: DCSelectProps) {
@@ -57,19 +50,22 @@ export function DCInputSelect(props: DCSelectProps) {
     itemProps,
     headerProps,
     header,
-    Footer,
+    footer,
     onChange,
     onSearchFilter,
     onSearch,
     children,
     isDisabled,
     RightIcon,
+    renderOption,
+    emptyIcon,
+    emptyText,
     ...restProps
   } = props;
 
   const Right = RightIcon ? RightIcon : () => <SearchIcon />;
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const [resultOptions, setResultOptions] = useState<Array<IDCSelectOption>>();
+  const [resultOptions, setResultOptions] = useState<Array<MenuOption>>();
 
   const saveOnSearchRef = useSaveFuncRef(onSearch);
   useEffect(() => {
@@ -86,12 +82,12 @@ export function DCInputSelect(props: DCSelectProps) {
     }
   };
 
-  const onSelectItem = (item: IDCSelectOption) => {
+  const onSelectItem = (item: MenuOption) => {
     onChange?.(item.value);
   };
 
   const onChangeKeyword = (value: string) => {
-    const result: Array<IDCSelectOption> = value ? [] : options;
+    const result: Array<MenuOption> = value ? [] : options;
     if (value) {
       options.forEach((item) => {
         if (onSearchFilter?.(value, item)) {
@@ -103,91 +99,53 @@ export function DCInputSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
-
   return (
-    <Menu
+    <DCMenu
+      value={value}
       isOpen={isOpen}
       isDisabled={isOpen}
       matchWidth={true}
       placement="bottom-start"
       onClose={onClose}
       flip={false}
+      options={resultOptions || []}
+      renderOption={renderOption}
+      selectIcon
+      onMenuSelect={onSelectItem}
+      emptyIcon={emptyIcon}
+      emptyText={emptyText}
+      menuListProps={listProps}
+      renderHeader={() =>
+        header && (
+          <Box
+            fontSize={12}
+            bg="bg.bottom"
+            py={8}
+            px={12}
+            fontWeight={500}
+            borderBottom="1px solid readable.border"
+            {...headerProps}
+          >
+            {header()}
+          </Box>
+        )
+      }
+      renderFooter={() => footer && footer()}
       {...restProps}
     >
       <MenuButton
         as={SelectInput}
-        RightIcon={Right}
         requestFocus={isOpen}
         onClick={onOpen}
-        placeholder={placeholder}
-        text={text}
+        placeholder={text || placeholder}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
+        onBlur={onClose}
+        RightIcon={Right}
+        text={text}
         disabled={isDisabled}
       />
-      {!!resultOptions?.length && (
-        <MenuList border="1px solid readable.border" borderRadius={8} {...listProps}>
-          {header && (
-            <Box
-              color="#2AA372"
-              fontSize={12}
-              lineHeight="15px"
-              bg="bg.bottom"
-              py={8}
-              px={24}
-              fontWeight={500}
-              borderBottom="1px solid readable.border"
-              {...headerProps}
-            >
-              {header}
-            </Box>
-          )}
-          <Box
-            maxH={220}
-            overflowY="auto"
-            sx={{
-              '&::-webkit-scrollbar': {
-                width: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'readable.disabled',
-                borderRadius: '4px',
-              },
-            }}
-          >
-            {resultOptions?.map((item) => {
-              const isSelected = value === item.value;
-              const { gaClickName, ...restItemProps } = itemProps ?? {};
-
-              return (
-                <GAClick key={item.value} name={gaClickName}>
-                  <MenuItem
-                    px={24}
-                    py={8}
-                    transitionDuration="normal"
-                    transitionProperty="colors"
-                    bg={isSelected ? rgba('#00BA34', 0.1) : undefined}
-                    _hover={{
-                      bg: isSelected ? undefined : 'bg.bottom',
-                    }}
-                    onClick={() => onSelectItem(item)}
-                    // _last={{
-                    //   mb: 8,
-                    // }}
-                    {...restItemProps}
-                  >
-                    {item.label}
-                  </MenuItem>
-                </GAClick>
-              );
-            })}
-
-            {/* {!resultOptions?.length && <NoResult />} */}
-          </Box>
-          {Footer && <Footer />}
-        </MenuList>
-      )}
-    </Menu>
+    </DCMenu>
   );
 }
 

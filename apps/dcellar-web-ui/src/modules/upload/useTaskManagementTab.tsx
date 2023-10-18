@@ -1,11 +1,9 @@
 import { useAppSelector } from '@/store';
-import { TUploadStatus, UploadFile } from '@/store/slices/global';
+import { UploadFile } from '@/store/slices/global';
 // import { ColoredAlertIcon } from '@totejs/icons';
 
 import { sortBy } from 'lodash-es';
 import { useMemo, useState } from 'react';
-
-export type TTabKey = TUploadStatus;
 
 export const useTaskManagementTab = () => {
   const { uploadQueue } = useAppSelector((root) => root.global);

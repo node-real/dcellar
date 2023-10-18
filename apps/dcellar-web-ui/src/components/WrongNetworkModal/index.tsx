@@ -1,13 +1,13 @@
 import React from 'react';
 import { Flex, ModalBody, ModalFooter, Text } from '@totejs/uikit';
 
-import CreateFailedIcon from '@/public/images/common/wrong-network.svg';
-import { POPPINS_FONT } from '@/modules/wallet/constants';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '../common/DCModal';
 import { DCButton } from '../common/DCButton';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useLogin } from '@/hooks/useLogin';
+import { IconFont } from '@/components/IconFont';
+import { CHAIN_NAMES } from '@/utils/constant';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { logout } = useLogin();
@@ -22,37 +22,31 @@ export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
     <DCModal isOpen={isOpen} onClose={() => {}} gaShowName="dc.wrongnet.gf_modal.0.show">
       <ModalBody textAlign={'center'} mt={0}>
         <Flex justifyContent={'center'}>
-          <CreateFailedIcon />
+          <IconFont w={120} type={'switch-network'} />
         </Flex>
-        <Text
-          fontSize={'24px'}
-          fontWeight={600}
-          fontFamily={POPPINS_FONT}
-          lineHeight="150%"
-          marginY={'16px'}
-        >
-          Wrong Network
+        <Text fontSize={'24px'} fontWeight={600} lineHeight="150%" marginY={'16px'}>
+          Switch Network
         </Text>
         <Text color="#76808F" fontSize={'18px'} fontWeight="400" lineHeight={'22px'}>
-          You are on the wrong network. Switch your wallet to BNB Greenfield first.
+          To complete the action, you need to switch to {CHAIN_NAMES[GREENFIELD_CHAIN_ID]}.
         </Text>
       </ModalBody>
-      <ModalFooter flexDirection={'column'} mt={24} gap={24}>
+      <ModalFooter flexDirection={'column'} mt={24} gap={16}>
         <DCButton
+          size="lg"
           gaClickName="dc.wrongnet.gf_modal.swithtogf.click"
-          variant="dcPrimary"
           width={'100%'}
           onClick={() => {
             switchNetwork?.(GREENFIELD_CHAIN_ID);
           }}
         >
-          Switch to BNB Greenfield
+          Switch to {CHAIN_NAMES[GREENFIELD_CHAIN_ID]}
         </DCButton>
         <DCButton
+          size={'lg'}
           gaClickName="dc.wrongnet.gf_modal.disconnect.click"
-          variant="dcGhost"
+          variant="ghost"
           width={'100%'}
-          height="48px"
           onClick={() => {
             logout();
             onClose();

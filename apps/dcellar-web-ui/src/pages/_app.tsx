@@ -5,18 +5,20 @@ import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { theme } from '@/base/theme';
-import { GAPageView } from '@/components/common/GATracker';
 import { SEOHead } from '@/components/common/SEOHead';
 import { PageProtect } from '@/context/GlobalContext/PageProtect';
 import { LoginContextProvider } from '@/context/LoginContext/provider';
 import { WalletConnectProvider } from '@/context/WalletConnectContext';
-import { OffChainAuthProvider } from '@/modules/off-chain-auth/OffChainAuthContext';
 import { wrapper } from '@/store';
 import { setupStorageProviders } from '@/store/slices/sp';
-import { Page } from '@/components/layout/Page';
 import { ReactNode } from 'react';
-import { StatusDetail } from '@/modules/object/components/StatusDetail';
+import { Layout } from '@/components/layout';
+import { GlobalManagements } from '@/components/layout/GlobalManagements';
+import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthContext';
+import { register } from 'swiper/element/bundle';
 
+register();
+export const ssrLandingRoutes = ['/', '/pricing-calculator', '/terms'];
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {
@@ -24,28 +26,31 @@ function DcellarApp({ Component, ...rest }: AppProps) {
   });
 
   const customLayout = (Component as any).getLayout;
-  const getLayout = customLayout || ((page: ReactNode) => <Page>{page}</Page>);
+  const getLayout = customLayout || ((page: ReactNode) => <Layout>{page}</Layout>);
+
+  const CommonComponent = (
+    <ThemeProvider theme={theme}>
+      <WalletConnectProvider>
+        <LoginContextProvider inline={!!customLayout}>
+          <OffChainAuthProvider>
+            {getLayout(
+              <PageProtect>
+                <Component {...props.pageProps} />
+                <GlobalManagements />
+              </PageProtect>,
+            )}
+          </OffChainAuthProvider>
+        </LoginContextProvider>
+      </WalletConnectProvider>
+    </ThemeProvider>
+  );
 
   return (
     <>
       <SEOHead />
       <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          <ThemeProvider theme={theme}>
-            <WalletConnectProvider>
-              <LoginContextProvider inline={!!customLayout}>
-                <OffChainAuthProvider>
-                  {getLayout(
-                    <PageProtect>
-                      <Component {...props.pageProps} />
-                      <GAPageView />
-                      <StatusDetail />
-                    </PageProtect>,
-                  )}
-                </OffChainAuthProvider>
-              </LoginContextProvider>
-            </WalletConnectProvider>
-          </ThemeProvider>
+        <PersistGate persistor={persistor} loading={customLayout ? CommonComponent : null}>
+          {CommonComponent}
         </PersistGate>
       </Provider>
     </>

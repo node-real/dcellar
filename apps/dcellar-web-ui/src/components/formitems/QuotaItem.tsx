@@ -4,14 +4,15 @@ import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';
 import { DCTooltip } from '@/components/common/DCTooltip';
-import { renderBnb } from '@/modules/file/utils';
 import { G_BYTES } from '@/utils/constant';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';
-import { BN } from '@/utils/BigNumber';
 import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
+import { BN } from '@/utils/math';
+import { renderBnb } from '@/modules/object/utils';
+import { displayTokenSymbol } from '@/utils/wallet';
 
 const MAX_SIZE = 100000;
 
@@ -47,12 +48,6 @@ const valueToPercent = (value: number) => {
   return Math.min(98, percent);
 };
 
-const CONST_VALUE = BigNumber(1)
-  .div(10 ** 18)
-  .times(G_BYTES)
-  .times(2_592_000)
-  .dividedBy(10 ** 18);
-
 export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
   value,
   current,
@@ -60,6 +55,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
   quotaUpdateAt,
 }) {
   const dispatch = useAppDispatch();
+  const [_, forceUpdate] = useState(0);
   const percent = valueToPercent(value);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
   const originPercent = valueToPercent(current || 0);
@@ -92,7 +88,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
     onChange(percentToValue(percent));
   };
 
-  const onDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onDragStart = () => {
     const container = document.getElementById('buy-quota-progress-bar')!;
     const movingClass = 'indicator-moving';
 
@@ -114,12 +110,20 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
       container.classList.remove(movingClass);
       document.removeEventListener('mousemove', mousemove);
       document.removeEventListener('mouseup', mouseup);
+      forceUpdate((v) => v + 1);
     };
     document.addEventListener('mousemove', mousemove);
     document.addEventListener('mouseup', mouseup);
   };
 
-  const price = useMemo(() => BN(readPrice).times(CONST_VALUE).toString(), [readPrice]);
+  const price = useMemo(() => {
+    return BN(readPrice)
+      .div(10 ** 18)
+      .times(G_BYTES)
+      .times(2_592_000)
+      .div(10 ** 18)
+      .toString();
+  }, [readPrice]);
 
   return (
     <FormItem>
@@ -132,7 +136,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           />
         </Flex>
         <Text color="#76808F" fontWeight={400}>
-          Price: {renderBnb(price)} BNB/GB/month
+          Price: {renderBnb(price)} {displayTokenSymbol()}/GB/month
         </Text>
       </FormLabel>
       <Flex position="relative" alignItems="center" id="buy-quota-progress-bar">
@@ -140,6 +144,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           {current !== undefined && (
             <ProgressOrigin w={`${originPercent}%`} minW={6}>
               <DCTooltip
+                zIndex={1}
                 autoAdjustOverflow={false}
                 open={true}
                 title={
@@ -165,6 +170,7 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
           )}
           <Progress w={`${percent}%`} minW={6}>
             <DCTooltip
+              zIndex={2}
               key={invalid ? percent : current}
               color={invalid ? '#EE3911' : '#14151A'}
               open={current !== undefined || value > 0}
@@ -188,6 +194,10 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
             max={MAX_SIZE}
             precision={0}
             status={invalid ? 'error' : undefined}
+            onKeyDown={(e) => {
+              if (!e.key.match(/[0-9]|backspace|enter|delete|arrow(left|right|up|down)/i))
+                e.preventDefault();
+            }}
           />
           <Text ml={8} fontSize={16} fontWeight={600} lineHeight="normal">
             GB/month
@@ -227,6 +237,7 @@ const Indicator = styled(Box)`
   right: -7px;
   top: -3px;
   cursor: pointer;
+
   .indicator-moving & {
     background: #009e2c;
   }
@@ -238,6 +249,7 @@ const Progress = styled(Box)`
   position: absolute;
   left: 0;
   top: 0;
+
   .indicator-moving & {
     background: #009e2c;
   }

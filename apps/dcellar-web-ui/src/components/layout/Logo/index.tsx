@@ -2,9 +2,7 @@ import Link from 'next/link';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { Box, BoxProps } from '@totejs/uikit';
-import { useColorMode } from '@totejs/uikit';
-
-import LightLogo from '@/public/images/icons/logo.svg';
+import { IconFont } from '@/components/IconFont';
 
 interface ILogo extends BoxProps {
   href: string;
@@ -12,11 +10,11 @@ interface ILogo extends BoxProps {
   title?: string;
   target?: string;
 }
+
 export const Logo: React.FC<ILogo> = (props) => {
   const { href, target = '', title = '', ...restProps } = props;
   const { basePath } = useRouter();
-  const { colorMode } = useColorMode();
-  const logo = colorMode === 'light' ? <LightLogo /> : <LightLogo />;
+  const logo = <IconFont w={132} h={26} type={'logo'} />;
 
   return (
     <Box {...restProps}>

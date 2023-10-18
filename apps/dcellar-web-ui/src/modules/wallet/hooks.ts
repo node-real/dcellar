@@ -9,8 +9,8 @@ import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
 import { genSendTx } from './utils/genSendTx';
 import { genTransferOutTx } from './utils/genTransferOutTx';
-import { getClient } from '@/base/client';
 import { useAppSelector } from '@/store';
+import { getClient } from '@/facade';
 
 export const useGetFeeBasic = () => {
   const { transType } = useAppSelector((root) => root.wallet);

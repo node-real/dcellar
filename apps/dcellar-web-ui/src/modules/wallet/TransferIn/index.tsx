@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, useProvider, useSigner } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
@@ -16,22 +16,23 @@ import Container from '../components/Container';
 import {
   BSC_CHAIN_ID,
   BSC_EXPLORER_URL,
-  CROSS_CHAIN_CONTRACT_ADDRESS,
   GREENFIELD_CHAIN_ID,
-  TOKEN_HUB_CONTRACT_ADDRESS,
 } from '@/base/env';
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
 import { EOperation, TCalculateGas, TFeeData, TTransferInFromValues } from '../type';
 import { CROSS_CHAIN_ABI, INIT_FEE_DATA, TOKENHUB_ABI, WalletOperationInfos } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
-import { InternalRoutePaths } from '@/constants/paths';
-import { removeTrailingSlash } from '@/utils/removeTrailingSlash';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { InternalRoutePaths } from '@/utils/constant';
+import { removeTrailingSlash } from '@/utils/string';
+import { broadcastFault } from '@/facade/error';
 
-export const TransferIn = () => {
+interface TransferInProps {}
+
+export const TransferIn = memo<TransferInProps>(function TransferIn() {
   const {
     TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
     CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
@@ -39,6 +40,7 @@ export const TransferIn = () => {
   const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
+  const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const router = useRouter();
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
@@ -73,7 +75,7 @@ export const TransferIn = () => {
         try {
           setIsGasLoading(true);
           const crossChainContract = new ethers.Contract(
-            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
+            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
             CROSS_CHAIN_ABI,
             signer!,
           );
@@ -92,7 +94,7 @@ export const TransferIn = () => {
               ? amountInFormat.add(ackRelayFee).add(relayFee)
               : amountInFormat;
           const tokenHubContract = new ethers.Contract(
-            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
+            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
             TOKENHUB_ABI,
             signer!,
           );
@@ -131,12 +133,12 @@ export const TransferIn = () => {
 
     try {
       const crossChainContract = new ethers.Contract(
-        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || CROSS_CHAIN_CONTRACT_ADDRESS,
+        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
         CROSS_CHAIN_ABI,
         signer!,
       );
       const tokenHubContract = new ethers.Contract(
-        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || TOKEN_HUB_CONTRACT_ADDRESS,
+        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
         TOKENHUB_ABI,
         signer!,
       );
@@ -155,11 +157,12 @@ export const TransferIn = () => {
       reset();
       !isOpen && onOpen();
       setStatus('success');
-    } catch (e) {
+    } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log('transfer in error', e);
       !isOpen && onOpen();
       setStatus('failed');
+      setErrorMsg(broadcastFault(e)[1]);
     }
   };
 
@@ -188,7 +191,7 @@ export const TransferIn = () => {
   return (
     <Container>
       <Head />
-      <Flex mb={'12px'} justifyContent={'space-between'} alignItems="center">
+      <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
         <ChainBox type="from" chainId={BSC_CHAIN_ID} />
         <GAClick name="dc.wallet.transferin.exchange_btn.click">
           <SwapIcon onClick={onChangeTransfer} />
@@ -209,7 +212,7 @@ export const TransferIn = () => {
         />
         {isShowFee() ? (
           <>
-            <Divider margin={'12px 0'} />
+            <Divider margin={'24px 0'} />
             <Fee
               isGasLoading={isGasLoading}
               feeData={feeData}
@@ -228,7 +231,13 @@ export const TransferIn = () => {
           gaClickSwitchName="dc.wallet.transferin.switch_network.click"
         />
       </form>
-      <StatusModal viewTxUrl={viewTxUrl} isOpen={isOpen} onClose={onModalClose} status={status} />
+      <StatusModal
+        viewTxUrl={viewTxUrl}
+        isOpen={isOpen}
+        onClose={onModalClose}
+        status={status}
+        errorMsg={errorMsg}
+      />
     </Container>
   );
-};
+});

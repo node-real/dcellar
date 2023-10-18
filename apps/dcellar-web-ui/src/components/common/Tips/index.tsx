@@ -1,7 +1,7 @@
 import { GAShow } from '@/components/common/GATracker';
-import { ColoredInfoIcon } from '@totejs/icons';
 import { Flex, FlexProps, Tooltip, TooltipProps } from '@totejs/uikit';
 import React, { ReactElement, useState } from 'react';
+import { IconFont } from '@/components/IconFont';
 
 interface Props extends TooltipProps {
   tips: string | ReactElement | null;
@@ -10,7 +10,7 @@ interface Props extends TooltipProps {
   placement?: any;
   offset?: any;
   gaShowName?: string;
-  iconStyle?: {[key: string]: any};
+  iconStyle?: { [key: string]: any };
 }
 
 export const Tips = ({
@@ -21,11 +21,13 @@ export const Tips = ({
   offset = [0, 0],
   gaShowName,
   iconStyle,
+  visibility,
   ...restProps
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <Tooltip
+      // visibility={visibility || 'visible'}
       content={tips}
       w={containerWidth}
       strategy="fixed"
@@ -37,11 +39,11 @@ export const Tips = ({
       {...(restProps as FlexProps)}
     >
       <Flex alignItems={'center'} ml="4px" cursor="pointer">
-        <ColoredInfoIcon
-          width={iconSize}
-          height={iconSize}
-          _hover={{ color: '#2EC659' }}
-          size={'sm'}
+        <IconFont
+          type="colored-info"
+          w={iconSize}
+          color={'readable.disable'}
+          _hover={{ color: 'brand.brand5' }}
           {...iconStyle}
         />
         <GAShow isShow={isOpen} name={gaShowName} />

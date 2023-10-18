@@ -100,9 +100,9 @@ const request = ({ url, options, customOptions }: RequestOptions) => {
         e?.msg ||
         'Internal error. Please try again later.';
       if (needNotify && e?.code !== 'ECONNABORTED' && e.response?.status !== 401) {
-        toast.error({ description: `Failure, error message: ${message}` });
+        toast.error({ description: `Operation failed. Error message: ${message}.` });
         // eslint-disable-next-line no-console
-        console.error(`Failure, error message: ${message}`);
+        console.error(`Operation failed. Error message: ${message}.`);
       }
 
       const err = {

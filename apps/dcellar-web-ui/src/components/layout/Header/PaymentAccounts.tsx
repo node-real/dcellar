@@ -6,7 +6,7 @@ import {
   setupOAList,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
-import { setupGasObjects } from '@/store/slices/global';
+import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
 import { useRouter } from 'next/router';
 import { useBalance } from 'wagmi';
@@ -17,11 +17,16 @@ export const PaymentAccounts = () => {
   const { loginAccount } = useAppSelector((state) => state.persist);
   const { bucketInfo } = useAppSelector((state) => state.bucket);
   const { bucketName } = useAppSelector((state) => state.object);
+
   useAsyncEffect(async () => {
+    if (!loginAccount) return;
+    // TODO opt balance to a new component
+    dispatch(setupBnbPrice());
     dispatch(setupOAList());
     dispatch(setupPaymentAccounts());
-    loginAccount && dispatch(setupAccountDetail(loginAccount));
-  }, [dispatch, setupGasObjects]);
+    dispatch(setupAccountDetail(loginAccount));
+  }, [dispatch, loginAccount]);
+
   const { data: gnfdBalance, refetch } = useBalance({
     address: loginAccount as any,
     chainId: GREENFIELD_CHAIN_ID,
@@ -38,7 +43,7 @@ export const PaymentAccounts = () => {
 
   useThrottleEffect(() => {
     dispatch(setBankBalance(metamaskValue));
-  }, [metamaskValue])
+  }, [metamaskValue]);
 
   useThrottleEffect(() => {
     const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;

@@ -2,7 +2,7 @@ import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
 
 export type ErrorMsg = string;
 
-export const E_GET_GAS_FEE_LACK_BALANCE_ERROR = `Current available balance is not enough for gas simulation, please check.`;
+export const E_GET_GAS_FEE_LACK_BALANCE_ERROR = `Insufficient balance for gas estimation.`;
 export const E_UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 export const E_SP_PRICE_FAILED = `Get SP storage price failed.`;
 export const E_USER_REJECT_STATUS_NUM = '4001';
@@ -26,6 +26,7 @@ export const E_OBJECT_NAME_EXISTS = 'OBJECT_NAME_EXISTS';
 export const E_OBJECT_NOT_EXISTS = 'No such object';
 export const E_FOLDER_NAME_EXISTS = 'FOLDER_NAME_EXISTS';
 export const E_FOLDER_NAME_TOO_LONG = 'FOLDER_NAME_TOO_LONG';
+export const E_FULL_OBJECT_NAME_TOO_LONG = 'FULL_OBJECT_NAME_TOO_LONG';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export const E_NO_PERMISSION = 'NO_PERMISSION';
 export const E_SP_STORAGE_PRICE_FAILED = 'SP_STORAGE_PRICE_FAILED';
@@ -84,20 +85,6 @@ export const createTxFault = (e: any): ErrorResponse => {
     return [null, 'SP not available. Try later.'];
   }
   return [null, e?.message || E_UNKNOWN_ERROR];
-};
-
-export const downloadPreviewFault = (e: any): ErrorResponse => {
-  if (e?.response?.status === 500) {
-    return [null, E_OFF_CHAIN_AUTH];
-  }
-  if (e?.response?.status === 401) {
-    return [null, E_NO_PERMISSION];
-  }
-  if (e?.message) {
-    return [null, e?.message];
-  }
-
-  return [null, E_UNKNOWN_ERROR];
 };
 
 export const offChainAuthFault = (e: any): ErrorResponse => {

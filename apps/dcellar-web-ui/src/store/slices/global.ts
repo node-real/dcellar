@@ -1,16 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { getClient } from '@/base/client';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
 import { find, keyBy } from 'lodash-es';
 import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { defaultBalance } from '@/store/slices/balance';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getStoreFeeParams } from '@/facade/payment';
-import { AuthPostAction } from '@/modules/off-chain-auth/OffChainAuthContext';
+import { getClient } from '@/facade';
+import { AuthPostAction } from '@/context/off-chain-auth/OffChainAuthContext';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -22,7 +21,7 @@ export type TGasList = {
 };
 
 type TGas = {
-  gasPrice: number;
+  gasPrice: string;
   gasObjects: TGasList;
 };
 
@@ -89,33 +88,31 @@ export interface GlobalState {
   storeFeeParams: TStoreFeeParams;
   waitQueue: WaitFile[];
   uploadQueue: Record<string, UploadFile[]>;
-  _availableBalance: string; // using static value, avoid rerender
-  _lockFee: string;
   taskManagement: boolean;
   tmpAccount: TTmpAccount;
   sealingTs: Record<string, number>;
   authModalOpen: [boolean, AuthPostAction];
   disconnectWallet: boolean;
+  connectWallet: boolean;
 }
-
+export const GAS_PRICE = '0.000000005';
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'];
 const initialState: GlobalState = {
   bnb: getDefaultBnbInfo(),
   gasHub: {
-    gasPrice: 5e-9,
+    gasPrice: GAS_PRICE,
     gasObjects: {},
   },
   storeFeeParams: {} as TStoreFeeParams,
   isLoadingPLF: false,
   waitQueue: [],
   uploadQueue: {},
-  _availableBalance: '0',
-  _lockFee: '0',
   taskManagement: false,
   tmpAccount: {} as TTmpAccount,
   sealingTs: {},
   authModalOpen: [false, {} as AuthPostAction],
   disconnectWallet: false,
+  connectWallet: false,
 };
 
 export const globalSlice = createSlice({
@@ -124,12 +121,6 @@ export const globalSlice = createSlice({
   reducers: {
     setAuthModalOpen(state, { payload }: PayloadAction<[boolean, AuthPostAction]>) {
       state.authModalOpen = payload;
-    },
-    setTmpAvailableBalance(state, { payload }: PayloadAction<string>) {
-      state._availableBalance = payload;
-    },
-    setTmpLockFee(state, { payload }: PayloadAction<string>) {
-      state._lockFee = payload;
     },
     updateUploadProgress(
       state,
@@ -290,12 +281,12 @@ export const globalSlice = createSlice({
       const gasObjects = keyBy(
         payload.msgGasParams.map((item) => {
           let gasLimit = item.fixedType?.fixedGas.low || 0;
-          let gasFee = gasPrice * gasLimit;
+          let gasFee = +gasPrice * gasLimit;
           let perItemFee = 0;
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
-            gasFee = gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * gasPrice;
+            gasFee = +gasPrice * gasLimit;
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * (+gasPrice);
           }
 
           return {
@@ -379,7 +370,10 @@ export const globalSlice = createSlice({
     },
     setDisconnectWallet(state, { payload }: PayloadAction<boolean>) {
       state.disconnectWallet = payload;
-    }
+    },
+    setConnectWallet(state, { payload }: PayloadAction<boolean>) {
+      state.connectWallet = payload;
+    },
   },
 });
 
@@ -393,8 +387,6 @@ export const {
   addToUploadQueue,
   updateUploadStatus,
   updateUploadProgress,
-  setTmpAvailableBalance,
-  setTmpLockFee,
   setTaskManagement,
   removeFromWaitQueue,
   setTmpAccount,
@@ -405,6 +397,7 @@ export const {
   setisLoadingPLF,
   setAuthModalOpen,
   setDisconnectWallet,
+  setConnectWallet,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadFile>();
@@ -422,19 +415,15 @@ export const selectHashTask = (address: string) => (root: AppState) => {
 };
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
-export const selectGasFee = (type: string) => (state: AppState) => {
-  const { gasObjects } = state.global.gasHub;
-  const gasObject = gasObjects[type];
-  return gasObject ? gasObject.gasFee : 0;
-};
-
 export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams;
 
 export const selectHasUploadingTask = (state: AppState) => {
   const uploadQueue = state.global.uploadQueue[state.persist.loginAccount] || [];
 
-  return uploadQueue.some((item) => ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(item.status))
-}
+  return uploadQueue.some((item) =>
+    ['WAIT', 'HASH', 'READY', 'UPLOAD', 'SEAL'].includes(item.status),
+  );
+};
 export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
   const res = await getBnbPrice();
   dispatch(setBnbInfo(res));
@@ -460,7 +449,7 @@ export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState:
   const { isLoadingPLF } = getState().global;
   if (isLoadingPLF) return;
   dispatch(setisLoadingPLF(true));
-  const storeFeeParams = await getStoreFeeParams();
+  const storeFeeParams = await getStoreFeeParams({});
   dispatch(
     globalSlice.actions.setStoreFeeParams({
       storeFeeParams,
@@ -492,14 +481,17 @@ export const uploadQueueAndRefresh =
     const { loginAccount } = getState().persist;
     await dispatch(refreshTaskFolder(task));
     dispatch(updateUploadStatus({ ids: [task.id], status: 'FINISH', account: loginAccount }));
-    dispatch(
-      updateObjectStatus({
-        bucketName: task.bucketName,
-        folders: task.prefixFolders,
-        name: task.waitFile.name,
-        objectStatus: 1,
-      }),
-    );
+    // for setupListObjects ready
+    setTimeout(() => {
+      dispatch(
+        updateObjectStatus({
+          bucketName: task.bucketName,
+          folders: task.prefixFolders,
+          name: task.waitFile.name,
+          objectStatus: 1,
+        }),
+      );
+    });
   };
 
 const fetchedList: Record<string, boolean> = {};
@@ -513,68 +505,54 @@ export const progressFetchList =
   };
 export const addTasksToUploadQueue =
   (spAddress: string, visibility: VisibilityType) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { waitQueue } = getState().global;
-      const { bucketName, folders } = getState().object;
-      const { loginAccount } = getState().persist;
-      const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
-      if (!wQueue || wQueue.length === 0) return;
-      const newUploadQueue = wQueue.map((task) => {
-        const uploadTask: UploadFile = {
-          bucketName,
-          prefixFolders: folders,
-          spAddress,
-          id: task.id,
-          waitFile: task,
-          msg: '',
-          status: 'WAIT',
-          progress: 0,
-          checksum: [],
-          visibility,
-          createHash: '',
-        };
-        return uploadTask;
-      });
-      dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
-    };
-
-export const setupTmpAvailableBalance =
-  (address: string, _balance?: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { balances } = getState().balance;
-    const balance = balances[address] || defaultBalance;
-    dispatch(setTmpAvailableBalance(_balance || balance.availableBalance));
-  };
-
-export const setupTmpLockFee =
-  (address: string, _lockFee?: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { balances } = getState().balance;
-    const balance = balances[address] || defaultBalance;
-    dispatch(setTmpLockFee(_lockFee || balance.lockFee));
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const { bucketName, folders } = getState().object;
+    const { loginAccount } = getState().persist;
+    const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
+    if (!wQueue || wQueue.length === 0) return;
+    const newUploadQueue = wQueue.map((task) => {
+      const uploadTask: UploadFile = {
+        bucketName,
+        prefixFolders: folders,
+        spAddress,
+        id: task.id,
+        waitFile: task,
+        msg: '',
+        status: 'WAIT',
+        progress: 0,
+        checksum: [],
+        visibility,
+        createHash: '',
+      };
+      return uploadTask;
+    });
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
   };
 
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadFile; errorMsg: string }) =>
-    async (dispatch: AppDispatch) => {
-      const isFolder = task.waitFile.name.endsWith('/');
-      dispatch(
-        updateUploadTaskMsg({
-          account,
-          id: task.id,
-          msg: errorMsg || 'The object failed to be created.',
-        }),
-      );
-      isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
-    };
+  async (dispatch: AppDispatch) => {
+    const isFolder = task.waitFile.name.endsWith('/');
+    dispatch(
+      updateUploadTaskMsg({
+        account,
+        id: task.id,
+        msg: errorMsg || 'The object failed to be created.',
+      }),
+    );
+    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+  };
 
 export const setupWaitTaskErrorMsg =
   ({ id, errorMsg }: { id: number; errorMsg: string }) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { waitQueue } = getState().global;
-      const task = waitQueue.find((t) => t.id === id);
-      if (!task) return;
-      const isFolder = task.name.endsWith('/');
-      dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-      isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
-    };
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const task = waitQueue.find((t) => t.id === id);
+    if (!task) return;
+    const isFolder = task.name.endsWith('/');
+    dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
+    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+  };
 
 export default globalSlice.reducer;

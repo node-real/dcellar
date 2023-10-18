@@ -25,14 +25,8 @@ import { G_BYTES } from '@/utils/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import {
-  BUTTON_GOT_IT,
-  FILE_FAILED_URL,
-  PENDING_ICON_URL,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/file/constant';
-import { useOffChainAuth } from '@/hooks/useOffChainAuth';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import {
   getBucketExtraInfo,
   getBucketQuotaUpdateTime,
@@ -41,14 +35,15 @@ import {
 } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { TotalFees } from '@/modules/object/components/TotalFees';
-import { PaymentInsufficientBalance } from '@/modules/file/utils';
 import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { selectStoreFeeParams, setupStoreFeeParams, TStoreFeeParams } from '@/store/slices/global';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { BN } from '@/utils/BigNumber';
 import { getStoreFeeParams } from '@/facade/payment';
 import BigNumber from 'bignumber.js';
+import { BN } from '@/utils/math';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { Animates } from '@/components/AnimatePng';
 
 interface ManageQuotaProps {
   onClose: () => void;
@@ -102,7 +97,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
       .reduce((a, b) => a.plus(Number(b.totalChargeSize)), BigNumber(0))
       .toNumber();
     setChargeSize(totalChargeSize);
-    const preStoreFeeParams = await getStoreFeeParams(Number(priceTime));
+    const preStoreFeeParams = await getStoreFeeParams({ time: Number(priceTime) });
     setPreStoreFeeParams(preStoreFeeParams);
   }, [PaymentAddress]);
 
@@ -180,11 +175,10 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
         dispatch(
           setStatusDetail({
             title: 'Update Failed',
-            icon: FILE_FAILED_URL,
+            icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
           }),
         );
     }
@@ -199,7 +193,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
     }
     setLoading(true);
     dispatch(
-      setStatusDetail({ icon: PENDING_ICON_URL, title: 'Updating Quota', desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.object, title: 'Updating Quota', desc: WALLET_CONFIRM }),
     );
 
     const payload: UpdateBucketInfoPayload = {
@@ -223,7 +217,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
 
   return (
     <>
-      <QDrawerBody mt={24}>
+      <QDrawerBody>
         <Text fontWeight={500} lineHeight="normal">
           Bucket Info
         </Text>
@@ -244,13 +238,21 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
           <Label>Free quota (one-time)</Label>
           <Value>{formattedQuota.totalFreeText}</Value>
         </Field>
-        <Divider my={8} />
-        <QuotaItem
-          current={!quota ? 0 : currentQuota / G_BYTES}
-          value={newChargedQuota}
-          onChange={setNewChargedQuota}
-          quotaUpdateAt={quotaUpdateTime}
-        />
+        <Divider mt={8} mb={-8} />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!valid) return;
+            onConfirm();
+          }}
+        >
+          <QuotaItem
+            current={!quota ? 0 : currentQuota / G_BYTES}
+            value={newChargedQuota}
+            onChange={setNewChargedQuota}
+            quotaUpdateAt={quotaUpdateTime}
+          />
+        </form>
       </QDrawerBody>
       <QDrawerFooter w="100%" flexDirection={'column'}>
         <TotalFees
@@ -272,10 +274,9 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
           onValidate={setBalanceEnough}
         />
         <DCButton
+          size={'lg'}
           disabled={!valid}
-          variant="dcPrimary"
-          backgroundColor={'readable.brand6'}
-          height={'48px'}
+          backgroundColor={'brand.brand6'}
           width={'100%'}
           onClick={onConfirm}
         >
@@ -301,9 +302,7 @@ export const ManageQuotaDrawer = memo<ManageQuotaDrawerProps>(function ManageQuo
 
   return (
     <DCDrawer isOpen={!!bucketName} onClose={onClose}>
-      <QDrawerHeader alignItems="center" lineHeight="normal">
-        Manage Quota
-      </QDrawerHeader>
+      <QDrawerHeader>Manage Quota</QDrawerHeader>
       <ManageQuota onClose={onClose} />
     </DCDrawer>
   );
