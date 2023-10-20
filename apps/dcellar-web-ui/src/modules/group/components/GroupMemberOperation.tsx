@@ -373,6 +373,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                                 fontWeight={500}
                                 title={p.AccountId}
                                 color={'readable.normal'}
+                                lineHeight="17px"
                               >
                                 {trimAddress(p.AccountId)}
                                 {owner && <> (you)</>}
@@ -381,6 +382,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                                 <Text
                                   fontSize={12}
                                   mt={2}
+                                  lineHeight="15px"
                                   color={
                                     dayjs().isBefore(dayjs(expirationTime))
                                       ? 'readable.disabled'

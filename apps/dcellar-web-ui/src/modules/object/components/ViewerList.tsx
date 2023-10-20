@@ -517,6 +517,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                               fontWeight={500}
                               title={p.PrincipalValue}
                               color={'readable.normal'}
+                              lineHeight="17px"
                             >
                               {isGroup ? p.PrincipalValue : trimAddress(p.PrincipalValue)}
                               {owner && <> (you)</>}
@@ -525,6 +526,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                               <Text
                                 fontSize={12}
                                 mt={2}
+                                lineHeight="15px"
                                 color={
                                   dayjs().isBefore(dayjs(expirationTime))
                                     ? 'readable.disabled'
