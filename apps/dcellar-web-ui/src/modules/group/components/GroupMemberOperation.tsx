@@ -44,7 +44,7 @@ import { Animates } from '@/components/AnimatePng';
 import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { uniq, without, xor } from 'lodash-es';
 import cn from 'classnames';
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 const menus: MenuOption[] = [
   { label: 'Member', value: 'member' },
@@ -349,6 +349,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                 <Flex direction="column" gap={8}>
                   {page.map((p) => {
                     const owner = loginAccount === p.AccountId;
+                    const expirationTime = p.ExpirationTime ? p.ExpirationTime * 1000 : 0;
                     return (
                       <Row
                         key={p.AccountId}
@@ -366,16 +367,30 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                             <Box key={p.AccountId} title={p.AccountId}>
                               <Avatar id={p.AccountId} w={32} />
                             </Box>
-                            <Text
-                              flex={1}
-                              ml={8}
-                              fontWeight={500}
-                              title={p.AccountId}
-                              color={'readable.normal'}
-                            >
-                              {trimAddress(p.AccountId)}
-                              {owner && <> (you)</>}
-                            </Text>
+                            <Flex lineHeight="normal" ml={8} flex={1} flexDirection="column">
+                              <Text
+                                flex={1}
+                                fontWeight={500}
+                                title={p.AccountId}
+                                color={'readable.normal'}
+                              >
+                                {trimAddress(p.AccountId)}
+                                {owner && <> (you)</>}
+                              </Text>
+                              {!owner && !!expirationTime && (
+                                <Text
+                                  fontSize={12}
+                                  mt={2}
+                                  color={
+                                    dayjs().isBefore(dayjs(expirationTime))
+                                      ? 'readable.disabled'
+                                      : 'scene.danger.normal'
+                                  }
+                                >
+                                  Expire date: {dayjs(expirationTime).format('D MMM, YYYY')}
+                                </Text>
+                              )}
+                            </Flex>
                           </Flex>
                         </DCCheckbox>
                         <Operation>
