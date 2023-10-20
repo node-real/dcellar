@@ -44,6 +44,7 @@ import { Animates } from '@/components/AnimatePng';
 import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { uniq, without, xor } from 'lodash-es';
 import cn from 'classnames';
+import { Dayjs } from 'dayjs';
 
 const menus: MenuOption[] = [
   { label: 'Member', value: 'member' },
@@ -79,6 +80,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   const memberList = useAppSelector(selectMemberList(addGroupMember.id));
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const memberListLoading = addGroupMember.id && !(addGroupMember.id in groupMembers);
+  const [expiration, setExpiration] = useState<Dayjs>();
   const { page, canPrev, canNext } = useTableNav<GroupMember>({
     list: memberList,
     sorter: ['UpdateAt', 'descend'],
@@ -145,11 +147,9 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
-    const now = new Date();
-    now.setFullYear(now.getFullYear() + 200);
     const membersToAdd = values.map((item) => ({
       member: item,
-      expirationTime: toTimestamp(now),
+      expirationTime: toTimestamp(expiration!.toDate()),
     }));
 
     const payload = {
@@ -289,6 +289,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         <QDrawerBody>
           <Flex gap={12}>
             <DCComboBox
+              dateChange={setExpiration}
               value={values}
               tokenSeparators={[',']}
               placeholder="Add address, comma separated"
