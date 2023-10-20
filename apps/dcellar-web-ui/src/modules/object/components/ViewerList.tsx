@@ -21,6 +21,7 @@ import {
   MsgDeletePolicyTypeUrl,
   MsgPutPolicyTypeUrl,
   PermissionTypes,
+  toTimestamp,
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
 import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
@@ -40,6 +41,7 @@ import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { DCCheckbox } from '@/components/common/DCCheckbox';
 import cn from 'classnames';
+import { Dayjs } from 'dayjs';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -77,6 +79,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [deleteModal, setDeleteModal] = useState(false);
   const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [expiration, setExpiration] = useState<Dayjs>();
 
   const { page, canPrev, canNext } = useTableNav<PolicyMeta>({
     list: memberList,
@@ -180,6 +183,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
             : PermissionTypes.PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP,
           value,
         },
+        expirationTime: toTimestamp(expiration!.toDate()),
       }));
 
     if (payloads.length) {
@@ -324,6 +328,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
       <FormItem>
         <Flex gap={12}>
           <DCComboBox
+            dateChange={setExpiration}
             mode="tags"
             optionFilterProp="label"
             value={values}

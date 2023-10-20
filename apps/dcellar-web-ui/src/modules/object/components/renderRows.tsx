@@ -21,7 +21,9 @@ export const renderPropRow = (key: string, value: React.ReactNode) => {
         {key}
       </Text>
       <LoadingAdaptor loading={!value} empty={false}>
-        <Text fontWeight={500}>{value}</Text>
+        <Text fontWeight={500} as="div">
+          {value}
+        </Text>
       </LoadingAdaptor>
     </Flex>
   );
