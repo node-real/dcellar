@@ -18,6 +18,7 @@ import { renderFeeValue } from '@/modules/object/utils';
 import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 import { renderFee } from '@/utils/common';
 import { displayTokenSymbol } from '@/utils/wallet';
+import { isEmpty } from 'lodash-es';
 
 const DefaultFee = {
   // TODO temp down limit fee
@@ -152,7 +153,7 @@ export const Fee = memo<FeeProps>(function Fee({
   const paymentAccount = fromAccount.address?.substring(38);
   const paymentLabel = `${fromAccount?.name} (${paymentAccount}) balance:`;
   const showPaymentAccountBalance =
-    transType === 'send' && fromAccount && fromAccount.name.includes('Payment');
+    transType === 'send' && !isEmpty(fromAccount) && fromAccount.name.includes('Payment');
 
   return (
     <Flex
