@@ -51,6 +51,7 @@ const menus: MenuOption[] = [
 ];
 
 const MAX_COUNT = 100;
+const MAX_ADDRESS_COUNT = 20;
 const MEMBER_SIZE = 20;
 
 interface GroupMemberOperationProps {
@@ -114,8 +115,8 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     setValues(e);
     const invalid = e.filter((i) => !i.match(ADDRESS_RE));
     setInvalidIds(invalid);
-    if (e.length > MAX_COUNT) {
-      setError(`Please enter less than ${MAX_COUNT} addresses. `);
+    if (e.length > MAX_ADDRESS_COUNT) {
+      setError(`Please enter less than ${MAX_ADDRESS_COUNT} addresses. `);
     } else if (!e.length) {
       setError(`Please enter addresses. `);
     } else {
