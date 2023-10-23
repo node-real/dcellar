@@ -138,28 +138,13 @@ export const removeMemberFromGroup = async (
   }
   if (!members.length) return [{ code: 0 } as DeliverResponse, null];
 
-  const payloads = members.map((member) => ({
-    ...msg,
-    membersToDelete: [member],
-  }));
+  const [tx, error1] = await client.group
+    .updateGroupMember({ ...msg, membersToDelete: members })
+    .then(resolve, createTxFault);
+  if (!tx) return [null, error1];
 
-  const tasks = await Promise.all(
-    payloads.map((payload) => client.group.updateGroupMember(payload).then(resolve, createTxFault)),
-  );
-
-  for (const [opt, error] of tasks) {
-    if (!!error) return [null, error];
-  }
-
-  const _tasks = tasks.map((task) => task[0] as TxResponse);
-
-  const txs = await client.txClient.multiTx(_tasks);
-
-  const [simulate, simulateError] = await txs
-    .simulate({ denom: 'BNB' })
-    .then(resolve, simulateFault);
-
-  if (!simulate) return [null, simulateError];
+  const [simulate, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+  if (!simulate) return [null, error2];
 
   const payload = {
     denom: 'BNB',
@@ -170,7 +155,7 @@ export const removeMemberFromGroup = async (
     signTypedDataCallback: signTypedDataCallback(connector),
   };
 
-  return txs.broadcast(payload).then(resolve, broadcastFault);
+  return tx.broadcast(payload).then(resolve, broadcastFault);
 };
 
 export const deleteGroup = async (msg: MsgDeleteGroup, connector: Connector): BroadcastResponse => {
