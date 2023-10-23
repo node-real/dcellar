@@ -50,7 +50,7 @@ const menus: MenuOption[] = [
   { label: 'Remove', value: 'remove', variant: 'danger' },
 ];
 
-const MAX_COUNT = 20;
+const MAX_COUNT = 100;
 const MEMBER_SIZE = 20;
 
 interface GroupMemberOperationProps {
@@ -204,8 +204,6 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
 
   const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
 
-  const removeFee = (gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0) * removeAccount.length;
-
   const onSelectChange = (value: string) => {
     dispatch(setSelectedGroupMember(xor(selectedGroupMember, [value])));
   };
@@ -274,7 +272,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
           confirmButton: 'dc.group.remove_member_confirm.delete.click',
         }}
         title="Remove Member"
-        fee={removeFee}
+        fee={fee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
