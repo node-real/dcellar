@@ -48,7 +48,7 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
       groupName: removeGroup.groupName,
     };
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'GROUP_DELETE', desc: WALLET_CONFIRM }),
+      setStatusDetail({ icon: Animates.group, title: 'Deleting Group', desc: WALLET_CONFIRM }),
     );
     const [txRes, txError] = await deleteGroup(payload, connector!);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
