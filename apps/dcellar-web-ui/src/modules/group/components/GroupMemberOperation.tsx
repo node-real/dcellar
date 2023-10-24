@@ -51,7 +51,7 @@ const menus: MenuOption[] = [
   { label: 'Remove', value: 'remove', variant: 'danger' },
 ];
 
-const MAX_COUNT = 100;
+const MAX_COUNT = 20;
 const MAX_ADDRESS_COUNT = 20;
 const MEMBER_SIZE = 20;
 
