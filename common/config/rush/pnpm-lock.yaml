@@ -46,7 +46,7 @@ importers:
       eslint-config-next: 13.3.4
       ethers: ^5.7.2
       fast-xml-parser: ~4.2.7
-      hash-wasm: 4.9.0
+      hash-wasm: 4.10.0
       husky: ^8.0.3
       lint-staged: ^13.1.1
       lodash-es: ^4.17.21
@@ -92,7 +92,7 @@ importers:
       eslint-config-next: 13.3.4_eslint@8.39.0+typescript@5.0.4
       ethers: 5.7.2
       fast-xml-parser: 4.2.7
-      hash-wasm: 4.9.0
+      hash-wasm: 4.10.0
       lodash-es: 4.17.21
       long: 5.2.3
       next: 13.3.4_b7097715b3c73a08800a730de4925ab5
@@ -6557,8 +6557,8 @@ packages:
     dependencies:
       function-bind: 1.1.1
 
-  /hash-wasm/4.9.0:
-    resolution: {integrity: sha512-7SW7ejyfnRxuOc7ptQHSf4LDoZaWOivfzqw+5rpcQku0nHfmicPKE51ra9BiRLAmT8+gGLestr1XroUkqdjL6w==}
+  /hash-wasm/4.10.0:
+    resolution: {integrity: sha512-a0NjBNWjavvMalm/pPSEJ00MPDjRG8rv9D5BK7dBQTLGwAOVWqnTEUggaYs5szATB5UK5ULeIQr7QJXbczAZYA==}
     dev: false
 
   /hash.js/1.1.7:
