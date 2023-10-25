@@ -16,6 +16,7 @@ import { setAuthModalOpen } from '@/store/slices/global';
 import { getDomain } from '@/utils/bom';
 import { getClient } from '@/facade';
 import { IconFont } from '@/components/IconFont';
+import * as Sentry from '@sentry/nextjs';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
@@ -54,8 +55,8 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const onOffChainAuth = useCallback(
     async (address: string) => {
       setIsAuthPending(true);
+      const provider = await connector?.getProvider();
       try {
-        const provider = await connector?.getProvider();
         const domain = getDomain();
 
         // If no sps selected, use all sps for welcome auth
@@ -96,6 +97,11 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       } catch (e: any) {
         console.log('gen offChain data error', e);
         const { message } = e;
+        console.error(provider);
+        Sentry.withScope((scope) => {
+          scope.setTag('Component', 'OffChainAuthContext');
+          Sentry.captureMessage(JSON.stringify(e));
+        });
         message && toast.error({ description: `${message}`, duration: 3000 });
         setIsAuthPending(false);
         onClose();
