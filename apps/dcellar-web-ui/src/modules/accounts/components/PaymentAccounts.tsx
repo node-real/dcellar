@@ -8,9 +8,6 @@ import {
   setEditDisablePaymentAccount,
   TAccount,
   TAccountInfo,
-  selectPaymentAccountList,
-  setAccountOperation,
-  TAccountDetail,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
