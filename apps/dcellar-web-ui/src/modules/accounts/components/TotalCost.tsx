@@ -9,6 +9,7 @@ import { selectAllCost } from '@/store/slices/billing';
 import { BN } from '@/utils/math';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatObjectAddress } from '@/utils/accounts';
+import { isEmpty } from 'lodash-es';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
@@ -20,7 +21,7 @@ export const TotalCost = memo(() => {
   const pieData = useMemo(() => {
     if (loadingAllCost || loadingAllCostTrend || isLoadingPaymentAccounts) return;
     const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo)
-    const temp = (totalCost.detailCosts || []).sort((a, b) => {
+    const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });
     const newData = [];
