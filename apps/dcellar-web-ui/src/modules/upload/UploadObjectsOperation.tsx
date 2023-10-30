@@ -210,11 +210,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       dispatch(setTmpAccount(tmpAccount));
       onClose();
       dispatch(setStatusDetail({} as TStatusDetail));
-      setTimeout(() => {
-        dispatch(setTaskManagement(true));
-        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
-        // drawer overlay will not unmount
-      }, 500);
+      dispatch(setTaskManagement(true));
+      dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
       setCreating(false);
     };
 

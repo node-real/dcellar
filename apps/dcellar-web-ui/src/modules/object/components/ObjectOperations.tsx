@@ -25,7 +25,6 @@ import { ShareOperation } from '@/modules/object/components/ShareOperation';
 import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDeleteObjectOperation';
 import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
 import { useUnmount } from 'ahooks';
-import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
