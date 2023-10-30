@@ -114,12 +114,7 @@ export const Send = memo<SendProps>(function Send() {
   });
   useMount(async () => {
     dispatch(setupOwnerAccount());
-    const error = await dispatch(setupPaymentAccounts());
-    if (error) {
-      toast.error({
-        description: error,
-      })
-    }
+    await dispatch(setupPaymentAccounts());
   });
   useEffect(() => {
     if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;

@@ -20,7 +20,7 @@ export const TotalCost = memo(() => {
   const pieData = useMemo(() => {
     if (loadingAllCost || loadingAllCostTrend || isLoadingPaymentAccounts) return;
     const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo)
-    const temp = (totalCost.detailCosts || []).toSorted((a, b) => {
+    const temp = (totalCost.detailCosts || []).sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });
     const newData = [];

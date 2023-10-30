@@ -24,12 +24,7 @@ export const Accounts = () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
     dispatch(setupAllCostTrend());
-    const error = await dispatch(setupPaymentAccounts());
-    if (error) {
-      toast.error({
-        description: error,
-      });
-    }
+    await dispatch(setupPaymentAccounts());
   });
 
   return (

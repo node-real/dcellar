@@ -6,9 +6,8 @@ import { Box, Flex, Text } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useCallback } from 'react';
 import { BillingHistoryFilter } from './BillingHistoryFilter';
-import { setCurrentBHAllPage } from '@/store/slices/accounts';
 import { updateAllBillsPageSize } from '@/store/slices/persist';
-import { selectAllBills, selectAllBillsCount, setupAllBills } from '@/store/slices/billing';
+import { selectAllBills, selectAllBillsCount, setCurrentAllBillsPage, setupAllBills } from '@/store/slices/billing';
 import { useAsyncEffect } from 'ahooks';
 import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
 import { currencyFormatter } from '@/utils/formatter';
@@ -103,18 +102,17 @@ export const AllBillingHistory = () => {
     [empty],
   );
   const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
-    // TODO pageSize change need reload
     if (prev || next) {
       const params = {
         owner: loginAccount,
         page: curAllBillsPage + (next ? 1 : -1),
         per_page: pageSize,
       };
-      dispatch(setCurrentBHAllPage(curAllBillsPage + (next ? 1 : -1)));
+      dispatch(setCurrentAllBillsPage(curAllBillsPage + (next ? 1 : -1)));
       dispatch(setupAllBills(params));
       return;
     }
-    dispatch(setCurrentBHAllPage(0));
+    dispatch(setCurrentAllBillsPage(1));
     dispatch(updateAllBillsPageSize(pageSize));
   };
   const spinning = loadingAllBills;
