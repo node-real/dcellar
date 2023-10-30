@@ -18,6 +18,12 @@ on:
         required: true
         default: "mainnet"
         type: string
+      branch:
+        description: "Choose the branch for deployment"
+        required: true
+        default: "mainnet-main"
+        type: string
+
 jobs:
   pre-check:
     runs-on: ubuntu-latest
@@ -58,3 +64,4 @@ jobs:
     with:
       app_name: dcellar-web-ui
       env: mainnet
+      branch_name: mainnet-main
