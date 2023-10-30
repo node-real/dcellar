@@ -45,7 +45,7 @@ import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { legacyGetObjectMeta } from '@/facade/object';
 import { useAsyncEffect } from 'ahooks';
 import { isEmpty } from 'lodash-es';
-import { setupAccountDetail, TAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { TotalFees } from './TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
@@ -61,7 +61,7 @@ import { Animates } from '@/components/AnimatePng';
 
 interface CreateFolderOperationProps {
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: (name?: string) => void;
   onClose?: () => void;
@@ -208,7 +208,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       );
       return;
     }
-    await dispatch(setupAccountDetail(PaymentAddress));
+    await dispatch(setupAccountInfo(PaymentAddress));
     if (txRes?.code !== 0) {
       dispatch(
         setStatusDetail({

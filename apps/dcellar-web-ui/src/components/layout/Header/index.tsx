@@ -8,12 +8,14 @@ import { SelectNetwork } from '../Common/SelectNetwork';
 import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
+import { useRouter } from 'next/router';
 
 interface HeaderProps {
   taskManagement?: boolean;
 }
 
 export const Header = memo<HeaderProps>(function Header({ taskManagement = true }) {
+  const router = useRouter()
   return (
     <>
       <HeaderContainer>
@@ -24,6 +26,11 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
           <Badge>{networkTag(runtimeEnv)}</Badge>
         </LogoContainer>
         <Content>
+          <Box onClick={() => {
+            router.push('/accounts/0x91E9CC2936498B15db93d64C2e88871F43d4C509')
+          }}>
+            detail
+          </Box>
           {taskManagement && (
             <>
               <TaskManagement />

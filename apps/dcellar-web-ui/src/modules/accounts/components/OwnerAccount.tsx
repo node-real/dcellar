@@ -3,7 +3,7 @@ import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setAccountOperation, TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { CopyText } from '@/components/common/CopyText';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -34,9 +34,9 @@ export const OwnerAccount = () => {
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const { accountDetails, bankBalance } = useAppSelector((root) => root.accounts);
+  const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
 
-  const data = ownerAccount?.address ? [accountDetails[ownerAccount.address] || {}] : [];
+  const data = ownerAccount?.address ? [accountInfo[ownerAccount.address] || {}] : [];
   const router = useRouter();
 
   const spinning = isEmpty(ownerAccount);
@@ -44,27 +44,28 @@ export const OwnerAccount = () => {
     spinning: spinning,
     indicator: <Loading />,
   };
-  const onMenuClick = (e: string, record: TAccountDetail) => {
+  const onMenuClick = (e: string, record: TAccountInfo) => {
     switch (e) {
       case 'detail':
-        return dispatch(setAccountOperation([record.address, 'oaDetail']));
+        // return dispatch(setAccountOperation([record.address, 'oaDetail']));
+        return router.push(`/accounts/${record.address}`)
       default:
         return router.push(`/wallet?type=${e}`);
     }
   };
 
-  const columns: ColumnProps<TAccountDetail>[] = [
+  const columns: ColumnProps<TAccountInfo>[] = [
     {
       title: 'Name',
       key: 'name',
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return <Box>{record.name}</Box>;
       },
     },
     {
       title: 'Account Address',
       key: 'address',
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
           <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
@@ -78,7 +79,7 @@ export const OwnerAccount = () => {
     {
       title: 'Balance',
       key: 'bankBalance',
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return (
           <Flex flexWrap={'wrap'}>
             <Text fontSize={14} fontWeight={500}>
@@ -96,7 +97,7 @@ export const OwnerAccount = () => {
     {
       title: 'Prepaid Fee',
       key: 'bufferBalance',
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {BN(record.bufferBalance || 0)
@@ -110,7 +111,7 @@ export const OwnerAccount = () => {
     {
       title: 'Flow Rate',
       key: 'netflowRate',
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const value = BN(record?.netflowRate || 0)
           .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
           .toString();
@@ -128,7 +129,7 @@ export const OwnerAccount = () => {
       title: <Text textAlign={'center'}>Operation</Text>,
       key: 'Operation',
       width: 200,
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const operations = ['transfer_in', 'transfer_out', 'send'];
         return (
           <ActionMenu
@@ -143,7 +144,7 @@ export const OwnerAccount = () => {
 
   return (
     <Container>
-      <Box as="h3" fontSize={16} fontWeight={600} marginBottom={16}>
+      <Box as="h3" fontSize={16} fontWeight={600} marginY={16}>
         Owner Account
       </Box>
       <DCTable
@@ -156,7 +157,7 @@ export const OwnerAccount = () => {
         pagination={false}
         loading={loadingComponent}
         renderEmpty={() => null}
-        onRow={(record: TAccountDetail) => ({
+        onRow={(record: TAccountInfo) => ({
           onClick: () => onMenuClick('detail', record),
         })}
       ></DCTable>

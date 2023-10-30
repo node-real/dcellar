@@ -40,13 +40,13 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const quota = quotas[selectedBucketInfo.BucketName];
   const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
   const formattedQuota = formatQuota(quota);
-  const { accountDetails } = useAppSelector((root) => root.accounts);
+  const { accountInfo } = useAppSelector((root) => root.accounts);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
     const spName = primarySp.moniker;
-    const payAccountName = accountDetails[selectedBucketInfo.PaymentAddress]?.name;
+    const payAccountName = accountInfo[selectedBucketInfo.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,

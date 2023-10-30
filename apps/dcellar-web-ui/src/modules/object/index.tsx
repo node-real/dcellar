@@ -20,7 +20,7 @@ import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
 import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
 import { IconFont } from '@/components/IconFont';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
@@ -51,7 +51,7 @@ export const ObjectsPage = () => {
     const sp = allSps.find((item) => +item.id === +bucket.Vgf.PrimarySpId) as SpItem;
     dispatch(setPrimarySpInfo({ bucketName, sp }));
     // 2. Set cur bucket payment account info.
-    dispatch(setupAccountDetail(bucket.PaymentAddress));
+    dispatch(setupAccountInfo(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {

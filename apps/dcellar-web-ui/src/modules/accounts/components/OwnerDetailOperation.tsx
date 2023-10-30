@@ -1,23 +1,23 @@
 import { DCButton } from '@/components/common/DCButton';
 import { useAppSelector } from '@/store';
-import { TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
 import { memo, useState } from 'react';
 import { useInterval, useUnmount } from 'ahooks';
-import { AccountDetail } from './AccountDetail';
+import { BasicInfo } from './BasicInfo';
 import { useRouter } from 'next/router';
 import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
 
 interface OwnerDetailOperationProps {
-  selectAccount: TAccountDetail;
+  selectAccount: TAccountInfo;
 }
 
 export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function OwnerDetailOperation({
   selectAccount,
 }) {
   const [availableBalance, setAvailableBalance] = useState('0');
-  const { isLoadingDetail, bankBalance } = useAppSelector((state) => state.accounts);
+  const { isLoadingAccountInfo, bankBalance } = useAppSelector((root) => root.accounts);
   const router = useRouter();
 
   const onAction = (e: string) => {
@@ -39,8 +39,8 @@ export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function Own
 
   return (
     <>
-      <AccountDetail
-        loading={!!isLoadingDetail}
+      <BasicInfo
+        loading={!!isLoadingAccountInfo}
         title="Account Detail"
         accountDetail={selectAccount}
         availableBalance={availableBalance}

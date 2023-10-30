@@ -26,7 +26,7 @@ import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { AllBucketInfo, setReadQuota } from '@/store/slices/bucket';
-import { TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { SpItem } from '@/store/slices/sp';
 import { last } from 'lodash-es';
 import { formatBytes } from '@/utils/formatter';
@@ -139,7 +139,7 @@ const renderUrlWithLink = (
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
 }
 

@@ -36,7 +36,7 @@ export function WalletConnectModal() {
   const [hasTrigger, setHasTrigger] = useState(false);
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const [currentAddress, setCurrentAddress] = useState<string | undefined>('');
-  const { connectWallet: isOpen } = useAppSelector((state) => state.global);
+  const { connectWallet: isOpen } = useAppSelector((root) => root.global);
   const { isAuthPending } = useAppLogin(currentAddress);
 
   const onClose = useCallback(() => {

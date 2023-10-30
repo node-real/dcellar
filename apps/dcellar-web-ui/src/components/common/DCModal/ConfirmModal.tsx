@@ -70,6 +70,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
   }, [isOpen]);
 
   const _onClose = () => {
+    // if (!isOpen) return;
     setOpen(false);
     setTimeout(onClose, 200);
   };

@@ -30,7 +30,7 @@ import {
   TAccount,
   selectPaymentAccounts,
   setAccountType,
-  setupAccountDetail,
+  setupAccountInfo,
   setupAccountType,
   setupOwnerAccount,
   setupPaymentAccounts,
@@ -68,10 +68,10 @@ export const Send = memo<SendProps>(function Send() {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const [timeout, setTimeout] = useState(false);
   const {
-    isLoadingDetail,
+    isLoadingAccountInfo,
     bankBalance,
     accountTypes,
-    accountDetails,
+    accountInfo,
     ownerAccount,
     isLoadingPaymentAccounts,
   } = useAppSelector((root) => root.accounts);
@@ -92,15 +92,15 @@ export const Send = memo<SendProps>(function Send() {
     if (fromAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountDetails[fromAccount?.address]?.staticBalance || '';
-  }, [accountDetails, bankBalance, fromAccount]);
+    return accountInfo[fromAccount?.address]?.staticBalance || '';
+  }, [accountInfo, bankBalance, fromAccount]);
   const toBalance = useMemo(() => {
     if (isEmpty(toAccount)) return '';
     if (toAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountDetails[toAccount?.address]?.staticBalance || '';
-  }, [accountDetails, bankBalance, toAccount]);
+    return accountInfo[toAccount?.address]?.staticBalance || '';
+  }, [accountInfo, bankBalance, toAccount]);
   const {
     handleSubmit,
     register,
@@ -191,7 +191,7 @@ export const Send = memo<SendProps>(function Send() {
     setViewTxUrl(txUrl);
     if (!isEmpty(freshAddress)) {
       freshAddress.forEach((address) => {
-        dispatch(setupAccountDetail(address));
+        dispatch(setupAccountInfo(address));
       });
     }
     setStatus('success');
@@ -256,7 +256,7 @@ export const Send = memo<SendProps>(function Send() {
   const onChangeFromAccount = async (account: TAccount) => {
     if (!isAddress(account.address)) return;
     const accountType = accountTypes[account.address];
-    const accountDetail = accountDetails[account.address];
+    const accountDetail = accountInfo[account.address];
     // optimize performance
     if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
       // Avoid from owner account to owner account
@@ -267,7 +267,7 @@ export const Send = memo<SendProps>(function Send() {
     }
 
     dispatch(setFromAccount(account));
-    await dispatch(setupAccountDetail(account.address));
+    await dispatch(setupAccountInfo(account.address));
   };
 
   const onChangeToAccount = useCallback(
@@ -278,13 +278,13 @@ export const Send = memo<SendProps>(function Send() {
         return setToJsErrors(['Invalid address']);
       }
       const accountType = accountTypes[account.address];
-      const accountDetail = accountDetails[account.address];
+      const accountDetail = accountInfo[account.address];
       if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
         return dispatch(setToAccount(account));
       }
       setLoadingToAccount(true);
       dispatch(setToAccount(account));
-      await dispatch(setupAccountDetail(account.address));
+      await dispatch(setupAccountInfo(account.address));
       await dispatch(setupAccountType(account.address));
       setLoadingToAccount(false);
     }, 500),
@@ -293,8 +293,8 @@ export const Send = memo<SendProps>(function Send() {
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
-    if (isLoadingDetail || isEmpty(fromAccount)) return errors;
-    const fromAccountDetail = accountDetails[fromAccount?.address];
+    if (isLoadingAccountInfo || isEmpty(fromAccount)) return errors;
+    const fromAccountDetail = accountInfo[fromAccount?.address];
     if (isEmpty(fromAccountDetail)) return errors;
     const isPaymentAccount = fromAccountDetail.name.toLocaleLowerCase().includes('payment account');
     if (!isPaymentAccount) {
@@ -307,14 +307,14 @@ export const Send = memo<SendProps>(function Send() {
       errors.push('This account is non-refundable.');
     }
     return errors;
-  }, [accountDetails, fromAccount, isLoadingDetail]);
+  }, [accountInfo, fromAccount, isLoadingAccountInfo]);
 
   const toErrors = useMemo(() => {
     const errors: string[] = toJsErrors;
-    if (isLoadingDetail || isEmpty(toAccount)) return errors;
+    if (isLoadingAccountInfo || isEmpty(toAccount)) return errors;
 
     return errors;
-  }, [isLoadingDetail, toAccount, toJsErrors]);
+  }, [isLoadingAccountInfo, toAccount, toJsErrors]);
 
   // force remove loading
   useTimeout(() => {
@@ -356,7 +356,7 @@ export const Send = memo<SendProps>(function Send() {
               color="#76808F"
             >
               Balance on Greenfield:{' '}
-              {isLoadingDetail === fromAccount.address ? (
+              {isLoadingAccountInfo === fromAccount.address ? (
                 <Loading size={12} marginX={4} color="readable.normal" />
               ) : (
                 renderFee(balance, exchangeRate + '')
@@ -443,7 +443,7 @@ export const Send = memo<SendProps>(function Send() {
               (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
               isSubmitting ||
               isLoading ||
-              (!!isLoadingDetail && router.pathname !== InternalRoutePaths.wallet)
+              (!!isLoadingAccountInfo && router.pathname !== InternalRoutePaths.wallet)
             }
             isSubmitting={isSubmitting}
             gaClickSwitchName="dc.wallet.send.switch_network.click"

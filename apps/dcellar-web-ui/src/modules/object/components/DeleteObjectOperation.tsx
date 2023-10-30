@@ -24,7 +24,7 @@ import { useAsyncEffect } from 'ahooks';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { resolve } from '@/facade/common';
 import { getListObjects } from '@/facade/object';
-import { selectAccount, setupAccountDetail, TAccountDetail } from '@/store/slices/accounts';
+import { selectAccount, setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
 import { getStoreFeeParams } from '@/facade/payment';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
@@ -46,7 +46,7 @@ import { without } from 'lodash-es';
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: () => void;
   onClose?: () => void;
@@ -282,7 +282,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
                   return toast.error({ description: error || 'Object deletion failed.' });
                 }
                 if (txRes.code === 0) {
-                  await dispatch(setupAccountDetail(bucket.PaymentAddress));
+                  await dispatch(setupAccountInfo(bucket.PaymentAddress));
                   toast.success({
                     description: isFolder
                       ? 'Folder deleted successfully.'

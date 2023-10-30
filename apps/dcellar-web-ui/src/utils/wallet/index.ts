@@ -1,5 +1,8 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { GNFD_MAINNET, GNFD_TESTNET } from '../constant';
+import { BN } from '../math';
+import BigNumber from 'bignumber.js';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';
@@ -50,5 +53,11 @@ export const isGNFDMainnet = () => {
 export const displayTokenSymbol = () => {
   return GNFD_MAINNET === GREENFIELD_CHAIN_ID ? 'BNB' : 'tBNB';
 };
+
+export const getPosDecimalValue = (gweiValue: string | BigNumber) => {
+  if (BN(gweiValue).isEqualTo(0)) return '0';
+
+  return BN(gweiValue).dividedBy(10 ** 18).abs().dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
+}
 
 export { getShortenWalletAddress, getNumInDigits };

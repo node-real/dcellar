@@ -7,7 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupBnbPrice } from '@/store/slices/global';
 import { useMount } from 'ahooks';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import React, { memo } from 'react';
 import { IconFont } from '@/components/IconFont';
 
@@ -20,7 +20,7 @@ const NewBalance = memo<NewBalanceProps>(function NewBalance() {
   const { bankBalance } = useAppSelector((root) => root.accounts);
 
   // useMount(() => {
-  //   dispatch(setupAccountDetail(loginAccount));
+  //   dispatch(setupAccountInfo(loginAccount));
   // });
 
   const renderBalanceNumber = () => {

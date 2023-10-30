@@ -12,6 +12,8 @@ import object from '@/store/slices/object';
 import apollo from '@/store/slices/apollo';
 import group from '@/store/slices/group';
 import accounts from '@/store/slices/accounts';
+import billing from '@/store/slices/billing';
+
 import { runtimeEnv } from '@/base/env';
 
 const rootReducer = combineReducers({
@@ -24,6 +26,7 @@ const rootReducer = combineReducers({
   apollo,
   group,
   accounts,
+  billing,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

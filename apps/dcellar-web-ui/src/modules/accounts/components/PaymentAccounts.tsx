@@ -4,12 +4,10 @@ import React, { useCallback, useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  selectPaymentAccountList,
-  setAccountOperation,
   setCurrentPAPage,
   setEditDisablePaymentAccount,
   TAccount,
-  TAccountDetail,
+  TAccountInfo,
 } from '@/store/slices/accounts';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
@@ -45,11 +43,17 @@ export const PaymentAccounts = () => {
     PAPageSize,
     paymentAccountSortBy: [sortName, dir],
   } = useAppSelector((root) => root.persist);
-  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, paymentAccounts } = useAppSelector(
-    (root) => root.accounts,
-  );
-  const curPaymentAccounts = useAppSelector(selectPaymentAccountList(loginAccount));
-  const ascend = sortBy(curPaymentAccounts, sortName);
+  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, accountInfo, paymentAccounts } =
+    useAppSelector((root) => root.accounts);
+  const detailList = useMemo(() => {
+    if (!loginAccount) return {};
+    return (
+      (paymentAccounts[loginAccount] || []).map((item) => ({
+        ...accountInfo[item.address],
+      })) || {}
+    );
+  }, [accountInfo, loginAccount, paymentAccounts]);
+  const ascend = sortBy(detailList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const updateSorter = (name: string, def: string) => {
     const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
@@ -58,19 +62,20 @@ export const PaymentAccounts = () => {
 
   const onMenuClick = (e: string, record: TAccount) => {
     if (e === 'detail') {
-      dispatch(setAccountOperation([record.address, 'paDetail']));
+      // dispatch(setAccountOperation([record.address, 'paDetail']));
+      return router.push(`/accounts/${record.address}`);
     }
     if (e === 'setNonRefundable') {
-      dispatch(setEditDisablePaymentAccount(record.address));
+      return dispatch(setEditDisablePaymentAccount(record.address));
     }
     if (e === 'deposit') {
-      router.push(`/wallet?type=send&from=${ownerAccount.address}&to=${record.address}`);
+      return router.push(`/wallet?type=send&from=${ownerAccount.address}&to=${record.address}`);
     }
     if (e === 'withdraw') {
-      router.push(`/wallet?type=send&from=${record.address}&to=${ownerAccount.address}`);
+      return router.push(`/wallet?type=send&from=${record.address}&to=${ownerAccount.address}`);
     }
   };
-  const columns: ColumnProps<TAccountDetail>[] = [
+  const columns: ColumnProps<TAccountInfo>[] = [
     {
       key: 'name',
       title: (
@@ -78,7 +83,7 @@ export const PaymentAccounts = () => {
           Name{sortName === 'name' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return <Box>{record.name}</Box>;
       },
     },
@@ -90,7 +95,7 @@ export const PaymentAccounts = () => {
           {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
           <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
@@ -109,7 +114,7 @@ export const PaymentAccounts = () => {
           {sortName === 'balance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return (
           <Flex flexWrap={'wrap'}>
             <Text fontSize={14} fontWeight={500}>
@@ -135,7 +140,7 @@ export const PaymentAccounts = () => {
           {sortName === 'bufferBalance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {BN(record.bufferBalance || 0)
@@ -154,7 +159,7 @@ export const PaymentAccounts = () => {
           {sortName === 'netflowRate' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const value = BN(record?.netflowRate || 0)
           .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
           .toString();
@@ -171,12 +176,11 @@ export const PaymentAccounts = () => {
       key: 'Operation',
       title: <></>,
       width: 200,
-      render: (_: string, record: TAccountDetail) => {
+      render: (_: string, record: TAccountInfo) => {
         const operations = ['deposit', 'withdraw'];
         let finalActions = actions;
-        console.log('operation record', record.address, record.refundable);
         if (record.refundable === false) {
-          finalActions = finalActions.filter(item => item.value !== 'setNonRefundable')
+          finalActions = finalActions.filter((item) => item.value !== 'setNonRefundable');
         }
         return (
           <ActionMenu
