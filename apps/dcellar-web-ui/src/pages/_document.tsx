@@ -11,7 +11,7 @@ export default function Document() {
           name="google-site-verification"
           content="9P1xIkjIzkjS3UiiTBjcjN5tfyh4Yk6FDKELgtTdMGE"
         />
-        <link rel="icon preload" href={`${assetPrefix}/favicon.svg`} />
+        <link rel="icon" href={`${assetPrefix}/favicon.ico`} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
