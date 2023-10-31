@@ -1,4 +1,3 @@
-import { BILLING_API_URL } from '@/base/env'
 import { get } from '@/base/http';
 import { ErrorResponse, commonFault } from './error';
 
@@ -68,13 +67,13 @@ export type GetRealTimeBillListByOwnerParams =  GetRealTimeBillByOwnerCountParam
 };
 export type GetRealTimeBillListByOwnerResponse = RawRealTimeBill[];
 export const getTotalCostByOwner = (address: string): Promise<[RawAccountCost[], null] | ErrorResponse> => {
-  const url = `${BILLING_API_URL}/greenfield/total_cost/list/by_owner/${address}`;
+  const url = `/api/total_cost/list/by_owner/${address}`;
   return get({ url }).then((e) => {
     return [e.result, null];
   }, commonFault);
 }
 export const getTotalCostByAddress = (address: string): Promise<[RawAccountCost, null] | ErrorResponse> => {
-  const url = `${BILLING_API_URL}/greenfield/total_cost/by_address/${address}`
+  const url = `/api/total_cost/list/by_address/${address}`
 
   return get({ url }).then((e) => {
     return [e.result, null];
@@ -82,7 +81,7 @@ export const getTotalCostByAddress = (address: string): Promise<[RawAccountCost,
 }
 
 export const getMonthlyBillByOwner = (params: GetMonthlyBillByOwnerParams): Promise<ErrorResponse | [GetMonthlyBillByOwnerResponse, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_monthly/list/by_owner/${params.owner}`;
+  const url = `/api/bill_monthly/list/by_owner/${params.owner}`;
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
@@ -90,7 +89,7 @@ export const getMonthlyBillByOwner = (params: GetMonthlyBillByOwnerParams): Prom
 }
 
 export const getMonthlyBillByAddress = (params: GetMonthlyBillByAddressParams): Promise<ErrorResponse | [GetMonthlyBillByAddressResponse, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_monthly/list/by_address/${params.address}`
+  const url = `/api/bill_monthly/list/by_address/${params.address}`
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
@@ -98,7 +97,7 @@ export const getMonthlyBillByAddress = (params: GetMonthlyBillByAddressParams): 
 }
 
 export const getRealTimeBillCountByAddress = (params: GetRealTimeBillCountByAddressParams): Promise<ErrorResponse | [number, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_realtime/count/by_address/${params.address}`
+  const url = `/api/bill_realtime/count/by_address/${params.address}`
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
@@ -106,7 +105,7 @@ export const getRealTimeBillCountByAddress = (params: GetRealTimeBillCountByAddr
 }
 
 export const getRealTimeBillByAddress = (params: GetRealTimeBillByAddressParams): Promise<ErrorResponse | [GetRealTimeBillByAddressResponse, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_realtime/list/by_address/${params.address}`;
+  const url = `/api/bill_realtime/list/by_address/${params.address}`;
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
@@ -115,7 +114,7 @@ export const getRealTimeBillByAddress = (params: GetRealTimeBillByAddressParams)
 
 
 export const getRealTimeBillCountByOwner = (params: GetRealTimeBillByOwnerCountParams): Promise<ErrorResponse | [number, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_realtime/count/by_owner/${params.owner}`;
+  const url = `/bill_realtime/count/by_owner/${params.owner}`;
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
@@ -123,7 +122,7 @@ export const getRealTimeBillCountByOwner = (params: GetRealTimeBillByOwnerCountP
 }
 
 export const getRealTimeBillListByOwner = (params: GetRealTimeBillListByOwnerParams): Promise<ErrorResponse | [GetRealTimeBillListByOwnerResponse, null]> => {
-  const url = `${BILLING_API_URL}/greenfield/bill_realtime/list/by_owner/${params.owner}`;
+  const url = `/api/bill_realtime/list/by_owner/${params.owner}`;
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];

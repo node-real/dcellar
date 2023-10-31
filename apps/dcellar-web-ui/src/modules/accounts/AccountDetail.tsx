@@ -31,8 +31,8 @@ export const AccountDetail = () => {
       return;
     }
     isOwnerAccount
-      ? await dispatch(setupAccountInfo(curAddress))
-      : await dispatch(setupPaymentAccounts());
+      ? dispatch(setupAccountInfo(curAddress))
+      : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
   }, [address]);
 

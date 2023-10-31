@@ -24,7 +24,7 @@ export const Accounts = () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
     dispatch(setupAllCostTrend());
-    await dispatch(setupPaymentAccounts());
+    dispatch(setupPaymentAccounts());
   });
 
   return (
