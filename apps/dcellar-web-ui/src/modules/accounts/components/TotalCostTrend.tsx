@@ -173,7 +173,7 @@ export const TotalCostTrend = () => {
         itemWidth: 8,
         itemGap: 16,
         right: 30,
-        data: ['Monthly Cost', 'Estimate Cost', 'MoM'],
+        data: ['Monthly Cost', 'Estimate Cost'],
       },
       xAxis: [
         {

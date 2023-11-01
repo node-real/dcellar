@@ -320,6 +320,7 @@ export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: G
   const [data, error] = await getMonthlyBillByOwner(params);
   if (!data || error) {
     dispatch(setLoadingAllCostTrend(false));
+    dispatch(setAllCostTrend({ loginAccount, startTime: `${start_year}.${start_month}`, endTime: `${end_year}.${end_month}`, monthlyBills: [] }))
     return error
   };
 
