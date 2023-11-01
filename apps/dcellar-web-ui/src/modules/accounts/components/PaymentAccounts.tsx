@@ -46,11 +46,11 @@ export const PaymentAccounts = () => {
   const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, accountInfo, paymentAccounts } =
     useAppSelector((root) => root.accounts);
   const detailList = useMemo(() => {
-    if (!loginAccount) return {};
+    if (!loginAccount) return [];
     return (
       (paymentAccounts[loginAccount] || []).map((item) => ({
         ...accountInfo[item.address],
-      })) || {}
+      })) || []
     );
   }, [accountInfo, loginAccount, paymentAccounts]);
   const ascend = sortBy(detailList, sortName);
@@ -78,15 +78,21 @@ export const PaymentAccounts = () => {
   const columns: ColumnProps<TAccountInfo>[] = [
     {
       key: 'name',
-      title: <Text>Name</Text>,
+      title: (
+        // account for default sort
+        <SortItem onClick={() => updateSorter('account', 'ascend')}>
+          <Text>Name</Text>
+          {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
+        </SortItem>
+      ),
       render: (_: string, record: TAccountInfo) => {
         return <Box>{record.name}</Box>;
       },
     },
     {
-      key: 'account',
+      key: 'address',
       title: (
-        <SortItem onClick={() => updateSorter('account', 'ascend')}>
+        <SortItem onClick={() => updateSorter('address', 'ascend')}>
           Account Address
           {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -176,8 +182,12 @@ export const PaymentAccounts = () => {
         let operations = ['deposit', 'withdraw'];
         let finalActions = actions;
         if (record.refundable === false) {
-          finalActions = finalActions.filter((item) => !['setNonRefundable', 'withdraw'].includes(item.value));
-          operations = operations.filter((value) => !['setNonRefundable', 'withdraw'].includes(value));
+          finalActions = finalActions.filter(
+            (item) => !['setNonRefundable', 'withdraw'].includes(item.value),
+          );
+          operations = operations.filter(
+            (value) => !['setNonRefundable', 'withdraw'].includes(value),
+          );
         }
         return (
           <ActionMenu

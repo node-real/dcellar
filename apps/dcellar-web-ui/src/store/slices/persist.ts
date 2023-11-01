@@ -53,7 +53,7 @@ const initialState: PersistState = {
   objectPageSize: 50,
   groupSortBy: ['id', 'descend'],
   groupPageSize: 20,
-  paymentAccountSortBy: ['name', 'ascend'],
+  paymentAccountSortBy: ['account', 'ascend'],
   PAPageSize: 20,
   allBillsPageSize: 20,
   accountBillsPageSize: 20,
