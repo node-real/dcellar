@@ -94,7 +94,7 @@ export const PaymentAccounts = () => {
       title: (
         <SortItem onClick={() => updateSorter('address', 'ascend')}>
           Account Address
-          {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
+          {sortName === 'address' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
       render: (_: string, record: TAccountInfo) => {
