@@ -19,7 +19,6 @@ import { TotalCostTrend } from './components/TotalCostTrend';
 export const Accounts = () => {
   const dispatch = useAppDispatch();
 
-  console.log('invoke accounts');
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());

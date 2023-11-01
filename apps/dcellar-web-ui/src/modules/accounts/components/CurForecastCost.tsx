@@ -8,7 +8,6 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useTotalEstimateCost } from '../hooks';
 
 export const CurForecastCost = memo(() => {
-  console.log('invoke CurForecastCost');
   const dayjs = getUtcDayjs();
   const { curCosted, curRemainingEstimateCost } = useTotalEstimateCost(['cur']);
   const costTime = useMemo(() => {

@@ -14,7 +14,6 @@ import AccountDetailNav from './components/AccountDetailNav';
 
 const emptyObject = {};
 export const AccountDetail = () => {
-  console.log('invoke accountDetail');
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { address } = router.query;

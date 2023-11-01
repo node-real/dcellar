@@ -260,24 +260,28 @@ export const billingSlice = createSlice({
 
 export const { setTotalCost, setCurMonthTotalCosted, setAllCostTrend, setAccountCostTrend, setLoadingAllCostTrend, setLoadingAccountCostTrend, setAccountBillsCount, setAccountBills, setCurrentAllBillsPage, setCurrentAccountBillsPage, setLoadingAccountBills, setAllBills, setAllBillsCount, setLoadingAllBills, setLoadingAllCost } = billingSlice.actions;
 
+export const DefaultAllCost = {} as AllCost;
 export const selectAllCost = (address: string) => (root: AppState) => {
-  return root.billing.allCost[address] || {};
+  return root.billing.allCost[address] || DefaultAllCost;
 }
+export const DefaultAllCostTrend = {} as AllCostTrend;
 export const selectAllCostTrend = (address: string) => (root: AppState) => {
-  return root.billing.allCostTrend[address] || {};
+  return root.billing.allCostTrend[address] || DefaultAllCostTrend;
 }
 export const selectAccountCostTrend = (address: string) => (root: AppState) => {
   if (!address) return {} as AccountCostTrend
   return root.billing.accountCostTrend[address];
 }
+export const DefaultAccountBills = [] as AccountBill[];
 export const selectAccountBills = (address: string) => (root: AppState) => {
-  return root.billing.accountBills[address] || []
+  return root.billing.accountBills[address] || DefaultAccountBills;
 }
 export const selectAccountBillsCount = (address: string) => (root: AppState) => {
   return root.billing.accountBillsCount[address] || 0;
 }
+export const DefaultBills = [] as AccountBill[];
 export const selectAllBills = (address: string) => (root: AppState) => {
-  return root.billing.allBills[address] || []
+  return root.billing.allBills[address] || DefaultBills;
 }
 export const selectAllBillsCount = (address: string) => (root: AppState) => {
   return root.billing.allBillsCount[address] || 0;

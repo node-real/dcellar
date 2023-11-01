@@ -15,6 +15,7 @@ import { getSpOffChainData } from './persist';
 import { keyBy } from 'lodash-es';
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { getPosDecimalValue } from '@/utils/wallet';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 
 export type TAccount = {
   name: string;
@@ -285,7 +286,7 @@ export const setupPaymentAccounts =
       let totalPANetflowRate = BN(0);
       const newPAs = data.paymentAccounts.map((address, index) => {
         const detail = keyAccountDetail[address];
-        totalPANetflowRate = totalPANetflowRate.plus(getPosDecimalValue(detail.StreamRecord.NetflowRate))
+        totalPANetflowRate = totalPANetflowRate.plus(BN(detail.StreamRecord.NetflowRate).abs())
         return {
           name: `Payment Account ${index + 1}`,
           address,
@@ -294,7 +295,7 @@ export const setupPaymentAccounts =
           bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME
         }
       });
-      dispatch(setTotalPANetflowRate({loginAccount, totalNetflowRate: totalPANetflowRate.toString()}))
+      dispatch(setTotalPANetflowRate({loginAccount, totalNetflowRate: totalPANetflowRate.dividedBy(10 ** 18).toString()}))
       dispatch(setLoadingPaymentAccounts(false));
       dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: data.paymentAccounts }));
       dispatch(setAccountInfo(newPAs))

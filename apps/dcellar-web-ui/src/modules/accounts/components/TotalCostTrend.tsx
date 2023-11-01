@@ -50,7 +50,7 @@ export const TotalCostTrend = () => {
           MoM: null,
         };
         // before this month
-      } else if (dayjs(item.yyyym + '.01').valueOf() < dayjs(curYYYYm + '.01').valueOf()) {
+      } else if (dayjs(item.yyyym + '.01').unix() < dayjs(curYYYYm + '.01').unix()) {
         finalData = {
           ...curMonthBill,
           month: item.mmm,
@@ -139,11 +139,11 @@ export const TotalCostTrend = () => {
             curData.estimateCost === null
               ? ''
               : `<div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div></div>`;
-          const MoMFragment =
-            curData.MoM === null
-              ? ''
-              : `
-           <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
+          // const MoMFragment =
+          //   curData.MoM === null
+          //     ? ''
+          //     : `
+          //  <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
           return `
             <div style="${styles.box}">
               <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost || 0
@@ -151,7 +151,6 @@ export const TotalCostTrend = () => {
               </div>
               ${DetailFragment}
               ${EstimateFragment}
-              ${MoMFragment}
             </div>`;
         },
       },
@@ -208,18 +207,18 @@ export const TotalCostTrend = () => {
             formatter: '{value} BNB',
           },
         },
-        {
-          type: 'value',
-          // name: 'MoM',
-          position: 'right',
-          alignTicks: true,
-          axisLine: {
-            show: false,
-          },
-          axisLabel: {
-            formatter: '{value}',
-          },
-        },
+        // {
+        //   type: 'value',
+        //   // name: 'MoM',
+        //   position: 'right',
+        //   alignTicks: true,
+        //   axisLine: {
+        //     show: false,
+        //   },
+        //   axisLabel: {
+        //     formatter: '{value}',
+        //   },
+        // },
       ],
       series: [
         {
@@ -234,12 +233,12 @@ export const TotalCostTrend = () => {
           stack: 'Monthly Cost',
           data: estimateCostData,
         },
-        {
-          name: 'MoM',
-          type: 'line',
-          yAxisIndex: 1,
-          data: MoMData,
-        },
+        // {
+        //   name: 'MoM',
+        //   type: 'line',
+        //   yAxisIndex: 1,
+        //   data: MoMData,
+        // },
       ],
     };
   }, [barData, accountInfo]);

@@ -173,10 +173,11 @@ export const PaymentAccounts = () => {
       title: <></>,
       width: 200,
       render: (_: string, record: TAccountInfo) => {
-        const operations = ['deposit', 'withdraw'];
+        let operations = ['deposit', 'withdraw'];
         let finalActions = actions;
         if (record.refundable === false) {
-          finalActions = finalActions.filter((item) => item.value !== 'setNonRefundable');
+          finalActions = finalActions.filter((item) => !['setNonRefundable', 'withdraw'].includes(item.value));
+          operations = operations.filter((value) => !['setNonRefundable', 'withdraw'].includes(value));
         }
         return (
           <ActionMenu

@@ -3,7 +3,7 @@ import { selectStoreFeeParams } from '@/store/slices/global';
 import { selectAccount, selectAccountDetail } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
 import { BN } from '@/utils/math';
-import { getSecond, getUtcDayjs } from '@/utils/time';
+import { getUtcDayjs } from '@/utils/time';
 import { useMemo } from 'react';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '../wallet/constants';
 
@@ -38,7 +38,7 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
       curRemainingEstimateCost = BN(remainingSeconds).multipliedBy(totalNetflowRate).abs().dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
     }
     if (types.includes('next')) {
-      const remainingSeconds = getSecond(utcDayjs(curTime).add(1, 'month').endOf('M').valueOf() - utcDayjs(curTime).add(1, 'month').startOf('M').valueOf());
+      const remainingSeconds = utcDayjs(curTime).add(1, 'month').endOf('M').unix() - utcDayjs(curTime).add(1, 'month').startOf('M').unix();
       const needCost = BN(remainingSeconds).multipliedBy(totalNetflowRate);
 
       nextEstimateCost = BN(needCost).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
@@ -58,8 +58,8 @@ export const useAccountEstimateCost = (address: string, types: EstimateCostType[
   const { accountCostTrend } = useAppSelector((root) => root.billing);
   const { netflowRate } = useAppSelector(selectAccountDetail(address));
   const curTime = +new Date();
-  const curMonthRemainingSeconds = dayjs(curTime).endOf('M').valueOf() - dayjs(curTime).startOf('M').valueOf();
-  const nextMonthSeconds = getSecond(dayjs(curTime).add(1, 'month').endOf('M').valueOf() - dayjs(curTime).add(1, 'month').startOf('M').valueOf());
+  const curMonthRemainingSeconds = dayjs(curTime).endOf('M').unix() - dayjs(curTime).startOf('M').unix();
+  const nextMonthSeconds = dayjs(curTime).add(1, 'month').endOf('M').unix() - dayjs(curTime).add(1, 'month').startOf('M').unix();
 
   let curCosted = '';
   let curRemainingEstimateCost = '';

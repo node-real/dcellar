@@ -25,7 +25,6 @@ type Props = {
   address: string;
 };
 export const AccountCostTrend = memo(({ address }: Props) => {
-  console.log('invoke AccountCostTrend');
   const preDataRef = useRef<any>(null);
   const dayjs = getUtcDayjs();
   const accountCostTrend = useAppSelector(selectAccountCostTrend(address));
@@ -133,15 +132,14 @@ export const AccountCostTrend = memo(({ address }: Props) => {
           <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div>
           </div>
           `;
-          const MoMFragment =
-            curData.MoM === null
-              ? ''
-              : `<div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
+          // const MoMFragment =
+          //   curData.MoM === null
+          //     ? ''
+          //     : `<div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
           return `
             <div style="${styles.box}">
               ${TotalFragment}
               ${EstimateFragment}
-              ${MoMFragment}
               </div>
             </div>`;
         },
@@ -199,18 +197,18 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             formatter: '{value} BNB',
           },
         },
-        {
-          type: 'value',
-          // name: 'MoM',
-          position: 'right',
-          alignTicks: true,
-          axisLine: {
-            show: false,
-          },
-          axisLabel: {
-            formatter: '{value} %',
-          },
-        },
+        // {
+        //   type: 'value',
+        //   // name: 'MoM',
+        //   position: 'right',
+        //   alignTicks: true,
+        //   axisLine: {
+        //     show: false,
+        //   },
+        //   axisLabel: {
+        //     formatter: '{value} %',
+        //   },
+        // },
       ],
       series: [
         {
@@ -225,12 +223,12 @@ export const AccountCostTrend = memo(({ address }: Props) => {
           stack: 'Monthly Cost',
           data: estimateCostData,
         },
-        {
-          name: 'MoM',
-          type: 'line',
-          yAxisIndex: 1,
-          data: MoMData,
-        },
+        // {
+        //   name: 'MoM',
+        //   type: 'line',
+        //   yAxisIndex: 1,
+        //   data: MoMData,
+        // },
       ],
     };
   }, [barData]);
