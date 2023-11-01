@@ -28,13 +28,12 @@ export const AccountCostTrend = memo(({ address }: Props) => {
   console.log('invoke AccountCostTrend');
   const preDataRef = useRef<any>(null);
   const dayjs = getUtcDayjs();
-  const { isLoadingPaymentAccounts } = useAppSelector((root) => root.accounts);
-  const { loadingAccountCostTrend } = useAppSelector((root) => root.billing);
   const accountCostTrend = useAppSelector(selectAccountCostTrend(address));
   const { curRemainingEstimateCost, nextEstimateCost } = useAccountEstimateCost(address, [
     'cur',
     'next',
   ]);
+  console.log('curRemainingEstimateCost', curRemainingEstimateCost)
   const barData: BarData = useMemo(() => {
     if (isEmpty(accountCostTrend)) return [];
     let finalData = {};
@@ -132,15 +131,13 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             curData.estimateCost === null
               ? ''
               : `
-          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}%</div>
+          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div>
           </div>
           `;
           const MoMFragment =
             curData.MoM === null
               ? ''
-              : `
-          <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>
-          `;
+              : `<div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
           return `
             <div style="${styles.box}">
               ${TotalFragment}

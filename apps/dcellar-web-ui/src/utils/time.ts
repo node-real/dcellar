@@ -4,6 +4,7 @@ import timezone from 'dayjs/plugin/timezone';
 
 export const getUtcDayjs = () => {
   dayjs.extend(utc);
+  dayjs.extend(timezone);
 
   return dayjs;
 }

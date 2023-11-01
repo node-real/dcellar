@@ -33,7 +33,7 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
     let curRemainingEstimateCost = '';
     let nextEstimateCost = '';
     if (types.includes('cur')) {
-      const remainingSeconds = getSecond(utcDayjs(curTime).endOf('M').valueOf() - curTime);
+      const remainingSeconds = utcDayjs(curTime).endOf('M').unix() - utcDayjs(curTime).startOf('D').unix();
       curCosted = BN(curMonthTotalCosted || 0).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
       curRemainingEstimateCost = BN(remainingSeconds).multipliedBy(totalNetflowRate).abs().dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
     }
@@ -58,7 +58,7 @@ export const useAccountEstimateCost = (address: string, types: EstimateCostType[
   const { accountCostTrend } = useAppSelector((root) => root.billing);
   const { netflowRate } = useAppSelector(selectAccountDetail(address));
   const curTime = +new Date();
-  const curMonthRemainingSeconds = getSecond(dayjs(curTime).endOf('M').valueOf() - curTime);
+  const curMonthRemainingSeconds = dayjs(curTime).endOf('M').valueOf() - dayjs(curTime).startOf('M').valueOf();
   const nextMonthSeconds = getSecond(dayjs(curTime).add(1, 'month').endOf('M').valueOf() - dayjs(curTime).add(1, 'month').startOf('M').valueOf());
 
   let curCosted = '';
@@ -68,7 +68,7 @@ export const useAccountEstimateCost = (address: string, types: EstimateCostType[
   const curMonthCost = accountCostTrend[key] || {};
   if (types.includes('cur')) {
     curCosted = curMonthCost?.monthlyCost?.[key].totalCost;
-    const estimateCost = BN(curMonthRemainingSeconds).multipliedBy(netflowRate).abs().dp(2).toString();
+    const estimateCost = BN(curMonthRemainingSeconds).multipliedBy(netflowRate).abs().dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
     curRemainingEstimateCost = BN(estimateCost).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
   }
   if (types.includes('next')) {

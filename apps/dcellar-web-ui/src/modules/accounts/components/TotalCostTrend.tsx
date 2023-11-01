@@ -29,7 +29,9 @@ export const TotalCostTrend = () => {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const totalCostTrend = useAppSelector(selectAllCostTrend(loginAccount));
   const { loadingAllCostTrend } = useAppSelector((root) => root.billing);
-  const { isLoadingPaymentAccounts, isLoadingAccountInfo } = useAppSelector((root) => root.accounts);
+  const { isLoadingPaymentAccounts, isLoadingAccountInfo } = useAppSelector(
+    (root) => root.accounts,
+  );
   const { curRemainingEstimateCost, nextEstimateCost } = useTotalEstimateCost(['cur', 'next']);
   const { accountInfo } = useAppSelector((root) => root.accounts);
   const barData: BarData = useMemo(() => {
@@ -116,12 +118,14 @@ export const TotalCostTrend = () => {
           const styles = getStyles();
           const TokenSymbol = displayTokenSymbol();
           let DetailFragment = ``;
-          const validDetailBills = (curData.detailBills || []).filter((item) => !BN(item.totalCost).isEqualTo(0));
+          const validDetailBills = (curData.detailBills || []).filter(
+            (item) => !BN(item.totalCost).isEqualTo(0),
+          );
           const dataLen = validDetailBills.length;
           const displayNum = Math.min(3, dataLen);
           for (let i = 0; i < displayNum; i++) {
             const bill = validDetailBills[i];
-            const lowerKeyAccountInfo = formatObjectAddress(accountInfo)
+            const lowerKeyAccountInfo = formatObjectAddress(accountInfo);
             const accountName = lowerKeyAccountInfo[bill.address.toLowerCase()]?.name;
             if (BN(bill.totalCost).isEqualTo(0)) {
               break;
@@ -131,21 +135,31 @@ export const TotalCostTrend = () => {
             `;
           }
           DetailFragment += dataLen > 3 ? `<div style="${styles.normal}">...</div>` : '';
+          const EstimateFragment =
+            curData.estimateCost === null
+              ? ''
+              : `<div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div></div>`;
+          const MoMFragment =
+            curData.MoM === null
+              ? ''
+              : `
+           <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
           return `
             <div style="${styles.box}">
               <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost || 0
             } ${TokenSymbol}</div>
               </div>
               ${DetailFragment}
-              <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div>
-              </div>
+              ${EstimateFragment}
+              ${MoMFragment}
             </div>`;
         },
       },
       grid: {
-        left: '10%',
-        right: '5%',
-        bottom: '8%',
+        containLabel: true,
+        left: 'left',
+        right: '0%',
+        bottom: '0%',
       },
       toolbox: {
         feature: {
@@ -230,7 +244,8 @@ export const TotalCostTrend = () => {
     };
   }, [barData, accountInfo]);
 
-  const loading = loadingAllCostTrend || isLoadingPaymentAccounts || isLoadingAccountInfo === loginAccount;
+  const loading =
+    loadingAllCostTrend || isLoadingPaymentAccounts || isLoadingAccountInfo === loginAccount;
   return (
     <CardContainer flex={1}>
       {loading && <Loading />}

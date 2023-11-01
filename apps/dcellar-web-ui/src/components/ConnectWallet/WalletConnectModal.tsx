@@ -110,6 +110,7 @@ export function WalletConnectModal() {
         <Flex fontSize={14} fontWeight={400} color={'readable.tertiary'}>
           By connecting your wallet, you agree to our&nbsp;
           <Link
+            display={'inline'}
             href={InternalRoutePaths.terms}
             isExternal
             color="inherit"

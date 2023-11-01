@@ -93,7 +93,6 @@ const initialState: BillingState = {
   accountBills: {},
   allBillsCount: {},
   allBills: {},
-
 };
 
 export const billingSlice = createSlice({
@@ -161,9 +160,9 @@ export const billingSlice = createSlice({
         const monthlyCost: MonthlyCost = {
           time: key,
           month: dayjs(key).format('MMM'),
-          totalCost: getPosDecimalValue(allTotalCost),
-          readCost: getPosDecimalValue(allTotalReadCost),
-          storeCost: getPosDecimalValue(allTotalStoreCost),
+          totalCost: getPosDecimalValue(monthlyTotalCost),
+          readCost: getPosDecimalValue(monthlyTotalReadCost),
+          storeCost: getPosDecimalValue(monthlyTotalStoreCost),
           detailBills: detailBills || [],
         }
         allCostTrend['monthlyCost'][key] = monthlyCost

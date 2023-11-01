@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, useProvider, useSigner } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
@@ -13,11 +13,7 @@ import { Head } from '../components/Head';
 import { SwapIcon } from '../components/SwapIcon';
 import { StatusModal } from '../components/StatusModal';
 import Container from '../components/Container';
-import {
-  BSC_CHAIN_ID,
-  BSC_EXPLORER_URL,
-  GREENFIELD_CHAIN_ID,
-} from '@/base/env';
+import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
 import { EOperation, TCalculateGas, TFeeData, TTransferInFromValues } from '../type';
@@ -29,6 +25,7 @@ import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { InternalRoutePaths } from '@/utils/constant';
 import { removeTrailingSlash } from '@/utils/string';
 import { broadcastFault } from '@/facade/error';
+import { Faucet } from '../components/Faucet';
 
 interface TransferInProps {}
 
@@ -189,55 +186,58 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   }, [getFee, isRight, transType, inputAmount, errors]);
 
   return (
-    <Container>
-      <Head />
-      <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
-        <ChainBox type="from" chainId={BSC_CHAIN_ID} />
-        <GAClick name="dc.wallet.transferin.exchange_btn.click">
-          <SwapIcon onClick={onChangeTransfer} />
-        </GAClick>
-        <ChainBox type="to" chainId={GREENFIELD_CHAIN_ID} />
-      </Flex>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Amount
-          balance={balance}
-          errors={errors}
-          register={register}
-          disabled={isSubmitting}
-          watch={watch}
-          feeData={feeData}
-          setValue={setValue}
-          getGasFee={getFee}
-          maxDisabled={isGasLoading}
+    <>
+      <Container>
+        <Head />
+        <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
+          <ChainBox type="from" chainId={BSC_CHAIN_ID} />
+          <GAClick name="dc.wallet.transferin.exchange_btn.click">
+            <SwapIcon onClick={onChangeTransfer} />
+          </GAClick>
+          <ChainBox type="to" chainId={GREENFIELD_CHAIN_ID} />
+        </Flex>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Amount
+            balance={balance}
+            errors={errors}
+            register={register}
+            disabled={isSubmitting}
+            watch={watch}
+            feeData={feeData}
+            setValue={setValue}
+            getGasFee={getFee}
+            maxDisabled={isGasLoading}
+          />
+          {isShowFee() ? (
+            <>
+              <Divider margin={'24px 0'} />
+              <Fee
+                isGasLoading={isGasLoading}
+                feeData={feeData}
+                amount={inputAmount}
+                gaShowTipsName="dc.wallet.transferin.fee_pop.show"
+              />
+            </>
+          ) : (
+            <Box height={'32px'} w="100%"></Box>
+          )}
+          <WalletButton
+            isGasLoading={isGasLoading}
+            disabled={!isEmpty(errors) || isSubmitting || isGasLoading}
+            isSubmitting={isSubmitting}
+            gaClickSubmitName="dc.wallet.transferin.transferin_btn.click"
+            gaClickSwitchName="dc.wallet.transferin.switch_network.click"
+          />
+        </form>
+        <StatusModal
+          viewTxUrl={viewTxUrl}
+          isOpen={isOpen}
+          onClose={onModalClose}
+          status={status}
+          errorMsg={errorMsg}
         />
-        {isShowFee() ? (
-          <>
-            <Divider margin={'24px 0'} />
-            <Fee
-              isGasLoading={isGasLoading}
-              feeData={feeData}
-              amount={inputAmount}
-              gaShowTipsName="dc.wallet.transferin.fee_pop.show"
-            />
-          </>
-        ) : (
-          <Box height={'32px'} w="100%"></Box>
-        )}
-        <WalletButton
-          isGasLoading={isGasLoading}
-          disabled={!isEmpty(errors) || isSubmitting || isGasLoading}
-          isSubmitting={isSubmitting}
-          gaClickSubmitName="dc.wallet.transferin.transferin_btn.click"
-          gaClickSwitchName="dc.wallet.transferin.switch_network.click"
-        />
-      </form>
-      <StatusModal
-        viewTxUrl={viewTxUrl}
-        isOpen={isOpen}
-        onClose={onModalClose}
-        status={status}
-        errorMsg={errorMsg}
-      />
-    </Container>
+      </Container>
+      <Faucet />
+    </>
   );
 });

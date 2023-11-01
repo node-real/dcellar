@@ -78,11 +78,7 @@ export const PaymentAccounts = () => {
   const columns: ColumnProps<TAccountInfo>[] = [
     {
       key: 'name',
-      title: (
-        <SortItem onClick={() => updateSorter('name', 'ascend')}>
-          Name{sortName === 'name' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
-        </SortItem>
-      ),
+      title: <Text>Name</Text>,
       render: (_: string, record: TAccountInfo) => {
         return <Box>{record.name}</Box>;
       },
