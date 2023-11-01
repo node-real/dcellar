@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
 import { CardContainer, CardCost, CardTime, CardTitle } from './Common';
 import { getUtcDayjs } from '@/utils/time';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex } from '@totejs/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { IconFont } from '@/components/IconFont';
 import { useAppSelector } from '@/store';
 
 export const CurMonthCost = () => {
@@ -12,11 +11,9 @@ export const CurMonthCost = () => {
   const costTime = useMemo(() => {
     const time = +new Date();
     const monthStart = utcDayjs(time).startOf('M').format('YYYY-MM-DD');
-    const curTime = utcDayjs(time).format('YYYY-MM-DD');
+    const curTime = utcDayjs(time).format('YYYY-MM-DD') !== utcDayjs(time).startOf('M').format('YYYY-MM-DD') ? utcDayjs(time).subtract(1, 'd').format('YYYY-MM-DD') : utcDayjs(time).format('YYYY-MM-DD');
     return `${monthStart} ~ ${curTime}`;
   }, [utcDayjs]);
-
-  console.log('invoke CurMonthCost');
 
   return (
     <CardContainer w={260} flex={1}>

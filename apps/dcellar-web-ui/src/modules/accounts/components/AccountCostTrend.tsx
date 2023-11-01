@@ -33,7 +33,6 @@ export const AccountCostTrend = memo(({ address }: Props) => {
     'cur',
     'next',
   ]);
-  console.log('curRemainingEstimateCost', curRemainingEstimateCost)
   const barData: BarData = useMemo(() => {
     if (isEmpty(accountCostTrend)) return [];
     let finalData = {};
@@ -148,9 +147,10 @@ export const AccountCostTrend = memo(({ address }: Props) => {
         },
       },
       grid: {
-        left: '12%',
-        right: '5%',
-        bottom: '8%',
+        containLabel: true,
+        left: 'left',
+        right: '0%',
+        bottom: '0%',
       },
       toolbox: {
         feature: {
@@ -208,7 +208,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             show: false,
           },
           axisLabel: {
-            formatter: '{value}',
+            formatter: '{value} %',
           },
         },
       ],

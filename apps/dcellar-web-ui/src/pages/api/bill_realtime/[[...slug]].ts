@@ -15,5 +15,4 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('bill_realtime', e);
     res.json({});
   }
-  res.json([])
 };

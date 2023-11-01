@@ -14,5 +14,4 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('total_cost', e);
     res.json({});
   }
-  res.json([])
 };

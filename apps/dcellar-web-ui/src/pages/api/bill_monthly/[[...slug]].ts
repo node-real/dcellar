@@ -15,5 +15,4 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     console.log('bill_monthly', e);
     res.json({});
   }
-  res.json([])
 };
