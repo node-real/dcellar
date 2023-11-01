@@ -1,16 +1,18 @@
 import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@totejs/uikit';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Tips } from '@/components/common/Tips';
 
 interface InputItemProps extends InputProps {
   tips?: { title: string; rules: string[] };
   onChange: InputProps['onChange'];
+  leftElement?: ReactNode;
 }
 
 export const InputItem = memo<InputItemProps>(function InputItem({
   tips,
   onChange = () => {},
   value = '',
+  leftElement,
   ...restProps
 }) {
   const [input, setInput] = useState(value);
@@ -22,6 +24,7 @@ export const InputItem = memo<InputItemProps>(function InputItem({
 
   return (
     <InputGroup>
+      {leftElement}
       <Input
         value={input}
         autoFocus

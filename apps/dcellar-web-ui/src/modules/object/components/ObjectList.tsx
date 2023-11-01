@@ -25,7 +25,7 @@ import {
 import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
 import { formatTime, getMillisecond } from '@/utils/time';
 import { Loading } from '@/components/common/Loading';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
@@ -53,6 +53,8 @@ import { MenuOption } from '@/components/common/DCMenuList';
 import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
 import { contentTypeToExtension } from '@/modules/object/utils';
 import { formatBytes } from '@/utils/formatter';
+import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
+import dayjs from 'dayjs';
 
 const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
@@ -70,9 +72,18 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const { loginAccount, objectPageSize, objectSortBy, accounts } = useAppSelector(
     (root) => root.persist,
   );
-  const { bucketName, prefix, path, objectsInfo, selectedRowKeys } = useAppSelector(
-    (root) => root.object,
-  );
+  const {
+    bucketName,
+    prefix,
+    path,
+    objectsInfo,
+    selectedRowKeys,
+    filterText,
+    filterTypes,
+    filterSizeTo,
+    filterSizeFrom,
+    filterRange,
+  } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
   const { primarySpInfo } = useAppSelector((root) => root.sp);
@@ -82,14 +93,67 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+
+  const filtered =
+    !!filterText.trim() ||
+    filterTypes.length ||
+    filterRange?.[0] ||
+    filterRange?.[1] ||
+    filterSizeTo.value ||
+    filterSizeFrom.value;
+
+  const _filteredObjectList = filtered
+    ? objectList
+        .filter((o) =>
+          !filterText.trim()
+            ? true
+            : o.objectName.toLowerCase().includes(filterText.trim().toLowerCase()),
+        )
+        .filter((o) => {
+          if (!filterTypes.length) return true;
+          if (o.objectName.endsWith('/') && filterTypes.includes(INTERNAL_FOLDER_EXTENSION))
+            return true;
+          if (!o.name.includes('.') && filterTypes.includes('OTHERS')) return true;
+          const match = o.name.match(/\.([^.]+)$/i);
+          return match && filterTypes.includes(match[1]?.toUpperCase());
+        })
+        .filter((o) => {
+          if (!filterRange?.[0] && !filterRange?.[1]) return true;
+          if (o.objectName.endsWith('/')) return false;
+          const createAt = o.createAt * 1000;
+          return (
+            dayjs(createAt).isAfter(dayjs(filterRange?.[0]).startOf('day')) &&
+            dayjs(createAt).isBefore(dayjs(filterRange?.[1] || dayjs()).endOf('day'))
+          );
+        })
+        .filter((o) => {
+          if (filterSizeFrom?.value === null && filterSizeTo?.value === null) return true;
+          if (filterSizeFrom?.value !== null && filterSizeTo?.value !== null)
+            return (
+              o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024 &&
+              o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024
+            );
+          if (filterSizeFrom?.value !== null)
+            return o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024;
+          if (filterSizeTo?.value !== null)
+            return o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024;
+        })
+    : objectList;
+
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
-    list: objectList,
+    list: _filteredObjectList,
     sorter: objectSortBy,
     pageSize: objectPageSize,
     currentPage,
   });
 
   const primarySp = primarySpInfo[bucketName];
+
+  useUpdateEffect(() => {
+    if (filterText.trim() || !filterText) {
+      dispatch(setCurrentObjectPage({ path, current: 0 }));
+    }
+  }, [filterText]);
 
   useAsyncEffect(async () => {
     if (!primarySp) return;
@@ -373,10 +437,18 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const renderEmpty = useCallback(
     () => (
       <ListEmpty
-        type={discontinue ? 'discontinue' : 'empty-object'}
-        title={discontinue ? 'Discontinue Notice' : 'Upload Objects and Start Your Work Now'}
+        type={discontinue && !filtered ? 'discontinue' : 'empty-object'}
+        title={
+          filtered
+            ? 'No Results'
+            : discontinue
+            ? 'Discontinue Notice'
+            : 'Upload Objects and Start Your Work Now'
+        }
         desc={
-          discontinue
+          filtered
+            ? 'No results found. Please try different conditions.'
+            : discontinue
             ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
             : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
                 SINGLE_OBJECT_MAX_SIZE,
@@ -384,10 +456,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         }
         empty={empty}
       >
-        <NewObject showRefresh={false} />
+        {!filtered && <NewObject showRefresh={false} />}
       </ListEmpty>
     ),
-    [discontinue, empty],
+    [discontinue, empty, filtered],
   );
 
   return (

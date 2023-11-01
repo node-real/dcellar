@@ -24,6 +24,8 @@ import { setupAccountDetail } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
 import { IconFont } from '@/components/IconFont';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
+import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -84,9 +86,8 @@ export const ObjectsPage = () => {
       <PanelContainer>
         <Flex justifyContent="space-between" alignItems="center">
           <ObjectBreadcrumb />
-          {owner && <QuotaCard />}
         </Flex>
-        <PanelContent>
+        <Flex my={16} h={49} justifyContent="space-between" alignItems="center">
           <GoBack onClick={goBack}>
             <IconFont type="backward" w={24} />
             {selected > 0 ? (
@@ -103,6 +104,10 @@ export const ObjectsPage = () => {
               </Tooltip>
             )}
           </GoBack>
+          {owner && <QuotaCard />}
+        </Flex>
+        <PanelContent>
+          <ObjectListFilter />
           <NewObject
             showRefresh={true}
             gaFolderClickName="dc.file.list.create_folder.click"
@@ -110,6 +115,9 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
+
+      <ObjectFilterItems />
+
       {owner ? (
         <InsufficientBalance />
       ) : (

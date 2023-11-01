@@ -13,6 +13,8 @@ export const antdTheme: ThemeConfig = {
     colorError: '#EE3911',
     colorErrorBorderHover: '#FC6E75',
     borderRadius: 4,
+    boxShadowSecondary: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+    boxShadowTertiary: '',
   },
   components: {
     Tooltip: {

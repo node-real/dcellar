@@ -15,7 +15,7 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
       <LayoutNav>
         <Nav />
       </LayoutNav>
-      <Content>{children}</Content>
+      <Content id={'layout-main'}>{children}</Content>
     </LayoutContainer>
   );
 });
