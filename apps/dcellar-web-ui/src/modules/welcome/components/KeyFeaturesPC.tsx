@@ -32,7 +32,7 @@ export const KeyFeaturesPC = memo(() => {
     <LandingResponsiveContainer>
       <Flex flexDirection={'column'} alignItems={'center'} my={80}>
         <LandingH2 marginBottom={40}>Key Features</LandingH2>
-        <Tabs variant="squared" alignItems={'center'} justifyContent={'center'} isLazy={false} trigger='hover'>
+        <Tabs variant="squared" alignItems={'center'} justifyContent={'center'} isLazy={false}>
           <TabList flexWrap={'wrap'} justifyContent={'center'} marginBottom={33}>
             {keyFeatureList &&
               keyFeatureList.map((item, index) => (
