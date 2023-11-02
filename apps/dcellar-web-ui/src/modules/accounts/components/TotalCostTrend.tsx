@@ -38,7 +38,7 @@ export const TotalCostTrend = () => {
     if (isEmpty(totalCostTrend)) return [];
     let finalData = {};
     const months = getEveryMonth(totalCostTrend.startTime, totalCostTrend.endTime);
-    const curYYYYm = dayjs(+new Date()).format('YYYY.M');
+    const curYYYYm = dayjs(+new Date()).format('YYYY-M');
     const newData: any = months.map((item, index) => {
       const curMonthBill = totalCostTrend.monthlyCost?.[item.yyyym] || {};
       // the first month
@@ -50,7 +50,7 @@ export const TotalCostTrend = () => {
           MoM: null,
         };
         // before this month
-      } else if (dayjs(item.yyyym + '.01').unix() < dayjs(curYYYYm + '.01').unix()) {
+      } else if (dayjs(item.yyyym + '-01').unix() < dayjs(curYYYYm + '-01').unix()) {
         finalData = {
           ...curMonthBill,
           month: item.mmm,
@@ -162,9 +162,9 @@ export const TotalCostTrend = () => {
       },
       toolbox: {
         feature: {
-          dataView: { show: true, readOnly: false },
-          restore: { show: true },
-          saveAsImage: { show: true },
+          dataView: { show: false, readOnly: false },
+          restore: { show: false },
+          saveAsImage: { show: false },
         },
       },
       legend: {
@@ -242,7 +242,6 @@ export const TotalCostTrend = () => {
       ],
     };
   }, [barData, accountInfo]);
-
   const loading =
     loadingAllCostTrend || isLoadingPaymentAccounts || isLoadingAccountInfo === loginAccount;
   return (
