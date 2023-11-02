@@ -42,7 +42,6 @@ export const MetaInfo = memo(({ address }: Props) => {
     }
     return router.push(`/wallet?type=${e}`);
   };
-  useWhyDidYouUpdate('11321321', [bnbPrice, address, bankBalance, loginAccount, accountDetail])
   const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
   const isNonRefundable = accountDetail.refundable;
   const isFrozen = accountDetail.clientFrozen;

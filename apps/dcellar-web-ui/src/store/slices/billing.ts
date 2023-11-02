@@ -346,9 +346,7 @@ export const setupAccountCostTrend = (address: string) => async (dispatch: AppDi
     end_year,
   }
   dispatch(setLoadingAccountCostTrend(true))
-  console.time('setLoadingAccountCostTrend')
   const [data, error] = await getMonthlyBillByAddress(params);
-  console.timeEnd('setLoadingAccountCostTrend');
   if (!data || error) {
     dispatch(setLoadingAccountCostTrend(false))
     return error;

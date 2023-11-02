@@ -16,7 +16,7 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet preload"
+          rel="stylesheet"
         />
         <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm" />
         <Ga4 id={GA_ID} />
