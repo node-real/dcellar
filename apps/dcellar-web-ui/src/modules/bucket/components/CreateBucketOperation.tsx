@@ -32,7 +32,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
-import { selectAccount, setupAccountDetail, TAccount } from '@/store/slices/accounts';
+import { selectAccount, setupAccountInfo, TAccount } from '@/store/slices/accounts';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
 import { G_BYTES } from '@/utils/constant';
 import { getQuotaNetflowRate } from '@/utils/payment';
@@ -84,7 +84,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const dispatch = useAppDispatch();
   const { loginAccount: address } = useAppSelector((root) => root.persist);
   const bucketList = useAppSelector(selectBucketList(address));
-  const { isLoadingDetail } = useAppSelector((root) => root.accounts);
+  const { isLoadingAccountInfo } = useAppSelector((root) => root.accounts);
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const globalSP = spInfo[oneSp];
   const selectedSpRef = useRef<SpItem>(globalSP);
@@ -165,13 +165,14 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
     }
-    const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
-      ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
-      : OBJECT_ERROR_TYPES[E_UNKNOWN];
+
     dispatch(
       setStatusDetail({
-        ...errorData,
+        icon: 'status-failed',
+        title: 'Create Failed',
+        desc: 'Sorry, there’s something wrong when creating the bucket.',
         buttonText: BUTTON_GOT_IT,
+        errorText: 'Error message: ' + type,
         extraParams: [bucketName],
       }),
     );
@@ -357,7 +358,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       isEmpty(bucketName) ||
       !isEmpty(errors?.bucketName) ||
       !isEnoughBalance ||
-      isLoadingDetail === selectedPaRef.current.address ||
+      isLoadingAccountInfo === selectedPaRef.current.address ||
       !balanceEnough
     );
   };
@@ -389,7 +390,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const onChangePA = useCallback(
     async (pa: TAccount) => {
       selectedPaRef.current = pa;
-      await dispatch(setupAccountDetail(pa.address));
+      await dispatch(setupAccountInfo(pa.address));
       const { value, available } = validateNameAndGas.name;
       if (paUpdate) {
         // todo for reset gas simulator error

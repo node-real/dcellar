@@ -1,4 +1,4 @@
-import { AccountType } from '@/store/slices/accounts';
+import { AccountType, TAccountInfo } from '@/store/slices/accounts';
 import { IconFont } from '@/components/IconFont';
 
 export const getAccountDisplay = (type: AccountType) => {
@@ -31,3 +31,16 @@ export const getAccountDisplay = (type: AccountType) => {
   };
   return accountDisplays[type];
 };
+
+export const formatObjectAddress = (accountInfo: Record<string, TAccountInfo>) => {
+  const lowerKeyAccountInfo: Record<string, TAccountInfo> = {};
+  Object.entries(accountInfo).forEach(([key, value]) => {
+    const lowerKey = key.toLowerCase();
+    lowerKeyAccountInfo[lowerKey] = {
+      ...value,
+      address: value.address.toLowerCase()
+    }
+  });
+
+  return lowerKeyAccountInfo;
+}

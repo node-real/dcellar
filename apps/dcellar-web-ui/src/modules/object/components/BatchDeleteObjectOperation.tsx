@@ -32,8 +32,8 @@ import { getStoreNetflowRate } from '@/utils/payment';
 import {
   selectAccount,
   selectAvailableBalance,
-  setupAccountDetail,
-  TAccountDetail,
+  setupAccountInfo,
+  TAccountInfo,
 } from '@/store/slices/accounts';
 import { AllBucketInfo } from '@/store/slices/bucket';
 import { BN } from '@/utils/math';
@@ -44,7 +44,7 @@ import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
 
 interface BatchDeleteObjectOperationProps {
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -191,7 +191,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             }),
           );
         }
-        await dispatch(setupAccountDetail(bucket.PaymentAddress));
+        await dispatch(setupAccountInfo(bucket.PaymentAddress));
         return true;
       }
 

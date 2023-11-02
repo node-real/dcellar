@@ -25,7 +25,7 @@ import { AllBucketInfo, setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { selectAvailableBalance, TAccountDetail } from '@/store/slices/accounts';
+import { selectAvailableBalance, TAccountInfo } from '@/store/slices/accounts';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { SpItem } from '@/store/slices/sp';
@@ -82,7 +82,7 @@ export const renderFee = (
 interface CancelObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: () => void;
   onClose?: () => void;
