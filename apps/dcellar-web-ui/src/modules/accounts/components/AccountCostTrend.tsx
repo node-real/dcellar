@@ -36,7 +36,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
     if (isEmpty(accountCostTrend)) return [];
     let finalData = {};
     const months = getEveryMonth(accountCostTrend.startTime, accountCostTrend.endTime);
-    const curYYYYm = dayjs(+new Date()).format('YYYY.M');
+    const curYYYYm = dayjs(+new Date()).format('YYYY-M');
     const newData: any = months.map((item, index) => {
       const curMonthBill = accountCostTrend.monthlyCost?.[item.yyyym] || {};
       // the first month
@@ -49,7 +49,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
           MoM: null,
         };
         // before this month
-      } else if (dayjs(item.yyyym + '.01').valueOf() < dayjs(curYYYYm + '.01').valueOf()) {
+      } else if (dayjs(item.yyyym + '-01').valueOf() < dayjs(curYYYYm + '-01').valueOf()) {
         finalData = {
           ...curMonthBill,
           month: item.mmm,
@@ -58,7 +58,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
           MoM: index === 0 ? 0 : getMoM(preDataRef.current.totalCost, curMonthBill.totalCost),
         };
         // the current month
-      } else if (dayjs(item.yyyym + '.01').valueOf() === dayjs(curYYYYm + '.01').valueOf()) {
+      } else if (dayjs(item.yyyym + '-01').valueOf() === dayjs(curYYYYm + '-01').valueOf()) {
         finalData = {
           ...curMonthBill,
           month: item.mmm,
@@ -152,9 +152,9 @@ export const AccountCostTrend = memo(({ address }: Props) => {
       },
       toolbox: {
         feature: {
-          dataView: { show: true, readOnly: false },
-          restore: { show: true },
-          saveAsImage: { show: true },
+          dataView: { show: false, readOnly: false },
+          restore: { show: false },
+          saveAsImage: { show: false },
         },
       },
       legend: {

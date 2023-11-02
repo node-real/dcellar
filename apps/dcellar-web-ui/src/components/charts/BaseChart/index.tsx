@@ -8,6 +8,9 @@ import {
   TooltipComponent,
   LegendComponent,
   TitleComponent,
+  ToolboxComponent,
+  GridSimpleComponent,
+  SingleAxisComponent,
 } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
 
@@ -16,6 +19,9 @@ echarts.use([
   EChartBarChart,
   EChartLineChart,
   TooltipComponent,
+  ToolboxComponent,
+  GridSimpleComponent,
+  SingleAxisComponent,
   GridComponent,
   LegendComponent,
   TitleComponent,

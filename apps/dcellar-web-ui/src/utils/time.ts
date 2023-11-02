@@ -4,7 +4,6 @@ import timezone from 'dayjs/plugin/timezone';
 
 export const getUtcDayjs = () => {
   dayjs.extend(utc);
-  dayjs.extend(timezone);
 
   return dayjs;
 }
@@ -93,13 +92,13 @@ export const getEveryMonth = (startMonth: string, endMonth: string) => {
   if (!startMonth || !endMonth) return [];
 
   const dayjs = getUtcDayjs();
-  let curTime: string | Dayjs = startMonth + '.01';
-  const endTime = endMonth + '.01';
+  let curTime: string | Dayjs | Date = startMonth + '-01';
+  const endTime = new Date(endMonth + '-01');
   const times = [];
 
   while (dayjs(curTime).startOf('M').valueOf() <= dayjs(endTime).startOf('M').valueOf()) {
     const time = {
-      yyyym: dayjs(curTime).format('YYYY.M'),
+      yyyym: dayjs(curTime).format('YYYY-M'),
       mmm: dayjs(curTime).format('MMM')
     }
     times.push(time);
