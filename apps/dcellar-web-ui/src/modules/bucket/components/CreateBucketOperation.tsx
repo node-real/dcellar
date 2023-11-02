@@ -165,13 +165,14 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
     }
-    const errorData = OBJECT_ERROR_TYPES[type as ObjectErrorType]
-      ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
-      : OBJECT_ERROR_TYPES[E_UNKNOWN];
+
     dispatch(
       setStatusDetail({
-        ...errorData,
+        icon: 'status-failed',
+        title: 'Create Failed',
+        desc: 'Sorry, there’s something wrong when creating the bucket.',
         buttonText: BUTTON_GOT_IT,
+        errorText: 'Error message: ' + type,
         extraParams: [bucketName],
       }),
     );
