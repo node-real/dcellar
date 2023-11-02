@@ -135,7 +135,7 @@ export const billingSlice = createSlice({
       let allTotalReadCost = BN(0);
       let allTotalStoreCost = BN(0);
       monthlyBills.forEach((item) => {
-        const key = item.bills[0].Year + '.' + item.bills[0].Month;
+        const key = item.bills[0].Year + '-' + item.bills[0].Month;
         if (allCostTrend['monthlyCost'][key]) {
           allCostTrend['monthlyCost'][key] = {} as MonthlyCost;
         }
@@ -148,7 +148,7 @@ export const billingSlice = createSlice({
           monthlyTotalStoreCost = monthlyTotalStoreCost.plus(bill.StoreCost);
           return {
             address: bill.Address,
-            time: bill.Year + '.' + bill.Month,
+            time: bill.Year + '-' + bill.Month,
             readCost: getPosDecimalValue(bill.ReadCost),
             storeCost: getPosDecimalValue(bill.StoreCost),
             totalCost: getPosDecimalValue(bill.TotalCost)
@@ -183,7 +183,7 @@ export const billingSlice = createSlice({
         [key: string]: AccountCostBill
       }
       monthlyBills.forEach((item) => {
-        const key = item.Year + '.' + item.Month;
+        const key = item.Year + '-' + item.Month;
         data[key] = {
           time: key,
           address: item.Address,
@@ -307,8 +307,8 @@ export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: G
   const { loginAccount } = getState().persist;
   const dayjs = getUtcDayjs();
   const curTime = +new Date();
-  const [end_year, end_month] = dayjs(curTime).add(1, 'month').format('YYYY.MM').split('.')
-  const [start_year, start_month] = dayjs(curTime).subtract(10, 'month').format('YYYY.MM').split('.');
+  const [end_year, end_month] = dayjs(curTime).add(1, 'month').format('YYYY-M').split('-')
+  const [start_year, start_month] = dayjs(curTime).subtract(10, 'month').format('YYYY-M').split('-');
 
   const params: GetMonthlyBillByOwnerParams = {
     owner: loginAccount,
@@ -320,24 +320,24 @@ export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: G
   const [data, error] = await getMonthlyBillByOwner(params);
   if (!data || error) {
     dispatch(setLoadingAllCostTrend(false));
-    dispatch(setAllCostTrend({ loginAccount, startTime: `${start_year}.${start_month}`, endTime: `${end_year}.${end_month}`, monthlyBills: [] }))
+    dispatch(setAllCostTrend({ loginAccount, startTime: `${start_year}-${start_month}`, endTime: `${end_year}-${end_month}`, monthlyBills: [] }))
     return error
   };
 
-  const curMonth = dayjs(curTime).format('YYYY.M');
+  const curMonth = dayjs(curTime).format('YYYY-M');
   const curData = data.find(item => {
-    return `${item.bills[0].Year}.${item.bills[0].Month}` === curMonth;
+    return `${item.bills[0].Year}-${item.bills[0].Month}` === curMonth;
   });
   dispatch(setLoadingAllCostTrend(false));
   dispatch(setCurMonthTotalCosted({ bills: curData?.bills }));
-  dispatch(setAllCostTrend({ loginAccount, startTime: `${start_year}.${start_month}`, endTime: `${end_year}.${end_month}`, monthlyBills: data }))
+  dispatch(setAllCostTrend({ loginAccount, startTime: `${start_year}-${start_month}`, endTime: `${end_year}-${end_month}`, monthlyBills: data }))
 }
 
 export const setupAccountCostTrend = (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
   const utcDayjs = getUtcDayjs();
   const curTime = +new Date();
-  const [end_year, end_month] = utcDayjs(curTime).add(1, 'month').format('YYYY.MM').split('.')
-  const [start_year, start_month] = utcDayjs(curTime).subtract(10, 'month').format('YYYY.MM').split('.');
+  const [end_year, end_month] = utcDayjs(curTime).add(1, 'month').format('YYYY-M').split('-')
+  const [start_year, start_month] = utcDayjs(curTime).subtract(10, 'month').format('YYYY-M').split('-');
   const params: GetMonthlyBillByAddressParams = {
     address,
     start_month,
@@ -351,7 +351,7 @@ export const setupAccountCostTrend = (address: string) => async (dispatch: AppDi
     dispatch(setLoadingAccountCostTrend(false))
     return error;
   };
-  dispatch(setAccountCostTrend({ address, startTime: `${start_year}.${start_month}`, endTime: `${end_year}.${end_month}`, monthlyBills: data }))
+  dispatch(setAccountCostTrend({ address, startTime: `${start_year}-${start_month}`, endTime: `${end_year}-${end_month}`, monthlyBills: data }))
   dispatch(setLoadingAccountCostTrend(false));
 }
 

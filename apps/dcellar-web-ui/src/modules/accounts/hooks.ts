@@ -64,7 +64,7 @@ export const useAccountEstimateCost = (address: string, types: EstimateCostType[
   let curCosted = '';
   let curRemainingEstimateCost = '';
   let nextEstimateCost = '';
-  const key = dayjs(curTime).format('YYYY.M');
+  const key = dayjs(curTime).format('YYYY-M');
   const curMonthCost = accountCostTrend[key] || {};
   if (types.includes('cur')) {
     curCosted = curMonthCost?.monthlyCost?.[key].totalCost;
