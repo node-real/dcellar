@@ -1,6 +1,7 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
 import { toast } from '@totejs/uikit';
 import { ConnectorNotFoundError } from 'wagmi';
+import * as Sentry from '@sentry/nextjs';
 
 export function handleWalletError(err: any, args: any, context: unknown) {
   let text = '';
@@ -22,6 +23,10 @@ export function handleWalletError(err: any, args: any, context: unknown) {
   const message = err.cause?.message ?? err.message;
   const description = text || ErrorMsgMap[code] || message;
 
+  Sentry.withScope((scope) => {
+    scope.setTag('Component', 'handleWalletError');
+    Sentry.captureMessage(JSON.stringify(err));
+  });
   toast.error({
     description,
   });

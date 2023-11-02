@@ -25,6 +25,7 @@ import { ShareOperation } from '@/modules/object/components/ShareOperation';
 import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDeleteObjectOperation';
 import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
 import { useUnmount } from 'ahooks';
+import { DetailFolderOperation } from '@/modules/object/components/DetailFolderOperation';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
@@ -43,7 +44,9 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const [id, operation, params] = objectOperation[level];
   const bucketName = params?.bucketName || _bucketName;
-  const isDrawer = ['detail', 'create_folder', 'share', 'upload'].includes(operation);
+  const isDrawer = ['folder_detail', 'detail', 'create_folder', 'share', 'upload'].includes(
+    operation,
+  );
   const isModal = ['delete', 'cancel', 'download', 'batch_delete'].includes(operation);
   const _operation = useModalValues<ObjectOperationsType>(operation);
   const selectObjectInfo = objectsInfo[id] || {};
@@ -108,6 +111,14 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
             selectObjectInfo={_selectObjectInfo}
             selectBucket={selectBucket}
             bucketAccountDetail={bucketAccountDetail}
+            primarySp={primarySp}
+          />
+        );
+      case 'folder_detail':
+        return (
+          <DetailFolderOperation
+            objectName={objectName}
+            selectBucket={selectBucket}
             primarySp={primarySp}
           />
         );

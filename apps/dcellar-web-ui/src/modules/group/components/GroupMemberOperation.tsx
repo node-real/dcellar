@@ -44,6 +44,7 @@ import { Animates } from '@/components/AnimatePng';
 import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { uniq, without, xor } from 'lodash-es';
 import cn from 'classnames';
+import dayjs, { Dayjs } from 'dayjs';
 
 const menus: MenuOption[] = [
   { label: 'Member', value: 'member' },
@@ -51,6 +52,7 @@ const menus: MenuOption[] = [
 ];
 
 const MAX_COUNT = 20;
+const MAX_ADDRESS_COUNT = 20;
 const MEMBER_SIZE = 20;
 
 interface GroupMemberOperationProps {
@@ -79,6 +81,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   const memberList = useAppSelector(selectMemberList(addGroupMember.id));
   const { spInfo, oneSp } = useAppSelector((root) => root.sp);
   const memberListLoading = addGroupMember.id && !(addGroupMember.id in groupMembers);
+  const [expiration, setExpiration] = useState<Dayjs>();
   const { page, canPrev, canNext } = useTableNav<GroupMember>({
     list: memberList,
     sorter: ['UpdateAt', 'descend'],
@@ -114,8 +117,8 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     setValues(e);
     const invalid = e.filter((i) => !i.match(ADDRESS_RE));
     setInvalidIds(invalid);
-    if (e.length > MAX_COUNT) {
-      setError(`Please enter less than ${MAX_COUNT} addresses. `);
+    if (e.length > MAX_ADDRESS_COUNT) {
+      setError(`Please enter less than ${MAX_ADDRESS_COUNT} addresses. `);
     } else if (!e.length) {
       setError(`Please enter addresses. `);
     } else {
@@ -145,11 +148,9 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
-    const now = new Date();
-    now.setFullYear(now.getFullYear() + 200);
     const membersToAdd = values.map((item) => ({
       member: item,
-      expirationTime: toTimestamp(now),
+      expirationTime: toTimestamp(expiration!.toDate()),
     }));
 
     const payload = {
@@ -203,8 +204,6 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
   }, [dispatch, addGroupMember.id]);
 
   const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
-
-  const removeFee = (gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0) * removeAccount.length;
 
   const onSelectChange = (value: string) => {
     dispatch(setSelectedGroupMember(xor(selectedGroupMember, [value])));
@@ -274,7 +273,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
           confirmButton: 'dc.group.remove_member_confirm.delete.click',
         }}
         title="Remove Member"
-        fee={removeFee}
+        fee={fee}
         onConfirm={onRemoveMember}
         onClose={() => {
           setDeleteModal(false);
@@ -289,6 +288,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         <QDrawerBody>
           <Flex gap={12}>
             <DCComboBox
+              dateChange={setExpiration}
               value={values}
               tokenSeparators={[',']}
               placeholder="Add address, comma separated"
@@ -348,6 +348,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                 <Flex direction="column" gap={8}>
                   {page.map((p) => {
                     const owner = loginAccount === p.AccountId;
+                    const expirationTime = p.ExpirationTime ? p.ExpirationTime * 1000 : 0;
                     return (
                       <Row
                         key={p.AccountId}
@@ -365,16 +366,32 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                             <Box key={p.AccountId} title={p.AccountId}>
                               <Avatar id={p.AccountId} w={32} />
                             </Box>
-                            <Text
-                              flex={1}
-                              ml={8}
-                              fontWeight={500}
-                              title={p.AccountId}
-                              color={'readable.normal'}
-                            >
-                              {trimAddress(p.AccountId)}
-                              {owner && <> (you)</>}
-                            </Text>
+                            <Flex lineHeight="normal" ml={8} flex={1} flexDirection="column">
+                              <Text
+                                flex={1}
+                                fontWeight={500}
+                                title={p.AccountId}
+                                color={'readable.normal'}
+                                lineHeight="17px"
+                              >
+                                {trimAddress(p.AccountId)}
+                                {owner && <> (you)</>}
+                              </Text>
+                              {!owner && !!expirationTime && (
+                                <Text
+                                  fontSize={12}
+                                  mt={2}
+                                  lineHeight="15px"
+                                  color={
+                                    dayjs().isBefore(dayjs(expirationTime))
+                                      ? 'readable.disabled'
+                                      : 'scene.danger.normal'
+                                  }
+                                >
+                                  Expire date: {dayjs(expirationTime).format('D MMM, YYYY')}
+                                </Text>
+                              )}
+                            </Flex>
                           </Flex>
                         </DCCheckbox>
                         <Operation>

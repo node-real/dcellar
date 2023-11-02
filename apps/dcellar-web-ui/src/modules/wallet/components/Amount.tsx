@@ -10,7 +10,7 @@ import {
   Link,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
@@ -22,7 +22,6 @@ import {
   MIN_AMOUNT,
   WalletOperationInfos,
 } from '../constants';
-import { isRightChain } from '../utils/isRightChain';
 import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { useAppSelector } from '@/store';
@@ -91,9 +90,9 @@ export const Amount = ({
   const { gasFee, relayerFee } = feeData;
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
-  const isRight = useMemo(() => {
-    return isRightChain(chain?.id, curInfo?.chainId);
-  }, [chain?.id, curInfo?.chainId]);
+  // const isRight = useMemo(() => {
+  //   return isRightChain(chain?.id, curInfo?.chainId);
+  // }, [chain?.id, curInfo?.chainId]);
   const isSendPage = transType === 'send';
 
   const Balance = useCallback(() => {
@@ -161,7 +160,7 @@ export const Amount = ({
             paddingRight={'80px'}
             type={'number'}
             placeholder="0.0"
-            disabled={!isRight || disabled}
+            disabled={disabled}
             fontSize="18px"
             fontWeight="700 !important"
             step={MIN_AMOUNT}
