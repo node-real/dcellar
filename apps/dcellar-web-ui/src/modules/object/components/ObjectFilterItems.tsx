@@ -354,6 +354,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                       h={32}
                       as={DCButton}
                       variant={'ghost'}
+                      bg={'bg.bottom'}
                       rightIcon={<IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />}
                     >
                       {sizeFrom.unit === '1' ? 'KB' : 'MB'}
@@ -391,6 +392,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                       h={32}
                       as={DCButton}
                       variant={'ghost'}
+                      bg={'bg.bottom'}
                       rightIcon={<IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />}
                     >
                       {sizeTo.unit === '1' ? 'KB' : 'MB'}
@@ -481,6 +483,7 @@ const Container = styled(Flex)`
   .ant-input-number {
     border-radius: 4px;
     box-shadow: none !important;
+    background: var(--ui-colors-bg-bottom);
   }
 
   .size-button {
