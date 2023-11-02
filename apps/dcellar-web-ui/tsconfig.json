@@ -21,6 +21,6 @@
       "@/public/*": ["public/*"]
     }
   },
-  "include": ["next-env.d.ts", "typings.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "typings.d.ts", "**/*.ts", "**/*.tsx", "src/modules/accounts/components/BillingHistory"],
   "exclude": ["node_modules", ".next"]
 }

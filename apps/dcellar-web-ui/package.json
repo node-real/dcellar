@@ -50,7 +50,10 @@
     "redux-persist":  "^6.0.0",
     "@wagmi/core": "^0.10.13",
     "fast-xml-parser": "~4.2.7",
-    "swiper": "~10.3.1"
+    "swiper": "~10.3.1",
+    "echarts": "~5.4.3",
+    "echarts-for-react": "~3.0.2",
+    "next-transpile-modules": "~10.0.1"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",

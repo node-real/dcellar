@@ -25,7 +25,7 @@ import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
@@ -297,7 +297,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
           const bucket = bucketInfo[task.bucketName];
-          dispatch(setupAccountDetail(bucket.PaymentAddress));
+          dispatch(setupAccountInfo(bucket.PaymentAddress));
         }
         return objectStatus;
       }),

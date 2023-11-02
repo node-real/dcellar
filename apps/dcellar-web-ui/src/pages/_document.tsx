@@ -16,7 +16,7 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap"
-          rel="stylesheet preload"
+          rel="stylesheet"
         />
         <link href={`${assetPrefix}/wasm/main.wasm`} rel="prefetch" type="application/wasm" />
         <Ga4 id={GA_ID} />
@@ -25,7 +25,7 @@ export default function Document() {
             __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/js/iconfont_v0.2.min.js`}></script>
+        <script defer src={`${assetPrefix}/js/iconfont_v0.3.min.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js`}></script>
       </Head>

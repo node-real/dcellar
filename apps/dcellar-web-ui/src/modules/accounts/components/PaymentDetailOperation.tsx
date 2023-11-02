@@ -1,24 +1,24 @@
 import { DCButton } from '@/components/common/DCButton';
 import { useAppSelector } from '@/store';
-import { TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { Flex, QDrawerFooter } from '@totejs/uikit';
 import { useInterval, useUnmount } from 'ahooks';
 import { memo, useState } from 'react';
-import { AccountDetail } from './AccountDetail';
+import { BasicInfo } from './BasicInfo';
 import { useRouter } from 'next/router';
 import BigNumber from 'bignumber.js';
 import { getTimestampInSeconds } from '@/utils/time';
 
 interface PaymentDetailOperationProps {
-  selectAccount: TAccountDetail;
+  selectAccount: TAccountInfo;
   selectAccountId: string;
 }
 
 export const PaymentDetailOperation = memo<PaymentDetailOperationProps>(
   function PaymentDetailOperation({ selectAccount: paymentAccount, selectAccountId }) {
     const [availableBalance, setAvailableBalance] = useState('0');
-    const { loginAccount } = useAppSelector((state) => state.persist);
-    const { isLoadingDetail } = useAppSelector((state) => state.accounts);
+    const { loginAccount } = useAppSelector((root) => root.persist);
+    const { isLoadingAccountInfo } = useAppSelector((root) => root.accounts);
     const router = useRouter();
     const isNonRefundable = paymentAccount.refundable;
     const isFrozen = paymentAccount.status === 1;
@@ -45,13 +45,13 @@ export const PaymentDetailOperation = memo<PaymentDetailOperationProps>(
 
     return (
       <>
-        <AccountDetail
-          loading={!!isLoadingDetail}
+        <BasicInfo
+          loading={!!isLoadingAccountInfo}
           title="Account Detail"
           accountDetail={paymentAccount}
           availableBalance={availableBalance}
         />
-        {!isLoadingDetail && (
+        {!isLoadingAccountInfo && (
           <QDrawerFooter>
             <Flex w={'100%'} gap={16}>
               <DCButton

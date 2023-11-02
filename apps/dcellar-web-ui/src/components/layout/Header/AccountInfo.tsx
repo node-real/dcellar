@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 import { selectHasUploadingTask, setDisconnectWallet, setupBnbPrice } from '@/store/slices/global';
 import { useLogin } from '@/hooks/useLogin';
 import { useDebounceEffect } from 'ahooks';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import { Avatar } from '@/components/Avatar';
 import styled from '@emotion/styled';
 import { DCLink } from '@/components/common/DCLink';
@@ -48,7 +48,7 @@ export const AccountInfo = memo<AccountInfoProps>(function AccountCard() {
   useDebounceEffect(() => {
     if (!isOpen) return;
     dispatch(setupBnbPrice());
-    dispatch(setupAccountDetail(loginAccount));
+    dispatch(setupAccountInfo(loginAccount));
   }, [isOpen]);
 
   return (

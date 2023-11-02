@@ -9,6 +9,8 @@ try {
   console.error(`Get git commit hash failed.`);
 }
 
+const withTranspileModules = require('next-transpile-modules')(['echarts']);
+
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
   openAnalyzer: true,
@@ -92,4 +94,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(withBundleAnalyzer(nextConfig), sentryWebpackPluginOptions);
+module.exports = withSentryConfig(withBundleAnalyzer(withTranspileModules(nextConfig)), sentryWebpackPluginOptions);
