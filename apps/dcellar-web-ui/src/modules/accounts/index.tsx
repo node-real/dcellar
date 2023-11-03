@@ -41,7 +41,7 @@ export const Accounts = () => {
           <Text fontSize={16} fontWeight={600}>
             Data Overview
           </Text>
-          <Flex gap={16}>
+          <Flex gap={16} wrap={'wrap'}>
             <Flex flexDirection={'column'} gap={16}>
               <CurMonthCost />
               <CurForecastCost />

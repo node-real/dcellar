@@ -14,15 +14,13 @@ import { listUserPaymentAccounts } from '@/facade/payment';
 import { getSpOffChainData } from './persist';
 import { keyBy } from 'lodash-es';
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { getPosDecimalValue } from '@/utils/wallet';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 
 export type TAccount = {
   name: string;
   address: string;
 };
 
-export function isSpStreamRecord (arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
+export function isSpStreamRecord(arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
   return (arg as SpStreamRecord).Account !== undefined;
 }
 export type AccountType =
@@ -123,13 +121,15 @@ export const paymentAccountSlice = createSlice({
       state,
       {
         payload,
-      }: PayloadAction<{
-        address: string;
-        name: string;
-        streamRecord?: ChainStreamRecord | SpStreamRecord | undefined;
-        refundable?: boolean;
-        bufferTime: string;
-      }[]>,
+      }: PayloadAction<
+        {
+          address: string;
+          name: string;
+          streamRecord?: ChainStreamRecord | SpStreamRecord | undefined;
+          refundable?: boolean;
+          bufferTime: string;
+        }[]
+      >,
     ) => {
       const data = state.accountInfo;
       payload.forEach((item) => {
@@ -175,7 +175,7 @@ export const paymentAccountSlice = createSlice({
             frozenNetflowRate: streamRecord.frozenNetflowRate,
             refundable: item.refundable,
             status: streamRecord.status,
-          }
+          };
         }
       });
       state.accountInfo = data;
@@ -199,10 +199,13 @@ export const paymentAccountSlice = createSlice({
       const { addr, type } = payload;
       state.accountTypes[addr] = type;
     },
-    setTotalPANetflowRate(state, { payload }: PayloadAction<{ loginAccount: string; totalNetflowRate: string }>) {
+    setTotalPANetflowRate(
+      state,
+      { payload }: PayloadAction<{ loginAccount: string; totalNetflowRate: string }>,
+    ) {
       const { loginAccount, totalNetflowRate } = payload;
-      state['totalPANetflowRate'][loginAccount] = totalNetflowRate
-    }
+      state['totalPANetflowRate'][loginAccount] = totalNetflowRate;
+    },
   },
 });
 
@@ -221,8 +224,8 @@ export const {
 } = paymentAccountSlice.actions;
 const defaultAccountInfoAccount = {} as TAccountInfo;
 export const selectAccountDetail = (address: string) => (root: AppState) => {
-  return root.accounts.accountInfo[address] || defaultAccountInfoAccount
-}
+  return root.accounts.accountInfo[address] || defaultAccountInfoAccount;
+};
 
 const defaultPaAccount = {} as TAccountInfo;
 export const selectAccount = (address: string) => (state: AppState) =>
@@ -231,7 +234,7 @@ export const selectAccount = (address: string) => (state: AppState) =>
 export const defaultPAList = Array<TAccount>();
 export const selectPaymentAccounts = (address: string) => (state: AppState) => {
   return state.accounts.paymentAccounts[address] || defaultPAList;
-}
+};
 
 export const selectAvailableBalance = (address: string) => (state: AppState) => {
   const isOwnerAccount = address === state.persist.loginAccount;
@@ -247,59 +250,70 @@ export const selectAvailableBalance = (address: string) => (state: AppState) => 
 
 export const setupPaymentAccounts =
   (forceLoading = false) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { loginAccount } = getState().persist;
-      const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
-      const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
-      const { oneSp } = getState().sp
-      const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
-      if (isLoadingPaymentAccounts) return;
-      if (!(loginAccount in paymentAccounts) || forceLoading) {
-        dispatch(setLoadingPaymentAccounts(true));
-      }
-      const [data, error] = await getPaymentAccountsByOwner(loginAccount);
-      const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
-      const [paDetail, paError] = await listUserPaymentAccounts({
-        account: loginAccount
-      }, {
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
+    const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
+    const { oneSp } = getState().sp;
+    const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
+    if (isLoadingPaymentAccounts) return;
+    if (!(loginAccount in paymentAccounts) || forceLoading) {
+      dispatch(setLoadingPaymentAccounts(true));
+    }
+    const [data, error] = await getPaymentAccountsByOwner(loginAccount);
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    const [paDetail, paError] = await listUserPaymentAccounts(
+      {
+        account: loginAccount,
+      },
+      {
         type: 'EDDSA',
         address: loginAccount,
         domain: window.location.origin,
-        seed: seedString
-      });
+        seed: seedString,
+      },
+    );
 
-      if (error || paError || paDetail?.code !== 0) {
+    if (error || paError || paDetail?.code !== 0) {
+      dispatch(setLoadingPaymentAccounts(false));
+      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
+    }
+    if (!data) {
+      // todo for empty 404 loading
+      if (!loginPaymentAccounts.length) {
         dispatch(setLoadingPaymentAccounts(false));
         dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
       }
-      if (!data) {
-        // todo for empty 404 loading
-        if (!loginPaymentAccounts.length) {
-          dispatch(setLoadingPaymentAccounts(false));
-          dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: [] }));
-        }
-        return;
-      }
-      const keyAccountDetail = keyBy(paDetail?.body?.GfSpListUserPaymentAccountsResponse.PaymentAccounts, (item) => {
-        return item.PaymentAccount.Address
-      });
-      let totalPANetflowRate = BN(0);
-      const newPAs = data.paymentAccounts.map((address, index) => {
-        const detail = keyAccountDetail[address];
-        totalPANetflowRate = totalPANetflowRate.plus(BN(detail.StreamRecord.NetflowRate).abs())
-        return {
-          name: `Payment Account ${index + 1}`,
-          address,
-          streamRecord: detail.StreamRecord,
-          refundable: detail.PaymentAccount.Refundable,
-          bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME
-        }
-      });
-      dispatch(setTotalPANetflowRate({loginAccount, totalNetflowRate: totalPANetflowRate.dividedBy(10 ** 18).toString()}))
-      dispatch(setLoadingPaymentAccounts(false));
-      dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: data.paymentAccounts }));
-      dispatch(setAccountInfo(newPAs))
-    };
+      return;
+    }
+    const keyAccountDetail = keyBy(
+      paDetail?.body?.GfSpListUserPaymentAccountsResponse.PaymentAccounts,
+      (item) => {
+        return item.PaymentAccount.Address;
+      },
+    );
+    let totalPANetflowRate = BN(0);
+    const newPAs = data.paymentAccounts.map((address, index) => {
+      const detail = keyAccountDetail[address];
+      totalPANetflowRate = totalPANetflowRate.plus(BN(detail.StreamRecord.NetflowRate).abs());
+      return {
+        name: `Payment Account ${index + 1}`,
+        address,
+        streamRecord: detail.StreamRecord,
+        refundable: detail.PaymentAccount.Refundable,
+        bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME,
+      };
+    });
+    dispatch(
+      setTotalPANetflowRate({
+        loginAccount,
+        totalNetflowRate: totalPANetflowRate.dividedBy(10 ** 18).toString(),
+      }),
+    );
+    dispatch(setLoadingPaymentAccounts(false));
+    dispatch(setPaymentAccounts({ loginAccount, paymentAccounts: data.paymentAccounts }));
+    dispatch(setAccountInfo(newPAs));
+  };
 
 export const setupAccountInfo =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -320,13 +334,14 @@ export const setupAccountInfo =
       address,
       name: paymentAccountName,
       streamRecord: SRRes?.streamRecord,
-      refundable: !PARes || !PARes.paymentAccount || PARes.paymentAccount.refundable === undefined ? true : PARes?.paymentAccount?.refundable,
+      refundable:
+        !PARes || !PARes.paymentAccount || PARes.paymentAccount.refundable === undefined
+          ? true
+          : PARes?.paymentAccount?.refundable,
       bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME,
     };
 
-    dispatch(
-      setAccountInfo([accountDetail]),
-    );
+    dispatch(setAccountInfo([accountDetail]));
   };
 
 export const setupOwnerAccount = () => async (dispatch: AppDispatch, getState: GetState) => {

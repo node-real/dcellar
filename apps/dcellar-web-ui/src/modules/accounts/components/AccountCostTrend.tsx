@@ -162,7 +162,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
         itemHeight: 8,
         itemWidth: 8,
         itemGap: 16,
-        right: 30,
+        right: 0,
         data: ['Monthly Cost', 'Estimate Cost', 'MoM'],
       },
       xAxis: [
@@ -234,7 +234,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
   }, [barData]);
   const loading = isEmpty(barData);
   return (
-    <CardContainer flex={1} width={'50%'}>
+    <CardContainer flex={1} width={'50%'} minW={0}>
       {loading && <Loading />}
       {!loading && (
         <Box w={'100%'} h={'100%'}>

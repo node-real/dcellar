@@ -74,8 +74,10 @@ export const Send = memo<SendProps>(function Send() {
     accountInfo,
     ownerAccount,
     isLoadingPaymentAccounts,
+    paymentAccounts: _paymentAccounts,
   } = useAppSelector((root) => root.accounts);
   const router = useRouter();
+  const paymentAccountsInitialize = loginAccount in _paymentAccounts;
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
   const { connector } = useAccount();
@@ -116,8 +118,10 @@ export const Send = memo<SendProps>(function Send() {
     dispatch(setupOwnerAccount());
     await dispatch(setupPaymentAccounts());
   });
+
   useEffect(() => {
     if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
+    if (!paymentAccountsInitialize) return;
     if (isEmpty(paymentAccounts)) {
       initFormRef.current = true;
       return;
@@ -128,7 +132,7 @@ export const Send = memo<SendProps>(function Send() {
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || paymentAccounts[0]));
     initFormRef.current = true;
-  }, [paymentAccounts, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
+  }, [paymentAccounts, paymentAccountsInitialize, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
 
   const isDisableToAccount = !isEmpty(fromAccount) && fromAccount.address !== loginAccount;
   useEffect(() => {
