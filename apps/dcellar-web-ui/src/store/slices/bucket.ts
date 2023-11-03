@@ -81,7 +81,7 @@ export const bucketSlice = createSlice({
       const info = state.bucketInfo[bucketName];
       const newInfo = {
         ...info,
-        ...bucket
+        ...bucket,
       };
       state.bucketInfo[bucketName] = newInfo;
       state.owner = address === newInfo.Owner;
@@ -118,11 +118,11 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const [res, error] = await getUserBucketMeta(bucketName, '')
+    const [res, error] = await getUserBucketMeta(bucketName, '');
     if (error || isEmpty(res?.body)) return 'Bucket no exist';
     const bucket = {
       ...res?.body?.GfSpGetBucketMetaResponse.Bucket,
-      ...res?.body?.GfSpGetBucketMetaResponse.Bucket.BucketInfo
+      ...res?.body?.GfSpGetBucketMetaResponse.Bucket.BucketInfo,
     } as AllBucketInfo;
     const { loginAccount } = getState().persist;
     dispatch(setBucketInfo({ address: address || loginAccount, bucket: bucket }));
@@ -161,7 +161,7 @@ export const setupBuckets =
 
     const bucketSpInfo = bucketList.map((b) => ({
       bucketName: b.BucketInfo.BucketName,
-      sp: find<SpItem>(allSps, (sp) => sp.id === b.Vgf.PrimarySpId)!,
+      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
     }));
 
     dispatch(setPrimarySpInfos(bucketSpInfo));

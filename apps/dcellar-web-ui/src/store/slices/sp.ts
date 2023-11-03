@@ -114,7 +114,7 @@ export const spSlice = createSlice({
 
 export const selectBucketSp = (bucket: AllBucketInfo) => (state: RootState) => {
   const { allSps } = state.sp;
-  return find<SpItem>(allSps, (sp) => sp.id === bucket.Vgf.PrimarySpId);
+  return find<SpItem>(allSps, (sp) => String(sp.id) === String(bucket.Vgf.PrimarySpId));
 };
 
 export const { setStorageProviders, setPrimarySpInfo, setPrimarySpInfos, updateSps, setSpMeta } =
@@ -147,7 +147,7 @@ export const getPrimarySpInfo =
     const [data, error] = await getVirtualGroupFamily({ familyId });
     if (error) return null;
     const sp = allSps.find(
-      (item) => item.id === data?.globalVirtualGroupFamily?.primarySpId,
+      (item) => String(item.id) === String(data?.globalVirtualGroupFamily?.primarySpId),
     ) as SpItem;
     if (!sp) return null;
     dispatch(setPrimarySpInfo({ bucketName, sp }));
