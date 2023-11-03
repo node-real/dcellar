@@ -62,4 +62,5 @@ const Content = styled.main`
   padding: 24px;
   position: relative;
   z-index: 1;
+  min-width: 763px;
 `;

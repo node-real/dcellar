@@ -9,7 +9,7 @@ import { selectAllCost } from '@/store/slices/billing';
 import { BN } from '@/utils/math';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatObjectAddress } from '@/utils/accounts';
-import { isEmpty } from 'lodash-es';
+import { lgMedia, xlMedia } from '@/modules/welcome';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
@@ -93,7 +93,11 @@ export const TotalCost = memo(() => {
   }, [pieData]);
 
   return (
-    <CardContainer>
+    <CardContainer flex={1} sx={{
+      [xlMedia]: {
+        maxW: 385
+      }
+    }}>
       <CardTitle mb={16}>Total Cost</CardTitle>
       <Flex gap={8} mb={8}>
         <CardCost>{totalCost.totalCost}</CardCost>

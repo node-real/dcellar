@@ -245,7 +245,7 @@ export const TotalCostTrend = () => {
   const loading =
     loadingAllCostTrend || isLoadingPaymentAccounts || isLoadingAccountInfo === loginAccount;
   return (
-    <CardContainer flex={1}>
+    <CardContainer flex={1} minW={478} minH={283}>
       {loading && <Loading />}
       {!loading && (
         <Box w={'100%'} h={'100%'}>
