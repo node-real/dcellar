@@ -173,7 +173,7 @@ export const setupBuckets =
 
     const bucketSpInfo = bucketList.map((b) => ({
       bucketName: b.BucketInfo.BucketName,
-      sp: find<SpItem>(allSps, (sp) => sp.id === b.Vgf.PrimarySpId)!,
+      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
     }));
 
     dispatch(setPrimarySpInfos(bucketSpInfo));
