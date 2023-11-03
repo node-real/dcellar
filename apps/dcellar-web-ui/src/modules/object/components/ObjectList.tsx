@@ -249,7 +249,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       case 'delete':
       case 'cancel':
         const folder = record.objectName.endsWith('/');
-        if (folder) {
+        if (folder && menu === 'detail') {
           return dispatch(
             setObjectOperation({
               operation: [`${record.bucketName}/${record.objectName}`, 'folder_detail'],
