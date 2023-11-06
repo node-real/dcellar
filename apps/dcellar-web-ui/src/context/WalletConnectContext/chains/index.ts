@@ -13,7 +13,7 @@ import { CHAIN_NAMES } from '@/utils/constant';
 
 const isGnfdMainnet = GREENFIELD_CHAIN_ID === 1017;
 
-const greenFieldChain: Chain = {
+export const greenFieldChain: Chain = {
   id: GREENFIELD_CHAIN_ID,
   name: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
   network: CHAIN_NAMES[GREENFIELD_CHAIN_ID],
@@ -44,7 +44,7 @@ const greenFieldChain: Chain = {
 
 const isBscMainnet = BSC_CHAIN_ID === 56;
 
-const bscChain: Chain = {
+export const bscChain: Chain = {
   id: BSC_CHAIN_ID,
   name: CHAIN_NAMES[BSC_CHAIN_ID],
   network: CHAIN_NAMES[BSC_CHAIN_ID],

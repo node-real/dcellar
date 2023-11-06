@@ -3,7 +3,6 @@ import React from 'react';
 import { getUTC0Year } from '@/utils/time';
 import { noderealUrl } from '@/utils/constant';
 import { GAClick } from '@/components/common/GATracker';
-import { useRouter } from 'next/router';
 import { smMedia } from '@/modules/responsive';
 import { InternalRoutePaths } from '@/utils/constant';
 

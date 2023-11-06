@@ -23,6 +23,12 @@ export const theme: Theme = {
         },
       },
       body: {
+        '.cw-wallet-button': {
+          borderRadius: 4,
+        },
+        '.cw-description': {
+          color: 'readable.tertiary',
+        },
         '.object-list-date-filter .ant-picker-range-arrow': {
           display: 'none !important',
         },
