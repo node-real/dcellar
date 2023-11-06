@@ -5,7 +5,6 @@ import {
   ConnectWalletProvider,
   getDefaultConfig,
   metaMask,
-  SwitchNetworkModal,
   trust,
 } from '@totejs/connect-wallet';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -34,10 +33,7 @@ export function WalletConnectProvider(props: WalletConnectProviderProps) {
 
   return (
     <WagmiConfig client={client}>
-      <ConnectWalletProvider options={connectWalletOptions}>
-        {children}
-        <SwitchNetworkModal />
-      </ConnectWalletProvider>
+      <ConnectWalletProvider options={connectWalletOptions}>{children}</ConnectWalletProvider>
     </WagmiConfig>
   );
 }
