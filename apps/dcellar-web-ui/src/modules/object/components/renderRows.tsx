@@ -62,7 +62,7 @@ export const renderAddressWithLink = (
 ) => {
   return (
     <LoadingAdaptor loading={!address} empty={false}>
-      <CopyText value={formatAddress(address)} gaClickName={gaCopyClickName}>
+      <CopyText value={address} gaClickName={gaCopyClickName}>
         <GAClick name={gaClickName}>
           <Link
             target="_blank"
