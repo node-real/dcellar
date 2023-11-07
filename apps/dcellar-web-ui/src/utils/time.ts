@@ -59,7 +59,7 @@ export const formatTime = (utcZeroTimestamp = 0) => {
 
 export const formatFullTime = (
   utcZeroTimestamp = 0,
-  format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
+  format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss' | string,
 ) => {
   if (!utcZeroTimestamp) {
     return '--';

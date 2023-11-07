@@ -68,3 +68,10 @@ export const networkTag = (runtimeEnv: TRuntimeEnv) => {
 export function cssVar(name: string, type = 'colors') {
   return `var(--ui-${type}-${name.replaceAll('.', '-')})`;
 }
+
+export function chunkNum(num: number, size: number): number[] {
+  const fullChunksCount = Math.floor(num / size);
+  const remaining = num % size;
+
+  return [...Array(fullChunksCount).fill(size), ...(remaining > 0 ? [remaining] : [])];
+}

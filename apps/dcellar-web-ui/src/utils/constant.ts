@@ -60,3 +60,10 @@ export const LCP_IMAGES = [
   `${assetPrefix}/images/animate/object.png`,
   `${assetPrefix}/images/animate/upload.png`,
 ];
+
+export const EVENT_CROSS_TRANSFER_IN = 'greenfield.bridge.EventCrossTransferIn';
+
+export const TX_TYPE_MAP: Record<string, string> = {
+  [EVENT_CROSS_TRANSFER_IN]: 'Transfer In',
+  'cosmos.gov.v1.MsgDeposit': 'Proposal Deposit',
+};

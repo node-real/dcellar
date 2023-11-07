@@ -5,6 +5,11 @@ import {
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Text,
 } from '@totejs/uikit';
 import { GAClick } from '@/components/common/GATracker';
@@ -17,7 +22,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectActionType, setObjectOperation, setStatusDetail } from '@/store/slices/object';
+import { ObjectActionType, setObjectOperation, setStatusDetail, setupObjectActivities } from '@/store/slices/object';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
@@ -36,6 +41,8 @@ import {
   renderPropRow,
   renderUrlWithLink,
 } from '@/modules/object/components/renderRows';
+import { useAsyncEffect } from 'ahooks';
+import { ObjectActivities } from './ObjectActivities';
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -142,59 +149,72 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
             </Text>
           </Flex>
         </Flex>
-        <Divider />
-        <Flex my={8} gap={8} flexDirection={'column'}>
-          {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
-          {renderAddressLink(
-            'Object ID',
-            formatId(Number(objectInfo.Id)),
-            'dc.file.f_detail_pop.id.click',
-            'dc.file.f_detail_pop.copy_id.click',
-            'object',
-          )}
-          {renderAddressLink(
-            'Primary SP address',
-            primarySp.operatorAddress,
-            'dc.file.f_detail_pop.spadd.click',
-            'dc.file.f_detail_pop.copy_spadd.click',
-          )}
-          {renderAddressLink(
-            'Payment address',
-            selectBucket.PaymentAddress,
-            'dc.file.f_detail_pop.seal.click',
-            'dc.file.f_detail_pop.copy_seal.click',
-          )}
-          {renderAddressLink(
-            'Create transaction hash',
-            selectObjectInfo.CreateTxHash,
-            'dc.object.f_detail_pop.CreateTxHash.click',
-            'dc.object.f_detail_pop.copy_create_tx_hash.click',
-            'tx',
-          )}
-          {selectObjectInfo.SealTxHash !== EMPTY_TX_HASH &&
-            renderAddressLink(
-              'Seal transaction hash',
-              selectObjectInfo.SealTxHash,
-              'dc.object.f_detail_pop.SealTxHash.click',
-              'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-              'tx',
-            )}
-          {objectInfo.Visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
-            renderPropRow(
-              'Universal link',
-              renderUrlWithLink(
-                `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
-                  objectInfo.ObjectName,
-                )}`,
-                true,
-                32,
-                'dc.file.f_detail_pop.universal.click',
-                'dc.file.f_detail_pop.copy_universal.click',
-              ),
-            )}
-        </Flex>
-        <Divider />
-        <SharePermission selectObjectInfo={selectObjectInfo} />
+        <Tabs>
+          <TabList h={26} fontSize={14} fontWeight={500}>
+            <Tab h={26} pb={8}>General Info</Tab>
+            <Tab h={26} pb={8}>Activities</Tab>
+          </TabList>
+          <TabPanels>
+            <TabPanel pt={24}>
+              <Flex my={8} gap={8} flexDirection={'column'}>
+                {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
+                {renderAddressLink(
+                  'Object ID',
+                  formatId(Number(objectInfo.Id)),
+                  'dc.file.f_detail_pop.id.click',
+                  'dc.file.f_detail_pop.copy_id.click',
+                  'object',
+                )}
+                {renderAddressLink(
+                  'Primary SP address',
+                  primarySp.operatorAddress,
+                  'dc.file.f_detail_pop.spadd.click',
+                  'dc.file.f_detail_pop.copy_spadd.click',
+                )}
+                {renderAddressLink(
+                  'Payment address',
+                  selectBucket.PaymentAddress,
+                  'dc.file.f_detail_pop.seal.click',
+                  'dc.file.f_detail_pop.copy_seal.click',
+                )}
+                {renderAddressLink(
+                  'Create transaction hash',
+                  selectObjectInfo.CreateTxHash,
+                  'dc.object.f_detail_pop.CreateTxHash.click',
+                  'dc.object.f_detail_pop.copy_create_tx_hash.click',
+                  'tx',
+                )}
+                {selectObjectInfo.SealTxHash !== EMPTY_TX_HASH &&
+                  renderAddressLink(
+                    'Seal transaction hash',
+                    selectObjectInfo.SealTxHash,
+                    'dc.object.f_detail_pop.SealTxHash.click',
+                    'dc.object.f_detail_pop.copy_seal_tx_hash.click',
+                    'tx',
+                  )}
+                {objectInfo.Visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
+                  renderPropRow(
+                    'Universal link',
+                    renderUrlWithLink(
+                      `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(
+                        objectInfo.ObjectName,
+                      )}`,
+                      true,
+                      32,
+                      'dc.file.f_detail_pop.universal.click',
+                      'dc.file.f_detail_pop.copy_universal.click',
+                    ),
+                  )}
+              </Flex>
+              <Divider />
+              <SharePermission selectObjectInfo={selectObjectInfo} />
+            </TabPanel>
+            <TabPanel pt={24}>
+              {/* <ObjectActivities objectId={formatId(objectInfo.Id)} /> */}
+              <ObjectActivities objectId={'0x000000000000000000000000000000000000000000000000000000000045abfc'} />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </QDrawerBody>
       {objectInfo.ObjectStatus === 1 && owner && (
         <QDrawerFooter flexDirection={'column'}>

@@ -13,9 +13,12 @@ import { getMillisecond } from '@/utils/time';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { getObjectPolicies } from '@/facade/bucket';
+import { getTxListByObjectId, GetTxListByObjectIdResponse, getTxListCountByObjectId, TxItem } from '@/facade/explorer';
+import { formatTxType } from '@/utils/object';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 20;
+export const FILTER_OBJECT_ACTIVITIES_TYPE_REG = /(greenfield\.storage\.MsgSealObject|greenfield\.storage\.MsgCreateObject|greenfield\.storage\.MsgUpdateObject)/g;
 
 export type ObjectItem = {
   bucketName: string;
@@ -60,6 +63,15 @@ export type TEditUploadContent = {
   totalFee: string;
   isBalanceAvailable: boolean;
 };
+
+export type ObjectActivity = {
+  rawData: TxItem[];
+  type: string;
+  action: string;
+  tx: string;
+  time: string;
+}
+
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -77,6 +89,7 @@ export interface ObjectState {
   objectPoliciesPage: number;
   objectOperation: Record<0 | 1, [string, ObjectOperationsType, Record<string, any>?]>;
   selectedShareMembers: string[];
+  objectActivities: Record<string, ObjectActivity[]>;
 }
 
 const initialState: ObjectState = {
@@ -96,6 +109,7 @@ const initialState: ObjectState = {
   objectPoliciesPage: 0,
   objectOperation: { 0: ['', '', {}], 1: ['', '', {}] },
   selectedShareMembers: [],
+  objectActivities: {},
 };
 
 export const objectSlice = createSlice({
@@ -270,6 +284,16 @@ export const objectSlice = createSlice({
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {
       state.refreshing = payload;
     },
+    setObjectActivities(state, { payload }: PayloadAction<{ objectId: string, txList: GetTxListByObjectIdResponse }>) {
+      const { objectId, txList } = payload;
+      state.objectActivities[objectId] = txList.map((item) => ({
+        rawData: txList,
+        type: item.tx_result?.type,
+        action: formatTxType(item.tx_result?.type),
+        tx: `0x${item.hash}`,
+        time: item.time,
+      }))
+    }
   },
 });
 
@@ -389,6 +413,20 @@ export const setupObjectPolicies =
     return policies;
   };
 
+export const setupObjectActivities = (objectId: string) => async (dispatch: AppDispatch, getState: GetState) => {
+  const [count, error] = await getTxListCountByObjectId(objectId);
+  if (count === null || error) return;
+  const params = {
+    page: 1,
+    per_page: count,
+    id: objectId,
+  }
+  const [txList, tError] = await getTxListByObjectId(params);
+  if (txList === null || tError) return;
+  const filteredTxList = txList.filter((item) => FILTER_OBJECT_ACTIVITIES_TYPE_REG.test(item.tx_result.messages));
+  dispatch(setObjectActivities({objectId, txList: filteredTxList}))
+}
+
 export const {
   setFolders,
   setCurrentObjectPage,
@@ -405,6 +443,7 @@ export const {
   setObjectPoliciesPage,
   setObjectOperation,
   setSelectedShareMembers,
+  setObjectActivities,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;
