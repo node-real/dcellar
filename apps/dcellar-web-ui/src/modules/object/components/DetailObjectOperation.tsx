@@ -41,7 +41,6 @@ import {
   renderPropRow,
   renderUrlWithLink,
 } from '@/modules/object/components/renderRows';
-import { useAsyncEffect } from 'ahooks';
 import { ObjectActivities } from './ObjectActivities';
 
 interface DetailObjectOperationProps {
@@ -210,8 +209,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
               <SharePermission selectObjectInfo={selectObjectInfo} />
             </TabPanel>
             <TabPanel pt={24}>
-              {/* <ObjectActivities objectId={formatId(objectInfo.Id)} /> */}
-              <ObjectActivities objectId={'0x000000000000000000000000000000000000000000000000000000000045abfc'} />
+              <ObjectActivities objectId={formatId(objectInfo.Id)} />
             </TabPanel>
           </TabPanels>
         </Tabs>
