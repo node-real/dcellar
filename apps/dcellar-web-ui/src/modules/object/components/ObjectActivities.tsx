@@ -13,6 +13,7 @@ import { formatAddress } from '@/utils/string';
 import { GAClick } from '@/components/common/GATracker';
 import { isEmpty } from 'lodash-es';
 import { Loading } from '@/components/common/Loading';
+import { formatTxType } from '@/utils/object';
 
 type Props = {
   objectId: string;
@@ -42,7 +43,7 @@ export const ObjectActivities = ({ objectId }: Props) => {
               <Box mb={16} fontWeight={500}>
                 <Flex mb={12} alignItems={'baseline'}>
                   <Text display={'inline'} color={'readable.tertiary'}>
-                    Update Object
+                    {formatTxType(item.txType)}
                   </Text>
                   &nbsp;
                   <Text display={'inline'}>Transaction Hash</Text>

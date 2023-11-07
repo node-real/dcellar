@@ -6,6 +6,8 @@ import { find, last, trimEnd } from 'lodash-es';
 import {
   GfSPListObjectsByBucketNameResponse,
   ListObjectsByBucketNameRequest,
+  MsgCreateObjectTypeUrl,
+  MsgUpdateObjectInfoTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
@@ -18,7 +20,7 @@ import { formatTxType } from '@/utils/object';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 20;
-export const FILTER_OBJECT_ACTIVITIES_TYPE_REG = /(greenfield\.storage\.MsgSealObject|greenfield\.storage\.MsgCreateObject|greenfield\.storage\.MsgUpdateObject)/g;
+export const FILTER_OBJECT_ACTIVITIES_TYPES = [MsgCreateObjectTypeUrl, MsgUpdateObjectInfoTypeUrl, 'greenfield.storage.MsgUpdateBucketInfo']
 
 export type ObjectItem = {
   bucketName: string;
@@ -65,11 +67,9 @@ export type TEditUploadContent = {
 };
 
 export type ObjectActivity = {
-  rawData: TxItem[];
-  type: string;
-  action: string;
   tx: string;
   time: string;
+  txType: string;
 }
 
 export interface ObjectState {
@@ -287,9 +287,7 @@ export const objectSlice = createSlice({
     setObjectActivities(state, { payload }: PayloadAction<{ objectId: string, txList: GetTxListByObjectIdResponse }>) {
       const { objectId, txList } = payload;
       state.objectActivities[objectId] = txList.map((item) => ({
-        rawData: txList,
-        type: item.tx_result?.type,
-        action: formatTxType(item.tx_result?.type),
+        txType: formatTxType(item.tx_type),
         tx: `0x${item.hash}`,
         time: item.time,
       }))
@@ -423,7 +421,8 @@ export const setupObjectActivities = (objectId: string) => async (dispatch: AppD
   }
   const [txList, tError] = await getTxListByObjectId(params);
   if (txList === null || tError) return;
-  const filteredTxList = txList.filter((item) => FILTER_OBJECT_ACTIVITIES_TYPE_REG.test(item.tx_result.messages));
+  const filteredTxList = txList.filter((item) => FILTER_OBJECT_ACTIVITIES_TYPES.includes(item.tx_type));
+  console.log('filteredTxList', txList, filteredTxList);
   dispatch(setObjectActivities({objectId, txList: filteredTxList}))
 }
 

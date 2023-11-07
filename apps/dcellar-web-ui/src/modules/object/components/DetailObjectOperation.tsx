@@ -12,17 +12,14 @@ import {
   Tabs,
   Text,
 } from '@totejs/uikit';
-import { GAClick } from '@/components/common/GATracker';
-import { CopyText } from '@/components/common/CopyText';
-import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { encodeObjectName,  formatId, trimAddress } from '@/utils/string';
 import React, { memo, useState } from 'react';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectActionType, setObjectOperation, setStatusDetail, setupObjectActivities } from '@/store/slices/object';
+import { ObjectActionType, setObjectOperation, setStatusDetail } from '@/store/slices/object';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';

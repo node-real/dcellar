@@ -14,6 +14,7 @@ export type TxItem = {
   index: number;
   time: string;
   tx: string;
+  tx_type: string;
   tx_result: {
     code: number;
     fee: string;
