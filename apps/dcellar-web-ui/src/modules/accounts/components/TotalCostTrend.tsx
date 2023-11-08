@@ -103,15 +103,18 @@ export const TotalCostTrend = () => {
       title: {
         text: 'Cost Trend',
         textStyle: {
-          color: '#1e2026',
+          color: cssVar('readable.normal'),
           fontSize: 16,
           fontWeight: 700,
         },
+        left: 0,
+        padding: [5, 5, 5, 0],
+        textAlign: 'left',
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: {
-          type: 'cross',
+          type: 'shadow',
         },
         formatter: (params: any, ticket: string) => {
           const curData = barData[params[0].dataIndex];
@@ -146,8 +149,9 @@ export const TotalCostTrend = () => {
           //  <div style="${styles.normal}">MoM:<div style="${styles.bnb}">${curData.MoM}%</div></div>`;
           return `
             <div style="${styles.box}">
-              <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost || 0
-            } ${TokenSymbol}</div>
+              <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${
+            curData.totalCost || 0
+          } ${TokenSymbol}</div>
               </div>
               ${DetailFragment}
               ${EstimateFragment}
@@ -174,18 +178,36 @@ export const TotalCostTrend = () => {
         itemGap: 16,
         right: 30,
         data: ['Monthly Cost', 'Estimate Cost'],
+        textStyle: {
+          fontWeight: 400,
+        },
       },
       xAxis: [
         {
           type: 'category',
           axisTick: {
+            show: true,
             alignWithLabel: true,
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
           },
           axisLabel: {
             color: cssVar('readable.tertiary'),
             fontSize: 12,
-            transform: 'scale(0.8333)',
             fontWeight: 500,
+            margin: 16,
+            lineHeight: 12,
+          },
+          axisLine: {
+            show: false,
+            margin: 18,
+          },
+          axisPointer: {
+            lineStyle: {
+              color: cssVar('readable.secondary'),
+              type: 'solid',
+            },
           },
           data: xAxisData,
         },
@@ -196,6 +218,7 @@ export const TotalCostTrend = () => {
           // name: 'Monthly Cost',
           position: 'left',
           alignTicks: true,
+          splitNumber: 5,
           axisLine: {
             show: false,
           },
@@ -203,8 +226,12 @@ export const TotalCostTrend = () => {
             color: cssVar('readable.tertiary'),
             fontSize: 12,
             fontWeight: 500,
-            transform: 'scale(0.8333)',
             formatter: '{value} BNB',
+          },
+          splitLine: {
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
           },
         },
         // {

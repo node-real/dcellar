@@ -31,7 +31,7 @@ export const Accounts = () => {
   return (
     <>
       <Head>
-        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
+        <title>Accounts - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <NonRefundableModal />
       <AccountOperations />

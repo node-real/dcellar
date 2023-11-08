@@ -20,7 +20,6 @@ import { isEmpty } from 'lodash-es';
 import { Loading } from '@/components/common/Loading';
 import { DCButton } from '@/components/common/DCButton';
 import { currencyFormatter } from '@/utils/formatter';
-import { useWhyDidYouUpdate } from 'ahooks';
 
 type Props = {
   address: string;
@@ -128,7 +127,7 @@ export const MetaInfo = memo(({ address }: Props) => {
     );
   }
   return (
-    <Box p={16} border={'1px solid readable.border'} borderRadius={4} flex={1}>
+    <Box minW={570} p={16} border={'1px solid readable.border'} borderRadius={4} flex={1}>
       <Flex gap={12} flexDirection={'column'}>
         <Text fontSize={16} fontWeight={600}>
           Balance
@@ -153,11 +152,12 @@ export const MetaInfo = memo(({ address }: Props) => {
             </Text>
           </Flex>
           <Text fontSize={12} color={'readable.tertiary'}>
-            ≈{currencyFormatter(
-                BN(availableBalance || 0)
-                  .times(BN(bnbPrice))
-                  .toString(),
-              )}
+            ≈
+            {currencyFormatter(
+              BN(availableBalance || 0)
+                .times(BN(bnbPrice))
+                .toString(),
+            )}
           </Text>
         </Box>
         {isOwnerAccount && (
@@ -193,7 +193,7 @@ export const MetaInfo = memo(({ address }: Props) => {
         {!isOwnerAccount && (
           <Flex w={'100%'} gap={16}>
             <DCButton
-              size={'lg'}
+              size={'md'}
               variant={'brand'}
               flex={1}
               gaClickName="dc.file.f_detail_pop.download.click"
@@ -201,17 +201,28 @@ export const MetaInfo = memo(({ address }: Props) => {
             >
               Deposit
             </DCButton>
-            {isNonRefundable && !isFrozen && (
-              <DCButton
-                size={'lg'}
-                flex={1}
-                variant="ghost"
-                gaClickName="dc.file.f_detail_pop.share.click"
-                onClick={() => onAction('withdraw')}
-              >
-                Withdraw
-              </DCButton>
-            )}
+            <DCButton
+              size={'md'}
+              flex={1}
+              disabled={!isNonRefundable || isFrozen}
+              variant="ghost"
+              gaClickName="dc.file.f_detail_pop.share.click"
+              onClick={() => onAction('withdraw')}
+            >
+              Withdraw
+            </DCButton>
+            <DCButton
+              size={'md'}
+              flex={1}
+              // paddingX={0}
+              whiteSpace={'nowrap'}
+              disabled={isNonRefundable}
+              variant="ghost"
+              gaClickName="dc.file.f_detail_pop.share.click"
+              onClick={() => onAction('withdraw')}
+            >
+              Set Non-Refundable
+            </DCButton>
           </Flex>
         )}
       </Flex>
@@ -222,7 +233,7 @@ export const MetaInfo = memo(({ address }: Props) => {
             <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>
               {item.label}
             </Text>
-            {item.value}
+            <Box textAlign={'right'}>{item.value}</Box>
           </Flex>
         ))}
       </Flex>

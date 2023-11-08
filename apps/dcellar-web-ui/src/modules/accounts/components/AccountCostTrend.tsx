@@ -109,21 +109,24 @@ export const AccountCostTrend = memo(({ address }: Props) => {
       title: {
         text: 'Cost Trend',
         textStyle: {
-          color: '#1e2026',
+          color: cssVar('readable.normal'),
           fontSize: 16,
           fontWeight: 700,
         },
+        left: 0,
+        padding: [5, 5, 5, 0],
+        textAlign: 'left',
       },
       tooltip: {
         trigger: 'axis',
         axisPointer: {
-          type: 'cross',
+          type: 'shadow',
         },
         formatter: (params: any, ticket: string) => {
           const curData = barData[params[0].dataIndex];
           const styles = getStyles();
           const TokenSymbol = displayTokenSymbol();
-          const TotalFragment = `<div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost} ${TokenSymbol}</div>
+          const TotalFragment = `<div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost || 0} ${TokenSymbol}</div>
           </div>`;
           const EstimateFragment =
             curData.estimateCost === null
@@ -164,18 +167,36 @@ export const AccountCostTrend = memo(({ address }: Props) => {
         itemGap: 16,
         right: 0,
         data: ['Monthly Cost', 'Estimate Cost', 'MoM'],
+        textStyle: {
+          fontWeight: 400,
+        }
       },
       xAxis: [
         {
           type: 'category',
           axisTick: {
+            show: true,
             alignWithLabel: true,
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
           },
           axisLabel: {
             color: cssVar('readable.tertiary'),
             fontSize: 12,
-            transform: 'scale(0.8333)',
             fontWeight: 500,
+            margin: 16,
+            lineHeight: 12,
+          },
+          axisLine: {
+            show: false,
+            margin: 18,
+          },
+          axisPointer: {
+            lineStyle: {
+              color: cssVar('readable.secondary'),
+              type: 'solid',
+            },
           },
           data: xAxisData,
         },
@@ -186,6 +207,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
           // name: 'Monthly Cost',
           position: 'left',
           alignTicks: true,
+          splitNumber: 5,
           axisLine: {
             show: false,
           },
@@ -193,8 +215,12 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             color: cssVar('readable.tertiary'),
             fontSize: 12,
             fontWeight: 500,
-            transform: 'scale(0.8333)',
             formatter: '{value} BNB',
+          },
+          splitLine: {
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
           },
         },
         // {
@@ -234,7 +260,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
   }, [barData]);
   const loading = isEmpty(barData);
   return (
-    <CardContainer flex={1} width={'50%'} minW={0}>
+    <CardContainer flex={1} width={'50%'} minW={478} minH={283}>
       {loading && <Loading />}
       {!loading && (
         <Box w={'100%'} h={'100%'}>
