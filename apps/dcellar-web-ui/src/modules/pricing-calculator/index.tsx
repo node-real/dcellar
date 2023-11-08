@@ -1,10 +1,8 @@
-import { getTimestampInSeconds } from '@/utils/time';
 import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
-import { getStoreFeeParams } from '@/facade/payment';
 import { useState } from 'react';
-import { GAS_PRICE, TStoreFeeParams } from '@/store/slices/global';
+import { GAS_PRICE, TStoreFeeParams, selectBnbPrice, selectMainnetStoreFeeParams, selectStoreFeeParams } from '@/store/slices/global';
 import { getBnbPrice, getGasFees } from '@/facade/common';
 import { assetPrefix } from '@/base/env';
 import { FAQ } from './components/FAQ';
@@ -16,6 +14,7 @@ import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { keyBy } from 'lodash-es';
 import { SEOHead } from './components/SEOHead';
+import { useAppSelector } from '@/store';
 
 type TQuotaSP = {
   name: string;
@@ -55,20 +54,15 @@ export const PriceResponsiveContainer = ({ children, sx, ...restProps }: PriceRe
   );
 };
 
-export const PriceCalculator = () => {
-  const [storeParams, setStoreParams] = useState({} as TStoreFeeParams);
-  const [bnbPrice, setBnbPrice] = useState('0');
+// 如果是mainnet则最好使用统一的数据源
+// 如果不是需要使用mainnet的数据源，单独获取吗
+// 要不要直接把这里分开
+export const PriceCalculator = ({pageProps}: any) => {
   const [sps, setSps] = useState<TQuotaSP[]>([]);
   const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
+  const mainnetStoreFeeParams = useAppSelector(selectMainnetStoreFeeParams);
+  const bnbPrice = useAppSelector(selectBnbPrice);
   useAsyncEffect(async () => {
-    console.time('getStoreFeeParams');
-    const latestStoreParams = await getStoreFeeParams({network: 'mainnet'});
-    console.timeEnd('getStoreFeeParams');
-    setStoreParams(latestStoreParams);
-  }, []);
-  useAsyncEffect(async () => {
-    const bnbPrice = await getBnbPrice();
-    setBnbPrice(bnbPrice.price);
     const [gasFees, error] = await getGasFees('mainnet');
     const gasLimit =
       gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
@@ -113,9 +107,9 @@ export const PriceCalculator = () => {
           }}
         >
           <Banner />
-          <Calculator storeParams={storeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
+          <Calculator storeParams={mainnetStoreFeeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
         </Flex>
-        <PricingCard storeParams={storeParams} />
+        <PricingCard storeParams={mainnetStoreFeeParams} />
         <SPFreeQuota sps={sps} />
         <FAQ />
         <StartBuild />
