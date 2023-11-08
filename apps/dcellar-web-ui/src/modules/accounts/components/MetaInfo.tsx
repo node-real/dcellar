@@ -148,7 +148,7 @@ export const MetaInfo = memo(({ address }: Props) => {
             <Text fontSize={24} fontWeight={600}>
               {BN(availableBalance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()}
             </Text>
-            <Text color={'readable.tertiary'} fontWeight={500}>
+            <Text fontSize={16} color={'readable.tertiary'} fontWeight={500}>
               {displayTokenSymbol()}
             </Text>
           </Flex>
@@ -163,7 +163,7 @@ export const MetaInfo = memo(({ address }: Props) => {
         {isOwnerAccount && (
           <Flex w={'100%'} gap={16}>
             <DCButton
-              size={'lg'}
+              size={'md'}
               flex={1}
               gaClickName="dc.file.f_detail_pop.share.click"
               onClick={() => onAction('transfer_in')}
@@ -171,7 +171,7 @@ export const MetaInfo = memo(({ address }: Props) => {
               Transfer In
             </DCButton>
             <DCButton
-              size={'lg'}
+              size={'md'}
               variant="ghost"
               flex={1}
               gaClickName="dc.file.f_detail_pop.download.click"
@@ -180,7 +180,7 @@ export const MetaInfo = memo(({ address }: Props) => {
               Transfer Out
             </DCButton>
             <DCButton
-              size={'lg'}
+              size={'md'}
               variant="ghost"
               flex={1}
               gaClickName="dc.file.f_detail_pop.download.click"
@@ -215,8 +215,8 @@ export const MetaInfo = memo(({ address }: Props) => {
           </Flex>
         )}
       </Flex>
-      <Divider marginY={24} />
-      <Flex gap={8} flexDirection={'column'}>
+      <Divider marginY={16} />
+      <Flex pt={8} gap={8} flexDirection={'column'}>
         {detailItems.map((item, index) => (
           <Flex justifyContent={'space-between'} key={index} h={24}>
             <Text fontSize={14} fontWeight={500} color="readable.tertiary" marginRight={8}>

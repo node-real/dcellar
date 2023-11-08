@@ -32,7 +32,7 @@ export const DCTable = memo<DCTableProps & Omit<SimplePaginationProps, 'loading'
     ...props
   }) {
     return (
-      <Container className="dc-table">
+      <Container className="dc-table" rowCursor={typeof props.onRow === 'function' ? 'pointer' : 'default'}>
         <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
           <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
         </ConfigProvider>
@@ -182,7 +182,7 @@ export const SortItem = styled.span`
   }
 `;
 
-const Container = styled.div`
+const Container = styled.div<{rowCursor: string}>`
   border-radius: 4px;
   border: 1px solid var(--ui-colors-readable-border);
   background: #fff;
@@ -256,6 +256,7 @@ const Container = styled.div`
       .btn-action {
         visibility: visible;
       }
+      cursor: ${(props) => props.rowCursor};
     }
   }
 
