@@ -236,27 +236,19 @@ export const PaymentAccounts = () => {
   );
 
   return (
-    <>
-      <Flex justifyContent={'space-between'} marginBottom={16} alignItems="center">
-        <Box as="h3" fontSize={16} fontWeight={600}>
-          Payment Account
-        </Box>
-        <NewPA />
-      </Flex>
-      <DCTable
-        rowKey="address"
-        loading={loadingComponent}
-        columns={columns}
-        dataSource={page}
-        renderEmpty={renderEmpty}
-        pageSize={PAPageSize}
-        pageChange={onPageChange}
-        canNext={canNext}
-        canPrev={canPrev}
-        onRow={(record: TAccount) => ({
-          onClick: () => onMenuClick('detail', record),
-        })}
-      />
-    </>
+    <DCTable
+      rowKey="address"
+      loading={loadingComponent}
+      columns={columns}
+      dataSource={page}
+      renderEmpty={renderEmpty}
+      pageSize={PAPageSize}
+      pageChange={onPageChange}
+      canNext={canNext}
+      canPrev={canPrev}
+      onRow={(record: TAccount) => ({
+        onClick: () => onMenuClick('detail', record),
+      })}
+    />
   );
 };

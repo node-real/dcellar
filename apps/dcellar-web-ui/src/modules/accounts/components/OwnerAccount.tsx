@@ -13,10 +13,7 @@ import { DCLink } from '@/components/common/DCLink';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
 import { BN } from '@/utils/math';
-import {
-  CRYPTOCURRENCY_DISPLAY_PRECISION,
-  DECIMAL_NUMBER,
-} from '@/modules/wallet/constants';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
 import { trimFloatZero } from '@/utils/string';
@@ -48,7 +45,7 @@ export const OwnerAccount = () => {
     switch (e) {
       case 'detail':
         // return dispatch(setAccountOperation([record.address, 'oaDetail']));
-        return router.push(`/accounts/${record.address}`)
+        return router.push(`/accounts/${record.address}`);
       default:
         return router.push(`/wallet?type=${e}`);
     }
@@ -59,7 +56,7 @@ export const OwnerAccount = () => {
       title: 'Name',
       key: 'name',
       render: (_: string, record: TAccountInfo) => {
-        return <Box>{record.name}</Box>;
+        return <Text>{record.name}</Text>;
       },
     },
     {
@@ -68,7 +65,7 @@ export const OwnerAccount = () => {
       render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2, color: 'readable.secondary'}}>
             <DCLink color="currentcolor" href={addressUrl} target="_blank">
               {getShortenWalletAddress(record.address)}
             </DCLink>
@@ -81,8 +78,8 @@ export const OwnerAccount = () => {
       key: 'bankBalance',
       render: (_: string, record: TAccountInfo) => {
         return (
-          <Flex flexWrap={'wrap'}>
-            <Text fontSize={14} fontWeight={500}>
+          <Flex flexWrap={'wrap'} alignItems={'center'}>
+            <Text fontSize={14}>
               {BN(bankBalance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()}{' '}
               {displayTokenSymbol()}
             </Text>
@@ -119,8 +116,7 @@ export const OwnerAccount = () => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {value === '0' ? '≈ ' : ''}
-            {trimFloatZero(value)}{' '}
-            {displayTokenSymbol()}/s
+            {trimFloatZero(value)} {displayTokenSymbol()}/s
           </Text>
         );
       },
@@ -144,9 +140,6 @@ export const OwnerAccount = () => {
 
   return (
     <Container>
-      <Box as="h3" fontSize={16} fontWeight={600} marginY={16}>
-        Owner Account
-      </Box>
       <DCTable
         rowKey="address"
         columns={columns}
@@ -166,8 +159,6 @@ export const OwnerAccount = () => {
 };
 
 const Container = styled(Box)`
-  margin-bottom: 32px;
-
   .dc-table {
     overflow: hidden;
   }
