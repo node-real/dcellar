@@ -316,7 +316,6 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
               setActivePicker(info.range === 'end' ? 0 : 1);
               if (info.range === 'end') setDateOpen(false);
             }}
-            disabledDate={(e) => e && e > dayjs().endOf('day')}
           />
         </Box>
         <DCMenu
@@ -499,7 +498,7 @@ const Container = styled(Flex)`
     }
   }
 
-  . .ant-input-number {
+  .ant-input-number {
     border-radius: 4px;
     box-shadow: none !important;
     background: var(--ui-colors-bg-bottom);

@@ -27,5 +27,11 @@ export const antdTheme: ThemeConfig = {
       fontSize: 14,
       lineHeight: 1.214,
     },
+    DatePicker: {
+      borderRadiusSM: 2,
+      cellActiveWithRangeBg: '#E5F8EB',
+      cellHoverWithRangeBg: '#CEF2D9',
+      cellRangeBorderColor: '#E6E8EA',
+    },
   },
 };

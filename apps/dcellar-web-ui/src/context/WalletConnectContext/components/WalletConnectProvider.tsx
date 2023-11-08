@@ -2,13 +2,13 @@ import '@totejs/walletkit/styles.css';
 import { createClient, WagmiConfig } from 'wagmi';
 import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
 import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
-import { Text, toast } from '@totejs/uikit';
+import { Text } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { metaMask, trustWallet } from '@totejs/walletkit/wallets';
 import * as Sentry from '@sentry/nextjs';
 import { reportEvent } from '@/utils/gtag';
 import * as process from 'process';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { customTheme } from '@/base/theme/wallet';
 import { DCLink } from '@/components/common/DCLink';
 
