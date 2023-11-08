@@ -6,6 +6,7 @@ interface InputItemProps extends InputProps {
   tips?: { title: string; rules: string[] };
   onChange: InputProps['onChange'];
   leftElement?: ReactNode;
+  rightElement?: ReactNode;
 }
 
 export const InputItem = memo<InputItemProps>(function InputItem({
@@ -13,6 +14,7 @@ export const InputItem = memo<InputItemProps>(function InputItem({
   onChange = () => {},
   value = '',
   leftElement,
+  rightElement,
   ...restProps
 }) {
   const [input, setInput] = useState(value);
@@ -49,6 +51,7 @@ export const InputItem = memo<InputItemProps>(function InputItem({
         onCompositionUpdate={() => (compositingRef.current = true)}
         {...restProps}
       />
+      {rightElement}
       {tips && (
         <InputRightElement marginRight={8}>
           <Tips

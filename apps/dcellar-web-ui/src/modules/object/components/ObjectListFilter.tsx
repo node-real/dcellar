@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Flex, InputLeftElement } from '@totejs/uikit';
+import { Flex, InputLeftElement, InputRightElement } from '@totejs/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
 import { SearchIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
@@ -8,6 +8,7 @@ import { setFilterExpand, setFilterText } from '@/store/slices/object';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
 import cn from 'classnames';
+import * as React from 'react';
 
 interface ObjectListFilterProps {}
 
@@ -28,11 +29,34 @@ export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListF
   return (
     <Container>
       <InputItem
+        className={'object-list-search'}
         autoFocus={false}
         leftElement={
           <InputLeftElement pointerEvents={'none'}>
             <SearchIcon ml={4} w={24} color={'readable.tertiary'} />
           </InputLeftElement>
+        }
+        rightElement={
+          <InputRightElement>
+            {filterText && (
+              <IconFont
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dispatch(setFilterText(''));
+                  const input = document.querySelector<HTMLInputElement>('.object-list-search');
+                  if (!input) return;
+                  input.focus();
+                }}
+                cursor={'pointer'}
+                className={'icon-selected'}
+                w={24}
+                _hover={{
+                  color: 'brand.brand6',
+                }}
+                type={'error'}
+              />
+            )}
+          </InputRightElement>
         }
         placeholder="Search objects or folders"
         value={filterText}
@@ -69,6 +93,11 @@ const Container = styled(Flex)`
 
   .ui-input-group {
     flex: 1;
+    :hover {
+      .ui-input {
+        border-color: var(--ui-colors-scene-primary-normal);
+      }
+    }
   }
 
   .ui-input {

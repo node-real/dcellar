@@ -23,6 +23,14 @@ export const theme: Theme = {
         },
       },
       body: {
+        '.ant-picker-cell-in-view.ant-picker-cell-range-hover-start:after': {
+          borderStartStartRadius: '4px !important',
+          borderEndStartRadius: '4px !important',
+        },
+        '.ant-picker-cell-in-view.ant-picker-cell-range-hover-end:after': {
+          borderStartEndRadius: '4px !important',
+          borderEndEndRadius: '4px !important',
+        },
         '.cw-wallet-button': {
           borderRadius: 4,
         },

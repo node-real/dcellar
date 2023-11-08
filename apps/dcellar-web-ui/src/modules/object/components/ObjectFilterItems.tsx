@@ -167,11 +167,13 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
       <Divider />
       <Container>
         <DCMenu
+          emptyText={'No results.'}
           multiple
           options={options}
           placement="bottom-start"
           menuListProps={{
             w: 202,
+            minH: 226,
           }}
           scrollH={150}
           onClose={typeClose}
@@ -338,6 +340,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                   precision={0}
                   onKeyDown={onInputNumberKeyDown}
                   onChange={(e) => setSizeFrom((v) => ({ ...v, value: e }))}
+                  placeholder="Set amount"
                 />
                 <DCMenu
                   options={sizeOptions}
@@ -375,6 +378,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                   precision={0}
                   onChange={(e) => setSizeTo((v) => ({ ...v, value: e }))}
                   onKeyDown={onInputNumberKeyDown}
+                  placeholder="Set amount"
                 />
 
                 <DCMenu
@@ -480,7 +484,22 @@ const Container = styled(Flex)`
   gap: 12px;
   margin: 16px 0;
 
-  .ant-input-number {
+  .menu-list-empty {
+    padding-top: 0;
+    height: auto;
+  }
+
+  .menu-list-empty-icon {
+    display: none;
+    + p {
+      color: var(--ui-colors-readable-tertiary);
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 50px;
+    }
+  }
+
+  . .ant-input-number {
     border-radius: 4px;
     box-shadow: none !important;
     background: var(--ui-colors-bg-bottom);
@@ -515,6 +534,9 @@ const Container = styled(Flex)`
 
     .icon-selected {
       color: var(--ui-colors-readable-normal);
+      &:hover {
+        color: var(--ui-colors-brand-brand6);
+      }
       display: inline;
     }
   }
@@ -557,6 +579,10 @@ const MenuHeader = styled(Flex)`
     padding-right: 4px;
     font-weight: 400;
     font-size: 14px;
+  }
+
+  + div {
+    flex: 1;
   }
 
   + div .ui-menu-item {

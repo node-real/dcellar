@@ -73,7 +73,4 @@ export const bscChain: Chain = {
   },
 };
 
-export const { chains, provider, webSocketProvider } = configureChains(
-  [bscChain, greenFieldChain],
-  [publicProvider()],
-);
+export const { chains } = configureChains([bscChain, greenFieldChain], [publicProvider()]);

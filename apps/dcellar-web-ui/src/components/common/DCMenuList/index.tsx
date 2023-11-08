@@ -88,8 +88,14 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
           );
         })}
         {!options.length && (
-          <Center flexDir="column" pt={24} h={160} justifyContent="flex-start">
-            <IconFont type={emptyIcon} w={64} />
+          <Center
+            className={'menu-list-empty'}
+            flexDir="column"
+            pt={24}
+            h={160}
+            justifyContent="flex-start"
+          >
+            <IconFont className={'menu-list-empty-icon'} type={emptyIcon} w={64} />
             <Text mt={8} color="readable.normal" fontSize={14} fontWeight={600}>
               {emptyText}
             </Text>

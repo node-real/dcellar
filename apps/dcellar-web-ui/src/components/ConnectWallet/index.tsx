@@ -1,16 +1,16 @@
-import React, { memo, ReactElement, useEffect, useRef, useState } from 'react';
+import React, { memo, ReactElement, useEffect, useState } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/utils/constant';
 import { useAccount, useDisconnect } from 'wagmi';
-import { ConnectWalletButton } from '@totejs/connect-wallet';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { useAppDispatch } from '@/store';
+import { useModal } from '@totejs/walletkit';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -21,6 +21,7 @@ interface ConnectWalletProps extends DCButtonProps {
 let eventTriggerTime = Date.now();
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
+  const { onOpen } = useModal();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { connector, address, isConnected } = useAccount();
@@ -28,7 +29,6 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   const [waitConnector, setWaitConnector] = useState(false);
   const [trustEvent, setTrustEvent] = useState(0);
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
-  const buttonRef = useRef<HTMLButtonElement>();
   const { disconnect } = useDisconnect();
   // const { chain } = useNetwork();
   //
@@ -81,48 +81,38 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     );
   }, [waitConnector, connector, address]);
 
-  const onOpen = () => {
-    if (isAuthPending || !buttonRef.current) return;
+  const onGetStart = () => {
+    if (isAuthPending) return;
     if (!address) {
       eventTriggerTime = Date.now();
       setTrustEvent(eventTriggerTime);
-      buttonRef.current.click();
+      onOpen();
       return;
     }
     setWaitConnector(true);
   };
 
-  const buttonContent = (
-    <>
+  return (
+    <DCButton
+      px={48}
+      h={54}
+      fontSize={18}
+      lineHeight="22px"
+      fontWeight={600}
+      {...restProps}
+      onClick={onGetStart}
+      borderRadius={4}
+      sx={{
+        [smMedia]: {
+          h: 33,
+          fontWeight: 500,
+          fontSize: 14,
+          paddingX: 16,
+        },
+      }}
+    >
       {icon ? icon : ''}
       <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>
-    </>
-  );
-
-  return (
-    <>
-      <ConnectWalletButton ref={buttonRef} w={0} h={0} overflow="hidden" position={'absolute'} />
-      <DCButton
-        disabled={isAuthPending}
-        px={48}
-        h={54}
-        fontSize={18}
-        lineHeight="22px"
-        fontWeight={600}
-        {...restProps}
-        onClick={onOpen}
-        borderRadius={4}
-        sx={{
-          [smMedia]: {
-            h: 33,
-            fontWeight: 500,
-            fontSize: 14,
-            paddingX: 16,
-          },
-        }}
-      >
-        {buttonContent}
-      </DCButton>
-    </>
+    </DCButton>
   );
 });
