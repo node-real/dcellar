@@ -9,7 +9,7 @@ import { selectAllCost } from '@/store/slices/billing';
 import { BN } from '@/utils/math';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatObjectAddress } from '@/utils/accounts';
-import { lgMedia, xlMedia } from '@/modules/welcome';
+import { xlMedia } from '@/modules/welcome';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
@@ -19,6 +19,7 @@ export const TotalCost = memo(() => {
   const totalCost = useAppSelector(selectAllCost(loginAccount));
   const { loadingAllCostTrend, loadingAllCost } = useAppSelector((root) => root.billing);
   const pieData = useMemo(() => {
+    // TODO use date to judge loading
     if (loadingAllCost || loadingAllCostTrend || isLoadingPaymentAccounts) return;
     const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo)
     const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
@@ -81,9 +82,9 @@ export const TotalCost = memo(() => {
         {
           data: pieData,
           color: Object.values(colors),
-          radius: ['65%', '80%'],
+          radius: ['78%', '95%'],
           width: '300px',
-          center: ['30%', '50%'],
+          center: ['28%', '50%'],
           emphasis: {
             focus: 'series',
           },
@@ -95,7 +96,7 @@ export const TotalCost = memo(() => {
   return (
     <CardContainer flex={1} sx={{
       [xlMedia]: {
-        maxW: 385
+        maxW: 342
       }
     }}>
       <CardTitle mb={16}>Total Cost</CardTitle>
@@ -103,7 +104,7 @@ export const TotalCost = memo(() => {
         <CardCost>{totalCost.totalCost}</CardCost>
         <CardCost>{displayTokenSymbol()}</CardCost>
       </Flex>
-      <Box width={350} h={176}>
+      <Box width={310} h={176}>
         <PieChart options={chartOptions} />
         {/* <Flex
           mt={24}

@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useCallback, useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
@@ -37,6 +37,7 @@ const actions: MenuOption[] = [
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
   const bnbPrice = useAppSelector(selectBnbPrice);
   const {
     loginAccount,
@@ -91,6 +92,7 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'address',
+      width: isLessThan1100 ? 130 : 'auto',
       title: (
         <SortItem onClick={() => updateSorter('address', 'ascend')}>
           Account Address
@@ -176,8 +178,8 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'Operation',
-      title: <></>,
-      width: 200,
+      title: <Text textAlign={'center'}>Operation</Text>,
+      width: 150,
       render: (_: string, record: TAccountInfo) => {
         let operations = ['deposit', 'withdraw'];
         let finalActions = actions;
@@ -236,27 +238,19 @@ export const PaymentAccounts = () => {
   );
 
   return (
-    <>
-      <Flex justifyContent={'space-between'} marginBottom={16} alignItems="center">
-        <Box as="h3" fontSize={16} fontWeight={600}>
-          Payment Account
-        </Box>
-        <NewPA />
-      </Flex>
-      <DCTable
-        rowKey="address"
-        loading={loadingComponent}
-        columns={columns}
-        dataSource={page}
-        renderEmpty={renderEmpty}
-        pageSize={PAPageSize}
-        pageChange={onPageChange}
-        canNext={canNext}
-        canPrev={canPrev}
-        onRow={(record: TAccount) => ({
-          onClick: () => onMenuClick('detail', record),
-        })}
-      />
-    </>
+    <DCTable
+      rowKey="address"
+      loading={loadingComponent}
+      columns={columns}
+      dataSource={page}
+      renderEmpty={renderEmpty}
+      pageSize={PAPageSize}
+      pageChange={onPageChange}
+      canNext={canNext}
+      canPrev={canPrev}
+      onRow={(record: TAccount) => ({
+        onClick: () => onMenuClick('detail', record),
+      })}
+    />
   );
 };

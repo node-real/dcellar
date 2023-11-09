@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
@@ -13,10 +13,7 @@ import { DCLink } from '@/components/common/DCLink';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
 import { BN } from '@/utils/math';
-import {
-  CRYPTOCURRENCY_DISPLAY_PRECISION,
-  DECIMAL_NUMBER,
-} from '@/modules/wallet/constants';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
 import { trimFloatZero } from '@/utils/string';
@@ -31,9 +28,9 @@ const actions: MenuOption[] = [
 ];
 
 export const OwnerAccount = () => {
-  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
   const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
 
   const data = ownerAccount?.address ? [accountInfo[ownerAccount.address] || {}] : [];
@@ -48,7 +45,7 @@ export const OwnerAccount = () => {
     switch (e) {
       case 'detail':
         // return dispatch(setAccountOperation([record.address, 'oaDetail']));
-        return router.push(`/accounts/${record.address}`)
+        return router.push(`/accounts/${record.address}`);
       default:
         return router.push(`/wallet?type=${e}`);
     }
@@ -59,16 +56,17 @@ export const OwnerAccount = () => {
       title: 'Name',
       key: 'name',
       render: (_: string, record: TAccountInfo) => {
-        return <Box>{record.name}</Box>;
+        return <Text>{record.name}</Text>;
       },
     },
     {
       title: 'Account Address',
       key: 'address',
+      width: isLessThan1100 ? 130 : 'auto',
       render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
-          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
+          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2, color: 'readable.secondary'}}>
             <DCLink color="currentcolor" href={addressUrl} target="_blank">
               {getShortenWalletAddress(record.address)}
             </DCLink>
@@ -81,8 +79,8 @@ export const OwnerAccount = () => {
       key: 'bankBalance',
       render: (_: string, record: TAccountInfo) => {
         return (
-          <Flex flexWrap={'wrap'}>
-            <Text fontSize={14} fontWeight={500}>
+          <Flex flexWrap={'wrap'} alignItems={'center'}>
+            <Text fontSize={14}>
               {BN(bankBalance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()}{' '}
               {displayTokenSymbol()}
             </Text>
@@ -119,8 +117,7 @@ export const OwnerAccount = () => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {value === '0' ? '≈ ' : ''}
-            {trimFloatZero(value)}{' '}
-            {displayTokenSymbol()}/s
+            {trimFloatZero(value)} {displayTokenSymbol()}/s
           </Text>
         );
       },
@@ -128,7 +125,7 @@ export const OwnerAccount = () => {
     {
       title: <Text textAlign={'center'}>Operation</Text>,
       key: 'Operation',
-      width: 200,
+      width: 150,
       render: (_: string, record: TAccountInfo) => {
         const operations = ['transfer_in', 'transfer_out', 'send'];
         return (
@@ -144,9 +141,6 @@ export const OwnerAccount = () => {
 
   return (
     <Container>
-      <Box as="h3" fontSize={16} fontWeight={600} marginY={16}>
-        Owner Account
-      </Box>
       <DCTable
         rowKey="address"
         columns={columns}
@@ -166,8 +160,6 @@ export const OwnerAccount = () => {
 };
 
 const Container = styled(Box)`
-  margin-bottom: 32px;
-
   .dc-table {
     overflow: hidden;
   }

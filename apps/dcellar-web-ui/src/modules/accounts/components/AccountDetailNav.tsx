@@ -5,7 +5,7 @@ import { selectStoreFeeParams } from '@/store/slices/global';
 import { InternalRoutePaths } from '@/utils/constant';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { Box, Flex, Link, Text } from '@totejs/uikit'
+import { Box, Flex, Link, Text } from '@totejs/uikit';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
@@ -35,68 +35,68 @@ export const AccountDetailNav = ({ address }: { address: string }) => {
     router.push(url);
   };
   return (
-    <Flex gap={16} alignItems={'center'} onClick={goBack}>
-    <IconFont type="backward" w={24} />
-    <Text fontSize={24} fontWeight={700}>
-      {accountDetail.name}
-    </Text>
-    {isFrozen && (
-      <Tips
-        containerWidth={280}
-        iconSize={16}
-        padding={4}
-        iconStyle={{
-          color: '#F15D3C',
-          _hover: {
+    <Flex gap={16} alignItems={'center'} onClick={goBack} cursor={'pointer'}>
+      <IconFont type="backward" w={24} />
+      <Text fontSize={24} fontWeight={700}>
+        {accountDetail.name}
+      </Text>
+      {isFrozen && (
+        <Tips
+          containerWidth={280}
+          iconSize={16}
+          padding={4}
+          iconStyle={{
             color: '#F15D3C',
-          },
-          marginTop: '-1px',
-        }}
-        trigger="hover"
-        tips={
-          <Box>
-            <Text fontSize={14} fontWeight={600} mb={4}>
-              Frozen Account
-            </Text>
-            <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
-              Your account is suspended due to insufficient balance. To reactivate your
-              account, please deposit at least &nbsp;
-              <strong>
-                {unFreezeAmount} &nbsp;{displayTokenSymbol()}
-              </strong>
-              &nbsp; immediately.
-            </Text>
-            <Link
-              cursor={'pointer'}
-              display={'inline-block'}
-              textDecoration={'underline'}
-              w="100%"
-              textAlign={'right'}
-              onClick={() => onTopUpClick()}
-            >
-              Top Up
-            </Link>
-          </Box>
-        }
-      />
-    )}
-    <Box>
-      {!loading && accountDetail?.refundable === false && (
-        <Box
-          padding={'4px 8px'}
-          borderRadius={16}
-          bgColor={'bg.bottom'}
-          fontSize={12}
-          fontWeight={500}
-          w="fit-content"
-          color={'readable.tertiary'}
-        >
-          Non-Refundable
-        </Box>
+            _hover: {
+              color: '#F15D3C',
+            },
+            marginTop: '-1px',
+          }}
+          trigger="hover"
+          tips={
+            <Box>
+              <Text fontSize={14} fontWeight={600} mb={4}>
+                Frozen Account
+              </Text>
+              <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
+                Your account is suspended due to insufficient balance. To reactivate your account,
+                please deposit at least &nbsp;
+                <strong>
+                  {unFreezeAmount} &nbsp;{displayTokenSymbol()}
+                </strong>
+                &nbsp; immediately.
+              </Text>
+              <Link
+                cursor={'pointer'}
+                display={'inline-block'}
+                textDecoration={'underline'}
+                w="100%"
+                textAlign={'right'}
+                onClick={() => onTopUpClick()}
+              >
+                Top Up
+              </Link>
+            </Box>
+          }
+        />
       )}
-    </Box>
-  </Flex>
-  )
-}
+      <Box>
+        {!loading && accountDetail?.refundable === false && (
+          <Box
+            padding={'4px 8px'}
+            borderRadius={16}
+            bgColor={'bg.bottom'}
+            fontSize={12}
+            fontWeight={500}
+            w="fit-content"
+            color={'readable.tertiary'}
+          >
+            Non-Refundable
+          </Box>
+        )}
+      </Box>
+    </Flex>
+  );
+};
 
-export default AccountDetailNav
+export default AccountDetailNav;

@@ -15,6 +15,8 @@ import { setupTotalCost, setupAllCostTrend } from '@/store/slices/billing';
 import { ComingBillingHistory } from './components/ComingBillingHistory';
 import { TotalCost } from './components/TotalCost';
 import { TotalCostTrend } from './components/TotalCostTrend';
+import { NewPA } from './components/NewPA';
+import { SectionHeader } from './components/Common';
 
 export const Accounts = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +31,7 @@ export const Accounts = () => {
   return (
     <>
       <Head>
-        <title>Groups - DCellar{networkTag(runtimeEnv)}</title>
+        <title>Accounts - DCellar{networkTag(runtimeEnv)}</title>
       </Head>
       <NonRefundableModal />
       <AccountOperations />
@@ -50,20 +52,40 @@ export const Accounts = () => {
             <TotalCostTrend />
           </Flex>
         </Flex>
-        <Box>
+        <Box mt={16}>
           <Tabs isLazy={true}>
             <TabList>
-              <Tab>Account List</Tab>
-              <Tab>Billing History</Tab>
+              <Tab h={27} fontSize={16} fontWeight={500} pb={8}>
+                Account List
+              </Tab>
+              <Tab h={27} fontSize={16} fontWeight={500} pb={8}>
+                Billing History
+              </Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
-                <OwnerAccount />
-                <PaymentAccounts />
+                <Flex flexDirection={'column'} gap={16}>
+                  <Flex justifyContent={'space-between'} alignItems={'center'} marginTop={16}>
+                    <SectionHeader>Account List</SectionHeader>
+                    <NewPA />
+                  </Flex>
+                  <OwnerAccount />
+                  <PaymentAccounts />
+                </Flex>
               </TabPanel>
               <TabPanel>
                 {/* <AllBillingHistory /> */}
-                <ComingBillingHistory />
+                <Flex flexDirection={'column'} gap={16}>
+                  <Flex
+                    h={40}
+                    marginTop={16}
+                    justifyContent={'space-between'}
+                    alignItems={'center'}
+                  >
+                    <SectionHeader>Billing History</SectionHeader>
+                  </Flex>
+                  <ComingBillingHistory />
+                </Flex>
               </TabPanel>
             </TabPanels>
           </Tabs>

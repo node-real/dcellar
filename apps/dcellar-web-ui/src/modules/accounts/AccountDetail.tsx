@@ -43,7 +43,7 @@ export const AccountDetail = () => {
       <Flex gap={16} flexDirection={'column'}>
         <AccountBreadCrumb name={accountDetail.name} />
         <AccountDetailNav address={curAddress} />
-        <Flex gap={16}>
+        <Flex gap={16} flexWrap={'wrap'}>
           <MetaInfo address={curAddress} />
           <AccountCostTrend address={curAddress} />
         </Flex>
