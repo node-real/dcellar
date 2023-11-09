@@ -13,7 +13,7 @@ import {
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { Tips } from '@/components/common/Tips';
 import { useRouter } from 'next/router';
-import { TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { BN } from '@/utils/math';
 import { InternalRoutePaths } from '@/utils/constant';
@@ -24,13 +24,14 @@ import { displayTokenSymbol } from '@/utils/wallet';
 type Props = {
   loading: boolean;
   title: string;
-  accountDetail: TAccountDetail;
+  accountDetail: TAccountInfo;
   availableBalance: string;
 };
-export const AccountDetail = ({ loading, title, accountDetail, availableBalance }: Props) => {
+
+export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: Props) => {
   const router = useRouter();
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((state) => state.persist);
+  const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
   const { bankBalance } = useAppSelector((root) => root.accounts);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);

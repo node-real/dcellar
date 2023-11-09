@@ -1,6 +1,6 @@
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig } = getConfig();
+const { publicRuntimeConfig, serverRuntimeConfig } = getConfig();
 const {
   NEXT_PUBLIC_ENV,
   NEXT_PUBLIC_STATIC_HOST,
@@ -14,6 +14,9 @@ const {
   NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_ID,
   NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_RPC_URL,
 } = publicRuntimeConfig || {};
+const {
+  NEXT_PRIVATE_BILLING_API_URL
+} = serverRuntimeConfig || {};
 
 export type TRuntimeEnv = 'development' | 'qa' | 'testnet' | 'mainnet';
 
@@ -33,3 +36,4 @@ export const GREENFIELD_CHAIN_EXPLORER_URL = NEXT_PUBLIC_GREENFIELD_CHAIN_EXPLOR
 export const BSC_EXPLORER_URL = NEXT_PUBLIC_BSC_EXPLORER_URL;
 export const GREENFIELD_MAINNET_ID = NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_ID;
 export const GREENFIELD_MAINNET_RPC_URL = NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_RPC_URL;
+export const BILLING_API_URL = NEXT_PRIVATE_BILLING_API_URL;

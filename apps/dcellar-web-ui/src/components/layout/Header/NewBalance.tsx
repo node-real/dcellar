@@ -6,8 +6,6 @@ import {
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice, setupBnbPrice } from '@/store/slices/global';
-import { useMount } from 'ahooks';
-import { setupAccountDetail } from '@/store/slices/accounts';
 import React, { memo } from 'react';
 import { IconFont } from '@/components/IconFont';
 
@@ -16,12 +14,7 @@ interface NewBalanceProps {}
 const NewBalance = memo<NewBalanceProps>(function NewBalance() {
   const dispatch = useAppDispatch();
   const exchangeRate = useAppSelector(selectBnbPrice);
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const { bankBalance } = useAppSelector((root) => root.accounts);
-
-  useMount(() => {
-    dispatch(setupAccountDetail(address));
-  });
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';

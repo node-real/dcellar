@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useModalValues } from '@/hooks/useModalValues';
-import { selectAccount, setAccountOperation, setupAccountDetail } from '@/store/slices/accounts';
+import { selectAccount, setAccountOperation, setupAccountInfo } from '@/store/slices/accounts';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { DCModal } from '@/components/common/DCModal';
 import { OwnerDetailOperation } from '@/modules/accounts/components/OwnerDetailOperation';
@@ -29,7 +29,7 @@ export const AccountOperations = memo<AccountOperationsProps>(function AccountOp
 
   useEffect(() => {
     if (!id) return;
-    dispatch(setupAccountDetail(id));
+    dispatch(setupAccountInfo(id));
   }, [id]);
 
   const modalContent = useMemo(() => {

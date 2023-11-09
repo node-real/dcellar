@@ -27,7 +27,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
 }) {
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { accountTypes } = useAppSelector((state) => state.accounts);
+  const { accountTypes } = useAppSelector((root) => root.accounts);
   const accountList = useMemo(
     () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],

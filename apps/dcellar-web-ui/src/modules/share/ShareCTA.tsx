@@ -32,7 +32,7 @@ export const ShareCTA = () => {
         href="https://docs.nodereal.io/docs/dcellar-get-started"
       >
         <GAClick name="dc.shared_ui.preview.learn_more.click">
-          <Box fontWeight={500} as="a" lineHeight="20px">
+          <Box fontWeight={500} as="span" lineHeight="20px">
             Learn More
           </Box>
         </GAClick>

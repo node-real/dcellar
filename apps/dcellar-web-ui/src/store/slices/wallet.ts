@@ -34,10 +34,12 @@ export const walletSlice = createSlice({
       state.transType = payload;
     },
     setFromAccount: (state, { payload }: PayloadAction<TAccount>) => {
+      if (!payload) return;
       state.fromAccount = payload;
       state.from = payload.address;
     },
     setToAccount: (state, { payload }: PayloadAction<TAccount>) => {
+      if (!payload) return;
       state.toAccount = payload;
       state.to = payload.address;
     },
@@ -49,10 +51,11 @@ export const walletSlice = createSlice({
     },
     setSendAmount: (state, { payload }: PayloadAction<string>) => {
       state.sendAmount = payload;
-    }
+    },
   },
 });
 
-export const { setTransType, setFromAccount, setToAccount, setFrom, setTo, setSendAmount } = walletSlice.actions;
+export const { setTransType, setFromAccount, setToAccount, setFrom, setTo, setSendAmount } =
+  walletSlice.actions;
 
 export default walletSlice.reducer;

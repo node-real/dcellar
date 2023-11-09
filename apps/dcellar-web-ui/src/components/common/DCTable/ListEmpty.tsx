@@ -25,13 +25,13 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({
         {empty && (
           <Flex flex={1} flexDirection={'column'} alignItems={'center'} justifyContent="center">
             <IconFont type={type} w={120} />
-            <Flex my={16} flexDirection="column">
+            <Flex my={title && desc ? 16 : 0} flexDirection="column">
               <Text
                 color="readable.normal"
                 lineHeight="normal"
                 fontWeight={700}
                 fontSize={18}
-                mb={8}
+                mb={title && desc ? 8 : 0}
               >
                 {title}
               </Text>
