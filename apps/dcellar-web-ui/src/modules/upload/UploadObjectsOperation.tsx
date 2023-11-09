@@ -27,6 +27,9 @@ import {
   E_OBJECT_NAME_NOT_UTF8,
   E_OBJECT_NAME_TOO_LONG,
   E_UNKNOWN,
+  broadcastFault,
+  createTxFault,
+  simulateFault,
 } from '@/facade/error';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
@@ -36,6 +39,7 @@ import {
   TStatusDetail,
 } from '@/store/slices/object';
 import {
+  addSignedTasksToUploadQueue,
   addTasksToUploadQueue,
   setTaskManagement,
   setTmpAccount,
@@ -59,6 +63,13 @@ import { formatBytes } from '@/utils/formatter';
 import { isUTF8 } from '@/utils/coder';
 import { Animates } from '@/components/AnimatePng';
 import cn from 'classnames';
+import { useChecksumApi } from '../checksum';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { reverseVisibilityType } from '@/utils/constant';
+import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { resolve } from '@/facade/common';
+import { signTypedDataCallback } from '@/facade/wallet';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -77,8 +88,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     primarySp,
   }) {
     const dispatch = useAppDispatch();
+    const checksumApi = useChecksumApi();
     const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { bucketName, path, objects } = useAppSelector((root) => root.object);
+    const { bucketName, path, objects, folders } = useAppSelector((root) => root.object);
     const { bucketInfo } = useAppSelector((root) => root.bucket);
     const { loginAccount } = useAppSelector((root) => root.persist);
     const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
@@ -101,6 +113,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
         : OBJECT_ERROR_TYPES[E_UNKNOWN];
     };
+
+    const closeModal = () => {
+      onClose();
+      dispatch(setStatusDetail({} as TStatusDetail));
+    }
 
     const validateFolder = (waitFile: WaitFile) => {
       const { file: folder } = waitFile;
@@ -184,6 +201,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
 
     // todo recheck files
     const onUploadClick = async () => {
+      const validFiles = selectedFiles.filter((item) => item.status === 'WAIT');
+      const isOneFile = validFiles.length === 1;
       setCreating(true);
       dispatch(
         setStatusDetail({
@@ -192,26 +211,92 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           desc: WALLET_CONFIRM,
         }),
       );
-      const { totalFee } = actionParams;
-      const safeAmount =
-        Number(totalFee) * 1.05 > Number(bankBalance)
-          ? round(Number(bankBalance), 6)
-          : round(Number(totalFee) * 1.05, 6);
-      const [tmpAccount, error] = await createTmpAccount({
-        address: loginAccount,
-        bucketName,
-        amount: parseEther(String(safeAmount)).toString(),
-        connector,
-      });
-      if (!tmpAccount) {
-        return errorHandler(error);
+      if (isOneFile) {
+        // 1. cal hash
+        const waitFile = validFiles[0];
+        const a = performance.now();
+        const res = await checksumApi?.generateCheckSumV2(waitFile.file);
+        const expectCheckSums = res?.expectCheckSums || [];
+        console.log('hashing time', performance.now() - a);
+        // 2. getApproval & sign
+        const { seedString } = await dispatch(
+          getSpOffChainData(loginAccount, primarySp.operatorAddress),
+        );
+        const finalName = [...folders, waitFile.relativePath, waitFile.name]
+          .filter((item) => !!item)
+          .join('/');
+        const createObjectPayload: CreateObjectApprovalRequest = {
+          bucketName: bucketName,
+          objectName: finalName,
+          creator: loginAccount,
+          visibility: reverseVisibilityType[visibility],
+          fileType: waitFile.type || 'application/octet-stream',
+          contentLength: waitFile.size,
+          expectCheckSums,
+        };
+        const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
+          type: 'EDDSA',
+          seed: seedString,
+          domain: window.location.origin,
+          address: loginAccount,
+        }).then(resolve, createTxFault);
+        if (_createError) {
+          // TODO refactor
+          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _createError }));
+          closeModal();
+          return;
+        }
+        const [simulateInfo, simulateError] = await createObjectTx!
+          .simulate({
+            denom: 'BNB',
+          })
+          .then(resolve, simulateFault);
+        if (!simulateInfo || simulateError) {
+          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: simulateError }));
+          closeModal();
+          return;
+        }
+        const broadcastPayload = {
+          denom: 'BNB',
+          gasLimit: Number(simulateInfo?.gasLimit),
+          gasPrice: simulateInfo?.gasPrice || '5000000000',
+          payer: loginAccount,
+          granter: loginAccount,
+          signTypedDataCallback: signTypedDataCallback(connector!),
+        };
+        const [txRes, error] = await createObjectTx!
+          .broadcast(broadcastPayload)
+          .then(resolve, broadcastFault);
+        if (!txRes || error) {
+          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
+          closeModal();
+          return;
+        }
+        const createHash = txRes.transactionHash;
+        dispatch(addSignedTasksToUploadQueue({ spAddress: primarySp.operatorAddress, visibility, waitFile, checksums: expectCheckSums, createHash }));
+      } else {
+        const { totalFee } = actionParams;
+        const safeAmount =
+          Number(totalFee) * 1.05 > Number(bankBalance)
+            ? round(Number(bankBalance), 6)
+            : round(Number(totalFee) * 1.05, 6);
+        console.time('createTmpAccount')
+        const [tmpAccount, error] = await createTmpAccount({
+          address: loginAccount,
+          bucketName,
+          amount: parseEther(String(safeAmount)).toString(),
+          connector,
+        });
+        console.timeEnd('createTmpAccount')
+        if (!tmpAccount) {
+          return errorHandler(error);
+        }
+        dispatch(setTmpAccount(tmpAccount));
+        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
       }
 
-      dispatch(setTmpAccount(tmpAccount));
-      onClose();
-      dispatch(setStatusDetail({} as TStatusDetail));
+      closeModal();
       dispatch(setTaskManagement(true));
-      dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
       setCreating(false);
     };
 

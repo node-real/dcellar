@@ -189,7 +189,7 @@ export const checkSpOffChainMayExpired =
     const { accounts, faultySps } = getState().persist;
     const config = accounts[address] || getDefaultAccountConfig();
     const allSps = getState().sp.allSps ?? [];
-    const { offchain, sps } = config;
+    const { offchain = [], sps = [] } = config;
     const curTime = getTimestamp();
     const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
     const hasNewSp = allSps.some(

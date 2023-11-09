@@ -56,7 +56,7 @@ export const simulateFault = (e: any): ErrorResponse => {
 
 export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
-  console.error('BroadcastFault', e);
+  console.error('BroadcastFault', e, e.code);
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
     return [null, ErrorMsgMap[E_USER_REJECT_STATUS_NUM]];
   }

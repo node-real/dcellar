@@ -69,6 +69,8 @@ export const PriceCalculator = ({pageProps}: any) => {
         .low || DEFAULT_GAS_LIMIT;
     const gasFee = +GAS_PRICE * gasLimit;
     setGasFee(gasFee + '');
+  }, []);
+  useAsyncEffect(async () => {
     const sps = await getStorageProviders('mainnet');
     const spMeta = await getSpMeta('mainnet');
     const keySpMeta = keyBy(spMeta, 'SPAddress');
@@ -80,7 +82,7 @@ export const PriceCalculator = ({pageProps}: any) => {
       };
     });
     setSps(fullSps);
-  }, []);
+  }, [])
 
   return (
     <>

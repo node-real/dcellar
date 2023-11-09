@@ -3,6 +3,7 @@ import { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import cn from 'classnames';
 import { IconFont } from '@/components/IconFont';
+import { css } from '@emotion/react';
 
 export type MenuOption = {
   label: string;
@@ -22,6 +23,8 @@ export interface DCMenuListProps extends MenuListProps {
   renderEmpty?: () => ReactNode;
   emptyIcon?: string;
   emptyText?: string;
+  scrollH?: number;
+  multiple?: boolean;
 }
 
 export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
@@ -35,13 +38,15 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
     renderFooter,
     emptyText = 'No Result',
     emptyIcon = 'empty-object',
+    scrollH = 220,
+    multiple = false,
     ...restProps
   } = props;
 
   return (
     <StyledMenuList {...restProps}>
       {renderHeader && renderHeader()}
-      <Box maxH={220} className="menu-items">
+      <Box maxH={scrollH} className="menu-items">
         {options.map((option) => {
           const $selected = option.value === String(value);
           const classes = cn({
@@ -51,6 +56,21 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
             'menu-variant-danger': option.variant === 'danger',
           });
 
+          if (multiple)
+            return (
+              <StyledMultiItem
+                key={option.value}
+                className={cn(classes, 'ui-menu-item')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if ($selected || option.disabled) return;
+                  onMenuSelect(option);
+                }}
+              >
+                {$selected && selectIcon && <IconFont type="colored-check" w={16} />}
+                {renderOption ? renderOption(option) : option.label}
+              </StyledMultiItem>
+            );
           return (
             <StyledMenuItem
               as="div"
@@ -68,8 +88,14 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
           );
         })}
         {!options.length && (
-          <Center flexDir="column" pt={24} h={160} justifyContent="flex-start">
-            <IconFont type={emptyIcon} w={64} />
+          <Center
+            className={'menu-list-empty'}
+            flexDir="column"
+            pt={24}
+            h={160}
+            justifyContent="flex-start"
+          >
+            <IconFont className={'menu-list-empty-icon'} type={emptyIcon} w={64} />
             <Text mt={8} color="readable.normal" fontSize={14} fontWeight={600}>
               {emptyText}
             </Text>
@@ -81,7 +107,7 @@ export const DCMenuList = memo<DCMenuListProps>(function DCMenu(props) {
   );
 });
 
-const StyledMenuItem = styled(MenuItem)`
+const menuItemStyles = css`
   font-size: 14px;
   font-weight: 400;
   line-height: normal;
@@ -122,6 +148,15 @@ const StyledMenuItem = styled(MenuItem)`
       }
     }
   }
+`;
+
+const StyledMultiItem = styled.div`
+  ${menuItemStyles};
+  cursor: pointer;
+`;
+
+const StyledMenuItem = styled(MenuItem)`
+  ${menuItemStyles};
 `;
 
 const StyledMenuList = styled(MenuList)`

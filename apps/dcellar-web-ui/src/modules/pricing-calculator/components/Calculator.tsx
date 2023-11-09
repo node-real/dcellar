@@ -240,11 +240,15 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
           }}
         >
           {/* <NetworkSwitch /> */}
-          <Text fontSize={18} fontWeight={600} sx={{
-            [smMedia]: {
-              fontSize: 16,
-            }
-          }}>
+          <Text
+            fontSize={18}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: 16,
+              },
+            }}
+          >
             BNB Greenfield Mainnet
           </Text>
           <Text
@@ -472,7 +476,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               placeholder="0"
               value={gasTimes}
               onChangeValue={(value) => setGasTimes(value)}
-              type='inter'
+              type="inter"
               sx={{
                 [smMedia]: {
                   flex: '1',
@@ -535,7 +539,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             Storage Time
           </Text>
           <Flex gap={12} flexWrap={'wrap'}>
-            {TimeOptions.map((item) => (
+            {TimeOptions.map((item, index) => (
               <>
                 {item.id !== 'custom' && (
                   <DCButton
@@ -559,6 +563,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                 )}
                 {item.id === 'custom' && (
                   <CustomTime
+                    key={index}
                     isOpen={isOpen}
                     selected={item.id === storageTime.id}
                     customStorageTime={customStorageTime}
