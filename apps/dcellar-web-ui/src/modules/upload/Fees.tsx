@@ -68,12 +68,17 @@ export const Fees = () => {
     return calRes;
   }, [waitQueue, isChecking, storeFeeParams]);
 
-  const gasFee = isChecking
-    ? -1
-    : BN(waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length)
-        .times(singleTxGasFee)
-        .plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
-        .toString(DECIMAL_NUMBER);
+  const gasFee = useMemo(() => {
+    if (isChecking) return -1;
+    const waitUploadCount = waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length;
+    if (waitUploadCount === 1) {
+      return singleTxGasFee;
+    }
+
+    return BN(waitUploadCount).times(singleTxGasFee).plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
+      .toString(DECIMAL_NUMBER);
+  }, [createTmpAccountGasFee, isChecking, singleTxGasFee, waitQueue]);
+
   const isBalanceAvailable = useMemo(() => {
     if (isOwnerAccount) {
       return (

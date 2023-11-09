@@ -1,4 +1,3 @@
-import { getTimestampInSeconds } from '@/utils/time';
 import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
@@ -75,6 +74,8 @@ export const PriceCalculator = () => {
         .low || DEFAULT_GAS_LIMIT;
     const gasFee = +GAS_PRICE * gasLimit;
     setGasFee(gasFee + '');
+  }, []);
+  useAsyncEffect(async () => {
     const sps = await getStorageProviders('mainnet');
     const spMeta = await getSpMeta('mainnet');
     const keySpMeta = keyBy(spMeta, 'SPAddress');
@@ -86,7 +87,7 @@ export const PriceCalculator = () => {
       };
     });
     setSps(fullSps);
-  }, []);
+  }, [])
 
   return (
     <>
