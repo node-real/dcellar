@@ -1,6 +1,6 @@
 import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditDisablePaymentAccount, setupAccountDetail } from '@/store/slices/accounts';
+import { setEditDisablePaymentAccount, setupAccountInfo } from '@/store/slices/accounts';
 import React, { memo } from 'react';
 import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
@@ -13,8 +13,8 @@ interface NonRefundableModal {}
 
 export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundableModal() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((state) => state.persist);
-  const { editDisablePaymentAccount } = useAppSelector((state) => state.accounts);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { editDisablePaymentAccount } = useAppSelector((root) => root.accounts);
   const isOpen = !!editDisablePaymentAccount;
   const onClose = () => {
     dispatch(setEditDisablePaymentAccount(''));
@@ -50,7 +50,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
         }),
       );
     }
-    dispatch(setupAccountDetail(editDisablePaymentAccount));
+    dispatch(setupAccountInfo(editDisablePaymentAccount));
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 

@@ -1,12 +1,13 @@
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import React, { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Grid, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import {
   downloadObject,
   getCanObjectAccess,
+  getObjectMeta,
   hasObjectPermission,
   previewObject,
 } from '@/facade/object';
@@ -25,6 +26,8 @@ import { BUTTON_GOT_IT } from '@/modules/object/constant';
 import { reportEvent } from '@/utils/gtag';
 import { formatBytes } from '@/utils/formatter';
 import { IconFont } from '@/components/IconFont';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { useAsyncEffect } from 'ahooks';
 
 interface SharedFileProps {
   fileName: string;
@@ -48,6 +51,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   const { setOpenAuthModal } = useOffChainAuth();
   const { bucketName, payloadSize, objectName } = objectInfo;
   const size = payloadSize.toString();
+  const [createHash, setCreateHash] = useState('');
 
   const onError = (type: string) => {
     setAction('');
@@ -118,9 +122,16 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     return success;
   };
 
+  useAsyncEffect(async () => {
+    if (!primarySp?.endpoint || !bucketName) return;
+    const [res] = await getObjectMeta(bucketName, objectName, primarySp.endpoint);
+    if (!res) return;
+    setCreateHash(res.CreateTxHash);
+  }, [primarySp?.endpoint, bucketName, objectName]);
+
   return (
-    <Content>
-      <>
+    <Grid gap={16}>
+      <Content>
         <Flex gap={24}>
           <IconFont w={120} type="detail-object" />
           <Flex flexDirection="column" gap={8}>
@@ -132,7 +143,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
             </Text>
           </Flex>
         </Flex>
-        <Flex gap={16}>
+        <Flex gap={16} mt={32} mb={16}>
           <DCButton
             size={'lg'}
             iconSpacing={6}
@@ -159,8 +170,36 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
             Download
           </DCButton>
         </Flex>
-      </>
-    </Content>
+        <Text
+          display="flex"
+          alignSelf="center"
+          flexWrap={'nowrap'}
+          textDecoration="underline"
+          fontSize={12}
+          as="a"
+          target="_blank"
+          href={`${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${createHash}`}
+          color={'readable.secondary'}
+          _hover={{ color: 'brand.brand7' }}
+        >
+          Check on Explorer <IconFont w={14} ml={2} type="out" />
+        </Text>
+      </Content>
+      <Text as="div" color={'readable.tertiary'} textAlign={'center'}>
+        By downloading the object, you agree to our{' '}
+        <Text
+          textDecoration={'underline'}
+          as="a"
+          target="_blank"
+          href="/terms"
+          color={'readable.normal'}
+          _hover={{ color: 'brand.brand7' }}
+        >
+          Terms of Use
+        </Text>
+        .
+      </Text>
+    </Grid>
   );
 });
 
@@ -173,5 +212,4 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 32px;
 `;

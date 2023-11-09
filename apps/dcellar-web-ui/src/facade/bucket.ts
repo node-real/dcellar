@@ -14,6 +14,7 @@ import {
 import { resolve } from '@/facade/common';
 import {
   CreateBucketApprovalRequest,
+  GetBucketMetaResponse,
   GetUserBucketsResponse,
   IQuotaProps,
   ISimulateGasFee,
@@ -72,6 +73,15 @@ export const getUserBuckets = async (
   if (error) return [null, error];
   return [res!, null];
 };
+
+export const getUserBucketMeta =async (bucketName: string, endpoint: string): Promise<ErrorResponse | [SpResponse<GetBucketMetaResponse>, null]>  => {
+  const client = await getClient();
+
+  return await client.bucket.getBucketMeta({
+    bucketName,
+    endpoint
+  }).then(resolve, commonFault);
+}
 
 export const getBucketReadQuota = async ({
   bucketName,

@@ -25,7 +25,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': 2.52.4
+      '@totejs/uikit': ~2.54.1
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -40,6 +40,8 @@ importers:
       classnames: ^2.3.2
       comlink: ^4.4.1
       dayjs: ^1.11.7
+      echarts: ~5.4.3
+      echarts-for-react: ~3.0.2
       eslint: 8.39.0
       eslint-config-next: 13.3.4
       ethers: ^5.7.2
@@ -51,6 +53,7 @@ importers:
       long: ^5.2.1
       next: 13.3.4
       next-redux-wrapper: ^8.1.0
+      next-transpile-modules: ~10.0.1
       prettier: ^2.8.4
       query-string: ^8.1.0
       react: 18.2.0
@@ -58,6 +61,7 @@ importers:
       react-hook-form: ^7.43.1
       react-redux: ^8.1.1
       react-use: ^17.4.0
+      redux: ~4.2.1
       redux-persist: ^6.0.0
       swiper: ~10.3.1
       tsc-files: ~1.1.4
@@ -73,7 +77,7 @@ importers:
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.2+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.52.4_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.54.1_aa3274991927adc2766d9259998fdd18
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
       antd: 5.6.3_react-dom@18.2.0+react@18.2.0
@@ -84,6 +88,8 @@ importers:
       classnames: 2.3.2
       comlink: 4.4.1
       dayjs: 1.11.9
+      echarts: 5.4.3
+      echarts-for-react: 3.0.2_echarts@5.4.3+react@18.2.0
       eslint-config-next: 13.3.4_eslint@8.39.0+typescript@5.0.4
       ethers: 5.7.2
       fast-xml-parser: 4.2.7
@@ -92,13 +98,15 @@ importers:
       long: 5.2.3
       next: 13.3.4_b7097715b3c73a08800a730de4925ab5
       next-redux-wrapper: 8.1.0_577768ed59b92efaefa9152a8510b434
+      next-transpile-modules: 10.0.1
       query-string: 8.1.0
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-hook-form: 7.45.4_react@18.2.0
-      react-redux: 8.1.2_8e70b46749da2f914bfa002f2c2020cc
+      react-redux: 8.1.2_bd3428563a087b3aebd402b3731f157c
       react-use: 17.4.0_react-dom@18.2.0+react@18.2.0
-      redux-persist: 6.0.0
+      redux: 4.2.1
+      redux-persist: 6.0.0_redux@4.2.1
       swiper: 10.3.1
       typescript: 5.0.4
       wagmi: 0.12.19_66ef97441d5706a665436ba432bb4d01
@@ -2922,7 +2930,7 @@ packages:
     dependencies:
       immer: 9.0.21
       react: 18.2.0
-      react-redux: 8.1.2_8e70b46749da2f914bfa002f2c2020cc
+      react-redux: 8.1.2_bd3428563a087b3aebd402b3731f157c
       redux: 4.2.1
       redux-thunk: 2.4.2_redux@4.2.1
       reselect: 4.1.8
@@ -3552,6 +3560,21 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
+  /@totejs/icons/2.18.0_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-vlHs2MR+DDMAeJdvwnyigtBN4fl+Y3WY66FmjU9q/G2WfnYeJqgSXtycy4tu+tol5i2SiWQ8EBg7ecCxF2jvQQ==}
+    peerDependencies:
+      '@emotion/react': '>=11'
+      '@emotion/styled': '>=11'
+      react: '>=16.9.0'
+      react-dom: '>=16.9.0'
+    dependencies:
+      '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
+      '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
+      '@totejs/styled-system': 2.14.0_react-dom@18.2.0+react@18.2.0
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /@totejs/prettier-config/0.1.0:
     resolution: {integrity: sha512-N7ayi2uD5BUV44XDNHqHPQ3kWkCa73gTTLRDX0Doz42iSVszTne2ZtFppGIx/FDXwJfehnJiyaM1ZOrUzgn7QQ==}
     dependencies:
@@ -3571,8 +3594,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/styled-system/2.13.2_react-dom@18.2.0+react@18.2.0:
-    resolution: {integrity: sha512-9ss/zCgiMvZRtHKF3ZgW7lO0ARuhwtTQNBui4vfyuDhxBBEVWwhVO9SCleH5X8oL/li8Q4eABBskCNM/5rHb5g==}
+  /@totejs/styled-system/2.14.0_react-dom@18.2.0+react@18.2.0:
+    resolution: {integrity: sha512-Tzs5hs+nXhA20Pp6arQPuAfW9vZ5bo5ISaSCcuOMkg5Or82eeWIicoVDGHNzyOeN+b9AumREzwwo+8sz/jETZA==}
     peerDependencies:
       react: '>=16.9.0'
       react-dom: '>=16.9.0'
@@ -3581,8 +3604,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.52.4_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-ept4gZ3mjPuflntu6snrBttVdQzf0fNNLrUNJ5LXW4aVnRKRVBTT59uB11NAFqhOBW+W4Dh6D2qJ/CX6ci009g==}
+  /@totejs/uikit/2.54.1_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-NTepx7UBdq1HCCtns9QR37RiD7CvtNiPiH7DynCj+abDuidPfl3A6n04fYMhIqCS7gJxY61ft3cCvY6r6o9JzA==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'
@@ -3592,8 +3615,8 @@ packages:
       '@emotion/react': 11.11.1_627697682086d325a0e273fee4549116
       '@emotion/styled': 11.11.0_1e8dacba4d8e6343e430b8486686f015
       '@popperjs/core': 2.11.8
-      '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/styled-system': 2.13.2_react-dom@18.2.0+react@18.2.0
+      '@totejs/icons': 2.18.0_aa3274991927adc2766d9259998fdd18
+      '@totejs/styled-system': 2.14.0_react-dom@18.2.0+react@18.2.0
       '@xobotyi/scrollbar-width': 1.9.5
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
@@ -5489,6 +5512,25 @@ packages:
   /eastasianwidth/0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
     dev: true
+
+  /echarts-for-react/3.0.2_echarts@5.4.3+react@18.2.0:
+    resolution: {integrity: sha512-DRwIiTzx8JfwPOVgGttDytBqdp5VzCSyMRIxubgU/g2n9y3VLUmF2FK7Icmg/sNVkv4+rktmrLN9w22U2yy3fA==}
+    peerDependencies:
+      echarts: ^3.0.0 || ^4.0.0 || ^5.0.0
+      react: ^15.0.0 || >=16.0.0
+    dependencies:
+      echarts: 5.4.3
+      fast-deep-equal: 3.1.3
+      react: 18.2.0
+      size-sensor: 1.0.2
+    dev: false
+
+  /echarts/5.4.3:
+    resolution: {integrity: sha512-mYKxLxhzy6zyTi/FaEbJMOZU1ULGEQHaeIeuMR5L+JnJTpz+YR03mnnpBhbR4+UYJAgiXgpyTVLffPAjOTLkZA==}
+    dependencies:
+      tslib: 2.3.0
+      zrender: 5.4.4
+    dev: false
 
   /electron-to-chromium/1.4.495:
     resolution: {integrity: sha512-mwknuemBZnoOCths4GtpU/SDuVMp3uQHKa2UNJT9/aVD6WVRjGpXOxRGX7lm6ILIenTdGXPSTCTDaWos5tEU8Q==}
@@ -7482,7 +7524,13 @@ packages:
     dependencies:
       next: 13.3.4_b7097715b3c73a08800a730de4925ab5
       react: 18.2.0
-      react-redux: 8.1.2_8e70b46749da2f914bfa002f2c2020cc
+      react-redux: 8.1.2_bd3428563a087b3aebd402b3731f157c
+    dev: false
+
+  /next-transpile-modules/10.0.1:
+    resolution: {integrity: sha512-4VX/LCMofxIYAVV58UmD+kr8jQflpLWvas/BQ4Co0qWLWzVh06FoZkECkrX5eEZT6oJFqie6+kfbTA3EZCVtdQ==}
+    dependencies:
+      enhanced-resolve: 5.15.0
     dev: false
 
   /next/13.3.4_b7097715b3c73a08800a730de4925ab5:
@@ -8593,7 +8641,7 @@ packages:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
     dev: false
 
-  /react-redux/8.1.2_8e70b46749da2f914bfa002f2c2020cc:
+  /react-redux/8.1.2_bd3428563a087b3aebd402b3731f157c:
     resolution: {integrity: sha512-xJKYI189VwfsFc4CJvHqHlDrzyFTY/3vZACbE+rr/zQ34Xx1wQfB4OTOSeOSNrF6BDVe8OOdxIrAnMGXA3ggfw==}
     peerDependencies:
       '@types/react': ^16.8 || ^17.0 || ^18.0
@@ -8623,6 +8671,7 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       react-is: 18.2.0
+      redux: 4.2.1
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
@@ -8711,10 +8760,12 @@ packages:
       strip-indent: 3.0.0
     dev: true
 
-  /redux-persist/6.0.0:
+  /redux-persist/6.0.0_redux@4.2.1:
     resolution: {integrity: sha512-71LLMbUq2r02ng2We9S215LtPu3fY0KgaGE0k8WRgl6RkqxtGfl7HUozz1Dftwsb0D/5mZ8dwAaPbtnzfvbEwQ==}
     peerDependencies:
       redux: '>4.0.0'
+    dependencies:
+      redux: 4.2.1
     dev: false
 
   /redux-thunk/2.4.2_redux@4.2.1:
@@ -9035,6 +9086,10 @@ packages:
       '@polka/url': 1.0.0-next.21
       mrmime: 1.0.1
       totalist: 1.1.0
+    dev: false
+
+  /size-sensor/1.0.2:
+    resolution: {integrity: sha512-2NCmWxY7A9pYKGXNBfteo4hy14gWu47rg5692peVMst6lQLPKrVjhY+UTEsPI5ceFRJSl3gVgMYaUi/hKuaiKw==}
     dev: false
 
   /slash/3.0.0:
@@ -9531,6 +9586,10 @@ packages:
 
   /tslib/1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+
+  /tslib/2.3.0:
+    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==}
+    dev: false
 
   /tslib/2.6.1:
     resolution: {integrity: sha512-t0hLfiEKfMUoqhG+U1oid7Pva4bbDPHYfJNiB7BiIjRkj1pyC++4N3huJfqY6aRH6VTB0rvtzQwjM4K6qpfOig==}
@@ -10110,6 +10169,12 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  /zrender/5.4.4:
+    resolution: {integrity: sha512-0VxCNJ7AGOMCWeHVyTrGzUgrK4asT4ml9PEkeGirAkKNYXYzoPJCLvmyfdoOXcjTHPs10OZVMfD1Rwg16AZyYw==}
+    dependencies:
+      tslib: 2.3.0
+    dev: false
 
   /zustand/4.4.1_627697682086d325a0e273fee4549116:
     resolution: {integrity: sha512-QCPfstAS4EBiTQzlaGP1gmorkh/UL1Leaj2tdj+zZCZ/9bm0WS7sI2wnfD5lpOszFqWJ1DcPnGoY8RDL61uokw==}

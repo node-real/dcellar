@@ -15,7 +15,7 @@ import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/ty
 import { getObjectPolicies } from '@/facade/bucket';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
-export const SELECT_OBJECT_NUM_LIMIT = 10;
+export const SELECT_OBJECT_NUM_LIMIT = 20;
 
 export type ObjectItem = {
   bucketName: string;

@@ -86,6 +86,7 @@ export interface GlobalState {
   isLoadingPLF: boolean;
   // Global data, different times may have different values
   storeFeeParams: TStoreFeeParams;
+  mainnetStoreFeeParams: TStoreFeeParams;
   waitQueue: WaitFile[];
   uploadQueue: Record<string, UploadFile[]>;
   taskManagement: boolean;
@@ -104,6 +105,7 @@ const initialState: GlobalState = {
     gasObjects: {},
   },
   storeFeeParams: {} as TStoreFeeParams,
+  mainnetStoreFeeParams: {} as TStoreFeeParams,
   isLoadingPLF: false,
   waitQueue: [],
   uploadQueue: {},
@@ -307,6 +309,9 @@ export const globalSlice = createSlice({
     setStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
       state.storeFeeParams = payload.storeFeeParams;
     },
+    setMainnetStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
+      state.mainnetStoreFeeParams = payload.storeFeeParams;
+    },
     setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
       state.tmpAccount = payload;
     },
@@ -365,7 +370,7 @@ export const globalSlice = createSlice({
         return task;
       });
     },
-    setisLoadingPLF(state, { payload }: PayloadAction<boolean>) {
+    setIsLoadingPLF(state, { payload }: PayloadAction<boolean>) {
       state.isLoadingPLF = payload;
     },
     setDisconnectWallet(state, { payload }: PayloadAction<boolean>) {
@@ -394,7 +399,7 @@ export const {
   resetUploadQueue,
   cancelUploadFolder,
   cancelWaitUploadFolder,
-  setisLoadingPLF,
+  setIsLoadingPLF,
   setAuthModalOpen,
   setDisconnectWallet,
   setConnectWallet,
@@ -416,6 +421,8 @@ export const selectHashTask = (address: string) => (root: AppState) => {
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
 export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams;
+
+export const selectMainnetStoreFeeParams = (state: AppState) => state.global.mainnetStoreFeeParams;
 
 export const selectHasUploadingTask = (state: AppState) => {
   const uploadQueue = state.global.uploadQueue[state.persist.loginAccount] || [];
@@ -448,14 +455,23 @@ export const setupGasObjects = () => async (dispatch: AppDispatch) => {
 export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { isLoadingPLF } = getState().global;
   if (isLoadingPLF) return;
-  dispatch(setisLoadingPLF(true));
+  dispatch(setIsLoadingPLF(true));
   const storeFeeParams = await getStoreFeeParams({});
   dispatch(
     globalSlice.actions.setStoreFeeParams({
       storeFeeParams,
     }),
   );
-  dispatch(setisLoadingPLF(false));
+  dispatch(setIsLoadingPLF(false));
+};
+
+export const setupMainnetStoreFeeParams = () => async (dispatch: AppDispatch, getState: GetState) => {
+  const storeFeeParams = await getStoreFeeParams({network: 'mainnet'});
+  dispatch(
+    globalSlice.actions.setMainnetStoreFeeParams({
+      storeFeeParams,
+    }),
+  );
 };
 
 export const refreshTaskFolder =

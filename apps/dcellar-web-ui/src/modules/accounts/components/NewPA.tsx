@@ -21,8 +21,8 @@ export const NewPA = memo<NewPAProps>(function NewPA() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { connector } = useAccount();
-  const { loginAccount } = useAppSelector((state) => state.persist);
-  const { bankBalance } = useAppSelector((state) => state.accounts);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
   const hasBankBalance = BigNumber(bankBalance).gt(BigNumber(MIN_AMOUNT));

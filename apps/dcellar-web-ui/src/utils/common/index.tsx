@@ -64,3 +64,7 @@ export const capitalizeFLetter = (str: string) => {
 export const networkTag = (runtimeEnv: TRuntimeEnv) => {
   return ['mainnet', 'testnet'].includes(runtimeEnv) ? ` ${capitalizeFLetter(runtimeEnv)}` : '';
 };
+
+export function cssVar(name: string, type = 'colors') {
+  return `var(--ui-${type}-${name.replaceAll('.', '-')})`;
+}
