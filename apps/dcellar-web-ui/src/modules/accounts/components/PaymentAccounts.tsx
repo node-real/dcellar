@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useCallback, useMemo } from 'react';
 import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
@@ -37,6 +37,7 @@ const actions: MenuOption[] = [
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
   const bnbPrice = useAppSelector(selectBnbPrice);
   const {
     loginAccount,
@@ -91,7 +92,7 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'address',
-      width: 130,
+      width: isLessThan1100 ? 130 : 'auto',
       title: (
         <SortItem onClick={() => updateSorter('address', 'ascend')}>
           Account Address
@@ -178,7 +179,7 @@ export const PaymentAccounts = () => {
     {
       key: 'Operation',
       title: <Text textAlign={'center'}>Operation</Text>,
-      width: 160,
+      width: 150,
       render: (_: string, record: TAccountInfo) => {
         let operations = ['deposit', 'withdraw'];
         let finalActions = actions;

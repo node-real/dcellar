@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
@@ -30,6 +30,7 @@ const actions: MenuOption[] = [
 export const OwnerAccount = () => {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
   const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
 
   const data = ownerAccount?.address ? [accountInfo[ownerAccount.address] || {}] : [];
@@ -61,7 +62,7 @@ export const OwnerAccount = () => {
     {
       title: 'Account Address',
       key: 'address',
-      width: 130,
+      width: isLessThan1100 ? 130 : 'auto',
       render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
@@ -124,7 +125,7 @@ export const OwnerAccount = () => {
     {
       title: <Text textAlign={'center'}>Operation</Text>,
       key: 'Operation',
-      width: 160,
+      width: 150,
       render: (_: string, record: TAccountInfo) => {
         const operations = ['transfer_in', 'transfer_out', 'send'];
         return (
