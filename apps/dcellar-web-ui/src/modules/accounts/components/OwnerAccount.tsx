@@ -28,7 +28,6 @@ const actions: MenuOption[] = [
 ];
 
 export const OwnerAccount = () => {
-  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
   const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
@@ -62,6 +61,7 @@ export const OwnerAccount = () => {
     {
       title: 'Account Address',
       key: 'address',
+      width: 130,
       render: (_: string, record: TAccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
@@ -124,7 +124,7 @@ export const OwnerAccount = () => {
     {
       title: <Text textAlign={'center'}>Operation</Text>,
       key: 'Operation',
-      width: 200,
+      width: 160,
       render: (_: string, record: TAccountInfo) => {
         const operations = ['transfer_in', 'transfer_out', 'send'];
         return (

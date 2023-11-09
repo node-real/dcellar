@@ -91,6 +91,7 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'address',
+      width: 130,
       title: (
         <SortItem onClick={() => updateSorter('address', 'ascend')}>
           Account Address
@@ -176,8 +177,8 @@ export const PaymentAccounts = () => {
     },
     {
       key: 'Operation',
-      title: <></>,
-      width: 200,
+      title: <Text textAlign={'center'}>Operation</Text>,
+      width: 160,
       render: (_: string, record: TAccountInfo) => {
         let operations = ['deposit', 'withdraw'];
         let finalActions = actions;

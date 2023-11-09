@@ -9,7 +9,7 @@ import { selectAllCost } from '@/store/slices/billing';
 import { BN } from '@/utils/math';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatObjectAddress } from '@/utils/accounts';
-import { lgMedia, xlMedia } from '@/modules/welcome';
+import { xlMedia } from '@/modules/welcome';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
