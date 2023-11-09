@@ -19,7 +19,8 @@ export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
     return React.cloneElement(child, {
       ...restProps,
       ...child.props,
-      ref: mergeRefs(child.ref, ref),
+      // todo refactor
+      ref: !child.ref && !ref ? undefined : mergeRefs(child.ref, ref),
       onClick: (event: React.MouseEvent) => {
         const { isDisabled, onClick: originClick } = child.props;
         originClick?.call(child, event);

@@ -16,7 +16,7 @@ import {
 import { BroadcastResponse, DeliverResponse, xmlParser } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { Connector } from 'wagmi';
-import { Long, TxResponse } from '@bnb-chain/greenfield-js-sdk';
+import { Long } from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { GroupMember } from '@/store/slices/group';
 import { getClient } from '@/facade/index';

@@ -56,7 +56,18 @@ export const BaseHeader = () => {
       <GAClick name="dc_lp.main.header.logo.click">
         <Flex alignItems={'center'}>
           <Logo href="/" />
-          {runtimeEnv === 'testnet' && <Badge borderRadius={2} color={'brand.brand7'} padding={'3px 4px'} fontSize={12} transform={'scale(0.83333)'} bgColor={'opacity1'}>{networkTag(runtimeEnv)}</Badge>}
+          {runtimeEnv === 'testnet' && (
+            <Badge
+              borderRadius={2}
+              color={'brand.brand7'}
+              padding={'3px 4px'}
+              fontSize={12}
+              transform={'scale(0.83333)'}
+              bgColor={'opacity1'}
+            >
+              {networkTag(runtimeEnv)}
+            </Badge>
+          )}
         </Flex>
       </GAClick>
       <Flex
@@ -67,17 +78,19 @@ export const BaseHeader = () => {
         transform={'translate(-50%, -50%)'}
       >
         {MENUS.map((item, index) => (
-          <GAClick name={item.gaName} key={index}>
-            <NextLink href={item.link} passHref legacyBehavior>
-              <Link
-                color={router.pathname === item.link ? 'brand.brand6' : 'readable.normal'}
-                target={item.target}
-              >
-                {item.title}
-                <item.Icon />
-              </Link>
-            </NextLink>
-          </GAClick>
+          <NextLink key={index} href={item.link} passHref legacyBehavior>
+            <Link
+              color={router.pathname === item.link ? 'brand.brand6' : 'readable.normal'}
+              target={item.target}
+            >
+              <GAClick name={item.gaName}>
+                <Box display="contents">
+                  {item.title}
+                  <item.Icon />
+                </Box>
+              </GAClick>
+            </Link>
+          </NextLink>
         ))}
       </Flex>
       <Flex alignItems={'center'} gap={16}>
