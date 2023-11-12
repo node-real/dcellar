@@ -124,13 +124,13 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   return (
     <>
-      {discontinue && (
+      {/* {discontinue && ( */}
         <DiscontinueBanner
-          content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
+          content="We are sorry to inform you that BNB Greenfield SP service is under maintenance and that uploading objects is forbidden temporarily."
           height={44}
           marginBottom={16}
         />
-      )}
+      {/* )} */}
       <BucketOperations />
       <DCTable
         loading={loadingComponent}

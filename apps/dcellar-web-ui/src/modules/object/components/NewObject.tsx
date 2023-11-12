@@ -229,7 +229,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               whiteSpace="nowrap"
               variant="second"
               onClick={onOpenCreateFolder}
-              disabled={disabled}
+              // disabled={disabled}
+              disabled={true}
             >
               Create Folder
             </DCButton>
@@ -256,7 +257,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
               as={DCButton}
               position="relative"
               paddingRight={'0'}
-              disabled={uploadDisabled}
+              // disabled={uploadDisabled}
+              disabled={true}
               _expanded={{
                 '.ui-icon': {
                   transform: 'rotate(-270deg)',
@@ -274,7 +276,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 height={'40px'}
                 borderRightRadius={4}
                 alignItems={'center'}
-                borderLeft={uploadDisabled ? '1px solid readable.border' : '1px solid #5ED47F'}
+                // borderLeft={uploadDisabled ? '1px solid readable.border' : '1px solid #5ED47F'}
+                borderLeft={'1px solid readable.border'}
               >
                 <IconFont
                   transform="rotate(-90deg)"
