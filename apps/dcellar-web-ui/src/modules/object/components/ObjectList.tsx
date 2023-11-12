@@ -392,9 +392,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   return (
     <>
-      {discontinue && owner && (
-        <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
-      )}
+      {/* {discontinue && owner && ( */}
+        <DiscontinueBanner content="We are sorry to inform you that BNB Greenfield SP service is under maintenance and that uploading objects is forbidden temporarily." />
+      {/* )} */}
       <ObjectOperations />
       <DCTable
         rowSelection={owner ? rowSelection : undefined}
