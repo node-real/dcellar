@@ -65,14 +65,15 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
     <Flex alignItems="center" {...styleProps}>
       <IconFont mr={8} w={20} type={`${fileType}-file`} />
       <Box w="calc(100% - 39px)" lineHeight="normal">
-        <EllipsisText text={name} marginRight={'12px'} mb={4} onClick={onClick}>
-          <Text
-            display="inline-flex"
-            borderBottom={'1px solid transparent'}
-            as={'span'}
-            onClick={onClick}
-            _hover={hoverStyles}
-          >
+        <EllipsisText
+          borderBottom={'1px solid transparent'}
+          _hover={hoverStyles}
+          text={name}
+          marginRight={'12px'}
+          mb={4}
+          onClick={onClick}
+        >
+          <Text as={'span'} onClick={onClick}>
             {name}
           </Text>
         </EllipsisText>

@@ -544,6 +544,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                           <Text mr={4}>Owner</Text>
                         ) : (
                           <DCMenu
+                            zIndex={1300}
                             strategy="fixed"
                             value="viewer"
                             selectIcon
