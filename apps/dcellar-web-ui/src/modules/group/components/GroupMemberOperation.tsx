@@ -399,6 +399,7 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
                             <Text mr={4}>Owner</Text>
                           ) : (
                             <DCMenu
+                              zIndex={1300}
                               strategy="fixed"
                               value="member"
                               selectIcon
