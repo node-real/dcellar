@@ -4,16 +4,7 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0Month } from '@/utils/time';
-import {
-  Box,
-  Divider,
-  Flex,
-  Link,
-  Loading,
-  Text,
-  useDisclosure,
-  useMediaQuery,
-} from '@totejs/uikit';
+import { Box, Divider, Flex, Loading, Text, useDisclosure, useMediaQuery } from '@totejs/uikit';
 import React, { useMemo, useState } from 'react';
 import { FeeItem } from './FeeItem';
 import { SizeMenu } from './SizeMenu';
@@ -25,11 +16,13 @@ import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
+import { JumpLink } from './Common';
 
 type CalculatorProps = {
   storeParams: TStoreFeeParams;
   bnbPrice: string;
-  gasFee: string;
+  onOpenKey: (key: number) => void;
+  // gasFee: string;
 };
 
 const formatInput = (value: string) => {
@@ -45,7 +38,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
       .toString(DECIMAL_NUMBER),
   );
 };
-export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) => {
+export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
   const TOKEN_SYMBOL = 'BNB';
   const { isOpen, onClose, onToggle } = useDisclosure();
@@ -61,7 +54,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
     size: '',
     unit: 'GB',
   });
-  const [gasTimes, setGasTimes] = useState('');
+  // const [gasTimes, setGasTimes] = useState('');
   const [storageTime, setStorageTime] = useState(TimeOptions[0]);
   const [customStorageTime, setCustomStorageTime] = useState(TimeOptions[2]);
   const sizes = Object.keys(Sizes);
@@ -114,12 +107,12 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
       .toString();
   }, [quotaSize, storeParams]);
 
-  const totalGasFee = useMemo(() => {
-    return BN(gasTimes || 0)
-      .times(gasFee)
-      .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-      .toString();
-  }, [gasFee, gasTimes]);
+  // const totalGasFee = useMemo(() => {
+  //   return BN(gasTimes || 0)
+  //     .times(gasFee)
+  //     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+  //     .toString();
+  // }, [gasFee, gasTimes]);
   const costs = useMemo(() => {
     let storeTime =
       storageTime.id === 'custom'
@@ -155,17 +148,17 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
             .toString();
 
-    const timesByDay = BN(gasTimes || 0).dividedBy(30);
-    const storeDays = BN(storeTime).dividedBy(24 * 60 * 60);
-    const totalGasCost = BN(timesByDay || 0)
-      .times(gasFee)
-      .times(storeDays)
-      .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-      .toString();
+    // const timesByDay = BN(gasTimes || 0).dividedBy(30);
+    // const storeDays = BN(storeTime).dividedBy(24 * 60 * 60);
+    // const totalGasCost = BN(timesByDay || 0)
+    //   .times(gasFee)
+    //   .times(storeDays)
+    //   .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+    //   .toString();
 
+    // .plus(totalGasCost)
     const totalCost = BN(totalStorageCost)
       .plus(totalQuotaCost)
-      .plus(totalGasCost)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
 
@@ -178,15 +171,15 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
     return {
       totalStorageCost,
       totalQuotaCost,
-      totalGasCost,
+      // totalGasCost,
       totalCost,
       averageMonthCost,
     };
   }, [
     customStorageTime.unit,
     customStorageTime.value,
-    gasFee,
-    gasTimes,
+    // gasFee,
+    // gasTimes,
     quotaSize.size,
     quotaSize.unit,
     storageSize.size,
@@ -239,12 +232,15 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             },
           }}
         >
-          {/* <NetworkSwitch /> */}
-          <Text fontSize={18} fontWeight={600} sx={{
-            [smMedia]: {
-              fontSize: 16,
-            }
-          }}>
+          <Text
+            fontSize={18}
+            fontWeight={600}
+            sx={{
+              [smMedia]: {
+                fontSize: 16,
+              },
+            }}
+          >
             BNB Greenfield Mainnet
           </Text>
           <Text
@@ -279,19 +275,9 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               tips={
                 <>
                   <Text display={'inline-block'}>Check out&nbsp;</Text>
-                  <Link
-                    display={'inline-block'}
-                    cursor={'pointer'}
-                    onClick={() => {
-                      const anchor = '#faq';
-                      let anchorElement = document.getElementById(anchor);
-                      if (anchorElement) {
-                        anchorElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
-                      }
-                    }}
-                  >
+                  <JumpLink id="#faq" openKey={0} onOpenKey={onOpenKey}>
                     the Storage Fee Formula
-                  </Link>
+                  </JumpLink>
                   .
                 </>
               }
@@ -355,15 +341,6 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-        <Divider
-          display={'none'}
-          sx={{
-            [smMedia]: {
-              margin: '24px 0',
-              display: 'block',
-            },
-          }}
-        />
         <Flex gap={8} flexDirection={'column'}>
           <Flex
             fontSize={16}
@@ -377,15 +354,21 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             Monthly Download Quota
             <Tips
               placement={'top'}
-              w={262}
+              w={'fit-content'}
               tips={
-                <Text display={'inline-block'}>
-                  Each bucket has a one-time free quota offered by SP.
-                </Text>
+                <>
+                  Learn More about{' '}
+                  <JumpLink id="#download_quota" openKey={4} onOpenKey={onOpenKey}>
+                    Quota
+                  </JumpLink>.
+                </>
               }
             />
           </Flex>
-          <Text fontSize={12}>How much monthly download quota do you require? </Text>
+          <Text fontSize={12}>
+            How much network traffic will cost for your download and view activities within one
+            month?{' '}
+          </Text>
           <Flex alignItems={'center'} gap={12} flexWrap={'wrap'}>
             <NumInput
               placeholder="0.0"
@@ -443,16 +426,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             </Flex>
           </Flex>
         </Flex>
-        <Divider
-          display={'none'}
-          sx={{
-            [smMedia]: {
-              margin: '24px 0',
-              display: 'block',
-            },
-          }}
-        />
-        <Flex gap={8} flexDirection={'column'}>
+        {/* <Flex gap={8} flexDirection={'column'}>
           <Flex
             fontSize={16}
             fontWeight={600}
@@ -512,16 +486,7 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
               </Text>
             </Flex>
           </Flex>
-        </Flex>
-        <Divider
-          display={'none'}
-          sx={{
-            [smMedia]: {
-              margin: '24px 0',
-              display: 'block',
-            },
-          }}
-        />
+        </Flex> */}
         <Flex gap={8} flexDirection={'column'}>
           <Text
             fontSize={16}
@@ -535,8 +500,8 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             Storage Time
           </Text>
           <Flex gap={12} flexWrap={'wrap'}>
-            {TimeOptions.map((item) => (
-              <>
+            {TimeOptions.map((item, index) => (
+              <Box key={index}>
                 {item.id !== 'custom' && (
                   <DCButton
                     key={item.title}
@@ -572,16 +537,8 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
                       setCustomStorageTime(option);
                     }}
                   />
-                  // <DCButton
-                  //   key={item.title}
-                  //   variant="ghost"
-                  //   borderColor={item.id === storageTime.id ? 'readable.brand6' : 'readable.border'}
-                  //   onClick={() => setStorageTime(item)}
-                  // >
-                  //   {item.title}
-                  // </DCButton>
                 )}
-              </>
+              </Box>
             ))}
           </Flex>
           <Text fontSize={'12'}>
@@ -670,14 +627,14 @@ export const Calculator = ({ storeParams, bnbPrice, gasFee }: CalculatorProps) =
             fee={costs.totalQuotaCost}
             bnbPrice={bnbPrice}
           />
-          <FeeItem
+          {/* <FeeItem
             title="Operation fee"
             storeTime={storageTimeDisplay}
             size={gasTimes}
             unit={`time${+gasTimes > 1 ? 's' : ''}/month`}
             fee={costs.totalGasCost}
             bnbPrice={bnbPrice}
-          />
+          /> */}
           <Text color={'readable.disabled'}>*1 month=30 day</Text>
         </Flex>
       </Flex>
