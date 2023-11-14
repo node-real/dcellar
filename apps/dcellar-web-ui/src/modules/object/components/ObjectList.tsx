@@ -140,7 +140,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         address: loginAccount,
       };
       const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
-      if (error === 'invalid signature') {
+      if (error === 'invalid signature' || error === 'user public key is expired') {
         return onError(E_OFF_CHAIN_AUTH);
       }
       if (!quotaData) {

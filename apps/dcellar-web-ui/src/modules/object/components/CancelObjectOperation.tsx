@@ -50,7 +50,7 @@ export const renderFee = (
       <Flex alignItems="center" mb="4px">
         <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
           {key}
-          {key.toLowerCase() === 'gas fee' && (
+          {key?.toLowerCase() === 'gas fee' && (
             <>
               {' '}
               (
