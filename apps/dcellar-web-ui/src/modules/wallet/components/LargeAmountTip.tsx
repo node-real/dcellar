@@ -10,7 +10,7 @@ type Props = {
   amount: string;
   formError: boolean;
 }
-const LARGE_TRANSFER_AMOUNT = 0.5;
+const LARGE_TRANSFER_AMOUNT = 1000;
 const LARGE_TRANSFER_WAIT_TIME = 12;
 
 export const LargeAmountTip = ({ amount, formError}: Props) => {
