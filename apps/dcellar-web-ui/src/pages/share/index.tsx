@@ -96,7 +96,7 @@ const SharePage: NextPage<PageProps> = (props) => {
     }
 
     const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(params);
-    if (error === 'invalid signature') {
+    if (error === 'invalid signature' || error === 'user public key is expired') {
       logout(true);
     }
     setObjectInfo(objectInfo);
