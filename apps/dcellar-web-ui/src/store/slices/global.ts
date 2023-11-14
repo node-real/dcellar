@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
-import { find, isEmpty, keyBy } from 'lodash-es';
+import { find, keyBy } from 'lodash-es';
 import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';

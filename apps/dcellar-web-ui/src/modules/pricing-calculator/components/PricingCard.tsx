@@ -102,7 +102,6 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           {({ isOpen }) => (
             <>
               <MenuButton
-                isActive={isOpen}
                 as={Button}
                 h={24}
                 w={122}
