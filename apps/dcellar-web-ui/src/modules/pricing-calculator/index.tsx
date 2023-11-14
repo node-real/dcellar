@@ -2,8 +2,7 @@ import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
 import { useState } from 'react';
-import { GAS_PRICE, TStoreFeeParams, selectBnbPrice, selectMainnetStoreFeeParams, selectStoreFeeParams } from '@/store/slices/global';
-import { getBnbPrice, getGasFees } from '@/facade/common';
+import { selectBnbPrice, selectMainnetStoreFeeParams } from '@/store/slices/global';
 import { assetPrefix } from '@/base/env';
 import { FAQ } from './components/FAQ';
 import { SPFreeQuota } from './components/SPFreeQuota';
@@ -54,22 +53,29 @@ export const PriceResponsiveContainer = ({ children, sx, ...restProps }: PriceRe
   );
 };
 
-// 如果是mainnet则最好使用统一的数据源
-// 如果不是需要使用mainnet的数据源，单独获取吗
-// 要不要直接把这里分开
-export const PriceCalculator = ({pageProps}: any) => {
+export const PriceCalculator = () => {
   const [sps, setSps] = useState<TQuotaSP[]>([]);
-  const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
+  const [openKeys, setOpenKeys] = useState<number[]>([]);
+  const toggleOpenKeys = (key: number) => {
+    if (openKeys.includes(key)) {
+      return setOpenKeys(openKeys.filter(item => item !== key))
+    }
+    setOpenKeys([...openKeys, key]);
+  }
+  const onOpenKey = (key: number) => {
+    setOpenKeys(Array.from(new Set([key])))
+  }
   const mainnetStoreFeeParams = useAppSelector(selectMainnetStoreFeeParams);
   const bnbPrice = useAppSelector(selectBnbPrice);
-  useAsyncEffect(async () => {
-    const [gasFees, error] = await getGasFees('mainnet');
-    const gasLimit =
-      gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
-        .low || DEFAULT_GAS_LIMIT;
-    const gasFee = +GAS_PRICE * gasLimit;
-    setGasFee(gasFee + '');
-  }, []);
+  // const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
+  // useAsyncEffect(async () => {
+  //   const [gasFees, error] = await getGasFees('mainnet');
+  //   const gasLimit =
+  //     gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
+  //       .low || DEFAULT_GAS_LIMIT;
+  //   const gasFee = +GAS_PRICE * gasLimit;
+  //   setGasFee(gasFee + '');
+  // }, []);
   useAsyncEffect(async () => {
     const sps = await getStorageProviders('mainnet');
     const spMeta = await getSpMeta('mainnet');
@@ -109,11 +115,11 @@ export const PriceCalculator = ({pageProps}: any) => {
           }}
         >
           <Banner />
-          <Calculator storeParams={mainnetStoreFeeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
+          <Calculator onOpenKey={onOpenKey} storeParams={mainnetStoreFeeParams} bnbPrice={bnbPrice} />
         </Flex>
         <PricingCard storeParams={mainnetStoreFeeParams} />
         <SPFreeQuota sps={sps} />
-        <FAQ />
+        <FAQ openKeys={openKeys} toggleOpenKeys={toggleOpenKeys} />
         <StartBuild />
       </Flex>
     </>
