@@ -161,7 +161,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
-          const authExpired = message?.includes('invalid signature');
+          const authExpired =
+            message?.includes('invalid signature') ||
+            message?.includes('user public key is expired');
           if (authExpired) {
             setOpenAuthModal();
             setAuthModal(true);
@@ -205,7 +207,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       privateKey: tmpAccount.privateKey,
     }).then(resolve, createTxFault);
     if (_createError) {
-      console.log('createError', _createError)
+      console.log('createError', _createError);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
@@ -250,7 +252,13 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         }),
       );
     }
-    dispatch(updateUploadCreateHash({account: loginAccount, id: task.id, createHash: res.transactionHash}))
+    dispatch(
+      updateUploadCreateHash({
+        account: loginAccount,
+        id: task.id,
+        createHash: res.transactionHash,
+      }),
+    );
   }, [signTask]);
 
   // 3. upload

@@ -109,6 +109,10 @@ const Container = styled(Flex)`
   min-width: 0;
   .ant-select-selector {
     margin-bottom: 28px;
+    height: auto !important;
+  }
+  .ant-select-multiple .ant-select-selection-overflow-item-suffix {
+    height: 32px;
   }
   .ant-select-arrow > * {
     margin-bottom: 28px;
