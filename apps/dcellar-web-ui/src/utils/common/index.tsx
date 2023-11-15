@@ -68,3 +68,11 @@ export const networkTag = (runtimeEnv: TRuntimeEnv) => {
 export function cssVar(name: string, type = 'colors') {
   return `var(--ui-${type}-${name.replaceAll('.', '-')})`;
 }
+
+export function scrollToId(id: string, top?: number) {
+  const rect = document.getElementById(id)?.getBoundingClientRect();
+  window.scrollTo({
+    top: (rect?.top || 0) + document.documentElement.scrollTop - 65 - (top || 0),
+    behavior: 'smooth',
+  });
+}

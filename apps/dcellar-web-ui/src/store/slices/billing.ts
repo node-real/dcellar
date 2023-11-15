@@ -1,9 +1,29 @@
-import { GetMonthlyBillByAddressParams, GetMonthlyBillByAddressResponse, GetMonthlyBillByOwnerParams, GetMonthlyBillByOwnerResponse, GetRealTimeBillByAddressParams, GetRealTimeBillByAddressResponse, GetRealTimeBillListByOwnerParams, RawMonthlyBill, getMonthlyBillByAddress, getMonthlyBillByOwner, getRealTimeBillByAddress, getRealTimeBillCountByAddress, getRealTimeBillCountByOwner, getRealTimeBillListByOwner, getTotalCostByOwner } from '@/facade/billing';
+import {
+  GetMonthlyBillByAddressParams,
+  GetMonthlyBillByAddressResponse,
+  GetMonthlyBillByOwnerParams,
+  GetMonthlyBillByOwnerResponse,
+  GetRealTimeBillByAddressCountParams,
+  GetRealTimeBillListByAddressParams,
+  GetRealTimeBillListByAddressResponse,
+  GetRealTimeBillByOwnerCountParams,
+  GetRealTimeBillListByOwnerParams,
+  RawMonthlyBill,
+  getMonthlyBillByAddress,
+  getMonthlyBillByOwner,
+  getRealTimeBillByAddress,
+  getRealTimeBillCountByAddress,
+  getRealTimeBillCountByOwner,
+  getRealTimeBillListByOwner,
+  getTotalCostByOwner
+} from '@/facade/billing';
 import { BN } from '@/utils/math';
 import { getPosDecimalValue } from '@/utils/wallet';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '..';
 import { getUtcDayjs } from '@/utils/time';
+import dayjs from 'dayjs';
+import { isEmpty, keyBy } from 'lodash-es';
 
 type AccountCost = {
   address: string;
@@ -38,7 +58,7 @@ export type AllCostTrend = {
     [key: string]: MonthlyCost
   };
 }
-export type AccountCostBill = {
+export type AccountCostMonth = {
   address: string;
   time: string;
   totalCost: string;
@@ -49,7 +69,7 @@ export type AccountCostTrend = {
   startTime: string;
   endTime: string;
   monthlyCost: {
-    [key: string]: AccountCostBill
+    [key: string]: AccountCostMonth
   }
 }
 export type AccountBill = {
@@ -59,6 +79,8 @@ export type AccountBill = {
   storeCost: string;
   totalCost: string;
   balance: string;
+  txHash: string;
+  txType: string;
 }
 interface BillingState {
   curAllBillsPage: number;
@@ -76,6 +98,11 @@ interface BillingState {
   accountBills: Record<string, AccountBill[]>;
   allBillsCount: Record<string, number>;
   allBills: Record<string, AccountBill[]>;
+  allFilterRange: [string, string];
+  allFilterTypes: Array<string>;
+  allFilterAccounts: Array<string>;
+  accountFilterRange: [string, string];
+  accountFilterTypes: Array<string>;
 }
 const initialState: BillingState = {
   curAllBillsPage: 1,
@@ -93,6 +120,11 @@ const initialState: BillingState = {
   accountBills: {},
   allBillsCount: {},
   allBills: {},
+  allFilterRange: ['', ''],
+  allFilterTypes: [],
+  allFilterAccounts: [],
+  accountFilterRange: ['', ''],
+  accountFilterTypes: [],
 };
 
 export const billingSlice = createSlice({
@@ -180,7 +212,7 @@ export const billingSlice = createSlice({
     setAccountCostTrend: (state, { payload }: PayloadAction<{ address: string, startTime: string, endTime: string, monthlyBills: GetMonthlyBillByAddressResponse }>) => {
       const { startTime, endTime, address, monthlyBills } = payload;
       const data = {} as {
-        [key: string]: AccountCostBill
+        [key: string]: AccountCostMonth
       }
       monthlyBills.forEach((item) => {
         const key = item.Year + '-' + item.Month;
@@ -212,7 +244,7 @@ export const billingSlice = createSlice({
       const { address, count } = payload;
       state.accountBillsCount[address] = count;
     },
-    setAccountBills: (state, { payload }: PayloadAction<{ address: string, bills: GetRealTimeBillByAddressResponse }>) => {
+    setAccountBills: (state, { payload }: PayloadAction<{ address: string, bills: GetRealTimeBillListByAddressResponse }>) => {
       const dayjs = getUtcDayjs();
       const { address, bills } = payload;
       const formatBills = (bills || []).map((item) => ({
@@ -221,7 +253,9 @@ export const billingSlice = createSlice({
         readCost: getPosDecimalValue(item.ReadCost),
         storeCost: getPosDecimalValue(item.StoreCost),
         totalCost: getPosDecimalValue(item.TotalCost),
-        balance: getPosDecimalValue(item.Balance)
+        balance: getPosDecimalValue(item.Balance),
+        txHash: item.TxHash,
+        txType: item.TxType,
       }));
 
       state['accountBills'][address] = formatBills;
@@ -230,7 +264,7 @@ export const billingSlice = createSlice({
       const { loginAccount, count } = payload;
       state.allBillsCount[loginAccount] = count;
     },
-    setAllBills: (state, { payload }: PayloadAction<{ loginAccount: string, bills: GetRealTimeBillByAddressResponse }>) => {
+    setAllBills: (state, { payload }: PayloadAction<{ loginAccount: string, bills: GetRealTimeBillListByAddressResponse }>) => {
       const dayjs = getUtcDayjs();
       const { loginAccount, bills } = payload;
       const formatBills = (bills || []).map((item) => ({
@@ -239,7 +273,9 @@ export const billingSlice = createSlice({
         readCost: getPosDecimalValue(item.ReadCost),
         storeCost: getPosDecimalValue(item.StoreCost),
         totalCost: getPosDecimalValue(item.TotalCost),
-        balance: getPosDecimalValue(item.Balance)
+        balance: getPosDecimalValue(item.Balance),
+        txHash: item.TxHash,
+        txType: item.TxType
       }));
       state['allBills'][loginAccount] = formatBills;
     },
@@ -255,10 +291,31 @@ export const billingSlice = createSlice({
     setLoadingAllBills: (state, { payload }: PayloadAction<boolean>) => {
       state.loadingAllBills = payload
     },
+    setAllFilterRange(state, { payload }: PayloadAction<[string, string]>) {
+      state.allFilterRange = payload;
+    },
+    setAllFilterTypes(state, { payload }: PayloadAction<string[]>) {
+      state.allFilterTypes = payload;
+    },
+    setAllFilterAccounts(state, { payload }: PayloadAction<string[]>) {
+      state.allFilterAccounts = payload;
+    },
+    setAccountFilterRange(state, { payload }: PayloadAction<[string, string]>) {
+      state.accountFilterRange = payload;
+    },
+    setAccountFilterTypes(state, { payload }: PayloadAction<string[]>) {
+      state.accountFilterTypes = payload;
+    },
+    resetAllHistoryFilter(state) {
+      state.allFilterTypes = [];
+      state.allFilterRange = ['', ''];
+    },
+    resetAccountHistoryFilter(state) {
+      state.accountFilterTypes = [];
+      state.accountFilterRange = ['', ''];
+    },
   },
 });
-
-export const { setTotalCost, setCurMonthTotalCosted, setAllCostTrend, setAccountCostTrend, setLoadingAllCostTrend, setLoadingAccountCostTrend, setAccountBillsCount, setAccountBills, setCurrentAllBillsPage, setCurrentAccountBillsPage, setLoadingAccountBills, setAllBills, setAllBillsCount, setLoadingAllBills, setLoadingAllCost } = billingSlice.actions;
 
 export const DefaultAllCost = {} as AllCost;
 export const selectAllCost = (address: string) => (root: AppState) => {
@@ -280,11 +337,13 @@ export const selectAccountBillsCount = (address: string) => (root: AppState) => 
   return root.billing.accountBillsCount[address] || 0;
 }
 export const DefaultBills = [] as AccountBill[];
-export const selectAllBills = (address: string) => (root: AppState) => {
-  return root.billing.allBills[address] || DefaultBills;
+export const selectAllBills = () => (root: AppState) => {
+  const loginAccount = root.persist.loginAccount;
+  return root.billing.allBills[loginAccount] || DefaultBills;
 }
-export const selectAllBillsCount = (address: string) => (root: AppState) => {
-  return root.billing.allBillsCount[address] || 0;
+export const selectAllBillsCount = () => (root: AppState) => {
+  const loginAccount = root.persist.loginAccount;
+  return root.billing.allBillsCount[loginAccount] || 0;
 }
 export const setupTotalCost = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
@@ -355,41 +414,96 @@ export const setupAccountCostTrend = (address: string) => async (dispatch: AppDi
   dispatch(setLoadingAccountCostTrend(false));
 }
 
-export const setupAccountBills = (params: GetRealTimeBillByAddressParams) => async (dispatch: AppDispatch, getState: GetState) => {
+export const setupAccountBills = (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
   dispatch(setLoadingAccountBills(true));
-  const getCountParams = {
-    address: params.address,
-    start: params.start,
-    end: params.end
+  const { accountBillsPageSize } = getState().persist;
+  const { curAccountBillsPage, accountFilterRange, accountFilterTypes } = getState().billing;
+  const getCountParams: GetRealTimeBillByAddressCountParams = {
+    address,
+  }
+  if (!isEmpty(accountFilterTypes)) {
+    getCountParams['type'] = accountFilterTypes;
+  }
+  if (typeof accountFilterRange[0] !== 'string') {
+    getCountParams['start'] = dayjs(accountFilterRange[0]).unix();
+    getCountParams['end'] = dayjs(accountFilterRange[1]).unix();
   }
   const [count, cError] = await getRealTimeBillCountByAddress(getCountParams);
-  const [bills, bError] = await getRealTimeBillByAddress(params);
-  if (!count || cError || !bills || bError) {
+  const getListParams: GetRealTimeBillListByAddressParams = {
+    ...getCountParams,
+    page: curAccountBillsPage,
+    per_page: accountBillsPageSize
+  }
+  const [bills, bError] = await getRealTimeBillByAddress(getListParams);
+  if (count === null || cError || bills === null || bError) {
     dispatch(setLoadingAccountBills(false));
     return cError || bError;
   }
   dispatch(setLoadingAccountBills(false));
-  dispatch(setAccountBillsCount({ address: params.address, count }));
-  dispatch(setAccountBills({ address: params.address, bills: bills }));
+  dispatch(setAccountBillsCount({ address: getCountParams.address, count }));
+  dispatch(setAccountBills({ address: getCountParams.address, bills: bills }));
 }
 
-export const setupAllBills = (params: GetRealTimeBillListByOwnerParams) => async (dispatch: AppDispatch, getState: GetState) => {
+export const setupAllBills = () => async (dispatch: AppDispatch, getState: GetState) => {
+  const { curAllBillsPage, allFilterRange, allFilterAccounts, allFilterTypes } = getState().billing;
+  const { ownerAccount, paymentAccounts } = getState().accounts;
+  const keyAccounts = keyBy([ownerAccount, ...(paymentAccounts[ownerAccount.address] || [])], 'id');
+
+  const { allBillsPageSize, loginAccount } = getState().persist;
   dispatch(setLoadingAllBills(true));
-  const getCountParams = {
-    owner: params.owner,
-    payments: params.payments,
-    start: params.start,
-    end: params.end
+  const allFilterAddress = allFilterAccounts.map((item) => keyAccounts[item]?.address);
+  const getCountParams: GetRealTimeBillByOwnerCountParams = {
+    owner: loginAccount,
+    payments: allFilterAddress,
   }
+  if (!isEmpty(allFilterTypes)) {
+    getCountParams['type'] = allFilterTypes;
+  }
+
+  if (typeof allFilterRange[0] === 'string' && allFilterRange[0] !== '') {
+    getCountParams['start'] = dayjs(allFilterRange[0]).startOf('d').unix();
+    getCountParams['end'] = dayjs(allFilterRange[1]).endOf('d').unix();
+  };
+
   const [count, cError] = await getRealTimeBillCountByOwner(getCountParams);
-  const [bills, bError] = await getRealTimeBillListByOwner(params);
-  if (!count || cError || !bills || bError) {
+  const getListParams: GetRealTimeBillListByOwnerParams = {
+    ...getCountParams,
+    page: curAllBillsPage,
+    per_page: allBillsPageSize
+  }
+  const [bills, bError] = await getRealTimeBillListByOwner(getListParams);
+  if (count === null || cError || bills === null || bError) {
     dispatch(setLoadingAllBills(false));
     return cError || bError;
   }
+  dispatch(setAllBillsCount({ loginAccount: getCountParams.owner, count }));
+  dispatch(setAllBills({ loginAccount: getCountParams.owner, bills: bills }));
   dispatch(setLoadingAllBills(false));
-  dispatch(setAllBillsCount({ loginAccount: params.owner, count }));
-  dispatch(setAllBills({ loginAccount: params.owner, bills: bills }));
 }
+
+export const {
+  setTotalCost,
+  setCurMonthTotalCosted,
+  setAllCostTrend,
+  setAccountCostTrend,
+  setLoadingAllCostTrend,
+  setLoadingAccountCostTrend,
+  setAccountBillsCount,
+  setAccountBills,
+  setCurrentAllBillsPage,
+  setCurrentAccountBillsPage,
+  setLoadingAccountBills,
+  setAllBills,
+  setAllBillsCount,
+  setLoadingAllBills,
+  setLoadingAllCost,
+  setAllFilterRange,
+  setAllFilterTypes,
+  setAllFilterAccounts,
+  setAccountFilterRange,
+  setAccountFilterTypes,
+  resetAllHistoryFilter,
+  resetAccountHistoryFilter
+} = billingSlice.actions;
 
 export default billingSlice.reducer;
