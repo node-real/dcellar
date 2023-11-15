@@ -6,7 +6,7 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import { Box, Flex, keyframes, Text } from '@totejs/uikit';
+import { Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
@@ -19,22 +19,35 @@ export type AlignType = 'left' | 'right' | 'center';
 interface DCTableProps extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
+type SimpleDCTableProps = DCTableProps & Omit<SimplePaginationProps, 'loading'>;
+type MultiDCTableProps = DCTableProps &
+  PaginationProps & {
+    pageChange: (page: number) => void;
+  };
 
-export const DCTable = memo<DCTableProps & Omit<SimplePaginationProps, 'loading'>>(
-  function DCTable({
-    renderEmpty,
-    pageSize,
-    pageChange,
-    canNext,
-    canPrev,
-    pagination = true,
-    dataSource,
-    ...props
-  }) {
+function isSimple(arg: SimpleDCTableProps | MultiDCTableProps): arg is SimpleDCTableProps {
+  return (arg as SimpleDCTableProps).canNext !== undefined;
+}
+
+export const DCTable = memo<SimpleDCTableProps | MultiDCTableProps>(function DCTable(props) {
+  if (isSimple(props)) {
+    const {
+      renderEmpty,
+      pageSize,
+      pageChange,
+      canNext,
+      canPrev,
+      pagination = true,
+      dataSource,
+      ...restProps
+    } = props;
     return (
-      <Container className="dc-table" rowCursor={typeof props.onRow === 'function' ? 'pointer' : 'default'}>
+      <Container
+        className="dc-table"
+        rowCursor={typeof props.onRow === 'function' ? 'pointer' : 'default'}
+      >
         <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
-          <Table dataSource={dataSource} {...props} pagination={false} tableLayout="fixed" />
+          <Table dataSource={dataSource} {...restProps} pagination={false} tableLayout="fixed" />
         </ConfigProvider>
         {pagination && (
           <SimplePagination
@@ -47,8 +60,44 @@ export const DCTable = memo<DCTableProps & Omit<SimplePaginationProps, 'loading'
         )}
       </Container>
     );
-  },
-);
+  } else {
+    const {
+      renderEmpty,
+      pagination = true,
+      current,
+      defaultCurrent,
+      total,
+      pageSize,
+      showQuickJumper,
+      pageChange,
+      dataSource,
+      ...restProps
+    } = props;
+
+    return (
+      <Container
+        className="dc-table"
+        rowCursor={typeof props.onRow === 'function' ? 'pointer' : 'default'}
+      >
+        <ConfigProvider renderEmpty={renderEmpty} theme={antdTheme}>
+          <Table dataSource={dataSource} {...restProps} pagination={false} tableLayout="fixed" />
+        </ConfigProvider>
+        {pagination && (
+          <Flex justifyContent={'flex-end'} paddingY={12} mr={16}>
+            <Pagination
+              current={current}
+              defaultCurrent={defaultCurrent}
+              total={total}
+              pageSize={pageSize}
+              showQuickJumper={showQuickJumper}
+              onChange={pageChange}
+            />
+          </Flex>
+        )}
+      </Container>
+    );
+  }
+});
 
 export const SealLoading = () => {
   const loading = keyframes`
@@ -182,7 +231,7 @@ export const SortItem = styled.span`
   }
 `;
 
-const Container = styled.div<{rowCursor: string}>`
+const Container = styled.div<{ rowCursor: string }>`
   border-radius: 4px;
   border: 1px solid var(--ui-colors-readable-border);
   background: #fff;

@@ -26,6 +26,8 @@ export type RawMonthlyBill = {
   ReadCost: string;
   StoreCost: string;
   TotalCost: string;
+  TxType: string;
+  TxHash: string;
 }
 
 export type GetMonthlyBillByOwnerResponse = { bills: RawMonthlyBill[] }[];
@@ -36,11 +38,13 @@ export type GetRealTimeBillCountByAddressParams = {
   address: string;
   start?: number;
   end?: number;
+  type?: string[];
 }
-export type GetRealTimeBillByAddressParams = GetRealTimeBillCountByAddressParams & {
+export type GetRealTimeBillListByAddressParams = GetRealTimeBillCountByAddressParams & {
   page: number;
   per_page: number;
 };
+
 export type RawRealTimeBill = {
   Address: string;
   Timestamp: string;
@@ -48,18 +52,22 @@ export type RawRealTimeBill = {
   StoreCost: string;
   TotalCost: string;
   Balance: string;
+  TxHash: string;
+  TxType: string;
 }
-export type GetRealTimeBillByAddressResponse = RawRealTimeBill[];
+export type GetRealTimeBillListByAddressResponse = RawRealTimeBill[];
 export type GetRealTimeBillByAddressCountParams = {
   address: string;
-  start: number;
-  end: number;
+  start?: number;
+  end?: number;
+  type?: string[];
 }
 export type GetRealTimeBillByOwnerCountParams = {
   owner: string;
   payments?: string[];
   start?: number;
   end?: number;
+  type?: string[];
 }
 export type GetRealTimeBillListByOwnerParams =  GetRealTimeBillByOwnerCountParams & {
   page: number;
@@ -104,7 +112,7 @@ export const getRealTimeBillCountByAddress = (params: GetRealTimeBillCountByAddr
   }, commonFault);
 }
 
-export const getRealTimeBillByAddress = (params: GetRealTimeBillByAddressParams): Promise<ErrorResponse | [GetRealTimeBillByAddressResponse, null]> => {
+export const getRealTimeBillByAddress = (params: GetRealTimeBillListByAddressParams): Promise<ErrorResponse | [GetRealTimeBillListByAddressResponse, null]> => {
   const url = `/api/bill_realtime/list/by_address/${params.address}`;
 
   return get({ url, data: params }).then((e) => {
@@ -114,7 +122,7 @@ export const getRealTimeBillByAddress = (params: GetRealTimeBillByAddressParams)
 
 
 export const getRealTimeBillCountByOwner = (params: GetRealTimeBillByOwnerCountParams): Promise<ErrorResponse | [number, null]> => {
-  const url = `/bill_realtime/count/by_owner/${params.owner}`;
+  const url = `/api/bill_realtime/count/by_owner/${params.owner}`;
 
   return get({ url, data: params }).then((e) => {
     return [e.result, null];
