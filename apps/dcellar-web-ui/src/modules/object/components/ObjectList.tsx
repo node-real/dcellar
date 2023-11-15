@@ -55,8 +55,19 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { formatBytes } from '@/utils/formatter';
 import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
 import dayjs from 'dayjs';
+import { Flex } from '@totejs/uikit';
+import { IconFont } from '@/components/IconFont';
 
 const Actions: MenuOption[] = [
+  {
+    label: (
+      <Flex alignItems={'center'}>
+        List for Sell
+        <IconFont ml={4} w={76} h={16} type="data-marketplace" />
+      </Flex>
+    ),
+    value: 'marketplace',
+  },
   { label: 'View Details', value: 'detail' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
@@ -244,6 +255,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const onMenuClick = async (menu: ObjectOperationsType, record: ObjectItem) => {
+    if (menu === 'marketplace') {
+      console.log('marketplace');
+      return;
+    }
     switch (menu) {
       case 'detail':
       case 'delete':
@@ -384,6 +399,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
             operations.push(item.value);
           }
         });
+
+        // filter marketplace
+        if (isFolder || !owner || !isSealed) {
+          fitActions = fitActions.filter((f) => f.value !== 'marketplace');
+        }
 
         return (
           <ActionMenu

@@ -6,7 +6,7 @@ import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 
 export type MenuOption = {
-  label: string;
+  label: ReactNode;
   value: string;
   variant?: 'danger';
   disabled?: boolean;

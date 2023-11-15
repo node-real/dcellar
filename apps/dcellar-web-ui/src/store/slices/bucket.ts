@@ -8,7 +8,7 @@ import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { setAuthModalOpen } from '@/store/slices/global';
 
-export type BucketOperationsType = 'detail' | 'delete' | 'create' | '';
+export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | '';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type AllBucketInfo = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];

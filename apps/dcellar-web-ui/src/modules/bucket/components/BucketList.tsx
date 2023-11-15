@@ -12,7 +12,7 @@ import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTa
 import { ColumnProps } from 'antd/es/table';
 import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { Text } from '@totejs/uikit';
+import { Flex, Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
@@ -22,8 +22,18 @@ import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
+import { IconFont } from '@/components/IconFont';
 
 const Actions: MenuOption[] = [
+  {
+    label: (
+      <Flex alignItems={'center'}>
+        List for Sell
+        <IconFont ml={4} w={76} h={16} type="data-marketplace" />
+      </Flex>
+    ),
+    value: 'marketplace',
+  },
   { label: 'View Details', value: 'detail' },
   { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
@@ -50,6 +60,10 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   };
 
   const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
+    if (menu === 'marketplace') {
+      console.log('marketplace');
+      return;
+    }
     return dispatch(setBucketOperation([record.BucketName, menu]));
   };
 
