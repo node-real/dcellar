@@ -18,6 +18,7 @@ import {
 import AccountDetailNav from './components/AccountDetailNav';
 import { AccountBillingHistory } from './components/AccountBillingHistory';
 import { useEffect } from 'react';
+import { NonRefundableModal } from './components/NonRefundableModal';
 
 const emptyObject = {};
 export const AccountDetail = () => {
