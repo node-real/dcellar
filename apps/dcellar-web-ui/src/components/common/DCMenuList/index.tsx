@@ -168,13 +168,13 @@ const StyledMenuList = styled(MenuList)`
   .menu-items {
     overflow: auto;
   }
-  
+
   .menu-items::-webkit-scrollbar {
-    width: 4px
-  },
+    width: 4px;
+  }
 
   .menu-items::-webkit-scrollbar-thumb {
     background: var(--ui-colors-readable-disable);
-    border-radius: 4px
-  },
+    border-radius: 4px;
+  }
 `;

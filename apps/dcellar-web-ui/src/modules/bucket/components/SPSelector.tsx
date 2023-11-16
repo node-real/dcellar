@@ -52,7 +52,7 @@ export function SPSelector(props: SPSelector) {
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
@@ -220,17 +220,21 @@ const A = styled.a`
   :hover {
     color: #00ba34;
   }
+
   margin-left: 4px;
 `;
 
 const TH = styled(Box)`
   padding: 8px;
+
   &:first-of-type {
     padding-left: 12px;
     padding-right: 12px;
   }
+
   svg {
     color: #aeb4bc;
+
     :hover {
       color: #76808f;
     }
