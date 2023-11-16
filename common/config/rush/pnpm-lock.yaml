@@ -26,7 +26,7 @@ importers:
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
       '@totejs/uikit': ~2.54.1
-      '@totejs/walletkit': 0.2.1
+      '@totejs/walletkit': 0.2.4
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -79,7 +79,7 @@ importers:
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
       '@totejs/uikit': 2.54.1_aa3274991927adc2766d9259998fdd18
-      '@totejs/walletkit': 0.2.1_e6fbba57495b6c86afc796bd86211ee8
+      '@totejs/walletkit': 0.2.4_e6fbba57495b6c86afc796bd86211ee8
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
       antd: 5.11.0_react-dom@18.2.0+react@18.2.0
@@ -3635,8 +3635,8 @@ packages:
       react-fast-compare: 3.2.2
     dev: false
 
-  /@totejs/walletkit/0.2.1_e6fbba57495b6c86afc796bd86211ee8:
-    resolution: {integrity: sha512-CKaoFhNK5GFFFWXnr0HQ0uCti3ZCWPsxdjOhiX9DzWIfaAOpMq3vz17rZZijZqv+OC3+WQVbZ0e3MdzNqPTAig==}
+  /@totejs/walletkit/0.2.4_e6fbba57495b6c86afc796bd86211ee8:
+    resolution: {integrity: sha512-xdsv8FT904xdz/Vd+qoRcdhALobjd3dY6ImxcWo4NY8iu3ZndL0llAD9NPxQf5C3DPITJ3txDz7EB+cy6KXx0g==}
     peerDependencies:
       ethers: ^5
       react: '>=17'

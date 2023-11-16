@@ -25,6 +25,9 @@ const client = createClient(
 
 const options: WalletKitOptions = {
   initialChainId: GREENFIELD_CHAIN_ID,
+  closeModalAfterConnected: false,
+  closeModalOnEsc: false,
+  closeModalOnOverlayClick: false,
   disclaimer: (
     <Text>
       By connecting your wallet, you agree to our{' '}
