@@ -15,7 +15,7 @@ import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/ty
 import { getObjectPolicies } from '@/facade/bucket';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
-export const SELECT_OBJECT_NUM_LIMIT = 10;
+export const SELECT_OBJECT_NUM_LIMIT = 20;
 
 export type ObjectItem = {
   bucketName: string;
@@ -44,6 +44,7 @@ export type ObjectActionType = 'view' | 'download' | '';
 
 export type ObjectOperationsType =
   | 'detail'
+  | 'folder_detail'
   | 'delete'
   | 'share'
   | 'download'
@@ -59,6 +60,9 @@ export type TEditUploadContent = {
   totalFee: string;
   isBalanceAvailable: boolean;
 };
+
+export type ObjectFilterSize = { value: number | null; unit: '1' | '1024' };
+
 export interface ObjectState {
   bucketName: string;
   folders: string[];
@@ -76,6 +80,12 @@ export interface ObjectState {
   objectPoliciesPage: number;
   objectOperation: Record<0 | 1, [string, ObjectOperationsType, Record<string, any>?]>;
   selectedShareMembers: string[];
+  filterText: string;
+  filterExpand: boolean;
+  filterTypes: Array<string>;
+  filterRange: [string, string];
+  filterSizeFrom: ObjectFilterSize;
+  filterSizeTo: ObjectFilterSize;
 }
 
 const initialState: ObjectState = {
@@ -95,12 +105,43 @@ const initialState: ObjectState = {
   objectPoliciesPage: 0,
   objectOperation: { 0: ['', '', {}], 1: ['', '', {}] },
   selectedShareMembers: [],
+  filterText: '',
+  filterExpand: false,
+  filterTypes: [],
+  filterRange: ['', ''],
+  filterSizeFrom: { value: null, unit: '1' },
+  filterSizeTo: { value: null, unit: '1024' },
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setFilterSizeFrom(state, { payload }: PayloadAction<ObjectFilterSize>) {
+      state.filterSizeFrom = payload;
+    },
+    setFilterSizeTo(state, { payload }: PayloadAction<ObjectFilterSize>) {
+      state.filterSizeTo = payload;
+    },
+    setFilterRange(state, { payload }: PayloadAction<[string, string]>) {
+      state.filterRange = payload;
+    },
+    setFilterTypes(state, { payload }: PayloadAction<string[]>) {
+      state.filterTypes = payload;
+    },
+    setFilterExpand(state, { payload }: PayloadAction<boolean>) {
+      state.filterExpand = payload;
+    },
+    setFilterText(state, { payload }: PayloadAction<string>) {
+      state.filterText = payload;
+    },
+    resetObjectListFilter(state) {
+      state.filterText = '';
+      state.filterTypes = [];
+      state.filterRange = ['', ''];
+      state.filterSizeFrom = { ...state.filterSizeFrom, value: null };
+      state.filterSizeTo = { ...state.filterSizeTo, value: null };
+    },
     setSelectedShareMembers(state, { payload }: PayloadAction<string[]>) {
       state.selectedShareMembers = payload;
     },
@@ -404,6 +445,13 @@ export const {
   setObjectPoliciesPage,
   setObjectOperation,
   setSelectedShareMembers,
+  setFilterText,
+  setFilterExpand,
+  setFilterTypes,
+  setFilterRange,
+  setFilterSizeFrom,
+  setFilterSizeTo,
+  resetObjectListFilter,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

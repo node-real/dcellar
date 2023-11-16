@@ -1,11 +1,8 @@
-import { getTimestampInSeconds } from '@/utils/time';
 import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect } from 'ahooks';
-import { getStoreFeeParams } from '@/facade/payment';
 import { useState } from 'react';
-import { GAS_PRICE, TStoreFeeParams } from '@/store/slices/global';
-import { getBnbPrice, getGasFees } from '@/facade/common';
+import { selectBnbPrice, selectMainnetStoreFeeParams } from '@/store/slices/global';
 import { assetPrefix } from '@/base/env';
 import { FAQ } from './components/FAQ';
 import { SPFreeQuota } from './components/SPFreeQuota';
@@ -16,6 +13,7 @@ import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { keyBy } from 'lodash-es';
 import { SEOHead } from './components/SEOHead';
+import { useAppSelector } from '@/store';
 
 type TQuotaSP = {
   name: string;
@@ -56,25 +54,29 @@ export const PriceResponsiveContainer = ({ children, sx, ...restProps }: PriceRe
 };
 
 export const PriceCalculator = () => {
-  const [storeParams, setStoreParams] = useState({} as TStoreFeeParams);
-  const [bnbPrice, setBnbPrice] = useState('0');
   const [sps, setSps] = useState<TQuotaSP[]>([]);
-  const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
+  const [openKeys, setOpenKeys] = useState<number[]>([]);
+  const toggleOpenKeys = (key: number) => {
+    if (openKeys.includes(key)) {
+      return setOpenKeys(openKeys.filter(item => item !== key))
+    }
+    setOpenKeys([...openKeys, key]);
+  }
+  const onOpenKey = (key: number) => {
+    setOpenKeys(Array.from(new Set([key])))
+  }
+  const mainnetStoreFeeParams = useAppSelector(selectMainnetStoreFeeParams);
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  // const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
+  // useAsyncEffect(async () => {
+  //   const [gasFees, error] = await getGasFees('mainnet');
+  //   const gasLimit =
+  //     gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
+  //       .low || DEFAULT_GAS_LIMIT;
+  //   const gasFee = +GAS_PRICE * gasLimit;
+  //   setGasFee(gasFee + '');
+  // }, []);
   useAsyncEffect(async () => {
-    console.time('getStoreFeeParams');
-    const latestStoreParams = await getStoreFeeParams({network: 'mainnet'});
-    console.timeEnd('getStoreFeeParams');
-    setStoreParams(latestStoreParams);
-  }, []);
-  useAsyncEffect(async () => {
-    const bnbPrice = await getBnbPrice();
-    setBnbPrice(bnbPrice.price);
-    const [gasFees, error] = await getGasFees('mainnet');
-    const gasLimit =
-      gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
-        .low || DEFAULT_GAS_LIMIT;
-    const gasFee = +GAS_PRICE * gasLimit;
-    setGasFee(gasFee + '');
     const sps = await getStorageProviders('mainnet');
     const spMeta = await getSpMeta('mainnet');
     const keySpMeta = keyBy(spMeta, 'SPAddress');
@@ -86,7 +88,7 @@ export const PriceCalculator = () => {
       };
     });
     setSps(fullSps);
-  }, []);
+  }, [])
 
   return (
     <>
@@ -113,11 +115,11 @@ export const PriceCalculator = () => {
           }}
         >
           <Banner />
-          <Calculator storeParams={storeParams} bnbPrice={bnbPrice} gasFee={gasFee} />
+          <Calculator onOpenKey={onOpenKey} storeParams={mainnetStoreFeeParams} bnbPrice={bnbPrice} />
         </Flex>
-        <PricingCard storeParams={storeParams} />
+        <PricingCard storeParams={mainnetStoreFeeParams} />
         <SPFreeQuota sps={sps} />
-        <FAQ />
+        <FAQ openKeys={openKeys} toggleOpenKeys={toggleOpenKeys} />
         <StartBuild />
       </Flex>
     </>

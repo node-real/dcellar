@@ -18,18 +18,21 @@ import { Flex, Tooltip } from '@totejs/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
-import { getPrimarySpInfo } from '@/store/slices/sp';
+import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';
 import { IconFont } from '@/components/IconFont';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
+import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
   const { bucketInfo, owner } = useAppSelector((root) => root.bucket);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
+  const { allSps } = useAppSelector((root) => root.sp);
   const router = useRouter();
   const { path } = router.query;
   const items = path as string[];
@@ -46,10 +49,11 @@ export const ObjectsPage = () => {
 
   useAsyncEffect(async () => {
     if (!bucket) return;
-    // 1. set global primary sp info
-    dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
-    // 2. set payment account infos
-    dispatch(setupAccountDetail(bucket.PaymentAddress));
+    // 1. Save cur bucket primary sp info.
+    const sp = allSps.find((item) => +item.id === +bucket.Vgf.PrimarySpId) as SpItem;
+    dispatch(setPrimarySpInfo({ bucketName, sp }));
+    // 2. Set cur bucket payment account info.
+    dispatch(setupAccountInfo(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {
@@ -57,7 +61,6 @@ export const ObjectsPage = () => {
     if (bucket) {
       const Owner = bucket.Owner;
       const payload = {
-        // @ts-ignore
         discontinue: bucket.BucketStatus === 1,
         owner: Owner === loginAccount,
       };
@@ -84,9 +87,8 @@ export const ObjectsPage = () => {
       <PanelContainer>
         <Flex justifyContent="space-between" alignItems="center">
           <ObjectBreadcrumb />
-          {owner && <QuotaCard />}
         </Flex>
-        <PanelContent>
+        <Flex my={16} h={49} justifyContent="space-between" alignItems="center">
           <GoBack onClick={goBack}>
             <IconFont type="backward" w={24} />
             {selected > 0 ? (
@@ -103,6 +105,10 @@ export const ObjectsPage = () => {
               </Tooltip>
             )}
           </GoBack>
+          {owner && <QuotaCard />}
+        </Flex>
+        <PanelContent>
+          <ObjectListFilter />
           <NewObject
             showRefresh={true}
             gaFolderClickName="dc.file.list.create_folder.click"
@@ -110,6 +116,9 @@ export const ObjectsPage = () => {
           />
         </PanelContent>
       </PanelContainer>
+
+      <ObjectFilterItems />
+
       {owner ? (
         <InsufficientBalance />
       ) : (

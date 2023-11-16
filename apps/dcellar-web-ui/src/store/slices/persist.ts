@@ -38,6 +38,8 @@ export interface PersistState {
   objectPageSize: number;
   bucketPageSize: number;
   PAPageSize: number;
+  allBillsPageSize: number;
+  accountBillsPageSize: number;
   paymentAccountSortBy: SorterType;
 }
 
@@ -51,8 +53,10 @@ const initialState: PersistState = {
   objectPageSize: 50,
   groupSortBy: ['id', 'descend'],
   groupPageSize: 20,
-  paymentAccountSortBy: ['name', 'ascend'],
+  paymentAccountSortBy: ['account', 'ascend'],
   PAPageSize: 20,
+  allBillsPageSize: 20,
+  accountBillsPageSize: 20,
 };
 
 export const persistSlice = createSlice({
@@ -79,6 +83,12 @@ export const persistSlice = createSlice({
     },
     updatePAPageSize(state, { payload }: PayloadAction<number>) {
       state.PAPageSize = payload;
+    },
+    updateAllBillsPageSize(state, { payload }: PayloadAction<number>) {
+      state.allBillsPageSize = payload;
+    },
+    updateAccountBillsPageSize(state, { payload }: PayloadAction<number>) {
+      state.accountBillsPageSize = payload;
     },
     updateBucketSorter(state, { payload }: PayloadAction<SorterType>) {
       state.bucketSortBy = payload;
@@ -179,7 +189,7 @@ export const checkSpOffChainMayExpired =
     const { accounts, faultySps } = getState().persist;
     const config = accounts[address] || getDefaultAccountConfig();
     const allSps = getState().sp.allSps ?? [];
-    const { offchain, sps } = config;
+    const { offchain = [], sps = [] } = config;
     const curTime = getTimestamp();
     const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
     const hasNewSp = allSps.some(
@@ -198,6 +208,8 @@ export const {
   setFaultySps,
   updatePASorter,
   updatePAPageSize,
+  updateAllBillsPageSize,
+  updateAccountBillsPageSize,
   updateBucketPageSize,
   updateObjectSorter,
   updateObjectPageSize,

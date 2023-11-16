@@ -49,7 +49,11 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
             </Text>
           </>
         );
-      case 'READY':
+      case 'HASHED':
+        return <UploadProgress value={0} />;
+      case 'SIGN':
+        return <UploadProgress value={0} />;
+      case 'SIGNED':
         return <UploadProgress value={0} />;
       case 'UPLOAD':
         return <UploadProgress value={task.progress || 0} />;
@@ -72,28 +76,6 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
         return null;
     }
   }, []);
-
-  // if (!queue.length) {
-  //   return (
-  //     <>
-  //       <QDrawerHeader>Task Management</QDrawerHeader>
-  //       <QDrawerBody>
-  //         <Flex
-  //           flexDirection={'column'}
-  //           width={'100%'}
-  //           height={'100%'}
-  //           alignItems={'center'}
-  //           justifyContent={'center'}
-  //         >
-  //           <IconFont type="empty-upload" w={120} />
-  //           <Text marginTop={'16px'} fontWeight={500} color={'readable.secondary'}>
-  //             You don't have upload tasks.
-  //           </Text>
-  //         </Flex>
-  //       </QDrawerBody>
-  //     </>
-  //   );
-  // }
 
   return (
     <>

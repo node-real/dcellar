@@ -8,7 +8,7 @@ import { ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/u
 export const DisconnectWalletModal = () => {
   const dispatch = useAppDispatch();
   const { logout } = useLogin();
-  const { disconnectWallet } = useAppSelector((state) => state.global);
+  const { disconnectWallet } = useAppSelector((root) => root.global);
   const onClose = () => {
     dispatch(setDisconnectWallet(false));
   };

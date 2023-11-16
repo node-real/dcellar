@@ -1,16 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { getBucketReadQuota, getUserBuckets, headBucket } from '@/facade/bucket';
+import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
 import { toast } from '@totejs/uikit';
-import { find, omit } from 'lodash-es';
+import { find, isEmpty, omit } from 'lodash-es';
 import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
-import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import {
-  SourceType,
-  VisibilityType,
-} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { setAuthModalOpen } from '@/store/slices/global';
 
 export type BucketOperationsType = 'detail' | 'delete' | 'create' | '';
@@ -79,25 +74,15 @@ export const bucketSlice = createSlice({
     setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
       state.quotaLoading = payload;
     },
-    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: BucketInfo }>) {
+    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: AllBucketInfo }>) {
       const { address, bucket } = payload;
       if (!address) return;
-      const bucketName = bucket.bucketName;
+      const bucketName = bucket.BucketName;
       const info = state.bucketInfo[bucketName];
       const newInfo = {
         ...info,
-        Owner: bucket.owner,
-        BucketName: bucket.bucketName,
-        Visibility: VisibilityType[bucket.visibility] as keyof typeof VisibilityType,
-        Id: bucket.id,
-        SourceType: SourceType[bucket.sourceType] as keyof typeof SourceType,
-        CreateAt: bucket.createAt.toNumber(),
-        PaymentAddress: bucket.paymentAddress,
-        BucketStatus: Number(bucket.bucketStatus),
-        GlobalVirtualGroupFamilyId: bucket.globalVirtualGroupFamilyId,
-        ChargedReadQuota: bucket.chargedReadQuota.toNumber(),
+        ...bucket,
       };
-      // @ts-ignore
       state.bucketInfo[bucketName] = newInfo;
       state.owner = address === newInfo.Owner;
       state.discontinue = newInfo.BucketStatus === 1;
@@ -133,11 +118,14 @@ export const selectHasDiscontinue = (address: string) => (root: AppState) =>
 
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const bucket = await headBucket(bucketName);
+    const [res, error] = await getUserBucketMeta(bucketName, '');
+    if (error || isEmpty(res?.body)) return 'Bucket no exist';
+    const bucket = {
+      ...res?.body?.GfSpGetBucketMetaResponse.Bucket,
+      ...res?.body?.GfSpGetBucketMetaResponse.Bucket.BucketInfo,
+    } as AllBucketInfo;
     const { loginAccount } = getState().persist;
-
-    if (!bucket) return 'Bucket no exist';
-    dispatch(setBucketInfo({ address: address || loginAccount, bucket }));
+    dispatch(setBucketInfo({ address: address || loginAccount, bucket: bucket }));
   };
 
 export const setupBuckets =
@@ -173,7 +161,7 @@ export const setupBuckets =
 
     const bucketSpInfo = bucketList.map((b) => ({
       bucketName: b.BucketInfo.BucketName,
-      sp: find<SpItem>(allSps, (sp) => sp.id === b.Vgf.PrimarySpId)!,
+      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
     }));
 
     dispatch(setPrimarySpInfos(bucketSpInfo));
@@ -202,7 +190,7 @@ export const setupBucketQuota =
     });
     dispatch(setQuotaLoading(false));
     if (quota === null) {
-      if (error === 'invalid signature') {
+      if (['invalid signature', 'user public key is expired'].includes(error)) {
         dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
       } else {
         console.error({ description: error || 'Get bucket read quota error' });

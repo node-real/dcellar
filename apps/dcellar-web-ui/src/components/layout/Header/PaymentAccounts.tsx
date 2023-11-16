@@ -2,9 +2,8 @@ import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBankBalance,
-  setupAccountDetail,
-  setupOAList,
-  setupPaymentAccounts,
+  setupAccountInfo,
+  setupOwnerAccount,
 } from '@/store/slices/accounts';
 import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
@@ -14,17 +13,15 @@ import { useBalance } from 'wagmi';
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
   const { asPath } = useRouter();
-  const { loginAccount } = useAppSelector((state) => state.persist);
-  const { bucketInfo } = useAppSelector((state) => state.bucket);
-  const { bucketName } = useAppSelector((state) => state.object);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const { bucketName } = useAppSelector((root) => root.object);
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
-    // TODO opt balance to a new component
     dispatch(setupBnbPrice());
-    dispatch(setupOAList());
-    dispatch(setupPaymentAccounts());
-    dispatch(setupAccountDetail(loginAccount));
+    dispatch(setupOwnerAccount());
+    // dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
 
   const { data: gnfdBalance, refetch } = useBalance({
@@ -47,7 +44,7 @@ export const PaymentAccounts = () => {
 
   useThrottleEffect(() => {
     const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;
-    paymentAddress && dispatch(setupAccountDetail(paymentAddress));
+    paymentAddress && dispatch(setupAccountInfo(paymentAddress));
   }, [asPath]);
 
   return <></>;

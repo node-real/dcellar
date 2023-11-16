@@ -77,8 +77,6 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
 
-    console.log(bucketName, objectName);
-
     const [_, accessError, objectInfo, quota] = await getCanObjectAccess(
       bucketName,
       objectName,

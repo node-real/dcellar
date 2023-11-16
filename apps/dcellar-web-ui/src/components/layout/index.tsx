@@ -15,7 +15,7 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
       <LayoutNav>
         <Nav />
       </LayoutNav>
-      <Content>{children}</Content>
+      <Content id={'layout-main'}>{children}</Content>
     </LayoutContainer>
   );
 });
@@ -59,7 +59,8 @@ const LayoutNav = styled.nav`
 const Content = styled.main`
   grid-area: Content;
   background: var(--ui-colors-bg-middle);
-  padding: 16px 24px;
+  padding: 24px;
   position: relative;
   z-index: 1;
+  min-width: 763px;
 `;

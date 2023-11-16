@@ -22,6 +22,7 @@ export const Fees = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+  const { objectOperation } = useAppSelector((root) => root.object);
   const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
   const bucket = useAppSelector(selectLocateBucket);
@@ -67,12 +68,17 @@ export const Fees = () => {
     return calRes;
   }, [waitQueue, isChecking, storeFeeParams]);
 
-  const gasFee = isChecking
-    ? -1
-    : BN(waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length)
-        .times(singleTxGasFee)
-        .plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
-        .toString(DECIMAL_NUMBER);
+  const gasFee = useMemo(() => {
+    if (isChecking) return -1;
+    const waitUploadCount = waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length;
+    if (waitUploadCount === 1) {
+      return singleTxGasFee;
+    }
+
+    return BN(waitUploadCount).times(singleTxGasFee).plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
+      .toString(DECIMAL_NUMBER);
+  }, [createTmpAccountGasFee, isChecking, singleTxGasFee, waitQueue]);
+
   const isBalanceAvailable = useMemo(() => {
     if (isOwnerAccount) {
       return (
@@ -93,8 +99,11 @@ export const Fees = () => {
     }
   }, [bankBalance, gasFee, isOwnerAccount, storeFee, payStoreFeeAccount?.staticBalance]);
 
+  const operationName = objectOperation[0][1];
+
   useEffect(() => {
-    if (gasFee && storeFee) {
+    // when drawer unmounted stop update
+    if (gasFee && storeFee && operationName === 'upload') {
       dispatch(
         setObjectOperation({
           operation: [
@@ -110,7 +119,15 @@ export const Fees = () => {
         }),
       );
     }
-  }, [availableBalance, dispatch, gasFee, isBalanceAvailable, settlementFee, storeFee]);
+  }, [
+    availableBalance,
+    dispatch,
+    gasFee,
+    isBalanceAvailable,
+    settlementFee,
+    storeFee,
+    operationName,
+  ]);
 
   return (
     <>

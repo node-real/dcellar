@@ -61,7 +61,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
         address: loginAccount,
       };
       const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
-      if (error === 'invalid signature') {
+      if (error === 'invalid signature' || error === 'user public key is expired') {
         return onError(E_OFF_CHAIN_AUTH);
       }
       if (objectInfo === null) {
@@ -111,12 +111,6 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
       <Link
         href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
-          if (!owner) {
-            toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
-            e.stopPropagation();
-            e.preventDefault();
-            return;
-          }
           if (disabled) {
             e.stopPropagation();
             e.preventDefault();
@@ -126,6 +120,12 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
           if (folder) {
             const path = trimEnd([bucketName, objectName].join('/'), '/');
             dispatch(setCurrentObjectPage({ path, current: 0 }));
+            return;
+          }
+          if (!owner) {
+            toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
+            e.stopPropagation();
+            e.preventDefault();
             return;
           }
           e.preventDefault();

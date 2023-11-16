@@ -26,120 +26,21 @@ import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { AllBucketInfo, setReadQuota } from '@/store/slices/bucket';
-import { TAccountDetail } from '@/store/slices/accounts';
+import { TAccountInfo } from '@/store/slices/accounts';
 import { SpItem } from '@/store/slices/sp';
 import { last } from 'lodash-es';
 import { formatBytes } from '@/utils/formatter';
 import { IconFont } from '@/components/IconFont';
-
-const renderPropRow = (key: string, value: React.ReactNode) => {
-  return (
-    <Flex alignItems="center" justifyContent="space-between" h={25}>
-      <Text
-        noOfLines={1}
-        fontWeight={500}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        color={'readable.tertiary'}
-        width="200px"
-        mr="16px"
-      >
-        {key}
-      </Text>
-      {value}
-    </Flex>
-  );
-};
-
-const renderAddressLink = (
-  key: string,
-  value: string,
-  gaClickName?: string,
-  gaCopyClickName?: string,
-  type = 'account',
-) => {
-  return (
-    <Flex alignItems="center" justifyContent="space-between" h={25}>
-      <Text
-        noOfLines={1}
-        fontWeight={500}
-        fontSize={'14px'}
-        lineHeight={'17px'}
-        color={'readable.tertiary'}
-        width="200px"
-        mr="16px"
-      >
-        {key}
-      </Text>
-      {renderAddressWithLink(value, type, gaClickName, gaCopyClickName)}
-    </Flex>
-  );
-};
-
-const renderAddressWithLink = (
-  address: string,
-  type: string,
-  gaClickName?: string,
-  gaCopyClickName?: string,
-) => {
-  return (
-    <CopyText value={formatAddress(address)} gaClickName={gaCopyClickName}>
-      <GAClick name={gaClickName}>
-        <Link
-          target="_blank"
-          color="#1184EE"
-          cursor={'pointer'}
-          textDecoration={'underline'}
-          _hover={{
-            color: '#3C9AF1',
-          }}
-          href={`${GREENFIELD_CHAIN_EXPLORER_URL}/${type}/${address}`}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          fontWeight={500}
-        >
-          {trimAddress(address, 28, 15, 13)}
-        </Link>
-      </GAClick>
-    </CopyText>
-  );
-};
-
-const renderUrlWithLink = (
-  encodedText: string,
-  needSlim = true,
-  reservedNumber = 32,
-  gaClickName?: string,
-  gaCopyClickName?: string,
-) => {
-  const finalText = needSlim ? encodedText.substring(0, reservedNumber) + '...' : encodedText;
-  return (
-    <CopyText value={encodedText} justifyContent="flex-end" gaClickName={gaCopyClickName}>
-      <GAClick name={gaClickName}>
-        <Link
-          target="_blank"
-          color="#1184EE"
-          cursor={'pointer'}
-          textDecoration={'underline'}
-          _hover={{
-            color: '#1184EE',
-          }}
-          href={encodedText}
-          fontSize={'14px'}
-          lineHeight={'17px'}
-          fontWeight={500}
-        >
-          {finalText}
-        </Link>
-      </GAClick>
-    </CopyText>
-  );
-};
+import {
+  renderAddressLink,
+  renderPropRow,
+  renderUrlWithLink,
+} from '@/modules/object/components/renderRows';
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: AllBucketInfo;
-  bucketAccountDetail: TAccountDetail;
+  bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
 }
 
@@ -214,37 +115,35 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
     <>
       <QDrawerHeader>Object Detail</QDrawerHeader>
       <QDrawerBody>
-        <Flex mb={24} flexDirection={'column'} alignItems={'center'} display={'flex'}>
-          <Flex w="100%" overflow="hidden">
-            <IconFont type="detail-object" w={48} mr={24} />
-            <Flex flex={1} flexDirection={'column'}>
-              <Text
-                fontSize={18}
-                fontWeight={600}
-                lineHeight="normal"
-                wordBreak={'break-all'}
-                color={'readable.normal'}
-                mb="8px"
-                w={'100%'}
-              >
-                {name}
-              </Text>
-              <Text
-                fontSize={14}
-                lineHeight="normal"
-                fontWeight={500}
-                wordBreak={'break-all'}
-                color={'readable.tertiary'}
-                w={'100%'}
-                as="div"
-              >
-                {formatBytes(objectInfo.PayloadSize)}
-              </Text>
-            </Flex>
+        <Flex mb={24}>
+          <IconFont type="detail-object" w={48} mr={24} />
+          <Flex flex={1} flexDirection={'column'}>
+            <Text
+              fontSize={18}
+              fontWeight={600}
+              lineHeight="normal"
+              wordBreak={'break-all'}
+              color={'readable.normal'}
+              mb="8px"
+              w={'100%'}
+            >
+              {name}
+            </Text>
+            <Text
+              fontSize={14}
+              lineHeight="normal"
+              fontWeight={500}
+              wordBreak={'break-all'}
+              color={'readable.tertiary'}
+              w={'100%'}
+              as="div"
+            >
+              {formatBytes(objectInfo.PayloadSize)}
+            </Text>
           </Flex>
         </Flex>
         <Divider />
-        <Flex my={8} w="100%" overflow="hidden" gap={8} flexDirection={'column'}>
+        <Flex my={8} gap={8} flexDirection={'column'}>
           {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
           {renderAddressLink(
             'Object ID',
@@ -258,12 +157,6 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
             primarySp.operatorAddress,
             'dc.file.f_detail_pop.spadd.click',
             'dc.file.f_detail_pop.copy_spadd.click',
-          )}
-          {renderAddressLink(
-            'Primary SP seal address',
-            primarySp.operatorAddress,
-            'dc.file.f_detail_pop.seal.click',
-            'dc.file.f_detail_pop.copy_seal.click',
           )}
           {renderAddressLink(
             'Payment address',

@@ -13,6 +13,8 @@ export const antdTheme: ThemeConfig = {
     colorError: '#EE3911',
     colorErrorBorderHover: '#FC6E75',
     borderRadius: 4,
+    boxShadowSecondary: '0px 4px 24px 0px rgba(0, 0, 0, 0.08)',
+    boxShadowTertiary: '',
   },
   components: {
     Tooltip: {
@@ -24,6 +26,12 @@ export const antdTheme: ThemeConfig = {
       colorBorder: '#E6E8EA',
       fontSize: 14,
       lineHeight: 1.214,
+    },
+    DatePicker: {
+      borderRadiusSM: 2,
+      cellActiveWithRangeBg: '#E5F8EB',
+      cellHoverWithRangeBg: '#CEF2D9',
+      cellRangeBorderColor: '#E6E8EA',
     },
   },
 };

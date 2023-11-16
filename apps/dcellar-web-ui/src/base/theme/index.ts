@@ -23,6 +23,19 @@ export const theme: Theme = {
         },
       },
       body: {
+        '.cw-wallet-button': {
+          borderRadius: 4,
+        },
+        '.cw-description': {
+          color: 'readable.tertiary',
+        },
+        '.object-list-date-filter .ant-picker-range-arrow': {
+          display: 'none !important',
+        },
+        '.object-list-date-filter .ant-picker-range-wrapper': {
+          border: '1px solid readable.border',
+          borderRadius: 4,
+        },
         // todo refactor
         bg: 'bg.middle',
         '.ui-toast-manager': {

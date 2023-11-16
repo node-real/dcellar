@@ -225,7 +225,12 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       >
         <div>
           <GAClick name={gaFolderClickName}>
-            <DCButton variant="second" onClick={onOpenCreateFolder} disabled={disabled}>
+            <DCButton
+              whiteSpace="nowrap"
+              variant="second"
+              onClick={onOpenCreateFolder}
+              disabled={disabled}
+            >
               Create Folder
             </DCButton>
           </GAClick>

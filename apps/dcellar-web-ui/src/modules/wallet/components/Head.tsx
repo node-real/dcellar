@@ -1,21 +1,13 @@
-import { Link, Text } from '@totejs/uikit';
-import React, { memo } from 'react';
+import { Text } from '@totejs/uikit';
+import { memo } from 'react';
 import { useAppSelector } from '@/store';
-import { runtimeEnv } from '@/base/env';
 
 const HeadContent = {
   transfer_in: {
     title: 'transfer in',
     subtitle: (
       <>
-        Transfer BNB from BNB Smart Chain to your BNB Greenfield account{' '}
-        {runtimeEnv === 'testnet' ? (
-          <Link target="_blank" textDecoration={'underline'} href="https://testnet.bnbchain.org/faucet-smart">
-            faucet
-          </Link>
-        ) : (
-          ''
-        )}.
+        Transfer BNB from BNB Smart Chain to your BNB Greenfield account.
       </>
     ),
   },

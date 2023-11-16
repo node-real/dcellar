@@ -4,9 +4,11 @@ import {
   progressFetchList,
   refreshTaskFolder,
   selectHashTask,
+  selectSignTask,
   selectUploadQueue,
   setupUploadTaskErrorMsg,
   updateUploadChecksum,
+  updateUploadCreateHash,
   updateUploadProgress,
   updateUploadStatus,
   UploadFile,
@@ -25,7 +27,7 @@ import { parseErrorXml } from '@/utils/common';
 import { isEmpty, keyBy } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
-import { setupAccountDetail } from '@/store/slices/accounts';
+import { setupAccountInfo } from '@/store/slices/accounts';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
@@ -44,37 +46,22 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
+  const signTask = useAppSelector(selectSignTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
   const [authModal, setAuthModal] = useState(false);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
-  const folderInfos = keyBy(
-    queue.filter((q) => q.waitFile.name.endsWith('/')),
-    'name',
-  );
-  const upload = queue.filter((t) => t.status === 'UPLOAD');
-  const ready = queue.filter((t) => {
-    const isFolder = t.waitFile.name.endsWith('/');
-    const parentFolder = isFolder
-      ? t.waitFile.name.split('/').slice(0, -1).join('/') + '/'
-      : t.waitFile.relativePath + '/';
-    if (!folderInfos[parentFolder]) {
-      return t.status === 'READY';
-    }
-    if (t.waitFile.relativePath && folderInfos[parentFolder]) {
-      return folderInfos[parentFolder].status === 'FINISH' && t.status === 'READY';
-    }
-  });
-  const offset = 1 - upload.length;
-
+  const uploadQueue = queue.filter((t) => t.status === 'UPLOAD');
+  const signedQueue = queue.filter((t) => t.status === 'SIGNED');
+  const uploadOffset = 1 - uploadQueue.length;
   const select1Task = useMemo(() => {
-    if (offset <= 0) return [];
-    return ready.slice(0, offset).map((p) => p.id);
-  }, [offset, ready]);
-
+    if (uploadOffset <= 0) return [];
+    return signedQueue.slice(0, uploadOffset).map((p) => p.id);
+  }, [uploadOffset, signedQueue]);
   const sealQueue = queue.filter((q) => q.status === 'SEAL').map((s) => s.id);
 
+  // 1. hash
   useAsyncEffect(async () => {
     if (!hashTask) return;
     dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
@@ -107,70 +94,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
 
   const runUploadTask = async (task: UploadFile) => {
     if (authModal) return;
-    // 1. get approval from sp
-    const isFolder = task.waitFile.name.endsWith('/');
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
-    const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
-      .filter((item) => !!item)
-      .join('/');
-    const createObjectPayload: CreateObjectApprovalRequest = {
-      bucketName: task.bucketName,
-      objectName: finalName,
-      creator: tmpAccount.address,
-      visibility: reverseVisibilityType[task.visibility],
-      fileType: task.waitFile.type || 'application/octet-stream',
-      contentLength: task.waitFile.size,
-      expectCheckSums: task.checksum,
-    };
-    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
-      type: 'ECDSA',
-      privateKey: tmpAccount.privateKey,
-    }).then(resolve, createTxFault);
-    if (_createError) {
-      return dispatch(
-        setupUploadTaskErrorMsg({
-          account: loginAccount,
-          task,
-          errorMsg: _createError,
-        }),
-      );
-    }
-
-    const [simulateInfo, simulateError] = await createObjectTx!
-      .simulate({
-        denom: 'BNB',
-      })
-      .then(resolve, simulateFault);
-    if (!simulateInfo || simulateError) {
-      return dispatch(
-        setupUploadTaskErrorMsg({
-          account: loginAccount,
-          task,
-          errorMsg: simulateError,
-        }),
-      );
-    }
-
-    const broadcastPayload = {
-      denom: 'BNB',
-      gasLimit: Number(simulateInfo?.gasLimit),
-      gasPrice: simulateInfo?.gasPrice || '5000000000',
-      payer: tmpAccount.address,
-      granter: loginAccount,
-      privateKey: tmpAccount.privateKey,
-    };
-    const [res, error] = await createObjectTx!
-      .broadcast(broadcastPayload)
-      .then(resolve, broadcastFault);
-    if (!res || error) {
-      return dispatch(
-        setupUploadTaskErrorMsg({
-          account: loginAccount,
-          task,
-          errorMsg: error,
-        }),
-      );
-    }
     const fullObjectName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
       .join('/');
@@ -179,7 +103,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       objectName: fullObjectName,
       body: task.waitFile.file,
       endpoint: spInfo[task.spAddress].endpoint,
-      txnHash: res.transactionHash,
+      txnHash: task.createHash,
     };
     const authType = {
       type: 'EDDSA',
@@ -202,6 +126,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       );
     }
     const { url, headers } = uploadOptions;
+    const isFolder = task.waitFile.name.endsWith('/');
     if (isFolder) {
       dispatch(
         updateUploadStatus({
@@ -236,7 +161,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
-          const authExpired = message?.includes('invalid signature');
+          const authExpired =
+            message?.includes('invalid signature') ||
+            message?.includes('user public key is expired');
           if (authExpired) {
             setOpenAuthModal();
             setAuthModal(true);
@@ -256,6 +183,85 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         });
     }
   };
+  // 2. sign
+  useAsyncEffect(async () => {
+    const task = signTask;
+    if (!task) return;
+    dispatch(updateUploadStatus({ ids: [task.id], status: 'SIGN', account: loginAccount }));
+    const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
+      .filter((item) => !!item)
+      .join('/');
+    const createObjectPayload: CreateObjectApprovalRequest = {
+      bucketName: task.bucketName,
+      objectName: finalName,
+      creator: tmpAccount.address,
+      visibility: reverseVisibilityType[task.visibility],
+      fileType: task.waitFile.type || 'application/octet-stream',
+      contentLength: task.waitFile.size,
+      expectCheckSums: task.checksum,
+      duration: 5000,
+    };
+    console.log('createObjectPayload', createObjectPayload);
+    const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
+      type: 'ECDSA',
+      privateKey: tmpAccount.privateKey,
+    }).then(resolve, createTxFault);
+    if (_createError) {
+      console.log('createError', _createError);
+      return dispatch(
+        setupUploadTaskErrorMsg({
+          account: loginAccount,
+          task,
+          errorMsg: _createError,
+        }),
+      );
+    }
+    const [simulateInfo, simulateError] = await createObjectTx!
+      .simulate({
+        denom: 'BNB',
+      })
+      .then(resolve, simulateFault);
+    if (!simulateInfo || simulateError) {
+      console.log('simulateError', simulateError);
+      return dispatch(
+        setupUploadTaskErrorMsg({
+          account: loginAccount,
+          task,
+          errorMsg: simulateError,
+        }),
+      );
+    }
+    const broadcastPayload = {
+      denom: 'BNB',
+      gasLimit: Number(simulateInfo?.gasLimit),
+      gasPrice: simulateInfo?.gasPrice || '5000000000',
+      payer: tmpAccount.address,
+      granter: loginAccount,
+      privateKey: tmpAccount.privateKey,
+    };
+    const [res, error] = await createObjectTx!
+      .broadcast(broadcastPayload)
+      .then(resolve, broadcastFault);
+    if (!res || error) {
+      console.log('broadTxError', error);
+      return dispatch(
+        setupUploadTaskErrorMsg({
+          account: loginAccount,
+          task,
+          errorMsg: error,
+        }),
+      );
+    }
+    dispatch(
+      updateUploadCreateHash({
+        account: loginAccount,
+        id: task.id,
+        createHash: res.transactionHash,
+      }),
+    );
+  }, [signTask]);
+
+  // 3. upload
   useAsyncEffect(async () => {
     if (!select1Task.length) return;
     dispatch(updateUploadStatus({ ids: select1Task, status: 'UPLOAD', account: loginAccount }));
@@ -263,6 +269,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     tasks.forEach(runUploadTask);
   }, [select1Task.join('')]);
 
+  // 4. seal
   useAsyncEffect(async () => {
     if (!sealQueue.length) return;
     const tasks = queue.filter((t) => sealQueue.includes(t.id));
@@ -297,7 +304,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
           const bucket = bucketInfo[task.bucketName];
-          dispatch(setupAccountDetail(bucket.PaymentAddress));
+          dispatch(setupAccountInfo(bucket.PaymentAddress));
         }
         return objectStatus;
       }),

@@ -1,63 +1,118 @@
-import React, { ReactElement, memo } from 'react';
+import React, { memo, ReactElement, useEffect, useState } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
-import { useDispatch } from 'react-redux';
-import { setConnectWallet } from '@/store/slices/global';
-import { useAppSelector } from '@/store';
 import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/utils/constant';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
+import { ssrLandingRoutes } from '@/pages/_app';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
+import { useAsyncEffect } from 'ahooks';
+import { useAppDispatch } from '@/store';
+import { useModal } from '@totejs/walletkit';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
   text?: string;
 }
 
+// for multi connect button in one page
+let eventTriggerTime = Date.now();
+
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
-  const dispatch = useDispatch();
+  const { onOpen } = useModal();
   const router = useRouter();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { isConnecting, isConnected, connector } = useAccount();
+  const dispatch = useAppDispatch();
+  const { connector, address, isConnected } = useAccount();
   const { icon, text, ...restProps } = props;
-  const onOpen = () => {
-    // The window.trustwallet.request method is undefined when the app is loaded. So add a delay to avoid.
-    setTimeout(() => {
-      if (loginAccount && isConnected && !isConnecting) {
-        const originPathname = decodeURIComponent(router.query.originAsPath as string);
-        return router.push(
-          !!originPathname && originPathname !== 'undefined'
-            ? originPathname
-            : InternalRoutePaths.buckets,
-        );
-      };
-      dispatch(setConnectWallet(true));
-    }, 200)
-  }
+  const [waitConnector, setWaitConnector] = useState(false);
+  const [trustEvent, setTrustEvent] = useState(0);
+  const { isAuthPending, onOffChainAuth } = useOffChainAuth();
+  const { disconnect } = useDisconnect();
+  // const { chain } = useNetwork();
+  //
+  // const { switchNetwork } = useSwitchNetwork({});
+  //
+  // useEffect(() => {
+  //   if (chain?.id !== GREENFIELD_CHAIN_ID && connector?.name === 'WalletConnect') {
+  //     switchNetwork?.(GREENFIELD_CHAIN_ID);
+  //   }
+  // }, [chain?.id, connector, switchNetwork]);
+
+  useAsyncEffect(async () => {
+    if (trustEvent !== eventTriggerTime || isAuthPending || !address || !isConnected) return;
+
+    const isAvailable = await dispatch(checkOffChainDataAvailable(address));
+
+    if (!isAvailable) {
+      const res = await onOffChainAuth(address);
+      if (res.code !== 0) {
+        disconnect();
+        return;
+      }
+      dispatch(setLogin(address));
+    } else {
+      dispatch(setLogin(address));
+    }
+
+    // Only user trigger login at landing page that app needs redirect to the main page.
+    if (!ssrLandingRoutes.some((item) => item === router.pathname)) {
+      return;
+    }
+
+    // Redirect to the main page after user login manually.
+    const originPathname = decodeURIComponent(router.query.originAsPath as string);
+    router.push(
+      !!originPathname && originPathname !== 'undefined'
+        ? originPathname
+        : InternalRoutePaths.buckets,
+    );
+  }, [address, trustEvent, isAuthPending, router]);
+
+  useEffect(() => {
+    if (!connector || !address || !waitConnector) return;
+    const originPathname = decodeURIComponent(router.query.originAsPath as string);
+
+    router.push(
+      !!originPathname && originPathname !== 'undefined'
+        ? originPathname
+        : InternalRoutePaths.buckets,
+    );
+  }, [waitConnector, connector, address]);
+
+  const onGetStart = () => {
+    if (isAuthPending) return;
+    if (!address) {
+      eventTriggerTime = Date.now();
+      setTrustEvent(eventTriggerTime);
+      onOpen();
+      return;
+    }
+    setWaitConnector(true);
+  };
 
   return (
-    <>
-      <DCButton
-        px={48}
-        h={54}
-        fontSize={18}
-        lineHeight="22px"
-        fontWeight={600}
-        {...restProps}
-        onClick={onOpen}
-        borderRadius={4}
-        sx={{
-          [smMedia]: {
-            h: 33,
-            fontWeight: 500,
-            fontSize: 14,
-            paddingX: 16
-          }
-        }}
-      >
-        {icon ? icon : ''}
-        <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>
-      </DCButton>
-    </>
+    <DCButton
+      px={48}
+      h={54}
+      fontSize={18}
+      lineHeight="22px"
+      fontWeight={600}
+      {...restProps}
+      onClick={onGetStart}
+      borderRadius={4}
+      sx={{
+        [smMedia]: {
+          h: 33,
+          fontWeight: 500,
+          fontSize: 14,
+          paddingX: 16,
+        },
+      }}
+    >
+      {icon ? icon : ''}
+      <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>
+    </DCButton>
   );
 });
