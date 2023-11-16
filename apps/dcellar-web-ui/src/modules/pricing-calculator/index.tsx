@@ -88,7 +88,7 @@ export const PriceCalculator = () => {
       };
     });
     setSps(fullSps);
-  }, []);
+  }, [])
 
   return (
     <>

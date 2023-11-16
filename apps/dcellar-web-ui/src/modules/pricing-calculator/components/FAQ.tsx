@@ -23,7 +23,7 @@ const BillingFormula = () => {
   const columns = [
     {
       header: (
-        <Text as='div' fontSize={16} fontWeight={600}>
+        <Text as="div" fontSize={16} fontWeight={600}>
           Fee
         </Text>
       ),
@@ -34,7 +34,7 @@ const BillingFormula = () => {
     },
     {
       header: (
-        <Text as='div' fontSize={16} fontWeight={600}>
+        <Text as="div" fontSize={16} fontWeight={600}>
           Billing Formula
         </Text>
       ),
@@ -71,7 +71,7 @@ const BillingFormula = () => {
       id: 2,
       name: 'Download Quota Fee',
       value: (
-        <Text as='div' fontWeight={400} wordBreak={'break-all'}>
+        <Text as="div" fontWeight={400} wordBreak={'break-all'}>
           Fee = ChargedReadQuota * ReadPrice * (1 + Validator Tax Rate) * ReserveTime
         </Text>
       ),
@@ -89,7 +89,6 @@ const BillingFormula = () => {
       width={'100%'}
       columns={columns}
       data={data}
-      withContainer={true}
       thProps={{ bgColor: 'bg.bottom', paddingX: '16px' }}
       tdProps={{
         padding: '8px 16px',
@@ -161,7 +160,7 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       question: 'What is Validator Tax Rate?',
       id: '#tax_rate',
       answer: (
-        <Text as='div'>
+        <Text as="div">
           For each data related operation on Greenfield, validators can get some rewards for
           protecting the security and integrity of data (i.e. challenge). Through charging validator
           tax, part of user's cost will go to validator tax pool, and then become validators'
@@ -196,7 +195,7 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       question: 'What is Read Price?',
       id: '#read_price',
       answer: (
-        <Text as='div'>
+        <Text as="div">
           A storage provider can update its free read quote, suggested primary store price and read
           price. All SPs' suggested primary store and read prices will be used to generate the
           global primary/secondary store price and read price.
@@ -207,7 +206,7 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       question: 'What is Reserve Time?',
       id: '#reserve_time',
       answer: (
-        <Text as='div'>
+        <Text as="div">
           The storage fee will be charged on Greenfield in a steam payment style. The fees are paid
           on Greenfield in the style of "Stream" from users to receiver accounts at a constant rate.
           By reseveing some balance, users do not need to payment the fee in a very high frequency.

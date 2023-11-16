@@ -56,6 +56,7 @@ export const light = {
         active: '#3ec659',
         'opacity-normal': rgba('#00ba34', 0.1),
         'opacity-active': rgba('#00ba34', 0.15),
+        opacity: 'rgba(0, 186, 52, 0.10)',
       },
       warning: {
         normal: '#ee7c11',

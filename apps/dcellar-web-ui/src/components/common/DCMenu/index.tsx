@@ -16,8 +16,11 @@ interface DCMenuProps extends MenuProps {
   emptyText?: string;
   stopPropagation?: boolean;
   zIndex?: number;
+  scrollH?: number;
+  multiple?: boolean;
 }
 
+// todo refactor
 export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
   const {
     options,
@@ -32,6 +35,8 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
     emptyIcon,
     emptyText,
     stopPropagation = false,
+    scrollH = 220,
+    multiple = false,
     ...restProps
   } = props;
   const isFunc = typeof children === 'function';
@@ -51,6 +56,8 @@ export const DCMenu = memo<DCMenuProps>(function DCMenu(props) {
             renderFooter={renderFooter}
             emptyIcon={emptyIcon}
             emptyText={emptyText}
+            scrollH={scrollH}
+            multiple={multiple}
             {...menuListProps}
           />
         );

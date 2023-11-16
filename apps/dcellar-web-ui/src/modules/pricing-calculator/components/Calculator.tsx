@@ -446,7 +446,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
               placeholder="0"
               value={gasTimes}
               onChangeValue={(value) => setGasTimes(value)}
-              type='inter'
+              type="inter"
               sx={{
                 [smMedia]: {
                   flex: '1',
@@ -524,6 +524,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
                 )}
                 {item.id === 'custom' && (
                   <CustomTime
+                    key={index}
                     isOpen={isOpen}
                     selected={item.id === storageTime.id}
                     customStorageTime={customStorageTime}
