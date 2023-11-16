@@ -295,12 +295,13 @@ export const setupPaymentAccounts =
     let totalPANetflowRate = BN(0);
     const newPAs = data.paymentAccounts.map((address, index) => {
       const detail = keyAccountDetail[address];
-      totalPANetflowRate = totalPANetflowRate.plus(BN(detail.StreamRecord.NetflowRate).abs());
+      // Some PAs existed in the chain but are missing in the SP service.
+      totalPANetflowRate = totalPANetflowRate.plus(BN(detail?.StreamRecord?.NetflowRate || 0).abs());
       return {
         name: `Payment Account ${index + 1}`,
         address,
-        streamRecord: detail.StreamRecord,
-        refundable: detail.PaymentAccount.Refundable,
+        streamRecord: detail?.StreamRecord || {},
+        refundable: detail?.PaymentAccount?.Refundable || true,
         bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME,
       };
     });
