@@ -1,0 +1,23 @@
+name: dcellar-web-ui new e2e CICD
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        description: 'App name in GitOps is used for branch naming only.'
+        type: string
+        required: true
+        default: 'dcellar-web-ui'
+      env:
+        description: 'Specify the deployment environment'
+        type: string
+        required: true
+        default: 'qa'
+
+jobs:
+  CICD:
+    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-new-e2e-cicd.yml@feat/opt-fe/devin
+    secrets: inherit
+    with:
+      app_name: ${{ inputs.app_name }}
+      env: ${{ inputs.env }}
