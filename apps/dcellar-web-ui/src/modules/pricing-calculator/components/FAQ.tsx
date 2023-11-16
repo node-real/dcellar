@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   QAccordion,
   QAccordionButton,
   QAccordionIcon,
@@ -48,8 +49,8 @@ const BillingFormula = () => {
       id: 1,
       name: 'Storage Fee',
       value: (
-        <>
-          <Text as="div" marginBottom={16} fontWeight={400} wordBreak={'break-all'}>
+        <Flex flexDirection={'column'} gap={4}>
+          <Text as="div" fontWeight={400} wordBreak={'break-all'}>
             Fee = sum(ChargedSize) * (PrimaryStorePrice + SecondaryStorePrice*SecondarySPNumber) *
             (1+Validator Tax Rate) * ReserveTime
           </Text>
@@ -59,7 +60,11 @@ const BillingFormula = () => {
           <Text as="div" fontWeight={400}>
             Validator Tax Rate = 1%
           </Text>
-        </>
+          <Text as="div" fontWeight={400}>
+            ChargeSize ≥ Total Storage Size (For data object smaller than 128K, it will be charged
+            as 128K)
+          </Text>
+        </Flex>
       ),
     },
     {
@@ -92,13 +97,16 @@ const BillingFormula = () => {
     ></Table>
   );
 };
-export const FAQ = () => {
+type FAQProps = { openKeys: number[]; toggleOpenKeys: (key: number) => void };
+
+export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
   const data = [
     {
       question: <Text>Billing Formula</Text>,
+      id: '#billing_formula',
       answer: (
         <>
-          <Text as="div">
+          <Text as="div" mb={8}>
             In Greenfield, Besides transaction fee, users are required to pay two kinds of storage
             service fees: storage fee and download quota fee. These storage service fees are charged
             by Storage Providers (SPs) in a steam payment. Users need to prelock an amount of
@@ -110,19 +118,26 @@ export const FAQ = () => {
     },
     {
       question: 'What is Charged Size?',
+      id: '#charged_size',
       answer: (
-        <Text as="div">
-          The ChargeSize is calculated from the object's payload size, if the payload size is less
-          than 128k then ChargeSize is 128k, otherwise ChargeSize is equal to payload size.
+        <Flex flexDirection={'column'} gap={4}>
+          <Text as="div">
+            In general, charge size is slightly larger than the real storage size.
+          </Text>
+          <Text as="div">
+            ChargeSize is calculated from the object's payload size, if the payload size is less
+            than 128k then ChargeSize is 128k, otherwise ChargeSize is equal to payload size.
+          </Text>
           <Text as="div">
             If Data Size &lt; 128K, ChargedSize = 128K; else, ChargedSize = Data Size
           </Text>
           <Text as="div">If object is an empty folder, ChargedSize = 128K</Text>
-        </Text>
+        </Flex>
       ),
     },
     {
       question: 'What is Primary/Secondary Store Price?',
+      id: '#store_price',
       answer: (
         <Text as={'div'}>
           Every SP can set their own suggested store price and read price via on-chain transactions.
@@ -143,6 +158,7 @@ export const FAQ = () => {
     },
     {
       question: 'What is Validator Tax Rate?',
+      id: '#tax_rate',
       answer: (
         <Text as="div">
           For each data related operation on Greenfield, validators can get some rewards for
@@ -153,7 +169,31 @@ export const FAQ = () => {
       ),
     },
     {
+      question: 'What is Download Quota?',
+      id: '#download_quota',
+      answer: (
+        <Flex gap={4} flexDirection={'column'}>
+          <Text as="div">
+            Each download operation will consume Download Quota, which is related to the data
+            object's size.
+          </Text>
+          <Text as="div">
+            For each bucket, you are granted a free, one-time download quota from the storage
+            provider you have chosen. You can find in the above sector how much free quota each
+            storage provider gives.
+          </Text>
+          <Text as="div">
+            You can upgrade your bucket monthly quota to get more download quota. After your free
+            quota is used out, Greenfield will start to use the download quota you bought. If your
+            purchased monthly download quota does not use out before the end of the month, your
+            monthly quota will be expired.
+          </Text>
+        </Flex>
+      ),
+    },
+    {
       question: 'What is Read Price?',
+      id: '#read_price',
       answer: (
         <Text as="div">
           A storage provider can update its free read quote, suggested primary store price and read
@@ -164,6 +204,7 @@ export const FAQ = () => {
     },
     {
       question: 'What is Reserve Time?',
+      id: '#reserve_time',
       answer: (
         <Text as="div">
           The storage fee will be charged on Greenfield in a steam payment style. The fees are paid
@@ -179,10 +220,16 @@ export const FAQ = () => {
       <H2 id="#faq" marginBottom={'16px'}>
         FAQ
       </H2>
-      <QAccordion>
+      <QAccordion activeKey={openKeys}>
         {data.map((item, index) => (
-          <QAccordionItem key={index} px={0}>
-            <QAccordionButton h={56} fontSize={16} fontWeight={600} px={0}>
+          <QAccordionItem key={index} px={0} id={item.id}>
+            <QAccordionButton
+              onClick={() => toggleOpenKeys(index)}
+              h={56}
+              fontSize={16}
+              fontWeight={600}
+              px={0}
+            >
               {item.question}
               <QAccordionIcon />
             </QAccordionButton>
