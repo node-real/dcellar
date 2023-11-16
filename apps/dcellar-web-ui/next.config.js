@@ -94,4 +94,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(withBundleAnalyzer(withTranspileModules(nextConfig)), sentryWebpackPluginOptions);
+module.exports = withSentryConfig(
+  withBundleAnalyzer(withTranspileModules(nextConfig)),
+  sentryWebpackPluginOptions,
+);

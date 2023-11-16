@@ -14,6 +14,7 @@ declare global {
 
 const init = async () => {
   const go = new Go();
+  console.log('assetPrefix', assetPrefix);
   const result = await WebAssembly.instantiateStreaming(
     fetch(`${assetPrefix}/wasm/main.wasm`),
     go.importObject,
