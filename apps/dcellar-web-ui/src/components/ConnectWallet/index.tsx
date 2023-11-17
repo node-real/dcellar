@@ -21,7 +21,7 @@ interface ConnectWalletProps extends DCButtonProps {
 let eventTriggerTime = Date.now();
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
-  const { onOpen } = useModal();
+  const { onOpen, onClose } = useModal();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { connector, address, isConnected } = useAccount();
@@ -47,12 +47,14 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
 
     if (!isAvailable) {
       const res = await onOffChainAuth(address);
+      onClose();
       if (res.code !== 0) {
         disconnect();
         return;
       }
       dispatch(setLogin(address));
     } else {
+      onClose();
       dispatch(setLogin(address));
     }
 
