@@ -161,9 +161,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
-          const authExpired =
-            message?.includes('invalid signature') ||
-            message?.includes('user public key is expired');
+          const authExpired = [
+            'bad signature',
+            'invalid signature',
+            'user public key is expired',
+          ].includes(message || '');
           if (authExpired) {
             setOpenAuthModal();
             setAuthModal(true);
