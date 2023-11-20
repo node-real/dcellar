@@ -1,4 +1,4 @@
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { Box, Divider, Flex, Link, Text } from '@totejs/uikit';
 import React, { memo, useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -11,7 +11,7 @@ import {
 } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { useRouter } from 'next/router';
-import { selectAccountDetail } from '@/store/slices/accounts';
+import { selectAccountDetail, setEditDisablePaymentAccount } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { BN } from '@/utils/math';
 import { IconFont } from '@/components/IconFont';
@@ -26,6 +26,7 @@ type Props = {
 };
 export const MetaInfo = memo(({ address }: Props) => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = address === loginAccount;
@@ -39,10 +40,13 @@ export const MetaInfo = memo(({ address }: Props) => {
     if (e === 'deposit') {
       return router.push(`/wallet?type=send&from=${loginAccount}&to=${address}`);
     }
+    if (e === 'setNonRefundable') {
+      return dispatch(setEditDisablePaymentAccount(address));
+    }
     return router.push(`/wallet?type=${e}`);
   };
   const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
-  const isNonRefundable = accountDetail.refundable;
+  const isRefundable = accountDetail.refundable;
   const isFrozen = accountDetail.clientFrozen;
   const detailItems = [
     {
@@ -204,7 +208,7 @@ export const MetaInfo = memo(({ address }: Props) => {
             <DCButton
               size={'md'}
               flex={1}
-              disabled={!isNonRefundable || isFrozen}
+              disabled={!isRefundable || isFrozen}
               variant="ghost"
               gaClickName="dc.file.f_detail_pop.share.click"
               onClick={() => onAction('withdraw')}
@@ -216,12 +220,12 @@ export const MetaInfo = memo(({ address }: Props) => {
               flex={1}
               // paddingX={0}
               whiteSpace={'nowrap'}
-              disabled={isNonRefundable}
+              disabled={!isRefundable}
               variant="ghost"
               gaClickName="dc.file.f_detail_pop.share.click"
-              onClick={() => onAction('withdraw')}
+              onClick={() => onAction('setNonRefundable')}
             >
-              Set Non-Refundable
+              Set as Non-Refundable
             </DCButton>
           </Flex>
         )}
