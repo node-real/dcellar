@@ -31,7 +31,7 @@ const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Deposit', value: 'deposit' },
   { label: 'Withdraw', value: 'withdraw' },
-  { label: 'Set as non-refundable', value: 'setNonRefundable' },
+  { label: 'Set as Non-refundable', value: 'setNonRefundable' },
 ];
 
 export const PaymentAccounts = () => {

@@ -11,6 +11,7 @@ import { AccountCostTrend } from './components/AccountCostTrend';
 import { setupAccountCostTrend } from '@/store/slices/billing';
 import { ComingBillingHistory } from './components/ComingBillingHistory';
 import AccountDetailNav from './components/AccountDetailNav';
+import { NonRefundableModal } from './components/NonRefundableModal';
 
 const emptyObject = {};
 export const AccountDetail = () => {
@@ -29,17 +30,16 @@ export const AccountDetail = () => {
       router.replace('/no-account?err=noAccount');
       return;
     }
-    isOwnerAccount
-      ? dispatch(setupAccountInfo(curAddress))
-      : dispatch(setupPaymentAccounts());
+    isOwnerAccount ? dispatch(setupAccountInfo(curAddress)) : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
   }, [address]);
 
   return (
     <>
-    <Head>
+      <Head>
         <title>{accountDetail.name} - DCellar</title>
       </Head>
+      <NonRefundableModal />
       <Flex gap={16} flexDirection={'column'}>
         <AccountBreadCrumb name={accountDetail.name} />
         <AccountDetailNav address={curAddress} />

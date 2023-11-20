@@ -5,7 +5,7 @@ interface ApolloState {
   CROSS_CHAIN_CONTRACT_ADDRESS: string;
   RECOMMEND_SPS: string;
   SP_RECOMMEND_META: string;
-  CLIENT_FROZEN__ACCOUNT_BUFFER_TIME: string;
+  CLIENT_FROZEN_ACCOUNT_BUFFER_TIME: string;
 }
 
 const initialState: ApolloState = {
@@ -13,7 +13,7 @@ const initialState: ApolloState = {
   CROSS_CHAIN_CONTRACT_ADDRESS: '',
   RECOMMEND_SPS: '',
   SP_RECOMMEND_META: '',
-  CLIENT_FROZEN__ACCOUNT_BUFFER_TIME: '',
+  CLIENT_FROZEN_ACCOUNT_BUFFER_TIME: '',
 };
 
 export const apolloSlice = createSlice({
