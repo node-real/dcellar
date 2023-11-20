@@ -23,6 +23,7 @@ import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 import { IconFont } from '@/components/IconFont';
+import { openLink } from '@/utils/bom';
 
 const Actions: MenuOption[] = [
   {
@@ -46,6 +47,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   const { buckets, currentPage, loading } = useAppSelector((root) => root.bucket);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
+  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<BucketItem>({
     list: bucketList,
     sorter: bucketSortBy,
@@ -61,7 +63,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
     if (menu === 'marketplace') {
-      console.log('marketplace');
+      openLink(`${LIST_FOR_SELL_ENDPOINT}?address=${loginAccount}&bucket=${record.Id}`);
       return;
     }
     return dispatch(setBucketOperation([record.BucketName, menu]));
@@ -97,12 +99,17 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       width: 200,
       align: 'center' as AlignType,
       title: <></>,
-      render: (_: string, record: BucketItem) => (
-        <ActionMenu
-          menus={Actions}
-          onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
-        />
-      ),
+      render: (_: string, record: BucketItem) => {
+        const _actions = !!LIST_FOR_SELL_ENDPOINT
+          ? Actions
+          : Actions.filter((a) => a.value !== 'marketplace');
+        return (
+          <ActionMenu
+            menus={_actions}
+            onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
+          />
+        );
+      },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 

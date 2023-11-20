@@ -57,6 +57,7 @@ import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFil
 import dayjs from 'dayjs';
 import { Flex } from '@totejs/uikit';
 import { IconFont } from '@/components/IconFont';
+import { openLink } from '@/utils/bom';
 
 const Actions: MenuOption[] = [
   {
@@ -104,6 +105,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
 
   const filtered =
     !!filterText.trim() ||
@@ -258,7 +260,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
 
   const onMenuClick = async (menu: ObjectOperationsType, record: ObjectItem) => {
     if (menu === 'marketplace') {
-      console.log('marketplace');
+      const key = path + '/' + record.name;
+      const curObjectInfo = objectsInfo[key];
+      openLink(
+        `${LIST_FOR_SELL_ENDPOINT}?address=${loginAccount}&bucket=${bucket.Id}&object=${curObjectInfo.ObjectInfo.Id}`,
+      );
       return;
     }
     switch (menu) {
@@ -403,7 +409,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         });
 
         // filter marketplace
-        if (isFolder || !owner || !isSealed) {
+        if (isFolder || !owner || !isSealed || !LIST_FOR_SELL_ENDPOINT) {
           fitActions = fitActions.filter((f) => f.value !== 'marketplace');
         }
 

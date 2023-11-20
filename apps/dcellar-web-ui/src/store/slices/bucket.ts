@@ -17,6 +17,7 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
   CreateAt: number;
   BucketStatus: number;
+  Id: string;
 };
 
 export interface BucketState {
@@ -91,7 +92,7 @@ export const bucketSlice = createSlice({
       const { address, buckets } = payload;
       state.buckets[address] = buckets
         .map((bucket) => {
-          const { BucketName, CreateAt, BucketStatus } = bucket.BucketInfo;
+          const { BucketName, CreateAt, BucketStatus, Id } = bucket.BucketInfo;
           state.bucketInfo[BucketName] = {
             ...bucket,
             ...bucket.BucketInfo,
@@ -99,6 +100,7 @@ export const bucketSlice = createSlice({
           return {
             ...omit(bucket, 'BucketInfo'),
             BucketName,
+            Id,
             CreateAt: Number(CreateAt),
             BucketStatus: Number(BucketStatus),
           };
