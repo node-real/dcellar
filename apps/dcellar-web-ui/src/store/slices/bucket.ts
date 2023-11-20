@@ -190,7 +190,9 @@ export const setupBucketQuota =
     });
     dispatch(setQuotaLoading(false));
     if (quota === null) {
-      if (['invalid signature', 'user public key is expired'].includes(error)) {
+      if (
+        ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
+      ) {
         dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
       } else {
         console.error({ description: error || 'Get bucket read quota error' });

@@ -110,7 +110,7 @@ export const getCanObjectAccess = async (
     seedString,
   };
   const [info, quota, error] = await getObjectInfoAndBucketQuota(params);
-  if (error === 'invalid signature' || error === 'user public key is expired') {
+  if (['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')) {
     return [false, E_OFF_CHAIN_AUTH];
   }
   if (!info) return [false, E_NOT_FOUND];

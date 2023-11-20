@@ -61,7 +61,9 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
         address: loginAccount,
       };
       const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
-      if (error === 'invalid signature' || error === 'user public key is expired') {
+      if (
+        ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
+      ) {
         return onError(E_OFF_CHAIN_AUTH);
       }
       if (objectInfo === null) {
