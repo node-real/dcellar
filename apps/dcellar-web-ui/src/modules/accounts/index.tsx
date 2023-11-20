@@ -54,7 +54,6 @@ export const Accounts = () => {
     dispatch(setupPaymentAccounts());
   });
 
-  useWhyDidYouUpdate('11111', [tab, page, from, to, address, type])
   useEffect(() => {
     if (tab === 'a') return;
     const filterAccounts = typeof address === 'string' ? [address] : ((address || []) as string[]);
@@ -62,7 +61,6 @@ export const Accounts = () => {
       typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];
     const filterTypes = typeof type === 'string' ? [type] : ((type || []) as string[]);
     const curPage = isNaN(+(page as string)) ? 1 : +(page as string);
-
     dispatch(setAllFilterRange(filterRange));
     dispatch(setAllFilterAccounts(filterAccounts));
     dispatch(setAllFilterTypes(filterTypes));
