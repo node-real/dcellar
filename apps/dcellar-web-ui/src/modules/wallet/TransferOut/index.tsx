@@ -25,6 +25,7 @@ import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
 import { InternalRoutePaths } from '@/utils/constant';
 import { broadcastFault } from '@/facade/error';
+import { LargeAmountTip } from '../components/LargeAmountTip';
 
 interface TransferOutProps {}
 
@@ -148,6 +149,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
           gaClickSubmitName="dc.wallet.transferout.transferout_btn.click"
           gaClickSwitchName="dc.wallet.transferout.switch_network.click"
         />
+        <LargeAmountTip amount={inputAmount} formError={!isEmpty(errors)} />
       </form>
       <StatusModal
         viewTxUrl={viewTxUrl}

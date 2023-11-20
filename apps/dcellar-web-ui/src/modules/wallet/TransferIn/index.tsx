@@ -26,6 +26,7 @@ import { InternalRoutePaths } from '@/utils/constant';
 import { removeTrailingSlash } from '@/utils/string';
 import { broadcastFault } from '@/facade/error';
 import { Faucet } from '../components/Faucet';
+import { LargeAmountTip } from '../components/LargeAmountTip';
 
 interface TransferInProps {}
 
@@ -228,6 +229,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
             gaClickSubmitName="dc.wallet.transferin.transferin_btn.click"
             gaClickSwitchName="dc.wallet.transferin.switch_network.click"
           />
+          <LargeAmountTip amount={inputAmount} formError={!isEmpty(errors)} />
         </form>
         <StatusModal
           viewTxUrl={viewTxUrl}

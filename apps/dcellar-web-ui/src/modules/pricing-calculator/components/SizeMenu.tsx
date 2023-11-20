@@ -22,7 +22,6 @@ export const SizeMenu = ({
       {({ isOpen }) => (
         <>
           <MenuButton
-            isActive={isOpen}
             as={Button}
             h={44}
             w={80}

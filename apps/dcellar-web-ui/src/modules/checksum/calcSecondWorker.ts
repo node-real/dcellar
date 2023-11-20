@@ -1,8 +1,8 @@
 import { sha256 } from 'hash-wasm';
 import { decodeBase64 } from '@/utils/coder';
 
-const assetPrefix = process.env.NEXT_PUBLIC_STATIC_HOST || '';
-globalThis.importScripts(`${assetPrefix}/wasm/wasm_exec.js`);
+const isProd = process.env.NODE_ENV === 'production';
+globalThis.importScripts(`${isProd ? '/static/dcellar-web-ui' : ''}/wasm/wasm_exec.js`);
 
 declare global {
   const Go: new () => { run: (x: WebAssembly.Instance) => void; importObject: WebAssembly.Imports };
@@ -16,7 +16,7 @@ const init = async () => {
   const go = new Go();
   console.log('assetPrefix', assetPrefix);
   const result = await WebAssembly.instantiateStreaming(
-    fetch(`${assetPrefix}/wasm/main.wasm`),
+    fetch(`${isProd ? '/static/dcellar-web-ui' : ''}/wasm/main.wasm`),
     go.importObject,
   );
   if (result) {
