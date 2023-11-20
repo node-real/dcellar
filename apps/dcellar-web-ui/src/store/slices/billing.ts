@@ -424,7 +424,7 @@ export const setupAccountBills = (address: string) => async (dispatch: AppDispat
     address,
   }
   if (!isEmpty(accountFilterTypes)) {
-    getCountParams['type'] = accountFilterTypes;
+    getCountParams['types'] = accountFilterTypes;
   }
   if (typeof accountFilterRange[0] !== 'string') {
     getCountParams['start'] = dayjs(accountFilterRange[0]).unix();
@@ -461,7 +461,7 @@ export const setupAllBills = () => async (dispatch: AppDispatch, getState: GetSt
     payments: allFilterAddress,
   }
   if (!isEmpty(allFilterTypes)) {
-    getCountParams['type'] = allFilterTypes;
+    getCountParams['types'] = allFilterTypes;
   }
 
   if (typeof allFilterRange[0] === 'string' && allFilterRange[0] !== '') {

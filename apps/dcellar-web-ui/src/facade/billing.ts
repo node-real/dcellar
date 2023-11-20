@@ -38,7 +38,7 @@ export type GetRealTimeBillCountByAddressParams = {
   address: string;
   start?: number;
   end?: number;
-  type?: string[];
+  types?: string[];
 }
 export type GetRealTimeBillListByAddressParams = GetRealTimeBillCountByAddressParams & {
   page: number;
@@ -60,14 +60,14 @@ export type GetRealTimeBillByAddressCountParams = {
   address: string;
   start?: number;
   end?: number;
-  type?: string[];
+  types?: string[];
 }
 export type GetRealTimeBillByOwnerCountParams = {
   owner: string;
   payments?: string[];
   start?: number;
   end?: number;
-  type?: string[];
+  types?: string[];
 }
 export type GetRealTimeBillListByOwnerParams =  GetRealTimeBillByOwnerCountParams & {
   page: number;
