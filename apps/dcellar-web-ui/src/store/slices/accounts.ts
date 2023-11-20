@@ -23,6 +23,7 @@ export type TAccount = {
 export function isSpStreamRecord(arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
   return (arg as SpStreamRecord).Account !== undefined;
 }
+
 export type AccountType =
   | 'unknown_account'
   | 'gnfd_account'
@@ -168,10 +169,10 @@ export const paymentAccountSlice = createSlice({
             bufferBalance: BigNumber(streamRecord.bufferBalance).div(1e18).toString(),
             lockBalance: BigNumber(streamRecord.lockBalance).div(1e18).toString(),
             netflowRate: BigNumber(streamRecord.netflowRate).div(1e18).toString(),
-            crudTimestamp: Number(streamRecord.crudTimestamp.low),
-            outFlowCount: Number(streamRecord.outFlowCount.low),
-            settleTimestamp: Number(streamRecord.settleTimestamp.low),
-            clientFrozen: getClientFrozen(+streamRecord.settleTimestamp.low, +bufferTime),
+            crudTimestamp: Number(streamRecord.crudTimestamp?.low),
+            outFlowCount: Number(streamRecord.outFlowCount?.low),
+            settleTimestamp: Number(streamRecord.settleTimestamp?.low),
+            clientFrozen: getClientFrozen(+streamRecord.settleTimestamp?.low, +bufferTime),
             frozenNetflowRate: streamRecord.frozenNetflowRate,
             refundable: item.refundable,
             status: streamRecord.status,
@@ -296,7 +297,9 @@ export const setupPaymentAccounts =
     const newPAs = data.paymentAccounts.map((address, index) => {
       const detail = keyAccountDetail[address];
       // Some PAs existed in the chain but are missing in the SP service.
-      totalPANetflowRate = totalPANetflowRate.plus(BN(detail?.StreamRecord?.NetflowRate || 0).abs());
+      totalPANetflowRate = totalPANetflowRate.plus(
+        BN(detail?.StreamRecord?.NetflowRate || 0).abs(),
+      );
       return {
         name: `Payment Account ${index + 1}`,
         address,
