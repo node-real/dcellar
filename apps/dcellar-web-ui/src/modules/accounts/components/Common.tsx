@@ -47,7 +47,7 @@ export const SectionHeader = ({ children, ...props }: TextProps) => {
 };
 
 export const ShortTxCopy = ({ address }: { address: string }) => {
-  const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`;
+  const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${address}`;
   return (
     <CopyText value={address} boxSize={16} iconProps={{ mt: 2, color: 'readable.secondary' }}>
       <DCLink color="currentcolor" href={addressUrl} target="_blank">

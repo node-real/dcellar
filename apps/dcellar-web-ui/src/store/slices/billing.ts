@@ -417,7 +417,9 @@ export const setupAccountCostTrend = (address: string) => async (dispatch: AppDi
 export const setupAccountBills = (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
   dispatch(setLoadingAccountBills(true));
   const { accountBillsPageSize } = getState().persist;
-  const { curAccountBillsPage, accountFilterRange, accountFilterTypes } = getState().billing;
+  const { accountBillsCount, curAccountBillsPage, accountFilterRange, accountFilterTypes } = getState().billing;
+  const existedCount = accountBillsCount[address];
+  const refreshCount = !existedCount || existedCount === 1;
   const getCountParams: GetRealTimeBillByAddressCountParams = {
     address,
   }
@@ -428,7 +430,7 @@ export const setupAccountBills = (address: string) => async (dispatch: AppDispat
     getCountParams['start'] = dayjs(accountFilterRange[0]).unix();
     getCountParams['end'] = dayjs(accountFilterRange[1]).unix();
   }
-  const [count, cError] = await getRealTimeBillCountByAddress(getCountParams);
+  const [count, cError] =  refreshCount ? await getRealTimeBillCountByAddress(getCountParams) : [existedCount, null];
   const getListParams: GetRealTimeBillListByAddressParams = {
     ...getCountParams,
     page: curAccountBillsPage,
@@ -445,11 +447,13 @@ export const setupAccountBills = (address: string) => async (dispatch: AppDispat
 }
 
 export const setupAllBills = () => async (dispatch: AppDispatch, getState: GetState) => {
-  const { curAllBillsPage, allFilterRange, allFilterAccounts, allFilterTypes } = getState().billing;
+  const { allBillsCount, curAllBillsPage, allFilterRange, allFilterAccounts, allFilterTypes } = getState().billing;
   const { ownerAccount, paymentAccounts } = getState().accounts;
   const keyAccounts = keyBy([ownerAccount, ...(paymentAccounts[ownerAccount.address] || [])], 'id');
-
   const { allBillsPageSize, loginAccount } = getState().persist;
+  const existedCount = allBillsCount[loginAccount];
+  const refreshCount = !existedCount || curAllBillsPage === 1;
+
   dispatch(setLoadingAllBills(true));
   const allFilterAddress = allFilterAccounts.map((item) => keyAccounts[item]?.address);
   const getCountParams: GetRealTimeBillByOwnerCountParams = {
@@ -465,7 +469,7 @@ export const setupAllBills = () => async (dispatch: AppDispatch, getState: GetSt
     getCountParams['end'] = dayjs(allFilterRange[1]).endOf('d').unix();
   };
 
-  const [count, cError] = await getRealTimeBillCountByOwner(getCountParams);
+  const [count, cError] = refreshCount ? await getRealTimeBillCountByOwner(getCountParams) : [existedCount, null];
   const getListParams: GetRealTimeBillListByOwnerParams = {
     ...getCountParams,
     page: curAllBillsPage,

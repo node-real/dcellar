@@ -20,7 +20,12 @@ export const FilterDateRange = ({
   const [dateOpen, setDateOpen] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>();
   useEffect(() => {
-    if (dateOpen) return;
+    if (dateOpen) {
+      return setDateRange([
+        filterDateRange[0] ? dayjs(filterDateRange[0]) : dayjs(undefined),
+        filterDateRange[1] ? dayjs(filterDateRange[1]) : dayjs(undefined),
+      ]);
+    }
     const from = dateRange?.[0] ? dayjs(dateRange[0]).format('YYYY-MM-DD') : '';
     const to = dateRange?.[1] ? dayjs(dateRange[1]).format('YYYY-MM-DD') : '';
     if (!from && to) {
@@ -39,10 +44,13 @@ export const FilterDateRange = ({
   );
   const disabledDate = (current: Dayjs) => {
     const isFeature = current.startOf('d').valueOf() > +new Date();
-    const isSixMonthsAgo = current.startOf('d').valueOf() <= dayjs(+new Date()).subtract(6, 'M').subtract(1, 'd').startOf('d').valueOf();
+    const isSixMonthsAgo =
+      current.startOf('d').valueOf() <=
+      dayjs(+new Date()).subtract(6, 'M').subtract(1, 'd').startOf('d').valueOf();
     return isFeature || isSixMonthsAgo;
   };
 
+  console.log('dateRange', dateRange, filterDateRange);
   return (
     <Box position="relative">
       <DCButton
@@ -51,7 +59,12 @@ export const FilterDateRange = ({
           setDateOpen(!dateOpen);
         }}
         className={cn(
-          { 'menu-open': dateOpen, 'button-filtered': !!dateRange?.length && !dateOpen },
+          {
+            'menu-open': dateOpen,
+            'button-filtered':
+              ((!!filterDateRange?.length && filterDateRange[0]) || !!dateRange?.length) &&
+              !dateOpen,
+          },
           'date-button',
         )}
         variant="ghost"

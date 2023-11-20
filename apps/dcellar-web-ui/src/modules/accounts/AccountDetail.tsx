@@ -24,7 +24,7 @@ const emptyObject = {};
 export const AccountDetail = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { address, p, from, to, type } = router.query;
+  const { address, page, from, to, type } = router.query;
   const curAddress = address as string;
   const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = address === loginAccount;
@@ -44,13 +44,14 @@ export const AccountDetail = () => {
     const filterRange: [string, string] =
       typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];
     const filterTypes = typeof type === 'string' ? [type] : ((type || []) as string[]);
-    const page = isNaN(+(p as string)) ? 1 : +(p as string);
+    const curPage = isNaN(+(page as string)) ? 1 : +(page as string);
 
+    console.log('account page', curPage);
     dispatch(setAccountFilterRange(filterRange));
     dispatch(setAccountFilterTypes(filterTypes));
-    dispatch(setCurrentAccountBillsPage(page));
+    dispatch(setCurrentAccountBillsPage(curPage));
     dispatch(setupAccountBills(curAddress));
-  }, [p, from, to, dispatch, router.query, type, curAddress]);
+  }, [page, from, to, dispatch, router.query, type, curAddress]);
 
   return (
     <>
