@@ -14,7 +14,6 @@ declare global {
 
 const init = async () => {
   const go = new Go();
-  console.log('assetPrefix', assetPrefix);
   const result = await WebAssembly.instantiateStreaming(
     fetch(`${isProd ? '/static/dcellar-web-ui' : ''}/wasm/main.wasm`),
     go.importObject,
