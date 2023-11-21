@@ -50,7 +50,6 @@ export const FilterDateRange = ({
     return isFeature || isSixMonthsAgo;
   };
 
-  console.log('dateRange', dateRange, filterDateRange);
   return (
     <Box position="relative">
       <DCButton
