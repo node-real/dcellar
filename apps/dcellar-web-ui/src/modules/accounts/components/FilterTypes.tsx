@@ -17,7 +17,7 @@ import { useRouter } from 'next/router';
 const MAX_SELECTED_NUM = 10;
 const TYPES = [
   'greenfield.storage.MsgCreateObject',
-  'greenfield.storage.MsgDeleteObject ',
+  'greenfield.storage.MsgDeleteObject',
   'greenfield.storage.MsgSealObject',
   'greenfield.storage.MsgCancelCreateObject',
   'greenfield.storage.MsgCreateBucket',
