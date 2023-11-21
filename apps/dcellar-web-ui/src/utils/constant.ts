@@ -52,6 +52,7 @@ export const InternalRoutePaths = {
   terms: '/terms',
   pricing_calculator: '/pricing-calculator',
   accounts: '/accounts',
+  dashboard: '/dashboard',
 };
 
 export const LCP_IMAGES = [

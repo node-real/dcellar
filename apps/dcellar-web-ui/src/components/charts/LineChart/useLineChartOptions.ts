@@ -92,7 +92,7 @@ export function useLineChartOptions(options: any) {
       series: [
         {
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'circle',
           symbolSize: 8,
           areaStyle: {
@@ -111,17 +111,11 @@ export function useLineChartOptions(options: any) {
             color: colors.scene.primary.active,
           },
           itemStyle: {
-            color: colors.bg.middle,
-            borderWidth: 2,
+            color: colors.scene.primary.normal,
+            borderWidth: 1,
             borderColor: colors.scene.primary.active,
-            opacity: 0,
           },
-          emphasis: {
-            itemStyle: {
-              opacity: 1,
-            },
-          },
-          animationDuration: 600,
+          animationDuration: 600 ,
         },
       ],
     };

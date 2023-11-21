@@ -98,7 +98,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
           >
             {desc}
           </Text>
-          <Link href={address ? InternalRoutePaths.buckets : '/'} legacyBehavior passHref replace>
+          <Link href={address ? InternalRoutePaths.dashboard : '/'} legacyBehavior passHref replace>
             <DCButton w={132} h={32} as="a" mb={40} fontSize={12} borderRadius={4}>
               {isNoBucket ? 'Back to Home' : 'Go to Home'}
             </DCButton>

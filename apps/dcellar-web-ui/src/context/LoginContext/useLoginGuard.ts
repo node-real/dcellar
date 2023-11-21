@@ -37,7 +37,7 @@ export function useLoginGuard(inline: boolean) {
         const originPathname = decodeURIComponent(router.query.originAsPath as string);
         router.replace(originPathname, undefined, { shallow: true });
       } else if (pathname && pathname === '/') {
-        router.replace(InternalRoutePaths.buckets, undefined, { shallow: true });
+        router.replace(InternalRoutePaths.dashboard, undefined, { shallow: true });
       } else {
         setPass(true);
       }

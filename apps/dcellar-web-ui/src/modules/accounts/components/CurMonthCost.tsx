@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { CardContainer, CardCost, CardTime, CardTitle } from './Common';
 import { getUtcDayjs } from '@/utils/time';
-import { Flex, Text} from '@totejs/uikit';
+import { BoxProps, Flex, Text} from '@totejs/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { scrollToId } from '@/utils/common';
 
-export const CurMonthCost = () => {
+export const CurMonthCost = ({children, ...restProps}: BoxProps) => {
   const utcDayjs = getUtcDayjs();
   const router = useRouter();
   const { curMonthTotalCosted } = useAppSelector((root) => root.billing);
@@ -36,7 +36,7 @@ export const CurMonthCost = () => {
   }
 
   return (
-    <CardContainer w={260} flex={1}>
+    <CardContainer w={260} flex={1} {...restProps}>
       <CardTitle mb={8}>Current Month Cost</CardTitle>
       <CardTime mb={16}>{costTime}</CardTime>
       <Flex gap={8} flexWrap={'wrap'} whiteSpace={'break-spaces'}>

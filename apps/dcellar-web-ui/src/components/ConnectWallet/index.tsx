@@ -68,7 +68,7 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     router.push(
       !!originPathname && originPathname !== 'undefined'
         ? originPathname
-        : InternalRoutePaths.buckets,
+        : InternalRoutePaths.dashboard,
     );
   }, [address, trustEvent, isAuthPending, router]);
 
@@ -79,7 +79,7 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     router.push(
       !!originPathname && originPathname !== 'undefined'
         ? originPathname
-        : InternalRoutePaths.buckets,
+        : InternalRoutePaths.dashboard,
     );
   }, [waitConnector, connector, address]);
 
