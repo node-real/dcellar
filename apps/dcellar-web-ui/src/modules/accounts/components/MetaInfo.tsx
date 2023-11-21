@@ -7,7 +7,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { selectBnbPrice } from '@/store/slices/global';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
-  MIN_DISPLAY_PRECISION,
+  FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { useRouter } from 'next/router';
@@ -93,7 +93,7 @@ export const MetaInfo = memo(({ address }: Props) => {
           <Text fontSize={14} fontWeight={500}>
             {trimFloatZero(
               BN(accountDetail?.netflowRate || 0)
-                .dp(MIN_DISPLAY_PRECISION)
+                .dp(FULL_DISPLAY_PRECISION)
                 .toString(),
             )}{' '}
             {displayTokenSymbol()}/s

@@ -12,7 +12,6 @@ import { formatObjectAddress } from '@/utils/accounts';
 import { xlMedia } from '@/modules/welcome';
 import { IconFont } from '@/components/IconFont';
 import { BillingHistoryQuery } from '..';
-import dayjs from 'dayjs';
 import { InternalRoutePaths } from '@/utils/constant';
 import { stringify } from 'querystring';
 import { useRouter } from 'next/router';
@@ -97,7 +96,7 @@ export const TotalCost = memo(() => {
         {
           data: pieData,
           color: Object.values(colors),
-          radius: ['78%', '95%'],
+          radius: ['73%', '90%'],
           width: '300px',
           center: ['28%', '50%'],
           emphasis: {

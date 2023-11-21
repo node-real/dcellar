@@ -132,7 +132,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             curData.estimateCost === null
               ? ''
               : `
-          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div>
+          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost} ${TokenSymbol}</div>
           </div>
           `;
           // const MoMFragment =

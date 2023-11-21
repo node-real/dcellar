@@ -141,7 +141,7 @@ export const TotalCostTrend = () => {
           const EstimateFragment =
             curData.estimateCost === null
               ? ''
-              : `<div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div></div>`;
+              : `<div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost} ${TokenSymbol}</div></div>`;
           // const MoMFragment =
           //   curData.MoM === null
           //     ? ''
