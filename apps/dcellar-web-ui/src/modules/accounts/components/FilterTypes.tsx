@@ -18,22 +18,14 @@ const MAX_SELECTED_NUM = 10;
 const TYPES = [
   'greenfield.storage.MsgCreateObject',
   'greenfield.storage.MsgDeleteObject',
-  'greenfield.storage.MsgSealObject',
   'greenfield.storage.MsgCancelCreateObject',
+  'greenfield.storage.MsgSealObject',
   'greenfield.storage.MsgCreateBucket',
   'greenfield.storage.MsgDeleteBucket',
-  'greenfield.storage.MsgDiscontinueBucket',
   'greenfield.storage.MsgUpdateBucketInfo',
-  'greenfield.bridge.MsgTransferOut',
-  'greenfield.payment.MsgCreatePaymentAccount',
+  'greenfield.storage.MsgCompleteMigrateBucket',
   'greenfield.payment.MsgDeposit',
   'greenfield.payment.MsgWithdraw',
-  'greenfield.storage.MsgPutPolicy',
-  'greenfield.storage.MsgCreateGroup',
-  'greenfield.storage.MsgDeleteGroup',
-  'greenfield.storage.MsgLeaveGroup',
-  'greenfield.storage.MsgUpdateGroupExtra',
-  'greenfield.storage.MsgUpdateGroupMember',
 ];
 
 type FilterTypesProps = {
