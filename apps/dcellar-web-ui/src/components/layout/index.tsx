@@ -1,6 +1,6 @@
-import { memo, PropsWithChildren } from 'react';
+import { memo, PropsWithChildren, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Grid } from '@totejs/uikit';
+import { Flex, Grid } from '@totejs/uikit';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
 import { useDrop } from 'react-dnd';
@@ -9,6 +9,10 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { setObjectOperation } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
+import { IconFont } from '@/components/IconFont';
+import cn from 'classnames';
+
+const GREY_BG = ['/wallet'];
 
 interface LayoutProps extends PropsWithChildren {}
 
@@ -17,9 +21,29 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
   const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
+  const { GLOBAL_NOTIFICATION, GLOBAL_NOTIFICATION_ETA } = useAppSelector((root) => root.apollo);
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
   const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
+
+  const [showNotification, setShowNotification] = useState(() => {
+    return (
+      (!!GLOBAL_NOTIFICATION && !GLOBAL_NOTIFICATION_ETA) ||
+      (!!GLOBAL_NOTIFICATION &&
+        GLOBAL_NOTIFICATION_ETA &&
+        Number(GLOBAL_NOTIFICATION_ETA) > Date.now())
+    );
+  });
+
+  useEffect(() => {
+    if (!GLOBAL_NOTIFICATION_ETA) return;
+    const offset = Number(GLOBAL_NOTIFICATION_ETA) - Date.now();
+    if (offset <= 0) {
+      setShowNotification(false);
+      return;
+    }
+    setTimeout(() => setShowNotification(false), offset);
+  }, [GLOBAL_NOTIFICATION_ETA]);
 
   const [_, drop] = useDrop({
     accept: [NativeTypes.FILE],
@@ -41,12 +65,32 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
       <LayoutNav>
         <Nav />
       </LayoutNav>
-      <Content id={'layout-main'} ref={drop}>
+      <Content
+        id={'layout-main'}
+        ref={drop}
+        className={cn({ 'layout-grey': GREY_BG.includes(pathname) })}
+      >
+        {showNotification && (
+          <Notification>
+            <IconFont type={'colored-error2'} w={'16'} />
+            {GLOBAL_NOTIFICATION}
+          </Notification>
+        )}
         {children}
       </Content>
     </LayoutContainer>
   );
 });
+
+const Notification = styled(Flex)`
+  color: #ca300e;
+  font-size: 14px;
+  gap: 8px;
+  border-radius: 4px;
+  background-color: rgba(238, 57, 17, 0.1);
+  padding: 13px 20px;
+  margin-bottom: 16px;
+`;
 
 const LayoutContainer = styled(Grid)`
   grid-template-areas:
@@ -92,4 +136,8 @@ const Content = styled.main`
   position: relative;
   z-index: 1;
   min-width: 763px;
+
+  &.layout-grey {
+    background: var(--ui-colors-bg-bottom);
+  }
 `;

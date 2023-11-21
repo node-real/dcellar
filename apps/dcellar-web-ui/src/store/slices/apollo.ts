@@ -7,6 +7,8 @@ interface ApolloState {
   SP_RECOMMEND_META: string;
   CLIENT_FROZEN_ACCOUNT_BUFFER_TIME: string;
   LIST_FOR_SELL_ENDPOINT: string;
+  GLOBAL_NOTIFICATION: string;
+  GLOBAL_NOTIFICATION_ETA: string;
 }
 
 const initialState: ApolloState = {
@@ -16,6 +18,8 @@ const initialState: ApolloState = {
   SP_RECOMMEND_META: '',
   CLIENT_FROZEN_ACCOUNT_BUFFER_TIME: '',
   LIST_FOR_SELL_ENDPOINT: '',
+  GLOBAL_NOTIFICATION: '',
+  GLOBAL_NOTIFICATION_ETA: '',
 };
 
 export const apolloSlice = createSlice({
