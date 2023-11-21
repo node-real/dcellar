@@ -72,6 +72,8 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
           marginRight={'12px'}
           mb={4}
           onClick={onClick}
+          w={'max-content'}
+          maxW={'100%'}
         >
           <Text as={'span'} onClick={onClick}>
             {name}

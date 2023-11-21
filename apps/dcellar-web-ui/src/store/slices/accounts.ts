@@ -253,7 +253,7 @@ export const setupPaymentAccounts =
   (forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
+    const { CLIENT_FROZEN_ACCOUNT_BUFFER_TIME } = getState().apollo;
     const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
     const { oneSp } = getState().sp;
     const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
@@ -305,7 +305,7 @@ export const setupPaymentAccounts =
         address,
         streamRecord: detail?.StreamRecord || {},
         refundable: detail?.PaymentAccount?.Refundable || true,
-        bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME,
+        bufferTime: CLIENT_FROZEN_ACCOUNT_BUFFER_TIME,
       };
     });
     dispatch(
@@ -324,7 +324,7 @@ export const setupAccountInfo =
     if (!address) return;
     const { loginAccount } = getState().persist;
     const paymentAccounts = getState().accounts.paymentAccounts[loginAccount] || [];
-    const { CLIENT_FROZEN__ACCOUNT_BUFFER_TIME } = getState().apollo;
+    const { CLIENT_FROZEN_ACCOUNT_BUFFER_TIME } = getState().apollo;
     const accountList = [
       ...(paymentAccounts || []),
       { address: loginAccount, name: 'Owner Account' },
@@ -342,7 +342,7 @@ export const setupAccountInfo =
         !PARes || !PARes.paymentAccount || PARes.paymentAccount.refundable === undefined
           ? true
           : PARes?.paymentAccount?.refundable,
-      bufferTime: CLIENT_FROZEN__ACCOUNT_BUFFER_TIME,
+      bufferTime: CLIENT_FROZEN_ACCOUNT_BUFFER_TIME,
     };
 
     dispatch(setAccountInfo([accountDetail]));

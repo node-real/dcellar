@@ -1,5 +1,6 @@
 import { SINGLE_OBJECT_MAX_SIZE } from '@/store/slices/object';
 import { formatBytes } from '@/utils/formatter';
+import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
 
 export const OBJECT_ERROR_TYPES = {
   NO_QUOTA: {
@@ -80,6 +81,11 @@ export const OBJECT_ERROR_TYPES = {
     desc: 'Only empty bucket can be deleted. Please delete all objects in this bucket first.',
     icon: 'empty-bucket',
   },
-}
+  MAX_FOLDER_DEPTH: {
+    icon: 'status-failed',
+    desc: `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`,
+    title: `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`,
+  },
+};
 
 export type ObjectErrorType = keyof typeof OBJECT_ERROR_TYPES;
