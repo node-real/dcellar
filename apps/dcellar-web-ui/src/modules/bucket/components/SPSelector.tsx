@@ -191,7 +191,7 @@ function OptionItem(props: any) {
     </A>
   );
 
-  const spLatency = latency[endpoint] || 0;
+  const spLatency = latency[endpoint.toLowerCase()] || 0;
 
   return (
     <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
