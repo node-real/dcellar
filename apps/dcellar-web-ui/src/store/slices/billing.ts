@@ -24,6 +24,7 @@ import { AppDispatch, AppState, GetState } from '..';
 import { getUtcDayjs } from '@/utils/time';
 import dayjs from 'dayjs';
 import { isEmpty, keyBy } from 'lodash-es';
+import { FULL_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 
 type AccountCost = {
   address: string;
@@ -250,10 +251,10 @@ export const billingSlice = createSlice({
       const formatBills = (bills || []).map((item) => ({
         address: item.Address,
         timestamp: dayjs(item.Timestamp).valueOf(),
-        readCost: getPosDecimalValue(item.ReadCost),
-        storeCost: getPosDecimalValue(item.StoreCost),
-        totalCost: getPosDecimalValue(item.TotalCost),
-        balance: getPosDecimalValue(item.Balance),
+        readCost: getPosDecimalValue(item.ReadCost, FULL_DISPLAY_PRECISION),
+        storeCost: getPosDecimalValue(item.StoreCost, FULL_DISPLAY_PRECISION),
+        totalCost: getPosDecimalValue(item.TotalCost, FULL_DISPLAY_PRECISION),
+        balance: getPosDecimalValue(item.Balance, FULL_DISPLAY_PRECISION),
         txHash: item.TxHash,
         txType: item.TxType,
       }));
@@ -270,10 +271,10 @@ export const billingSlice = createSlice({
       const formatBills = (bills || []).map((item) => ({
         address: item.Address,
         timestamp: dayjs(item.Timestamp).valueOf(),
-        readCost: getPosDecimalValue(item.ReadCost),
-        storeCost: getPosDecimalValue(item.StoreCost),
-        totalCost: getPosDecimalValue(item.TotalCost),
-        balance: getPosDecimalValue(item.Balance),
+        readCost: getPosDecimalValue(item.ReadCost, FULL_DISPLAY_PRECISION),
+        storeCost: getPosDecimalValue(item.StoreCost, FULL_DISPLAY_PRECISION),
+        totalCost: getPosDecimalValue(item.TotalCost, FULL_DISPLAY_PRECISION),
+        balance: getPosDecimalValue(item.Balance, FULL_DISPLAY_PRECISION),
         txHash: item.TxHash,
         txType: item.TxType
       }));
