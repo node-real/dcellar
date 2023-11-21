@@ -263,7 +263,6 @@ export const setupPaymentAccounts =
       const { CLIENT_FROZEN_ACCOUNT_BUFFER_TIME } = getState().apollo;
       const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
       const { oneSp, spInfo } = getState().sp;
-      console.log('oneSp', oneSp, spInfo[oneSp])
       const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
       if (isLoadingPaymentAccounts) return;
       if (!(loginAccount in paymentAccounts) || forceLoading) {
