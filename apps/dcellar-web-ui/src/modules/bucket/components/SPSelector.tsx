@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, Text } from '@totejs/uikit';
 import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
-import { SpItem } from '@/store/slices/sp';
+import { setSpLatency, SpItem, updateSpLatency } from '@/store/slices/sp';
 import { ExternalLinkIcon } from '@totejs/icons';
 import styled from '@emotion/styled';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -21,8 +21,9 @@ interface SPSelector {
 }
 
 export function SPSelector(props: SPSelector) {
-  const { spInfo, oneSp, allSps, spMeta } = useAppSelector((root) => root.sp);
-  const { faultySps } = useAppSelector((root) => root.persist);
+  const dispatch = useAppDispatch();
+  const { spInfo, oneSp, allSps, spMeta, latency } = useAppSelector((root) => root.sp);
+  const { faultySps, loginAccount } = useAppSelector((root) => root.persist);
   const len = allSps.length;
   const [sp, setSP] = useState({} as SpItem);
   const { onChange } = props;
@@ -73,8 +74,35 @@ export function SPSelector(props: SPSelector) {
           disabled: !access,
         };
       }),
-    [allSps, spMeta],
+    [allSps, spMeta, faultySps],
   );
+
+  useMount(() => {
+    dispatch(
+      updateSpLatency(
+        allSps.filter((sp) => !faultySps.includes(sp.operatorAddress)).map((sp) => sp.endpoint),
+        loginAccount,
+      ),
+    );
+  });
+
+  useEffect(() => {
+    const observer = new PerformanceObserver((list) => {
+      const latency: Record<string, number> = {};
+      list.getEntries().forEach((entry) => {
+        if (entry.name.endsWith('/auth/request_nonce')) {
+          const { origin } = new URL(entry.name);
+          latency[origin] = parseInt(String(entry.duration));
+        }
+      });
+      dispatch(setSpLatency(latency));
+    });
+
+    observer.observe({ type: 'resource', buffered: true });
+    return () => {
+      observer.disconnect();
+    };
+  }, [dispatch]);
 
   const renderOption = ({ value, disabled }: MenuOption) => {
     const sp = find<SpItem>(allSps, (sp) => sp.operatorAddress === value)!;
@@ -124,7 +152,7 @@ const renderItem = (moniker: string, address: string) => {
 };
 
 function OptionItem(props: any) {
-  const { spMeta } = useAppSelector((root) => root.sp);
+  const { spMeta, latency } = useAppSelector((root) => root.sp);
   const { address, name, endpoint, access } = props;
   const meta = spMeta[endpoint];
 
@@ -162,6 +190,8 @@ function OptionItem(props: any) {
       <IconFont type="external" w={12} />
     </A>
   );
+
+  const spLatency = latency[endpoint] || 0;
 
   return (
     <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
@@ -209,8 +239,8 @@ function OptionItem(props: any) {
       <TD w={120} color={access ? '#474D57' : '#AEB4BC'}>
         {meta ? formatBytes(meta.FreeReadQuota) : '--'}
       </TD>
-      <TD $dot={meta?.Latency} color={access ? '#474D57' : '#AEB4BC'}>
-        {meta ? meta.Latency + 'ms' : '--'}
+      <TD $dot={spLatency} color={access ? '#474D57' : '#AEB4BC'}>
+        {spLatency ? spLatency + 'ms' : '--'}
       </TD>
     </Flex>
   );
