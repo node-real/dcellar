@@ -7,6 +7,7 @@ import { ListUserPaymentAccountsResquest } from '@bnb-chain/greenfield-js-sdk/di
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { resolve } from './common';
 import { commonFault } from './error';
+import { SpConfig } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/config';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();
@@ -84,7 +85,7 @@ export const getStoreFeeParams = async (props: { time?: number, network?: 'mainn
   return storeFeeParamsPayload;
 };
 
-export const listUserPaymentAccounts = async (params: ListUserPaymentAccountsResquest, authType: AuthType) => {
+export const listUserPaymentAccounts = async (params: ListUserPaymentAccountsResquest, authType: AuthType, spConfig?: SpConfig) => {
   const client = await getClient()
-  return await client.payment.listUserPaymentAccounts(params, authType).then(resolve, commonFault);
+  return await client.payment.listUserPaymentAccounts(params, authType, spConfig).then(resolve, commonFault);
 }
