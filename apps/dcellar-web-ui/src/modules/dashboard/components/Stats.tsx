@@ -5,17 +5,20 @@ import { IconFont } from '@/components/IconFont';
 import { useAppSelector } from '@/store';
 import { selectBucketList } from '@/store/slices/bucket';
 import { selectPaymentAccounts } from '@/store/slices/accounts';
+import { isEmpty } from 'lodash-es';
 
 export const Stats = () => {
   const { loginAccount } = useAppSelector((root) => root.persist);
+  const { buckets } = useAppSelector((root) => root.bucket);
+  const { paymentAccounts } = useAppSelector((root) => root.accounts);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
   const statsData = useMemo(() => {
     return [
       {
-        name: 'buckets',
+        name: 'Buckets',
         icon: 'bucket',
-        value: bucketList?.length || 0,
+        value: isEmpty(buckets) ? '--' : bucketList?.length || 0,
       },
       // {
       //   name: 'Objects',
@@ -31,10 +34,10 @@ export const Stats = () => {
         name: 'Accounts',
         icon: 'account',
         // payment account length + a owner account
-        value: (paymentList?.length || 0) + 1,
+        value: isEmpty(paymentAccounts) ? '--' : (paymentList?.length || 0) + 1,
       },
     ];
-  }, [bucketList?.length, paymentList?.length]);
+  }, [bucketList?.length, buckets, paymentAccounts, paymentList?.length]);
 
   return (
     <Flex gap={16}>

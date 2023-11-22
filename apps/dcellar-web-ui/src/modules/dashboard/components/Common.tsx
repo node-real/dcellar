@@ -1,7 +1,7 @@
 import { IconFont } from '@/components/IconFont';
 import { Circle, Flex, FlexProps, Text, TextProps } from '@totejs/uikit';
 
-type CardProps = FlexProps;
+export type CardProps = FlexProps;
 export const Card = ({ children, ...restProps }: CardProps) => {
   return (
     <Flex

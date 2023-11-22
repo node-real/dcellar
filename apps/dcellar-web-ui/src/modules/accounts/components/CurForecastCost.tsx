@@ -10,6 +10,7 @@ import { useTotalEstimateCost } from '../hooks';
 export const CurForecastCost = memo(({children, ...restProps}: BoxProps) => {
   const dayjs = getUtcDayjs();
   const { curCosted, curRemainingEstimateCost } = useTotalEstimateCost(['cur']);
+  const isLoading = curCosted === '' || curRemainingEstimateCost === '';
   const costTime = useMemo(() => {
     const time = +new Date();
     const monthStart = dayjs(time).startOf('M').format('YYYY-MM-DD');
@@ -25,7 +26,7 @@ export const CurForecastCost = memo(({children, ...restProps}: BoxProps) => {
       <CardTitle mb={8}>Current Month's Total Forecast Cost</CardTitle>
       <CardTime mb={16}>{costTime}</CardTime>
       <Flex gap={8}>
-        <CardCost>{forecastCost}</CardCost>
+        <CardCost>{isLoading ? '--' : forecastCost}</CardCost>
         <CardCost>{displayTokenSymbol()}</CardCost>
       </Flex>
     </CardContainer>

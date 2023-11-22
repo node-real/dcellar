@@ -1,5 +1,5 @@
-import { Box, Button, Circle, Divider, Flex, Text } from '@totejs/uikit';
-import { Card } from './Common';
+import { Box, Button, Circle, Divider, Flex, Loading, Text } from '@totejs/uikit';
+import { Card, CardProps } from './Common';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { displayTokenSymbol } from '@/utils/wallet';
 import styled from '@emotion/styled';
@@ -13,8 +13,13 @@ import { BN } from '@/utils/math';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
+import { isEmpty } from 'lodash-es';
 
-const FeeOptions = [
+const FeeOptions: {
+  id: 'totalPrepaidFee' | 'totalNetflowRate';
+  label: string;
+  symbol: string;
+}[] = [
   {
     id: 'totalPrepaidFee',
     label: 'Total Prepaid fee',
@@ -27,12 +32,16 @@ const FeeOptions = [
   },
 ];
 
-export const TotalBalance = () => {
+type TotalBalanceProps = CardProps;
+export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
   const router = useRouter();
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountInfo } = useAppSelector((root) => root.accounts);
+  const { bankBalance, accountInfo, paymentAccounts } = useAppSelector((root) => root.accounts);
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
+  const isLoading = bankBalance === '' || isEmpty(accountInfo) || isEmpty(paymentAccounts);
+  console.log('bankBalance', paymentAccounts, bankBalance, paymentList, accountInfo);
+
   const res = useMemo(() => {
     const ownerInfo = accountInfo[loginAccount] || {};
     const ownerTotalBalance = BN(ownerInfo.staticBalance).plus(bankBalance);
@@ -65,18 +74,20 @@ export const TotalBalance = () => {
   };
 
   return (
-    <Card w={374}>
+    <Card w={374} {...restProps}>
       <Text fontWeight={600} fontSize={16}>
         Total Balance
       </Text>
       <Box>
         <Flex gap={4} fontSize={32} fontWeight={500} mb={8}>
-          <EllipsisText>{res.totalBalance}</EllipsisText>
+          <EllipsisText>{isLoading ? '--' : res.totalBalance}</EllipsisText>
           <Text>{displayTokenSymbol()}</Text>
         </Flex>
         <Flex gap={4} color={'readable.disable'}>
           <EllipsisText>
-            {currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())}
+            {isLoading ? '--' : (
+              currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())
+            )}
           </EllipsisText>
           <Text>USD</Text>
         </Flex>
@@ -85,7 +96,7 @@ export const TotalBalance = () => {
         <Flex key={index} justifyContent={'space-between'} fontSize={12} fontWeight={500}>
           <Text color={'readable.tertiary'}>{item.label}</Text>
           <Text>
-            {res[item.id]} {item.symbol}
+            {isLoading ? '--' : res[item.id]} {item.symbol}
           </Text>
         </Flex>
       ))}

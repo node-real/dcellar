@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react';
-import { Card, CardTitle, CircleIcon } from './Common';
+import { useMemo } from 'react';
+import { Card, CardProps, CardTitle, CircleIcon } from './Common';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { useAppSelector } from '@/store';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { Box, Flex, Text } from '@totejs/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
+import { isEmpty } from 'lodash-es';
 
 const DEFAULT_STORE_SIZE = 1024 * 1024 * 1034;
 const DEFAULT_STORE_TIME = 30 * 24 * 60 * 60;
@@ -24,8 +25,10 @@ const TOOL_OPTIONS = [
     target: '_blank',
   },
 ];
-export const ToolBox = () => {
+
+export const ToolBox = ({ children, ...restProps }: CardProps) => {
   const { storeFeeParams } = useAppSelector((root) => root.global);
+  const isLoading = isEmpty(storeFeeParams);
   const priceOptions = useMemo(() => {
     const storageFee = BN(getStoreNetflowRate(DEFAULT_STORE_SIZE, storeFeeParams))
       .times(DEFAULT_STORE_TIME)
@@ -54,7 +57,7 @@ export const ToolBox = () => {
     ];
   }, [storeFeeParams]);
   return (
-    <Card w={374} flex={1}>
+    <Card w={374} flex={1} {...restProps}>
       <CardTitle>ToolBox</CardTitle>
       {TOOL_OPTIONS.map((item, index) => (
         <Flex
@@ -66,7 +69,7 @@ export const ToolBox = () => {
           cursor={'pointer'}
           as={'a'}
           href={item.link}
-          target='_blank'
+          target="_blank"
           _hover={{
             bgColor: '#f5f5f5',
           }}
@@ -83,7 +86,7 @@ export const ToolBox = () => {
               {item.label}
             </Text>
             <Box fontSize={14} fontWeight={500}>
-              <Text as="span">{item.value}</Text> <Text as="span">{item.symbol}</Text>
+              <Text as="span">{isLoading ? '--' : item.value}</Text> <Text as="span">{item.symbol}</Text>
             </Box>
           </Box>
         </Flex>

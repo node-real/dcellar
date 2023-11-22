@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
-import { Card } from './Common';
+import { Card, CardTitle } from './Common';
 import { LineChart } from '@/components/charts/LineChart';
 import { formatChartTime } from '@/utils/dashboard';
-import { Box } from '@totejs/uikit';
+import { Box, Flex } from '@totejs/uikit';
+import { DCButton } from '@/components/common/DCButton';
+import { FilterBuckets } from './FilterBuckets';
+import { FilterContainer } from '@/modules/accounts/components/Common';
 
 export const Charts = () => {
   const lineOptions = useMemo(() => {
@@ -50,12 +53,26 @@ export const Charts = () => {
     };
   }, []);
   return (
-    <Box flex={1}>
-      <Card h={'100%'} maxH={390} minW={0}>
+    <Card flex={1} gap={24}>
+      <Flex alignItems={'center'} justifyContent={'space-between'}>
+        <CardTitle>Usage Statics</CardTitle>
+        <Flex>
+          <DCButton bgColor={'opacity1'} color={'readable.normal'} _hover={{ bgColor: 'opacity1' }}>
+            Storage Usage
+          </DCButton>
+          <DCButton variant="ghost" disabled={true} border={'none'}>
+            Download Quota Usage
+          </DCButton>
+        </Flex>
+      </Flex>
+      <FilterContainer>
+        <FilterBuckets />
+      </FilterContainer>
+      <Box h={290} minW={0}>
         <Box w={'100%'} h={'100%'}>
           <LineChart options={lineOptions} />
         </Box>
-      </Card>
-    </Box>
+      </Box>
+    </Card>
   );
 };

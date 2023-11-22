@@ -7,6 +7,7 @@ interface EllipsisTextProps extends TextProps {
 
 export const EllipsisText = memo((props: EllipsisTextProps) => {
   const [isOverflowing, setIsOverflowing] = React.useState(false);
+  console.log('isOverflowing', isOverflowing);
   return (
     <Tooltip
       content={props.text || props.children}

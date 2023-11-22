@@ -1,5 +1,4 @@
 import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-
 import {
   FILE_STATUS_DOWNLOADING,
   FILE_TITLE_CANCEL_FAILED,
@@ -60,7 +59,7 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
       <Head>
         <>
           {LCP_IMAGES.map((url: string) => (
-            <link key={url} rel="preload" href={url} as="image" />
+            <link key={url} href={url} as="image" />
           ))}
         </>
       </Head>
