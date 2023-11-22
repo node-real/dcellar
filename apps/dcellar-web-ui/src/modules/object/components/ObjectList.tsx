@@ -58,6 +58,7 @@ import dayjs from 'dayjs';
 import { Flex } from '@totejs/uikit';
 import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
+import { apolloUrlTemplate } from '@/utils/string';
 
 const Actions: MenuOption[] = [
   {
@@ -262,9 +263,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     if (menu === 'marketplace') {
       const key = path + '/' + record.name;
       const curObjectInfo = objectsInfo[key];
-      openLink(
-        `${LIST_FOR_SELL_ENDPOINT}?address=${loginAccount}&bucket=${bucket.Id}&object=${curObjectInfo.ObjectInfo.Id}`,
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${bucket.Id}&oid=${curObjectInfo.ObjectInfo.Id}`,
       );
+      openLink(link);
       return;
     }
     switch (menu) {

@@ -24,6 +24,7 @@ import { MenuOption } from '@/components/common/DCMenuList';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
+import { apolloUrlTemplate } from '@/utils/string';
 
 const Actions: MenuOption[] = [
   {
@@ -63,7 +64,11 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
 
   const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
     if (menu === 'marketplace') {
-      openLink(`${LIST_FOR_SELL_ENDPOINT}?address=${loginAccount}&bucket=${record.Id}`);
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${record.Id}`,
+      );
+      openLink(link);
       return;
     }
     return dispatch(setBucketOperation([record.BucketName, menu]));
