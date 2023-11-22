@@ -64,24 +64,22 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     }
 
     // Redirect to the main page after user login manually.
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
     router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
+      !!router.query.originAsPath
+        ? decodeURIComponent(router.query.originAsPath as string)
         : InternalRoutePaths.buckets,
     );
   }, [address, trustEvent, isAuthPending, router]);
 
   useEffect(() => {
     if (!connector || !address || !waitConnector) return;
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
 
     router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
+      !!router.query.originAsPath
+        ? decodeURIComponent(router.query.originAsPath as string)
         : InternalRoutePaths.buckets,
     );
-  }, [waitConnector, connector, address]);
+  }, [waitConnector, connector, address, router]);
 
   const onGetStart = () => {
     if (isAuthPending) return;

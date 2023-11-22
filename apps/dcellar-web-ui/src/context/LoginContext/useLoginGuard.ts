@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useAppSelector } from '@/store';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useMount } from 'ahooks';
 import { InternalRoutePaths } from '@/utils/constant';
+import { useAccount } from 'wagmi';
 
 export function useLoginGuard(inline: boolean) {
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const { address } = useAccount();
 
   const router = useRouter();
   const { pathname, asPath } = router;
@@ -15,7 +15,7 @@ export function useLoginGuard(inline: boolean) {
   const [pass, setPass] = useState(inline);
 
   useMount(() => {
-    setMounted(true)
+    setMounted(true);
   });
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function useLoginGuard(inline: boolean) {
         setPass(true);
       }
     } else {
-      if (ssrLandingRoutes.some(item => item === pathname)) {
+      if (ssrLandingRoutes.some((item) => item === pathname)) {
         return setPass(true);
       }
       if (router?.query?.originAsPath && router?.query.originAsPath.length > 0) {

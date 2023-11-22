@@ -7,7 +7,7 @@ import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
 import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { checkSpOffChainMayExpired, setLogout } from '@/store/slices/persist';
+import { checkSpOffChainMayExpired, setLogin, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
 import { ssrLandingRoutes } from '@/pages/_app';
@@ -70,10 +70,17 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
 
   useAsyncEffect(async () => {
     // ssr pages loginAccount initial value ''
-    if (loginAccount && loginAccount === walletAddress) {
-      // expire date less than 24h，remove sp auth & logout
+    if (walletAddress) {
       const spMayExpired = await dispatch(checkSpOffChainMayExpired(walletAddress));
-      if (spMayExpired) logout(true);
+      if (loginAccount === walletAddress) {
+        // expire date less than 24h，remove sp auth & logout
+        if (spMayExpired) logout(true);
+        return;
+      }
+      if (!loginAccount && !spMayExpired) {
+        dispatch(setLogin(walletAddress));
+        return;
+      }
     }
   }, [walletAddress, loginAccount]);
 
