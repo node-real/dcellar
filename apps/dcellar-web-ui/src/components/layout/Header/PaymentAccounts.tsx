@@ -36,7 +36,7 @@ export const PaymentAccounts = () => {
     // update metamask
     refetch();
     dispatch(setBankBalance(metamaskValue));
-  }, [asPath, refetch]);
+  }, [asPath, refetch, loginAccount]);
 
   useThrottleEffect(() => {
     dispatch(setBankBalance(metamaskValue));
