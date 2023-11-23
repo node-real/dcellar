@@ -4,7 +4,7 @@ import { Box } from '@totejs/uikit';
 import { BaseChart } from '@/components/charts/BaseChart';
 import { cssVar } from '@/utils/common';
 import { useAppSelector } from '@/store';
-import { AccountCostBill, selectAccountCostTrend } from '@/store/slices/billing';
+import { AccountCostMonth, selectAccountCostTrend } from '@/store/slices/billing';
 import { getEveryMonth, getUtcDayjs } from '@/utils/time';
 import { BN } from '@/utils/math';
 import { useAccountEstimateCost } from '../hooks';
@@ -15,7 +15,7 @@ import { Loading } from '@/components/common/Loading';
 
 const colors = ['#00BA34', '#C2EECE', '#1184EE'];
 
-type BarItem = AccountCostBill & {
+type BarItem = AccountCostMonth & {
   MoM: string;
   estimateCost: number;
   month: string;
@@ -132,7 +132,7 @@ export const AccountCostTrend = memo(({ address }: Props) => {
             curData.estimateCost === null
               ? ''
               : `
-          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost}</div>
+          <div style="${styles.normal}">Estimate Cost:<div style="${styles.bnb}">${curData.estimateCost} ${TokenSymbol}</div>
           </div>
           `;
           // const MoMFragment =

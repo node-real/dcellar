@@ -1,19 +1,25 @@
 import React, { memo, useMemo } from 'react';
 import { CardContainer, CardCost, CardTitle } from './Common';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex, Text } from '@totejs/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { PieChart } from '@/components/charts/PieChart';
-import { cssVar } from '@/utils/common';
+import { cssVar, scrollToId } from '@/utils/common';
 import { useAppSelector } from '@/store';
 import { selectAllCost } from '@/store/slices/billing';
 import { BN } from '@/utils/math';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatObjectAddress } from '@/utils/accounts';
 import { xlMedia } from '@/modules/welcome';
+import { IconFont } from '@/components/IconFont';
+import { BillingHistoryQuery } from '..';
+import { InternalRoutePaths } from '@/utils/constant';
+import { stringify } from 'querystring';
+import { useRouter } from 'next/router';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
 export const TotalCost = memo(() => {
+  const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { isLoadingPaymentAccounts, accountInfo } = useAppSelector((root) => root.accounts);
   const totalCost = useAppSelector(selectAllCost(loginAccount));
@@ -49,7 +55,15 @@ export const TotalCost = memo(() => {
     others.addresses.length > 0 && newData.push(others);
     return newData;
   }, [accountInfo, isLoadingPaymentAccounts, loadingAllCost, loadingAllCostTrend, totalCost.detailCosts]);
-
+  const onBillingHistory = () => {
+    const curQuery: BillingHistoryQuery = {
+      page: 1,
+      tab: 'b',
+    }
+    const url = `${InternalRoutePaths.accounts}?${stringify(curQuery)}`;
+    router.push(url, undefined, { scroll: false });
+    scrollToId('tab_container', 24);
+  }
   const chartOptions = useMemo(() => {
     const legendNames = (pieData || []).map((item) => ({
       name: item.name,
@@ -82,7 +96,7 @@ export const TotalCost = memo(() => {
         {
           data: pieData,
           color: Object.values(colors),
-          radius: ['78%', '95%'],
+          radius: ['73%', '90%'],
           width: '300px',
           center: ['28%', '50%'],
           emphasis: {
@@ -106,18 +120,18 @@ export const TotalCost = memo(() => {
       </Flex>
       <Box width={310} h={176}>
         <PieChart options={chartOptions} />
-        {/* <Flex
-          mt={24}
+        <Flex
+          mt={16}
           color={'brand.brand6'}
           alignItems={'center'}
           justifyContent={'flex-end'}
           gap={4}
           cursor={'pointer'}
-          onClick={() => {}}
+          onClick={() => {onBillingHistory()}}
         >
           <Text fontWeight={500}>View Detail</Text>
           <IconFont type="forward" />
-        </Flex> */}
+        </Flex>
       </Box>
     </CardContainer>
   );

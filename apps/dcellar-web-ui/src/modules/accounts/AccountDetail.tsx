@@ -4,27 +4,34 @@ import { Flex } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupAccountInfo, setupPaymentAccounts } from '@/store/slices/accounts';
-import { useAsyncEffect } from 'ahooks';
+import { useMount } from 'ahooks';
 import { isAddress } from 'ethers/lib/utils.js';
 import { MetaInfo } from './components/MetaInfo';
 import { AccountCostTrend } from './components/AccountCostTrend';
-import { setupAccountCostTrend } from '@/store/slices/billing';
-import { ComingBillingHistory } from './components/ComingBillingHistory';
+import {
+  setAccountFilterRange,
+  setAccountFilterTypes,
+  setCurrentAccountBillsPage,
+  setupAccountBills,
+  setupAccountCostTrend,
+} from '@/store/slices/billing';
 import AccountDetailNav from './components/AccountDetailNav';
+import { AccountBillingHistory } from './components/AccountBillingHistory';
+import { useEffect } from 'react';
 import { NonRefundableModal } from './components/NonRefundableModal';
 
 const emptyObject = {};
 export const AccountDetail = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { address } = router.query;
+  const { address, page, from, to, type } = router.query;
   const curAddress = address as string;
   const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = address === loginAccount;
   const { accountInfo } = useAppSelector((root) => root.accounts);
   const accountDetail = accountInfo?.[curAddress] || emptyObject;
 
-  useAsyncEffect(async () => {
+  useMount(async () => {
     if (!curAddress) return;
     if (!isAddress(curAddress)) {
       router.replace('/no-account?err=noAccount');
@@ -32,7 +39,19 @@ export const AccountDetail = () => {
     }
     isOwnerAccount ? dispatch(setupAccountInfo(curAddress)) : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
-  }, [address]);
+  });
+  useEffect(() => {
+    const filterRange: [string, string] =
+      typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];
+    const filterTypes = typeof type === 'string' ? [type] : ((type || []) as string[]);
+    const curPage = isNaN(+(page as string)) ? 1 : +(page as string);
+
+    console.log('account page', curPage);
+    dispatch(setAccountFilterRange(filterRange));
+    dispatch(setAccountFilterTypes(filterTypes));
+    dispatch(setCurrentAccountBillsPage(curPage));
+    dispatch(setupAccountBills(curAddress));
+  }, [page, from, to, dispatch, router.query, type, curAddress]);
 
   return (
     <>
@@ -47,11 +66,8 @@ export const AccountDetail = () => {
           <MetaInfo address={curAddress} />
           <AccountCostTrend address={curAddress} />
         </Flex>
-        <Flex alignItems={'center'} fontSize={16} fontWeight={600} h={40}>
-          Billing History
-        </Flex>
-        <ComingBillingHistory />
-        {/* <AccountBillingHistory address={curAddress} /> */}
+        {/* <ComingBillingHistory /> */}
+        <AccountBillingHistory address={curAddress} />
       </Flex>
     </>
   );

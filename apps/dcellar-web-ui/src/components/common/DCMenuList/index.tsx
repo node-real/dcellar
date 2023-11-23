@@ -1,5 +1,5 @@
 import { Box, Center, MenuItem, MenuList, MenuListProps, Text } from '@totejs/uikit';
-import { memo, ReactNode } from 'react';
+import { memo, ReactElement, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import cn from 'classnames';
 import { IconFont } from '@/components/IconFont';
@@ -168,7 +168,7 @@ const StyledMenuList = styled(MenuList)`
   .menu-items {
     overflow: auto;
   }
-  
+
   .menu-items::-webkit-scrollbar {
     width: 4px
   },
