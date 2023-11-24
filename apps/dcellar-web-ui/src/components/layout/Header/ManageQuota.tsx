@@ -21,7 +21,7 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { formatQuota, trimLongStr } from '@/utils/string';
 import { getPrimarySpInfo } from '@/store/slices/sp';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
-import { G_BYTES } from '@/utils/constant';
+import { G_BYTES, OWNER_ACCOUNT_NAME } from '@/utils/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
@@ -128,7 +128,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
     const link = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`;
     return (
       <>
-        {oa ? 'Owner Account' : pa!.name}
+        {oa ? OWNER_ACCOUNT_NAME : pa!.name}
         <Text mx={2}>|</Text>
         <Link
           target="_blank"

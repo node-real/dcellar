@@ -25,7 +25,7 @@ importers:
       '@totejs/eslint-config': ^1.5.2
       '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.54.1
+      '@totejs/uikit': ~2.54.2
       '@totejs/walletkit': 0.2.4
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
@@ -80,7 +80,7 @@ importers:
       '@reduxjs/toolkit': 1.9.5_react-redux@8.1.2+react@18.2.0
       '@sentry/nextjs': 7.52.1_next@13.3.4+react@18.2.0
       '@totejs/icons': 2.17.0_aa3274991927adc2766d9259998fdd18
-      '@totejs/uikit': 2.54.1_aa3274991927adc2766d9259998fdd18
+      '@totejs/uikit': 2.54.2_aa3274991927adc2766d9259998fdd18
       '@totejs/walletkit': 0.2.4_e6fbba57495b6c86afc796bd86211ee8
       '@wagmi/core': 0.10.17_01c1674540fb06277196a21a8a2e0b3e
       ahooks: 3.7.7_react@18.2.0
@@ -3632,8 +3632,8 @@ packages:
       react-dom: 18.2.0_react@18.2.0
     dev: false
 
-  /@totejs/uikit/2.54.1_aa3274991927adc2766d9259998fdd18:
-    resolution: {integrity: sha512-NTepx7UBdq1HCCtns9QR37RiD7CvtNiPiH7DynCj+abDuidPfl3A6n04fYMhIqCS7gJxY61ft3cCvY6r6o9JzA==}
+  /@totejs/uikit/2.54.2_aa3274991927adc2766d9259998fdd18:
+    resolution: {integrity: sha512-jUlIoSUewWCKfzewjRFKTr4bHve8Ro52kP4xRUzJUtuavGZSWXKOy0OaRWVUjjkiZ31ZDLZLzP7ZJDhpslocug==}
     peerDependencies:
       '@emotion/react': '>=11'
       '@emotion/styled': '>=11'

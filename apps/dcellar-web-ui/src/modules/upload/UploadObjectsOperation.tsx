@@ -380,7 +380,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       }
       toPairs(tree).forEach(([key, value]) => {
         const time = getTimestamp();
-        const id = parseInt(String(time * Math.random()));
+        const id = parseInt(String(time + time * Math.random()));
         dispatch(addToWaitQueue({ id, file: value, time, relativePath: key }));
       });
     };
