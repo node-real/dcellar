@@ -71,15 +71,20 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     );
   }, [address, trustEvent, isAuthPending, router]);
 
+  // connector may be undefined when wallet throw '(index):7 Error in event handler: Error: write after end';
   useEffect(() => {
-    if (!connector || !address || !waitConnector) return;
+    if (!address || !waitConnector || !isConnected) return;
 
-    router.push(
-      !!router.query.originAsPath
-        ? decodeURIComponent(router.query.originAsPath as string)
-        : InternalRoutePaths.buckets,
-    );
-  }, [waitConnector, connector, address, router]);
+    const redirect = () => {
+      router.push(
+        !!router.query.originAsPath
+          ? decodeURIComponent(router.query.originAsPath as string)
+          : InternalRoutePaths.buckets,
+      );
+    };
+
+    setTimeout(redirect, 180);
+  }, [waitConnector, address, router, isConnected]);
 
   const onGetStart = () => {
     if (isAuthPending) return;
