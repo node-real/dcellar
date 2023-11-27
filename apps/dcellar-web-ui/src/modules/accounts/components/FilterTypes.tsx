@@ -23,7 +23,6 @@ const TYPES = [
   'greenfield.storage.MsgCreateBucket',
   'greenfield.storage.MsgDeleteBucket',
   'greenfield.storage.MsgUpdateBucketInfo',
-  'greenfield.storage.MsgCompleteMigrateBucket',
   'greenfield.payment.MsgDeposit',
   'greenfield.payment.MsgWithdraw',
 ];
