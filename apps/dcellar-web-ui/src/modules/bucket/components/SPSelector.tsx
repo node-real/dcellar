@@ -97,7 +97,7 @@ export function SPSelector(props: SPSelector) {
       });
       dispatch(setSpLatency(latency));
     });
-
+    // reuse offchain auth request nonce call data
     observer.observe({ type: 'resource', buffered: true });
     return () => {
       observer.disconnect();
@@ -239,8 +239,8 @@ function OptionItem(props: any) {
       <TD w={120} color={access ? '#474D57' : '#AEB4BC'}>
         {meta ? formatBytes(meta.FreeReadQuota) : '--'}
       </TD>
-      <TD $dot={spLatency} color={access ? '#474D57' : '#AEB4BC'}>
-        {spLatency ? spLatency + 'ms' : '--'}
+      <TD $dot={access ? spLatency : 0} color={access ? '#474D57' : '#AEB4BC'}>
+        {spLatency && access ? spLatency + 'ms' : '--'}
       </TD>
     </Flex>
   );
