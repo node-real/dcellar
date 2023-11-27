@@ -10,6 +10,8 @@ import { useDetectScroll } from './useDetectScroll';
 import { SelectNetwork } from '../Common/SelectNetwork';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
+import styled from '@emotion/styled';
+import { breakpoints } from '@/modules/responsive';
 
 export const MENUS = [
   {
@@ -40,7 +42,7 @@ export const BaseHeader = () => {
   const gaClickName = getGAOptions(router.pathname);
   const isScroll = useDetectScroll();
   return (
-    <Flex
+    <Container
       as="header"
       width={'100%'}
       h={64}
@@ -111,7 +113,7 @@ export const BaseHeader = () => {
           }}
         />
       </Flex>
-    </Flex>
+    </Container>
   );
 };
 
@@ -123,3 +125,10 @@ function getGAOptions(pathname: string) {
       return 'dc_lp.main.header.connect_wallet.click';
   }
 }
+
+const Container = styled(Flex)`
+  display: none;
+  @media (min-width: ${breakpoints.SM}px) {
+    display: flex;
+  }
+`;
