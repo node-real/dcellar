@@ -166,5 +166,6 @@ const StyledTabList = styled(TabList)`
 
   position: sticky;
   top: 0;
+  z-index: 1;
   background: var(--ui-colors-bg-middle);
 `;
