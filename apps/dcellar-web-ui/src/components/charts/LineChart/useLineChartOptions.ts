@@ -53,8 +53,8 @@ export function useLineChartOptions(options: any, noData: boolean) {
         boundaryGap: false,
         axisLabel: {
           marginTop: 4,
-          fontWeight: 400,
-          lineHeight: 12,
+          fontWeight: 500,
+          lineHeight: 15,
           color: cssVar('readable.disable'),
           fontSize: 10,
           fontFamily: 'Inter',
@@ -80,18 +80,44 @@ export function useLineChartOptions(options: any, noData: boolean) {
         },
       },
       yAxis: {
-        show: false,
+        show: true,
+        type: 'value',
+        scale: true,
         spiltLine: {
           lineStyle: {
             color: 'red',
           }
-        }
+        },
+        axisTick: {
+          show: true,
+          alignWithLabel: true,
+          lineStyle: {
+            color: cssVar('readable.border'),
+          },
+        },
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: cssVar('readable.border'),
+          },
+        },
+        splitLine: {
+          show: false,
+        },
+        axisLabel: {
+          marginRight: 4,
+          fontWeight: 500,
+          lineHeight: 15,
+          color: cssVar('readable.disabled'),
+          fontSize: 12,
+          fontFamily: 'Inter',
+        },
       },
       grid: {
-        left: 18,
-        right: 18,
-        top: 4,
-        bottom: 18,
+        left: 4,
+        right: 20,
+        top: 6,
+        bottom: 0,
         containLabel: true,
       },
       series: [
@@ -99,7 +125,7 @@ export function useLineChartOptions(options: any, noData: boolean) {
           type: 'line',
           smooth: true,
           symbol: 'circle',
-          symbolSize: 5,
+          symbolSize: 6,
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               {
