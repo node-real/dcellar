@@ -55,7 +55,6 @@ export function useBarChartOptions(options: any, noData: boolean) {
         itemWidth: 8,
         itemGap: 16,
         right: 30,
-        // data: ['Monthly Cost', 'Estimate Cost'],
         textStyle: {
           fontWeight: 400,
         },
@@ -99,7 +98,6 @@ export function useBarChartOptions(options: any, noData: boolean) {
           color: cssVar('readable.tertiary'),
           fontSize: 12,
           fontWeight: 500,
-          formatter: '{value} BNB',
         },
         splitLine: {
           lineStyle: {
