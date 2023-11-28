@@ -5,7 +5,7 @@ import { displayTokenSymbol } from '@/utils/wallet';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
 import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { useMemo } from 'react';
@@ -40,7 +40,6 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
   const { bankBalance, accountInfo, paymentAccounts } = useAppSelector((root) => root.accounts);
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
   const isLoading = bankBalance === '' || isEmpty(accountInfo) || isEmpty(paymentAccounts);
-  console.log('bankBalance', paymentAccounts, bankBalance, paymentList, accountInfo);
 
   const res = useMemo(() => {
     const ownerInfo = accountInfo[loginAccount] || {};

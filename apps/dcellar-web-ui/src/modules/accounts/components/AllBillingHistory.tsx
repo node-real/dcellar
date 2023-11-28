@@ -22,7 +22,7 @@ import { ShortTxCopy } from './Common';
 import { stringify } from 'querystring';
 import { useRouter } from 'next/router';
 import { merge } from 'lodash-es';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 
 export const AllBillingHistory = () => {
   const router = useRouter();

@@ -36,7 +36,7 @@ import { trimAddress } from '@/utils/string';
 import styled from '@emotion/styled';
 import { Loading } from '@/components/common/Loading';
 import { Avatar } from '@/components/Avatar';
-import { ADDRESS_RE } from '@/utils/constant';
+import { ADDRESS_RE } from '@/constants/legacy';
 import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';

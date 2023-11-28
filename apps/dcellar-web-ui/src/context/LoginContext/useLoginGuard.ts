@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/store';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useMount } from 'ahooks';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 
 export function useLoginGuard(inline: boolean) {
   const { loginAccount: address } = useAppSelector((root) => root.persist);

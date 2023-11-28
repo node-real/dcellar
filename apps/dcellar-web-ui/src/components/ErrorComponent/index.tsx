@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { useAppSelector } from '@/store';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { IconFont } from '@/components/IconFont';
 
 const Container = styled.main`

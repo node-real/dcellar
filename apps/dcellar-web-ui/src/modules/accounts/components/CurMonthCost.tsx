@@ -5,7 +5,7 @@ import { BoxProps, Flex, Text } from '@totejs/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { stringify } from 'querystring';
 import { BillingHistoryQuery } from '..';
 import dayjs from 'dayjs';
@@ -19,7 +19,6 @@ export const CurMonthCost = ({ children, showLink = true, ...restProps }: CurMon
   const utcDayjs = getUtcDayjs();
   const router = useRouter();
   const { curMonthTotalCosted } = useAppSelector((root) => root.billing);
-  console.log('curMonthTotalCosted', curMonthTotalCosted);
   const costTime = useMemo(() => {
     const time = +new Date();
     const monthStart = utcDayjs(time).startOf('M').format('YYYY-MM-DD');

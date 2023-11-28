@@ -4,12 +4,13 @@ import { TotalBalance } from './components/TotalBalance';
 import { Stats } from './components/Stats';
 import { CurMonthCost } from '../accounts/components/CurMonthCost';
 import { CurForecastCost } from '../accounts/components/CurForecastCost';
-import { Charts } from './components/Charts';
+import { BucketStorageChart } from './components/BucketStorageChart';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { setupAllCostTrend, setupTotalCost } from '@/store/slices/billing';
 import { useMount } from 'ahooks';
 import { setupBuckets } from '@/store/slices/bucket';
+import { setupBucketDailyStorage } from '@/store/slices/dashboard';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -21,6 +22,7 @@ export const Dashboard = () => {
     dispatch(setupAllCostTrend());
     dispatch(setupPaymentAccounts());
     dispatch(setupBuckets(loginAccount));
+    dispatch(setupBucketDailyStorage());
   });
 
   return (
@@ -41,7 +43,7 @@ export const Dashboard = () => {
               <ToolBox />
             </Flex>
           )}
-          <Charts />
+          <BucketStorageChart />
           <Stats />
         </Flex>
         {!isLessThan1200 && (

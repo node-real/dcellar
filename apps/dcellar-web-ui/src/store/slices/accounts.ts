@@ -15,7 +15,7 @@ import { getSpOffChainData } from './persist';
 import { keyBy } from 'lodash-es';
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { getShortAccountName } from '@/utils/billing';
-import { OWNER_ACCOUNT_NAME } from '@/utils/constant';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 
 export type TAccount = {
   id: string;

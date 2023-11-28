@@ -34,7 +34,7 @@ import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { selectAccount, setupAccountInfo, TAccount } from '@/store/slices/accounts';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
-import { G_BYTES } from '@/utils/constant';
+import { G_BYTES } from '@/constants/legacy';
 import { getQuotaNetflowRate } from '@/utils/payment';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';

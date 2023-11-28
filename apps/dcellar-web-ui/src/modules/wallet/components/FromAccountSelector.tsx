@@ -7,7 +7,7 @@ import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
-import { OWNER_ACCOUNT_NAME } from '@/utils/constant';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { getShortAccountName } from '@/utils/billing';
 
 interface FromAccountSelectorProps {

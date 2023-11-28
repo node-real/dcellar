@@ -4,7 +4,7 @@ import { setAllFilterRange, setAllFilterTypes } from '@/store/slices/billing';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { FilterContainer } from './Common';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { stringify } from 'querystring';
 import { useUpdateEffect } from 'ahooks';
 import { FilterAccounts } from './FilterAccounts';

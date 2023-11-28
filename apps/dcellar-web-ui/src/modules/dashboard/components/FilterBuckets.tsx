@@ -13,23 +13,22 @@ import cn from 'classnames';
 import { useRouter } from 'next/router';
 import { Badge, MenuFooter, MenuHeader } from '@/modules/accounts/components/Common';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectFilterBuckets, setFilterBuckets } from '@/store/slices/dashboard';
-import { selectBucketList } from '@/store/slices/bucket';
+import { selectBucketDailyStorage, selectFilterBuckets, setFilterBuckets } from '@/store/slices/dashboard';
 
 export const FilterBuckets = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+
+  const bucketDailyStorage = useAppSelector(selectBucketDailyStorage());
   const { loginAccount } = useAppSelector((root) => root.persist);
   const filterBuckets = useAppSelector(selectFilterBuckets());
-  const bucketList = useAppSelector(selectBucketList(loginAccount));
   const [nameFilter, setNameFilter] = useState('');
   const [selectedBucket, setSelectedBucket] = useState<Array<string>>([]);
-  console.log('bucketList', bucketList.map((item) => item.BucketName));
   const nameToOptions = (name: string) => ({
     label: name,
     value: name,
   });
-  const bucketNames = bucketList.map((item) => item.BucketName);
+  const bucketNames = bucketDailyStorage.map((item) => item.BucketName);
   // bucket name will 63 characters
   const names = bucketNames.filter((name) =>
     !nameFilter.trim() ? true : name.toLowerCase().includes(nameFilter.trim().toLowerCase()),
@@ -84,7 +83,6 @@ export const FilterBuckets = () => {
       )}
       renderOption={({ label, value }) => (
         <DCCheckbox
-          disabled={!selectedBucket.includes(value)}
           checked={selectedBucket.includes(value)}
           onClick={(e) => {
             e.stopPropagation();

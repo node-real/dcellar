@@ -65,7 +65,7 @@ import { Animates } from '@/components/AnimatePng';
 import cn from 'classnames';
 import { useChecksumApi } from '../checksum';
 import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
-import { reverseVisibilityType } from '@/utils/constant';
+import { reverseVisibilityType } from '@/constants/legacy';
 import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { resolve } from '@/facade/common';

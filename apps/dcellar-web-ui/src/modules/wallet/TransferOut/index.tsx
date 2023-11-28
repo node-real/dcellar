@@ -23,7 +23,7 @@ import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { getClient } from '@/facade';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { broadcastFault } from '@/facade/error';
 import { LargeAmountTip } from '../components/LargeAmountTip';
 

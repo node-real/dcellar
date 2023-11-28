@@ -49,7 +49,7 @@ import { selectBnbPrice } from '@/store/slices/global';
 import { useRouter } from 'next/router';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { removeTrailingSlash } from '@/utils/string';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import styled from '@emotion/styled';
 import { Loading as PageLoading } from '@/components/common/Loading';
 import { useMount, useTimeout } from 'ahooks';

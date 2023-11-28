@@ -20,7 +20,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 
 import axios from 'axios';
 import { getObjectMeta } from '@/facade/object';
-import { reverseVisibilityType } from '@/utils/constant';
+import { reverseVisibilityType } from '@/constants/legacy';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { parseErrorXml } from '@/utils/common';
