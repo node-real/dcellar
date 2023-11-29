@@ -1,6 +1,6 @@
 import { useColorMode, useColorModeValue, useTheme } from '@totejs/uikit';
 import { useEffect, useState } from 'react';
-import {merge} from 'lodash-es';
+import { merge } from 'lodash-es';
 import { cssVar } from '@/utils/common';
 import { noDataOptions } from '@/constants/chart';
 

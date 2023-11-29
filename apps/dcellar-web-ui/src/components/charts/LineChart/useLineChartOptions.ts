@@ -4,7 +4,6 @@ import {merge} from 'lodash-es';
 import * as echarts from 'echarts/core';
 
 import { cssVar } from '@/utils/common';
-import { formatChartXAxisTime } from '@/utils/chart';
 import { noDataOptions } from '@/constants/chart';
 
 export function useLineChartOptions(options: any, noData: boolean) {
@@ -58,7 +57,6 @@ export function useLineChartOptions(options: any, noData: boolean) {
           color: cssVar('readable.disable'),
           fontSize: 10,
           fontFamily: 'Inter',
-          formatter: formatChartXAxisTime,
         },
         splitLine: {
           show: true,

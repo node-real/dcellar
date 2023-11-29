@@ -36,17 +36,15 @@ export const BucketStorageChart = () => {
         allDailyStorageSize = mergeArr(allDailyStorageSize, item.DailyTotalChargedStorageSize);
       }
     });
-    const nowTimestamp = +new Date();
+    const now = new Date();
     const DAY_COUNT = allDailyStorageSize.length;
     const lineData = allDailyStorageSize.map((item, index) => {
-      const curTime = dayjs(nowTimestamp)
-        .subtract(DAY_COUNT - index - 1, 'd')
-        .valueOf();
-      const formatTime = dayjs(curTime).format('DD, MMM');
+      const curTime = dayjs(now).subtract(DAY_COUNT - index - 1, 'd');
+      const formatTime = curTime.format('DD, MMM');
       const formatSize = formatBytes(item);
       const bytes = item;
       return {
-        time: curTime,
+        time: curTime.valueOf(),
         bytes,
         formatTime,
         formatSize,
@@ -55,7 +53,6 @@ export const BucketStorageChart = () => {
     const xData = lineData.map((item) => item.formatTime);
     const yData = lineData.map((item) => item.bytes);
     return {
-
       tooltip: {
         trigger: 'axis',
         content: (params: any) => {
