@@ -10,7 +10,7 @@ export type THashResult = {
   fileChunks: number;
 };
 
-export function checksum() {
+export function getChecksumApi() {
   const segmentSize = 16 * 1024 * 1024;
   const dataBlocks = 4;
   const parityBlocks = 2;
@@ -297,7 +297,7 @@ let api: { generateCheckSumV2: Function } | null = null;
 
 export const useChecksumApi = () => {
   useMount(() => {
-    api = api || checksum();
+    api = api || getChecksumApi();
   });
 
   return api;
