@@ -4,7 +4,7 @@ import { PaymentAccounts } from './components/PaymentAccounts';
 import { NonRefundableModal } from './components/NonRefundableModal';
 import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { useAppDispatch } from '@/store';
-import { useMount, useWhyDidYouUpdate } from 'ahooks';
+import { useMount } from 'ahooks';
 import { AccountOperations } from '@/modules/accounts/components/AccountOperations';
 import Head from 'next/head';
 import { networkTag } from '@/utils/common';
