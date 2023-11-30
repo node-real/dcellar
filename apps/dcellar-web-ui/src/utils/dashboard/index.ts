@@ -6,5 +6,5 @@ export function formatChartTime(time: string | number) {
 
 export const mergeArr = (arr1: string[], arr2: string[]) => {
   const longArr = arr1.length >= arr2.length ? arr1 : arr2
-  return longArr.map((_, index) => String(Number(arr1[index]) + Number(arr2[index])))
+  return longArr.map((_, index) => String(Number(arr1[index] || 0) + Number(arr2[index] || 0)))
 }
