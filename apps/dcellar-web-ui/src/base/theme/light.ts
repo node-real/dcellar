@@ -38,6 +38,7 @@ export const light = {
       'label-normal': '#EEBE11',
       'label-active': '#F1CA3C',
       primary: '#00BA34',
+      chartTick: rgba('#AEB4BC', 0.3),
     },
     bg: {
       bottom: '#f5f5f5',

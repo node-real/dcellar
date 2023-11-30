@@ -6,7 +6,7 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { useUnFreezeAmount } from '@/modules/accounts/hooks';
 import { selectAccount } from '@/store/slices/accounts';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { displayTokenSymbol } from '@/utils/wallet';
 
 export const InsufficientBalance = () => {

@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { Image } from '@totejs/uikit';
 import { useRouter } from 'next/router';
 import { useAppSelector } from '@/store';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { IconFont } from '@/components/IconFont';
 
 const Container = styled.main`
@@ -98,7 +98,7 @@ function ErrorComponent({ statusCode }: ErrorComponentProps) {
           >
             {desc}
           </Text>
-          <Link href={address ? InternalRoutePaths.buckets : '/'} legacyBehavior passHref replace>
+          <Link href={address ? InternalRoutePaths.dashboard : '/'} legacyBehavior passHref replace>
             <DCButton w={132} h={32} as="a" mb={40} fontSize={12} borderRadius={4}>
               {isNoBucket ? 'Back to Home' : 'Go to Home'}
             </DCButton>

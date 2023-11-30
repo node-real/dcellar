@@ -51,7 +51,7 @@ import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Commo
 import { getClient } from '@/facade/index';
 import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/object/utils';
-import { GROUP_ID } from '@/utils/constant';
+import { GROUP_ID } from '@/constants/legacy';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 

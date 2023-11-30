@@ -7,5 +7,9 @@ export const InternalRoutePaths = {
   send: '/wallet?type=send',
   buckets: '/buckets',
   terms: '/terms',
-  pricing_calculator: '/pricing-calculator'
+  pricing_calculator: '/pricing-calculator',
+  accounts: '/accounts',
+  dashboard: '/dashboard',
 };
+
+export const NODEREAL_URL = 'https://nodereal.io';

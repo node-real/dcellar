@@ -69,6 +69,7 @@ export type AccountCostMonth = {
 export type AccountCostTrend = {
   startTime: string;
   endTime: string;
+  totalCost: string;
   monthlyCost: {
     [key: string]: AccountCostMonth
   }
@@ -215,6 +216,7 @@ export const billingSlice = createSlice({
       const data = {} as {
         [key: string]: AccountCostMonth
       }
+      let accountTotalCost = BN(0);
       monthlyBills.forEach((item) => {
         const key = item.Year + '-' + item.Month;
         data[key] = {
@@ -224,10 +226,12 @@ export const billingSlice = createSlice({
           readCost: getPosDecimalValue(item.ReadCost),
           storeCost: getPosDecimalValue(item.StoreCost)
         }
+        accountTotalCost = accountTotalCost.plus(getPosDecimalValue(item.TotalCost))
       })
       state['accountCostTrend'][address] = {
         startTime,
         endTime,
+        totalCost: accountTotalCost.toString(),
         monthlyCost: data,
       }
     },

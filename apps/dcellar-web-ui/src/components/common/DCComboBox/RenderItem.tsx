@@ -3,8 +3,9 @@ import { Flex } from '@totejs/uikit';
 import { trimAddress, trimLongStr } from '@/utils/string';
 import { CloseIcon } from '@totejs/icons';
 import * as React from 'react';
-import { ADDRESS_RE } from '@/utils/constant';
+// import { ADDRESS_RE } from '@/constants/legacy';
 import { IconFont } from '@/components/IconFont';
+import { ADDRESS_RE } from '@/constants/legacy';
 
 export type CustomTagProps = {
   label: React.ReactNode;

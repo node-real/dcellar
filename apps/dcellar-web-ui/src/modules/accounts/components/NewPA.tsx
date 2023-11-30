@@ -10,7 +10,7 @@ import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React, { memo, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { Animates } from '@/components/AnimatePng';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { MsgCreatePaymentAccountTypeUrl } from '@bnb-chain/greenfield-js-sdk';

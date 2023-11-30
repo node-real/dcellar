@@ -4,8 +4,9 @@ import {merge} from 'lodash-es';
 import * as echarts from 'echarts/core';
 
 import { cssVar } from '@/utils/common';
+import { noDataOptions } from '@/constants/chart';
 
-export function useLineChartOptions(options: any) {
+export function useLineChartOptions(options: any, noData: boolean) {
   const theme = useTheme();
   const { colorMode } = useColorMode();
   const colors = useColorModeValue(theme.colors.light, theme.colors.dark);
@@ -16,6 +17,9 @@ export function useLineChartOptions(options: any) {
     if (colorMode !== document.documentElement.dataset.theme) {
       return;
     }
+    if (noData) {
+      return setFinalOptions(noDataOptions);
+    }
     const defaultOptions = {
       tooltip: {
         trigger: 'axis',
@@ -24,12 +28,14 @@ export function useLineChartOptions(options: any) {
         padding: 8,
         textStyle: {
           color: cssVar('readable.normal'),
+          fontSize: 12,
         },
         axisPointer: {
           type: 'line',
           z: -1,
           lineStyle: {
-            color: cssVar('readable.secondary'),
+            type: 'solid',
+            color: cssVar('readable.disable'),
           },
         },
         extraCssText: `box-shadow: ${cssVar('chartTooltip', 'shadows')};border-radius:4px;`,
@@ -45,12 +51,19 @@ export function useLineChartOptions(options: any) {
         type: 'category',
         boundaryGap: false,
         axisLabel: {
-          margin: 7,
-          fontSize: 10,
+          marginTop: 4,
           fontWeight: 500,
-          lineHeight: 14,
+          lineHeight: 15,
+          color: cssVar('readable.disable'),
+          fontSize: 10,
           fontFamily: 'Inter',
-          color: cssVar('readable.secondary'),
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            type: 'dashed',
+            color: cssVar('readable.chartTick'),
+          },
         },
         axisLine: {
           lineStyle: {
@@ -60,31 +73,47 @@ export function useLineChartOptions(options: any) {
         axisTick: {
           alignWithLabel: true,
           lineStyle: {
-            color: cssVar('readable.border'),
+            color: cssVar('readable.chartTick'),
           },
         },
       },
       yAxis: {
+        show: true,
         type: 'value',
-        splitNumber: 4,
         scale: true,
-        splitLine: {
+        spiltLine: {
+          lineStyle: {
+            color: 'red',
+          }
+        },
+        axisTick: {
+          show: true,
+          alignWithLabel: true,
           lineStyle: {
             color: cssVar('readable.border'),
           },
         },
+        axisLine: {
+          show: true,
+          lineStyle: {
+            color: cssVar('readable.border'),
+          },
+        },
+        splitLine: {
+          show: false,
+        },
         axisLabel: {
-          margin: 4,
-          fontSize: 10,
+          marginRight: 4,
           fontWeight: 500,
-          lineHeight: 14,
+          lineHeight: 15,
+          color: cssVar('readable.disabled'),
+          fontSize: 12,
           fontFamily: 'Inter',
-          color: cssVar('readable.secondary'),
         },
       },
       grid: {
-        left: 6,
-        right: 18,
+        left: 4,
+        right: 20,
         top: 6,
         bottom: 0,
         containLabel: true,
@@ -94,7 +123,7 @@ export function useLineChartOptions(options: any) {
           type: 'line',
           smooth: true,
           symbol: 'circle',
-          symbolSize: 8,
+          symbolSize: 6,
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               {
@@ -111,8 +140,8 @@ export function useLineChartOptions(options: any) {
             color: colors.scene.primary.active,
           },
           itemStyle: {
+            borderWidth: 1,
             color: colors.bg.middle,
-            borderWidth: 2,
             borderColor: colors.scene.primary.active,
             opacity: 0,
           },
@@ -126,9 +155,11 @@ export function useLineChartOptions(options: any) {
       ],
     };
 
+    // const variantOptions = merge(defaultOptions, detailOptions);
     const finalOptions = merge(defaultOptions, options);
+
     setFinalOptions(finalOptions);
-  }, [colors, options, colorMode]);
+  }, [colors, options, colorMode, noData]);
 
   return finalOptions;
 }

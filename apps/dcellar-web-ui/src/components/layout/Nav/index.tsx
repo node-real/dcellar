@@ -8,6 +8,11 @@ import { memo } from 'react';
 
 const MENU_ITEMS = [
   {
+    icon: 'dashboard-menu',
+    text: 'Dashboard',
+    trackId: 'dc.main.nav.dashboard.click'
+  },
+  {
     icon: 'bucket',
     text: 'Buckets',
     trackId: 'dc.main.nav.bucket.click',
@@ -111,7 +116,7 @@ const MenuItem = styled.li<{ $active?: boolean }>`
     grid-template-columns: auto 1fr;
     align-items: center;
   }
-  
+
   ${(props) =>
     props.$active
       ? css`

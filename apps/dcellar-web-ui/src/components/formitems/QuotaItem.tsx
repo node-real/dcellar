@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';
 import { DCTooltip } from '@/components/common/DCTooltip';
-import { G_BYTES } from '@/utils/constant';
+import { G_BYTES } from '@/constants/legacy';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { formatByGB } from '@/utils/string';

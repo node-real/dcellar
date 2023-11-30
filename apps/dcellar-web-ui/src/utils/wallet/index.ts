@@ -1,8 +1,8 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { GNFD_MAINNET, GNFD_TESTNET } from '../constant';
 import { BN } from '../math';
 import BigNumber from 'bignumber.js';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { GNFD_MAINNET, GNFD_TESTNET } from '@/constants/legacy';
 
 const getShortenWalletAddress = (address: string) => {
   if (!address) return '';

@@ -46,7 +46,6 @@ export const AccountDetail = () => {
     const filterTypes = typeof type === 'string' ? [type] : ((type || []) as string[]);
     const curPage = isNaN(+(page as string)) ? 1 : +(page as string);
 
-    console.log('account page', curPage);
     dispatch(setAccountFilterRange(filterRange));
     dispatch(setAccountFilterTypes(filterTypes));
     dispatch(setCurrentAccountBillsPage(curPage));

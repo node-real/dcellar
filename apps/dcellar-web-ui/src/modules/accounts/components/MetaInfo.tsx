@@ -218,6 +218,7 @@ export const MetaInfo = memo(({ address }: Props) => {
             <DCButton
               size={'md'}
               flex={1}
+              minW={200}
               // paddingX={0}
               whiteSpace={'nowrap'}
               disabled={!isRefundable}

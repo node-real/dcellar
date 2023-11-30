@@ -16,7 +16,7 @@ import { useRouter } from 'next/router';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { BN } from '@/utils/math';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { currencyFormatter } from '@/utils/formatter';
 import { IconFont } from '@/components/IconFont';
 import { displayTokenSymbol } from '@/utils/wallet';

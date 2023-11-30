@@ -1,5 +1,5 @@
 import { cssVar } from '../common';
-import { OWNER_ACCOUNT_NAME, TX_TYPE_MAP } from '../constant';
+import { OWNER_ACCOUNT_NAME, TX_TYPE_MAP } from '@/constants/wallet';
 import { BN } from '../math';
 
 export const getMoM = (preCost: string, curCost: string) => {
