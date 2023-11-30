@@ -204,3 +204,11 @@ export const formatAddress = (address: string) => {
 
   return `${prefix}${middle}${suffix}`;
 };
+
+export const apolloUrlTemplate = (url: string, query: string) => {
+  const template = new RegExp('__QUERY__', 'i');
+  if (url.match(template)) {
+    return url.replace(template, query);
+  }
+  return url.includes('?') ? `${url}&${query}` : `${url}?${query}`;
+};

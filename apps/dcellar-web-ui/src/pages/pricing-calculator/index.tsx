@@ -1,13 +1,10 @@
 import { LandingPage } from '@/components/layout/LandingPage';
 import { PriceCalculator } from '@/modules/pricing-calculator';
-import {  wrapper } from '@/store';
-import { setupBnbPrice, setupMainnetStoreFeeParams } from '@/store/slices/global';
+import { wrapper } from '@/store';
 import { ReactElement } from 'react';
 
 export default function PriceCalculatorPage() {
-  return (
-    <PriceCalculator/>
-  );
+  return <PriceCalculator />;
 }
 
 PriceCalculatorPage.getLayout = (page: ReactElement) => {
@@ -15,9 +12,7 @@ PriceCalculatorPage.getLayout = (page: ReactElement) => {
 };
 
 PriceCalculatorPage.getInitialProps = wrapper.getInitialAppProps((store) => async (appCtx) => {
-  await store.dispatch(setupBnbPrice());
-  await store.dispatch(setupMainnetStoreFeeParams())
   return {
-    pageProps: {}
-  }
+    pageProps: {},
+  };
 });

@@ -64,24 +64,27 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     }
 
     // Redirect to the main page after user login manually.
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
     router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
+      !!router.query.originAsPath
+        ? decodeURIComponent(router.query.originAsPath as string)
         : InternalRoutePaths.dashboard,
     );
   }, [address, trustEvent, isAuthPending, router]);
 
+  // connector may be undefined when wallet throw '(index):7 Error in event handler: Error: write after end';
   useEffect(() => {
-    if (!connector || !address || !waitConnector) return;
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
+    if (!address || !waitConnector || !isConnected) return;
 
-    router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
-        : InternalRoutePaths.dashboard,
-    );
-  }, [waitConnector, connector, address]);
+    const redirect = () => {
+      router.push(
+        !!router.query.originAsPath
+          ? decodeURIComponent(router.query.originAsPath as string)
+          : InternalRoutePaths.dashboard,
+      );
+    };
+
+    setTimeout(redirect, 180);
+  }, [waitConnector, address, router, isConnected]);
 
   const onGetStart = () => {
     if (isAuthPending) return;

@@ -55,7 +55,9 @@
     "echarts": "~5.4.3",
     "echarts-for-react": "~3.0.2",
     "next-transpile-modules": "~10.0.1",
-    "redux": "~4.2.1"
+    "redux": "~4.2.1",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",

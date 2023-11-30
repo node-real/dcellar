@@ -12,7 +12,7 @@ import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTa
 import { ColumnProps } from 'antd/es/table';
 import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { Text } from '@totejs/uikit';
+import { Flex, Text } from '@totejs/uikit';
 import { Loading } from '@/components/common/Loading';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
@@ -22,8 +22,20 @@ import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
+import { IconFont } from '@/components/IconFont';
+import { openLink } from '@/utils/bom';
+import { apolloUrlTemplate } from '@/utils/string';
 
 const Actions: MenuOption[] = [
+  {
+    label: (
+      <Flex alignItems={'center'}>
+        List for Sell
+        <IconFont ml={4} w={76} h={16} type="data-marketplace" />
+      </Flex>
+    ),
+    value: 'marketplace',
+  },
   { label: 'View Details', value: 'detail' },
   { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
@@ -36,6 +48,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   const { buckets, currentPage, loading } = useAppSelector((root) => root.bucket);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
+  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<BucketItem>({
     list: bucketList,
     sorter: bucketSortBy,
@@ -50,6 +63,14 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
   };
 
   const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
+    if (menu === 'marketplace') {
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${record.Id}`,
+      );
+      openLink(link);
+      return;
+    }
     return dispatch(setBucketOperation([record.BucketName, menu]));
   };
 
@@ -83,12 +104,17 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       width: 200,
       align: 'center' as AlignType,
       title: <></>,
-      render: (_: string, record: BucketItem) => (
-        <ActionMenu
-          menus={Actions}
-          onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
-        />
-      ),
+      render: (_: string, record: BucketItem) => {
+        const _actions = !!LIST_FOR_SELL_ENDPOINT
+          ? Actions
+          : Actions.filter((a) => a.value !== 'marketplace');
+        return (
+          <ActionMenu
+            menus={_actions}
+            onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
+          />
+        );
+      },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 

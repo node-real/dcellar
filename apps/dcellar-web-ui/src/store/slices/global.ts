@@ -98,6 +98,7 @@ export interface GlobalState {
   disconnectWallet: boolean;
   connectWallet: boolean;
 }
+
 export const GAS_PRICE = '0.000000005';
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'HASHED', 'SIGN', 'SIGNED', 'UPLOAD', 'SEAL'];
 const initialState: GlobalState = {
@@ -163,7 +164,7 @@ export const globalSlice = createSlice({
     },
     updateUploadCreateHash(
       state,
-      { payload }: PayloadAction<{ account: string, id: number; createHash: string }>,
+      { payload }: PayloadAction<{ account: string; id: number; createHash: string }>,
     ) {
       const { account, id, createHash } = payload;
       const uploadQueue = state.uploadQueue[account] || _emptyUploadQueue;
@@ -199,9 +200,14 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = status;
     },
-    addToWaitQueue(state, { payload }: PayloadAction<{ id: number; file: File; time: number }>) {
-      const { id, file, time } = payload;
-      const parts = file.webkitRelativePath?.split('/');
+    addToWaitQueue(
+      state,
+      { payload }: PayloadAction<{ id: number; file: File; time: number; relativePath?: string }>,
+    ) {
+      // transfer item need _relativePath
+      const { id, file, time, relativePath: _relativePath } = payload;
+      // webkitRelativePath: 'xxx/xxx.png'
+      const parts = (_relativePath ? _relativePath : file.webkitRelativePath)?.split('/');
       const relativePath = parts && parts.length > 1 ? parts.slice(0, -1).join('/') : '';
       const task: WaitFile = {
         file,
@@ -212,9 +218,13 @@ export const globalSlice = createSlice({
         type: file.type,
         size: file.size,
         name: file.name,
-        relativePath,
+        relativePath: file.name.endsWith('/') ? '' : relativePath,
         lockFee: '',
       };
+      // rewrite exist object
+      state.waitQueue = state.waitQueue.filter(
+        (file) => file.name !== task.name || file.relativePath !== task.relativePath,
+      );
       state.waitQueue.push(task);
     },
     resetWaitQueue(state) {
@@ -302,7 +312,7 @@ export const globalSlice = createSlice({
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
             gasFee = +gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * (+gasPrice);
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * +gasPrice;
           }
 
           return {
@@ -323,7 +333,10 @@ export const globalSlice = createSlice({
     setStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
       state.storeFeeParams = payload.storeFeeParams;
     },
-    setMainnetStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
+    setMainnetStoreFeeParams(
+      state,
+      { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>,
+    ) {
       state.mainnetStoreFeeParams = payload.storeFeeParams;
     },
     setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
@@ -416,7 +429,6 @@ export const {
   setIsLoadingPLF,
   setAuthModalOpen,
   setDisconnectWallet,
-  setConnectWallet,
   updateUploadCreateHash,
 } = globalSlice.actions;
 
@@ -458,7 +470,7 @@ export const selectSignTask = (address: string) => (root: AppState) => {
   //      return folderInfos[parentFolder].status === 'FINISH' && t.status === 'HASHED';
   //    }
   // })
-}
+};
 
 export const selectBnbPrice = (state: AppState) => state.global.bnb.price;
 
@@ -507,14 +519,15 @@ export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState:
   dispatch(setIsLoadingPLF(false));
 };
 
-export const setupMainnetStoreFeeParams = () => async (dispatch: AppDispatch, getState: GetState) => {
-  const storeFeeParams = await getStoreFeeParams({network: 'mainnet'});
-  dispatch(
-    globalSlice.actions.setMainnetStoreFeeParams({
-      storeFeeParams,
-    }),
-  );
-};
+export const setupMainnetStoreFeeParams =
+  () => async (dispatch: AppDispatch, getState: GetState) => {
+    const storeFeeParams = await getStoreFeeParams({ network: 'mainnet' });
+    dispatch(
+      globalSlice.actions.setMainnetStoreFeeParams({
+        storeFeeParams,
+      }),
+    );
+  };
 
 export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -563,76 +576,88 @@ export const progressFetchList =
   };
 export const addTasksToUploadQueue =
   (spAddress: string, visibility: VisibilityType) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { waitQueue } = getState().global;
-      const { bucketName, folders } = getState().object;
-      const { loginAccount } = getState().persist;
-      const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
-      if (!wQueue || wQueue.length === 0) return;
-      const newUploadQueue = wQueue.map((task) => {
-        const uploadTask: UploadFile = {
-          bucketName,
-          prefixFolders: folders,
-          spAddress,
-          id: task.id,
-          waitFile: task,
-          msg: '',
-          status: 'WAIT',
-          progress: 0,
-          checksum: [],
-          visibility,
-          createHash: '',
-        };
-        return uploadTask;
-      });
-      dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
-    };
-
-export const addSignedTasksToUploadQueue =
-  ({ spAddress, visibility, checksums, waitFile, createHash }: { spAddress: string, visibility: VisibilityType, checksums: string[], waitFile: WaitFile, createHash: string }) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { bucketName, folders } = getState().object;
-      const { loginAccount } = getState().persist;
-
-      const newUploadQueue: UploadFile = {
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const { bucketName, folders } = getState().object;
+    const { loginAccount } = getState().persist;
+    const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
+    if (!wQueue || wQueue.length === 0) return;
+    const newUploadQueue = wQueue.map((task) => {
+      const uploadTask: UploadFile = {
         bucketName,
         prefixFolders: folders,
         spAddress,
-        id: waitFile.id,
-        waitFile: waitFile,
+        id: task.id,
+        waitFile: task,
         msg: '',
-        status: 'SIGNED',
+        status: 'WAIT',
         progress: 0,
-        checksum: checksums,
+        checksum: [],
         visibility,
-        createHash,
+        createHash: '',
       };
-      dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
+      return uploadTask;
+    });
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
+  };
+
+export const addSignedTasksToUploadQueue =
+  ({
+    spAddress,
+    visibility,
+    checksums,
+    waitFile,
+    createHash,
+  }: {
+    spAddress: string;
+    visibility: VisibilityType;
+    checksums: string[];
+    waitFile: WaitFile;
+    createHash: string;
+  }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { bucketName, folders } = getState().object;
+    const { loginAccount } = getState().persist;
+
+    const newUploadQueue: UploadFile = {
+      bucketName,
+      prefixFolders: folders,
+      spAddress,
+      id: waitFile.id,
+      waitFile: waitFile,
+      msg: '',
+      status: 'SIGNED',
+      progress: 0,
+      checksum: checksums,
+      visibility,
+      createHash,
     };
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
+  };
 
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadFile; errorMsg: string }) =>
-    async (dispatch: AppDispatch) => {
-      const isFolder = task.waitFile.name.endsWith('/');
-      dispatch(
-        updateUploadTaskMsg({
-          account,
-          id: task.id,
-          msg: errorMsg || 'The object failed to be created.',
-        }),
-      );
-      isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
-    };
+  async (dispatch: AppDispatch) => {
+    const isFolder = task.waitFile.name.endsWith('/');
+    dispatch(
+      updateUploadTaskMsg({
+        account,
+        id: task.id,
+        msg: errorMsg || 'The object failed to be created.',
+      }),
+    );
+    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+  };
 
 export const setupWaitTaskErrorMsg =
   ({ id, errorMsg }: { id: number; errorMsg: string }) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { waitQueue } = getState().global;
-      const task = waitQueue.find((t) => t.id === id);
-      if (!task) return;
-      const isFolder = task.name.endsWith('/');
-      dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-      isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
-    };
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const task = waitQueue.find((t) => t.id === id);
+    if (!task) return;
+    const isFolder = task.name.endsWith('/');
+    dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
+    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+  };
 
 export default globalSlice.reducer;

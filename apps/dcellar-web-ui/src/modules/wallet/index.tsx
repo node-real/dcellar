@@ -25,7 +25,7 @@ export const Wallet = memo<WalletProps>(function Wallet() {
   return (
     <WalletBalanceProvider>
       <Container>
-        <Box padding={24}>
+        <Box>
           <Text as={'h1'} fontWeight="700" fontSize={'24px'} mb={16}>
             Wallet
           </Text>
@@ -60,25 +60,19 @@ export const Wallet = memo<WalletProps>(function Wallet() {
 });
 
 const Container = styled(Box)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: var(--ui-colors-bg-bottom);
-  overflow: auto;
-
   .ui-tabs-tab {
     font-weight: 500;
     height: 28px;
     line-height: normal;
     padding-bottom: 6px;
     border-bottom: 2px solid transparent;
+
     &[data-selected] {
       font-weight: 500;
       color: var(--ui-colors-scene-success-normal);
       border-bottom-color: var(--ui-colors-scene-success-normal);
     }
+
     &:hover {
       font-weight: 500;
       color: var(--ui-colors-scene-success-active);
