@@ -4,6 +4,7 @@ import {
   setBankBalance,
   setupAccountInfo,
   setupOwnerAccount,
+  setupPaymentAccounts,
 } from '@/store/slices/accounts';
 import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
@@ -21,7 +22,8 @@ export const PaymentAccounts = () => {
     if (!loginAccount) return;
     dispatch(setupBnbPrice());
     dispatch(setupOwnerAccount());
-    // dispatch(setupPaymentAccounts());
+    // TODO opt init payment accounts
+    dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
 
   const { data: gnfdBalance, refetch } = useBalance({
