@@ -38,7 +38,9 @@ const _generateIntegrityHash = async (list: string[]) => {
 
 const _initPrimaryWorkers = ({ consumers }: { consumers: { [k: number]: any } }) => {
   const workers = new Array(WORKER_POOL_SIZE).fill(1).map(() => {
-    return new Worker(new URL('./calcPrimaryWorker', import.meta.url));
+    return new Worker(new URL('./calcPrimaryWorker', import.meta.url), {
+      type: 'module',
+    });
   });
   workers.forEach((it) => {
     it.onmessage = (e: MessageEvent) => {
@@ -56,7 +58,9 @@ const _initPrimaryWorkers = ({ consumers }: { consumers: { [k: number]: any } })
 };
 const _initSecondWorkers = ({ consumers }: { consumers: { [k: number]: any } }) => {
   const workers = new Array(WORKER_POOL_SIZE).fill(1).map(() => {
-    return new Worker(new URL('./calcSecondWorker', import.meta.url));
+    return new Worker(new URL('./calcSecondWorker', import.meta.url), {
+      type: 'module',
+    });
   });
   workers.forEach((it) => {
     it.onmessage = (e: MessageEvent) => {

@@ -200,8 +200,8 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
         {modalContent}
       </DCDrawer>
       <DCModal isOpen={!!operation && isModal} onClose={onClose}>
-        <ModalCloseButton />
         {modalContent}
+        <ModalCloseButton />
       </DCModal>
     </>
   );

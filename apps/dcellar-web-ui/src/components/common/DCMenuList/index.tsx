@@ -6,7 +6,7 @@ import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 
 export type MenuOption = {
-  label: string;
+  label: ReactNode;
   value: string;
   variant?: 'danger';
   disabled?: boolean;
@@ -170,11 +170,11 @@ const StyledMenuList = styled(MenuList)`
   }
 
   .menu-items::-webkit-scrollbar {
-    width: 4px
-  },
+    width: 4px;
+  }
 
   .menu-items::-webkit-scrollbar-thumb {
     background: var(--ui-colors-readable-disable);
-    border-radius: 4px
-  },
+    border-radius: 4px;
+  }
 `;

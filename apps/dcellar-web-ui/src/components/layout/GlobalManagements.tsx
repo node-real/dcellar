@@ -8,12 +8,20 @@ import { PaymentAccounts } from '@/components/layout/Header/PaymentAccounts';
 import { StoreFeeParams } from '@/components/layout/Header/StoreFeeParams';
 import { DisconnectWalletModal } from '@/components/layout/Header/DisconnectWalletModal';
 import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
+import Head from 'next/head';
+import { useAppSelector } from '@/store';
 
 interface GlobalManagementsProps {}
 
 export const GlobalManagements = memo<GlobalManagementsProps>(function GlobalManagements() {
+  const { allSps } = useAppSelector((root) => root.sp);
+
   return (
     <>
+      <Head>
+        {allSps.length > 0 &&
+          allSps.map(({ endpoint }) => <link key={endpoint} rel="preconnect" href={endpoint} />)}
+      </Head>
       <GAPageView />
       <StatusDetail />
       <ManageQuotaDrawer />

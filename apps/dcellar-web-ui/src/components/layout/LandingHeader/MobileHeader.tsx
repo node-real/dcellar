@@ -6,13 +6,15 @@ import { Logo } from '../Logo';
 import { MENUS } from './BaseHeader';
 import NextLink from 'next/link';
 import { useDetectScroll } from './useDetectScroll';
+import styled from '@emotion/styled';
+import { breakpoints } from '@/modules/responsive';
 
 export const MobileHeader = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const drawTriggerRef = React.useRef(null);
   const isScroll = useDetectScroll();
   return (
-    <Flex
+    <Container
       as="header"
       width={'100%'}
       h={64}
@@ -62,6 +64,13 @@ export const MobileHeader = () => {
           ))}
         </QDrawerBody>
       </QDrawer>
-    </Flex>
+    </Container>
   );
 };
+
+const Container = styled(Flex)`
+  display: none;
+  @media (max-width: ${breakpoints.SM - 1}px) {
+    display: flex;
+  }
+`;

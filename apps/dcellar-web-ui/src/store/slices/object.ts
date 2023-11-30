@@ -52,6 +52,7 @@ export type ObjectOperationsType =
   | 'cancel'
   | 'create_folder'
   | 'batch_delete'
+  | 'marketplace'
   | '';
 
 export type TEditUploadContent = {

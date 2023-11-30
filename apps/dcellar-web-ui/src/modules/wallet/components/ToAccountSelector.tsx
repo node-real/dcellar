@@ -80,7 +80,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 

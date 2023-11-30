@@ -18,7 +18,7 @@ import { Flex, Tooltip } from '@totejs/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';
-import { SpItem, setPrimarySpInfo } from '@/store/slices/sp';
+import { setPrimarySpInfo, SpItem } from '@/store/slices/sp';
 import { QuotaCard } from '@/modules/object/components/QuotaCard';
 import { setupAccountInfo } from '@/store/slices/accounts';
 import { InsufficientBalance } from './components/InsufficientBalance';

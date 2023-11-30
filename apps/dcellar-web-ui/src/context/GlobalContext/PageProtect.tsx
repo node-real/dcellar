@@ -7,13 +7,14 @@ import { isRightChain } from '@/modules/wallet/utils/isRightChain';
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { WrongNetworkModal } from '@/components/WrongNetworkModal';
 
-const protectGNFDPaths = ['/buckets', '/buckets/[bucketName]', '/groups', '/accounts'];
+const protectGNFDPaths = ['/buckets', '/buckets/[...path]', '/groups', '/accounts'];
 const noProtectPaths = ['/', '/terms', '/pricing-calculator'];
 // TODO unify the wallet page protect
 export const PageProtect: React.FC<any> = ({ children }) => {
   const { chain } = useNetwork();
   const { pathname } = useRouter();
   const { isOpen, onClose, onOpen } = useDisclosure();
+
   useEffect(() => {
     if (!chain?.id) return;
     if (pathname === '/') return;

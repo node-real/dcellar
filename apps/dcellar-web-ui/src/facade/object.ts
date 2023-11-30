@@ -524,8 +524,10 @@ export const getObjectMeta = async (
     },
     (e) => {
       const { response } = e;
+      if (!response) return [null, { code: 500, message: 'Oops, something went wrong' }];
+
       const error =
-        response.status === 429
+        response?.status === 429
           ? { code: response.status, message: 'SP not available. Try later.' }
           : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
       return [null, error];

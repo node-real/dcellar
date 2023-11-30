@@ -55,8 +55,21 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { formatBytes } from '@/utils/formatter';
 import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
 import dayjs from 'dayjs';
+import { Flex } from '@totejs/uikit';
+import { IconFont } from '@/components/IconFont';
+import { openLink } from '@/utils/bom';
+import { apolloUrlTemplate } from '@/utils/string';
 
 const Actions: MenuOption[] = [
+  {
+    label: (
+      <Flex alignItems={'center'}>
+        List for Sell
+        <IconFont ml={4} w={76} h={16} type="data-marketplace" />
+      </Flex>
+    ),
+    value: 'marketplace',
+  },
   { label: 'View Details', value: 'detail' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
@@ -93,6 +106,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
 
   const filtered =
     !!filterText.trim() ||
@@ -246,6 +260,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const onMenuClick = async (menu: ObjectOperationsType, record: ObjectItem) => {
+    if (menu === 'marketplace') {
+      const key = path + '/' + record.name;
+      const curObjectInfo = objectsInfo[key];
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${bucket.Id}&oid=${curObjectInfo.ObjectInfo.Id}`,
+      );
+      openLink(link);
+      return;
+    }
     switch (menu) {
       case 'detail':
       case 'delete':
@@ -386,6 +410,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
             operations.push(item.value);
           }
         });
+
+        // filter marketplace
+        if (isFolder || !owner || !isSealed || !LIST_FOR_SELL_ENDPOINT) {
+          fitActions = fitActions.filter((f) => f.value !== 'marketplace');
+        }
 
         return (
           <ActionMenu
