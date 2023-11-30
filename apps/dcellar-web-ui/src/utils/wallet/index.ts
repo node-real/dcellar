@@ -54,10 +54,10 @@ export const displayTokenSymbol = () => {
   return GNFD_MAINNET === GREENFIELD_CHAIN_ID ? 'BNB' : 'tBNB';
 };
 
-export const getPosDecimalValue = (gweiValue: string | BigNumber) => {
+export const getPosDecimalValue = (gweiValue: string | BigNumber, precision?: number) => {
   if (BN(gweiValue).isEqualTo(0)) return '0';
 
-  return BN(gweiValue).dividedBy(10 ** 18).abs().dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
+  return BN(gweiValue).dividedBy(10 ** 18).abs().dp(precision || CRYPTOCURRENCY_DISPLAY_PRECISION).toString();
 }
 
 export { getShortenWalletAddress, getNumInDigits };

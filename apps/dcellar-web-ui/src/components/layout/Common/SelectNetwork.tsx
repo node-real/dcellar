@@ -13,7 +13,9 @@ interface TNetwork extends MenuOption {
   value: string;
   domain: string;
 }
-
+type SelectNetworkProps = {
+  buttonStyles?: ButtonProps;
+};
 const networks: TNetwork[] = [
   {
     label: 'Mainnet',
@@ -26,8 +28,11 @@ const networks: TNetwork[] = [
     domain: 'https://testnet.dcellar.io',
   },
 ];
-type SelectNetworkProps = {
-  buttonStyles?: ButtonProps;
+export const GO_ROOT_PATHS: { [key: string]: string } = {
+  '/buckets': InternalRoutePaths.buckets,
+  '/buckets/[...path]': InternalRoutePaths.accounts,
+  '/accounts': InternalRoutePaths.accounts,
+  '/accounts/[address]': InternalRoutePaths.accounts,
 };
 export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
   const router = useRouter();
@@ -36,10 +41,9 @@ export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
     if (runtimeEnv === net.value) {
       return;
     }
-    const isBucketsPath = router.pathname.includes(InternalRoutePaths.buckets);
-    window.location.href = isBucketsPath
-      ? `${net.domain}${InternalRoutePaths.buckets}`
-      : `${net.domain}${router.asPath}`;
+    console.log('router', router);
+    const rootPath = GO_ROOT_PATHS[router.pathname];
+    window.location.href = rootPath ? `${net.domain}${rootPath}` : `${net.domain}${router.asPath}`;
   };
 
   return (

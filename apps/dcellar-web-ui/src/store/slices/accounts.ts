@@ -14,8 +14,11 @@ import { listUserPaymentAccounts } from '@/facade/payment';
 import { getSpOffChainData } from './persist';
 import { keyBy } from 'lodash-es';
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getShortAccountName } from '@/utils/billing';
+import { OWNER_ACCOUNT_NAME } from '@/utils/constant';
 
 export type TAccount = {
+  id: string;
   name: string;
   address: string;
 };
@@ -23,6 +26,7 @@ export type TAccount = {
 export function isSpStreamRecord(arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
   return (arg as SpStreamRecord).Account !== undefined;
 }
+
 export type AccountType =
   | 'unknown_account'
   | 'gnfd_account'
@@ -32,7 +36,7 @@ export type AccountType =
 
 export type AccountOperationsType = 'oaDetail' | 'paDetail' | 'paCreate' | '';
 
-export type TAccountInfo = {
+export type TAccountInfo = TAccount & {
   name: string;
   address: string;
   bufferBalance: string;
@@ -113,6 +117,7 @@ export const paymentAccountSlice = createSlice({
       state.paymentAccounts[loginAccount] = (paymentAccounts || []).map((account, index) => {
         return {
           name: `Payment Account ${index + 1}`,
+          id: `pa${index+1}`,
           address: account,
         };
       });
@@ -139,11 +144,13 @@ export const paymentAccountSlice = createSlice({
           data[address] = {
             ...getDefaultBalance(),
             name,
+            id: getShortAccountName(name),
             address,
             refundable: item.refundable,
           };
         } else if (isSpStreamRecord(streamRecord)) {
           data[address] = {
+            id: getShortAccountName(name),
             name: name,
             // ...streamRecord,
             address: address,
@@ -161,6 +168,7 @@ export const paymentAccountSlice = createSlice({
           };
         } else {
           data[address] = {
+            id: getShortAccountName(name),
             name: name,
             // ...streamRecord,
             address: address,
@@ -255,7 +263,6 @@ export const setupPaymentAccounts =
       const { CLIENT_FROZEN_ACCOUNT_BUFFER_TIME } = getState().apollo;
       const { paymentAccounts, isLoadingPaymentAccounts } = getState().accounts;
       const { oneSp, spInfo } = getState().sp;
-      console.log('oneSp', oneSp, spInfo[oneSp])
       const loginPaymentAccounts = paymentAccounts[loginAccount] || [];
       if (isLoadingPaymentAccounts) return;
       if (!(loginAccount in paymentAccounts) || forceLoading) {
@@ -324,7 +331,7 @@ export const setupAccountInfo =
     const { CLIENT_FROZEN_ACCOUNT_BUFFER_TIME } = getState().apollo;
     const accountList = [
       ...(paymentAccounts || []),
-      { address: loginAccount, name: 'Owner Account' },
+      { address: loginAccount, name: OWNER_ACCOUNT_NAME },
     ];
     dispatch(setLoadingAccountInfo(address));
     const [PARes, PAError] = await getPaymentAccount(address);
@@ -349,7 +356,8 @@ export const setupOwnerAccount = () => async (dispatch: AppDispatch, getState: G
   const { loginAccount } = getState().persist;
   const account = {
     address: loginAccount,
-    name: 'Owner Account',
+    name: OWNER_ACCOUNT_NAME,
+    id: getShortAccountName(OWNER_ACCOUNT_NAME)
   };
   dispatch(setOwnerAccount(account));
   dispatch(setupAccountInfo(loginAccount));

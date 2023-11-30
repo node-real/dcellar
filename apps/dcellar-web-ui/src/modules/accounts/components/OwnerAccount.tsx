@@ -2,16 +2,13 @@ import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppSelector } from '@/store';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { CopyText } from '@/components/common/CopyText';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useRouter } from 'next/router';
 import styled from '@emotion/styled';
-import { DCLink } from '@/components/common/DCLink';
 import { MenuOption } from '@/components/common/DCMenuList';
-import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
+import { displayTokenSymbol } from '@/utils/wallet';
 import { BN } from '@/utils/math';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
@@ -19,6 +16,7 @@ import { selectBnbPrice } from '@/store/slices/global';
 import { trimFloatZero } from '@/utils/string';
 import { isEmpty } from 'lodash-es';
 import { Loading } from '@/components/common/Loading';
+import { ShortTxCopy } from './Common';
 
 const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
@@ -63,16 +61,7 @@ export const OwnerAccount = () => {
       title: 'Account Address',
       key: 'address',
       width: isLessThan1100 ? 130 : 'auto',
-      render: (_: string, record: TAccountInfo) => {
-        const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
-        return (
-          <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2, color: 'readable.secondary'}}>
-            <DCLink color="currentcolor" href={addressUrl} target="_blank">
-              {getShortenWalletAddress(record.address)}
-            </DCLink>
-          </CopyText>
-        );
-      },
+      render: (_: string, record: TAccountInfo) => (<ShortTxCopy address={record.address}/>),
     },
     {
       title: 'Balance',

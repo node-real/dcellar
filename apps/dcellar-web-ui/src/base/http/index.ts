@@ -116,7 +116,7 @@ const request = ({ url, options, customOptions }: RequestOptions) => {
 };
 
 const get = ({ url, data, options, customOptions }: CustomRequestOptions) => {
-  const _url = data ? `${url}?${qs.stringify(data)}` : url;
+  const _url = data ? `${url}?${qs.stringify(data, {arrayFormat: 'comma'})}` : url;
 
   return request({
     url: _url,
