@@ -439,8 +439,13 @@ export const selectSignTask = (address: string) => (root: AppState) => {
 
   const signQueue = uploadQueue.filter((task) => task.status === 'SIGN');
   const hashedQueue = uploadQueue.filter((task) => task.status === 'HASHED');
+  const uploadingQueue = uploadQueue.filter((task) => task.status === 'UPLOAD');
 
-  return !!signQueue.length ? null : hashedQueue[0] ? hashedQueue[0] : null;
+  if (uploadingQueue.length || !!signQueue.length) {
+    return null;
+  }
+
+  return hashedQueue[0] ? hashedQueue[0] : null;
   // const folderInfos = keyBy(
   //   uploadQueue.filter((q) => q.waitFile.name.endsWith('/')),
   //   'name',

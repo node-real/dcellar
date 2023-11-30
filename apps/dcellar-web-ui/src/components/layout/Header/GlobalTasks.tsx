@@ -185,6 +185,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         });
     }
   };
+
   // 2. sign
   useAsyncEffect(async () => {
     const task = signTask;
