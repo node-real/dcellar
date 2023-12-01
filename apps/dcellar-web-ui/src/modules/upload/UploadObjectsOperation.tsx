@@ -247,7 +247,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const a = performance.now();
         const res = await checksumApi?.generateCheckSumV2(waitFile.file);
         const expectCheckSums = res?.expectCheckSums || [];
-        console.log('hashing time', performance.now() - a);
+        console.log('hashing time', res, performance.now() - a);
         // 2. getApproval & sign
         const { seedString } = await dispatch(
           getSpOffChainData(loginAccount, primarySp.operatorAddress),

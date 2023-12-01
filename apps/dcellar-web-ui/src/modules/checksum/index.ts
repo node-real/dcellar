@@ -77,8 +77,8 @@ export function getChecksumApi() {
   importScripts('https://unpkg.com/hash-wasm@4.11.0/dist/sha256.umd.min.js')
   importScripts("https://unpkg.com/comlink/dist/umd/comlink.js");
   importScripts('https://dcellar.io/static/dcellar-web-ui/wasm/wasm_exec.js');
-  function encodeBase64(data, pad) {
-    const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  function encodeBase64(data, pad=true) {
     const len = data.length;
     const extraBytes = len % 3;
     const parts = [];
