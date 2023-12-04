@@ -55,7 +55,7 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
     setTimeout(() => {
       if (connectorRef.current) return;
       logout();
-    }, 500);
+    }, 1200);
   });
 
   useEffect(() => {
