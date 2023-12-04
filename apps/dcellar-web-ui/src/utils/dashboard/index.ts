@@ -7,15 +7,8 @@ export function formatChartTime(time: string | number) {
 
 export const mergeArr = (arr1: string[], arr2: string[]) => {
   const diffLen = arr1.length - arr2.length;
-  let sameLenArr1: string[] = [];
-  let sameLenArr2: string[] = [];
-  if (diffLen > 0) {
-    sameLenArr1 = arr1;
-    sameLenArr2 = new Array(diffLen).fill(0).concat(arr2);
-  } else {
-    sameLenArr2 = arr2;
-    sameLenArr1 = new Array(diffLen).fill(0).concat(arr1);
-  }
+  const sameLenArr1 = diffLen >= 0 ? arr1 : new Array(Math.abs(diffLen)).fill(0).concat(arr1);
+  const sameLenArr2 = diffLen > 0 ? new Array(diffLen).fill(0).concat(arr2) : arr2;
 
   return sameLenArr1.map((item, index) => BN(item).plus(sameLenArr2[index] || 0).toString());
 }
