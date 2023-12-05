@@ -1,4 +1,4 @@
-import { PropsWithChildren, useCallback, useEffect, useMemo } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { LoginContext } from '@/context/LoginContext/index';
 
@@ -8,7 +8,7 @@ import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { checkSpOffChainMayExpired, setLogin, setLogout } from '@/store/slices/persist';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useMount } from 'ahooks';
 import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
 import { ssrLandingRoutes } from '@/pages/_app';
 
@@ -45,7 +45,18 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
   });
 
   const { pathname } = useRouter();
-  const { address: walletAddress, isConnected } = useAccount();
+  const { address: walletAddress, isConnected, connector } = useAccount();
+
+  const connectorRef = useRef(connector);
+  connectorRef.current = connector;
+
+  useMount(() => {
+    if (!isConnected) return;
+    setTimeout(() => {
+      if (connectorRef.current) return;
+      logout();
+    }, 1200);
+  });
 
   useEffect(() => {
     if (pathname === '/' || inline) return;
