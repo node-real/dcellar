@@ -102,11 +102,8 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
       <Divider />
       <Flex
         alignItems="center"
-        mt="16px"
         width="100%"
-        mb="12px"
         justifyContent="space-between"
-        h="24px"
       >
         <ActionButton
           data-track-id="dc.main.account.transferin.click"
