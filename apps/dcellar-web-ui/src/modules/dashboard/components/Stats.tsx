@@ -6,8 +6,11 @@ import { useAppSelector } from '@/store';
 import { selectBucketList } from '@/store/slices/bucket';
 import { selectPaymentAccounts } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { InternalRoutePaths } from '@/constants/paths';
 
 export const Stats = () => {
+  const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { buckets } = useAppSelector((root) => root.bucket);
   const { paymentAccounts } = useAppSelector((root) => root.accounts);
@@ -19,6 +22,7 @@ export const Stats = () => {
         name: 'Buckets',
         icon: 'bucket',
         value: isEmpty(buckets) ? '--' : bucketList?.length || 0,
+        link: InternalRoutePaths.buckets
       },
       // {
       //   name: 'Objects',
@@ -35,14 +39,26 @@ export const Stats = () => {
         icon: 'account',
         // payment account length + a owner account
         value: isEmpty(paymentAccounts) ? '--' : (paymentList?.length || 0) + 1,
+        link: InternalRoutePaths.accounts,
       },
     ];
   }, [bucketList?.length, buckets, paymentAccounts, paymentList?.length]);
+  const onNavigate = (target: string) => () => {
+    router.push(target);
+  };
 
   return (
     <Flex gap={16}>
       {statsData.map((item, index) => (
-        <Card key={index} flex={1}>
+        <Card
+          key={index}
+          flex={1}
+          _hover={{
+            border: '1px solid brand.brand6',
+            cursor: 'pointer',
+          }}
+          onClick={onNavigate(item.link)}
+        >
           <Flex justifyContent={'space-between'}>
             <Text fontWeight={500} color={'readable.secondary'}>
               {item.name}
