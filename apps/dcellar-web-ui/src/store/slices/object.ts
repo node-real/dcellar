@@ -16,6 +16,7 @@ import { getObjectPolicies } from '@/facade/bucket';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
+export const MAXIMUM_LIST_ITEMS = 10_000;
 
 export type ObjectItem = {
   bucketName: string;
@@ -70,6 +71,7 @@ export interface ObjectState {
   prefix: string;
   path: string;
   objects: Record<string, ObjectItem[]>;
+  objectsTruncate: Record<string, boolean>;
   objectsInfo: Record<string, ObjectMeta>;
   currentPage: Record<string, number>;
   restoreCurrent: boolean;
@@ -112,12 +114,17 @@ const initialState: ObjectState = {
   filterRange: ['', ''],
   filterSizeFrom: { value: null, unit: '1' },
   filterSizeTo: { value: null, unit: '1024' },
+  objectsTruncate: {},
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setObjectsTruncate(state, { payload }: PayloadAction<{ path: string; truncate: boolean }>) {
+      const { path, truncate } = payload;
+      state.objectsTruncate[path] = truncate;
+    },
     setFilterSizeFrom(state, { payload }: PayloadAction<ObjectFilterSize>) {
       state.filterSizeFrom = payload;
     },
@@ -316,13 +323,14 @@ export const objectSlice = createSlice({
 
 export const _getAllList = async (
   params: ListObjectsByBucketNameRequest,
-): Promise<[GfSPListObjectsByBucketNameResponse, null] | ErrorResponse> => {
+): Promise<[GfSPListObjectsByBucketNameResponse, null, boolean] | ErrorResponse> => {
   const [res, error] = await getListObjects(params);
   if (error || !res || res.code !== 0) return [null, String(error || res?.message)];
   const data = res.body!;
   const list = data.GfSpListObjectsByBucketNameResponse;
   const token = list.NextContinuationToken;
-  if (token) {
+  const items = (list.CommonPrefixes || []).length + list.Objects.length;
+  if (token && items < MAXIMUM_LIST_ITEMS) {
     params.query?.set('continuation-token', token);
     const [res, error] = await _getAllList(params);
     if (error) return [null, error];
@@ -334,9 +342,9 @@ export const _getAllList = async (
       KeyCount: String(Number(list.KeyCount) + Number(newList.KeyCount)),
       Objects: list.Objects.concat(newList.Objects),
     };
-    return [_res, null];
+    return [_res, null, false];
   }
-  return [list, null];
+  return [list, null, !!token];
 };
 
 export const setupDummyFolder =
@@ -374,12 +382,12 @@ export const setupListObjects =
     const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
     // fix refresh then nav to other pages.
     if (!bucketName) return;
-    const [res, error] = await _getAllList(payload);
+    const [res, error, truncate] = await _getAllList(payload);
     if (!res || error) {
       toast.error({ description: error });
       return;
     }
-
+    dispatch(setObjectsTruncate({ path: _path || path, truncate }));
     dispatch(setObjectList({ path: _path || path, list: res! }));
     dispatch(setRestoreCurrent(true));
     if (!restoreCurrent) {
@@ -453,6 +461,7 @@ export const {
   setFilterSizeFrom,
   setFilterSizeTo,
   resetObjectListFilter,
+  setObjectsTruncate,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

@@ -96,6 +96,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     filterSizeTo,
     filterSizeFrom,
     filterRange,
+    objectsTruncate,
   } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
@@ -516,6 +517,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           },
         })}
         scroll={{ x: 800 }}
+        total={
+          objectsTruncate[path]
+            ? 'Latest 10,000 objects.'
+            : `Total: ${objectList.length.toLocaleString()}`
+        }
       />
     </>
   );
