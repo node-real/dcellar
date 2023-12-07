@@ -6,7 +6,7 @@ import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 
 interface TNetwork extends MenuOption {
   label: string;

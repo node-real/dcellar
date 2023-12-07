@@ -175,7 +175,7 @@ export const MenuHeader = styled(Flex)`
 
 export const MenuFooter = styled(Flex)`
   font-weight: 500;
-  justify-content: flex-end;
+  justify-content: ${(props) => props.justifyContent || 'flex-end'};;
   height: 31px;
   align-items: center;
   padding: 8px 10px;

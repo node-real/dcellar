@@ -9,7 +9,7 @@ import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
-import { OWNER_ACCOUNT_NAME } from '@/utils/constant';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { getShortAccountName } from '@/utils/billing';
 
 interface ToAccountSelectorProps {
@@ -80,7 +80,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 

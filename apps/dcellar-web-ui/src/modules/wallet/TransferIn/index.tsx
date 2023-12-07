@@ -22,7 +22,7 @@ import { isRightChain } from '../utils/isRightChain';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { removeTrailingSlash } from '@/utils/string';
 import { broadcastFault } from '@/facade/error';
 import { Faucet } from '../components/Faucet';

@@ -7,7 +7,7 @@ import {
 import React, { memo, useEffect, useState } from 'react';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 import { useMount } from 'ahooks';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
 import NextLink from 'next/link';
 

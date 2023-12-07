@@ -3,7 +3,6 @@ import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/utils/constant';
 import { useAccount, useDisconnect } from 'wagmi';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
@@ -11,6 +10,7 @@ import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { useAppDispatch } from '@/store';
 import { useModal } from '@totejs/walletkit';
+import { InternalRoutePaths } from '@/constants/paths';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -34,7 +34,7 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     router.push(
       !!router.query.originAsPath
         ? decodeURIComponent(router.query.originAsPath as string)
-        : InternalRoutePaths.buckets,
+        : InternalRoutePaths.dashboard,
     );
   };
 

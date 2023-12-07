@@ -1,5 +1,4 @@
 import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-
 import {
   FILE_STATUS_DOWNLOADING,
   FILE_TITLE_CANCEL_FAILED,
@@ -30,7 +29,7 @@ import { useModalValues } from '@/hooks/useModalValues';
 import { AnimatePng, AnimatePngProps, Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
 import Head from 'next/head';
-import { LCP_IMAGES } from '@/utils/constant';
+import { LCP_IMAGES } from '@/constants/legacy';
 
 interface StatusDetailProps {}
 

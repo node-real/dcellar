@@ -107,3 +107,11 @@ export const getEveryMonth = (startMonth: string, endMonth: string) => {
 
   return times;
 }
+
+export function formatDateUTC(date: number | string, format = 'YYYY-M-D hh:mm:ss A +UTC') {
+  if (!date) {
+    return '-';
+  }
+
+  return dayjs.utc(date).format(format);
+}

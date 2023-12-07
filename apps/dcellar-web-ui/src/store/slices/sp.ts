@@ -5,10 +5,11 @@ import {
   StorageProvider,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
 import { AppDispatch, GetState } from '@/store';
-import { find, omit, random, sortBy } from 'lodash-es';
+import { chunk, find, omit, random, sortBy } from 'lodash-es';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
 import { AllBucketInfo } from '@/store/slices/bucket';
 import { RootState } from '@/store/reducers';
+import { getDomain } from '@/utils/bom';
 
 const defaultDescription = (): Description => ({
   moniker: '',
@@ -39,6 +40,8 @@ export interface SpState {
   primarySpInfo: Record<string, SpItem>;
   oneSp: string;
   spMeta: Record<string, SpMeta>;
+  latency: Record<string, number>;
+  // latencyCacheTime: number;
 }
 
 const initialState: SpState = {
@@ -48,12 +51,21 @@ const initialState: SpState = {
   primarySpInfo: {},
   oneSp: '', // operatorAddress
   spMeta: {},
+  latency: {},
+  // latencyCacheTime: 0,
 };
 
 export const spSlice = createSlice({
   name: 'sp',
   initialState,
   reducers: {
+    setSpLatency(state, { payload }: PayloadAction<Record<string, number>>) {
+      state.latency = {
+        ...state.latency,
+        ...payload,
+      };
+      // state.latencyCacheTime = Date.now();
+    },
     setSpMeta(state, { payload }: PayloadAction<SpMeta[]>) {
       payload.forEach((meta) => {
         state.spMeta[meta.Endpoint] = meta;
@@ -117,8 +129,14 @@ export const selectBucketSp = (bucket: AllBucketInfo) => (state: RootState) => {
   return find<SpItem>(allSps, (sp) => String(sp.id) === String(bucket.Vgf.PrimarySpId));
 };
 
-export const { setStorageProviders, setPrimarySpInfo, setPrimarySpInfos, updateSps, setSpMeta } =
-  spSlice.actions;
+export const {
+  setStorageProviders,
+  setPrimarySpInfo,
+  setPrimarySpInfos,
+  updateSps,
+  setSpMeta,
+  setSpLatency,
+} = spSlice.actions;
 
 export const setupStorageProviders = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { sps: _sps } = getState().sp;
@@ -152,6 +170,36 @@ export const getPrimarySpInfo =
     if (!sp) return null;
     dispatch(setPrimarySpInfo({ bucketName, sp }));
     return sp;
+  };
+
+export const updateSpLatency =
+  (endpoints: string[], address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    // const { latencyCacheTime } = getState().sp;
+    //
+    // if (Date.now() - latencyCacheTime < 1000 * 60 * 5) {
+    //   return;
+    // }
+
+    const endpointsGroup = chunk(endpoints, 4);
+    for await (const group of endpointsGroup) {
+      if (!group.length) continue;
+
+      await Promise.all(
+        group.map(async (endpoint) => {
+          await Promise.race([
+            window
+              .fetch(`${endpoint}/auth/request_nonce`, {
+                headers: new Headers({
+                  'X-Gnfd-User-Address': address,
+                  'X-Gnfd-App-Domain': getDomain(),
+                }),
+              })
+              .catch(),
+            new Promise((resolve) => setTimeout(resolve, 1000)),
+          ]);
+        }),
+      );
+    }
   };
 
 export default spSlice.reducer;

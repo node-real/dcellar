@@ -7,7 +7,7 @@ import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
-import { OWNER_ACCOUNT_NAME } from '@/utils/constant';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { getShortAccountName } from '@/utils/billing';
 
 interface FromAccountSelectorProps {
@@ -56,7 +56,7 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromA
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 

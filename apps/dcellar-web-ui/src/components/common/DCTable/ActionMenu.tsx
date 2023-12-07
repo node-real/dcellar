@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, ReactNode } from 'react';
 import { Flex, MenuButton } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/css';

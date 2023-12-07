@@ -8,7 +8,7 @@ import {
   GAS_FEE_DOC,
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
-import { USER_REJECT_STATUS_NUM } from '@/utils/constant';
+import { USER_REJECT_STATUS_NUM } from '@/constants/legacy';
 import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 import {

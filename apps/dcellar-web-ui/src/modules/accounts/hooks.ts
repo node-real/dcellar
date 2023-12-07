@@ -25,7 +25,16 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
   const { totalPANetflowRate } = useAppSelector((root) => root.accounts);
   const othersNetflowRate = totalPANetflowRate[loginAccount] || 0;
   const ownerAccountDetail = useAppSelector(selectAccountDetail(loginAccount));
+  const isLoading = curMonthTotalCosted === '' || isEmpty(totalPANetflowRate) || isEmpty(ownerAccountDetail);
+
   const forecastCost = useMemo(() => {
+    if (isLoading) {
+      return {
+        curCosted: '',
+        curRemainingEstimateCost: '',
+        nextEstimateCost: '',
+      }
+    }
     const ownerNetflowRate = ownerAccountDetail.netflowRate;
     const totalNetflowRate = BN(ownerNetflowRate || 0).plus(othersNetflowRate || 0).abs();
     const curTime = +new Date();

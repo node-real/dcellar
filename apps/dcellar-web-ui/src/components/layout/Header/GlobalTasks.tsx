@@ -20,7 +20,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 
 import axios from 'axios';
 import { getObjectMeta } from '@/facade/object';
-import { reverseVisibilityType } from '@/utils/constant';
+import { reverseVisibilityType } from '@/constants/legacy';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { parseErrorXml } from '@/utils/common';
@@ -185,6 +185,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         });
     }
   };
+
   // 2. sign
   useAsyncEffect(async () => {
     const task = signTask;
@@ -203,7 +204,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       expectCheckSums: task.checksum,
       duration: 5000,
     };
-    console.log('createObjectPayload', createObjectPayload);
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',
       privateKey: tmpAccount.privateKey,

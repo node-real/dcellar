@@ -7,7 +7,7 @@ import { DCButton } from '../common/DCButton';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useLogin } from '@/hooks/useLogin';
 import { IconFont } from '@/components/IconFont';
-import { CHAIN_NAMES } from '@/utils/constant';
+import { CHAIN_NAMES } from '@/constants/wallet';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { logout } = useLogin();

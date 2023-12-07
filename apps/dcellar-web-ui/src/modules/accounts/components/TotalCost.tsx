@@ -12,7 +12,7 @@ import { formatObjectAddress } from '@/utils/accounts';
 import { xlMedia } from '@/modules/welcome';
 import { IconFont } from '@/components/IconFont';
 import { BillingHistoryQuery } from '..';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { stringify } from 'querystring';
 import { useRouter } from 'next/router';
 

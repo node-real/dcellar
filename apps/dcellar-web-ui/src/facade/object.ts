@@ -51,7 +51,7 @@ import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Commo
 import { getClient } from '@/facade/index';
 import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
 import { batchDownload, directlyDownload } from '@/modules/object/utils';
-import { GROUP_ID } from '@/utils/constant';
+import { GROUP_ID } from '@/constants/legacy';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -524,8 +524,10 @@ export const getObjectMeta = async (
     },
     (e) => {
       const { response } = e;
+      if (!response) return [null, { code: 500, message: 'Oops, something went wrong' }];
+
       const error =
-        response.status === 429
+        response?.status === 429
           ? { code: response.status, message: 'SP not available. Try later.' }
           : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
       return [null, error];

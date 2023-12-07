@@ -1,7 +1,7 @@
 import React, { ChangeEvent, memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import { Flex, Menu, MenuButton, MenuItem, MenuList, Text, toast, Tooltip } from '@totejs/uikit';
+import { Flex, Menu, toast, Tooltip } from '@totejs/uikit';
 import {
   ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,
@@ -13,7 +13,7 @@ import {
   setupListObjects,
   SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
-import { addToWaitQueue, resetWaitQueue } from '@/store/slices/global';
+import { addToWaitQueue } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { setupBucketQuota } from '@/store/slices/bucket';
@@ -23,6 +23,7 @@ import { selectAccount } from '@/store/slices/accounts';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
 import { formatBytes } from '@/utils/formatter';
+import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 
 interface NewObjectProps {
   showRefresh?: boolean;
@@ -30,8 +31,8 @@ interface NewObjectProps {
   gaUploadClickName?: string;
 }
 
-const MAX_FOLDER_LEVEL = 10;
-const MAX_FOLDER_NAME_LEN = 70;
+export const MAX_FOLDER_LEVEL = 10;
+export const MAX_FOLDER_NAME_LEN = 70;
 
 export const NewObject = memo<NewObjectProps>(function NewObject({
   showRefresh = false,
@@ -113,7 +114,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         isClosable: true,
       });
     }
-    dispatch(resetWaitQueue());
     Object.values(files).forEach((file: File) => {
       const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
@@ -192,7 +192,6 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       infos[file.webkitRelativePath] = file;
     });
 
-    dispatch(resetWaitQueue());
     Object.values(infos).forEach((file: File) => {
       const time = getTimestamp();
       const id = parseInt(String(time * Math.random()));
@@ -252,19 +251,11 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
           }
         >
           <div>
-            <MenuButton
-              as={DCButton}
-              position="relative"
-              paddingRight={'0'}
+            <UploadMenuList
+              gaUploadClickName={gaUploadClickName}
               disabled={uploadDisabled}
-              _expanded={{
-                '.ui-icon': {
-                  transform: 'rotate(-270deg)',
-                },
-                '.ui-icon__container': {
-                  bgColor: '#009E2C',
-                },
-              }}
+              handleFilesChange={handleFilesChange}
+              handlerFolderChange={handlerFolderChange}
             >
               <IconFont type="upload" w={24} />
               Upload
@@ -274,7 +265,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 height={'40px'}
                 borderRightRadius={4}
                 alignItems={'center'}
-                borderLeft={uploadDisabled ? '1px solid readable.border' : '1px solid #5ED47F'}
+                borderLeft={disabled ? '1px solid readable.border' : '1px solid #5ED47F'}
               >
                 <IconFont
                   transform="rotate(-90deg)"
@@ -284,78 +275,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                   mx={4}
                 />
               </Flex>
-            </MenuButton>
+            </UploadMenuList>
           </div>
         </Tooltip>
-        {!uploadDisabled && (
-          <MenuList>
-            <label htmlFor="files-upload">
-              <GAClick name={gaUploadClickName}>
-                <MenuItem
-                  _hover={{
-                    color: 'brand.brand7',
-                    backgroundColor: 'rgba(0, 186, 52, 0.10)',
-                  }}
-                >
-                  <Flex cursor="pointer">
-                    <Text fontSize="14px" lineHeight="20px">
-                      Upload Object(s)
-                    </Text>
-                  </Flex>
-                  <input
-                    type="file"
-                    id="files-upload"
-                    multiple
-                    onChange={handleFilesChange}
-                    style={{
-                      visibility: 'hidden',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  />
-                </MenuItem>
-              </GAClick>
-            </label>
-            <label htmlFor="folder-picker">
-              <GAClick name={gaUploadClickName}>
-                <MenuItem
-                  _hover={{
-                    color: 'brand.brand7',
-                    backgroundColor: 'rgba(0, 186, 52, 0.10)',
-                  }}
-                  isDisabled={disabled}
-                >
-                  <Flex cursor="pointer">
-                    <Text fontSize="14px" lineHeight="20px">
-                      Upload Folder
-                    </Text>
-                  </Flex>
-                  <input
-                    type="file"
-                    id="folder-picker"
-                    name="folder-upload"
-                    // @ts-ignore
-                    webkitdirectory="true"
-                    directory="true"
-                    multiple
-                    onChange={handlerFolderChange}
-                    style={{
-                      visibility: 'hidden',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  />
-                </MenuItem>
-              </GAClick>
-            </label>
-          </MenuList>
-        )}
       </Menu>
     </Flex>
   );
