@@ -3,12 +3,14 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   progressFetchList,
   refreshTaskFolder,
+  selectFetchTask,
   selectHashTask,
   selectSignTask,
   selectUploadQueue,
   setupUploadTaskErrorMsg,
   updateUploadChecksum,
   updateUploadCreateHash,
+  updateUploadNftStatus,
   updateUploadProgress,
   updateUploadStatus,
   UploadFile,
@@ -35,6 +37,7 @@ import {
   makePutObjectHeaders,
   TMakePutObjectHeaders,
 } from '@/modules/object/utils/generatePubObjectOptions';
+import { saveBlob } from '@/utils/toolbox';
 
 interface GlobalTasksProps {}
 
@@ -47,6 +50,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const signTask = useAppSelector(selectSignTask(loginAccount));
+  const fetchTask = useAppSelector(selectFetchTask(loginAccount));
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
@@ -60,6 +64,21 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     return signedQueue.slice(0, uploadOffset).map((p) => p.id);
   }, [uploadOffset, signedQueue]);
   const sealQueue = queue.filter((q) => q.status === 'SEAL').map((s) => s.id);
+  console.log('fetchTask', fetchTask)
+  // 0. if need download
+  useAsyncEffect(async () => {
+    if (!fetchTask) return;
+    dispatch(updateUploadStatus({ ids: [fetchTask.id], status: 'FETCH', account: loginAccount }));
+    console.log('fetchTask', fetchTask);
+    const response = await fetch(fetchTask?.waitFile?.httpUrl as any);
+    console.log('response', response)
+    const fileType = response.headers.get("Content-Type") as string;
+    const blob = await response.blob();
+
+    const file = new File([blob], fetchTask.waitFile.name, {type: fileType})
+    // saveBlob(fetchTask.waitFile.name, blob);
+    dispatch(updateUploadNftStatus({account: loginAccount, id: fetchTask.id + '', file}))
+  }, [fetchTask])
 
   // 1. hash
   useAsyncEffect(async () => {

@@ -10,6 +10,8 @@ export const InternalRoutePaths = {
   pricing_calculator: '/pricing-calculator',
   accounts: '/accounts',
   dashboard: '/dashboard',
+  toolbox: '/toolbox',
+  nft_migration: '/nft-migration',
 };
 
 export const NODEREAL_URL = 'https://nodereal.io';

@@ -25,14 +25,14 @@ export default function Document() {
             __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/js/iconfont_v0.6.min.js`}></script>
+        <script defer src={`${assetPrefix}/js/iconfont_v0.7.min.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js`}></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
 try {
-    const isMobile = /android|iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+    const isMobile = /android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (!isMobile && window.ethereum && window.ethereum.isMetaMask && window.trustwallet) {
         const originalEthereum = window.ethereum;

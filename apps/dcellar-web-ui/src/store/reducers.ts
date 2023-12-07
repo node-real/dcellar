@@ -14,6 +14,7 @@ import group from '@/store/slices/group';
 import accounts from '@/store/slices/accounts';
 import billing from '@/store/slices/billing';
 import dashboard  from '@/store/slices/dashboard';
+import toolbox from '@/store/slices/toolbox';
 
 import { runtimeEnv } from '@/base/env';
 
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   accounts,
   billing,
   dashboard,
+  toolbox,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
