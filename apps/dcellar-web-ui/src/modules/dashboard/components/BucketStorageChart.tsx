@@ -85,7 +85,7 @@ export const BucketStorageChart = () => {
   return (
     <Card flex={1} gap={24}>
       <Flex alignItems={'center'} justifyContent={'space-between'}>
-        <CardTitle>Usage Statics</CardTitle>
+        <CardTitle>Usage Statistics</CardTitle>
         <Flex>
           <DCButton bgColor={'opacity1'} color={'readable.normal'} _hover={{ bgColor: 'opacity1' }}>
             Storage Usage

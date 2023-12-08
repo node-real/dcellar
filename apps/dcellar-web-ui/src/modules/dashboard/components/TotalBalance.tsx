@@ -22,12 +22,12 @@ const FeeOptions: {
 }[] = [
   {
     id: 'totalPrepaidFee',
-    label: 'Total Prepaid fee',
+    label: 'Total prepaid fee',
     symbol: displayTokenSymbol(),
   },
   {
     id: 'totalNetflowRate',
-    label: 'Total Flow rate',
+    label: 'Total flow rate',
     symbol: displayTokenSymbol() + '/s',
   },
 ];
