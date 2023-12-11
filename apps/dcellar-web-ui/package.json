@@ -75,12 +75,11 @@
     "@types/node": "18.16.0",
     "@types/react": "18.0.38",
     "@types/react-dom": "18.0.11",
-    "eslint": "8.39.0",
+    "eslint": "~8.55.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "prettier": "^2.8.4",
-    "tsc-files": "~1.1.4",
-    "eslint-plugin-react-hooks": "~4.6.0"
+    "tsc-files": "~1.1.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -95,11 +94,10 @@
   "prettier": "@totejs/prettier-config",
   "eslintConfig": {
     "extends": [
-      "next/core-web-vitals",
-      "plugin:react-hooks/recommended",
-      "@totejs/eslint-config/react"
+      "next/core-web-vitals"
     ],
     "rules": {
+      "no-console": 1,
       "react/display-name": "off",
       "react/react-in-jsx-scope": [
         "off"
