@@ -57,7 +57,9 @@
     "redux": "~4.2.1",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
-    "viem": "~1.19.11"
+    "viem": "~1.19.11",
+    "@wagmi/core": "~1.4.10",
+    "set-interval-async": "~3.0.3"
   },
   "devDependencies": {
     "@babel/plugin-syntax-flow": "^7.14.5",
@@ -77,7 +79,8 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "prettier": "^2.8.4",
-    "tsc-files": "~1.1.4"
+    "tsc-files": "~1.1.4",
+    "eslint-plugin-react-hooks": "~4.6.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -92,7 +95,9 @@
   "prettier": "@totejs/prettier-config",
   "eslintConfig": {
     "extends": [
-      "next/core-web-vitals"
+      "next/core-web-vitals",
+      "plugin:react-hooks/recommended",
+      "@totejs/eslint-config/react"
     ],
     "rules": {
       "react/display-name": "off",
