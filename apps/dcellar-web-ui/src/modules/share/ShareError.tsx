@@ -1,8 +1,9 @@
 import styled from '@emotion/styled';
-import { Image, Heading, Text } from '@totejs/uikit';
+import { Heading, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import React, { memo } from 'react';
+import { IconFont } from '@/components/IconFont';
 
 export const SHARE_ERROR_TYPES = {
   NO_QUOTA: {
@@ -39,7 +40,7 @@ export const ShareError = memo<{ type: ShareErrorType }>(function ShareError({ t
 
   return (
     <Content>
-      <Image src={errorData.icon} alt="Object not found" />
+      <IconFont w={120} type={errorData.icon} />
       <Heading fontWeight={600} fontSize={24} lineHeight="36px" mt={10} mb={16}>
         {errorData.title}
       </Heading>
