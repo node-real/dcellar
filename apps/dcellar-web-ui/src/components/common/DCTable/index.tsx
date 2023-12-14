@@ -6,7 +6,7 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import { Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@totejs/uikit';
+import { Badge, Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';
@@ -176,29 +176,13 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
     return objectInList === object;
   });
 
-  const failed = (
-    <Flex
-      display="inline-flex"
-      bg={'rgba(238, 57, 17, 0.1)'}
-      h={'20px'}
-      borderRadius={'12px'}
-      paddingX={'8px'}
-      alignItems={'center'}
-      justifyContent={'center'}
-    >
-      <Text lineHeight={'24px'} fontSize={'12px'} color="#EE3911" fontWeight={500}>
-        Upload Failed
-      </Text>
-    </Flex>
-  );
-
-  if (!file) return failed;
+  if (!file) return <Badge colorScheme='warning'>Created on Chain</Badge>;
 
   if (file.status === 'UPLOAD') return <UploadProgress progress={file.progress} />;
 
-  if (file.status == 'SEAL') return <SealLoading />;
+  if (file.status === 'SEAL') return <SealLoading />;
 
-  if (file.msg) return failed;
+  if (file.msg) return <Badge colorScheme='danger'>Upload Failed</Badge>;
 
   return <>{formatBytes(size)}</>;
 };

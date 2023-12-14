@@ -67,7 +67,7 @@ export const renderFee = (
           )}
         </Text>
         {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
+          <Box>
             {keyIcon}
           </Box>
         )}
@@ -178,6 +178,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
             gap={'4px'}
             flexDirection={'column'}
             borderRadius={'12px'}
+            alignItems={'center'}
           >
             {renderFee(
               'Prepaid fee refund',
@@ -194,7 +195,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                       lineHeight={'150%'}
                       wordBreak={'break-word'}
                     >
-                      We will unlock the storage fee after you cancel the object.
+                      We will unlock the storage fee after you cancel the object. 111
                     </Box>
                   </Box>
                 }
