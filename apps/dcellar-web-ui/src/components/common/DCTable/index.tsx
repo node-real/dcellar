@@ -86,7 +86,10 @@ export const DCTable = memo<SimpleDCTableProps | MultiDCTableProps>(function DCT
           <Table dataSource={dataSource} {...restProps} pagination={false} tableLayout="fixed" />
         </ConfigProvider>
         {pagination && (
-          <Flex justifyContent={'flex-end'} paddingY={12} mr={16}>
+          <Flex justifyContent={'space-between'} alignItems="center" paddingY={12} marginX={16}>
+            <Text fontWeight={500} color={'readable.tertiary'}>
+              Total: {total}
+            </Text>
             <Pagination
               current={current}
               defaultCurrent={defaultCurrent}
@@ -176,13 +179,13 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
     return objectInList === object;
   });
 
-  if (!file) return <Badge colorScheme='warning'>Created on Chain</Badge>;
+  if (!file) return <Badge colorScheme="warning">Created on Chain</Badge>;
 
   if (file.status === 'UPLOAD') return <UploadProgress progress={file.progress} />;
 
   if (file.status === 'SEAL') return <SealLoading />;
 
-  if (file.msg) return <Badge colorScheme='danger'>Upload Failed</Badge>;
+  if (file.msg) return <Badge colorScheme="danger">Upload Failed</Badge>;
 
   return <>{formatBytes(size)}</>;
 };
