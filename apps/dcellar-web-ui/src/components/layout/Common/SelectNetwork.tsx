@@ -41,7 +41,6 @@ export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
     if (runtimeEnv === net.value) {
       return;
     }
-    console.log('router', router);
     const rootPath = GO_ROOT_PATHS[router.pathname];
     window.location.href = rootPath ? `${net.domain}${rootPath}` : `${net.domain}${router.asPath}`;
   };

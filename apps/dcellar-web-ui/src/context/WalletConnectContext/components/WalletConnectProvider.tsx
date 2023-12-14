@@ -1,5 +1,5 @@
 import '@totejs/walletkit/styles.css';
-import { createClient, WagmiConfig } from 'wagmi';
+import { createConfig, WagmiConfig } from 'wagmi';
 import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
 import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
 import { Text } from '@totejs/uikit';
@@ -12,7 +12,7 @@ import { ReactNode } from 'react';
 import { customTheme } from '@/base/theme/wallet';
 import { DCLink } from '@/components/common/DCLink';
 
-const client = createClient(
+const config = createConfig(
   getDefaultConfig({
     chains: [bscChain, greenFieldChain],
     appName: 'Connect a Wallet',
@@ -22,7 +22,6 @@ const client = createClient(
     connectors: [trustWallet(), metaMask()],
   }),
 );
-
 const options: WalletKitOptions = {
   initialChainId: GREENFIELD_CHAIN_ID,
   closeModalAfterConnected: false,
@@ -64,7 +63,7 @@ export function WalletConnectProvider(props: WalletConnectProviderProps) {
   const { children } = props;
 
   return (
-    <WagmiConfig client={client}>
+    <WagmiConfig config={config}>
       <WalletKitProvider
         options={options}
         mode={'light'}

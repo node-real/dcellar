@@ -1,5 +1,5 @@
 import { Chain, configureChains } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
+import { publicProvider } from "wagmi/providers/public";
 
 import {
   BSC_CHAIN_ID,
