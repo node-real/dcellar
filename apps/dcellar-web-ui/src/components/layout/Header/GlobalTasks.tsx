@@ -23,7 +23,7 @@ import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/constants/legacy';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
-import { parseErrorXml } from '@/utils/common';
+import { parseErrorXml, sleep } from '@/utils/common';
 import { isEmpty } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
@@ -293,7 +293,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           return 0;
         }
 
-        if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
+        if (error?.code === 429 && Date.now() - preTs < 2 * 60 * 1000) {
+          await sleep(1000);
+        } else if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,

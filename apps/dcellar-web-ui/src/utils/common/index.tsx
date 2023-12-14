@@ -77,11 +77,14 @@ export function scrollToId(id: string, top?: number) {
   });
 }
 
-// because the walletConnect return message is: `{code: xx, message: 'xxx'}
+// The walletConnect Error is: `{code: xx, message: 'xxx'}
 export function parseWCMessage(jsonStr: string) {
   try {
     return JSON.parse(jsonStr)?.message ?? jsonStr;
   } catch (e) {
     return jsonStr
   }
+}
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(() => resolve(''), ms))
 }
