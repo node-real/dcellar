@@ -19,6 +19,7 @@ export type AlignType = 'left' | 'right' | 'center';
 interface DCTableProps extends TableProps<any> {
   renderEmpty?: ConfigProviderProps['renderEmpty'];
 }
+
 type SimpleDCTableProps = DCTableProps & Omit<SimplePaginationProps, 'loading'>;
 type MultiDCTableProps = DCTableProps &
   PaginationProps & {
@@ -39,6 +40,7 @@ export const DCTable = memo<SimpleDCTableProps | MultiDCTableProps>(function DCT
       canPrev,
       pagination = true,
       dataSource,
+      total = '',
       ...restProps
     } = props;
     return (
@@ -56,6 +58,7 @@ export const DCTable = memo<SimpleDCTableProps | MultiDCTableProps>(function DCT
             canNext={canNext}
             canPrev={canPrev}
             pageChange={pageChange}
+            total={total}
           />
         )}
       </Container>
@@ -101,15 +104,15 @@ export const DCTable = memo<SimpleDCTableProps | MultiDCTableProps>(function DCT
 
 export const SealLoading = () => {
   const loading = keyframes`
-  0%,
-  100% {
-    transform: translateX(-10px);
-  }
+      0%,
+      100% {
+          transform: translateX(-10px);
+      }
 
-  50% {
-    transform: translateX(70px);
-  }
-`;
+      50% {
+          transform: translateX(70px);
+      }
+  `;
   return (
     <Flex alignItems="center">
       <Flex w={'84px'} h={'8px'} bg={'#E7F3FD'} borderRadius={'28px'} overflow={'hidden'}>
@@ -215,17 +218,22 @@ export const SortItem = styled.span`
   margin-top: -7px;
   margin-bottom: -7px;
   user-select: none;
+
   > span {
     display: none;
   }
+
   :hover {
     color: #1e2026;
+
     > span {
       display: inline;
     }
+
     border-radius: 360px;
     background: rgba(0, 186, 52, 0.1);
   }
+
   :active {
     background: rgba(0, 186, 52, 0.15);
   }
@@ -244,15 +252,18 @@ const Container = styled.div<{ rowCursor: string }>`
   .ant-table-thead > tr > th {
     color: var(--ui-colors-readable-normal);
     background: var(--ui-colors-bg-bottom);
+
     &:before {
       display: none;
     }
+
     font-size: 12px;
     font-weight: 500;
     line-height: 18px;
     padding-top: 13px;
     padding-bottom: 12px;
   }
+
   .ant-table-tbody > tr.ant-table-row-selected > td,
   .ant-table-tbody > tr.ant-table-row:hover > td {
     background: rgba(0, 186, 52, 0.1);
@@ -279,18 +290,22 @@ const Container = styled.div<{ rowCursor: string }>`
   .ant-checkbox-checked:after {
     display: none;
   }
+
   .ant-checkbox-checked:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
     background-color: #2ec659;
     border-color: transparent;
   }
+
   .ant-checkbox-indeterminate .ant-checkbox-inner {
     background-color: #00ba34;
     border-color: #00ba34;
+
     &:after {
       background-color: #fff;
       height: 2px;
     }
   }
+
   .ant-checkbox-indeterminate:hover .ant-checkbox-inner {
     background-color: #2ec659;
     border-color: #2ec659;
@@ -305,6 +320,7 @@ const Container = styled.div<{ rowCursor: string }>`
       .btn-action {
         visibility: visible;
       }
+
       cursor: ${(props) => props.rowCursor};
     }
   }
