@@ -10658,8 +10658,13 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
+<<<<<<< HEAD
   /viem/1.19.15_typescript@5.0.4:
     resolution: {integrity: sha512-rc87AkyrUUsoOAgMNYP+X/wN4GYwbhP87DkmsqQCYKxxQyzTX0+yliKs6Bxljbjr8ybU72GOb12Oyus6393AjQ==}
+=======
+  /viem/1.19.14_typescript@5.0.4:
+    resolution: {integrity: sha512-0qHq2KqH7kc4rrFIY2h7Xfb2pNghoSJP53HWc5OSnzuQEcIxnUNIMypHlhSsyFsBzd8JwR5qqtc4msuC3Nt3xg==}
+>>>>>>> e9a2a3e (chore(dcellar-web-ui): update pnpm-lock.yml)
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:
@@ -10699,8 +10704,13 @@ packages:
       - supports-color
     dev: true
 
+<<<<<<< HEAD
   /wagmi/1.4.12_v6ao5dio7azssq2prl5766ztja:
     resolution: {integrity: sha512-QRxpjhdMlZmbYTfn9VQkQMKq+l3kwA1O7tF10vaykPrjbGX+IIlyn72ib9oqW9BfQO7n/Sf/mnVz1zbxRhGPWA==}
+=======
+  /wagmi/1.4.11_nbimyxe64txviac5q2jdtx3tqe:
+    resolution: {integrity: sha512-Kslc5wwuPTSOqxpqElE9lGZahyPwlwAXrRpvmw+h89e8lPg7DWThQsPQMWiSvKcg+NloEHwQRGmy5rpfKFKLaA==}
+>>>>>>> e9a2a3e (chore(dcellar-web-ui): update pnpm-lock.yml)
     peerDependencies:
       react: '>=17.0.0'
       typescript: '>=5.0.4'
@@ -10712,12 +10722,20 @@ packages:
       '@tanstack/query-sync-storage-persister': 4.36.1
       '@tanstack/react-query': 4.36.1_biqbaboplfbrettd7655fr4n2y
       '@tanstack/react-query-persist-client': 4.36.1_36z47x7546ezgz5hgrznhvzpxe
+<<<<<<< HEAD
       '@wagmi/core': 1.4.12_s365vvqq25xi5sfbyylbedtsl4
+=======
+      '@wagmi/core': 1.4.11_77ogeh4pma3tqim7odxvweqnre
+>>>>>>> e9a2a3e (chore(dcellar-web-ui): update pnpm-lock.yml)
       abitype: 0.8.7_typescript@5.0.4
       react: 18.2.0
       typescript: 5.0.4
       use-sync-external-store: 1.2.0_react@18.2.0
+<<<<<<< HEAD
       viem: 1.19.15_typescript@5.0.4
+=======
+      viem: 1.19.14_typescript@5.0.4
+>>>>>>> e9a2a3e (chore(dcellar-web-ui): update pnpm-lock.yml)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
