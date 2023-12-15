@@ -4,7 +4,7 @@ import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains
 import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
 import { Text } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { metaMask, trustWallet } from '@totejs/walletkit/wallets';
+import { metaMask, trustWallet, walletConnect } from '@totejs/walletkit/wallets';
 import * as Sentry from '@sentry/nextjs';
 import { reportEvent } from '@/utils/gtag';
 import * as process from 'process';
@@ -18,10 +18,11 @@ const config = createConfig(
     appName: 'Connect a Wallet',
     autoConnect: true,
     /* WC 2.0 requires a project ID (get one here: https://cloud.walletconnect.com/sign-in) */
-    // walletConnectProjectId: '7c6812d64a55a1438dce3c5b650dca8c',
-    connectors: [trustWallet(), metaMask()],
+    walletConnectProjectId: 'f18ed47b2291758f8adf75e96750034d',
+    connectors: [trustWallet(), metaMask(), walletConnect()],
   }),
 );
+
 const options: WalletKitOptions = {
   initialChainId: GREENFIELD_CHAIN_ID,
   closeModalAfterConnected: false,
