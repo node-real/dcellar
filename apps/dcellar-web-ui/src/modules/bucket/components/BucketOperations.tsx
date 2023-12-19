@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { AllBucketInfo, setBucketOperation } from '@/store/slices/bucket';
+import { TBucket, setBucketOperation } from '@/store/slices/bucket';
 import { useModalValues } from '@/hooks/useModalValues';
 import { DCModal } from '@/components/common/DCModal';
 import { DetailBucketOperation } from '@/modules/bucket/components/DetailBucketOperation';
@@ -20,7 +20,7 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   const isModal = ['delete'].includes(operation);
   const _operation = useModalValues<BucketOperationsProps>(operation);
   const selectBucketInfo = bucketInfo[id] || {};
-  const _selectBucketInfo = useModalValues<AllBucketInfo>(selectBucketInfo);
+  const _selectBucketInfo = useModalValues<TBucket>(selectBucketInfo);
 
   const onClose = () => {
     dispatch(setBucketOperation(['', '']));

@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getGroupMembers, getGroups } from '@/facade/group';
-import { BucketInfo, GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { BucketInfo, GroupInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { toast } from '@totejs/uikit';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
 
 export type GroupMember = {
   AccountId: string;
@@ -25,6 +26,8 @@ interface GroupState {
   groupMembers: Record<string, GroupMember[]>;
   groupOperation: Record<0 | 1, [string, GroupOperationsType, Record<string, any>?]>;
   selectedGroupMember: string[];
+  editTags: [string, string];
+  editTagsData: ResourceTags_Tag[];
 }
 
 const initialState: GroupState = {
@@ -36,6 +39,8 @@ const initialState: GroupState = {
   groupMembers: {},
   groupOperation: { 0: ['', '', {}], 1: ['', '', {}] },
   selectedGroupMember: [],
+  editTags: ['', '',],
+  editTagsData: [DEFAULT_TAG]
 };
 
 export const groupSlice = createSlice({
@@ -76,6 +81,18 @@ export const groupSlice = createSlice({
       const { account, list } = payload;
       state.groups[account] = list;
     },
+    setGroupTags(state, { payload }: PayloadAction<{account: string, groupId: string, tags: ResourceTags_Tag[] }>) {
+      const {account, groupId, tags } = payload;
+      const group = state.groups[account].find(item => item.id === groupId);
+      if (!group) return;
+      group.tags.tags = tags;
+    },
+    setEditGroupTags(state, { payload }: PayloadAction<[string, string]>) {
+      state.editTags = payload;
+    },
+    setEditGroupTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
+      state.editTagsData = payload;
+    },
   },
 });
 
@@ -88,6 +105,9 @@ export const {
   setMemberListPage,
   setGroupOperation,
   setSelectedGroupMember,
+  setEditGroupTags,
+  setEditGroupTagsData,
+  setGroupTags,
 } = groupSlice.actions;
 
 export const setupGroupMembers =
@@ -122,19 +142,19 @@ export const selectGroupList = (address: string) => (root: AppState) => {
 
 export const setupGroups =
   (loginAccount: string, forceLoading = false) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
-    const { groups, loading } = getState().group;
-    if (loading) return;
-    if (!(loginAccount in groups) || forceLoading) {
-      dispatch(setLoading(true));
-    }
-    const [list, error] = await getGroups(loginAccount);
-    dispatch(setLoading(false));
-    if (!list) {
-      toast.error({ description: error });
-      return;
-    }
-    dispatch(setGroups({ account: loginAccount, list: list || [] }));
-  };
+    async (dispatch: AppDispatch, getState: GetState) => {
+      const { groups, loading } = getState().group;
+      if (loading) return;
+      if (!(loginAccount in groups) || forceLoading) {
+        dispatch(setLoading(true));
+      }
+      const [list, error] = await getGroups(loginAccount);
+      dispatch(setLoading(false));
+      if (!list) {
+        toast.error({ description: error });
+        return;
+      }
+      dispatch(setGroups({ account: loginAccount, list: list || [] }));
+    };
 
 export default groupSlice.reducer;

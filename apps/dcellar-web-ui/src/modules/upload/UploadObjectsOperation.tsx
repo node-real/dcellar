@@ -37,6 +37,8 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   SELECT_OBJECT_NUM_LIMIT,
+  setEditObjectTags,
+  setEditObjectTagsData,
   setStatusDetail,
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
@@ -88,6 +90,7 @@ import {
 } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
 import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -108,7 +111,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const dispatch = useAppDispatch();
     const checksumApi = useChecksumApi();
     const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { bucketName, path, prefix, objects, folders } = useAppSelector((root) => root.object);
+    const { bucketName, path, prefix, objects, folders, editTagsData } = useAppSelector(
+      (root) => root.object,
+    );
     const { bucketInfo } = useAppSelector((root) => root.bucket);
     const { loginAccount } = useAppSelector((root) => root.persist);
     const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
@@ -125,6 +130,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
     const ref = useRef(null);
     const scroll = useScroll(ref) || defaultScroll;
+    const validTags = getValidTags(editTagsData);
 
     const getErrorMsg = (type: string) => {
       return OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -263,6 +269,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           fileType: waitFile.type || 'application/octet-stream',
           contentLength: waitFile.size,
           expectCheckSums,
+          tags: {
+            tags: validTags,
+          },
         };
         const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
           type: 'EDDSA',
@@ -310,6 +319,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
             waitFile,
             checksums: expectCheckSums,
             createHash,
+            tags: validTags,
           }),
         );
       } else {
@@ -330,7 +340,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           return errorHandler(error);
         }
         dispatch(setTmpAccount(tmpAccount));
-        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
+        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility, validTags));
       }
 
       closeModal();
@@ -398,6 +408,12 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       },
     });
 
+    const onEditTags = () => {
+      dispatch(setEditObjectTags(['new', 'create']));
+    };
+
+    useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+
     return (
       <>
         {isOver && (
@@ -436,6 +452,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
                 {tabOptions.map((item) => (
                   <TabPanel key={item.key} panelKey={item.key}>
                     <ListItem handleFolderTree={handleFolderTree} path={path} type={item.key} />
+                    <EditTags
+                      tagsData={editTagsData}
+                      onClick={onEditTags}
+                      containerStyle={{ mt: 8 }}
+                    />
                   </TabPanel>
                 ))}
               </TabPanels>

@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setGroupOperation, setupGroupMembers } from '@/store/slices/group';
+import { setEditGroupTags, setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useUnmount } from 'ahooks';
 import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
@@ -12,6 +12,7 @@ import { ethers } from 'ethers';
 import { Avatar } from '@/components/Avatar';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
 
 interface DetailGroupOperationProps {
   selectGroup: GroupInfo;
@@ -37,6 +38,12 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
     ethers.BigNumber.from(selectGroup.id || 0).toHexString(),
     32,
   );
+  const onEditTag = () => {
+    dispatch(setEditGroupTagsData(selectGroup.tags.tags));
+    dispatch(setEditGroupTags([selectGroup.id, 'detail']))
+  }
+
+  useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));
 
   return (
     <>
@@ -71,34 +78,49 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
             </Flex>
           </Flex>
         </Flex>
-        <Divider />
-        <Flex
-          my={8}
-          fontWeight={500}
-          lineHeight="normal"
-          justifyContent="space-between"
-          alignItems={'center'}
-        >
-          <Text color="#76808F">Group ID</Text>
-          <CopyText
-            alignItems="center"
-            value={selectGroup.id}
-            fontWeight={400}
-            iconProps={{ boxSize: 16, ml: 4 }}
-            lineHeight={0}
+        <Flex gap={8} flexDir={'column'}>
+          <Divider />
+          <Flex
+            paddingY={4}
+            fontWeight={500}
+            lineHeight="normal"
+            justifyContent="space-between"
+            alignItems={'center'}
           >
-            <Text
-              as="a"
-              textDecoration="underline"
-              _hover={{ textDecoration: 'underline', color: '#00BA34' }}
-              target="_blank"
-              href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
+            <Text color="#76808F">Group ID</Text>
+            <CopyText
+              alignItems="center"
+              value={selectGroup.id}
+              fontWeight={400}
+              iconProps={{ boxSize: 16, ml: 4 }}
+              lineHeight={0}
             >
-              {selectGroup.id}
-            </Text>
-          </CopyText>
+              <Text
+                as="a"
+                textDecoration="underline"
+                _hover={{ textDecoration: 'underline', color: '#00BA34' }}
+                target="_blank"
+                href={`${GREENFIELD_CHAIN_EXPLORER_URL}/group/${hexString}`}
+              >
+                {selectGroup.id}
+              </Text>
+            </CopyText>
+          </Flex>
+          <Flex
+            paddingY={4}
+            fontWeight={500}
+            lineHeight="normal"
+            justifyContent="space-between"
+            alignItems={'center'}
+          >
+            <Text color={'#76808F'}>Tags</Text>
+            <Flex alignItems={'center'} gap={4} color={'brand.brand6'} cursor={'pointer'} onClick={onEditTag}>
+              <IconFont type="pen" />
+              {selectGroup.tags.tags?.length || 0} tags
+            </Flex>
+          </Flex>
+          <Divider />
         </Flex>
-        <Divider />
         <Box my={24}>
           <Text fontWeight={600} lineHeight="normal">
             Members

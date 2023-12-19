@@ -60,6 +60,7 @@ import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';
 import { pickAction, removeAction } from '@/utils/object';
+import { ManageObjectTagsDrawer } from './ManageObjectTagsDrawer';
 
 export type ObjectActionValueType =
   | 'marketplace'
@@ -525,6 +526,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
       )}
       <ObjectOperations />
+      <ManageObjectTagsDrawer />
       <DCTable
         rowSelection={owner ? rowSelection : undefined}
         loading={loadingComponent}

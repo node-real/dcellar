@@ -10,7 +10,7 @@ import {
   toast,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectGroupList, setupGroups } from '@/store/slices/group';
+import { selectGroupList, setEditGroupTags, setEditGroupTagsData, setupGroups } from '@/store/slices/group';
 import { InputItem } from '@/components/formitems/InputItem';
 import { TextareaItem } from '@/components/formitems/TextareaItem';
 import { DCButton } from '@/components/common/DCButton';
@@ -25,6 +25,9 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { Animates } from '@/components/AnimatePng';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { useUnmount } from 'ahooks';
 
 interface CreateGroupOperationProps {
   onClose?: () => void;
@@ -42,7 +45,8 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
-
+  const { editTagsData } = useAppSelector((root) => root.group);
+  const validTags = getValidTags(editTagsData);
   const validateForm = (values: Record<'name' | 'desc', string>) => {
     const { name, desc } = values;
     const _error = { ...error };
@@ -97,11 +101,13 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     const error = validateForm(form);
     if (error.name || error.desc) return;
     setLoading(true);
-    const payload = {
+    const payload: MsgCreateGroup = {
       creator: loginAccount,
       groupName: form.name,
       extra: form.desc,
-      members: [loginAccount],
+      tags: {
+        tags: validTags,
+      }
     };
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Creating Group', desc: WALLET_CONFIRM }),
@@ -114,6 +120,12 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     dispatch(setupGroups(loginAccount));
     onClose();
   };
+
+  const onAddTags = () => {
+    dispatch(setEditGroupTags(['new', 'create']))
+  }
+
+  useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));
 
   return (
     <>
@@ -160,6 +172,12 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.desc]} />
+        </FormControl>
+        <FormControl mb={16}>
+          <FormLabel>
+            <Text fontWeight={500} mb={8}>Tags</Text>
+            <EditTags onClick={onAddTags} tagsData={editTagsData}/>
+          </FormLabel>
         </FormControl>
       </QDrawerBody>
       <QDrawerFooter

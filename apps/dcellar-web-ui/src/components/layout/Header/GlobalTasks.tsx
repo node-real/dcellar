@@ -203,6 +203,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       contentLength: task.waitFile.size,
       expectCheckSums: task.checksum,
       duration: 5000,
+      tags: {
+        tags: task.tags || []
+      }
     };
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',

@@ -39,18 +39,18 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { useChecksumApi } from '@/modules/checksum';
 import { resolve } from '@/facade/common';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { setEditObjectTags, setEditObjectTagsData, setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { legacyGetObjectMeta } from '@/facade/object';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useUnmount } from 'ahooks';
 import { isEmpty } from 'lodash-es';
 import { setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { TotalFees } from './TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { signTypedDataCallback } from '@/facade/wallet';
@@ -58,9 +58,10 @@ import { removeTrailingSlash } from '@/utils/string';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
 
 interface CreateFolderOperationProps {
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: (name?: string) => void;
@@ -79,7 +80,9 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path } = useAppSelector((root) => root.object);
+  const { bucketName, folders, objects, path, editTagsData } = useAppSelector(
+    (root) => root.object,
+  );
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
   const { loginAccount } = useAppSelector((root) => root.persist);
@@ -94,7 +97,10 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const onCloseStatusModal = () => {
     dispatch(setStatusDetail({} as TStatusDetail));
   };
-
+  const onEditTags = () => {
+    dispatch(setEditObjectTags(['new', 'create']));
+  };
+  const validTags = getValidTags(editTagsData);
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
@@ -274,6 +280,9 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       fileType: file.type,
       contentLength: file.size,
       expectCheckSums: hashResult?.expectCheckSums || [],
+      tags: {
+        tags: validTags
+      }
     };
     const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'EDDSA',
@@ -332,6 +341,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     storeFeeParams,
   ]);
 
+  useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+
   return (
     <>
       <QDrawerHeader flexDirection={'column'}>
@@ -341,7 +352,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
         </Text>
       </QDrawerHeader>
       <QDrawerBody>
-        <Flex flexDirection="column" alignItems="center">
+        <Flex flexDirection="column" alignItems="center" gap={16}>
           <FormControl isInvalid={!!formErrors.length} w="100%">
             <FormLabel>
               <Text fontSize={14} fontWeight={500} mb={8}>
@@ -362,6 +373,12 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
             </FormLabel>
 
             {formErrors && formErrors.length > 0 && <ErrorDisplay errorMsgs={formErrors} />}
+          </FormControl>
+          <FormControl w={'100%'} gap={8}>
+            <FormLabel fontWeight={500}>
+              Tags
+            </FormLabel>
+            <EditTags onClick={onEditTags} tagsData={validTags} />
           </FormControl>
         </Flex>
       </QDrawerBody>

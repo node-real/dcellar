@@ -35,7 +35,7 @@ import {
   setupAccountInfo,
   TAccountInfo,
 } from '@/store/slices/accounts';
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { TBucket } from '@/store/slices/bucket';
 import { BN } from '@/utils/math';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
@@ -43,7 +43,7 @@ import { TotalFees } from '@/modules/object/components/TotalFees';
 import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
 
 interface BatchDeleteObjectOperationProps {
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   refetch?: (name?: string) => void;
   onClose?: () => void;

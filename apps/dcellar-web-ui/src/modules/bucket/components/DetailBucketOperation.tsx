@@ -11,7 +11,13 @@ import {
   Tooltip,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { AllBucketInfo, setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
+import {
+  setEditQuota,
+  TBucket,
+  setupBucketQuota,
+  setEditBucketTags,
+  setEditBucketTagsData,
+} from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
@@ -21,6 +27,10 @@ import { selectBucketSp } from '@/store/slices/sp';
 import dayjs from 'dayjs';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
+import { convertObjectKey } from '@/utils/common';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { useUnmount } from 'ahooks';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -29,7 +39,7 @@ export const Label = ({ children }: PropsWithChildren) => (
 );
 
 interface DetailBucketOperationProps {
-  selectedBucketInfo: AllBucketInfo;
+  selectedBucketInfo: TBucket;
 }
 
 export const DetailBucketOperation = memo<DetailBucketOperationProps>(function DetailDrawer({
@@ -42,6 +52,14 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const formattedQuota = formatQuota(quota);
   const { accountInfo } = useAppSelector((root) => root.accounts);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
+
+  const onEditTags = () => {
+    const lowerKeyTags = selectedBucketInfo.Tags.Tags.map((item) =>
+      convertObjectKey(item, 'lowercase'),
+    );
+    dispatch(setEditBucketTagsData(lowerKeyTags as ResourceTags_Tag[]));
+    dispatch(setEditBucketTags([selectedBucketInfo.BucketName, 'detail']));
+  };
 
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
@@ -158,7 +176,29 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
             </Flex>
           </Flex>
         ))}
-
+        <Flex
+          justifyContent={'space-between'}
+          color="readable.tertiary"
+          alignItems="center"
+          h={24}
+          _notLast={{
+            mb: 8,
+          }}
+        >
+          <Label>Tags</Label>
+          <Flex>
+            <Flex
+              alignItems={'center'}
+              gap={4}
+              color={'brand.brand6'}
+              cursor={'pointer'}
+              onClick={onEditTags}
+            >
+              <IconFont type="pen" />
+              {selectedBucketInfo.Tags.Tags.length || 0} tags
+            </Flex>
+          </Flex>
+        </Flex>
         <Flex
           justifyContent={'space-between'}
           color="readable.tertiary"
@@ -212,6 +252,8 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const manageQuota = () => {
     dispatch(setEditQuota([selectedBucketInfo.BucketName, 'drawer']));
   };
+
+  useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
 
   return (
     <>

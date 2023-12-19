@@ -14,6 +14,7 @@ import {
 import { resolve } from '@/facade/common';
 import {
   CreateBucketApprovalRequest,
+  GRNToString,
   GetBucketMetaResponse,
   GetUserBucketsResponse,
   GRNToString,
@@ -24,6 +25,7 @@ import {
   ReadQuotaRequest,
   SpResponse,
   TxResponse,
+  newBucketGRN,
 } from '@bnb-chain/greenfield-js-sdk';
 import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Connector } from 'wagmi';
@@ -42,8 +44,8 @@ import { XMLParser } from 'fast-xml-parser';
 import { parseError } from '@/utils/string';
 import { getClient } from '@/facade/index';
 import { hexToNumber, numberToHex } from 'viem';
-import dayjs from 'dayjs';
 import { ObjectResource } from '@/store/slices/object';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -380,3 +382,29 @@ export const pollingDeleteAsync =
 
 export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
 export const pollingDeleteBucket = pollingDeleteAsync(getBucketMeta, 500);
+
+export const updateBucketTags = async ({ address, bucketName, tags }: { address: string;  bucketName: string; tags: ResourceTags_Tag[]}) => {
+  const client = await getClient();
+  const resource = GRNToString(newBucketGRN(bucketName));
+  const [tx, error1] = await client.storage.setTag({
+    operator: address,
+    resource,
+    tags: {
+      tags: tags
+    }
+  }).then(resolve, createTxFault);
+  if (!tx) return [null, error1];
+
+  const [simulate, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+  if (!simulate) return [null, error2];
+
+  const payload = {
+    denom: 'BNB',
+    gasLimit: Number(simulate.gasLimit),
+    gasPrice: simulate.gasPrice,
+    payer: address,
+    granter: ''
+  };
+
+  return tx.broadcast(payload).then(resolve, broadcastFault);
+}

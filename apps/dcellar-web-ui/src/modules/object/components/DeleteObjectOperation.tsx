@@ -31,7 +31,7 @@ import { getTimestampInSeconds } from '@/utils/time';
 import { displayTime } from '@/utils/common';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { useModalValues } from '@/hooks/useModalValues';
 import { BN } from '@/utils/math';
@@ -45,7 +45,7 @@ import { without } from 'lodash-es';
 
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: () => void;

@@ -86,5 +86,17 @@ export function parseWCMessage(jsonStr: string) {
   }
 }
 export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(() => resolve(''), ms))
+  return new Promise((resolve) => setTimeout(() => resolve(''), ms));
+}
+
+export function convertObjectKey(
+  obj: { [key: string]: any },
+  type: 'lowercase' | 'uppercase',
+): {[key: string]: any} {
+  return Object.keys(obj).reduce((convertedObj: { [key: string]: any }, key: string) => {
+    const newKey =
+      type === 'lowercase' ? key.toLowerCase() : key.charAt(0).toUpperCase() + key.slice(1);
+    convertedObj[newKey] = obj[key];
+    return convertedObj;
+  }, {});
 }

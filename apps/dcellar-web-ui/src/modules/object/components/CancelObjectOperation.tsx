@@ -21,7 +21,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
-import { AllBucketInfo, setupBucketQuota } from '@/store/slices/bucket';
+import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -81,7 +81,7 @@ export const renderFee = (
 
 interface CancelObjectOperationProps {
   selectObjectInfo: ObjectMeta;
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: () => void;

@@ -34,7 +34,7 @@ import { Connector } from 'wagmi';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { quotaRemains } from '@/facade/bucket';
-import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ObjectInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { encodeObjectName } from '@/utils/string';
 import axios from 'axios';
 import { SpItem } from '@/store/slices/sp';
@@ -632,3 +632,29 @@ export const getObjectMeta = async (
     },
   );
 };
+
+export const updateObjectTags = async ({ address, bucketName, objectName, tags }: { address: string; bucketName: string; objectName: string; tags: ResourceTags_Tag[] }) => {
+  const client = await getClient();
+  const resource = GRNToString(newObjectGRN(bucketName, objectName));
+  const [tx, error1] = await client.storage.setTag({
+    operator: address,
+    resource,
+    tags: {
+      tags: tags
+    }
+  }).then(resolve, createTxFault);
+  if (!tx) return [null, error1];
+
+  const [simulate, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+  if (!simulate) return [null, error2];
+
+  const payload = {
+    denom: 'BNB',
+    gasLimit: Number(simulate.gasLimit),
+    gasPrice: simulate.gasPrice,
+    payer: address,
+    granter: ''
+  };
+
+  return tx.broadcast(payload).then(resolve, broadcastFault);
+}
