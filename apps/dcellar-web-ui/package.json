@@ -42,7 +42,7 @@
     "react-dom": "~18.2.0",
     "react-hook-form": "^7.43.1",
     "react-use": "^17.4.0",
-    "typescript": "5.0.4",
+    "typescript": "5.2.2",
     "wagmi": "~1.4.10",
     "@sentry/nextjs": "~7.86.0",
     "@reduxjs/toolkit": "^1.9.5",
