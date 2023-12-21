@@ -18,7 +18,7 @@ const config = createConfig(
     appName: 'Connect a Wallet',
     autoConnect: true,
     /* WC 2.0 requires a project ID (get one here: https://cloud.walletconnect.com/sign-in) */
-    walletConnectProjectId: 'f18ed47b2291758f8adf75e96750034d',
+    walletConnectProjectId: '89848e3205cafe0bf76c91aa1aaa71d0',
     connectors: [trustWallet(), metaMask(), walletConnect()],
   }),
 );
