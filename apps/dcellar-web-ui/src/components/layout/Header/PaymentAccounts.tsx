@@ -1,4 +1,5 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
+import { useBalance } from '@/hooks/useBalance';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBankBalance,
@@ -9,7 +10,6 @@ import {
 import { setupBnbPrice } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
 import { useRouter } from 'next/router';
-import { useBalance } from 'wagmi';
 
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
@@ -29,8 +29,6 @@ export const PaymentAccounts = () => {
   const { data: gnfdBalance, refetch } = useBalance({
     address: loginAccount as any,
     chainId: GREENFIELD_CHAIN_ID,
-    watch: true,
-    cacheTime: 1000,
   });
   const metamaskValue = gnfdBalance?.formatted ?? '0';
   useAsyncEffect(async () => {
