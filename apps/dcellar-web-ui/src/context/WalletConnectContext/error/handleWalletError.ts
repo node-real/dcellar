@@ -30,7 +30,7 @@ export function handleWalletError(err: any, args: any, context: unknown) {
   });
 
   // Compatible the walletConnect cannot switch network
-  if (JSON.stringify(err).includes("Cannot set properties of undefined (setting 'defaultChain')")) {
+  if (JSON.stringify(err).includes("Cannot set properties of undefined (setting 'defaultChain')") || JSON.stringify(err).includes("undefined has no properties")) {
     toast.error({
       description: 'Sorry, it seems like we lost the connection of your wallet, please login again to continue.'
     });
