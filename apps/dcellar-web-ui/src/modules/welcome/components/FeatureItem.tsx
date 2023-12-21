@@ -59,7 +59,8 @@ export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeature
         <Text
           fontFamily={INTER_FONT}
           sx={{
-            fontWeight: 400,
+            fontSize: 16,
+            color: 'readable.secondary'
           }}
         >
           {desc}

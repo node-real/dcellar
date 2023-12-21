@@ -18,6 +18,7 @@ import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthConte
 import { register } from 'swiper/element/bundle';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import '@totejs/walletkit/styles.css';
 
 register();
 export const ssrLandingRoutes = ['/', '/pricing-calculator', '/terms'];

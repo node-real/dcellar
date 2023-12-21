@@ -8,10 +8,11 @@ import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
 import { useLogin } from '@/hooks/useLogin';
 import { IconFont } from '@/components/IconFont';
 import { CHAIN_NAMES } from '@/constants/wallet';
+import { useAccount } from 'wagmi';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { logout } = useLogin();
-
+  const { address, connector, isConnected } = useAccount();
   const { switchNetwork } = useWalletSwitchNetWork({
     onSuccess() {
       onClose();
