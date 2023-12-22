@@ -1,6 +1,6 @@
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
-import { selectAccount, selectAccountDetail } from '@/store/slices/accounts';
+import { selectAccount, selectAccountDetail, selectPaymentAccounts } from '@/store/slices/accounts';
 import { isEmpty } from 'lodash-es';
 import { BN } from '@/utils/math';
 import { getUtcDayjs } from '@/utils/time';
@@ -25,7 +25,16 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
   const { totalPANetflowRate } = useAppSelector((root) => root.accounts);
   const othersNetflowRate = totalPANetflowRate[loginAccount] || 0;
   const ownerAccountDetail = useAppSelector(selectAccountDetail(loginAccount));
+  const isLoading = curMonthTotalCosted === '' || isEmpty(totalPANetflowRate) || isEmpty(ownerAccountDetail);
+
   const forecastCost = useMemo(() => {
+    if (isLoading) {
+      return {
+        curCosted: '',
+        curRemainingEstimateCost: '',
+        nextEstimateCost: '',
+      }
+    }
     const ownerNetflowRate = ownerAccountDetail.netflowRate;
     const totalNetflowRate = BN(ownerNetflowRate || 0).plus(othersNetflowRate || 0).abs();
     const curTime = +new Date();
@@ -80,4 +89,14 @@ export const useAccountEstimateCost = (address: string, types: EstimateCostType[
     curRemainingEstimateCost,
     nextEstimateCost,
   }
+}
+export const useAccountList = () => {
+  const { ownerAccount } = useAppSelector((root) => root.accounts);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const accountList = useMemo(
+    () => [ownerAccount, ...(paymentAccounts || [])],
+    [paymentAccounts, ownerAccount],
+  );
+  return accountList
 }

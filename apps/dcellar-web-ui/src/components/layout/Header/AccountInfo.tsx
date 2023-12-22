@@ -14,7 +14,7 @@ import { Avatar } from '@/components/Avatar';
 import styled from '@emotion/styled';
 import { DCLink } from '@/components/common/DCLink';
 import { IconFont } from '@/components/IconFont';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 
 interface AccountInfoProps {}
 

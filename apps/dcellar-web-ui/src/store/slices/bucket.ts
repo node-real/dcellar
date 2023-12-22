@@ -8,7 +8,7 @@ import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { setAuthModalOpen } from '@/store/slices/global';
 
-export type BucketOperationsType = 'detail' | 'delete' | 'create' | '';
+export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | '';
 
 export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
 export type AllBucketInfo = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
@@ -17,6 +17,7 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
   CreateAt: number;
   BucketStatus: number;
+  Id: string;
 };
 
 export interface BucketState {
@@ -91,7 +92,7 @@ export const bucketSlice = createSlice({
       const { address, buckets } = payload;
       state.buckets[address] = buckets
         .map((bucket) => {
-          const { BucketName, CreateAt, BucketStatus } = bucket.BucketInfo;
+          const { BucketName, CreateAt, BucketStatus, Id } = bucket.BucketInfo;
           state.bucketInfo[BucketName] = {
             ...bucket,
             ...bucket.BucketInfo,
@@ -99,6 +100,7 @@ export const bucketSlice = createSlice({
           return {
             ...omit(bucket, 'BucketInfo'),
             BucketName,
+            Id,
             CreateAt: Number(CreateAt),
             BucketStatus: Number(BucketStatus),
           };
@@ -190,7 +192,9 @@ export const setupBucketQuota =
     });
     dispatch(setQuotaLoading(false));
     if (quota === null) {
-      if (['invalid signature', 'user public key is expired'].includes(error)) {
+      if (
+        ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
+      ) {
         dispatch(setAuthModalOpen([true, { action: 'quota', params: { bucketName } }]));
       } else {
         console.error({ description: error || 'Get bucket read quota error' });

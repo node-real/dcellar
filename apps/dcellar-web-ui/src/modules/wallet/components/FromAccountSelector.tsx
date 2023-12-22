@@ -7,6 +7,8 @@ import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
+import { getShortAccountName } from '@/utils/billing';
 
 interface FromAccountSelectorProps {
   onChange: (value: TAccount) => void;
@@ -19,7 +21,7 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromA
   const { loginAccount } = useAppSelector((root) => root.persist);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const accountList = useMemo(
-    () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
+    () => [{ name: OWNER_ACCOUNT_NAME, address: loginAccount, id: getShortAccountName(OWNER_ACCOUNT_NAME) }, ...(paymentAccounts || [])],
     [loginAccount, paymentAccounts],
   );
   const keyAccountList = keyBy(accountList, 'address');
@@ -54,7 +56,7 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(function FromA
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 

@@ -34,7 +34,7 @@ import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { selectAccount, setupAccountInfo, TAccount } from '@/store/slices/accounts';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
-import { G_BYTES } from '@/utils/constant';
+import { G_BYTES } from '@/constants/legacy';
 import { getQuotaNetflowRate } from '@/utils/payment';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
@@ -44,7 +44,6 @@ import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { createBucket, pollingGetBucket, simulateCreateBucket } from '@/facade/bucket';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
 import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';

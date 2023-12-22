@@ -1,4 +1,5 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
+import { parseWCMessage } from '@/utils/common';
 
 export type ErrorMsg = string;
 
@@ -27,9 +28,11 @@ export const E_OBJECT_NOT_EXISTS = 'No such object';
 export const E_FOLDER_NAME_EXISTS = 'FOLDER_NAME_EXISTS';
 export const E_FOLDER_NAME_TOO_LONG = 'FOLDER_NAME_TOO_LONG';
 export const E_FULL_OBJECT_NAME_TOO_LONG = 'FULL_OBJECT_NAME_TOO_LONG';
+export const E_MAX_FOLDER_DEPTH = 'MAX_FOLDER_DEPTH';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export const E_NO_PERMISSION = 'NO_PERMISSION';
 export const E_SP_STORAGE_PRICE_FAILED = 'SP_STORAGE_PRICE_FAILED';
+
 export declare class BroadcastTxError extends Error {
   readonly code: number;
   readonly codespace: string;
@@ -56,11 +59,10 @@ export const simulateFault = (e: any): ErrorResponse => {
 
 export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
-  console.error('BroadcastFault', e, e.code);
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
     return [null, ErrorMsgMap[E_USER_REJECT_STATUS_NUM]];
   }
-  return [null, e?.message || E_UNKNOWN_ERROR];
+  return [null, parseWCMessage(e?.message) || E_UNKNOWN_ERROR];
 };
 
 export const createTxFault = (e: any): ErrorResponse => {
@@ -75,9 +77,10 @@ export const createTxFault = (e: any): ErrorResponse => {
         'Get create bucket approval error.',
         'user public key is expired',
         'invalid signature',
+        'bad signature',
       ].includes(message)) ||
     ((e as any).statusCode === 400 &&
-      ['user public key is expired', 'invalid signature'].includes(message))
+      ['user public key is expired', 'invalid signature', 'bad signature'].includes(message))
   ) {
     return [null, E_OFF_CHAIN_AUTH];
   }

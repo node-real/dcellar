@@ -34,7 +34,7 @@ import { trimAddress } from '@/utils/string';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { Avatar } from '@/components/Avatar';
-import { ADDRESS_RE, GROUP_ID } from '@/utils/constant';
+import { ADDRESS_RE, GROUP_ID } from '@/constants/legacy';
 import { Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';

@@ -1,12 +1,12 @@
 import { Box, Center, MenuItem, MenuList, MenuListProps, Text } from '@totejs/uikit';
-import { memo, ReactNode } from 'react';
+import { memo, ReactElement, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import cn from 'classnames';
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 
 export type MenuOption = {
-  label: string;
+  label: ReactNode;
   value: string;
   variant?: 'danger';
   disabled?: boolean;
@@ -168,13 +168,13 @@ const StyledMenuList = styled(MenuList)`
   .menu-items {
     overflow: auto;
   }
-  
+
   .menu-items::-webkit-scrollbar {
-    width: 4px
-  },
+    width: 4px;
+  }
 
   .menu-items::-webkit-scrollbar-thumb {
     background: var(--ui-colors-readable-disable);
-    border-radius: 4px
-  },
+    border-radius: 4px;
+  }
 `;

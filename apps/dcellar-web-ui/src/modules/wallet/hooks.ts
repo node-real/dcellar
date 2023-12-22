@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNetwork } from 'wagmi';
+import { useNetwork, usePublicClient, useWalletClient } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
 import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
@@ -11,6 +11,7 @@ import { genSendTx } from './utils/genSendTx';
 import { genTransferOutTx } from './utils/genTransferOutTx';
 import { useAppSelector } from '@/store';
 import { getClient } from '@/facade';
+import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
 
 export const useGetFeeBasic = () => {
   const { transType } = useAppSelector((root) => root.wallet);
@@ -134,3 +135,13 @@ export const useSendFee = () => {
     error,
   };
 };
+
+export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
+  const publicClient = usePublicClient({ chainId });
+  return useMemo(() => publicClientToProvider(publicClient), [publicClient]);
+}
+
+export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
+  const { data: walletClient } = useWalletClient({ chainId });
+  return useMemo(() => (walletClient ? walletClientToSigner(walletClient) : undefined), [walletClient]);
+}

@@ -16,9 +16,13 @@ import { Layout } from '@/components/layout';
 import { GlobalManagements } from '@/components/layout/GlobalManagements';
 import { OffChainAuthProvider } from '@/context/off-chain-auth/OffChainAuthContext';
 import { register } from 'swiper/element/bundle';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import '@totejs/walletkit/styles.css';
 
 register();
 export const ssrLandingRoutes = ['/', '/pricing-calculator', '/terms'];
+
 function DcellarApp({ Component, ...rest }: AppProps) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const persistor = persistStore(store, {}, function () {
@@ -29,20 +33,22 @@ function DcellarApp({ Component, ...rest }: AppProps) {
   const getLayout = customLayout || ((page: ReactNode) => <Layout>{page}</Layout>);
 
   const CommonComponent = (
-    <ThemeProvider theme={theme}>
-      <WalletConnectProvider>
-        <LoginContextProvider inline={!!customLayout}>
-          <OffChainAuthProvider>
-            {getLayout(
-              <PageProtect>
-                <Component {...props.pageProps} />
-                <GlobalManagements />
-              </PageProtect>,
-            )}
-          </OffChainAuthProvider>
-        </LoginContextProvider>
-      </WalletConnectProvider>
-    </ThemeProvider>
+    <DndProvider backend={HTML5Backend}>
+      <ThemeProvider theme={theme}>
+        <WalletConnectProvider>
+          <LoginContextProvider inline={!!customLayout}>
+            <OffChainAuthProvider>
+              {getLayout(
+                <PageProtect>
+                  <Component {...props.pageProps} />
+                  <GlobalManagements />
+                </PageProtect>,
+              )}
+            </OffChainAuthProvider>
+          </LoginContextProvider>
+        </WalletConnectProvider>
+      </ThemeProvider>
+    </DndProvider>
   );
 
   return (

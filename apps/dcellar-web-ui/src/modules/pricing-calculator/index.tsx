@@ -1,8 +1,13 @@
 import { Box, BoxProps, Flex } from '@totejs/uikit';
 import { StartBuild } from './components/StartBuild';
-import { useAsyncEffect } from 'ahooks';
+import { useAsyncEffect, useMount } from 'ahooks';
 import { useState } from 'react';
-import { selectBnbPrice, selectMainnetStoreFeeParams } from '@/store/slices/global';
+import {
+  selectBnbPrice,
+  selectMainnetStoreFeeParams,
+  setupBnbPrice,
+  setupMainnetStoreFeeParams,
+} from '@/store/slices/global';
 import { assetPrefix } from '@/base/env';
 import { FAQ } from './components/FAQ';
 import { SPFreeQuota } from './components/SPFreeQuota';
@@ -13,7 +18,7 @@ import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { keyBy } from 'lodash-es';
 import { SEOHead } from './components/SEOHead';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 
 type TQuotaSP = {
   name: string;
@@ -54,17 +59,18 @@ export const PriceResponsiveContainer = ({ children, sx, ...restProps }: PriceRe
 };
 
 export const PriceCalculator = () => {
+  const dispatch = useAppDispatch();
   const [sps, setSps] = useState<TQuotaSP[]>([]);
   const [openKeys, setOpenKeys] = useState<number[]>([]);
   const toggleOpenKeys = (key: number) => {
     if (openKeys.includes(key)) {
-      return setOpenKeys(openKeys.filter(item => item !== key))
+      return setOpenKeys(openKeys.filter((item) => item !== key));
     }
     setOpenKeys([...openKeys, key]);
-  }
+  };
   const onOpenKey = (key: number) => {
-    setOpenKeys(Array.from(new Set([key])))
-  }
+    setOpenKeys(Array.from(new Set([key])));
+  };
   const mainnetStoreFeeParams = useAppSelector(selectMainnetStoreFeeParams);
   const bnbPrice = useAppSelector(selectBnbPrice);
   // const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
@@ -88,7 +94,12 @@ export const PriceCalculator = () => {
       };
     });
     setSps(fullSps);
-  }, [])
+  }, []);
+
+  useMount(() => {
+    dispatch(setupBnbPrice());
+    dispatch(setupMainnetStoreFeeParams());
+  });
 
   return (
     <>
@@ -115,7 +126,11 @@ export const PriceCalculator = () => {
           }}
         >
           <Banner />
-          <Calculator onOpenKey={onOpenKey} storeParams={mainnetStoreFeeParams} bnbPrice={bnbPrice} />
+          <Calculator
+            onOpenKey={onOpenKey}
+            storeParams={mainnetStoreFeeParams}
+            bnbPrice={bnbPrice}
+          />
         </Flex>
         <PricingCard storeParams={mainnetStoreFeeParams} />
         <SPFreeQuota sps={sps} />

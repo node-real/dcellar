@@ -9,6 +9,8 @@ import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
 import { MenuOption } from '@/components/common/DCMenuList';
 import Link from 'next/link';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
+import { getShortAccountName } from '@/utils/billing';
 
 interface ToAccountSelectorProps {
   value: string;
@@ -29,7 +31,14 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const { accountTypes } = useAppSelector((root) => root.accounts);
   const accountList = useMemo(
-    () => [{ name: 'Owner Account', address: loginAccount }, ...(paymentAccounts || [])],
+    () => [
+      {
+        name: OWNER_ACCOUNT_NAME,
+        address: loginAccount,
+        id: getShortAccountName(OWNER_ACCOUNT_NAME),
+      },
+      ...(paymentAccounts || []),
+    ],
     [loginAccount, paymentAccounts],
   );
   const keyAccountList = keyBy(accountList, 'address');
@@ -47,7 +56,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   useEffect(() => {
     if (account.address === value || !value) return;
     const initialAccount = accountList.find((item) => item.address === value);
-    setAccount(initialAccount || { name: 'Custom Account', address: value });
+    setAccount(initialAccount || { name: 'Custom Account', address: value, id: 'CA' });
   }, [accountList, value]);
 
   useEffect(() => {
@@ -71,7 +80,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   const onSearchFilter = (keyword: string, item: MenuOption) => {
     const tmpKeyword = keyword.toLowerCase();
     const tmpValue = item.value.toLowerCase();
-    const tmpName = item.label.toLowerCase();
+    const tmpName = (item.label as string).toLowerCase();
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 

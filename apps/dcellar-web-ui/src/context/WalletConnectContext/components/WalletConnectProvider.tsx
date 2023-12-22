@@ -1,10 +1,10 @@
 import '@totejs/walletkit/styles.css';
-import { createClient, WagmiConfig } from 'wagmi';
+import { createConfig, WagmiConfig } from 'wagmi';
 import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
 import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
 import { Text } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { metaMask, trustWallet } from '@totejs/walletkit/wallets';
+import { metaMask, trustWallet, walletConnect } from '@totejs/walletkit/wallets';
 import * as Sentry from '@sentry/nextjs';
 import { reportEvent } from '@/utils/gtag';
 import * as process from 'process';
@@ -12,14 +12,14 @@ import { ReactNode } from 'react';
 import { customTheme } from '@/base/theme/wallet';
 import { DCLink } from '@/components/common/DCLink';
 
-const client = createClient(
+const config = createConfig(
   getDefaultConfig({
     chains: [bscChain, greenFieldChain],
     appName: 'Connect a Wallet',
     autoConnect: true,
     /* WC 2.0 requires a project ID (get one here: https://cloud.walletconnect.com/sign-in) */
-    // walletConnectProjectId: '7c6812d64a55a1438dce3c5b650dca8c',
-    connectors: [trustWallet(), metaMask()],
+    walletConnectProjectId: '89848e3205cafe0bf76c91aa1aaa71d0',
+    connectors: [trustWallet(), metaMask(), walletConnect()],
   }),
 );
 
@@ -64,7 +64,7 @@ export function WalletConnectProvider(props: WalletConnectProviderProps) {
   const { children } = props;
 
   return (
-    <WagmiConfig client={client}>
+    <WagmiConfig config={config}>
       <WalletKitProvider
         options={options}
         mode={'light'}

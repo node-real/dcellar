@@ -1,6 +1,6 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { useNetwork, useProvider, useSigner } from 'wagmi';
+import { useNetwork } from 'wagmi';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
@@ -22,11 +22,12 @@ import { isRightChain } from '../utils/isRightChain';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { removeTrailingSlash } from '@/utils/string';
 import { broadcastFault } from '@/facade/error';
 import { Faucet } from '../components/Faucet';
 import { LargeAmountTip } from '../components/LargeAmountTip';
+import { useEthersProvider, useEthersSigner } from '../hooks';
 
 interface TransferInProps {}
 
@@ -42,7 +43,8 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   const router = useRouter();
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const { data: signer } = useSigner();
+  const provider = useEthersProvider({ chainId: BSC_CHAIN_ID });
+  const signer = useEthersSigner({chainId: BSC_CHAIN_ID})
   const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
   const [isGasLoading, setIsGasLoading] = useState(false);
   const { all } = useChainsBalance();
@@ -58,7 +60,6 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
     mode: 'all',
   });
   const { chain } = useNetwork();
-  const provider = useProvider();
   const curInfo = WalletOperationInfos[transType];
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

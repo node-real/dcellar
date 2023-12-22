@@ -8,7 +8,7 @@ import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
-  MIN_DISPLAY_PRECISION,
+  FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { LoadingAdaptor } from './LoadingAdaptor';
 import { Tips } from '@/components/common/Tips';
@@ -16,7 +16,7 @@ import { useRouter } from 'next/router';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { BN } from '@/utils/math';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths } from '@/constants/paths';
 import { currencyFormatter } from '@/utils/formatter';
 import { IconFont } from '@/components/IconFont';
 import { displayTokenSymbol } from '@/utils/wallet';
@@ -122,7 +122,7 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
           <Text fontSize={14} fontWeight={500}>
             {trimFloatZero(
               BN(accountDetail?.netflowRate || 0)
-                .dp(MIN_DISPLAY_PRECISION)
+                .dp(FULL_DISPLAY_PRECISION)
                 .toString(),
             )}{' '}
             {displayTokenSymbol()}/s

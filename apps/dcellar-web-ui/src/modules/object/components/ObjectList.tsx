@@ -55,8 +55,21 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { formatBytes } from '@/utils/formatter';
 import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
 import dayjs from 'dayjs';
+import { Flex } from '@totejs/uikit';
+import { IconFont } from '@/components/IconFont';
+import { openLink } from '@/utils/bom';
+import { apolloUrlTemplate } from '@/utils/string';
 
 const Actions: MenuOption[] = [
+  {
+    label: (
+      <Flex alignItems={'center'}>
+        List for Sell
+        <IconFont ml={4} w={76} h={16} type="data-marketplace" />
+      </Flex>
+    ),
+    value: 'marketplace',
+  },
   { label: 'View Details', value: 'detail' },
   { label: 'Share', value: 'share' },
   { label: 'Download', value: 'download' },
@@ -83,6 +96,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     filterSizeTo,
     filterSizeFrom,
     filterRange,
+    objectsTruncate,
   } = useAppSelector((root) => root.object);
   const currentPage = useAppSelector(selectPathCurrent);
   const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
@@ -93,6 +107,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const bucket = bucketInfo[bucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
 
   const filtered =
     !!filterText.trim() ||
@@ -204,7 +219,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         address: loginAccount,
       };
       const [objectInfo, quotaData, error] = await getObjectInfoAndBucketQuota(gParams);
-      if (error === 'invalid signature' || error === 'user public key is expired') {
+      if (
+        ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
+      ) {
         return onError(E_OFF_CHAIN_AUTH);
       }
       if (!quotaData) {
@@ -244,6 +261,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   };
 
   const onMenuClick = async (menu: ObjectOperationsType, record: ObjectItem) => {
+    if (menu === 'marketplace') {
+      const key = path + '/' + record.name;
+      const curObjectInfo = objectsInfo[key];
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${bucket.Id}&oid=${curObjectInfo.ObjectInfo.Id}`,
+      );
+      openLink(link);
+      return;
+    }
     switch (menu) {
       case 'detail':
       case 'delete':
@@ -385,6 +412,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           }
         });
 
+        // filter marketplace
+        if (isFolder || !owner || !isSealed || !LIST_FOR_SELL_ENDPOINT) {
+          fitActions = fitActions.filter((f) => f.value !== 'marketplace');
+        }
+
         return (
           <ActionMenu
             menus={fitActions}
@@ -485,6 +517,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           },
         })}
         scroll={{ x: 800 }}
+        total={
+          objectsTruncate[path]
+            ? 'Latest 10,000 objects.'
+            : `Total: ${objectList.length.toLocaleString()}`
+        }
       />
     </>
   );

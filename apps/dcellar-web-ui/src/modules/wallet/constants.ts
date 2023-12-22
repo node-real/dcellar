@@ -7,7 +7,7 @@ export { GNFD_ABI } from './abi';
 export const OperationTypes = [EOperation.transfer_in, EOperation.send, EOperation.transfer_out];
 export const MIN_AMOUNT = '0.00000001';
 export const CRYPTOCURRENCY_DISPLAY_PRECISION = 8;
-export const MIN_DISPLAY_PRECISION = 18;
+export const FULL_DISPLAY_PRECISION = 18;
 export const FIAT_CURRENCY_DISPLAY_PRECISION = 2;
 export const DECIMAL_NUMBER = 10;
 export const GET_BALANCE_INTERVAL_MS = 60 * 1000;

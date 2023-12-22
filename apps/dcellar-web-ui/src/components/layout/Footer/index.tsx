@@ -1,10 +1,9 @@
 import { Flex, FlexProps, Link, LinkProps, Text } from '@totejs/uikit';
 import React from 'react';
 import { getUTC0Year } from '@/utils/time';
-import { noderealUrl } from '@/utils/constant';
 import { GAClick } from '@/components/common/GATracker';
 import { smMedia } from '@/modules/responsive';
-import { InternalRoutePaths } from '@/utils/constant';
+import { InternalRoutePaths, NODEREAL_URL } from '@/constants/paths';
 
 export const UnderlineLink = (props: LinkProps) => (
   <Link
@@ -13,7 +12,7 @@ export const UnderlineLink = (props: LinkProps) => (
     textDecoration={'underline'}
     target="_blank"
     _hover={{ color: 'brand.brand7' }}
-    href={noderealUrl}
+    href={NODEREAL_URL}
     {...props}
   >
     {props.children}
@@ -54,7 +53,7 @@ export const Footer = (props: FlexProps) => {
       >
         © {utcYear}&nbsp;
         <GAClick name={'dc_lp.main.footer.nodereal.click'}>
-          <UnderlineLink href={noderealUrl} target="_blank">
+          <UnderlineLink href={NODEREAL_URL} target="_blank">
             NodeReal
           </UnderlineLink>
         </GAClick>

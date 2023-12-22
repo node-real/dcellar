@@ -1,60 +1,60 @@
 import { DCTable } from '@/components/common/DCTable';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { Box, Flex, Text } from '@totejs/uikit';
 import { ColumnProps } from 'antd/es/table';
-import React, { useCallback } from 'react';
-import { BillingHistoryFilter } from './BillingHistoryFilter';
-import { updateAllBillsPageSize } from '@/store/slices/persist';
-import { selectAllBills, selectAllBillsCount, setCurrentAllBillsPage, setupAllBills } from '@/store/slices/billing';
-import { useAsyncEffect } from 'ahooks';
+import React, { useCallback, useMemo } from 'react';
+import {
+  AccountBill,
+  selectAllBills,
+  selectAllBillsCount,
+} from '@/store/slices/billing';
 import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { Loading } from '@/components/common/Loading';
 import { formatTime } from '@/utils/time';
+import { TAccountInfo } from '@/store/slices/accounts';
+import { AllBillingHistoryFilter } from './AllBillingHistoryFilter';
+import { formatTxType } from '@/utils/billing';
+import { ShortTxCopy } from './Common';
+import { stringify } from 'querystring';
+import { useRouter } from 'next/router';
+import { merge } from 'lodash-es';
+import { InternalRoutePaths } from '@/constants/paths';
 
 export const AllBillingHistory = () => {
-  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { query } = router;
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { curAllBillsPage, loadingAllBills } = useAppSelector((root) => root.billing);
   const { allBillsPageSize } = useAppSelector((root) => root.persist);
-  const allBills = useAppSelector(selectAllBills(loginAccount));
-  const allBillsCount = useAppSelector(selectAllBillsCount(loginAccount));
+  const allBills = useAppSelector(selectAllBills());
+  const allBillsCount = useAppSelector(selectAllBillsCount());
   const { accountInfo } = useAppSelector((root) => root.accounts);
-  const pages = Math.ceil(!allBillsPageSize ? 0 : allBillsCount / allBillsPageSize);
-  const current = curAllBillsPage >= pages ? 0 : curAllBillsPage;
-  const page = allBills;
-  const canNext = current < pages - 1;
-  const canPrev = current > 0;
-  useAsyncEffect(async () => {
-    const params = {
-      owner: loginAccount,
-      per_page: allBillsPageSize,
-      page: curAllBillsPage,
-    };
-    await dispatch(setupAllBills(params));
-  }, []);
+  const pageData = allBills;
+  const lowerKeyAccountInfo = useMemo(() => {
+    const newInfo: Record<string, TAccountInfo> = {};
+    Object.entries(accountInfo).forEach(([key, value]) => {
+      newInfo[key.toLowerCase()] = value;
+    });
+    return newInfo;
+  }, [accountInfo]);
 
   const columns: ColumnProps<any>[] = [
     {
-      title: 'Time',
-      key: 'timestamp',
-      render: (_: string, record: any) => {
-        return <Box>{formatTime(record.timestamp)}</Box>;
-      },
+      title: 'Transaction Hash',
+      key: 'tx',
+      render: (_: string, record: AccountBill) => <ShortTxCopy address={record.txHash} />,
     },
     {
       title: 'Account',
       key: 'address',
-      render: (_: string, record: any) => {
+      render: (_: string, record: AccountBill) => {
         return (
           <Box>
-            <Text display={'inline-block'}>
-              {accountInfo[record.address.toLowerCase()]?.name}
-            </Text>
+            <Text display={'inline-block'}>{lowerKeyAccountInfo[record.address]?.name}</Text>
             &nbsp;
             <Text color="readable.tertiary" display={'inline-block'} fontSize={12}>
               ({getShortenWalletAddress(record.address)})
@@ -64,9 +64,23 @@ export const AllBillingHistory = () => {
       },
     },
     {
+      title: 'Type',
+      key: 'type',
+      render: (_: string, record: AccountBill) => {
+        return <Box>{formatTxType(record.txType)}</Box>;
+      },
+    },
+    {
+      title: 'Time',
+      key: 'timestamp',
+      render: (_: string, record: AccountBill) => {
+        return <Box>{formatTime(record.timestamp)}</Box>;
+      },
+    },
+    {
       title: 'Total Cost',
       key: 'totalCost',
-      render: (_: string, record: any) => {
+      render: (_: string, record: AccountBill) => {
         return (
           <Flex flexDirection={'column'} justifyContent={'flex-end'}>
             <Text fontSize={14}>
@@ -90,46 +104,42 @@ export const AllBillingHistory = () => {
   const renderEmpty = useCallback(
     () => (
       <ListEmpty
-        type="empty-account"
-        title="No Payment Accounts"
-        desc="Create payment accounts to pay for storage and bandwidth. "
+        type="empty-billing"
+        title="No Billing History"
+        desc="There are no billing records at the moment."
         empty={empty}
         h={274}
-      >
-        <BillingHistoryFilter />
-      </ListEmpty>
+      ></ListEmpty>
     ),
     [empty],
   );
-  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
-    if (prev || next) {
-      const params = {
-        owner: loginAccount,
-        page: curAllBillsPage + (next ? 1 : -1),
-        per_page: pageSize,
-      };
-      dispatch(setCurrentAllBillsPage(curAllBillsPage + (next ? 1 : -1)));
-      dispatch(setupAllBills(params));
-      return;
-    }
-    dispatch(setCurrentAllBillsPage(1));
-    dispatch(updateAllBillsPageSize(pageSize));
+  const onPageChange = (page: number) => {
+    const addQuery = { page };
+    const newQuery = merge(query, addQuery);
+    router.push(`${InternalRoutePaths.accounts}?${stringify(newQuery)}`, undefined, {
+      scroll: false,
+    });
   };
   const spinning = loadingAllBills;
   const loadingComponent = {
     spinning: spinning,
     indicator: <Loading />,
   };
+
   return (
-    <DCTable
-      loading={loadingComponent}
-      columns={columns}
-      dataSource={page}
-      canNext={canNext}
-      canPrev={canPrev}
-      pageSize={allBillsPageSize}
-      pageChange={onPageChange}
-      renderEmpty={renderEmpty}
-    />
+    <>
+      <AllBillingHistoryFilter />
+      <DCTable
+        loading={loadingComponent}
+        columns={columns}
+        dataSource={pageData}
+        current={curAllBillsPage}
+        total={allBillsCount}
+        pageSize={allBillsPageSize}
+        showQuickJumper={true}
+        pageChange={onPageChange}
+        renderEmpty={renderEmpty}
+      />
+    </>
   );
 };

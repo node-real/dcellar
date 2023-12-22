@@ -1,4 +1,5 @@
 import { cssVar } from '../common';
+import { OWNER_ACCOUNT_NAME, TX_TYPE_MAP } from '@/constants/wallet';
 import { BN } from '../math';
 
 export const getMoM = (preCost: string, curCost: string) => {
@@ -37,4 +38,27 @@ export const getStyles = () => {
       font-weight: 500;
     `,
   };
+}
+
+export function formatTxType(inputType = '') {
+  const mappedTxType = TX_TYPE_MAP[inputType];
+
+  if (mappedTxType) {
+    return mappedTxType;
+  }
+
+  const result = inputType?.match(/\.Msg(.*)/);
+  const txType = result?.[1]?.split(/(?=[A-Z])/)?.join(' ');
+
+  return txType ?? '';
+}
+
+export function getShortAccountName(accountName: string) {
+  if (accountName === OWNER_ACCOUNT_NAME) {
+    return 'oa';
+  }
+  const spiltArr = accountName.split(" ");
+  const lastIndex = [spiltArr.pop() || ''];
+
+  return spiltArr.map(item => item[0]).concat(lastIndex).join('').toLowerCase();
 }

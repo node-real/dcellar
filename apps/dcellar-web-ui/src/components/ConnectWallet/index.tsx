@@ -1,9 +1,8 @@
-import React, { memo, ReactElement, useEffect, useState } from 'react';
+import React, { memo, ReactElement, useState } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { Text } from '@totejs/uikit';
 import { smMedia } from '@/modules/responsive';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/utils/constant';
 import { useAccount, useDisconnect } from 'wagmi';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
@@ -11,6 +10,7 @@ import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { useAppDispatch } from '@/store';
 import { useModal } from '@totejs/walletkit';
+import { InternalRoutePaths } from '@/constants/paths';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -24,21 +24,19 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   const { onOpen, onClose } = useModal();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { connector, address, isConnected } = useAccount();
+  const { address, connector, isConnected } = useAccount();
   const { icon, text, ...restProps } = props;
-  const [waitConnector, setWaitConnector] = useState(false);
   const [trustEvent, setTrustEvent] = useState(0);
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const { disconnect } = useDisconnect();
-  // const { chain } = useNetwork();
-  //
-  // const { switchNetwork } = useSwitchNetwork({});
-  //
-  // useEffect(() => {
-  //   if (chain?.id !== GREENFIELD_CHAIN_ID && connector?.name === 'WalletConnect') {
-  //     switchNetwork?.(GREENFIELD_CHAIN_ID);
-  //   }
-  // }, [chain?.id, connector, switchNetwork]);
+
+  const redirect = () => {
+    router.push(
+      !!router.query.originAsPath
+        ? decodeURIComponent(router.query.originAsPath as string)
+        : InternalRoutePaths.dashboard,
+    );
+  };
 
   useAsyncEffect(async () => {
     if (trustEvent !== eventTriggerTime || isAuthPending || !address || !isConnected) return;
@@ -64,34 +62,24 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     }
 
     // Redirect to the main page after user login manually.
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
-    router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
-        : InternalRoutePaths.buckets,
-    );
+    redirect();
   }, [address, trustEvent, isAuthPending, router]);
 
-  useEffect(() => {
-    if (!connector || !address || !waitConnector) return;
-    const originPathname = decodeURIComponent(router.query.originAsPath as string);
+  // connector may be undefined when wallet throw '(index):7 Error in event handler: Error: write after end';
 
-    router.push(
-      !!originPathname && originPathname !== 'undefined'
-        ? originPathname
-        : InternalRoutePaths.buckets,
-    );
-  }, [waitConnector, connector, address]);
+  const openModal = () => {
+    eventTriggerTime = Date.now();
+    setTrustEvent(eventTriggerTime);
+    onOpen();
+    return;
+  };
 
   const onGetStart = () => {
     if (isAuthPending) return;
     if (!address) {
-      eventTriggerTime = Date.now();
-      setTrustEvent(eventTriggerTime);
-      onOpen();
-      return;
+      return openModal();
     }
-    setWaitConnector(true);
+    setTimeout(() => (!connector ? openModal() : redirect()), 180);
   };
 
   return (

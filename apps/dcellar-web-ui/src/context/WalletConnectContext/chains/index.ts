@@ -1,5 +1,5 @@
 import { Chain, configureChains } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
+import { publicProvider } from "wagmi/providers/public";
 
 import {
   BSC_CHAIN_ID,
@@ -9,7 +9,7 @@ import {
   GREENFIELD_CHAIN_EXPLORER_URL,
   BSC_EXPLORER_URL,
 } from '@/base/env';
-import { CHAIN_NAMES } from '@/utils/constant';
+import { CHAIN_NAMES } from '@/constants/wallet';
 
 const isGnfdMainnet = GREENFIELD_CHAIN_ID === 1017;
 

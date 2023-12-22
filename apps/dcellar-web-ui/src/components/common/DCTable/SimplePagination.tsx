@@ -18,6 +18,7 @@ export interface SimplePaginationProps {
   canPrev: boolean;
   simple?: boolean;
   loading?: boolean;
+  total?: string;
 }
 
 export const SimplePagination = memo<SimplePaginationProps>(function SimplePagination({
@@ -28,6 +29,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
   canNext,
   simple = false,
   loading = false,
+  total = '',
 }) {
   const options: MenuOption[] = pageSizeOptions.map((i) => ({
     label: String(i),
@@ -55,6 +57,7 @@ export const SimplePagination = memo<SimplePaginationProps>(function SimplePagin
 
   return (
     <Container>
+      <Box flex={1}>{total}</Box>
       {!simple && <>Rows per page: {menu}</>}
       <Flex gap={16}>
         <StyledNav

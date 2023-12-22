@@ -68,3 +68,20 @@ export const networkTag = (runtimeEnv: TRuntimeEnv) => {
 export function cssVar(name: string, type = 'colors') {
   return `var(--ui-${type}-${name.replaceAll('.', '-')})`;
 }
+
+export function scrollToId(id: string, top?: number) {
+  const rect = document.getElementById(id)?.getBoundingClientRect();
+  window.scrollTo({
+    top: (rect?.top || 0) + document.documentElement.scrollTop - 65 - (top || 0),
+    behavior: 'smooth',
+  });
+}
+
+// because the walletConnect return message is: `{code: xx, message: 'xxx'}
+export function parseWCMessage(jsonStr: string) {
+  try {
+    return JSON.parse(jsonStr)?.message ?? jsonStr;
+  } catch (e) {
+    return jsonStr
+  }
+}
