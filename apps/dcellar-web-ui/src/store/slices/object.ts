@@ -421,7 +421,8 @@ export const selectObjectList = (root: AppState) => {
 export const setupObjectPolicies =
   (bucketName: string, objectName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const policies = await getObjectPolicies(bucketName, objectName);
+    const sp = getState().sp.primarySpInfo[bucketName];
+    const policies = await getObjectPolicies(bucketName, objectName, sp.endpoint);
     if (!policies.some((p) => p.PrincipalValue === loginAccount)) {
       policies.unshift({
         CreateTimestamp: Date.now(),
