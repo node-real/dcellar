@@ -47,11 +47,11 @@ export const keyFeatureList: TFeatureItem[] = [
   },
   {
     label: 'Data Dashboard',
-    tag: '(coming soon)',
+    // tag: '(coming soon)',
     title: 'Comprehensive Data Dashboard ',
     desc: 'Comprehensive data dashboard displays storage usage, cost usage, and other relevant metrics.',
-    introImg: `${assetPrefix}/images/welcome/dashboard.png`,
-    introImgSm: `${assetPrefix}/images/welcome/dashboard_sm.png`,
+    introImg: `${assetPrefix}/images/welcome/dashboard_new.png`,
+    introImgSm: `${assetPrefix}/images/welcome/dashboard_sm_new.png`,
     gaClickName: 'dc_lp.homepage.key_f.dashboard.click'
   },
 ];

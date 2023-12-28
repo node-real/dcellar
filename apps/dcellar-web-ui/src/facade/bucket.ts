@@ -74,14 +74,19 @@ export const getUserBuckets = async (
   return [res!, null];
 };
 
-export const getUserBucketMeta =async (bucketName: string, endpoint: string): Promise<ErrorResponse | [SpResponse<GetBucketMetaResponse>, null]>  => {
+export const getUserBucketMeta = async (
+  bucketName: string,
+  endpoint: string,
+): Promise<ErrorResponse | [SpResponse<GetBucketMetaResponse>, null]> => {
   const client = await getClient();
 
-  return await client.bucket.getBucketMeta({
-    bucketName,
-    endpoint
-  }).then(resolve, commonFault);
-}
+  return await client.bucket
+    .getBucketMeta({
+      bucketName,
+      endpoint,
+    })
+    .then(resolve, commonFault);
+};
 
 export const getBucketReadQuota = async ({
   bucketName,
@@ -201,13 +206,18 @@ export const deleteBucket = async ({
     .then(resolve, broadcastFault);
 };
 
-export const getObjectPolicies = async (bucketName: string, objectName: string) => {
+export const getObjectPolicies = async (
+  bucketName: string,
+  objectName: string,
+  endpoint?: string,
+) => {
   const client = await getClient();
   const res = (await client.object.listObjectPolicies({
     bucketName,
     objectName,
     limit: 1000,
     actionType: 'ACTION_GET_OBJECT',
+    endpoint,
   })) as { body: GetListObjectPoliciesResponse; code: number };
   const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
   const list: PolicyMeta[] = get(res, valuePath);

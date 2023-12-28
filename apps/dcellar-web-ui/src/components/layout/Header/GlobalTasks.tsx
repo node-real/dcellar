@@ -24,7 +24,7 @@ import { reverseVisibilityType } from '@/constants/legacy';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { parseErrorXml } from '@/utils/common';
-import { isEmpty, keyBy } from 'lodash-es';
+import { isEmpty } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { setupAccountInfo } from '@/store/slices/accounts';

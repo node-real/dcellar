@@ -1,4 +1,5 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
+import { parseWCMessage } from '@/utils/common';
 
 export type ErrorMsg = string;
 
@@ -58,11 +59,10 @@ export const simulateFault = (e: any): ErrorResponse => {
 
 export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
-  console.error('BroadcastFault', e, e.code);
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
     return [null, ErrorMsgMap[E_USER_REJECT_STATUS_NUM]];
   }
-  return [null, e?.message || E_UNKNOWN_ERROR];
+  return [null, parseWCMessage(e?.message) || E_UNKNOWN_ERROR];
 };
 
 export const createTxFault = (e: any): ErrorResponse => {
