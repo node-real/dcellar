@@ -78,9 +78,11 @@ const Actions: MenuOption[] = [
 ];
 const ImportantActions = ['download', 'share'];
 
-interface ObjectListProps {}
+interface ObjectListProps {
+  shareMode?: boolean;
+}
 
-export const ObjectList = memo<ObjectListProps>(function ObjectList() {
+export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode = false }) {
   const dispatch = useAppDispatch();
   const { loginAccount, objectPageSize, objectSortBy, accounts } = useAppSelector(
     (root) => root.persist,
@@ -118,41 +120,44 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
     filterSizeFrom.value;
 
   const _filteredObjectList = filtered
-    ? objectList
-        .filter((o) =>
+    ? (() => {
+        const f1 = objectList.filter((o) =>
           !filterText.trim()
             ? true
             : o.objectName.toLowerCase().includes(filterText.trim().toLowerCase()),
-        )
-        .filter((o) => {
-          if (!filterTypes.length) return true;
-          if (o.objectName.endsWith('/') && filterTypes.includes(INTERNAL_FOLDER_EXTENSION))
-            return true;
-          if (!o.name.includes('.') && filterTypes.includes('OTHERS')) return true;
-          const match = o.name.match(/\.([^.]+)$/i);
-          return match && filterTypes.includes(match[1]?.toUpperCase());
-        })
-        .filter((o) => {
-          if (!filterRange?.[0] && !filterRange?.[1]) return true;
-          if (o.objectName.endsWith('/')) return false;
-          const createAt = o.createAt * 1000;
-          return (
-            dayjs(createAt).isAfter(dayjs(filterRange?.[0]).startOf('day')) &&
-            dayjs(createAt).isBefore(dayjs(filterRange?.[1] || dayjs()).endOf('day'))
-          );
-        })
-        .filter((o) => {
-          if (filterSizeFrom?.value === null && filterSizeTo?.value === null) return true;
-          if (filterSizeFrom?.value !== null && filterSizeTo?.value !== null)
+        );
+        if (shareMode) return f1;
+        return f1
+          .filter((o) => {
+            if (!filterTypes.length) return true;
+            if (o.objectName.endsWith('/') && filterTypes.includes(INTERNAL_FOLDER_EXTENSION))
+              return true;
+            if (!o.name.includes('.') && filterTypes.includes('OTHERS')) return true;
+            const match = o.name.match(/\.([^.]+)$/i);
+            return match && filterTypes.includes(match[1]?.toUpperCase());
+          })
+          .filter((o) => {
+            if (!filterRange?.[0] && !filterRange?.[1]) return true;
+            if (o.objectName.endsWith('/')) return false;
+            const createAt = o.createAt * 1000;
             return (
-              o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024 &&
-              o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024
+              dayjs(createAt).isAfter(dayjs(filterRange?.[0]).startOf('day')) &&
+              dayjs(createAt).isBefore(dayjs(filterRange?.[1] || dayjs()).endOf('day'))
             );
-          if (filterSizeFrom?.value !== null)
-            return o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024;
-          if (filterSizeTo?.value !== null)
-            return o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024;
-        })
+          })
+          .filter((o) => {
+            if (filterSizeFrom?.value === null && filterSizeTo?.value === null) return true;
+            if (filterSizeFrom?.value !== null && filterSizeTo?.value !== null)
+              return (
+                o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024 &&
+                o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024
+              );
+            if (filterSizeFrom?.value !== null)
+              return o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024;
+            if (filterSizeTo?.value !== null)
+              return o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024;
+          });
+      })()
     : objectList;
 
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
@@ -207,7 +212,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
 
-    if (config.directDownload) {
+    if (config.directDownload || shareMode) {
       const { seedString } = await dispatch(
         getSpOffChainData(loginAccount, primarySp.operatorAddress),
       );
@@ -224,16 +229,18 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       ) {
         return onError(E_OFF_CHAIN_AUTH);
       }
-      if (!quotaData) {
-        return onError(E_GET_QUOTA_FAILED);
-      }
       if (!objectInfo) {
         return onError(E_OBJECT_NAME_EXISTS);
       }
-      let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
-      // update quota data.
-      dispatch(setReadQuota({ bucketName, quota: quotaData }));
-      if (!remainQuota) return onError(E_NO_QUOTA);
+      if (!shareMode) {
+        if (!quotaData) {
+          return onError(E_GET_QUOTA_FAILED);
+        }
+        let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+        // update quota data.
+        dispatch(setReadQuota({ bucketName, quota: quotaData }));
+        if (!remainQuota) return onError(E_NO_QUOTA);
+      }
       const params = {
         primarySp,
         objectInfo,
@@ -308,7 +315,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       ),
       render: (_: string, record: ObjectItem) => (
         <StyledRow $disabled={record.objectStatus !== 1}>
-          <ObjectNameColumn item={record} disabled={accountDetail.clientFrozen} />
+          <ObjectNameColumn
+            shareMode={shareMode}
+            item={record}
+            disabled={accountDetail.clientFrozen}
+          />
         </StyledRow>
       ),
     },
@@ -417,8 +428,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
           fitActions = fitActions.filter((f) => f.value !== 'marketplace');
         }
 
+        if (isFolder && shareMode) return null;
+
         return (
           <ActionMenu
+            shareMode={shareMode}
             menus={fitActions}
             operations={operations}
             onChange={(e) => onMenuClick(e as ObjectOperationsType, record)}
@@ -471,14 +485,14 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
       <ListEmpty
         type={discontinue && !filtered ? 'discontinue' : 'empty-object'}
         title={
-          filtered
+          filtered || shareMode
             ? 'No Results'
             : discontinue
             ? 'Discontinue Notice'
             : 'Upload Objects and Start Your Work Now'
         }
         desc={
-          filtered
+          filtered || shareMode
             ? 'No results found. Please try different conditions.'
             : discontinue
             ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
@@ -488,10 +502,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         }
         empty={empty}
       >
-        {!filtered && <NewObject showRefresh={false} />}
+        {!filtered && !shareMode && <NewObject showRefresh={false} />}
       </ListEmpty>
     ),
-    [discontinue, empty, filtered],
+    [discontinue, empty, filtered, shareMode],
   );
 
   return (
@@ -511,11 +525,15 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         pageChange={onPageChange}
         canNext={canNext}
         canPrev={canPrev}
-        onRow={(record) => ({
-          onClick: () => {
-            onMenuClick('detail', record);
-          },
-        })}
+        onRow={
+          !shareMode
+            ? (record) => ({
+                onClick: () => {
+                  onMenuClick('detail', record);
+                },
+              })
+            : undefined
+        }
         scroll={{ x: 800 }}
         total={
           objectsTruncate[path]

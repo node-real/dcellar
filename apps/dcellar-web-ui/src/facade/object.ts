@@ -89,6 +89,16 @@ export const hasObjectPermission = async (
   loginAccount: string,
 ) => {
   const client = await getClient();
+
+  if (objectName.endsWith('/')) {
+    // todo lack of verify api
+    return client.bucket
+      .getVerifyPermission(bucketName, loginAccount, PermissionTypes.ActionType.ACTION_GET_OBJECT)
+      .catch(() => ({
+        effect: PermissionTypes.Effect.EFFECT_DENY,
+      }));
+  }
+
   return client.object
     .isObjectPermissionAllowed(bucketName, objectName, actionType, loginAccount)
     .catch(() => ({

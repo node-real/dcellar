@@ -98,6 +98,7 @@ export interface ObjectState {
   filterSizeFrom: ObjectFilterSize;
   filterSizeTo: ObjectFilterSize;
   policyResources: Record<string, ObjectResource>;
+  shareModePath: string;
 }
 
 const initialState: ObjectState = {
@@ -125,12 +126,16 @@ const initialState: ObjectState = {
   filterSizeTo: { value: null, unit: '1024' },
   objectsTruncate: {},
   policyResources: {},
+  shareModePath: '',
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setShareModePath(state, { payload }: PayloadAction<string>) {
+      state.shareModePath = payload;
+    },
     setObjectPolicyResources(state, { payload }: PayloadAction<Record<string, ObjectResource>>) {
       state.policyResources = {
         ...state.policyResources,
@@ -480,7 +485,7 @@ export const setupObjectPolicies =
         p.Resources?.includes(GRNToString(newObjectGRN(bucketName, escapeRegExp(objectName))))
       );
     });
-    
+
     const path = [bucketName, objectName].join('/');
     dispatch(setObjectPolicies({ path, policies }));
     return policies;
@@ -511,6 +516,7 @@ export const {
   resetObjectListFilter,
   setObjectsTruncate,
   setObjectPolicyResources,
+  setShareModePath,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

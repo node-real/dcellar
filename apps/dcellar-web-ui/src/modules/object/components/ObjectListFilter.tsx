@@ -10,9 +10,13 @@ import { IconFont } from '@/components/IconFont';
 import cn from 'classnames';
 import * as React from 'react';
 
-interface ObjectListFilterProps {}
+interface ObjectListFilterProps {
+  shareMode?: boolean;
+}
 
-export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter() {
+export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter({
+  shareMode = false,
+}) {
   const filterExpand = useAppSelector((root) => root.object.filterExpand);
   const { filterText, filterTypes, filterSizeTo, filterSizeFrom, filterRange } = useAppSelector(
     (root) => root.object,
@@ -62,17 +66,19 @@ export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListF
         value={filterText}
         onChange={(e) => dispatch(setFilterText(e.target.value))}
       />
-      <DCButton
-        className={cn({
-          'filter-expand': filterExpand,
-          'filter-expand-button': !filterExpand && account > 0,
-        })}
-        variant="ghost"
-        leftIcon={<IconFont w={24} type="filter" />}
-        onClick={() => dispatch(setFilterExpand(!filterExpand))}
-      >
-        {!filterExpand && account > 0 && <Badge>{account}</Badge>}
-      </DCButton>
+      {!shareMode && (
+        <DCButton
+          className={cn({
+            'filter-expand': filterExpand,
+            'filter-expand-button': !filterExpand && account > 0,
+          })}
+          variant="ghost"
+          leftIcon={<IconFont w={24} type="filter" />}
+          onClick={() => dispatch(setFilterExpand(!filterExpand))}
+        >
+          {!filterExpand && account > 0 && <Badge>{account}</Badge>}
+        </DCButton>
+      )}
     </Container>
   );
 });
@@ -93,6 +99,7 @@ const Container = styled(Flex)`
 
   .ui-input-group {
     flex: 1;
+
     :hover {
       .ui-input {
         border-color: var(--ui-colors-scene-primary-normal);
@@ -111,10 +118,12 @@ const Container = styled(Flex)`
   .filter-expand {
     border-color: var(--ui-colors-brand-brand6);
     color: var(--ui-colors-brand-brand6);
+
     :hover {
       background: var(--ui-colors-opacity1);
     }
   }
+
   .filter-expand-button {
     width: 72px;
     gap: 6px;

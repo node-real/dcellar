@@ -5,6 +5,7 @@ import {
   ObjectItem,
   setCurrentObjectPage,
   setObjectOperation,
+  setShareModePath,
   setStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -25,9 +26,14 @@ import { contentIconTypeToExtension } from '@/modules/object/utils';
 interface ObjectNameColumnProps {
   item: ObjectItem;
   disabled: Boolean;
+  shareMode?: boolean;
 }
 
-export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ item, disabled }) {
+export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
+  item,
+  disabled,
+  shareMode = false,
+}) {
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
@@ -49,7 +55,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
   };
   const download = async (object: ObjectItem) => {
     const config = accounts[loginAccount] || {};
-    if (config.directDownload) {
+    if (config.directDownload || shareMode) {
       const { seedString } = await dispatch(
         getSpOffChainData(loginAccount, primarySp.operatorAddress),
       );
@@ -69,13 +75,15 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
       if (objectInfo === null) {
         return onError(E_UNKNOWN);
       }
-      if (quotaData === null) {
-        return onError(E_GET_QUOTA_FAILED);
+      if (!shareMode) {
+        if (quotaData === null) {
+          return onError(E_GET_QUOTA_FAILED);
+        }
+        let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+        // update quota data.
+        dispatch(setReadQuota({ bucketName, quota: quotaData }));
+        if (!remainQuota) return onError(E_NO_QUOTA);
       }
-      let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
-      // update quota data.
-      dispatch(setReadQuota({ bucketName, quota: quotaData }));
-      if (!remainQuota) return onError(E_NO_QUOTA);
       const params = {
         primarySp,
         objectInfo,
@@ -122,6 +130,11 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({ 
           if (folder) {
             const path = trimEnd([bucketName, objectName].join('/'), '/');
             dispatch(setCurrentObjectPage({ path, current: 0 }));
+            if (shareMode) {
+              e.stopPropagation();
+              e.preventDefault();
+              dispatch(setShareModePath(`${bucketName}/${encodeObjectName(objectName)}`));
+            }
             return;
           }
           if (!owner) {

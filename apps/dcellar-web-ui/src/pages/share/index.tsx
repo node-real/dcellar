@@ -1,5 +1,5 @@
 import { NextPage, NextPageContext } from 'next';
-import { last } from 'lodash-es';
+import { last, trimEnd } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
 import React, { ReactNode, useState } from 'react';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
@@ -28,6 +28,7 @@ import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
 import { useLogin } from '@/hooks/useLogin';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
+import { ShareFolder } from '@/modules/share/ShareFolder';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -57,8 +58,9 @@ const SharePage: NextPage<PageProps> = (props) => {
   const [getPermission, setGetPermission] = useState(true);
   const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
   const { logout } = useLogin();
+  const isFolder = objectName.endsWith('/');
 
-  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
+  const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE || isFolder;
   const walletConnected = !!loginAccount;
   const isOwner = objectInfo?.owner === loginAccount;
 
@@ -155,6 +157,13 @@ const SharePage: NextPage<PageProps> = (props) => {
                 <>
                   {isPrivate && !isOwner && !getPermission ? (
                     <ShareError type={E_PERMISSION_DENIED} />
+                  ) : isFolder ? (
+                    <ShareFolder
+                      primarySp={primarySp}
+                      loginAccount={loginAccount as string}
+                      quotaData={quotaData}
+                      fileName={fileName}
+                    />
                   ) : (
                     <SharedFile
                       primarySp={primarySp}
@@ -170,7 +179,7 @@ const SharePage: NextPage<PageProps> = (props) => {
           </Container>
           <Footer />
         </Box>
-        {!walletConnected && <ShareCTA />}
+        {(!walletConnected || isFolder) && <ShareCTA />}
       </Flex>
     </>
   );
@@ -191,7 +200,7 @@ SharePage.getInitialProps = async (context: NextPageContext) => {
 
   const [bucketName, ...path] = decodeObjectName(Array<string>().concat(file)[0]).split('/');
   const objectName = path.join('/');
-  const fileName = last(path);
+  const fileName = last(trimEnd(objectName, '/').split('/'));
 
   if (!fileName) return redirect();
 
