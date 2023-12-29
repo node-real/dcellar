@@ -10,13 +10,9 @@ import { IconFont } from '@/components/IconFont';
 import cn from 'classnames';
 import * as React from 'react';
 
-interface ObjectListFilterProps {
-  shareMode?: boolean;
-}
+interface ObjectListFilterProps {}
 
-export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter({
-  shareMode = false,
-}) {
+export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter({}) {
   const filterExpand = useAppSelector((root) => root.object.filterExpand);
   const { filterText, filterTypes, filterSizeTo, filterSizeFrom, filterRange } = useAppSelector(
     (root) => root.object,
@@ -66,19 +62,17 @@ export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListF
         value={filterText}
         onChange={(e) => dispatch(setFilterText(e.target.value))}
       />
-      {!shareMode && (
-        <DCButton
-          className={cn({
-            'filter-expand': filterExpand,
-            'filter-expand-button': !filterExpand && account > 0,
-          })}
-          variant="ghost"
-          leftIcon={<IconFont w={24} type="filter" />}
-          onClick={() => dispatch(setFilterExpand(!filterExpand))}
-        >
-          {!filterExpand && account > 0 && <Badge>{account}</Badge>}
-        </DCButton>
-      )}
+      <DCButton
+        className={cn({
+          'filter-expand': filterExpand,
+          'filter-expand-button': !filterExpand && account > 0,
+        })}
+        variant="ghost"
+        leftIcon={<IconFont w={24} type="filter" />}
+        onClick={() => dispatch(setFilterExpand(!filterExpand))}
+      >
+        {!filterExpand && account > 0 && <Badge>{account}</Badge>}
+      </DCButton>
     </Container>
   );
 });

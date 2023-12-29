@@ -17,6 +17,7 @@ import { ObjectList } from '@/modules/object/components/ObjectList';
 import { DCLink } from '@/components/common/DCLink';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useUnmount } from 'ahooks';
+import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
 
 interface ShareFolderProps {
   fileName: string;
@@ -71,7 +72,7 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
             <ObjectBreadcrumb hideLeft={omitLen - 2} />
           </Flex>
           <PanelContent>
-            <ObjectListFilter shareMode />
+            <ObjectListFilter />
             <NewObject
               shareMode
               showRefresh={true}
@@ -80,6 +81,7 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
             />
           </PanelContent>
           <Box h={16} />
+          <ObjectFilterItems />
           <ObjectList shareMode />
         </Content>
       </Container>

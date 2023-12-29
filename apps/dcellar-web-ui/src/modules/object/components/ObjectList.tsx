@@ -120,44 +120,41 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     filterSizeFrom.value;
 
   const _filteredObjectList = filtered
-    ? (() => {
-        const f1 = objectList.filter((o) =>
+    ? objectList
+        .filter((o) =>
           !filterText.trim()
             ? true
             : o.objectName.toLowerCase().includes(filterText.trim().toLowerCase()),
-        );
-        if (shareMode) return f1;
-        return f1
-          .filter((o) => {
-            if (!filterTypes.length) return true;
-            if (o.objectName.endsWith('/') && filterTypes.includes(INTERNAL_FOLDER_EXTENSION))
-              return true;
-            if (!o.name.includes('.') && filterTypes.includes('OTHERS')) return true;
-            const match = o.name.match(/\.([^.]+)$/i);
-            return match && filterTypes.includes(match[1]?.toUpperCase());
-          })
-          .filter((o) => {
-            if (!filterRange?.[0] && !filterRange?.[1]) return true;
-            if (o.objectName.endsWith('/')) return false;
-            const createAt = o.createAt * 1000;
+        )
+        .filter((o) => {
+          if (!filterTypes.length) return true;
+          if (o.objectName.endsWith('/') && filterTypes.includes(INTERNAL_FOLDER_EXTENSION))
+            return true;
+          if (!o.name.includes('.') && filterTypes.includes('OTHERS')) return true;
+          const match = o.name.match(/\.([^.]+)$/i);
+          return match && filterTypes.includes(match[1]?.toUpperCase());
+        })
+        .filter((o) => {
+          if (!filterRange?.[0] && !filterRange?.[1]) return true;
+          if (o.objectName.endsWith('/')) return false;
+          const createAt = o.createAt * 1000;
+          return (
+            dayjs(createAt).isAfter(dayjs(filterRange?.[0]).startOf('day')) &&
+            dayjs(createAt).isBefore(dayjs(filterRange?.[1] || dayjs()).endOf('day'))
+          );
+        })
+        .filter((o) => {
+          if (filterSizeFrom?.value === null && filterSizeTo?.value === null) return true;
+          if (filterSizeFrom?.value !== null && filterSizeTo?.value !== null)
             return (
-              dayjs(createAt).isAfter(dayjs(filterRange?.[0]).startOf('day')) &&
-              dayjs(createAt).isBefore(dayjs(filterRange?.[1] || dayjs()).endOf('day'))
+              o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024 &&
+              o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024
             );
-          })
-          .filter((o) => {
-            if (filterSizeFrom?.value === null && filterSizeTo?.value === null) return true;
-            if (filterSizeFrom?.value !== null && filterSizeTo?.value !== null)
-              return (
-                o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024 &&
-                o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024
-              );
-            if (filterSizeFrom?.value !== null)
-              return o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024;
-            if (filterSizeTo?.value !== null)
-              return o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024;
-          });
-      })()
+          if (filterSizeFrom?.value !== null)
+            return o.payloadSize >= filterSizeFrom.value * Number(filterSizeFrom.unit) * 1024;
+          if (filterSizeTo?.value !== null)
+            return o.payloadSize <= filterSizeTo.value * Number(filterSizeTo.unit) * 1024;
+        })
     : objectList;
 
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<ObjectItem>({
