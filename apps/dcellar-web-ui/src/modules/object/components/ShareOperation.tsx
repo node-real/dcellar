@@ -22,7 +22,7 @@ import { ViewerList } from '@/modules/object/components/ViewerList';
 import { getShareLink } from '@/utils/string';
 import { DCButton } from '@/components/common/DCButton';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { last } from 'lodash-es';
+import { last, trimEnd } from 'lodash-es';
 import { Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
 
@@ -40,7 +40,8 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
   const objectInfo = selectObjectInfo.ObjectInfo;
-  const name = last(objectInfo.ObjectName.split('/'));
+  const name = last(trimEnd(objectInfo.ObjectName, '/').split('/'));
+  const isFolder = objectInfo.ObjectName.endsWith('/');
 
   useEffect(() => {
     setValue(getShareLink(bucketName, objectInfo.ObjectName));
@@ -124,7 +125,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
       </QDrawerHeader>
       <QDrawerBody>
         <Box mb={24}>
-          <AccessItem value={objectInfo.Visibility} onChange={onAccessChange} />
+          <AccessItem folder={isFolder} value={objectInfo.Visibility} onChange={onAccessChange} />
         </Box>
         <Box mb={24}>
           <ViewerList selectObjectInfo={selectObjectInfo} />

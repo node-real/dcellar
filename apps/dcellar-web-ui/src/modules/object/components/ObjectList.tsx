@@ -402,12 +402,12 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList() {
         //if this folder is yours, you only can delete it
         if (isFolder) {
           fitActions = Actions.filter((a) =>
-            (owner ? ['detail', 'delete'] : ['detail']).includes(a.value),
+            (owner ? ['detail', 'share', 'delete'] : ['detail']).includes(a.value),
           );
         }
 
         fitActions.forEach((item) => {
-          if (!item.disabled && ImportantActions.includes(item.value) && !isFolder && isSealed) {
+          if (!item.disabled && ImportantActions.includes(item.value) && isSealed) {
             operations.push(item.value);
           }
         });

@@ -4,11 +4,12 @@ import styled from '@emotion/styled';
 import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@totejs/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
-import { deleteObjectPolicy, putObjectPolicies } from '@/facade/object';
+import { deleteObjectPolicy, putBucketPolicies, putObjectPolicies } from '@/facade/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAccount } from 'wagmi';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import {
+  ObjectResource,
   setObjectPoliciesPage,
   setSelectedShareMembers,
   setStatusDetail,
@@ -18,14 +19,17 @@ import {
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { BUTTON_GOT_IT, FILE_ACCESS, WALLET_CONFIRM } from '@/modules/object/constant';
 import {
+  GRNToString,
   MsgDeletePolicyTypeUrl,
   MsgPutPolicyTypeUrl,
+  newBucketGRN,
+  newObjectGRN,
   PermissionTypes,
   toTimestamp,
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
 import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
-import { uniq, without, xor } from 'lodash-es';
+import { escapeRegExp, uniq, without, xor } from 'lodash-es';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
@@ -42,6 +46,11 @@ import { MenuOption } from '@/components/common/DCMenuList';
 import { DCCheckbox } from '@/components/common/DCCheckbox';
 import cn from 'classnames';
 import dayjs, { Dayjs } from 'dayjs';
+import { ActionTypeValue } from '@/modules/object/utils';
+import {
+  Principal,
+  PrincipalType,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -60,9 +69,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const { connector } = useAccount();
-  const { bucketName, objectPolicies, objectPoliciesPage, selectedShareMembers } = useAppSelector(
-    (root) => root.object,
-  );
+  const { bucketName, objectPolicies, objectPoliciesPage, selectedShareMembers, policyResources } =
+    useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
@@ -72,7 +80,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [invalidIds, setInvalidIds] = useState<string[]>([]);
   const objectInfo = selectObjectInfo.ObjectInfo;
   const path = [bucketName, objectInfo.ObjectName].join('/');
-  const memberList = objectPolicies[path] || [];
+  const memberList = (objectPolicies[path] || []) as Array<PolicyMeta & Partial<ObjectResource>>;
   const memberListLoading = !(path in objectPolicies);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
@@ -80,6 +88,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [expiration, setExpiration] = useState<Dayjs>();
+  const isFolder = objectInfo.ObjectName.endsWith('/');
 
   const { page, canPrev, canNext } = useTableNav<PolicyMeta>({
     list: memberList,
@@ -163,18 +172,60 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     setTimeout(fetch, 1000);
   };
 
-  const onAddMember = async () => {
-    if (!values.length || loading || invalid) return;
-    const payloads = values
-      .filter((v) => !memberList.some((m) => m.PrincipalValue === v))
-      .map((value) => ({
+  const onAddMember = async (_removed?: string[]) => {
+    if ((!values.length || loading || invalid) && !_removed) return;
+
+    let deleteBucketPolicy: Array<{
+      p: Principal;
+      r: string;
+    }> = [];
+
+    const payloads = (
+      _removed
+        ? _removed
+        : values.filter(
+            (v) => !memberList.some((m) => m.PrincipalValue.toLowerCase() === v.toLowerCase()),
+          )
+    ).map((value) => {
+      const key = isFolder
+        ? `${bucketName}-${value}`.toLowerCase()
+        : `${bucketName}/${objectInfo.ObjectName}-${value}`.toLowerCase();
+
+      const resource = policyResources[key] || { Resources: [], Actions: [] };
+
+      if (key in policyResources && isFolder) {
+        deleteBucketPolicy.push({
+          p: {
+            type: value.match(GROUP_ID)
+              ? PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP
+              : PrincipalType.PRINCIPAL_TYPE_GNFD_ACCOUNT,
+            value,
+          },
+          r: GRNToString(newBucketGRN(bucketName)),
+        });
+      }
+
+      return {
         operator: loginAccount,
         // allow, get
         statements: [
           {
             effect: PermissionTypes.Effect.EFFECT_ALLOW,
-            actions: [PermissionTypes.ActionType.ACTION_GET_OBJECT],
-            resources: [],
+            actions: uniq([
+              ...resource.Actions.map((r) => ActionTypeValue[r]),
+              PermissionTypes.ActionType.ACTION_GET_OBJECT,
+            ]),
+            // todo may empty resources
+            resources: isFolder
+              ? _removed
+                ? xor(resource.Resources, [
+                    GRNToString(newObjectGRN(bucketName, escapeRegExp(objectInfo.ObjectName))),
+                  ])
+                : uniq([
+                    ...resource.Resources,
+                    GRNToString(newObjectGRN(bucketName, escapeRegExp(objectInfo.ObjectName))),
+                  ])
+              : [],
           },
         ],
         principal: {
@@ -184,19 +235,20 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
           value,
         },
         expirationTime: toTimestamp(expiration!.toDate()),
-      }));
+      };
+    });
 
     if (payloads.length) {
       setLoading(true);
+
       dispatch(
         setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
       );
-      const [res, error, ids] = await putObjectPolicies(
-        connector!,
-        bucketName,
-        objectInfo.ObjectName,
-        payloads,
-      );
+
+      const [res, error, ids] = await (isFolder
+        ? putBucketPolicies(connector!, bucketName, payloads, deleteBucketPolicy, loginAccount)
+        : putObjectPolicies(connector!, bucketName, objectInfo.ObjectName, payloads));
+
       setLoading(false);
       if (!res && !error) {
         setInvalidIds(ids!);
@@ -213,22 +265,26 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   };
 
   const onRemoveMember = async () => {
-    setLoading(true);
-    dispatch(
-      setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
-    );
-    const [res, error] = await deleteObjectPolicy(
-      connector!,
-      bucketName,
-      objectInfo.ObjectName,
-      loginAccount,
-      removeAccount,
-    );
-    setLoading(false);
-    if (error) return onError(error);
-    dispatch(setStatusDetail({} as TStatusDetail));
-    toast.success({ description: 'Access updated!' });
-    updateMemberList(removeAccount[0], true);
+    if (!isFolder) {
+      setLoading(true);
+      dispatch(
+        setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
+      );
+      const [res, error] = await deleteObjectPolicy(
+        connector!,
+        bucketName,
+        objectInfo.ObjectName,
+        loginAccount,
+        removeAccount,
+      );
+      setLoading(false);
+      if (error) return onError(error);
+      dispatch(setStatusDetail({} as TStatusDetail));
+      toast.success({ description: 'Access updated!' });
+      updateMemberList(removeAccount[0], true);
+    } else {
+      await onAddMember(removeAccount);
+    }
     dispatch(setSelectedShareMembers(without(selectedShareMembers, ...removeAccount)));
   };
 
@@ -591,10 +647,12 @@ const RemoveBtn = styled.span`
   cursor: pointer;
   padding: 2px 4px;
   border-radius: 2px;
+
   &.disabled {
     cursor: not-allowed;
     color: var(--ui-colors-readable-disable);
   }
+
   :not(.disabled):hover {
     background: #f5f5f5;
   }
@@ -606,6 +664,7 @@ const Thead = styled(Flex)`
   height: 36px;
   margin: 8px 0;
   position: relative;
+
   .ant-checkbox {
     margin: 2px;
   }
@@ -613,15 +672,19 @@ const Thead = styled(Flex)`
 
 const Row = styled(Flex)`
   position: relative;
+
   .ant-checkbox-wrapper {
     flex: 1;
   }
+
   :not(.select-disabled, .selected):hover {
     background: var(--ui-colors-bg-bottom);
   }
+
   .ant-checkbox {
     margin: 2px;
   }
+
   &.selected {
     background: #00ba341a;
   }
@@ -637,16 +700,16 @@ const Operation = styled.div`
 const FormItem = styled.div``;
 
 const ScrollContent = styled.div`
-  overflow: auto;
-  max-height: 282px;
+    overflow: auto;
+    max-height: 282px;
 
-  &::-webkit-scrollbar {
-    width: 4px
-  }
+    &::-webkit-scrollbar {
+        width: 4px
+    }
 
-  &::-webkit-scrollbar-thumb {
-    background: #E6E8EA;
-    border-radius: 4px
+    &::-webkit-scrollbar-thumb {
+        background: #E6E8EA;
+        border-radius: 4px
 `;
 
 const StyledMenuButton = styled(MenuButton)`

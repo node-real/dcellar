@@ -29,6 +29,11 @@ const Access: Record<number, { icon: ReactNode; text: string; bg: string }> = {
     text: 'Private',
     bg: '#E6E8EA',
   },
+  [VisibilityType.VISIBILITY_TYPE_INHERIT]: {
+    icon: <IconFont type="public" w={16} />,
+    text: 'Public',
+    bg: '#E7F3FD',
+  },
 };
 
 export const SharePermission = memo<SharePermissionProps>(function SharePermission({
