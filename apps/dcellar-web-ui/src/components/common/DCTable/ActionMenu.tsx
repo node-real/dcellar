@@ -1,4 +1,4 @@
-import React, { memo, ReactNode } from 'react';
+import React, { memo } from 'react';
 import { Center, Flex, MenuButton } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/css';
@@ -51,37 +51,39 @@ export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
 
   return (
     <Flex justifyContent="flex-end">
-      {operations.map((m) => (
-        <ActionButton
-          key={m}
-          gaClickName={OPERATIONS[m].ga}
-          mr={8}
-          onClick={() => onChange(m)}
-          tip={OPERATIONS[m].tip}
-        >
-          <IconFont type={OPERATIONS[m].type} w={OPERATIONS[m].w} color={'brand.brand6'} />
-        </ActionButton>
-      ))}
       {shareMode ? (
         <DownloadIcon onClick={() => onChange('download')}>
           <IconFont w={20} type={'download'} mx={2} />
         </DownloadIcon>
       ) : (
-        <DCMenu
-          strategy="fixed"
-          zIndex={1000}
-          stopPropagation={true}
-          placement="bottom-end"
-          trigger="hover"
-          options={menus}
-          onMenuSelect={(m) => onChange(m.value)}
-        >
-          {({ isOpen }) => (
-            <StyledMenuButton $open={isOpen}>
-              <IconFont w={20} type={'dots-v'} mx={2} />
-            </StyledMenuButton>
-          )}
-        </DCMenu>
+        <>
+          {operations.map((m) => (
+            <ActionButton
+              key={m}
+              gaClickName={OPERATIONS[m].ga}
+              mr={8}
+              onClick={() => onChange(m)}
+              tip={OPERATIONS[m].tip}
+            >
+              <IconFont type={OPERATIONS[m].type} w={OPERATIONS[m].w} color={'brand.brand6'} />
+            </ActionButton>
+          ))}
+          <DCMenu
+            strategy="fixed"
+            zIndex={1000}
+            stopPropagation={true}
+            placement="bottom-end"
+            trigger="hover"
+            options={menus}
+            onMenuSelect={(m) => onChange(m.value)}
+          >
+            {({ isOpen }) => (
+              <StyledMenuButton $open={isOpen}>
+                <IconFont w={20} type={'dots-v'} mx={2} />
+              </StyledMenuButton>
+            )}
+          </DCMenu>
+        </>
       )}
     </Flex>
   );

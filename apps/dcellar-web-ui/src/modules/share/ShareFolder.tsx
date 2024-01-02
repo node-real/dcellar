@@ -18,6 +18,7 @@ import { DCLink } from '@/components/common/DCLink';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useUnmount } from 'ahooks';
 import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
+import { Global, css } from '@emotion/react';
 
 interface ShareFolderProps {
   fileName: string;
@@ -25,6 +26,12 @@ interface ShareFolderProps {
   loginAccount: string;
   primarySp: SpItem;
 }
+
+const headerDropDown = css`
+  body .header-avatar-dropdown {
+    right: 285px;
+  }
+`;
 
 export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileName }) {
   const dispatch = useAppDispatch();
@@ -49,7 +56,8 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
   });
 
   return (
-    <Box maxW={1200} minH={'100%'} w={'100%'}>
+    <Box maxW={'calc(100% - 40px)'} minH={'100%'} w={'100%'}>
+      <Global styles={headerDropDown} />
       <Container>
         <Flex alignItems={'center'} gap={24} p={24} bg={'#FAFAFA'}>
           <IconFont w={64} type={'detail-folder'} />
