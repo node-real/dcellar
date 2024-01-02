@@ -447,7 +447,7 @@ export const setupObjectPolicies =
     const bucketId = bucketInfo[bucketName].Id;
     const isFolder = objectName.endsWith('/');
 
-    let policies = await (isFolder
+    let policies: (PolicyMeta & Partial<ObjectResource>)[] = await (isFolder
       ? getFolderPolicies(numberToHex(Number(bucketId), { size: 32 }))
       : getObjectPolicies(bucketName, objectName, sp.endpoint));
     if (!policies.some((p) => p.PrincipalValue === loginAccount)) {
@@ -471,8 +471,8 @@ export const setupObjectPolicies =
         ? `${bucketName}-${p.PrincipalValue}`.toLowerCase()
         : `${bucketName}/${objectName}-${p.PrincipalValue}`.toLowerCase();
       resources[key] = {
-        Actions: p.Actions,
-        Resources: p.Resources,
+        Actions: p.Actions!,
+        Resources: p.Resources!,
       };
     });
 
@@ -480,7 +480,7 @@ export const setupObjectPolicies =
 
     policies = policies.filter((p) => {
       if (p.PrincipalValue === loginAccount || !p.Actions) return true;
-      return !!(
+      return (
         p.Actions?.includes('ACTION_GET_OBJECT') &&
         p.Resources?.includes(GRNToString(newObjectGRN(bucketName, escapeRegExp(objectName))))
       );
