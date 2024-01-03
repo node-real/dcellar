@@ -126,7 +126,8 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     dispatch(updateObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
   };
 
-  if (isEmpty(selectObjectInfo)) return <Loading />;
+  // handle folder object info
+  if (isEmpty(selectObjectInfo) || objectName !== objectInfo?.ObjectName) return <Loading />;
 
   const name = last(trimEnd(objectInfo.ObjectName, '/').split('/'));
   const isFolder = objectInfo.ObjectName.endsWith('/');
