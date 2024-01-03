@@ -158,8 +158,14 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
           />
         );
       case 'share':
-        if (isEmpty(_selectObjectInfo)) return <Loading />;
-        return <ShareOperation selectObjectInfo={_selectObjectInfo} />;
+        if (isEmpty(_selectObjectInfo) && !objectName.endsWith('/')) return <Loading />;
+        return (
+          <ShareOperation
+            selectObjectInfo={_selectObjectInfo}
+            primarySp={primarySp}
+            objectName={objectName}
+          />
+        );
       case 'delete':
         return (
           <DeleteObjectOperation
