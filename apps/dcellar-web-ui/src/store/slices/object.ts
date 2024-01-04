@@ -2,17 +2,20 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, ListObjectsParams } from '@/facade/object';
 import { toast } from '@totejs/uikit';
-import { find, last, trimEnd } from 'lodash-es';
+import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
 import {
   GfSPListObjectsByBucketNameResponse,
+  GRNToString,
   ListObjectsByBucketNameRequest,
+  newObjectGRN,
 } from '@bnb-chain/greenfield-js-sdk';
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
 import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { getObjectPolicies } from '@/facade/bucket';
+import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
+import { numberToHex } from 'viem';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
@@ -39,6 +42,11 @@ export type TStatusDetail = {
   errorText?: string;
   buttonOnClick?: () => void;
   extraParams?: Array<string | number>;
+};
+
+export type ObjectResource = {
+  Resources: string[];
+  Actions: string[];
 };
 
 export type ObjectActionType = 'view' | 'download' | '';
@@ -89,6 +97,8 @@ export interface ObjectState {
   filterRange: [string, string];
   filterSizeFrom: ObjectFilterSize;
   filterSizeTo: ObjectFilterSize;
+  policyResources: Record<string, ObjectResource>;
+  shareModePath: string;
 }
 
 const initialState: ObjectState = {
@@ -115,12 +125,23 @@ const initialState: ObjectState = {
   filterSizeFrom: { value: null, unit: '1' },
   filterSizeTo: { value: null, unit: '1024' },
   objectsTruncate: {},
+  policyResources: {},
+  shareModePath: '',
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
+    setShareModePath(state, { payload }: PayloadAction<string>) {
+      state.shareModePath = payload;
+    },
+    setObjectPolicyResources(state, { payload }: PayloadAction<Record<string, ObjectResource>>) {
+      state.policyResources = {
+        ...state.policyResources,
+        ...payload,
+      };
+    },
     setObjectsTruncate(state, { payload }: PayloadAction<{ path: string; truncate: boolean }>) {
       const { path, truncate } = payload;
       state.objectsTruncate[path] = truncate;
@@ -421,8 +442,14 @@ export const selectObjectList = (root: AppState) => {
 export const setupObjectPolicies =
   (bucketName: string, objectName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
+    const { bucketInfo } = getState().bucket;
     const sp = getState().sp.primarySpInfo[bucketName];
-    const policies = await getObjectPolicies(bucketName, objectName, sp.endpoint);
+    const bucketId = bucketInfo[bucketName].Id;
+    const isFolder = objectName.endsWith('/');
+
+    let policies: (PolicyMeta & Partial<ObjectResource>)[] = await (isFolder
+      ? getFolderPolicies(numberToHex(Number(bucketId), { size: 32 }))
+      : getObjectPolicies(bucketName, objectName, sp.endpoint));
     if (!policies.some((p) => p.PrincipalValue === loginAccount)) {
       policies.unshift({
         CreateTimestamp: Date.now(),
@@ -432,8 +459,33 @@ export const setupObjectPolicies =
         ResourceId: '',
         ResourceType: 2,
         UpdateTimestamp: 0,
+        Actions: [],
+        Resources: [],
       });
     }
+
+    const resources: Record<string, ObjectResource> = {};
+
+    policies.forEach((p) => {
+      const key = isFolder
+        ? `${bucketName}-${p.PrincipalValue}`.toLowerCase()
+        : `${bucketName}/${objectName}-${p.PrincipalValue}`.toLowerCase();
+      resources[key] = {
+        Actions: p.Actions!,
+        Resources: p.Resources!,
+      };
+    });
+
+    dispatch(setObjectPolicyResources(resources));
+
+    policies = policies.filter((p) => {
+      if (p.PrincipalValue === loginAccount || !p.Actions) return true;
+      return (
+        p.Actions?.includes('ACTION_GET_OBJECT') &&
+        p.Resources?.includes(GRNToString(newObjectGRN(bucketName, escapeRegExp(objectName))))
+      );
+    });
+
     const path = [bucketName, objectName].join('/');
     dispatch(setObjectPolicies({ path, policies }));
     return policies;
@@ -463,6 +515,8 @@ export const {
   setFilterSizeTo,
   resetObjectListFilter,
   setObjectsTruncate,
+  setObjectPolicyResources,
+  setShareModePath,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

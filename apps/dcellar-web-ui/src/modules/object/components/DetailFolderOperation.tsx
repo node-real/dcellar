@@ -12,6 +12,7 @@ import { renderAddressLink, renderPropRow } from '@/modules/object/components/re
 import { formatFullTime } from '@/utils/time';
 import { formatId } from '@/utils/string';
 import { useModalValues } from '@/hooks/useModalValues';
+import { SharePermission } from '@/modules/object/components/SharePermission';
 
 interface DetailFolderOperationProps {
   objectName: string;
@@ -112,6 +113,7 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
             )}
           </Flex>
           <Divider />
+          {!loading && <SharePermission selectObjectInfo={selectObjectInfo} />}
         </QDrawerBody>
       </>
     );

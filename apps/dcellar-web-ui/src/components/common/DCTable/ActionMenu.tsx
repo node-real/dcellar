@@ -1,11 +1,12 @@
-import React, { memo, ReactNode } from 'react';
-import { Flex, MenuButton } from '@totejs/uikit';
+import React, { memo } from 'react';
+import { Center, Flex, MenuButton } from '@totejs/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/css';
 import { ActionButton } from './ActionButton';
 import { IconFont } from '@/components/IconFont';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { DCMenu } from '@/components/common/DCMenu';
+import { css } from '@emotion/react';
 
 const OPERATIONS: Record<string, { ga: string; tip: string; type: string; w: number }> = {
   add: { ga: 'dc.group.add_member.0.click', tip: 'Add Members', type: 'add-member', w: 20 },
@@ -37,48 +38,58 @@ interface ActionMenuProps {
   onChange?: (menu: string) => void;
   menus: Array<MenuOption>;
   operations?: string[];
+  shareMode?: boolean;
 }
 
 export const ActionMenu = memo<ActionMenuProps>(function ActionMenu({
   onChange = () => {},
   operations = [],
   menus = [],
+  shareMode = false,
 }) {
   if (!menus.length) return null;
 
   return (
     <Flex justifyContent="flex-end">
-      {operations.map((m) => (
-        <ActionButton
-          key={m}
-          gaClickName={OPERATIONS[m].ga}
-          mr={8}
-          onClick={() => onChange(m)}
-          tip={OPERATIONS[m].tip}
-        >
-          <IconFont type={OPERATIONS[m].type} w={OPERATIONS[m].w} color={'brand.brand6'} />
-        </ActionButton>
-      ))}
-      <DCMenu
-        strategy="fixed"
-        zIndex={1000}
-        stopPropagation={true}
-        placement="bottom-end"
-        trigger="hover"
-        options={menus}
-        onMenuSelect={(m) => onChange(m.value)}
-      >
-        {({ isOpen }) => (
-          <StyledMenuButton $open={isOpen}>
-            <IconFont w={20} type="dots-v" mx={2} />
-          </StyledMenuButton>
-        )}
-      </DCMenu>
+      {shareMode ? (
+        <DownloadIcon onClick={() => onChange('download')}>
+          <IconFont w={20} type={'download'} mx={2} />
+        </DownloadIcon>
+      ) : (
+        <>
+          {operations.map((m) => (
+            <ActionButton
+              key={m}
+              gaClickName={OPERATIONS[m].ga}
+              mr={8}
+              onClick={() => onChange(m)}
+              tip={OPERATIONS[m].tip}
+            >
+              <IconFont type={OPERATIONS[m].type} w={OPERATIONS[m].w} color={'brand.brand6'} />
+            </ActionButton>
+          ))}
+          <DCMenu
+            strategy="fixed"
+            zIndex={1000}
+            stopPropagation={true}
+            placement="bottom-end"
+            trigger="hover"
+            options={menus}
+            onMenuSelect={(m) => onChange(m.value)}
+          >
+            {({ isOpen }) => (
+              <StyledMenuButton $open={isOpen}>
+                <IconFont w={20} type={'dots-v'} mx={2} />
+              </StyledMenuButton>
+            )}
+          </DCMenu>
+        </>
+      )}
     </Flex>
   );
 });
 
-export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: boolean }>`
+const styles = css`
   border-radius: 100%;
   width: 24px;
   height: 24px;
@@ -89,7 +100,15 @@ export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: b
     background-color: rgba(0, 186, 52, 0.2);
     color: #00ba34;
   }
+`;
 
+const DownloadIcon = styled(Center)`
+  ${styles};
+  cursor: pointer;
+`;
+
+export const StyledMenuButton = styled(MenuButton, transientOptions)<{ $open?: boolean }>`
+  ${styles};
   background-color: ${(props) => (props.$open ? 'rgba(0, 186, 52, 0.1)' : 'transparent')};
   color: ${(props) => (props.$open ? '#00BA34' : '#1E2026')};
 `;

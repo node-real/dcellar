@@ -3,12 +3,18 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@totejs/
 import { GAClick } from '@/components/common/GATracker';
 import Link from 'next/link';
 import { encodeObjectName, trimLongStr } from '@/utils/string';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
+import { setShareModePath } from '@/store/slices/object';
 
-interface ObjectBreadcrumbProps {}
+interface ObjectBreadcrumbProps {
+  hideLeft?: number;
+}
 
-export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBreadcrumb({}) {
+export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBreadcrumb({
+  hideLeft,
+}) {
+  const dispatch = useAppDispatch();
   const { discontinue } = useAppSelector((root) => root.bucket);
   const { bucketName, folders } = useAppSelector((root) => root.object);
   const items = [bucketName, ...folders];
@@ -37,7 +43,18 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
           <Flex alignItems={'center'} gap={4} as="span">
             {discontinue && first && <IconFont type="colored-error2" w={16} />}
             <GAClick name="dc.file.list.breadcrumbs.click">
-              <Link href={link}>{trimLongStr(text, 16, 16, 0)}</Link>
+              <Link
+                href={link}
+                onClick={(e) => {
+                  if (hideLeft !== undefined) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    dispatch(setShareModePath(link));
+                  }
+                }}
+              >
+                {trimLongStr(text, 16, 16, 0)}
+              </Link>
             </GAClick>
           </Flex>
         </BreadcrumbLink>
@@ -46,7 +63,7 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
   };
 
   const renderBreadcrumb = () => {
-    return items.map((i, index) => {
+    const res = items.map((i, index) => {
       const link = items.slice(0, index + 1).join('/');
       return renderBreadcrumbItem(
         encodeObjectName(link),
@@ -55,17 +72,21 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
         index === 0,
       );
     });
+    if (hideLeft === undefined) return res;
+    return res.slice(hideLeft);
   };
 
   return (
     <Breadcrumb maxItems={5} maxW={700} whiteSpace="nowrap">
-      <BreadcrumbItem>
-        <BreadcrumbLink as="div" fontWeight={500} fontSize={12} color="readable.tertiary">
-          <GAClick name="dc.file.list.breadcrumbs.click">
-            <Link href="/buckets">Bucket</Link>
-          </GAClick>
-        </BreadcrumbLink>
-      </BreadcrumbItem>
+      {hideLeft === undefined && (
+        <BreadcrumbItem>
+          <BreadcrumbLink as="div" fontWeight={500} fontSize={12} color="readable.tertiary">
+            <GAClick name="dc.file.list.breadcrumbs.click">
+              <Link href="/buckets">Bucket</Link>
+            </GAClick>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      )}
       {renderBreadcrumb()}
     </Breadcrumb>
   );

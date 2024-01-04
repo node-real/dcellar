@@ -12,7 +12,7 @@ import * as React from 'react';
 
 interface ObjectListFilterProps {}
 
-export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter() {
+export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter({}) {
   const filterExpand = useAppSelector((root) => root.object.filterExpand);
   const { filterText, filterTypes, filterSizeTo, filterSizeFrom, filterRange } = useAppSelector(
     (root) => root.object,
@@ -93,6 +93,7 @@ const Container = styled(Flex)`
 
   .ui-input-group {
     flex: 1;
+
     :hover {
       .ui-input {
         border-color: var(--ui-colors-scene-primary-normal);
@@ -111,10 +112,12 @@ const Container = styled(Flex)`
   .filter-expand {
     border-color: var(--ui-colors-brand-brand6);
     color: var(--ui-colors-brand-brand6);
+
     :hover {
       background: var(--ui-colors-opacity1);
     }
   }
+
   .filter-expand-button {
     width: 72px;
     gap: 6px;

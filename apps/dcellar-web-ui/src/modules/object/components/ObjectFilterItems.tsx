@@ -63,6 +63,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
   const filterRange = useAppSelector((root) => root.object.filterRange);
   const filterSizeFrom = useAppSelector((root) => root.object.filterSizeFrom);
   const filterSizeTo = useAppSelector((root) => root.object.filterSizeTo);
+  const shareModePath = useAppSelector((root) => root.object.shareModePath);
   const objectList = useAppSelector(selectObjectList);
   const router = useRouter();
   const allTypes = uniq(
@@ -107,7 +108,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
   useEffect(() => {
     setSelectedType([]);
     dispatch(resetObjectListFilter());
-  }, [router.asPath]);
+  }, [router.asPath, shareModePath]);
 
   useClickAway(
     () => setDateOpen(false),
@@ -490,6 +491,7 @@ const Container = styled(Flex)`
 
   .menu-list-empty-icon {
     display: none;
+
     + p {
       color: var(--ui-colors-readable-tertiary);
       font-size: 12px;
@@ -533,9 +535,11 @@ const Container = styled(Flex)`
 
     .icon-selected {
       color: var(--ui-colors-readable-normal);
+
       &:hover {
         color: var(--ui-colors-brand-brand6);
       }
+
       display: inline;
     }
   }

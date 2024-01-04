@@ -1,7 +1,6 @@
 import React, { memo, useEffect } from 'react';
 import {
   Box,
-  Image,
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
@@ -12,8 +11,13 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
 import { AccessItem } from '@/modules/object/components/AccessItem';
-import { setStatusDetail, TStatusDetail, updateObjectVisibility } from '@/store/slices/object';
-import { updateObjectInfo } from '@/facade/object';
+import {
+  setObjectList,
+  setStatusDetail,
+  TStatusDetail,
+  updateObjectVisibility,
+} from '@/store/slices/object';
+import { getListObjects, updateObjectInfo } from '@/facade/object';
 import { useAccount } from 'wagmi';
 import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
 import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
@@ -22,25 +26,57 @@ import { ViewerList } from '@/modules/object/components/ViewerList';
 import { getShareLink } from '@/utils/string';
 import { DCButton } from '@/components/common/DCButton';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { last } from 'lodash-es';
+import { isEmpty, last, trimEnd } from 'lodash-es';
 import { Animates } from '@/components/AnimatePng';
 import { IconFont } from '@/components/IconFont';
+import { useMount } from 'ahooks';
+import { SpItem } from '@/store/slices/sp';
+import { Loading } from '@/components/common/Loading';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;
+  primarySp: SpItem;
+  objectName: string;
 }
 
 export const ShareOperation = memo<ShareOperationProps>(function ShareOperation({
   selectObjectInfo,
+  primarySp,
+  objectName,
 }) {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName } = useAppSelector((root) => root.object);
+  const { bucketName, path } = useAppSelector((root) => root.object);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
-  const objectInfo = selectObjectInfo.ObjectInfo;
-  const name = last(objectInfo.ObjectName.split('/'));
+  const objectInfo = selectObjectInfo.ObjectInfo || {};
+
+  useMount(async () => {
+    if (!objectName.endsWith('/')) return;
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '2');
+    _query.append('prefix', `${objectName}`);
+
+    const params = {
+      address: primarySp.operatorAddress,
+      bucketName: bucketName,
+      prefix: objectName,
+      query: _query,
+      endpoint: primarySp.endpoint,
+      seedString: '',
+    };
+
+    const [res, error] = await getListObjects(params);
+    // should never happen
+    if (error || !res || res.code !== 0) return false;
+    const { GfSpListObjectsByBucketNameResponse } = res.body!;
+    // 更新文件夹objectInfo
+    dispatch(
+      setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
+    );
+  });
 
   useEffect(() => {
     setValue(getShareLink(bucketName, objectInfo.ObjectName));
@@ -90,6 +126,12 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     dispatch(updateObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
   };
 
+  // handle folder object info
+  if (isEmpty(selectObjectInfo) || objectName !== objectInfo?.ObjectName) return <Loading />;
+
+  const name = last(trimEnd(objectInfo.ObjectName, '/').split('/'));
+  const isFolder = objectInfo.ObjectName.endsWith('/');
+
   return (
     <>
       <QDrawerHeader alignItems="center">
@@ -124,7 +166,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
       </QDrawerHeader>
       <QDrawerBody>
         <Box mb={24}>
-          <AccessItem value={objectInfo.Visibility} onChange={onAccessChange} />
+          <AccessItem folder={isFolder} value={objectInfo.Visibility} onChange={onAccessChange} />
         </Box>
         <Box mb={24}>
           <ViewerList selectObjectInfo={selectObjectInfo} />

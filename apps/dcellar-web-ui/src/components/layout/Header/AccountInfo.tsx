@@ -1,5 +1,15 @@
 import React, { memo, useRef, useState } from 'react';
-import { Box, Button, Circle, Fade, Flex, Portal, Text, useDisclosure, useOutsideClick } from '@totejs/uikit';
+import {
+  Box,
+  Button,
+  Circle,
+  Fade,
+  Flex,
+  Portal,
+  Text,
+  useDisclosure,
+  useOutsideClick,
+} from '@totejs/uikit';
 import { CopyText } from '@/components/common/CopyText';
 import { Tips } from '@/components/common/Tips';
 import { NewBalance } from '@/components/layout/Header/NewBalance';
@@ -63,7 +73,7 @@ export const AccountInfo = memo<AccountInfoProps>(function AccountCard() {
       </LoginAccount>
       <Portal>
         <Fade in={isOpen} unmountOnExit position="absolute" zIndex="1400">
-          <PopContainer ref={ref}>
+          <PopContainer ref={ref} className={'header-avatar-dropdown'}>
             <Account>
               <Avatar id={shortAddress} w={20} />
               <CopyText value={loginAccount} gaClickName="dc.main.account.copy_add.click">

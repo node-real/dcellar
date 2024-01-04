@@ -11,7 +11,6 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { formatBytes } from '@/utils/formatter';
 
 const renderProp = (key: string, value: string) => {
