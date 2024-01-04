@@ -231,7 +231,7 @@ export const getObjectPolicies = async (
 
 // todo using temp data
 export const getFolderPolicies = async (bucketId: string) => {
-  const { data } = await axios.get<{ result: any[] }>(`/api/folder_policies/${bucketId}`);
+  const { data } = await axios.get<{ result: any[] }>(`/api/policies/${bucketId}`);
   return data.result
     .filter((i) => !i.Removed)
     .map((d) => {
