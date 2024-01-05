@@ -86,7 +86,7 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
                 placement="bottom-start"
                 selectIcon
                 value={valueOption.value}
-                options={options}
+                options={options.filter((o) => o.value !== '3')}
                 menuListProps={{ w: 456 }}
                 onMenuSelect={({ value }) => {
                   setValue(Number(value));
