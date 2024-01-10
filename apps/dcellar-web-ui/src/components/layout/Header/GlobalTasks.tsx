@@ -26,10 +26,9 @@ import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/fac
 import { parseErrorXml, sleep } from '@/utils/common';
 import { isEmpty } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { setupAccountInfo } from '@/store/slices/accounts';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { AuthType, CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import {
   makePutObjectHeaders,
@@ -203,9 +202,6 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       contentLength: task.waitFile.size,
       expectCheckSums: task.checksum,
       duration: 5000,
-      tags: {
-        tags: task.tags || []
-      }
     };
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',

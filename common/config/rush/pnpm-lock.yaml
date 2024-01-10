@@ -10,8 +10,8 @@ importers:
       '@babel/core': ^7.20.12
       '@babel/plugin-syntax-flow': ^7.14.5
       '@babel/plugin-transform-react-jsx': ^7.14.9
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.25
-      '@bnb-chain/greenfield-js-sdk': 1.1.0-alpha.2
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
+      '@bnb-chain/greenfield-js-sdk': 1.2.0
       '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
@@ -74,8 +74,8 @@ importers:
       wagmi: ~1.4.10
     dependencies:
       '@babel/core': 7.23.7
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.25
-      '@bnb-chain/greenfield-js-sdk': 1.1.0-alpha.2
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
+      '@bnb-chain/greenfield-js-sdk': 1.2.0
       '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
       '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
       '@next/bundle-analyzer': 13.5.6
@@ -1606,17 +1606,17 @@ packages:
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.25:
-    resolution: {integrity: sha512-A/v0X/rhwmWN8cNmkFCRIzT0sHQn2sb/mPrdwdIgUbjEV49s9KncSAKxRMIz3+ph0KeROmxjUWaDsJ9/KGU2tQ==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.30:
+    resolution: {integrity: sha512-nYThWPZHfq/bDMEu+Sw9cMMqgTk4NEg+PH9GkvN2OMgpo8QuCDy3Eh4C1g6lJy0BFv+ilethoPmKjSeEwa1m8g==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.4
     dev: false
 
-  /@bnb-chain/greenfield-js-sdk/1.1.0-alpha.2:
-    resolution: {integrity: sha512-wRGSdoWjj8/coWsJyQfR7J3X1yVlt73k/0U1+Mr7jHRSy6XZ+ebS8TtJR6m3btD3gxdmj5tXGsXYADU9wroWVw==}
+  /@bnb-chain/greenfield-js-sdk/1.2.0:
+    resolution: {integrity: sha512-xYYK+4WXGiqX7MBNqRij2zo/3HI3mMwtuUOQS3qOoWkHG6oWUAKeBPxUNKz6RuPigZYAckAH0XcrJT0kjJIB+g==}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.25
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
       '@bnb-chain/greenfield-zk-crypto': 1.0.0
       '@cosmjs/proto-signing': 0.32.2
       '@cosmjs/stargate': 0.32.2
@@ -2903,6 +2903,7 @@ packages:
     dependencies:
       is-glob: 4.0.3
       micromatch: 4.0.5
+      napi-wasm: 1.1.0
     dev: false
     bundledDependencies:
       - napi-wasm
@@ -3206,7 +3207,7 @@ packages:
     resolution: {integrity: sha512-osvveYtyzdEVbt3OfwwXFr4P2iVBL5u1Q3q4ONBfDY/UpOuXmOlbgwc1xECEboY8wIays8Yt6onaWMUdUbfl0A==}
     dependencies:
       '@noble/curves': 1.1.0
-      '@noble/hashes': 1.3.1
+      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.5
     dev: false
 
@@ -8090,6 +8091,10 @@ packages:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
+    dev: false
+
+  /napi-wasm/1.1.0:
+    resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
     dev: false
 
   /natural-compare-lite/1.4.0:

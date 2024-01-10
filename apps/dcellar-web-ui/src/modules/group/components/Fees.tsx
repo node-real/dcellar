@@ -11,7 +11,7 @@ import { IconFont } from '@/components/IconFont';
 
 export type FeeItem = {
   label: string;
-  type: string;
+  types: string[];
   value?: number;
 };
 
@@ -28,7 +28,8 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
 
   const _fees = fees.map((fee) => ({
     label: fee.label,
-    value: fee.value ?? (gasObjects?.[fee.type]?.gasFee || 0),
+    value: fee.value ?? fee.types.reduce((res, cur) => res + gasObjects?.[cur]?.gasFee, 0),
+      // (gasObjects?.[fee.type]?.gasFee || 0),
   }));
 
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));

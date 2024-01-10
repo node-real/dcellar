@@ -633,7 +633,14 @@ export const getObjectMeta = async (
   );
 };
 
-export const updateObjectTags = async ({ address, bucketName, objectName, tags }: { address: string; bucketName: string; objectName: string; tags: ResourceTags_Tag[] }) => {
+export type UpdateObjectTagsParams = {
+  address: string;
+  bucketName: string;
+  objectName: string;
+  tags: ResourceTags_Tag[]
+}
+
+export const getUpdateObjectTagsTx = async ({ address, bucketName, objectName, tags }: UpdateObjectTagsParams): Promise<[TxResponse, null] | ErrorResponse > => {
   const client = await getClient();
   const resource = GRNToString(newObjectGRN(bucketName, objectName));
   const [tx, error1] = await client.storage.setTag({
@@ -645,6 +652,13 @@ export const updateObjectTags = async ({ address, bucketName, objectName, tags }
   }).then(resolve, createTxFault);
   if (!tx) return [null, error1];
 
+  return [tx, error1]
+};
+
+export const updateObjectTags = async (params: UpdateObjectTagsParams) => {
+  const [tx, error1] = await getUpdateObjectTagsTx(params);
+  if (!tx) return [null, error1];
+
   const [simulate, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
   if (!simulate) return [null, error2];
 
@@ -652,7 +666,7 @@ export const updateObjectTags = async ({ address, bucketName, objectName, tags }
     denom: 'BNB',
     gasLimit: Number(simulate.gasLimit),
     gasPrice: simulate.gasPrice,
-    payer: address,
+    payer: params.address,
     granter: ''
   };
 

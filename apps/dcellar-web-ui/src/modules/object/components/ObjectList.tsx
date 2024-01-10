@@ -402,13 +402,13 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         const curObjectInfo = objectsInfo[key];
 
         // if this object is not yours, you only can review it
-        if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
+        if (bucket?.Owner !== loginAccount) {
           pruneActions = pickAction(pruneActions, ['detail']);
         }
 
         // if this folder is yours, you only can review it
         if (isFolder) {
-          pruneActions = pickAction(pruneActions, owner ? ['detail', 'delete'] : ['detail']);
+          pruneActions = pickAction(pruneActions, owner ? ['detail', 'share', 'delete'] : ['detail']);
         }
         // if sealed, remove cancel
         if (isSealed) {
@@ -437,10 +437,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           pruneActions = removeAction(pruneActions, ['marketplace']);
         }
 
-        if (isFolder && shareMode) return null;
-
         const quickOperations = pruneActions.filter((item) => QuickActionValues.includes(item));
         const menus = Actions.filter((item) => pruneActions.includes(item.value));
+
+        if (isFolder && shareMode) return null;
 
         return (
           <ActionMenu

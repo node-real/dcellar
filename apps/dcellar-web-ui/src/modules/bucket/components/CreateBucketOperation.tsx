@@ -24,7 +24,7 @@ import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { DCButton } from '@/components/common/DCButton';
 import { SPSelector } from './SPSelector';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { CreateBucketApprovalRequest, MsgCreateBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { CreateBucketApprovalRequest, MsgCreateBucketTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
 import { ChainVisibilityEnum } from '@/modules/object/type';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { SpItem } from '@/store/slices/sp';
@@ -38,17 +38,30 @@ import { G_BYTES } from '@/constants/legacy';
 import { getQuotaNetflowRate } from '@/utils/payment';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { selectBucketList, setEditBucketTags, setEditBucketTagsData, setupBuckets } from '@/store/slices/bucket';
+import {
+  selectBucketList,
+  setEditBucketTags,
+  setEditBucketTagsData,
+  setupBuckets,
+} from '@/store/slices/bucket';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
-import { createBucket, pollingGetBucket, simulateCreateBucket } from '@/facade/bucket';
+import {
+  createBucket,
+  getCreateBucketTx,
+  getUpdateBucketTagsTx,
+  pollingGetBucket,
+  simulateCreateBucket,
+  updateBucketTags,
+} from '@/facade/bucket';
 import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
 import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { broadcastMulTxs } from '@/facade/common';
 
 type ValidateNameAndGas = {
   isValidating: boolean;
@@ -97,7 +110,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const [chargeQuota, setChargeQuota] = useState(0);
   const nonceRef = useRef(0);
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { gasFee } = gasObjects?.[MsgCreateBucketTypeUrl] || {};
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
@@ -114,6 +126,17 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     if (!isEmpty(storeFeeParams)) return;
     dispatch(setupStoreFeeParams());
   }, [dispatch]);
+
+  const gasFee = useMemo(() => {
+    const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateBucketTypeUrl] || {};
+    const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
+
+    if (validTags.length ===  0) {
+      return createBucketGasFee || 0;
+    }
+
+    return BN(createBucketGasFee || 0).plus(BN(setTagsGasFee || 0)).toNumber();
+  }, [gasObjects, validTags.length]);
 
   const quotaFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
@@ -227,9 +250,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
         primarySpAddress: sp.operatorAddress,
       },
       paymentAddress: address,
-      tags: {
-        tags: [],
-      },
     };
     const [simulateInfo, error] = await simulateCreateBucket(createBucketPayload, {
       type: 'EDDSA',
@@ -318,22 +338,30 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       spInfo: {
         primarySpAddress: selectedSpRef.current.operatorAddress,
       },
-      tags: {
-        tags: validTags,
-      },
     };
 
-    const [txRes, error] = await createBucket(
-      createBucketPayload,
-      {
-        type: 'EDDSA',
-        domain: window.location.origin,
-        seed: seedString,
-        address,
-      },
-      connector!,
-    );
+    const txs: TxResponse[] = [];
+    const [bucketTx, error1] = await getCreateBucketTx(createBucketPayload, {
+      type: 'EDDSA',
+      domain: window.location.origin,
+      seed: seedString,
+      address,
+    });
+    if (!bucketTx) return onError(error1);
 
+    txs.push(bucketTx);
+
+    if (validTags.length > 0) {
+      const [tagsTx, error2] = await getUpdateBucketTagsTx({
+        address: address,
+        bucketName: bucketName,
+        tags: validTags,
+      });
+      if (!tagsTx) return onError(error2);
+      txs.push(tagsTx);
+    }
+
+    const [txRes, error] = await broadcastMulTxs({ txs, address, connector: connector! });
     if (error) return onError(error);
     if (txRes?.code !== 0) return onError((txRes as any).message || txRes?.rawLog);
 
@@ -415,7 +443,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   );
 
   const onEditTags = () => {
-    dispatch(setEditBucketTags(['new', 'create']))
+    dispatch(setEditBucketTags(['new', 'create']));
   };
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
@@ -511,8 +539,10 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
                 <PaymentAccountSelector onChange={onChangePA} />
               </FormControl>
               <FormControl>
-                <FormLabel mb={8} fontWeight={500}>Tags</FormLabel>
-                <EditTags onClick={onEditTags} tagsData={validTags}/>
+                <FormLabel mb={8} fontWeight={500}>
+                  Tags
+                </FormLabel>
+                <EditTags onClick={onEditTags} tagsData={validTags} />
               </FormControl>
             </Flex>
 

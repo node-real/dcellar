@@ -76,8 +76,7 @@ import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { reverseVisibilityType } from '@/constants/legacy';
 import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { resolve } from '@/facade/common';
-import { signTypedDataCallback } from '@/facade/wallet';
+import { broadcastTx, resolve } from '@/facade/common';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
@@ -269,9 +268,6 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           fileType: waitFile.type || 'application/octet-stream',
           contentLength: waitFile.size,
           expectCheckSums,
-          tags: {
-            tags: validTags,
-          },
         };
         const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
           type: 'EDDSA',
@@ -279,33 +275,29 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           domain: window.location.origin,
           address: loginAccount,
         }).then(resolve, createTxFault);
-        if (_createError) {
+
+        if (!createObjectTx) {
           // TODO refactor
           dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _createError }));
           closeModal();
           return;
         }
-        const [simulateInfo, simulateError] = await createObjectTx!
-          .simulate({
-            denom: 'BNB',
-          })
-          .then(resolve, simulateFault);
-        if (!simulateInfo || simulateError) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: simulateError }));
-          closeModal();
-          return;
-        }
-        const broadcastPayload = {
-          denom: 'BNB',
-          gasLimit: Number(simulateInfo?.gasLimit),
-          gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: loginAccount,
-          granter: loginAccount,
-          signTypedDataCallback: signTypedDataCallback(connector!),
-        };
-        const [txRes, error] = await createObjectTx!
-          .broadcast(broadcastPayload)
-          .then(resolve, broadcastFault);
+        // const [tagsTx, _tagsError] = await getUpdateObjectTagsTx({
+        //   address: createObjectPayload.creator,
+        //   bucketName: createObjectPayload.bucketName,
+        //   objectName: createObjectPayload.objectName,
+        //   tags: validTags
+        // });
+        // if (!tagsTx) {
+        //   dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _tagsError }));
+        //   closeModal();
+        //   return;
+        // }
+        const [txRes, error] = await broadcastTx({
+          tx: createObjectTx,
+          address: loginAccount,
+          connector: connector!
+        })
         if (!txRes || error) {
           dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
           closeModal();
@@ -408,11 +400,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       },
     });
 
-    const onEditTags = () => {
-      dispatch(setEditObjectTags(['new', 'create']));
-    };
+    // const onEditTags = () => {
+    //   dispatch(setEditObjectTags(['new', 'create']));
+    // };
 
-    useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+    // useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
 
     return (
       <>
@@ -452,11 +444,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
                 {tabOptions.map((item) => (
                   <TabPanel key={item.key} panelKey={item.key}>
                     <ListItem handleFolderTree={handleFolderTree} path={path} type={item.key} />
-                    <EditTags
+                    {/* <EditTags
                       tagsData={editTagsData}
                       onClick={onEditTags}
                       containerStyle={{ mt: 8 }}
-                    />
+                    /> */}
                   </TabPanel>
                 ))}
               </TabPanels>

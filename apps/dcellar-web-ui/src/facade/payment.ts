@@ -1,10 +1,9 @@
 import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
 import BigNumber from 'bignumber.js';
-import { Long } from '@bnb-chain/greenfield-js-sdk';
+import { AuthType, Long } from '@bnb-chain/greenfield-js-sdk';
 import { getTimestampInSeconds } from '@/utils/time';
 import { getClient } from '@/facade/index';
 import { ListUserPaymentAccountsResquest } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListUserPaymentAccounts';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { resolve } from './common';
 import { commonFault } from './error';
 import { SpConfig } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/config';

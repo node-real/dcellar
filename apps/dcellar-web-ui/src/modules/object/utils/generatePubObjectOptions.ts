@@ -4,8 +4,8 @@ import {
   isValidBucketName,
   isValidObjectName,
   PutObjectRequest,
+  AuthType,
 } from '@bnb-chain/greenfield-js-sdk';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { getClient } from '@/facade';
 
 export type TMakePutObjectHeaders = PutObjectRequest & {

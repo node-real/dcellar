@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { getClient } from '@/facade';
+import { AuthType } from '@bnb-chain/greenfield-js-sdk';
 
 export interface getObjectPropsType {
   bucketName: string;
