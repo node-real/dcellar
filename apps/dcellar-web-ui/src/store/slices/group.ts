@@ -85,7 +85,9 @@ export const groupSlice = createSlice({
       const {account, groupId, tags } = payload;
       const group = state.groups[account].find(item => item.id === groupId);
       if (!group) return;
-      group.tags.tags = tags;
+      group['tags'] = {
+        tags,
+      };
     },
     setEditGroupTags(state, { payload }: PayloadAction<[string, string]>) {
       state.editTags = payload;

@@ -93,7 +93,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   useAsyncEffect(async () => {
     if (!PaymentAddress) return;
     const { extraInfo } = await getBucketExtraInfo(bucketName);
-    const { priceTime, localVirtualGroups } = extraInfo;
+    const { priceTime, localVirtualGroups = [] } = extraInfo || {};
     const totalChargeSize = localVirtualGroups
       .reduce((a, b) => a.plus(Number(b.totalChargeSize)), BigNumber(0))
       .toNumber();

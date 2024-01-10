@@ -39,7 +39,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
     32,
   );
   const onEditTag = () => {
-    dispatch(setEditGroupTagsData(selectGroup.tags.tags));
+    dispatch(setEditGroupTagsData(selectGroup?.tags?.tags ?? [DEFAULT_TAG]));
     dispatch(setEditGroupTags([selectGroup.id, 'detail']))
   }
 
@@ -116,7 +116,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
             <Text color={'#76808F'}>Tags</Text>
             <Flex alignItems={'center'} gap={4} color={'brand.brand6'} cursor={'pointer'} onClick={onEditTag}>
               <IconFont type="pen" />
-              {selectGroup.tags.tags?.length || 0} tags
+              {selectGroup?.tags?.tags?.length || 0} tags
             </Flex>
           </Flex>
           <Divider />
