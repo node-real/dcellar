@@ -417,7 +417,7 @@ export const getUpdateBucketTagsTx = async ({ address, bucketName, tags }: Updat
   return [tx, null]
 }
 
-export const updateBucketTags = async (params: UpdateBucketTagsParams) => {
+export const updateBucketTags = async (params: UpdateBucketTagsParams, connector: Connector) => {
   const [tx, error1] = await getUpdateBucketTagsTx(params);
   if (!tx) return [null, error1];
 
@@ -435,6 +435,7 @@ export const updateBucketTags = async (params: UpdateBucketTagsParams) => {
     gasPrice: simulateInfo?.gasPrice,
     payer: params.address,
     granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);

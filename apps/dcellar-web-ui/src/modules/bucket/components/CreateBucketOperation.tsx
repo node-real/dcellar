@@ -47,14 +47,12 @@ import {
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH } from '@/facade/error';
 import {
-  createBucket,
   getCreateBucketTx,
   getUpdateBucketTagsTx,
   pollingGetBucket,
   simulateCreateBucket,
-  updateBucketTags,
 } from '@/facade/bucket';
 import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';

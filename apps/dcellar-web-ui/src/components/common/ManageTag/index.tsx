@@ -28,7 +28,6 @@ export type ManageTagOperationProps = {
 };
 
 export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) => {
-  const dispatch = useAppDispatch();
   const isInvalid = (type: string, value: string) => {
     if (type === 'key' && value.length > 32) {
       return 'Should not exceed 32 characters.';

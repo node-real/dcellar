@@ -123,7 +123,7 @@ export const bucketSlice = createSlice({
     },
     setBucketTags(state, { payload }: PayloadAction<{bucketName: string, tags: ResourceTags_Tag[] }>) {
       const { bucketName, tags } = payload;
-      const newTags = tags.map(item => convertObjectKey(tags, 'uppercase'));
+      const newTags = tags.map(item => convertObjectKey(item, 'uppercase'));
       state.bucketInfo[bucketName]['Tags']['Tags'] = newTags as Extract<TBucket['Tags'], { 'Tags': any }>['Tags'];
     }
   },

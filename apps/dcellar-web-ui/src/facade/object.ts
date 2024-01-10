@@ -655,7 +655,7 @@ export const getUpdateObjectTagsTx = async ({ address, bucketName, objectName, t
   return [tx, error1]
 };
 
-export const updateObjectTags = async (params: UpdateObjectTagsParams) => {
+export const updateObjectTags = async (params: UpdateObjectTagsParams, connector: Connector) => {
   const [tx, error1] = await getUpdateObjectTagsTx(params);
   if (!tx) return [null, error1];
 
@@ -667,7 +667,8 @@ export const updateObjectTags = async (params: UpdateObjectTagsParams) => {
     gasLimit: Number(simulate.gasLimit),
     gasPrice: simulate.gasPrice,
     payer: params.address,
-    granter: ''
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);

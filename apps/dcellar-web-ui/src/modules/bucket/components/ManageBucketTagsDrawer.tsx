@@ -14,10 +14,12 @@ import { Animates } from '@/components/AnimatePng';
 import { toast } from '@totejs/uikit';
 import { updateBucketTags } from '@/facade/bucket';
 import { setBucketTags, setEditBucketTags, setEditBucketTagsData } from '@/store/slices/bucket';
+import { useAccount } from 'wagmi';
 
 export const ManageBucketTagsDrawer = () => {
   const dispatch = useAppDispatch();
   const { modal } = useStatusModal();
+  const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { editTags, editTagsData, bucketInfo} = useAppSelector((root) => root.bucket);
@@ -56,7 +58,7 @@ export const ManageBucketTagsDrawer = () => {
           address: loginAccount,
           bucketName: bucket.BucketName,
           tags: validTags,
-        });
+        }, connector!);
         if (error) {
           return errorHandler(error);
         }

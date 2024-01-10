@@ -12,13 +12,15 @@ import { Animates } from '@/components/AnimatePng';
 import { toast } from '@totejs/uikit';
 import { setObjectTags, setEditObjectTags, setEditObjectTagsData } from '@/store/slices/object';
 import { updateObjectTags } from '@/facade/object';
+import { useAccount } from 'wagmi';
 
 export const ManageObjectTagsDrawer = () => {
   const dispatch = useAppDispatch();
   const { modal } = useStatusModal();
+  const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { editTags, editTagsData, objectsInfo} = useAppSelector((root) => root.object);
+  const { editTags, editTagsData, objectsInfo } = useAppSelector((root) => root.object);
   const [fullObjectName, from] = editTags;
   const object = objectsInfo[fullObjectName];
 
@@ -50,21 +52,24 @@ export const ManageObjectTagsDrawer = () => {
           title: TAGS_UPDATING,
           icon: Animates.group,
         });
-        const [res, error] = await updateObjectTags({
-          tags: validTags,
-          address: loginAccount,
-          bucketName: object.ObjectInfo.BucketName,
-          objectName: object.ObjectInfo.ObjectName,
-        });
+        const [res, error] = await updateObjectTags(
+          {
+            tags: validTags,
+            address: loginAccount,
+            bucketName: object.ObjectInfo.BucketName,
+            objectName: object.ObjectInfo.ObjectName,
+          },
+          connector!,
+        );
         if (error) {
           return errorHandler(error);
         }
-        dispatch(setObjectTags({fullObjectName, tags: validTags }));
+        dispatch(setObjectTags({ fullObjectName, tags: validTags }));
         modal.end();
         onClose();
         toast.success({
-          description: TAGS_UPDATED_SUCCESS
-        })
+          description: TAGS_UPDATED_SUCCESS,
+        });
         dispatch(setEditObjectTagsData([DEFAULT_TAG]));
         break;
       case 'create':

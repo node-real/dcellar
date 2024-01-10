@@ -216,7 +216,7 @@ export const getUpdateGroupTagsTx = async ({ address, groupName, tags }: UpdateG
   return [tx, null]
 }
 
-export const updateGroupTags = async ({ address, groupName, tags }:UpdateGroupTagsParams) => {
+export const updateGroupTags = async ({ address, groupName, tags }:UpdateGroupTagsParams, connector: Connector) => {
   const [tx, error1] = await getUpdateGroupTagsTx({ address, groupName, tags })
   if (!tx) return [null, error1];
 
@@ -228,7 +228,8 @@ export const updateGroupTags = async ({ address, groupName, tags }:UpdateGroupTa
     gasLimit: Number(simulate.gasLimit),
     gasPrice: simulate.gasPrice,
     payer: address,
-    granter: ''
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);

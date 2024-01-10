@@ -18,10 +18,12 @@ import { useStatusModal } from '@/hooks/useStatusModal';
 import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
 import { Animates } from '@/components/AnimatePng';
 import { toast } from '@totejs/uikit';
+import { useAccount } from 'wagmi';
 
 export const ManageGroupTagDrawer = () => {
   const dispatch = useAppDispatch();
   const { modal } = useStatusModal();
+  const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { editTags, editTagsData } = useAppSelector((root) => root.group);
@@ -59,11 +61,14 @@ export const ManageGroupTagDrawer = () => {
           title: TAGS_UPDATING,
           icon: Animates.group,
         });
-        const [res, error] = await updateGroupTags({
-          address: loginAccount,
-          groupName: groupInfo?.groupName,
-          tags: validTags,
-        });
+        const [res, error] = await updateGroupTags(
+          {
+            address: loginAccount,
+            groupName: groupInfo?.groupName,
+            tags: validTags,
+          },
+          connector!,
+        );
         if (error) {
           return errorHandler(error);
         }
@@ -71,8 +76,8 @@ export const ManageGroupTagDrawer = () => {
         modal.end();
         onClose();
         toast.success({
-          description: TAGS_UPDATED_SUCCESS
-        })
+          description: TAGS_UPDATED_SUCCESS,
+        });
         dispatch(setEditGroupTagsData([DEFAULT_TAG]));
         break;
 
