@@ -11,7 +11,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   )}?page=1&per_page=1000`;
   try {
     const { data } = await axios.get(url);
-    res.setHeader('cache-control', 'no-cache');
     res.json(data);
   } catch (e) {
     console.log('explorer chart error', e);
