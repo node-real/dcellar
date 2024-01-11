@@ -1,5 +1,4 @@
 import { IconFont } from '@/components/IconFont';
-import { useAppDispatch } from '@/store';
 import {
   Box,
   Flex,
@@ -52,9 +51,9 @@ export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) =
     setInternalTags(newTags);
   };
   const onDelete = (index: number) => {
-    if (internalTags.length <= 1) {
-      return setInternalTags([DEFAULT_TAG]);
-    }
+    // if (internalTags.length <= 1) {
+    //   return setInternalTags([DEFAULT_TAG]);
+    // }
     setInternalTags(internalTags.filter((_, curIndex) => curIndex !== index));
   };
 
@@ -79,6 +78,7 @@ export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) =
                   <Input
                     value={item.key}
                     onChange={(e) => onInputChange('key', e.target.value, index)}
+                    placeholder='Key'
                   />
                   {isInvalid('key', item.key) && (
                     <FormErrorMessage>{isInvalid('key', item.key)}</FormErrorMessage>
@@ -92,6 +92,7 @@ export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) =
                   <Input
                     value={item.value}
                     onChange={(e) => onInputChange('value', e.target.value, index)}
+                    placeholder='Value'
                   />
                   {isInvalid('value', item.value) && (
                     <FormErrorMessage>{isInvalid('value', item.value)}</FormErrorMessage>

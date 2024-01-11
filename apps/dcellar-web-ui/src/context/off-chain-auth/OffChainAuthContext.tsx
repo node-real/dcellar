@@ -17,6 +17,7 @@ import { getDomain } from '@/utils/bom';
 import { getClient } from '@/facade';
 import { IconFont } from '@/components/IconFont';
 import * as Sentry from '@sentry/nextjs';
+import { parseWCMessage } from '@/utils/common';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
@@ -96,7 +97,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         return { code: 0, message: 'success' };
       } catch (e: any) {
         console.log('gen offChain data error', e);
-        const { message } = e;
+        const message = parseWCMessage(e?.message) ?? e.message;
         console.error(provider);
         Sentry.withScope((scope) => {
           scope.setTag('Component', 'OffChainAuthContext');
