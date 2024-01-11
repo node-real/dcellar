@@ -16,9 +16,11 @@ import {
   CreateBucketApprovalRequest,
   GetBucketMetaResponse,
   GetUserBucketsResponse,
+  GRNToString,
   IQuotaProps,
   ISimulateGasFee,
   Long,
+  newObjectGRN,
   ReadQuotaRequest,
   SpResponse,
   TxResponse,
@@ -32,13 +34,16 @@ import {
   PolicyMeta,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
-import { get } from 'lodash-es';
+import { escapeRegExp, get, uniqBy } from 'lodash-es';
 import { getTimestampInSeconds } from '@/utils/time';
 import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import axios from 'axios';
 import { XMLParser } from 'fast-xml-parser';
 import { parseError } from '@/utils/string';
 import { getClient } from '@/facade/index';
+import { hexToNumber, numberToHex } from 'viem';
+import dayjs from 'dayjs';
+import { ObjectResource } from '@/store/slices/object';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -220,8 +225,31 @@ export const getObjectPolicies = async (
     endpoint,
   })) as { body: GetListObjectPoliciesResponse; code: number };
   const valuePath = 'body.GfSpListObjectPoliciesResponse.Policies';
-  const list: PolicyMeta[] = get(res, valuePath);
+  const list: Array<PolicyMeta & Partial<ObjectResource>> = get(res, valuePath);
   return list;
+};
+
+// todo using temp data
+export const getFolderPolicies = async (bucketId: string) => {
+  const { data } = await axios.get<{ result: any[] }>(`/api/policies/${bucketId}`);
+  return data.result
+    .filter((i) => !i.Removed)
+    .map((d) => {
+      const group = d.PrincipalType !== 'PRINCIPAL_TYPE_GNFD_ACCOUNT';
+      return {
+        CreateTimestamp: new Date(d.CreateTime).getTime(),
+        ExpirationTime: 0,
+        PrincipalType: group ? 2 : 1,
+        PrincipalValue: String(
+          group ? hexToNumber(d.PrincipalValue) : numberToHex(d.PrincipalValue, { size: 20 }),
+        ),
+        ResourceId: String(hexToNumber(d.ResourceID)),
+        ResourceType: 1,
+        UpdateTimestamp: 0,
+        Resources: d.Resources,
+        Actions: d.Actions,
+      };
+    });
 };
 
 export const getBucketQuotaUpdateTime = async (bucketName: string) => {

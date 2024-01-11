@@ -29,6 +29,7 @@ interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
   gaUploadClickName?: string;
+  shareMode?: boolean;
 }
 
 export const MAX_FOLDER_LEVEL = 10;
@@ -38,6 +39,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
   showRefresh = false,
   gaFolderClickName = '',
   gaUploadClickName = '',
+  shareMode = false,
 }) {
   const dispatch = useAppDispatch();
   const { discontinue, owner } = useAppSelector((root) => root.bucket);
@@ -210,75 +212,79 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             onClick={refreshList}
             leftIcon={<IconFont type="refresh" w={24} />}
           />
-          <BatchOperations />
+          <BatchOperations shareMode={shareMode} />
         </>
       )}
-      <Tooltip
-        content={
-          invalidPath
-            ? 'Folder does not exist.'
-            : `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
-        }
-        placement={'bottom-start'}
-        visibility={maxFolderDepth && !loading ? 'visible' : 'hidden'}
-      >
-        <div>
-          <GAClick name={gaFolderClickName}>
-            <DCButton
-              whiteSpace="nowrap"
-              variant="second"
-              onClick={onOpenCreateFolder}
-              disabled={disabled}
+      {!shareMode && (
+        <>
+          <Tooltip
+            content={
+              invalidPath
+                ? 'Folder does not exist.'
+                : `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`
+            }
+            placement={'bottom-start'}
+            visibility={maxFolderDepth && !loading ? 'visible' : 'hidden'}
+          >
+            <div>
+              <GAClick name={gaFolderClickName}>
+                <DCButton
+                  whiteSpace="nowrap"
+                  variant="second"
+                  onClick={onOpenCreateFolder}
+                  disabled={disabled}
+                >
+                  Create Folder
+                </DCButton>
+              </GAClick>
+            </div>
+          </Tooltip>
+          <Menu matchWidth>
+            <Tooltip
+              placement="top-end"
+              content={
+                discontinue
+                  ? 'Bucket in the discontinue status cannot upload objects.'
+                  : accountDetail?.clientFrozen
+                  ? 'The payment account in the frozen status cannot upload objects.'
+                  : uploadDisabled
+                  ? 'Path invalid'
+                  : `Please limit object size to ${formatBytes(
+                      SINGLE_OBJECT_MAX_SIZE,
+                    )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
+              }
             >
-              Create Folder
-            </DCButton>
-          </GAClick>
-        </div>
-      </Tooltip>
-      <Menu matchWidth>
-        <Tooltip
-          placement="top-end"
-          content={
-            discontinue
-              ? 'Bucket in the discontinue status cannot upload objects.'
-              : accountDetail?.clientFrozen
-              ? 'The payment account in the frozen status cannot upload objects.'
-              : uploadDisabled
-              ? 'Path invalid'
-              : `Please limit object size to ${formatBytes(
-                  SINGLE_OBJECT_MAX_SIZE,
-                )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
-          }
-        >
-          <div>
-            <UploadMenuList
-              gaUploadClickName={gaUploadClickName}
-              disabled={uploadDisabled}
-              handleFilesChange={handleFilesChange}
-              handlerFolderChange={handlerFolderChange}
-            >
-              <IconFont type="upload" w={24} />
-              Upload
-              <Flex
-                className="ui-icon__container"
-                paddingX={'4px'}
-                height={'40px'}
-                borderRightRadius={4}
-                alignItems={'center'}
-                borderLeft={disabled ? '1px solid readable.border' : '1px solid #5ED47F'}
-              >
-                <IconFont
-                  transform="rotate(-90deg)"
-                  className="ui-icon"
-                  type="back"
-                  w={16}
-                  mx={4}
-                />
-              </Flex>
-            </UploadMenuList>
-          </div>
-        </Tooltip>
-      </Menu>
+              <div>
+                <UploadMenuList
+                  gaUploadClickName={gaUploadClickName}
+                  disabled={uploadDisabled}
+                  handleFilesChange={handleFilesChange}
+                  handlerFolderChange={handlerFolderChange}
+                >
+                  <IconFont type="upload" w={24} />
+                  Upload
+                  <Flex
+                    className="ui-icon__container"
+                    paddingX={'4px'}
+                    height={'40px'}
+                    borderRightRadius={4}
+                    alignItems={'center'}
+                    borderLeft={disabled ? '1px solid readable.border' : '1px solid #5ED47F'}
+                  >
+                    <IconFont
+                      transform="rotate(-90deg)"
+                      className="ui-icon"
+                      type="back"
+                      w={16}
+                      mx={4}
+                    />
+                  </Flex>
+                </UploadMenuList>
+              </div>
+            </Tooltip>
+          </Menu>
+        </>
+      )}
     </Flex>
   );
 });

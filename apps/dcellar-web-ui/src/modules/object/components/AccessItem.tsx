@@ -13,6 +13,7 @@ import { MsgUpdateObjectInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 interface AccessItemProps {
   value: number;
   onChange: (v: number) => void;
+  folder?: boolean;
 }
 
 const options = [
@@ -30,11 +31,19 @@ const options = [
     value: '1',
     bg: '#E7F3FD',
   },
+  {
+    icon: <IconFont w={16} type="public" />,
+    label: 'Public',
+    desc: 'Anyone with a shared link can access objects.',
+    value: '3',
+    bg: '#E7F3FD',
+  },
 ];
 
 export const AccessItem = memo<AccessItemProps>(function AccessItem({
   value,
   onChange = () => {},
+  folder = false,
 }) {
   const [_value, setValue] = useState<number>(1);
   const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
@@ -70,34 +79,39 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
         <Flex alignItems="center" py={8}>
           <AccessStatus $bg={valueOption.bg}>{valueOption.icon}</AccessStatus>
           <Flex flexDirection="column" py={2} alignItems="flex-start">
-            <DCMenu
-              placement="bottom-start"
-              selectIcon
-              value={valueOption.value}
-              options={options}
-              menuListProps={{ w: 456 }}
-              onMenuSelect={({ value }) => {
-                setValue(Number(value));
-                setConfirmModal(true);
-              }}
-              renderOption={({ value, label }) => (
-                <Flex flexDirection={'column'}>
-                  <OptionTitle>{label}</OptionTitle>
-                  <OptionDesc>{options[value === '1' ? 1 : 0].desc}</OptionDesc>
-                </Flex>
-              )}
-            >
-              {({ isOpen }) => (
-                <GAClick name="dc.file.share_m.access.click">
-                  <StyledButton
-                    as={Button}
-                    rightIcon={<IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />}
-                  >
-                    {valueOption.label}
-                  </StyledButton>
-                </GAClick>
-              )}
-            </DCMenu>
+            {folder ? (
+              <Text fontWeight={500}>{valueOption.label}</Text>
+            ) : (
+              <DCMenu
+                placement="bottom-start"
+                selectIcon
+                value={valueOption.value}
+                options={options.filter((o) => o.value !== '3')}
+                menuListProps={{ w: 456 }}
+                onMenuSelect={({ value }) => {
+                  setValue(Number(value));
+                  setConfirmModal(true);
+                }}
+                renderOption={({ value, label }) => (
+                  <Flex flexDirection={'column'}>
+                    <OptionTitle>{label}</OptionTitle>
+                    <OptionDesc>{options[value === '1' ? 1 : 0].desc}</OptionDesc>
+                  </Flex>
+                )}
+              >
+                {({ isOpen }) => (
+                  <GAClick name="dc.file.share_m.access.click">
+                    <StyledButton
+                      as={Button}
+                      rightIcon={<IconFont w={16} type={isOpen ? 'menu-open' : 'menu-close'} />}
+                    >
+                      {valueOption.label}
+                    </StyledButton>
+                  </GAClick>
+                )}
+              </DCMenu>
+            )}
+
             <Text fontWeight="400" fontSize={12} lineHeight="15px" color="#76808F">
               {valueOption.desc}
             </Text>

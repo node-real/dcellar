@@ -13,9 +13,13 @@ import { downloadObject } from '@/facade/object';
 import { DCTooltip } from '@/components/common/DCTooltip';
 import { DCButton } from '@/components/common/DCButton';
 
-interface BatchOperationsProps {}
+interface BatchOperationsProps {
+  shareMode?: boolean;
+}
 
-export const BatchOperations = memo<BatchOperationsProps>(function BatchOperations() {
+export const BatchOperations = memo<BatchOperationsProps>(function BatchOperations({
+  shareMode = false,
+}) {
   const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const dispatch = useAppDispatch();
   const { setOpenAuthModal } = useOffChainAuth();
@@ -125,9 +129,11 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
             </DCButton>
           </DCTooltip>
         )}
-        <DCButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
-          Delete
-        </DCButton>
+        {!shareMode && (
+          <DCButton disabled={!items.length} variant="ghost" onClick={onBatchDelete}>
+            Delete
+          </DCButton>
+        )}
       </Text>
     </>
   );

@@ -5,6 +5,7 @@ import {
   ISimulateGasFee,
   ListObjectsByBucketNameRequest,
   ListObjectsByBucketNameResponse,
+  newBucketGRN,
   newObjectGRN,
   PermissionTypes,
   SpResponse,
@@ -88,6 +89,16 @@ export const hasObjectPermission = async (
   loginAccount: string,
 ) => {
   const client = await getClient();
+
+  if (objectName.endsWith('/')) {
+    // todo lack of verify api
+    return client.bucket
+      .getVerifyPermission(bucketName, loginAccount, PermissionTypes.ActionType.ACTION_GET_OBJECT)
+      .catch(() => ({
+        effect: PermissionTypes.Effect.EFFECT_DENY,
+      }));
+  }
+
   return client.object
     .isObjectPermissionAllowed(bucketName, objectName, actionType, loginAccount)
     .catch(() => ({
@@ -347,7 +358,11 @@ export const deleteObjectPolicy = async (
   principalAddrs: string[],
 ): Promise<ErrorResponse | [DeliverResponse, null]> => {
   const client = await getClient();
-  const resource = GRNToString(newObjectGRN(bucketName, objectName));
+
+  const resource = objectName.endsWith('/')
+    ? GRNToString(newBucketGRN(bucketName))
+    : GRNToString(newObjectGRN(bucketName, objectName));
+
   const principals: Principal[] = principalAddrs.map((principalAddr) => {
     return {
       type: principalAddr.match(GROUP_ID)
@@ -442,6 +457,89 @@ export const putObjectPolicies = async (
   }
 
   const txs = await client.txClient.multiTx(_opts);
+  const [simulateInfo, simulateError] = await txs
+    .simulate({ denom: 'BNB' })
+    .then(resolve, simulateFault);
+  if (simulateError) return [null, simulateError];
+  const broadcastPayload = {
+    denom: 'BNB',
+    gasLimit: Number(simulateInfo?.gasLimit),
+    gasPrice: simulateInfo?.gasPrice || '5000000000',
+    payer: srcMsg[0].operator,
+    granter: '',
+    signTypedDataCallback: signTypedDataCallback(connector),
+  };
+  return txs.broadcast(broadcastPayload).then(resolve, broadcastFault);
+};
+
+export const putBucketPolicies = async (
+  connector: Connector,
+  bucketName: string,
+  srcMsg: Omit<MsgPutPolicy, 'resource' | 'expirationTime'>[],
+  deleted: { p: Principal; r: string }[],
+  operator: string,
+): Promise<ErrorResponse | [DeliverResponse, null] | [null, null, string[]]> => {
+  const client = await getClient();
+
+  const opts = await Promise.all(
+    srcMsg.map((msg) =>
+      client.bucket.putBucketPolicy(bucketName, msg).then(resolve, createTxFault),
+    ),
+  );
+
+  for (const [opt, error] of opts) {
+    if (!!error) return [null, error];
+  }
+
+  const _opts = opts.map((opt) => opt[0] as TxResponse);
+
+  const groups = srcMsg
+    .map((i, index) => ({
+      type: i.principal!.type,
+      value: i.principal!.value,
+      index,
+      tx: _opts[index],
+    }))
+    .filter((i) => i.type === PrincipalType.PRINCIPAL_TYPE_GNFD_GROUP);
+
+  const ids = [];
+
+  // todo
+  for await (const group of groups) {
+    if (!group.value.match(GROUP_ID)) {
+      ids.push(group.value);
+      continue;
+    }
+    const [s, e] = await group.tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
+    if (e?.includes('No such group')) {
+      ids.push(group.value);
+    }
+  }
+
+  if (ids.length) {
+    return [null, null, ids];
+  }
+
+  // todo need delete legacy policy
+  const deleteTasks = await Promise.all(
+    deleted.map(({ p, r }) =>
+      client.storage
+        .deletePolicy({
+          resource: r,
+          principal: p,
+          operator,
+        })
+        .then(resolve, createTxFault),
+    ),
+  );
+
+  for (const [opt3, error3] of deleteTasks) {
+    if (!!error3) return [null, error3];
+  }
+
+  const _tasks = deleteTasks.map((task) => task[0] as TxResponse);
+
+  const txs = await client.txClient.multiTx([..._tasks, ..._opts]);
   const [simulateInfo, simulateError] = await txs
     .simulate({ denom: 'BNB' })
     .then(resolve, simulateFault);
