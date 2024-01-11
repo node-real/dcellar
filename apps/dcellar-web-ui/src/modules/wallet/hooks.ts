@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, usePublicClient, useWalletClient } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
-import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
+import { CROSS_CHAIN_ABI, INIT_FEE_DATA, MIN_AMOUNT, TOKENHUB_ABI, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
 import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
@@ -12,6 +12,9 @@ import { genTransferOutTx } from './utils/genTransferOutTx';
 import { useAppSelector } from '@/store';
 import { getClient } from '@/facade';
 import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
+import { ErrorResponse } from '@/facade/error';
+import { BSC_CHAIN_ID } from '@/base/env';
+import { calTransferInFee } from '@/facade/wallet';
 
 export const useGetFeeBasic = () => {
   const { transType } = useAppSelector((root) => root.wallet);
@@ -144,4 +147,59 @@ export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
 export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
   const { data: walletClient } = useWalletClient({ chainId });
   return useMemo(() => (walletClient ? walletClientToSigner(walletClient) : undefined), [walletClient]);
+}
+
+export const useTransferInFee = () => {
+  const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const [isGasLoading, setIsGasLoading] = useState(false);
+  const {
+    TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+    CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+  } = useAppSelector((root) => root.apollo);
+  const provider = useEthersProvider({ chainId: BSC_CHAIN_ID });
+  const signer = useEthersSigner({ chainId: BSC_CHAIN_ID });
+  const getFee = useCallback(
+    async (transferAmount: string) => {
+      if (!signer || !provider) return [null, 'No signer or provider'];
+      setIsGasLoading(true);
+      const [data, error] = await calTransferInFee(
+        {
+          amount: transferAmount,
+          address: loginAccount,
+          crossChainContractAddress: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+          tokenHubContract: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+          crossChainAbi: CROSS_CHAIN_ABI,
+          tokenHubAbi: TOKENHUB_ABI,
+        },
+        signer,
+        provider,
+      );
+      setIsGasLoading(false);
+      if (data) setFeeData(data);
+    },
+    [
+      APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+      APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+      loginAccount,
+      provider,
+      signer,
+    ],
+  );
+
+  useEffect(() => {
+    getFee(MIN_AMOUNT);
+  }, [getFee])
+
+  return {
+    feeData,
+    isLoading: isGasLoading,
+    crossChainContract: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+    signer,
+    tokenHubContract: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+    crossChainAbi: CROSS_CHAIN_ABI,
+    tokenHubAbi: TOKENHUB_ABI,
+    loginAccount,
+    getFee,
+  }
 }

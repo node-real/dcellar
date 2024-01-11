@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
-import BigNumber from 'bignumber.js';
 
 import { ChainBox } from '../components/ChainBox';
 import Amount from '../components/Amount';
@@ -16,8 +15,8 @@ import Container from '../components/Container';
 import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
-import { EOperation, TCalculateGas, TFeeData, TTransferInFromValues } from '../type';
-import { CROSS_CHAIN_ABI, INIT_FEE_DATA, TOKENHUB_ABI, WalletOperationInfos } from '../constants';
+import { TTransferInFromValues } from '../type';
+import { WalletOperationInfos } from '../constants';
 import { isRightChain } from '../utils/isRightChain';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
@@ -27,26 +26,16 @@ import { removeTrailingSlash } from '@/utils/string';
 import { broadcastFault } from '@/facade/error';
 import { Faucet } from '../components/Faucet';
 import { LargeAmountTip } from '../components/LargeAmountTip';
-import { useEthersProvider, useEthersSigner } from '../hooks';
+import { useTransferInFee } from '../hooks';
 
 interface TransferInProps {}
-
 export const TransferIn = memo<TransferInProps>(function TransferIn() {
-  const {
-    TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
-    CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
-  } = useAppSelector((root) => root.apollo);
   const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const router = useRouter();
   const [viewTxUrl, setViewTxUrl] = useState('');
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const provider = useEthersProvider({ chainId: BSC_CHAIN_ID });
-  const signer = useEthersSigner({chainId: BSC_CHAIN_ID})
-  const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
-  const [isGasLoading, setIsGasLoading] = useState(false);
   const { all } = useChainsBalance();
   const {
     handleSubmit,
@@ -68,59 +57,17 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   const balance = useMemo(() => {
     return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || '';
   }, [all]);
-  const getFee = useCallback(
-    async ({ amountIn, type = 'content_value' }: { amountIn: string; type?: TCalculateGas }) => {
-      if (signer && amountIn) {
-        try {
-          setIsGasLoading(true);
-          const crossChainContract = new ethers.Contract(
-            APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
-            CROSS_CHAIN_ABI,
-            signer!,
-          );
-          const [relayFee, ackRelayFee] = await crossChainContract.getRelayFees();
-          const relayerFee = relayFee.add(ackRelayFee);
-          const fData = await provider.getFeeData();
-          const amountInFormat = ethers.utils.parseEther(String(amountIn));
 
-          // bsc simulate gas fee need real amount.
-          const transferInAmount =
-            type === 'content_value'
-              ? amountInFormat
-              : amountInFormat.sub(ackRelayFee).sub(relayFee);
-          const totalAmount =
-            type === 'content_value'
-              ? amountInFormat.add(ackRelayFee).add(relayFee)
-              : amountInFormat;
-          const tokenHubContract = new ethers.Contract(
-            APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
-            TOKENHUB_ABI,
-            signer!,
-          );
-          const estimateGas = await tokenHubContract.estimateGas.transferOut(
-            address,
-            transferInAmount,
-            {
-              value: totalAmount,
-            },
-          );
-          const gasFee = fData.gasPrice && estimateGas.mul(fData.gasPrice);
-
-          const finalData = {
-            gasFee: BigNumber(gasFee ? ethers.utils.formatEther(gasFee) : '0'),
-            relayerFee: BigNumber(ethers.utils.formatEther(relayerFee)),
-          };
-          setIsGasLoading(false);
-          setFeeData(finalData);
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.log('getGas error', e);
-          setIsGasLoading(false);
-        }
-      }
-    },
-    [address, provider, signer],
-  );
+  const {
+    isLoading: isGasLoading,
+    feeData,
+    signer,
+    loginAccount: address,
+    tokenHubContract,
+    tokenHubAbi,
+    crossChainAbi,
+    crossChainContract,
+  } = useTransferInFee();
 
   const isShowFee = useCallback(() => {
     return isEmpty(errors) && !isEmpty(inputAmount);
@@ -131,22 +78,20 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
     onOpen();
 
     try {
-      const crossChainContract = new ethers.Contract(
-        APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS || '',
-        CROSS_CHAIN_ABI,
+      const cInstance = new ethers.Contract(
+        crossChainContract,
+        crossChainAbi,
         signer!,
       );
-      const tokenHubContract = new ethers.Contract(
-        APOLLO_TOKEN_HUB_CONTRACT_ADDRESS || '',
-        TOKENHUB_ABI,
-        signer!,
-      );
+      const tInstance = new ethers.Contract(tokenHubContract, tokenHubAbi, signer!);
+
       const transferInAmount = data.amount;
       const amount = ethers.utils.parseEther(transferInAmount.toString());
-      const [relayFee, ackRelayFee] = await crossChainContract.getRelayFees();
+      const [relayFee, ackRelayFee] = await cInstance.getRelayFees();
       const relayerFee = relayFee.add(ackRelayFee);
       const totalAmount = relayerFee.add(amount);
-      const tx = await tokenHubContract.transferOut(address, amount, {
+
+      const tx = await tInstance.transferOut(address, amount, {
         value: totalAmount,
       });
 
@@ -174,19 +119,6 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
     onClose();
   };
 
-  useEffect(() => {
-    if (
-      !isEmpty(errors) ||
-      !isRight ||
-      isEmpty(inputAmount) ||
-      transType !== EOperation.transfer_in
-    ) {
-      return;
-    }
-
-    getFee({ amountIn: inputAmount });
-  }, [getFee, isRight, transType, inputAmount, errors]);
-
   return (
     <>
       <Container>
@@ -207,7 +139,6 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
             watch={watch}
             feeData={feeData}
             setValue={setValue}
-            getGasFee={getFee}
             maxDisabled={isGasLoading}
           />
           {isShowFee() ? (

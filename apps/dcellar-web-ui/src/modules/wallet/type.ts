@@ -2,7 +2,6 @@ import BigNumber from 'bignumber.js';
 
 export type TOperation = 'send' | 'transfer_in' | 'transfer_out';
 
-export type TCalculateGas = 'content_value' | 'total_value';
 
 export enum EOperation {
   'send' = 'send',
@@ -31,12 +30,6 @@ export type TSendFromValues = TAmountFieldValue & TAddressFieldValue;
 
 export type TWalletFromValues = TTransferInFromValues | TTransferOutFromValues | TSendFromValues;
 
-export type GetFeeType = ({
-  amountIn,
-  type,
-}: {
-  amountIn: string;
-  type?: TCalculateGas | undefined;
-}) => Promise<void>;
+export type GetFeeType = (amount: string) => Promise<void>;
 
 export type TNormalObject = { [key: string]: string };
