@@ -21,7 +21,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect } from 'ahooks';
 import { queryLockFee } from '@/facade/object';
 import { formatLockFee } from '@/utils/object';
-import { AllBucketInfo, setupBucketQuota } from '@/store/slices/bucket';
+import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
 import { commonFault } from '@/facade/error';
 import { resolve } from '@/facade/common';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -67,7 +67,7 @@ export const renderFee = (
           )}
         </Text>
         {keyIcon && (
-          <Box ml="6px" mt={'-5px'}>
+          <Box>
             {keyIcon}
           </Box>
         )}
@@ -81,7 +81,7 @@ export const renderFee = (
 
 interface CancelObjectOperationProps {
   selectObjectInfo: ObjectMeta;
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
   refetch?: () => void;
@@ -178,6 +178,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
             gap={'4px'}
             flexDirection={'column'}
             borderRadius={'12px'}
+            alignItems={'center'}
           >
             {renderFee(
               'Prepaid fee refund',
@@ -194,7 +195,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                       lineHeight={'150%'}
                       wordBreak={'break-word'}
                     >
-                      We will unlock the storage fee after you cancel the object.
+                      We will unlock the storage fee after you cancel the object. 111
                     </Box>
                   </Box>
                 }

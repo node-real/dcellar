@@ -5,13 +5,17 @@ import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/
 import { toast } from '@totejs/uikit';
 import { find, isEmpty, omit } from 'lodash-es';
 import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
-import { GetUserBucketsResponse, IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { setAuthModalOpen } from '@/store/slices/global';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { convertObjectKey } from '@/utils/common';
 
 export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | '';
 
-export type BucketProps = GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
-export type AllBucketInfo = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
+export type BucketProps = BucketMetaWithVGF;
+export type TBucket = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
 
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
@@ -21,7 +25,7 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
 };
 
 export interface BucketState {
-  bucketInfo: Record<string, AllBucketInfo>;
+  bucketInfo: Record<string, TBucket>;
   buckets: Record<string, BucketItem[]>;
   quotas: Record<string, IQuotaProps>;
   loading: boolean;
@@ -32,6 +36,8 @@ export interface BucketState {
   owner: boolean;
   editQuota: string[];
   bucketOperation: [string, BucketOperationsType];
+  editTags: [string, string];
+  editTagsData: ResourceTags_Tag[];
 }
 
 const initialState: BucketState = {
@@ -45,6 +51,8 @@ const initialState: BucketState = {
   owner: true,
   editQuota: ['', ''],
   bucketOperation: ['', ''],
+  editTags: ['', '',],
+  editTagsData: [DEFAULT_TAG]
 };
 
 export const bucketSlice = createSlice({
@@ -75,7 +83,7 @@ export const bucketSlice = createSlice({
     setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
       state.quotaLoading = payload;
     },
-    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: AllBucketInfo }>) {
+    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: TBucket }>) {
       const { address, bucket } = payload;
       if (!address) return;
       const bucketName = bucket.BucketName;
@@ -107,6 +115,17 @@ export const bucketSlice = createSlice({
         })
         .sort((a, b) => b.CreateAt - a.CreateAt);
     },
+    setEditBucketTags(state, { payload }: PayloadAction<[string, string]>) {
+      state.editTags = payload;
+    },
+    setEditBucketTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
+      state.editTagsData = payload;
+    },
+    setBucketTags(state, { payload }: PayloadAction<{bucketName: string, tags: ResourceTags_Tag[] }>) {
+      const { bucketName, tags } = payload;
+      const newTags = tags.map(item => convertObjectKey(item, 'uppercase'));
+      state.bucketInfo[bucketName]['Tags']['Tags'] = newTags as Extract<TBucket['Tags'], { 'Tags': any }>['Tags'];
+    }
   },
 });
 
@@ -125,7 +144,7 @@ export const setupBucket =
     const bucket = {
       ...res?.body?.GfSpGetBucketMetaResponse.Bucket,
       ...res?.body?.GfSpGetBucketMetaResponse.Bucket.BucketInfo,
-    } as AllBucketInfo;
+    } as TBucket;
     const { loginAccount } = getState().persist;
     dispatch(setBucketInfo({ address: address || loginAccount, bucket: bucket }));
   };
@@ -214,6 +233,9 @@ export const {
   setEditQuota,
   setQuotaLoading,
   setBucketOperation,
+  setBucketTags,
+  setEditBucketTags,
+  setEditBucketTagsData,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

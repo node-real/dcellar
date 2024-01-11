@@ -10,6 +10,7 @@ import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { getStoreFeeParams } from '@/facade/payment';
 import { getClient } from '@/facade';
 import { AuthPostAction } from '@/context/off-chain-auth/OffChainAuthContext';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -77,6 +78,7 @@ export type UploadFile = {
   checksum: string[];
   status: TUploadStatus;
   visibility: VisibilityType;
+  tags?: ResourceTags_Tag[];
   createHash: string;
   msg: string;
   progress: number;
@@ -580,31 +582,32 @@ export const progressFetchList =
     await dispatch(refreshTaskFolder(task));
   };
 export const addTasksToUploadQueue =
-  (spAddress: string, visibility: VisibilityType) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
-    const { waitQueue } = getState().global;
-    const { bucketName, folders } = getState().object;
-    const { loginAccount } = getState().persist;
-    const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
-    if (!wQueue || wQueue.length === 0) return;
-    const newUploadQueue = wQueue.map((task) => {
-      const uploadTask: UploadFile = {
-        bucketName,
-        prefixFolders: folders,
-        spAddress,
-        id: task.id,
-        waitFile: task,
-        msg: '',
-        status: 'WAIT',
-        progress: 0,
-        checksum: [],
-        visibility,
-        createHash: '',
-      };
-      return uploadTask;
-    });
-    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
-  };
+  (spAddress: string, visibility: VisibilityType, tags: ResourceTags_Tag[]) =>
+    async (dispatch: AppDispatch, getState: GetState) => {
+      const { waitQueue } = getState().global;
+      const { bucketName, folders } = getState().object;
+      const { loginAccount } = getState().persist;
+      const wQueue = waitQueue.filter((t) => t.status === 'WAIT');
+      if (!wQueue || wQueue.length === 0) return;
+      const newUploadQueue = wQueue.map((task) => {
+        const uploadTask: UploadFile = {
+          bucketName,
+          prefixFolders: folders,
+          spAddress,
+          id: task.id,
+          waitFile: task,
+          msg: '',
+          status: 'WAIT',
+          progress: 0,
+          checksum: [],
+          visibility,
+          createHash: '',
+          tags,
+        };
+        return uploadTask;
+      });
+      dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
+    };
 
 export const addSignedTasksToUploadQueue =
   ({
@@ -613,56 +616,59 @@ export const addSignedTasksToUploadQueue =
     checksums,
     waitFile,
     createHash,
+    tags,
   }: {
     spAddress: string;
     visibility: VisibilityType;
     checksums: string[];
     waitFile: WaitFile;
     createHash: string;
+    tags: ResourceTags_Tag[];
   }) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
-    const { bucketName, folders } = getState().object;
-    const { loginAccount } = getState().persist;
+    async (dispatch: AppDispatch, getState: GetState) => {
+      const { bucketName, folders } = getState().object;
+      const { loginAccount } = getState().persist;
 
-    const newUploadQueue: UploadFile = {
-      bucketName,
-      prefixFolders: folders,
-      spAddress,
-      id: waitFile.id,
-      waitFile: waitFile,
-      msg: '',
-      status: 'SIGNED',
-      progress: 0,
-      checksum: checksums,
-      visibility,
-      createHash,
+      const newUploadQueue: UploadFile = {
+        bucketName,
+        prefixFolders: folders,
+        spAddress,
+        id: waitFile.id,
+        waitFile: waitFile,
+        msg: '',
+        status: 'SIGNED',
+        progress: 0,
+        checksum: checksums,
+        visibility,
+        createHash,
+        tags: tags,
+      };
+      dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
     };
-    dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
-  };
 
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadFile; errorMsg: string }) =>
-  async (dispatch: AppDispatch) => {
-    const isFolder = task.waitFile.name.endsWith('/');
-    dispatch(
-      updateUploadTaskMsg({
-        account,
-        id: task.id,
-        msg: errorMsg || 'The object failed to be created.',
-      }),
-    );
-    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
-  };
+    async (dispatch: AppDispatch) => {
+      const isFolder = task.waitFile.name.endsWith('/');
+      dispatch(
+        updateUploadTaskMsg({
+          account,
+          id: task.id,
+          msg: errorMsg || 'The object failed to be created.',
+        }),
+      );
+      isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+    };
 
 export const setupWaitTaskErrorMsg =
   ({ id, errorMsg }: { id: number; errorMsg: string }) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
-    const { waitQueue } = getState().global;
-    const task = waitQueue.find((t) => t.id === id);
-    if (!task) return;
-    const isFolder = task.name.endsWith('/');
-    dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
-  };
+    async (dispatch: AppDispatch, getState: GetState) => {
+      const { waitQueue } = getState().global;
+      const task = waitQueue.find((t) => t.id === id);
+      if (!task) return;
+      const isFolder = task.name.endsWith('/');
+      dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
+      isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+    };
 
 export default globalSlice.reducer;

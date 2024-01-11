@@ -10,14 +10,19 @@ import {
   toast,
 } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectGroupList, setupGroups } from '@/store/slices/group';
+import {
+  selectGroupList,
+  setEditGroupTags,
+  setEditGroupTagsData,
+  setupGroups,
+} from '@/store/slices/group';
 import { InputItem } from '@/components/formitems/InputItem';
 import { TextareaItem } from '@/components/formitems/TextareaItem';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
 import { Fees } from '@/modules/group/components/Fees';
-import { MsgCreateGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { createGroup } from '@/facade/group';
+import { MsgCreateGroupTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
+import { getCreateGroupTx, getUpdateGroupTagsTx } from '@/facade/group';
 import { useAccount } from 'wagmi';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
@@ -25,6 +30,10 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { Animates } from '@/components/AnimatePng';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { useUnmount } from 'ahooks';
+import { broadcastMulTxs } from '@/facade/common';
 
 interface CreateGroupOperationProps {
   onClose?: () => void;
@@ -42,7 +51,9 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
-
+  const { editTagsData } = useAppSelector((root) => root.group);
+  const validTags = getValidTags(editTagsData);
+  const isSetTags = validTags.length > 0;
   const validateForm = (values: Record<'name' | 'desc', string>) => {
     const { name, desc } = values;
     const _error = { ...error };
@@ -72,6 +83,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
   };
 
   const errorHandler = (error: string) => {
+    setLoading(false);
     switch (error) {
       case E_OFF_CHAIN_AUTH:
         setOpenAuthModal();
@@ -89,7 +101,12 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     }
   };
 
-  const fees = [{ label: 'Gas fee', type: MsgCreateGroupTypeUrl }];
+  const fees = [
+    {
+      label: 'Gas fee',
+      types: isSetTags ? [MsgCreateGroupTypeUrl, MsgSetTagTypeUrl] : [MsgCreateGroupTypeUrl],
+    },
+  ];
 
   const valid = !(error.name || error.desc);
 
@@ -97,23 +114,50 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     const error = validateForm(form);
     if (error.name || error.desc) return;
     setLoading(true);
-    const payload = {
+    const payload: MsgCreateGroup = {
       creator: loginAccount,
       groupName: form.name,
       extra: form.desc,
-      members: [loginAccount],
     };
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Creating Group', desc: WALLET_CONFIRM }),
     );
-    const [txRes, txError] = await createGroup(payload, connector!);
+
+    const txs: TxResponse[] = [];
+    const [groupTx, error1] = await getCreateGroupTx(payload);
+    if (!groupTx) return errorHandler(error1);
+
+    txs.push(groupTx);
+
+    if (isSetTags) {
+      const [tagsTx, error2] = await getUpdateGroupTagsTx({
+        address: payload.creator,
+        groupName: payload.groupName,
+        tags: validTags,
+      });
+      if (!tagsTx) return errorHandler(error2);
+
+      txs.push(tagsTx);
+    }
+
+    const [txRes, error3] = await broadcastMulTxs({
+      txs: txs,
+      address: payload.creator,
+      connector: connector!,
+    });
     setLoading(false);
-    if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
+    if (!txRes || txRes.code !== 0) return errorHandler(error3 || UNKNOWN_ERROR);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Group created successfully!' });
     dispatch(setupGroups(loginAccount));
     onClose();
   };
+
+  const onAddTags = () => {
+    dispatch(setEditGroupTags(['new', 'create']));
+  };
+
+  useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));
 
   return (
     <>
@@ -160,6 +204,14 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.desc]} />
+        </FormControl>
+        <FormControl mb={16}>
+          <FormLabel>
+            <Text fontWeight={500} mb={8}>
+              Tags
+            </Text>
+            <EditTags onClick={onAddTags} tagsData={editTagsData} />
+          </FormLabel>
         </FormControl>
       </QDrawerBody>
       <QDrawerFooter
