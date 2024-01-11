@@ -116,8 +116,8 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
 
     useAsyncEffect(async () => {
       const params = {
-        createAt: Long.fromInt(objectInfo.CreateAt),
-        payloadSize: Long.fromInt(objectInfo.PayloadSize),
+        createAt: Long.fromString(String(objectInfo.CreateAt)),
+        payloadSize: Long.fromString(String(objectInfo.PayloadSize)),
         primarySpAddress: primarySp.operatorAddress,
       };
       const [data, error] = await queryLockFee(params);
