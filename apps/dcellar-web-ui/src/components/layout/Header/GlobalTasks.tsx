@@ -138,7 +138,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       axios
         .put(url, task.waitFile.file, {
           async onUploadProgress(progressEvent) {
-            const progress = Math.round(
+            const progress = Math.floor(
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             await dispatch(progressFetchList(task));
