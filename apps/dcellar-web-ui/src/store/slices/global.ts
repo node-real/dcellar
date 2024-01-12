@@ -137,11 +137,6 @@ export const globalSlice = createSlice({
       const task = find<UploadFile>(state.uploadQueue[account], (f) => f.id === id);
       if (!task) return;
       task.progress = progress;
-      if (progress >= 100) {
-        task.status = 'SEAL';
-        state.sealingTs[task.id] = Date.now();
-        // task.waitFile.file = {} as any;
-      }
     },
     updateUploadStatus(
       state,
@@ -150,6 +145,11 @@ export const globalSlice = createSlice({
       const { account, ids, status } = payload;
       const queue = state.uploadQueue[account] || [];
       state.uploadQueue[account] = queue.map((q) => (ids.includes(q.id) ? { ...q, status } : q));
+      if (status === 'SEAL') {
+        ids.forEach((id) => {
+          state.sealingTs[id] = Date.now();
+        });
+      }
     },
     updateUploadChecksum(
       state,

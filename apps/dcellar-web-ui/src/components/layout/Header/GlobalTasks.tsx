@@ -157,6 +157,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
             'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
           },
         })
+        .then(async () => {
+          // The connection is closed by this time.
+          dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
+        })
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
           const { message } = await parseErrorXml(e);
