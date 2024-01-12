@@ -138,7 +138,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       axios
         .put(url, task.waitFile.file, {
           async onUploadProgress(progressEvent) {
-            const progress = Math.round(
+            const progress = Math.floor(
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             await dispatch(progressFetchList(task));
@@ -156,6 +156,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
             'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
             'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
           },
+        })
+        .then(async () => {
+          // The connection is closed by this time.
+          dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
         })
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
