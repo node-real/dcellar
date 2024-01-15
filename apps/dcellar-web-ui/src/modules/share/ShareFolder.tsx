@@ -19,6 +19,7 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useUnmount } from 'ahooks';
 import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
 import { Global, css } from '@emotion/react';
+import { setupBucket } from '@/store/slices/bucket';
 
 interface ShareFolderProps {
   fileName: string;
@@ -38,10 +39,12 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
   const router = useRouter();
   const { file } = router.query;
   const { objectsInfo, shareModePath } = useAppSelector((root) => root.object);
+  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const prefix = decodeObjectName(shareModePath || (file as string));
   const items = trimEnd(prefix, '/').split('/');
   const [bucketName, ...folders] = items;
   const info = objectsInfo[prefix];
+  const bucket = bucketInfo[bucketName];
   const omitLen = (file as string).split('/').length;
 
   useEffect(() => {
@@ -51,9 +54,19 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
     };
   }, [prefix, shareModePath, dispatch]);
 
+  useEffect(() => {
+    if (!fileName && bucketName) {
+      dispatch(setupBucket(bucketName));
+    }
+  }, [bucketName, fileName, dispatch]);
+
   useUnmount(() => {
     dispatch(setShareModePath(''));
   });
+
+  const hash = fileName
+    ? `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${info?.CreateTxHash}`
+    : `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${bucket?.CreateTxHash}`;
 
   return (
     <Box maxW={'calc(100% - 40px)'} minH={'100%'} w={'100%'}>
@@ -62,7 +75,7 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
         <Flex alignItems={'center'} gap={24} p={24} bg={'#FAFAFA'}>
           <IconFont w={64} type={'detail-folder'} />
           <Text fontSize={16} fontWeight={600} flex={1}>
-            {fileName}
+            {fileName || bucketName}
           </Text>
           <DCLink
             color={'#474D57'}
@@ -70,7 +83,7 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
             display={'flex'}
             alignItems={'center'}
             alignSelf={'start'}
-            href={`${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${info?.CreateTxHash}`}
+            href={hash}
           >
             Check on Explorer <IconFont type={'external'} w={14} />
           </DCLink>

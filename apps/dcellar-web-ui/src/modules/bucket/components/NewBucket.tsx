@@ -30,7 +30,7 @@ export const NewBucket = memo<NewBucketProps>(function NewBucket({ showRefresh =
           leftIcon={<IconFont type="refresh" w={24} />}
         />
       )}
-      <DCButton onClick={() => dispatch(setBucketOperation(['', 'create']))}>
+      <DCButton onClick={() => dispatch(setBucketOperation({ operation: ['', 'create'] }))}>
         Create Bucket
       </DCButton>
     </Flex>

@@ -13,6 +13,7 @@ import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Commo
 import { Avatar } from '@/components/Avatar';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
+import { setBucketOperation } from '@/store/slices/bucket';
 
 interface SharePermissionProps {
   selectObjectInfo: ObjectMeta;
@@ -40,9 +41,10 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
   selectObjectInfo,
 }) {
   const dispatch = useAppDispatch();
-  const { bucketName, objectPolicies } = useAppSelector((root) => root.object);
+  const { bucketName: _bucketName, objectPolicies } = useAppSelector((root) => root.object);
   const { owner } = useAppSelector((root) => root.bucket);
   const objectInfo = selectObjectInfo.ObjectInfo;
+  const bucketName = selectObjectInfo.ObjectInfo.BucketName || _bucketName;
 
   useAsyncEffect(async () => {
     dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
@@ -100,14 +102,18 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
             {owner && (
               <ManageAccess
                 variant={'ghost'}
-                onClick={() =>
+                onClick={() => {
+                  if (objectInfo.ObjectName === '') {
+                    dispatch(setBucketOperation({ level: 1, operation: [bucketName, 'share'] }));
+                    return;
+                  }
                   dispatch(
                     setObjectOperation({
                       level: 1,
                       operation: [`${bucketName}/${objectInfo.ObjectName}`, 'share'],
                     }),
-                  )
-                }
+                  );
+                }}
               >
                 Manage Access
               </ManageAccess>

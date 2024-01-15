@@ -31,6 +31,8 @@ import { convertObjectKey } from '@/utils/common';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useUnmount } from 'ahooks';
 import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { SharePermission } from '@/modules/object/components/SharePermission';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -41,6 +43,24 @@ export const Label = ({ children }: PropsWithChildren) => (
 interface DetailBucketOperationProps {
   selectedBucketInfo: TBucket;
 }
+
+export const defaultNullObject: ObjectMeta = {
+  ObjectInfo: {
+    ObjectName: '',
+    PayloadSize: 0,
+    Visibility: 3,
+    ObjectStatus: 1,
+  } as any,
+  LockedBalance: '',
+  Removed: false,
+  UpdateAt: 0,
+  DeleteAt: 0,
+  DeleteReason: '',
+  Operator: '',
+  CreateTxHash: '',
+  UpdateTxHash: '',
+  SealTxHash: '',
+};
 
 export const DetailBucketOperation = memo<DetailBucketOperationProps>(function DetailDrawer({
   selectedBucketInfo,
@@ -255,6 +275,14 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
 
+  const nullObjectMeta: ObjectMeta = {
+    ...defaultNullObject,
+    ObjectInfo: {
+      ...defaultNullObject.ObjectInfo,
+      BucketName: selectedBucketInfo.BucketName,
+    },
+  };
+
   return (
     <>
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
@@ -318,8 +346,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
             </Text>
           </Box>
         </Flex>
-        <Divider marginBottom={24} />
+        <Divider mb={24} />
         {getContent()}
+        <Divider mb={24} mt={8} />
+        <SharePermission selectObjectInfo={nullObjectMeta} />
       </QDrawerBody>
       <QDrawerFooter>
         <DCButton size="lg" w={'100%'} onClick={manageQuota}>

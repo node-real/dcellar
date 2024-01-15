@@ -38,6 +38,7 @@ const Actions: MenuOption[] = [
     value: 'marketplace',
   },
   { label: 'View Details', value: 'detail' },
+  { label: 'Share', value: 'share' },
   { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
 
@@ -72,7 +73,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       openLink(link);
       return;
     }
-    return dispatch(setBucketOperation([record.BucketName, menu]));
+    return dispatch(setBucketOperation({ operation: [record.BucketName, menu] }));
   };
 
   const columns: ColumnProps<BucketItem>[] = [
@@ -111,6 +112,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
           : Actions.filter((a) => a.value !== 'marketplace');
         return (
           <ActionMenu
+            operations={['share']}
             menus={_actions}
             onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
           />

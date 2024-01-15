@@ -2,7 +2,10 @@ import { NextPage, NextPageContext } from 'next';
 import { last, trimEnd } from 'lodash-es';
 import { decodeObjectName } from '@/utils/string';
 import React, { ReactNode, useState } from 'react';
-import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import {
+  BucketInfo,
+  ObjectInfo,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
 import { Box, Flex, Grid } from '@totejs/uikit';
@@ -51,14 +54,15 @@ const SharePage: NextPage<PageProps> = (props) => {
   const isMounted = useIsMounted();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
+  const [bucketInfo, setBucketInfo] = useState<BucketInfo | null>();
   const { objectName, fileName, bucketName } = props;
-  const title = `${bucketName} - ${fileName}`;
+  const title = `${bucketName}${fileName ? `- ${fileName}` : ''}`;
   const { loginAccount } = useAppSelector((root) => root.persist);
   const dispatch = useAppDispatch();
   const [getPermission, setGetPermission] = useState(true);
   const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
   const { logout } = useLogin();
-  const isFolder = objectName.endsWith('/');
+  const isFolder = objectName.endsWith('/') || objectName === '';
 
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE || isFolder;
   const walletConnected = !!loginAccount;
@@ -72,16 +76,25 @@ const SharePage: NextPage<PageProps> = (props) => {
       // bucket not exist
       setObjectInfo(null);
       setQuotaData(null);
+      setBucketInfo(null);
       return;
     }
     const sp = await dispatch(getPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId));
+
+    setBucketInfo(bucketInfo);
     if (!sp) {
-      // bucket not exist
       setObjectInfo(null);
       setQuotaData(null);
       return;
     }
     setPrimarySp(sp);
+
+    if (!objectName) {
+      setObjectInfo(null);
+      setQuotaData(null);
+      return;
+    }
+
     const params = {
       bucketName,
       objectName,
@@ -108,7 +121,7 @@ const SharePage: NextPage<PageProps> = (props) => {
   }, [oneSp, walletConnected]);
 
   useAsyncEffect(async () => {
-    if (!loginAccount) return;
+    if (!loginAccount || !bucketName) return;
     const res = await hasObjectPermission(
       bucketName,
       objectName,
@@ -128,6 +141,8 @@ const SharePage: NextPage<PageProps> = (props) => {
   );
 
   if (!isMounted) return header;
+
+  // todo refactor
   return (
     <>
       {header}
@@ -151,25 +166,26 @@ const SharePage: NextPage<PageProps> = (props) => {
                 <Loading />
               ) : isPrivate && !walletConnected ? (
                 <ShareLogin />
-              ) : objectInfo === null || quotaData === null ? (
+              ) : ((objectInfo === null || quotaData === null) && objectName) ||
+                (!objectName && bucketInfo === null) ? (
                 <ShareError type={!objectInfo ? E_NOT_FOUND : E_UNKNOWN} />
               ) : (
                 <>
                   {isPrivate && !isOwner && !getPermission ? (
                     <ShareError type={E_PERMISSION_DENIED} />
-                  ) : isFolder ? (
+                  ) : isFolder || !objectName ? (
                     <ShareFolder
                       primarySp={primarySp}
                       loginAccount={loginAccount as string}
-                      quotaData={quotaData}
+                      quotaData={quotaData!}
                       fileName={fileName}
                     />
                   ) : (
                     <SharedFile
                       primarySp={primarySp}
                       loginAccount={loginAccount as string}
-                      objectInfo={objectInfo}
-                      quotaData={quotaData}
+                      objectInfo={objectInfo!}
+                      quotaData={quotaData!}
                       fileName={fileName}
                     />
                   )}
@@ -200,9 +216,7 @@ SharePage.getInitialProps = async (context: NextPageContext) => {
 
   const [bucketName, ...path] = decodeObjectName(Array<string>().concat(file)[0]).split('/');
   const objectName = path.join('/');
-  const fileName = last(trimEnd(objectName, '/').split('/'));
-
-  if (!fileName) return redirect();
+  const fileName = !objectName ? '' : last(trimEnd(objectName, '/').split('/')) || '';
 
   return { bucketName, fileName, objectName };
 };
