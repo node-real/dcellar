@@ -1,4 +1,3 @@
-import { IconFont } from '@/components/IconFont';
 import { Center, CircleProps, Flex, FlexProps, LinkProps, Tooltip } from '@totejs/uikit';
 
 export const Card = ({ children, ...props }: FlexProps) => {
@@ -29,6 +28,7 @@ export const CircleLink = ({ children, href, title, ...props }: CircleProps & Li
         h={24}
         href={href}
         as={'a'}
+        target={'_blank'}
         border={'1px solid readable.border'}
         borderRadius={12}
         _hover={{

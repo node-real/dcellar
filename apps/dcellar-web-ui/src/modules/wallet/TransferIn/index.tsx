@@ -1,6 +1,5 @@
 import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { useNetwork } from 'wagmi';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
@@ -16,8 +15,6 @@ import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env'
 import { WalletButton } from '../components/WalletButton';
 import { Fee } from '../components/Fee';
 import { TTransferInFromValues } from '../type';
-import { WalletOperationInfos } from '../constants';
-import { isRightChain } from '../utils/isRightChain';
 import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
@@ -48,11 +45,6 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
   } = useForm<TTransferInFromValues>({
     mode: 'all',
   });
-  const { chain } = useNetwork();
-  const curInfo = WalletOperationInfos[transType];
-  const isRight = useMemo(() => {
-    return isRightChain(chain?.id, curInfo?.chainId);
-  }, [chain?.id, curInfo?.chainId]);
   const inputAmount = getValues('amount');
   const balance = useMemo(() => {
     return all.find((item) => item.chainId === BSC_CHAIN_ID)?.availableBalance || '';
@@ -62,6 +54,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
     isLoading: isGasLoading,
     feeData,
     signer,
+    getFee,
     loginAccount: address,
     tokenHubContract,
     tokenHubAbi,
@@ -139,6 +132,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
             watch={watch}
             feeData={feeData}
             setValue={setValue}
+            refreshFee={getFee}
             maxDisabled={isGasLoading}
           />
           {isShowFee() ? (
