@@ -10,7 +10,7 @@ import {
   Link,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
@@ -43,6 +43,7 @@ type AmountProps = {
   feeData: TFeeData;
   errors: FieldErrors;
   bankBalance?: string;
+  settlementFee?: string;
   refreshFee?: (transferAmount: string) => Promise<ErrorResponse | [TFeeData, null]>;
   register: UseFormRegister<TWalletFromValues>;
   watch: UseFormWatch<TWalletFromValues>;
@@ -53,6 +54,7 @@ type AmountProps = {
 };
 
 const AmountErrors = {
+  validateWithdrawStaticBalance: "The payment account doesn't have enough balance to pay settlement fee.",
   validateWithdrawBankBalance: "The owner account doesn't have enough balance to pay gas fee.",
   validateBalance: 'Insufficient balance.',
   validateFormat: 'Invalid amount.',
@@ -88,13 +90,14 @@ export const Amount = ({
   errors,
   maxDisabled,
   bankBalance,
+  settlementFee,
   register,
   refreshFee,
   watch,
   setValue,
 }: AmountProps) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { transType, fromAccount } = useAppSelector((root) => root.wallet);
+  const { transType } = useAppSelector((root) => root.wallet);
   const defaultFee = DefaultFee[transType];
   const curInfo = WalletOperationInfos[transType];
   const { gasFee, relayerFee } = feeData;
@@ -126,7 +129,10 @@ export const Amount = ({
   const onMaxClick = async () => {
     if (!balance || !feeData) return setValue('amount', '0', { shouldValidate: true });
     if (txType === 'withdraw_from_payment_account') {
-      return setValue('amount', BN(balance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(), {
+      const cal = BN(balance).minus(settlementFee || '0').dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString();
+      const maxAmount = BN(cal).lt(0) ? '0' : cal;
+
+      return setValue('amount', maxAmount, {
         shouldValidate: true,
       });
     }
@@ -144,7 +150,7 @@ export const Amount = ({
 
   const validateBalance = (val: string) => {
     if (txType === 'withdraw_from_payment_account') {
-      return BN(balance).isGreaterThanOrEqualTo(val);
+      return BN(balance).isGreaterThanOrEqualTo(BN(val).plus(settlementFee || '0'));
     }
 
     let totalAmount = BigNumber(0);
@@ -176,6 +182,10 @@ export const Amount = ({
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(val).lt(100);
   };
+  const validateWithdrawStaticBalance = (val: string) => {
+    if (txType !== 'withdraw_from_payment_account') return true;
+    return BN(balance).isGreaterThanOrEqualTo(BN(settlementFee || '0').plus(val));
+  }
   const onPaste = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -231,6 +241,7 @@ export const Amount = ({
               min: MIN_AMOUNT,
               validate: {
                 validateWithdrawBankBalance,
+                validateWithdrawStaticBalance,
                 validateBalance,
                 validatePrecision,
                 validateWithdrawMaxAmountError,

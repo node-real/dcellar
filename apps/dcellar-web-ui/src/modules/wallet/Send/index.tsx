@@ -417,6 +417,7 @@ export const Send = memo<SendProps>(function Send() {
             bankBalance={bankBalance}
             feeData={feeData}
             setValue={setValue}
+            settlementFee={settlementFee}
             maxDisabled={isLoading}
           />
           {isShowFee() ? (
