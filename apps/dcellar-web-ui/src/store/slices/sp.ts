@@ -7,7 +7,7 @@ import {
 import { AppDispatch, GetState } from '@/store';
 import { chunk, find, omit, random, sortBy } from 'lodash-es';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { TBucket } from '@/store/slices/bucket';
 import { RootState } from '@/store/reducers';
 import { getDomain } from '@/utils/bom';
 
@@ -124,7 +124,7 @@ export const spSlice = createSlice({
   },
 });
 
-export const selectBucketSp = (bucket: AllBucketInfo) => (state: RootState) => {
+export const selectBucketSp = (bucket: TBucket) => (state: RootState) => {
   const { allSps } = state.sp;
   return find<SpItem>(allSps, (sp) => String(sp.id) === String(bucket.Vgf.PrimarySpId));
 };

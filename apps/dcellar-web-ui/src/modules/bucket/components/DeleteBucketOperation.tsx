@@ -15,7 +15,7 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { AllBucketInfo, setupBuckets } from '@/store/slices/bucket';
+import { TBucket, setupBuckets } from '@/store/slices/bucket';
 import { selectBucketSp } from '@/store/slices/sp';
 import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import { BN } from '@/utils/math';
@@ -25,7 +25,7 @@ import { Animates } from '@/components/AnimatePng';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 
 interface DeleteBucketOperationProps {
-  selectedBucketInfo: AllBucketInfo;
+  selectedBucketInfo: TBucket;
   onClose?: () => void;
 }
 

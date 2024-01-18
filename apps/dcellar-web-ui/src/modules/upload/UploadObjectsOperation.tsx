@@ -37,6 +37,8 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   SELECT_OBJECT_NUM_LIMIT,
+  setEditObjectTags,
+  setEditObjectTagsData,
   setStatusDetail,
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
@@ -74,8 +76,7 @@ import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { reverseVisibilityType } from '@/constants/legacy';
 import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { resolve } from '@/facade/common';
-import { signTypedDataCallback } from '@/facade/wallet';
+import { broadcastTx, resolve } from '@/facade/common';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
@@ -88,6 +89,7 @@ import {
 } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
 import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -108,7 +110,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const dispatch = useAppDispatch();
     const checksumApi = useChecksumApi();
     const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { bucketName, path, prefix, objects, folders } = useAppSelector((root) => root.object);
+    const { bucketName, path, prefix, objects, folders, editTagsData } = useAppSelector(
+      (root) => root.object,
+    );
     const { bucketInfo } = useAppSelector((root) => root.bucket);
     const { loginAccount } = useAppSelector((root) => root.persist);
     const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
@@ -125,6 +129,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
     const ref = useRef(null);
     const scroll = useScroll(ref) || defaultScroll;
+    const validTags = getValidTags(editTagsData);
 
     const getErrorMsg = (type: string) => {
       return OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -270,33 +275,29 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           domain: window.location.origin,
           address: loginAccount,
         }).then(resolve, createTxFault);
-        if (_createError) {
+
+        if (!createObjectTx) {
           // TODO refactor
           dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _createError }));
           closeModal();
           return;
         }
-        const [simulateInfo, simulateError] = await createObjectTx!
-          .simulate({
-            denom: 'BNB',
-          })
-          .then(resolve, simulateFault);
-        if (!simulateInfo || simulateError) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: simulateError }));
-          closeModal();
-          return;
-        }
-        const broadcastPayload = {
-          denom: 'BNB',
-          gasLimit: Number(simulateInfo?.gasLimit),
-          gasPrice: simulateInfo?.gasPrice || '5000000000',
-          payer: loginAccount,
-          granter: loginAccount,
-          signTypedDataCallback: signTypedDataCallback(connector!),
-        };
-        const [txRes, error] = await createObjectTx!
-          .broadcast(broadcastPayload)
-          .then(resolve, broadcastFault);
+        // const [tagsTx, _tagsError] = await getUpdateObjectTagsTx({
+        //   address: createObjectPayload.creator,
+        //   bucketName: createObjectPayload.bucketName,
+        //   objectName: createObjectPayload.objectName,
+        //   tags: validTags
+        // });
+        // if (!tagsTx) {
+        //   dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _tagsError }));
+        //   closeModal();
+        //   return;
+        // }
+        const [txRes, error] = await broadcastTx({
+          tx: createObjectTx,
+          address: loginAccount,
+          connector: connector!
+        })
         if (!txRes || error) {
           dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
           closeModal();
@@ -310,6 +311,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
             waitFile,
             checksums: expectCheckSums,
             createHash,
+            tags: validTags,
           }),
         );
       } else {
@@ -330,7 +332,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           return errorHandler(error);
         }
         dispatch(setTmpAccount(tmpAccount));
-        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility));
+        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility, validTags));
       }
 
       closeModal();
@@ -398,6 +400,12 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       },
     });
 
+    // const onEditTags = () => {
+    //   dispatch(setEditObjectTags(['new', 'create']));
+    // };
+
+    // useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+
     return (
       <>
         {isOver && (
@@ -436,6 +444,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
                 {tabOptions.map((item) => (
                   <TabPanel key={item.key} panelKey={item.key}>
                     <ListItem handleFolderTree={handleFolderTree} path={path} type={item.key} />
+                    {/* <EditTags
+                      tagsData={editTagsData}
+                      onClick={onEditTags}
+                      containerStyle={{ mt: 8 }}
+                    /> */}
                   </TabPanel>
                 ))}
               </TabPanels>

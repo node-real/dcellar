@@ -82,7 +82,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     }
   };
 
-  const fees = [{ label: 'Gas fee', type: MsgUpdateGroupExtraTypeUrl }];
+  const fees = [{ label: 'Gas fee', types: [MsgUpdateGroupExtraTypeUrl] }];
 
   const valid = !(error.name || error.desc);
 

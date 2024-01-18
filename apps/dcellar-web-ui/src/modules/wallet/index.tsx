@@ -13,6 +13,7 @@ import styled from '@emotion/styled';
 
 interface WalletProps {}
 
+// TODO: Refactor
 export const Wallet = memo<WalletProps>(function Wallet() {
   const { transType } = useAppSelector((root) => root.wallet);
   const router = useRouter();

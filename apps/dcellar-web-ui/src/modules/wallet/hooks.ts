@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, usePublicClient, useWalletClient } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
-import { INIT_FEE_DATA, MIN_AMOUNT, WalletOperationInfos } from './constants';
+import { CROSS_CHAIN_ABI, DefaultTransferFee, MIN_AMOUNT, TOKENHUB_ABI, WalletOperationInfos } from './constants';
 import { EOperation, TFeeData } from './type';
 import { getRelayFeeBySimulate } from './utils/simulate';
 import { isRightChain } from './utils/isRightChain';
@@ -12,6 +12,10 @@ import { genTransferOutTx } from './utils/genTransferOutTx';
 import { useAppSelector } from '@/store';
 import { getClient } from '@/facade';
 import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
+import { BSC_CHAIN_ID } from '@/base/env';
+import { calTransferInFee } from '@/facade/wallet';
+import { useAsyncEffect } from 'ahooks';
+import { ErrorResponse } from '@/facade/error';
 
 export const useGetFeeBasic = () => {
   const { transType } = useAppSelector((root) => root.wallet);
@@ -32,7 +36,10 @@ export const useGetFeeBasic = () => {
 
 export const useTransferOutFee = () => {
   const { type, isRight, address } = useGetFeeBasic();
-  const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
+  const [feeData, setFeeData] = useState<TFeeData>({
+    gasFee: BigNumber(DefaultTransferFee['transfer_out'].gasFee),
+    relayerFee: BigNumber(DefaultTransferFee['transfer_out'].relayerFee),
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -55,9 +62,9 @@ export const useTransferOutFee = () => {
 
       const relayFee = relayFeeInfo.params
         ? getRelayFeeBySimulate(
-            relayFeeInfo.params.bscTransferOutAckRelayerFee,
-            relayFeeInfo.params.bscTransferOutRelayerFee,
-          )
+          relayFeeInfo.params.bscTransferOutAckRelayerFee,
+          relayFeeInfo.params.bscTransferOutRelayerFee,
+        )
         : '0';
 
       const newData = {
@@ -86,7 +93,10 @@ export const useTransferOutFee = () => {
 
 export const useSendFee = () => {
   const { type, address, isRight } = useGetFeeBasic();
-  const [feeData, setFeeData] = useState<TFeeData>(INIT_FEE_DATA);
+  const [feeData, setFeeData] = useState<TFeeData>({
+    gasFee: BigNumber(DefaultTransferFee['send'].gasFee),
+    relayerFee: BigNumber(DefaultTransferFee['send'].relayerFee),
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -110,7 +120,7 @@ export const useSendFee = () => {
         denom: 'BNB',
       });
       setFeeData({
-        ...INIT_FEE_DATA,
+        relayerFee: BigNumber(DefaultTransferFee['send'].relayerFee),
         gasFee: BigNumber(simulateTxInfo.gasFee),
       });
 
@@ -144,4 +154,68 @@ export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
 export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
   const { data: walletClient } = useWalletClient({ chainId });
   return useMemo(() => (walletClient ? walletClientToSigner(walletClient) : undefined), [walletClient]);
+}
+
+export const useTransferInFee = () => {
+  const [feeData, setFeeData] = useState<TFeeData>({
+    gasFee: BigNumber(DefaultTransferFee['transfer_in'].gasFee),
+    relayerFee: BigNumber(DefaultTransferFee['transfer_in'].relayerFee),
+  });
+  const { loginAccount } = useAppSelector((root) => root.persist);
+  const [isGasLoading, setIsGasLoading] = useState(false);
+  const {
+    TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+    CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+  } = useAppSelector((root) => root.apollo);
+  const provider = useEthersProvider({ chainId: BSC_CHAIN_ID });
+  const signer = useEthersSigner({ chainId: BSC_CHAIN_ID });
+  const getFee = useCallback(
+    async (transferAmount: string): Promise<ErrorResponse | [TFeeData, null]> => {
+      if (!signer || !provider) return [null, 'no signer or provider'];
+      setIsGasLoading(true);
+      const params = {
+        amount: transferAmount,
+        address: loginAccount,
+        crossChainContractAddress: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+        tokenHubContract: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+        crossChainAbi: CROSS_CHAIN_ABI,
+        tokenHubAbi: TOKENHUB_ABI,
+      };
+      const [data, error] = await calTransferInFee(
+        params,
+        signer,
+        provider,
+      );
+      setIsGasLoading(false);
+      if (!data) {
+        return [null, error]
+      }
+
+      setFeeData(data);
+      return [data, error];
+    },
+    [
+      APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+      APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+      loginAccount,
+      provider,
+      signer,
+    ],
+  );
+
+  useAsyncEffect(async () => {
+    await getFee(MIN_AMOUNT)
+  }, [getFee])
+
+  return {
+    feeData,
+    isLoading: isGasLoading,
+    crossChainContract: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
+    signer,
+    tokenHubContract: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
+    crossChainAbi: CROSS_CHAIN_ABI,
+    tokenHubAbi: TOKENHUB_ABI,
+    loginAccount,
+    getFee,
+  }
 }

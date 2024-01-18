@@ -77,11 +77,26 @@ export function scrollToId(id: string, top?: number) {
   });
 }
 
-// because the walletConnect return message is: `{code: xx, message: 'xxx'}
+// The walletConnect Error is: `{code: xx, message: 'xxx'}
 export function parseWCMessage(jsonStr: string) {
   try {
     return JSON.parse(jsonStr)?.message ?? jsonStr;
   } catch (e) {
     return jsonStr
   }
+}
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(() => resolve(''), ms));
+}
+
+export function convertObjectKey(
+  obj: { [key: string]: any },
+  type: 'lowercase' | 'uppercase',
+): {[key: string]: any} {
+  return Object.keys(obj).reduce((convertedObj: { [key: string]: any }, key: string) => {
+    const newKey =
+      type === 'lowercase' ? key.toLowerCase() : key.charAt(0).toUpperCase() + key.slice(1);
+    convertedObj[newKey] = obj[key];
+    return convertedObj;
+  }, {});
 }

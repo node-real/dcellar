@@ -1,23 +1,19 @@
 import {
   Divider,
   Flex,
-  Link,
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
   Text,
 } from '@totejs/uikit';
-import { GAClick } from '@/components/common/GATracker';
-import { CopyText } from '@/components/common/CopyText';
-import { encodeObjectName, formatAddress, formatId, trimAddress } from '@/utils/string';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { encodeObjectName, formatId } from '@/utils/string';
 import React, { memo, useState } from 'react';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectActionType, setObjectOperation, setStatusDetail } from '@/store/slices/object';
+import { ObjectActionType, setEditObjectTags, setEditObjectTagsData, setObjectOperation, setStatusDetail } from '@/store/slices/object';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
@@ -25,7 +21,7 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { AllBucketInfo, setReadQuota } from '@/store/slices/bucket';
+import { TBucket, setReadQuota } from '@/store/slices/bucket';
 import { TAccountInfo } from '@/store/slices/accounts';
 import { SpItem } from '@/store/slices/sp';
 import { last } from 'lodash-es';
@@ -34,12 +30,17 @@ import { IconFont } from '@/components/IconFont';
 import {
   renderAddressLink,
   renderPropRow,
+  renderTags,
   renderUrlWithLink,
 } from '@/modules/object/components/renderRows';
+import { convertObjectKey } from '@/utils/common';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { useUnmount } from 'ahooks';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
   primarySp: SpItem;
 }
@@ -110,6 +111,13 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
     setAction('');
     return success;
   };
+  const onEditTags = () => {
+    const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) => convertObjectKey(item, 'lowercase'));
+    dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
+    dispatch(setEditObjectTags([`${selectObjectInfo.ObjectInfo.BucketName}/${selectObjectInfo.ObjectInfo.ObjectName}`, 'detail']));
+  }
+
+  useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
 
   return (
     <>
@@ -192,6 +200,10 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
                 'dc.file.f_detail_pop.copy_universal.click',
               ),
             )}
+          {renderTags({
+            onClick:onEditTags,
+            tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0
+          })}
         </Flex>
         <Divider />
         <SharePermission selectObjectInfo={selectObjectInfo} />

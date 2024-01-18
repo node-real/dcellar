@@ -69,8 +69,13 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const { connector } = useAccount();
-  const { bucketName, objectPolicies, objectPoliciesPage, selectedShareMembers, policyResources } =
-    useAppSelector((root) => root.object);
+  const {
+    bucketName: _bucketName,
+    objectPolicies,
+    objectPoliciesPage,
+    selectedShareMembers,
+    policyResources,
+  } = useAppSelector((root) => root.object);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const { setOpenAuthModal } = useOffChainAuth();
@@ -79,6 +84,8 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [open, setOpen] = useState(false);
   const [invalidIds, setInvalidIds] = useState<string[]>([]);
   const objectInfo = selectObjectInfo.ObjectInfo;
+  // share bucket
+  const bucketName = objectInfo.BucketName || _bucketName;
   const path = [bucketName, objectInfo.ObjectName].join('/');
   const memberList = (objectPolicies[path] || []) as Array<PolicyMeta & Partial<ObjectResource>>;
   const memberListLoading = !(path in objectPolicies);
@@ -88,7 +95,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [expiration, setExpiration] = useState<Dayjs>();
-  const isFolder = objectInfo.ObjectName.endsWith('/');
+  const isFolder = objectInfo.ObjectName.endsWith('/') || objectInfo.ObjectName === '';
 
   const { page, canPrev, canNext } = useTableNav<PolicyMeta>({
     list: memberList,
@@ -219,11 +226,21 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
             resources: isFolder
               ? _removed
                 ? xor(resource.Resources, [
-                    GRNToString(newObjectGRN(bucketName, escapeRegExp(objectInfo.ObjectName))),
+                    GRNToString(
+                      newObjectGRN(
+                        bucketName,
+                        !objectInfo.ObjectName ? '*' : escapeRegExp(objectInfo.ObjectName),
+                      ),
+                    ),
                   ])
                 : uniq([
                     ...resource.Resources,
-                    GRNToString(newObjectGRN(bucketName, escapeRegExp(objectInfo.ObjectName))),
+                    GRNToString(
+                      newObjectGRN(
+                        bucketName,
+                        !objectInfo.ObjectName ? '*' : escapeRegExp(objectInfo.ObjectName),
+                      ),
+                    ),
                   ])
               : [],
           },

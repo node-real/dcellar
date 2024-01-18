@@ -59,8 +59,21 @@ import { Flex } from '@totejs/uikit';
 import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';
+import { pickAction, removeAction } from '@/utils/object';
+import { ManageObjectTagsDrawer } from './ManageObjectTagsDrawer';
 
-const Actions: MenuOption[] = [
+export type ObjectActionValueType =
+  | 'marketplace'
+  | 'detail'
+  | 'share'
+  | 'download'
+  | 'cancel'
+  | 'delete';
+
+export type ObjectMenuOption = Omit<MenuOption, 'value'> & {
+  value: ObjectActionValueType;
+};
+const Actions: ObjectMenuOption[] = [
   {
     label: (
       <Flex alignItems={'center'}>
@@ -76,7 +89,7 @@ const Actions: MenuOption[] = [
   { label: 'Cancel', value: 'cancel', variant: 'danger' },
   { label: 'Delete', value: 'delete', variant: 'danger' },
 ];
-const ImportantActions = ['download', 'share'];
+const QuickActionValues = ['download', 'share'];
 
 interface ObjectListProps {
   shareMode?: boolean;
@@ -376,20 +389,34 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
       align: 'center' as AlignType,
       title: <></>,
       render: (_: string, record: ObjectItem) => {
-        let fitActions = Actions;
-        let operations: string[] = [];
+        let pruneActions = Actions.map((item) => item.value);
         const isFolder = record.objectName.endsWith('/');
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
-        fitActions = fitActions.map((item) => ({
-          ...item,
-          disabled: accountDetail?.clientFrozen && ['delete', 'download'].includes(item.value),
-        }));
+        // if account frozen, disabled 'download' & 'delete'
+        if (accountDetail?.clientFrozen) {
+          pruneActions = pickAction(pruneActions, ['delete', 'download']);
+        }
 
+        const key = path + '/' + record.name;
+        const curObjectInfo = objectsInfo[key];
+
+        // if this object is not yours, you only can review it
+        if (bucket?.Owner !== loginAccount) {
+          pruneActions = pickAction(pruneActions, ['detail']);
+        }
+
+        // if this folder is yours, you only can review it
+        if (isFolder) {
+          pruneActions = pickAction(
+            pruneActions,
+            owner ? ['detail', 'share', 'delete'] : ['detail'],
+          );
+        }
+        // if sealed, remove cancel
         if (isSealed) {
-          fitActions = fitActions.filter((a) => a.value !== 'cancel');
+          pruneActions = removeAction(pruneActions, ['cancel']);
         } else {
-          fitActions = fitActions.filter((a) => ['cancel', 'detail'].includes(a.value));
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
           const file = find<UploadFile>(
             uploadQueue,
@@ -397,41 +424,32 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
               [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName &&
               q.status !== 'ERROR',
           );
-          if (file) {
-            fitActions = fitActions.filter((a) => a.value !== 'cancel');
+          // if is uploading, can not cancel;
+          if (file && ['SIGN', 'SIGNED', 'UPLOAD'].includes(file.status)) {
+            pruneActions = pickAction(pruneActions, ['detail']);
+          } else if (file && ['SEAL'].includes(file.status)) {
+            pruneActions = removeAction(pruneActions, ['cancel', 'share']);
+          } else {
+            // if not sealed, only support 'cancel' 'detail'
+            pruneActions = pickAction(pruneActions, ['cancel', 'detail']);
           }
         }
-        const key = path + '/' + record.name;
-        const curObjectInfo = objectsInfo[key];
-        // if this object is not yours, you only can download it
-        if (curObjectInfo?.ObjectInfo?.Owner !== loginAccount) {
-          fitActions = fitActions.filter((a) => a.value === 'detail');
-        }
-        //if this folder is yours, you only can delete it
-        if (isFolder) {
-          fitActions = Actions.filter((a) =>
-            (owner ? ['detail', 'share', 'delete'] : ['detail']).includes(a.value),
-          );
-        }
-
-        fitActions.forEach((item) => {
-          if (!item.disabled && ImportantActions.includes(item.value) && isSealed) {
-            operations.push(item.value);
-          }
-        });
 
         // filter marketplace
         if (isFolder || !owner || !isSealed || !LIST_FOR_SELL_ENDPOINT) {
-          fitActions = fitActions.filter((f) => f.value !== 'marketplace');
+          pruneActions = removeAction(pruneActions, ['marketplace']);
         }
+
+        const quickOperations = pruneActions.filter((item) => QuickActionValues.includes(item));
+        const menus = Actions.filter((item) => pruneActions.includes(item.value));
 
         if (isFolder && shareMode) return null;
 
         return (
           <ActionMenu
             shareMode={shareMode}
-            menus={fitActions}
-            operations={operations}
+            menus={menus}
+            operations={quickOperations}
             onChange={(e) => onMenuClick(e as ObjectOperationsType, record)}
           />
         );
@@ -511,8 +529,9 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
       )}
       <ObjectOperations />
+      <ManageObjectTagsDrawer />
       <DCTable
-        rowSelection={owner ? rowSelection : undefined}
+        rowSelection={owner || shareMode ? rowSelection : undefined}
         loading={loadingComponent}
         rowKey="objectName"
         columns={columns}

@@ -137,7 +137,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
             }
             return;
           }
-          if (!owner) {
+          if (!owner && !shareMode) {
             toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
             e.stopPropagation();
             e.preventDefault();

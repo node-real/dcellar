@@ -12,10 +12,19 @@ import {
 import { ErrorResponse } from '@/facade/error';
 import { Key } from 'react';
 import { getMillisecond } from '@/utils/time';
-import { BucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
 import { numberToHex } from 'viem';
+import {
+  BucketInfo,
+  ResourceTags_Tag,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import {
+  ObjectMeta,
+  PolicyMeta,
+  ObjectInfo,
+} from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
+import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { convertObjectKey } from '@/utils/common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
@@ -99,6 +108,8 @@ export interface ObjectState {
   filterSizeTo: ObjectFilterSize;
   policyResources: Record<string, ObjectResource>;
   shareModePath: string;
+  editTags: [string, string];
+  editTagsData: ResourceTags_Tag[];
 }
 
 const initialState: ObjectState = {
@@ -127,6 +138,8 @@ const initialState: ObjectState = {
   objectsTruncate: {},
   policyResources: {},
   shareModePath: '',
+  editTags: ['', ''],
+  editTagsData: [DEFAULT_TAG],
 };
 
 export const objectSlice = createSlice({
@@ -339,6 +352,25 @@ export const objectSlice = createSlice({
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {
       state.refreshing = payload;
     },
+    setEditObjectTags(state, { payload }: PayloadAction<[string, string]>) {
+      state.editTags = payload;
+    },
+    setEditObjectTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
+      state.editTagsData = payload;
+    },
+    setObjectTags(
+      state,
+      { payload }: PayloadAction<{ fullObjectName: string; tags: ResourceTags_Tag[] }>,
+    ) {
+      const { fullObjectName, tags } = payload;
+      const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
+      state.objectsInfo[fullObjectName].ObjectInfo.Tags.Tags = newTags as Extract<
+        ObjectInfo['Tags'],
+        {
+          Tags: any;
+        }
+      >['Tags'];
+    },
   },
 });
 
@@ -445,7 +477,7 @@ export const setupObjectPolicies =
     const { bucketInfo } = getState().bucket;
     const sp = getState().sp.primarySpInfo[bucketName];
     const bucketId = bucketInfo[bucketName].Id;
-    const isFolder = objectName.endsWith('/');
+    const isFolder = objectName.endsWith('/') || objectName === '';
 
     let policies: (PolicyMeta & Partial<ObjectResource>)[] = await (isFolder
       ? getFolderPolicies(numberToHex(Number(bucketId), { size: 32 }))
@@ -482,7 +514,9 @@ export const setupObjectPolicies =
       if (p.PrincipalValue === loginAccount || !p.Actions) return true;
       return (
         p.Actions?.includes('ACTION_GET_OBJECT') &&
-        p.Resources?.includes(GRNToString(newObjectGRN(bucketName, escapeRegExp(objectName))))
+        p.Resources?.includes(
+          GRNToString(newObjectGRN(bucketName, !objectName ? '*' : escapeRegExp(objectName))),
+        )
       );
     });
 
@@ -517,6 +551,9 @@ export const {
   setObjectsTruncate,
   setObjectPolicyResources,
   setShareModePath,
+  setObjectTags,
+  setEditObjectTags,
+  setEditObjectTagsData,
 } = objectSlice.actions;
 
 export default objectSlice.reducer;

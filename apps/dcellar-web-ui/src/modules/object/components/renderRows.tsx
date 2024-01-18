@@ -5,6 +5,7 @@ import { formatAddress, trimAddress } from '@/utils/string';
 import { GAClick } from '@/components/common/GATracker';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
+import { IconFont } from '@/components/IconFont';
 
 export const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -50,6 +51,36 @@ export const renderAddressLink = (
         {key}
       </Text>
       {renderAddressWithLink(value, type, gaClickName, gaCopyClickName)}
+    </Flex>
+  );
+};
+
+export const renderTags = ({ onClick, tagsCount}: { onClick: () => void; tagsCount: number}) => {
+  return (
+    <Flex
+      justifyContent={'space-between'}
+      color="readable.tertiary"
+      alignItems="center"
+      h={24}
+      _notLast={{
+        mb: 8,
+      }}
+    >
+      <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
+        Tags
+      </Text>
+      <Flex>
+        <Flex
+          alignItems={'center'}
+          gap={4}
+          color={'brand.brand6'}
+          cursor={'pointer'}
+          onClick={onClick}
+        >
+          <IconFont type="pen" />
+          {tagsCount || 0} tags
+        </Flex>
+      </Flex>
     </Flex>
   );
 };

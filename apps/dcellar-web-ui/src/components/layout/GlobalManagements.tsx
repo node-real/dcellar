@@ -10,6 +10,7 @@ import { DisconnectWalletModal } from '@/components/layout/Header/DisconnectWall
 import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
 import Head from 'next/head';
 import { useAppSelector } from '@/store';
+import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 
 interface GlobalManagementsProps {}
 
@@ -32,6 +33,7 @@ export const GlobalManagements = memo<GlobalManagementsProps>(function GlobalMan
       <DisconnectWalletModal />
       {/* for global download confirm modal */}
       <ObjectOperations level={1} />
+      <BucketOperations level={1} />
     </>
   );
 });

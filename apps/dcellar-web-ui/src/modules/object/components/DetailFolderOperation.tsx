@@ -1,22 +1,25 @@
-import { AllBucketInfo } from '@/store/slices/bucket';
+import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import React, { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
-import { useMount } from 'ahooks';
+import { useMount, useUnmount } from 'ahooks';
 import { IconFont } from '@/components/IconFont';
 import { getListObjects } from '@/facade/object';
-import { setObjectList } from '@/store/slices/object';
+import { setEditObjectTags, setEditObjectTagsData, setObjectList } from '@/store/slices/object';
 import { last } from 'lodash-es';
-import { renderAddressLink, renderPropRow } from '@/modules/object/components/renderRows';
+import { renderAddressLink, renderPropRow, renderTags } from '@/modules/object/components/renderRows';
 import { formatFullTime } from '@/utils/time';
 import { formatId } from '@/utils/string';
 import { useModalValues } from '@/hooks/useModalValues';
 import { SharePermission } from '@/modules/object/components/SharePermission';
+import { convertObjectKey } from '@/utils/common';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { DEFAULT_TAG, getValidTags } from '@/components/common/ManageTag';
 
 interface DetailFolderOperationProps {
   objectName: string;
-  selectBucket: AllBucketInfo;
+  selectBucket: TBucket;
   primarySp: SpItem;
 }
 
@@ -28,6 +31,12 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
       objectsInfo[[selectBucket.BucketName, objectName].join('/')] || {},
     );
     const objectInfo = useModalValues(selectObjectInfo.ObjectInfo);
+
+    const onEditTags = () => {
+      const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) => convertObjectKey(item, 'lowercase'));
+      dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
+      dispatch(setEditObjectTags([`${selectObjectInfo.ObjectInfo.BucketName}/${selectObjectInfo.ObjectInfo.ObjectName}`, 'detail']));
+    }
 
     useMount(async () => {
       const _query = new URLSearchParams();
@@ -56,6 +65,8 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
 
     const folderName = last(objectName.replace(/\/$/, '').split('/'));
     const loading = !objectInfo;
+
+    useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
 
     return (
       <>
@@ -111,6 +122,10 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
               'dc.object.f_detail_pop.copy_create_tx_hash.click',
               'tx',
             )}
+            {renderTags({
+              onClick: onEditTags,
+              tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0,
+            })}
           </Flex>
           <Divider />
           {!loading && <SharePermission selectObjectInfo={selectObjectInfo} />}

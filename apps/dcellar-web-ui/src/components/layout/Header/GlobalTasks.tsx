@@ -23,13 +23,12 @@ import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/constants/legacy';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
-import { parseErrorXml } from '@/utils/common';
+import { parseErrorXml, sleep } from '@/utils/common';
 import { isEmpty } from 'lodash-es';
 import { setupSpMeta } from '@/store/slices/sp';
-import { AuthType } from '@bnb-chain/greenfield-js-sdk/dist/esm/clients/spclient/spClient';
 import { setupAccountInfo } from '@/store/slices/accounts';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { AuthType, CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import {
   makePutObjectHeaders,
@@ -139,7 +138,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       axios
         .put(url, task.waitFile.file, {
           async onUploadProgress(progressEvent) {
-            const progress = Math.round(
+            const progress = Math.floor(
               (progressEvent.loaded / (progressEvent.total as number)) * 100,
             );
             await dispatch(progressFetchList(task));
@@ -157,6 +156,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
             'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
             'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
           },
+        })
+        .then(async () => {
+          // The connection is closed by this time.
+          dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
         })
         .catch(async (e: Response | any) => {
           console.log('upload error', e);
@@ -293,7 +296,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           return 0;
         }
 
-        if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
+        if (error?.code === 429 && Date.now() - preTs < 2 * 60 * 1000) {
+          await sleep(1000);
+        } else if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
