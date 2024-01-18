@@ -39,6 +39,7 @@ interface ShareOperationProps {
   objectName: string;
 }
 
+// ObjectName '' for share Bucket
 export const ShareOperation = memo<ShareOperationProps>(function ShareOperation({
   selectObjectInfo,
   primarySp,
@@ -46,14 +47,16 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
 }) {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName, path } = useAppSelector((root) => root.object);
+  const { bucketName: _bucketName, path } = useAppSelector((root) => root.object);
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
   const objectInfo = selectObjectInfo.ObjectInfo || {};
+  // share bucket
+  const bucketName = selectObjectInfo.ObjectInfo.BucketName || _bucketName;
 
   useMount(async () => {
-    if (!objectName.endsWith('/')) return;
+    if (!objectName.endsWith('/') || objectName === '') return;
     const _query = new URLSearchParams();
     _query.append('delimiter', '/');
     _query.append('maxKeys', '2');
@@ -129,8 +132,11 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
   // handle folder object info
   if (isEmpty(selectObjectInfo) || objectName !== objectInfo?.ObjectName) return <Loading />;
 
-  const name = last(trimEnd(objectInfo.ObjectName, '/').split('/'));
-  const isFolder = objectInfo.ObjectName.endsWith('/');
+  const name =
+    objectInfo.ObjectName === ''
+      ? objectInfo.BucketName
+      : last(trimEnd(objectInfo.ObjectName, '/').split('/'));
+  const isFolder = objectInfo.ObjectName.endsWith('/') || objectInfo.ObjectName === '';
 
   return (
     <>

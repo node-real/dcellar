@@ -79,7 +79,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
     [loginAccount, primarySp?.operatorAddress, bucketName],
   );
 
-  if (!owner)
+  if (!owner && !shareMode)
     return (
       <>
         {showRefresh && (

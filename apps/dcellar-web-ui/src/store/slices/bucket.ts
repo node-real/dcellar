@@ -12,7 +12,7 @@ import { DEFAULT_TAG } from '@/components/common/ManageTag';
 import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { convertObjectKey } from '@/utils/common';
 
-export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | '';
+export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | 'share' | '';
 
 export type BucketProps = BucketMetaWithVGF;
 export type TBucket = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
@@ -35,7 +35,7 @@ export interface BucketState {
   discontinue: boolean;
   owner: boolean;
   editQuota: string[];
-  bucketOperation: [string, BucketOperationsType];
+  bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
   editTags: [string, string];
   editTagsData: ResourceTags_Tag[];
 }
@@ -50,17 +50,25 @@ const initialState: BucketState = {
   discontinue: false,
   owner: true,
   editQuota: ['', ''],
-  bucketOperation: ['', ''],
-  editTags: ['', '',],
-  editTagsData: [DEFAULT_TAG]
+  bucketOperation: { 0: ['', ''], 1: ['', ''] },
+  editTags: ['', ''],
+  editTagsData: [DEFAULT_TAG],
 };
 
 export const bucketSlice = createSlice({
   name: 'bucket',
   initialState,
   reducers: {
-    setBucketOperation(state, { payload }: PayloadAction<[string, BucketOperationsType]>) {
-      state.bucketOperation = payload;
+    setBucketOperation(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        level?: 0 | 1;
+        operation: [string, BucketOperationsType];
+      }>,
+    ) {
+      state.bucketOperation[payload.level || 0] = payload.operation;
     },
     setReadQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
       const { bucketName, quota } = payload;
@@ -121,11 +129,17 @@ export const bucketSlice = createSlice({
     setEditBucketTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
       state.editTagsData = payload;
     },
-    setBucketTags(state, { payload }: PayloadAction<{bucketName: string, tags: ResourceTags_Tag[] }>) {
+    setBucketTags(
+      state,
+      { payload }: PayloadAction<{ bucketName: string; tags: ResourceTags_Tag[] }>,
+    ) {
       const { bucketName, tags } = payload;
-      const newTags = tags.map(item => convertObjectKey(item, 'uppercase'));
-      state.bucketInfo[bucketName]['Tags']['Tags'] = newTags as Extract<TBucket['Tags'], { 'Tags': any }>['Tags'];
-    }
+      const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
+      state.bucketInfo[bucketName]['Tags']['Tags'] = newTags as Extract<
+        TBucket['Tags'],
+        { Tags: any }
+      >['Tags'];
+    },
   },
 });
 

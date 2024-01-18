@@ -50,4 +50,5 @@ const Content = styled.div`
   justify-content: center;
   flex-direction: column;
   text-align: center;
+  flex-shrink: 0;
 `;

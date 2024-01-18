@@ -408,7 +408,10 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
 
         // if this folder is yours, you only can review it
         if (isFolder) {
-          pruneActions = pickAction(pruneActions, owner ? ['detail', 'share', 'delete'] : ['detail']);
+          pruneActions = pickAction(
+            pruneActions,
+            owner ? ['detail', 'share', 'delete'] : ['detail'],
+          );
         }
         // if sealed, remove cancel
         if (isSealed) {
@@ -528,7 +531,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
       <ObjectOperations />
       <ManageObjectTagsDrawer />
       <DCTable
-        rowSelection={owner ? rowSelection : undefined}
+        rowSelection={owner || shareMode ? rowSelection : undefined}
         loading={loadingComponent}
         rowKey="objectName"
         columns={columns}
