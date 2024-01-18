@@ -11,7 +11,7 @@ import {
   Text,
 } from '@totejs/uikit';
 import { useCallback, useMemo } from 'react';
-import { useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
@@ -103,6 +103,7 @@ export const Amount = ({
   const { gasFee, relayerFee } = feeData;
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
+  const { connector } = useAccount();
   const isShowMaxButton = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
@@ -141,7 +142,8 @@ export const Amount = ({
       const [realTimeFee, error] = await refreshFee(
         BN(balance).minus(DefaultTransferFee.transfer_in.total).toString(),
       );
-      realTimeFee && setMaxAmount(balance, realTimeFee, setValue);
+      const isTwTransferMax = connector && connector.id.toLowerCase() === 'trust';
+      realTimeFee && setMaxAmount(balance, realTimeFee, setValue, isTwTransferMax);
       return;
     }
 
