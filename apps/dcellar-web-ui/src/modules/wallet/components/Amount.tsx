@@ -10,7 +10,7 @@ import {
   Link,
   Text,
 } from '@totejs/uikit';
-import React, { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
@@ -19,10 +19,11 @@ import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'rea
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
+  DefaultTransferFee,
   MIN_AMOUNT,
   WalletOperationInfos,
 } from '../constants';
-import { EOperation, GetFeeType, TFeeData, TWalletFromValues } from '../type';
+import { EOperation, TFeeData, TWalletFromValues } from '../type';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
@@ -32,27 +33,35 @@ import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { IconFont } from '@/components/IconFont';
 import { displayTokenSymbol } from '@/utils/wallet';
+import { isRightChain } from '../utils/isRightChain';
+import { MaxButton } from './MaxButton';
+import { ErrorResponse } from '@/facade/error';
+import { setMaxAmount } from '../utils/common';
 
 type AmountProps = {
   disabled: boolean;
   feeData: TFeeData;
   errors: FieldErrors;
+  bankBalance?: string;
+  settlementFee?: string;
+  refreshFee?: (transferAmount: string) => Promise<ErrorResponse | [TFeeData, null]>;
   register: UseFormRegister<TWalletFromValues>;
   watch: UseFormWatch<TWalletFromValues>;
   setValue: UseFormSetValue<TWalletFromValues>;
-  getGasFee?: GetFeeType;
   maxDisabled?: boolean;
   txType?: TxType;
   balance: string;
 };
 
 const AmountErrors = {
+  validateWithdrawStaticBalance: "The payment account doesn't have enough balance to pay settlement fee.",
+  validateWithdrawBankBalance: "The owner account doesn't have enough balance to pay gas fee.",
   validateBalance: 'Insufficient balance.',
   validateFormat: 'Invalid amount.',
-  validateNum: `The maximum precision is ${CRYPTOCURRENCY_DISPLAY_PRECISION} digits.`,
+  validatePrecision: `The maximum precision is ${CRYPTOCURRENCY_DISPLAY_PRECISION} digits.`,
   required: 'Amount is required.',
   min: 'Please enter a minimum amount of 0.00000001.',
-  withdrawError: (
+  validateWithdrawMaxAmountError: (
     <>
       No withdrawals allowed over 100 {displayTokenSymbol()}.{' '}
       <Link
@@ -74,14 +83,18 @@ const DefaultFee = {
 };
 
 export const Amount = ({
-  register,
-  errors,
-  disabled,
-  watch,
   balance,
-  feeData,
-  setValue,
   txType,
+  feeData,
+  disabled,
+  errors,
+  maxDisabled,
+  bankBalance,
+  settlementFee,
+  register,
+  refreshFee,
+  watch,
+  setValue,
 }: AmountProps) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
   const { transType } = useAppSelector((root) => root.wallet);
@@ -90,9 +103,9 @@ export const Amount = ({
   const { gasFee, relayerFee } = feeData;
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
-  // const isRight = useMemo(() => {
-  //   return isRightChain(chain?.id, curInfo?.chainId);
-  // }, [chain?.id, curInfo?.chainId]);
+  const isShowMaxButton = useMemo(() => {
+    return isRightChain(chain?.id, curInfo?.chainId);
+  }, [chain?.id, curInfo?.chainId]);
   const isSendPage = transType === 'send';
 
   const Balance = useCallback(() => {
@@ -113,17 +126,78 @@ export const Amount = ({
     );
   }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
 
-  // const onMaxClick = async () => {
-  //   if (balance && feeData) {
-  //     getGasFee && (await getGasFee({ amountIn: balance?.formatted, type: 'total_value' }));
-  //     const availableBalance = BigNumber(balance.formatted)
-  //       .minus(feeData.gasFee)
-  //       .minus(feeData.relayerFee)
-  //       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1);
-  //     const availableStr = availableBalance.toString(DECIMAL_NUMBER);
-  //     setValue('amount', availableStr, { shouldValidate: true });
-  //   }
-  // };
+  const onMaxClick = async () => {
+    if (!balance || !feeData) return setValue('amount', '0', { shouldValidate: true });
+    if (txType === 'withdraw_from_payment_account') {
+      const cal = BN(balance).minus(settlementFee || '0').dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString();
+      const maxAmount = BN(cal).lt(0) ? '0' : cal;
+
+      return setValue('amount', maxAmount, {
+        shouldValidate: true,
+      });
+    }
+
+    if (transType === 'transfer_in' && refreshFee) {
+      const [realTimeFee, error] = await refreshFee(
+        BN(balance).minus(DefaultTransferFee.transfer_in.total).toString(),
+      );
+      realTimeFee && setMaxAmount(balance, realTimeFee, setValue);
+      return;
+    }
+
+    setMaxAmount(balance, feeData, setValue);
+  };
+
+  const validateBalance = (val: string) => {
+    if (txType === 'withdraw_from_payment_account') {
+      return BN(balance).isGreaterThanOrEqualTo(BN(val).plus(settlementFee || '0'));
+    }
+
+    let totalAmount = BigNumber(0);
+    const balanceVal = BigNumber(balance || 0);
+    if (transType === EOperation.send) {
+      totalAmount =
+        gasFee.toString() === '0'
+          ? BigNumber(val).plus(BigNumber(defaultFee))
+          : BigNumber(val).plus(gasFee);
+    } else {
+      totalAmount =
+        gasFee.toString() === '0' && relayerFee.toString() === '0'
+          ? BigNumber(val).plus(BigNumber(defaultFee))
+          : BigNumber(val).plus(gasFee).plus(relayerFee);
+    }
+
+    return balanceVal.isGreaterThanOrEqualTo(totalAmount);
+  };
+
+  const validatePrecision = (val: string) => {
+    const precisionStr = val.split('.')[1];
+    return !precisionStr || precisionStr.length <= CRYPTOCURRENCY_DISPLAY_PRECISION;
+  };
+  const validateWithdrawBankBalance = () => {
+    if (txType !== 'withdraw_from_payment_account') return true;
+    return BN(bankBalance as string).isGreaterThanOrEqualTo(gasFee);
+  };
+  const validateWithdrawMaxAmountError = (val: string) => {
+    if (txType !== 'withdraw_from_payment_account') return true;
+    return BN(val).lt(100);
+  };
+  const validateWithdrawStaticBalance = (val: string) => {
+    if (txType !== 'withdraw_from_payment_account') return true;
+    return BN(balance).isGreaterThanOrEqualTo(BN(settlementFee || '0').plus(val));
+  }
+  const onPaste = (e: any) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const clipboardData = e.clipboardData || window.clipboardData;
+    const pastedData = clipboardData.getData('Text');
+    if (/^\d+(\.\d+)?$/.test(pastedData)) {
+      return setValue('amount', pastedData, { shouldValidate: true });
+    }
+    e.preventDefault();
+  };
+
   watch('amount');
   return (
     <>
@@ -137,18 +211,7 @@ export const Amount = ({
         >
           Amount
         </FormLabel>
-        {/* {isRight && (
-          <Button
-            variant="text"
-            type="button"
-            cursor={'pointer'}
-            alignItems="flex-start"
-            disabled={maxDisabled}
-            onClick={onMaxClick}
-          >
-            <MaxIcon />
-          </Button>
-        )} */}
+        {isShowMaxButton && <MaxButton disabled={maxDisabled} onMaxClick={onMaxClick} />}
       </Flex>
 
       <FormControl isInvalid={!isEmpty(errors?.amount)}>
@@ -170,50 +233,18 @@ export const Amount = ({
                 e.preventDefault();
               }
             }}
-            onPaste={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-
-              const clipboardData = e.clipboardData || window.clipboardData;
-              const pastedData = clipboardData.getData('Text');
-              if (/^\d+(\.\d+)?$/.test(pastedData)) {
-                setValue('amount', pastedData, { shouldValidate: true });
-
-                return;
-              }
-              e.preventDefault();
-            }}
+            onPaste={onPaste}
             onWheel={(event) => event.currentTarget.blur()}
             color={!isEmpty(errors?.amount) ? '#EA412E' : '#1E2026'}
             {...register('amount', {
               required: true,
               min: MIN_AMOUNT,
               validate: {
-                validateBalance: (val: string) => {
-                  let totalAmount = BigNumber(0);
-                  const balanceVal = BigNumber(balance || 0);
-                  if (transType === EOperation.send) {
-                    totalAmount =
-                      gasFee.toString() === '0'
-                        ? BigNumber(val).plus(BigNumber(defaultFee))
-                        : BigNumber(val).plus(gasFee);
-                  } else {
-                    totalAmount =
-                      gasFee.toString() === '0' && relayerFee.toString() === '0'
-                        ? BigNumber(val).plus(BigNumber(defaultFee))
-                        : BigNumber(val).plus(gasFee).plus(relayerFee);
-                  }
-                  return totalAmount.comparedTo(balanceVal) <= 0;
-                },
-                validateNum: (val: string) => {
-                  const precisionStr = val.split('.')[1];
-
-                  return !precisionStr || precisionStr.length <= CRYPTOCURRENCY_DISPLAY_PRECISION;
-                },
-                withdrawError: (val: string) => {
-                  if (!txType || txType !== 'withdraw_from_payment_account') return true;
-                  return BN(val).lt(100);
-                },
+                validateWithdrawBankBalance,
+                validateWithdrawStaticBalance,
+                validateBalance,
+                validatePrecision,
+                validateWithdrawMaxAmountError,
               },
             })}
           />

@@ -10,6 +10,7 @@ export const InternalRoutePaths = {
   pricing_calculator: '/pricing-calculator',
   accounts: '/accounts',
   dashboard: '/dashboard',
+  toolbox: '/toolbox',
 };
 
 export const NODEREAL_URL = 'https://nodereal.io';

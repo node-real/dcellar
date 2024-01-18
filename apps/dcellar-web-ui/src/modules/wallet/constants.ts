@@ -59,6 +59,24 @@ export const INIT_FEE_DATA = {
   relayerFee: BigNumber('0'),
 };
 
+export const DefaultTransferFee = {
+  transfer_in: {
+    total: 0.00208,
+    gasFee: 0.00008,
+    relayerFee: 0.002
+  },
+  transfer_out: {
+    total: 0.001006,
+    gasFee: 0.00006,
+    relayerFee: 0.001,
+  },
+  send: {
+    total: 0.00006,
+    gasFee: 0.00006,
+    relayerFee: 0,
+  },
+};
+
 export const CROSS_CHAIN_ABI = [
   {
     anonymous: false,
