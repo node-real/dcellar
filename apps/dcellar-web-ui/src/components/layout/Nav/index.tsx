@@ -32,6 +32,11 @@ const MENU_ITEMS = [
     text: 'Accounts',
     trackId: 'dc.main.nav.accounts.click',
   },
+  {
+    icon: 'toolbox',
+    text: 'Toolbox',
+    trackId: 'dc.main.nav.toolbox.click',
+  },
 ];
 
 const ASIDE = [

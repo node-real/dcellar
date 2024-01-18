@@ -414,8 +414,10 @@ export const Send = memo<SendProps>(function Send() {
             register={register}
             disabled={isSubmitting}
             watch={watch}
+            bankBalance={bankBalance}
             feeData={feeData}
             setValue={setValue}
+            settlementFee={settlementFee}
             maxDisabled={isLoading}
           />
           {isShowFee() ? (
