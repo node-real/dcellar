@@ -91,8 +91,9 @@ export function SPSelector(props: SPSelector) {
       const latency: Record<string, number> = {};
       list.getEntries().forEach((entry) => {
         if (entry.name.endsWith('/auth/request_nonce')) {
-          const { origin } = new URL(entry.name);
+          const { origin, port } = new URL(entry.name);
           latency[origin] = parseInt(String(entry.duration));
+          latency[`${origin}:${port || 443}`] = parseInt(String(entry.duration));
         }
       });
       dispatch(setSpLatency(latency));
