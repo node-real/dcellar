@@ -62,7 +62,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getStoreNetflowRate(Sizes[storageSize.unit as TSize], storeParams))
       .times(Times['m'])
-      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize.unit, storeParams]);
@@ -78,7 +77,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       ),
     )
       .times(Times['m'])
-      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize, storeParams]);
@@ -86,7 +84,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getQuotaNetflowRate(Sizes[quotaSize.unit as TSize], storeParams))
       .times(Times['m'])
-      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [quotaSize.unit, storeParams]);
@@ -102,7 +99,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       ),
     )
       .times(Times['m'])
-      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [quotaSize, storeParams]);
@@ -132,7 +128,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
         ? '0'
         : BN(getStoreNetflowRate(totalStorageSize, storeParams))
             .times(storeTime)
-            // .dividedBy(10 ** 18)
             .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
             .toString();
 
@@ -144,7 +139,6 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
         ? '0'
         : BN(getQuotaNetflowRate(totalQuotaSize, storeParams))
             .times(storeTime)
-            // .dividedBy(10 ** 18)
             .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
             .toString();
 

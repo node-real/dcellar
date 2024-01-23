@@ -140,7 +140,6 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     const netflowRate = getStoreNetflowRate(0, storeFeeParams);
     const storeFee = BN(netflowRate)
       .times(storeFeeParams.reserveTime)
-      // .dividedBy(10 ** 18);
 
     return storeFee.toString();
   }, [storeFeeParams]);
