@@ -40,12 +40,10 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
     const storeTime = Times[unit.time as TTime];
     const storageFee = BN(getStoreNetflowRate(storeSize, storeParams))
       .times(storeTime)
-      .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
     const quotaFee = BN(getQuotaNetflowRate(storeSize, storeParams))
       .times(storeTime)
-      .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
     return {

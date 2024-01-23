@@ -97,7 +97,6 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       const refundTime = Math.min(offsetTime, Number(latestStoreFeeParams.reserveTime));
       const refundAmount = BN(netflowRate)
         .times(refundTime)
-        .dividedBy(10 ** 18)
         .abs()
         .toString();
       setRefundAmount(refundAmount);
