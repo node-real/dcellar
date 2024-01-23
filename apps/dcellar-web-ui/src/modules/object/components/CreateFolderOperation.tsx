@@ -64,7 +64,6 @@ import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
-import { signTypedDataCallback } from '@/facade/wallet';
 import { removeTrailingSlash } from '@/utils/string';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
@@ -141,7 +140,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     const netflowRate = getStoreNetflowRate(0, storeFeeParams);
     const storeFee = BN(netflowRate)
       .times(storeFeeParams.reserveTime)
-      .dividedBy(10 ** 18);
+      // .dividedBy(10 ** 18);
 
     return storeFee.toString();
   }, [storeFeeParams]);

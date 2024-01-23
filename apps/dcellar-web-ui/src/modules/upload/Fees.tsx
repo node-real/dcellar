@@ -62,7 +62,7 @@ export const Fees = () => {
           ),
         BN(0),
       )
-      .dividedBy(10 ** 18)
+      // .dividedBy(10 ** 18)
       .toString();
 
     return calRes;

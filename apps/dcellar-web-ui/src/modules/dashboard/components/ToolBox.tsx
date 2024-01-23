@@ -32,12 +32,12 @@ export const ToolBox = ({ children, ...restProps }: CardProps) => {
   const priceOptions = useMemo(() => {
     const storageFee = BN(getStoreNetflowRate(DEFAULT_STORE_SIZE, storeFeeParams))
       .times(DEFAULT_STORE_TIME)
-      .dividedBy(10 ** 18)
+      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
     const quotaFee = BN(getQuotaNetflowRate(DEFAULT_STORE_SIZE, storeFeeParams))
       .times(DEFAULT_STORE_TIME)
-      .dividedBy(10 ** 18)
+      // .dividedBy(10 ** 18)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
 

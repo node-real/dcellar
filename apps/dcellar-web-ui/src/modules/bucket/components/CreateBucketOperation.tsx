@@ -141,7 +141,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     const netflowRate = getQuotaNetflowRate(chargeQuota * G_BYTES, storeFeeParams);
     return BN(netflowRate)
       .times(storeFeeParams.reserveTime)
-      .dividedBy(10 ** 18)
+      // .dividedBy(10 ** 18)
       .toString();
   }, [storeFeeParams, chargeQuota]);
 

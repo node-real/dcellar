@@ -79,7 +79,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
       const netflowRate = getQuotaNetflowRate(chargeQuota, storeFeeParams);
       return BN(netflowRate)
         .times(storeFeeParams.reserveTime)
-        .dividedBy(10 ** 18)
+        // .dividedBy(10 ** 18)
         .toString();
     }, [storeFeeParams, chargeQuota]);
 

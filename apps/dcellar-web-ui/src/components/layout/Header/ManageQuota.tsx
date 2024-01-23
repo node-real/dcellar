@@ -112,8 +112,8 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
       .plus(storeRate)
       .minus(preQuotaRate)
       .minus(preStoreRate)
-      .times(storeFeeParams.reserveTime)
-      .dividedBy(10 ** 18);
+      .times(storeFeeParams.reserveTime);
+      // .dividedBy(10 ** 18);
     setRefund(fund.isNegative());
     return fund.abs().toString();
   }, [storeFeeParams, newChargedQuota, chargeSize, currentQuota]);
