@@ -99,7 +99,6 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
         const refundTime = Math.min(offsetTime, Number(latestStoreFeeParams.reserveTime));
         const objectRefund = BN(netflowRate)
           .times(refundTime)
-          .dividedBy(10 ** 18)
           .abs()
           .toString();
 

@@ -30,27 +30,25 @@ export const getStoreNetflowRate = (size: number, storeFeeParams: TStoreFeeParam
     validatorTaxRate,
   } = storeFeeParams;
   const chargeSize = size >= minChargeSize ? size : minChargeSize;
-  const primarySpRate = BN(primarySpStorePrice).dividedBy(Math.pow(10, 18)).times(BN(chargeSize));
+  const primarySpRate = BN(primarySpStorePrice).times(BN(chargeSize));
   const secondarySpNum = redundantDataChunkNum + redundantParityChunkNum;
-  let secondarySpRate = BN(secondarySpStorePrice).dividedBy(Math.pow(10, 18)).times(BN(chargeSize));
+  let secondarySpRate = BN(secondarySpStorePrice).times(BN(chargeSize));
   secondarySpRate = secondarySpRate.times(secondarySpNum);
   const validatorTax = BN(validatorTaxRate)
-    .dividedBy(Math.pow(10, 18))
     .times(primarySpRate.plus(secondarySpRate));
   const netflowRate = primarySpRate.plus(secondarySpRate).plus(validatorTax);
 
-  return netflowRate.toString();
+  return netflowRate.dividedBy(10 ** 18).toString();
 };
 
 export const getQuotaNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) => {
   const { validatorTaxRate, readPrice } = storeFeeParams;
   const primaryQuotaRate = BN(readPrice)
-    .dividedBy(10 ** 18)
     .times(size);
   const taxRate = BN(validatorTaxRate)
-    .dividedBy(10 ** 18)
     .times(primaryQuotaRate);
-  return primaryQuotaRate.plus(taxRate).toString();
+
+  return primaryQuotaRate.plus(taxRate).dividedBy(10 ** 18).toString();
 };
 
 export const getClientFrozen = (settleTime: number, bufferTime: number) => {
