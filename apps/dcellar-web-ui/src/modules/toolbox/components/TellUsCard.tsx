@@ -34,7 +34,7 @@ export const TellUsCard = () => {
           w={'fit-content'}
           onClick={() => onNavigateExternal('#')}
         >
-          Explorer
+          Explore
         </DCButton>
       </Tooltip>
     </Card>
