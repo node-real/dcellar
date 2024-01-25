@@ -13,7 +13,7 @@ export const PrepaidFee = ({ amount }: PrepaidFeeProps) => {
     <Flex w="100%" alignItems="center" justifyContent="space-between">
       <Flex alignItems="center">
         <Text color="readable.tertiary" as="p">
-          Prepaid fee refund
+          Prepaid fee
         </Text>
         <PrePaidTips />
       </Flex>

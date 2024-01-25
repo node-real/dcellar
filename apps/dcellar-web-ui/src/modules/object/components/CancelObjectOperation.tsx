@@ -195,7 +195,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                       lineHeight={'150%'}
                       wordBreak={'break-word'}
                     >
-                      We will unlock the storage fee after you cancel the object. 111
+                      We will unlock the storage fee after you cancel the object.
                     </Box>
                   </Box>
                 }
