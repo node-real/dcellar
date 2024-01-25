@@ -16,7 +16,7 @@ export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace
 
 export type BucketProps = BucketMetaWithVGF;
 export type TBucket = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
-
+export type FromType = 'menu' | 'drawer' | '';
 export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
   CreateAt: number;
@@ -36,8 +36,11 @@ export interface BucketState {
   owner: boolean;
   editQuota: string[];
   bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
+  // TODO update
   editTags: [string, string];
   editTagsData: ResourceTags_Tag[];
+  // [bucketName, from];
+  editPaymentAccount: [string, FromType];
 }
 
 const initialState: BucketState = {
@@ -53,6 +56,7 @@ const initialState: BucketState = {
   bucketOperation: { 0: ['', ''], 1: ['', ''] },
   editTags: ['', ''],
   editTagsData: [DEFAULT_TAG],
+  editPaymentAccount: ['', ''],
 };
 
 export const bucketSlice = createSlice({
@@ -140,6 +144,15 @@ export const bucketSlice = createSlice({
         { Tags: any }
       >['Tags'];
     },
+    setEditBucketPaymentAccount(state, { payload }: PayloadAction<[string, FromType]>) {
+      state.editPaymentAccount = payload;
+    },
+    setReadBucketPaymentAccount(state, { payload }: PayloadAction<{
+      bucketName: string; paymentAddress: string;
+    }>) {
+      const { bucketName, paymentAddress } = payload;
+      state.bucketInfo[bucketName]['PaymentAddress'] = paymentAddress;
+    }
   },
 });
 
@@ -250,6 +263,8 @@ export const {
   setBucketTags,
   setEditBucketTags,
   setEditBucketTagsData,
+  setEditBucketPaymentAccount,
+  setReadBucketPaymentAccount,
 } = bucketSlice.actions;
 
 export default bucketSlice.reducer;

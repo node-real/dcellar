@@ -17,6 +17,7 @@ import {
   setupBucketQuota,
   setEditBucketTags,
   setEditBucketTagsData,
+  setEditBucketPaymentAccount,
 } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
@@ -88,6 +89,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     const infos = [
       {
         canCopy: false,
+        edit: false,
         label: 'Date created',
         value: formatFullTime(CreateAt),
         display: formatFullTime(CreateAt),
@@ -105,6 +107,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
+        edit: true,
         label: 'Payment address',
         name: payAccountName,
         value: selectedBucketInfo.PaymentAddress,
@@ -115,6 +118,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
+        edit: false,
         label: 'Bucket ID',
         value: formatId(Number(selectedBucketInfo.Id)),
         display: formatAddress(formatId(Number(selectedBucketInfo.Id))),
@@ -124,6 +128,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
+        edit: false,
         label: 'Create transaction hash',
         value: selectedBucketInfo.CreateTxHash,
         display: formatAddress(selectedBucketInfo.CreateTxHash),
@@ -156,6 +161,19 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
               {item.label !== 'Date created' &&
                 (item.canCopy ? (
                   <>
+                    {item.edit && (
+                      <Flex
+                        alignItems={'center'}
+                        gap={4}
+                        color={'brand.brand6'}
+                        cursor={'pointer'}
+                      onClick={managePaymentAccount}
+                      w={16}
+                      h={16}
+                      >
+                        <IconFont type="pen" />
+                      </Flex>
+                    )}
                     <Text color={'readable.normal'} fontSize={'14px'} fontWeight={500}>
                       {item.name ? `${item.name} |` : ''}&nbsp;
                     </Text>
@@ -271,6 +289,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
 
   const manageQuota = () => {
     dispatch(setEditQuota([selectedBucketInfo.BucketName, 'drawer']));
+  };
+
+  const managePaymentAccount = () => {
+    dispatch(setEditBucketPaymentAccount([selectedBucketInfo.BucketName, 'drawer']));
   };
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
