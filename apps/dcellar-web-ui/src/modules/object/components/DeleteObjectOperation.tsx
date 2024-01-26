@@ -94,11 +94,10 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       const latestStoreFeeParams = await getStoreFeeParams({ time: crudTimestamp });
       const netflowRate = getStoreNetflowRate(objectInfo.PayloadSize, latestStoreFeeParams);
       const offsetTime = curTime - objectInfo.CreateAt;
-      const refundTime = Math.min(offsetTime, Number(latestStoreFeeParams.reserveTime));
-      const refundAmount = BN(netflowRate)
-        .times(refundTime)
-        .abs()
-        .toString();
+      const reserveTime = Number(latestStoreFeeParams.reserveTime);
+      const refundTime = offsetTime > reserveTime ? offsetTime - reserveTime : 0;
+      const refundAmount = BN(netflowRate).times(refundTime).abs().toString();
+
       setRefundAmount(refundAmount);
     }, [crudTimestamp, objectInfo.CreateAt]);
 
