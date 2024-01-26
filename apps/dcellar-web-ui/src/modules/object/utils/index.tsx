@@ -205,7 +205,6 @@ interface PaymentInsufficientBalanceProps {
   onValidate: (val: boolean) => void;
 }
 
-// 对于display来说只需要知道去哪里充钱和金额
 export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
   function PaymentInsufficientBalance(props) {
     const {

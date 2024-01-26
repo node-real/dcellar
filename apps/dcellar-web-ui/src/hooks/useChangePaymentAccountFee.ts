@@ -15,7 +15,6 @@ type ChangePaymentAccountFee = {
   storeFee: string;
   gasFee: string;
 }
-// 承担费用计算
 export const useChangePaymentAccountFee = ({ from, to, storageSize }: { from: string, to: string; storageSize: number }): ChangePaymentAccountFee => {
   const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl];
@@ -34,8 +33,6 @@ export const useChangePaymentAccountFee = ({ from, to, storageSize }: { from: st
     gasFee: String(gasFee),
   }
 }
-
-// 来一个业务方法承担费用验证
 
 export const useValidateChangePaymentFee = ({ from, to, fromSettlementFee, toSettlementFee, storeFee, gasFee }: Omit<ChangePaymentAccountFee, 'loading'> & { from: string; to: string}) => {
   const { bankBalance } = useAppSelector((root) => root.accounts);
