@@ -166,10 +166,12 @@ export const ManagePaymentAccount = ({ onClose }: { onClose: () => void }) => {
         paymentAddress: newPaymentAccount.address,
       }),
     );
-    dispatch(setReadBucketPaymentAccount({
-      bucketName: bucketName,
-      paymentAddress: newPaymentAccount.address,
-    }));
+    dispatch(
+      setReadBucketPaymentAccount({
+        bucketName: bucketName,
+        paymentAddress: newPaymentAccount.address,
+      }),
+    );
   };
 
   const valid =
@@ -209,16 +211,14 @@ export const ManagePaymentAccount = ({ onClose }: { onClose: () => void }) => {
         <ChangePaymentTotalFee
           gasFee={gasFee}
           storeFee={storeFee}
-          settlementFees={[
-            {
-              address: bucket.PaymentAddress,
-              amount: fromSettlementFee,
-            },
-            {
-              address: newPaymentAccount.address,
-              amount: toSettlementFee,
-            },
-          ]}
+          from={{
+            address: bucket.PaymentAddress,
+            amount: fromSettlementFee,
+          }}
+          to={{
+            address: newPaymentAccount.address,
+            amount: toSettlementFee,
+          }}
         />
         <InsufficientBalance loginAccount={loginAccount} accounts={InsufficientAccounts} />
         <DCButton size={'lg'} variant="brand" disabled={!valid} onClick={onChangeConfirm}>

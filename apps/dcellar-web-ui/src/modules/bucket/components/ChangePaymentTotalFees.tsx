@@ -1,35 +1,43 @@
-import { Box, useDisclosure } from '@totejs/uikit';
+import { useDisclosure } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { BN } from '@/utils/math';
-import { sumBy } from 'lodash-es';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
 import { PrepaidFee } from '@/components/Fee/PrepaidFee';
 import { SettlementFee } from '@/components/Fee/SettlementFee';
 import { GasFee } from '@/components/Fee/GasFee';
 import { FullBalance } from '@/components/Fee/FullBalance';
+import { BankBalance } from '@/components/Fee/BankBalance';
+import { LearnMoreTips } from '@/components/common/Tips';
 
-type ChangePaymentTotalFeeProps = {
+export type TSettlementFee = {
+  address: string;
+  amount: string;
+};
+export type ChangePaymentTotalFeeProps = {
   gasFee: string;
-  settlementFees: {
-    address: string;
-    amount: string;
-  }[];
+  from: TSettlementFee;
+  to: TSettlementFee;
   storeFee: string;
 };
 
+const TipsLink =
+  'https://docs.nodereal.io/docs/dcellar-faq#question-how-much-to-pay-for-changing-payment-account';
+const Tips = <LearnMoreTips href={TipsLink} text="Total Fees" />;
+
 export const ChangePaymentTotalFee = ({
   gasFee,
-  settlementFees,
+  from,
+  to,
   storeFee,
 }: ChangePaymentTotalFeeProps) => {
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const { isOpen, onToggle } = useDisclosure();
   const bnbPrice = useAppSelector(selectBnbPrice);
-  // 简化一下CRYPTOCURRENCY_DISPLAY_PRECISION，每次都写好麻烦；
+  const { bankBalance } = useAppSelector((root) => root.accounts);
   const amount = BN(gasFee)
-    .plus(sumBy(settlementFees, (item) => Number(item.amount)))
+    .plus(from.amount)
+    .plus(to.amount)
     .plus(storeFee)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
@@ -41,17 +49,15 @@ export const ChangePaymentTotalFee = ({
       expand={isOpen}
       exchangeRate={bnbPrice}
       canExpand={true}
+      Tips={Tips}
     >
+      <SettlementFee amount={from.amount} />
+      <FullBalance address={from.address} />
       <PrepaidFee amount={storeFee} />
-      {settlementFees &&
-        settlementFees.map((item, index) => (
-          <Box key={index} w={'100%'}>
-            <SettlementFee amount={item.amount} />
-            <FullBalance address={item.address} />
-          </Box>
-        ))}
+      <SettlementFee amount={to.amount} />
+      <FullBalance address={to.address} />
       <GasFee amount={gasFee} />
-      <FullBalance address={loginAccount} />
+      <BankBalance amount={bankBalance} />
     </TotalFeeBox>
   );
 };

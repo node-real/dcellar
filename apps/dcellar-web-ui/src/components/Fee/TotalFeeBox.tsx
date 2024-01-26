@@ -1,6 +1,7 @@
 import { renderFeeValue } from '@/modules/object/utils';
 import { Divider, Flex, FlexProps, Text } from '@totejs/uikit';
 import { IconFont } from '../IconFont';
+import React from 'react';
 
 export type TotalFeeBoxProps = FlexProps & {
   expand: boolean;
@@ -8,6 +9,7 @@ export type TotalFeeBoxProps = FlexProps & {
   canExpand: boolean;
   exchangeRate: string;
   onToggle: () => void;
+  Tips?: React.ReactNode;
 };
 export const TotalFeeBox = ({
   expand,
@@ -15,6 +17,7 @@ export const TotalFeeBox = ({
   amount,
   exchangeRate,
   onToggle,
+  Tips,
   children,
 }: TotalFeeBoxProps) => {
   return (
@@ -34,7 +37,10 @@ export const TotalFeeBox = ({
         alignItems={'center'}
         cursor={expand ? 'pointer' : 'default'}
       >
-        <Text>Total Fees</Text>
+        <Flex alignItems="center">
+          <Text>Total Fees</Text>
+          {Tips}
+        </Flex>
         <Flex
           color={'readable.secondary'}
           alignItems="center"
