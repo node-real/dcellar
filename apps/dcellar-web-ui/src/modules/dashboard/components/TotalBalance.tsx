@@ -1,4 +1,4 @@
-import { Box, Button, Circle, Divider, Flex, Loading, Text } from '@totejs/uikit';
+import { Box, Button, Circle, Divider, Flex, Text } from '@totejs/uikit';
 import { Card, CardProps } from './Common';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { displayTokenSymbol } from '@/utils/wallet';
@@ -14,6 +14,7 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
+import { TotalBalanceTips } from './TotalBalanceTips';
 
 const FeeOptions: {
   id: 'totalPrepaidFee' | 'totalNetflowRate';
@@ -74,9 +75,12 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
 
   return (
     <Card w={374} {...restProps}>
-      <Text fontWeight={600} fontSize={16}>
-        Total Balance
-      </Text>
+      <Flex>
+        <Text fontWeight={600} fontSize={16}>
+          Total Balance
+        </Text>
+        <TotalBalanceTips />
+      </Flex>
       <Box>
         <Flex gap={4} fontSize={32} fontWeight={500} mb={8}>
           <EllipsisText>{isLoading ? '--' : res.totalBalance}</EllipsisText>
@@ -84,9 +88,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
         </Flex>
         <Flex gap={4} color={'readable.disable'}>
           <EllipsisText>
-            {isLoading ? '--' : (
-              currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())
-            )}
+            {isLoading ? '--' : currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())}
           </EllipsisText>
           <Text>USD</Text>
         </Flex>
@@ -100,11 +102,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
         </Flex>
       ))}
       <Divider />
-      <Flex
-        alignItems="center"
-        width="100%"
-        justifyContent="space-between"
-      >
+      <Flex alignItems="center" width="100%" justifyContent="space-between">
         <ActionButton
           data-track-id="dc.main.account.transferin.click"
           variant="ghost"
