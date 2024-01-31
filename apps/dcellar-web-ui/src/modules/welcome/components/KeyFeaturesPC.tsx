@@ -6,7 +6,7 @@ import { memo } from 'react';
 import { GAClick } from '@/components/common/GATracker';
 import { INTER_FONT } from '@/modules/wallet/constants';
 
-export const KeyFeaturesPC = memo(() => {
+export const KeyFeaturesPC = memo<any>(function KeyFeaturesFC() {
   const styles = {
     px: 16,
     py: 12,

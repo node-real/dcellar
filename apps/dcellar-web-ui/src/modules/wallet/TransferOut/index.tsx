@@ -88,7 +88,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
       !isOpen && onOpen();
     } catch (e: any) {
       // eslint-disable-next-line no-console
-      console.log('transfer out error', e);
+      console.error('transfer out error', e);
       setStatus('failed');
       setErrorMsg(broadcastFault(e)[1]);
       !isOpen && onOpen();

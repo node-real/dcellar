@@ -12,7 +12,7 @@ interface PathItemProps {
   [key: string]: any;
 }
 
-export const PathItem = memo<PathItemProps>(function ({ path, status, ...styleProps }) {
+export const PathItem = memo<PathItemProps>(function PathItem({ path, status, ...styleProps }) {
   const dispatch = useAppDispatch();
   const finished = status === 'FINISH';
   const hoverStyles = finished

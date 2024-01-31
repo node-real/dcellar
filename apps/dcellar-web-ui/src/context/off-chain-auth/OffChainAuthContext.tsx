@@ -96,7 +96,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         }
         return { code: 0, message: 'success' };
       } catch (e: any) {
-        console.log('gen offChain data error', e);
+        console.error('gen offChain data error', e);
         const message = parseWCMessage(e?.message) ?? e.message;
         console.error(provider);
         Sentry.withScope((scope) => {

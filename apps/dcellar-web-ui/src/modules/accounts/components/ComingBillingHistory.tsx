@@ -24,7 +24,7 @@ const columns: ColumnProps<any>[] = [
   },
 ].map((col) => ({ ...col, dataIndex: col.key }));;
 
-export const ComingBillingHistory = memo(() => {
+export const ComingBillingHistory = memo(function ComingBillingHistory() {
   const renderEmpty = useCallback(
     () => (
       <ListEmpty

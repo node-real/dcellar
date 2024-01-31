@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
-export const TotalCost = memo(() => {
+export const TotalCost = memo(function TotalCost() {
   const router = useRouter();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { isLoadingPaymentAccounts, accountInfo } = useAppSelector((root) => root.accounts);

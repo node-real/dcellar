@@ -7,7 +7,7 @@ type SwapIconProps = FlexProps & {
   onClick: React.MouseEventHandler<HTMLDivElement>;
 };
 
-export const SwapIcon = memo<SwapIconProps>(function ({ onClick, ...props }) {
+export const SwapIcon = memo<SwapIconProps>(function SwapIcon({ onClick, ...props }) {
   return (
     <Flex
       width={'28px'}

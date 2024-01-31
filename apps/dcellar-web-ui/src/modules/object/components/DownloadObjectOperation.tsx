@@ -171,7 +171,7 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
                 setCurrentAllowDirectDownload(checked);
               }}
             >
-              Don't show again.
+              Don&apos;t show again.
             </Checkbox>
           </GAClick>
         </Flex>

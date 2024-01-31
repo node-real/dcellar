@@ -162,7 +162,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
         })
         .catch(async (e: Response | any) => {
-          console.log('upload error', e);
+          console.error('upload error', e);
           const { message } = await parseErrorXml(e);
           const authExpired = [
             'bad signature',
@@ -212,7 +212,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       privateKey: tmpAccount.privateKey,
     }).then(resolve, createTxFault);
     if (_createError) {
-      console.log('createError', _createError);
+      console.error('createError', _createError);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
@@ -227,7 +227,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       })
       .then(resolve, simulateFault);
     if (!simulateInfo || simulateError) {
-      console.log('simulateError', simulateError);
+      console.error('simulateError', simulateError);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
@@ -248,7 +248,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      console.log('broadTxError', error);
+      console.error('broadTxError', error);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
