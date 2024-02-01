@@ -1,7 +1,8 @@
 import { GAShow } from '@/components/common/GATracker';
 import { Flex, FlexProps, Tooltip, TooltipProps } from '@totejs/uikit';
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement, memo, useState } from 'react';
 import { IconFont } from '@/components/IconFont';
+import { DCLink } from '../DCLink';
 
 interface Props extends TooltipProps {
   tips: string | ReactElement | null;
@@ -51,3 +52,34 @@ export const Tips = ({
     </Tooltip>
   );
 };
+
+export type LearnMoreTipsProps = {
+  href: string;
+  text: string;
+}
+export const LearnMoreTips = memo<LearnMoreTipsProps>(
+  function LearnMoreTips({href, text}) {
+    return (
+      <Tips
+        placement={'top'}
+        w={'fit-content'}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        tips={
+          <>
+            Learn More about{' '}
+            <DCLink
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {text}
+            </DCLink>
+            .
+          </>
+        }
+      />
+    );
+  },
+);
