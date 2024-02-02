@@ -13,7 +13,6 @@ import { parseEther } from 'ethers/lib/utils.js';
 import { resolve } from './common';
 import { ErrorResponse, broadcastFault, simulateFault, createTxFault, commonFault } from './error';
 import { UNKNOWN_ERROR } from '@/modules/object/constant';
-import { TTmpAccount } from '@/store/slices/global';
 import { signTypedDataCallback } from './wallet';
 import {
   QueryGetStreamRecordResponse,
@@ -24,6 +23,7 @@ import { Connector } from 'wagmi';
 import { getTimestamp } from '@/utils/time';
 import { BaseAccount } from '@bnb-chain/greenfield-cosmos-types/cosmos/auth/v1beta1/auth';
 import { getClient } from '@/facade/index';
+import { TTempAccount } from '@/store/slices/accounts';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -38,13 +38,20 @@ export const getAccountBalance = async ({
   return balance!;
 };
 
-export const createTmpAccount = async ({
+export type CreateTmpAccountParams = {
+  address: string;
+  bucketName: string;
+  amount: number;
+  connector: Connector<any, any>;
+  actionType?: 'delete' | 'create';
+}
+export const createTempAccount = async ({
   address,
   bucketName,
   amount,
   connector,
-  actionType,
-}: any): Promise<ErrorResponse | [TTmpAccount, null]> => {
+  actionType = 'create',
+}: CreateTmpAccountParams): Promise<ErrorResponse | [TTempAccount, null]> => {
   //messages and resources are different for create and delete
   const isDelete = actionType === 'delete';
 

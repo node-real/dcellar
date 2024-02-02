@@ -17,8 +17,7 @@ import {
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
-import { setTmpAccount } from '@/store/slices/global';
-import { createTmpAccount } from '@/facade/account';
+import { createTempAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
 import { ColoredWaitingIcon } from '@totejs/icons';
@@ -32,6 +31,7 @@ import { getStoreNetflowRate } from '@/utils/payment';
 import {
   selectAccount,
   selectAvailableBalance,
+  setTempAccounts,
   setupAccountInfo,
   TAccountInfo,
 } from '@/store/slices/accounts';
@@ -152,19 +152,19 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           desc: WALLET_CONFIRM,
         }),
       );
-      const [tmpAccount, err] = await createTmpAccount({
+      const [tempAccount, err] = await createTempAccount({
         address: loginAccount,
         bucketName,
         amount: parseEther(round(Number(availableBalance), 6).toString()).toString(),
-        connector,
+        connector: connector!,
         actionType: 'delete',
       });
-      if (!tmpAccount) return errorHandler(err);
-      dispatch(setTmpAccount(tmpAccount));
+      if (!tempAccount) return errorHandler(err);
+      dispatch(setTempAccounts(tempAccount));
 
       async function deleteInRow() {
-        if (!tmpAccount) return;
-        const { privateKey, address: operator } = tmpAccount;
+        if (!tempAccount) return;
+        const { privateKey, address: operator } = tempAccount;
         for await (let obj of deleteObjects) {
           const { ObjectName: objectName, ObjectStatus } = obj.ObjectInfo;
           const payload = {

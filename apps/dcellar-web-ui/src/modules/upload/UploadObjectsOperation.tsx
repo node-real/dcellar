@@ -50,7 +50,6 @@ import {
   addToWaitQueue,
   resetWaitQueue,
   setTaskManagement,
-  setTmpAccount,
   setupWaitTaskErrorMsg,
   updateWaitFileStatus,
   UPLOADING_STATUSES,
@@ -62,7 +61,7 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
 import { isEmpty, round, toPairs, trimEnd } from 'lodash-es';
 import { ListItem } from './ListItem';
 import { useUploadTab } from './useUploadTab';
-import { createTmpAccount } from '@/facade/account';
+import { createTempAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { useAccount } from 'wagmi';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
@@ -90,6 +89,7 @@ import {
 import { getTimestamp } from '@/utils/time';
 import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
 import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { setTempAccounts } from '@/store/slices/accounts';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -296,8 +296,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const [txRes, error] = await broadcastTx({
           tx: createObjectTx,
           address: loginAccount,
-          connector: connector!
-        })
+          connector: connector!,
+        });
         if (!txRes || error) {
           dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
           closeModal();
@@ -320,19 +320,24 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           Number(totalFee) * 1.05 > Number(bankBalance)
             ? round(Number(bankBalance), 6)
             : round(Number(totalFee) * 1.05, 6);
-        console.time('createTmpAccount');
-        const [tmpAccount, error] = await createTmpAccount({
+        const [tempAccount, error] = await createTempAccount({
           address: loginAccount,
           bucketName,
           amount: parseEther(String(safeAmount)).toString(),
-          connector,
+          connector: connector!,
         });
-        console.timeEnd('createTmpAccount');
-        if (!tmpAccount) {
+        if (!tempAccount) {
           return errorHandler(error);
         }
-        dispatch(setTmpAccount(tmpAccount));
-        dispatch(addTasksToUploadQueue(primarySp.operatorAddress, visibility, validTags));
+        dispatch(setTempAccounts(tempAccount));
+        dispatch(
+          addTasksToUploadQueue({
+            spAddress: primarySp.operatorAddress,
+            visibility,
+            tags: validTags,
+            tempAccountAddress: tempAccount.address,
+          }),
+        );
       }
 
       closeModal();

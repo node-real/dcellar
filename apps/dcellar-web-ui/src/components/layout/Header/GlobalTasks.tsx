@@ -42,7 +42,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
+  const { sealingTs } = useAppSelector((root) => root.global);
+  const tempAccounts = useAppSelector((root) => root.accounts.tempAccounts);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const signTask = useAppSelector(selectSignTask(loginAccount));
@@ -192,7 +193,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   // 2. sign
   useAsyncEffect(async () => {
     const task = signTask;
-    if (!task) return;
+    if (!task || !task.tempAccountAddress) return;
+    const tempAccount = tempAccounts[task.tempAccountAddress];
     dispatch(updateUploadStatus({ ids: [task.id], status: 'SIGN', account: loginAccount }));
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
@@ -200,7 +202,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const createObjectPayload: CreateObjectApprovalRequest = {
       bucketName: task.bucketName,
       objectName: finalName,
-      creator: tmpAccount.address,
+      creator: tempAccount.address,
       visibility: reverseVisibilityType[task.visibility],
       fileType: task.waitFile.type || 'application/octet-stream',
       contentLength: task.waitFile.size,
@@ -209,7 +211,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     };
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',
-      privateKey: tmpAccount.privateKey,
+      privateKey: tempAccount.privateKey,
     }).then(resolve, createTxFault);
     if (_createError) {
       console.log('createError', _createError);
@@ -240,9 +242,9 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       denom: 'BNB',
       gasLimit: Number(simulateInfo?.gasLimit),
       gasPrice: simulateInfo?.gasPrice || '5000000000',
-      payer: tmpAccount.address,
+      payer: tempAccount.address,
       granter: loginAccount,
-      privateKey: tmpAccount.privateKey,
+      privateKey: tempAccount.privateKey,
     };
     const [res, error] = await createObjectTx!
       .broadcast(broadcastPayload)

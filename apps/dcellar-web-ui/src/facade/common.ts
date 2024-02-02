@@ -7,8 +7,8 @@ import { IQuotaProps, SpResponse } from '@bnb-chain/greenfield-js-sdk';
 import { getClient } from '@/facade/index';
 import { signTypedDataCallback } from './wallet';
 import { UNKNOWN_ERROR } from '@/modules/object/constant';
-import { TTmpAccount } from '@/store/slices/global';
 import { Connector } from 'wagmi';
+import { TTempAccount } from '@/store/slices/accounts';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -156,12 +156,12 @@ export const broadcastMulTxs = async ({
 
 export type BroadcastMultiTxByTmpAccount = {
   txs: TxResponse[],
-  tmpAccount: TTmpAccount,
+  tempAccount: TTempAccount,
   address: string,
 }
 export const broadcastMultiTxByTmpAccount = async ({
   txs,
-  tmpAccount,
+  tempAccount,
   address
 }: BroadcastMultiTxByTmpAccount): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
   if (!txs) {
@@ -179,9 +179,9 @@ export const broadcastMultiTxByTmpAccount = async ({
     denom: 'BNB',
     gasLimit: Number(simulateInfo?.gasLimit),
     gasPrice: simulateInfo?.gasPrice || '5000000000',
-    payer: tmpAccount.address,
+    payer: tempAccount.address,
     granter: address,
-    privateKey: tmpAccount.privateKey,
+    privateKey: tempAccount.privateKey,
   };
 
   const [res, error] = await multiTxs.broadcast(broadcastPayload).then(resolve, broadcastFault);
