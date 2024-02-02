@@ -155,7 +155,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       const [tempAccount, err] = await createTempAccount({
         address: loginAccount,
         bucketName,
-        amount: parseEther(round(Number(availableBalance), 6).toString()).toString(),
+        amount: parseEther(round(Number(availableBalance), 6).toString()).toNumber(),
         connector: connector!,
         actionType: 'delete',
       });

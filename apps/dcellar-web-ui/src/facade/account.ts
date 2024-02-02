@@ -74,7 +74,7 @@ export const createTempAccount = async ({
       granter: address,
       grantee: wallet.address,
       allowedMessages: grantAllowedMessage,
-      amount: parseEther(amount <= 0 ? '0.1' : amount).toString(),
+      amount: parseEther(amount <= 0 ? '0.1' : String(amount)).toString(),
       denom: 'BNB',
       expirationTime: toTimestamp(expirationDate),
     })

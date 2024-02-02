@@ -11,11 +11,14 @@ import { setupAllCostTrend, setupTotalCost } from '@/store/slices/billing';
 import { useMount } from 'ahooks';
 import { setupBuckets } from '@/store/slices/bucket';
 import { setupBucketDailyStorage } from '@/store/slices/dashboard';
+import Link from 'next/link';
+import { getCurMonthDetailUrl } from '@/utils/accounts';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
   const { loginAccount } = useAppSelector((root) => root.persist);
   const [isLessThan1200] = useMediaQuery('(max-width: 1200px)');
+  const curMonthDetailUrl = getCurMonthDetailUrl();
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
@@ -30,12 +33,15 @@ export const Dashboard = () => {
       <Text as="h1" fontSize={24} fontWeight={700} mb={16}>
         Dashboard
       </Text>
-      {/* height={'calc(100% - 45px)'} */}
-      <Flex gap={16} >
+      <Flex gap={16}>
         <Flex flexDirection={'column'} gap={16} flex={1} minW={0}>
           <Flex gap={16}>
-            <CurMonthCost flex={1} showLink={false} />
-            <CurForecastCost flex={1} />
+            <Link href={curMonthDetailUrl}>
+              <CurMonthCost flex={1} showLink={false} />
+            </Link>
+            <Link href={curMonthDetailUrl}>
+              <CurForecastCost flex={1} />
+            </Link>
           </Flex>
           {isLessThan1200 && (
             <Flex gap={16}>

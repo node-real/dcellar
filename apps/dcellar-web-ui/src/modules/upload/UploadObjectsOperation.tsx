@@ -323,7 +323,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const [tempAccount, error] = await createTempAccount({
           address: loginAccount,
           bucketName,
-          amount: parseEther(String(safeAmount)).toString(),
+          amount: parseEther(String(safeAmount)).toNumber(),
           connector: connector!,
         });
         if (!tempAccount) {
@@ -428,6 +428,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               <TabList
                 position="sticky"
                 top={0}
+                zIndex={1}
                 bg="bg.middle"
                 className={cn({ 'tab-header-fixed': scroll.top > 0 })}
               >
