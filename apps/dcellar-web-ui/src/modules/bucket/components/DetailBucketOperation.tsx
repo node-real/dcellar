@@ -15,9 +15,8 @@ import {
   setEditQuota,
   TBucket,
   setupBucketQuota,
-  setEditBucketTags,
   setEditBucketTagsData,
-  setEditBucketPaymentAccount,
+  setBucketOperation,
 } from '@/store/slices/bucket';
 import { formatFullTime, getMillisecond } from '@/utils/time';
 import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
@@ -31,7 +30,7 @@ import { IconFont } from '@/components/IconFont';
 import { convertObjectKey } from '@/utils/common';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useUnmount } from 'ahooks';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 
@@ -75,11 +74,13 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
   const onEditTags = () => {
-    const lowerKeyTags = selectedBucketInfo.Tags.Tags.map((item) =>
+    const tags = selectedBucketInfo.Tags.Tags.map((item) =>
       convertObjectKey(item, 'lowercase'),
+    ) as ResourceTags_Tag[];
+    dispatch(setEditBucketTagsData(tags));
+    dispatch(
+      setBucketOperation({ level: 1, operation: [selectedBucketInfo.BucketName, 'update_tags'] }),
     );
-    dispatch(setEditBucketTagsData(lowerKeyTags as ResourceTags_Tag[]));
-    dispatch(setEditBucketTags([selectedBucketInfo.BucketName, 'detail']));
   };
 
   const getContent = () => {
@@ -167,9 +168,9 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                         gap={4}
                         color={'brand.brand6'}
                         cursor={'pointer'}
-                      onClick={managePaymentAccount}
-                      w={16}
-                      h={16}
+                        onClick={managePaymentAccount}
+                        w={16}
+                        h={16}
                       >
                         <IconFont type="pen" />
                       </Flex>
@@ -292,7 +293,12 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   };
 
   const managePaymentAccount = () => {
-    dispatch(setEditBucketPaymentAccount([selectedBucketInfo.BucketName, 'drawer']));
+    dispatch(
+      setBucketOperation({
+        level: 1,
+        operation: [selectedBucketInfo.BucketName, 'payment_account'],
+      }),
+    );
   };
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));

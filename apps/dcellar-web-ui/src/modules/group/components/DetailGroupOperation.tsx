@@ -1,6 +1,6 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditGroupTags, setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
+import { setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect, useUnmount } from 'ahooks';
 import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
@@ -12,7 +12,7 @@ import { ethers } from 'ethers';
 import { Avatar } from '@/components/Avatar';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 
 interface DetailGroupOperationProps {
   selectGroup: GroupInfo;
@@ -40,7 +40,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
   );
   const onEditTag = () => {
     dispatch(setEditGroupTagsData(selectGroup?.tags?.tags ?? [DEFAULT_TAG]));
-    dispatch(setEditGroupTags([selectGroup.id, 'detail']))
+    dispatch(setGroupOperation({ level: 1, operation: [selectGroup.id, 'update_tags'] }));
   }
 
   useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));

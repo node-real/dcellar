@@ -8,7 +8,6 @@ import { setupGroups } from '@/store/slices/group';
 import { Box, Flex } from '@totejs/uikit';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
-import { ManageGroupTagDrawer } from './components/ManageGroupTagDrawer';
 
 interface GroupsPageProps {}
 
@@ -40,7 +39,6 @@ export const GroupsPage = memo<GroupsPageProps>(function GroupsPage() {
         <NewGroup />
       </Flex>
       <GroupList />
-      <ManageGroupTagDrawer />
     </>
   );
 });

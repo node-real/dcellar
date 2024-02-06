@@ -26,7 +26,7 @@ export type ManageTagOperationProps = {
   tags: ResourceTags_Tag[];
 };
 
-export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) => {
+export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) => {
   const isInvalid = (type: string, value: string) => {
     if (type === 'key' && value.length > 32) {
       return 'Should not exceed 32 characters.';
@@ -51,9 +51,6 @@ export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) =
     setInternalTags(newTags);
   };
   const onDelete = (index: number) => {
-    // if (internalTags.length <= 1) {
-    //   return setInternalTags([DEFAULT_TAG]);
-    // }
     setInternalTags(internalTags.filter((_, curIndex) => curIndex !== index));
   };
 
@@ -111,7 +108,6 @@ export const ManageTag = ({ onSave, onCancel, tags }: ManageTagOperationProps) =
         <DCButton
           variant="brand"
           w={'100%'}
-          // disabled={getValidTags(internalTags).length === 0}
           onClick={() => onSave(internalTags)}
         >
           Save

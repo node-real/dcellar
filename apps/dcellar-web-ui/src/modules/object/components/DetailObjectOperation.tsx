@@ -1,11 +1,4 @@
-import {
-  Divider,
-  Flex,
-  QDrawerBody,
-  QDrawerFooter,
-  QDrawerHeader,
-  Text,
-} from '@totejs/uikit';
+import { Divider, Flex, QDrawerBody, QDrawerFooter, QDrawerHeader, Text } from '@totejs/uikit';
 import { encodeObjectName, formatId } from '@/utils/string';
 import React, { memo, useState } from 'react';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
@@ -13,7 +6,12 @@ import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { formatFullTime } from '@/utils/time';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectActionType, setEditObjectTags, setEditObjectTagsData, setObjectOperation, setStatusDetail } from '@/store/slices/object';
+import {
+  ObjectActionType,
+  setEditObjectTagsData,
+  setObjectOperation,
+  setStatusDetail,
+} from '@/store/slices/object';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
@@ -36,7 +34,7 @@ import {
 import { convertObjectKey } from '@/utils/common';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useUnmount } from 'ahooks';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -112,10 +110,17 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
     return success;
   };
   const onEditTags = () => {
-    const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) => convertObjectKey(item, 'lowercase'));
+    const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) =>
+      convertObjectKey(item, 'lowercase'),
+    );
     dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
-    dispatch(setEditObjectTags([`${selectObjectInfo.ObjectInfo.BucketName}/${selectObjectInfo.ObjectInfo.ObjectName}`, 'detail']));
-  }
+    dispatch(
+      setObjectOperation({
+        level: 1,
+        operation: [`${objectInfo.BucketName}/${objectInfo.ObjectName}`, 'update_tags'],
+      }),
+    );
+  };
 
   useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
 
@@ -201,8 +206,8 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(function D
               ),
             )}
           {renderTags({
-            onClick:onEditTags,
-            tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0
+            onClick: onEditTags,
+            tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0,
           })}
         </Flex>
         <Divider />

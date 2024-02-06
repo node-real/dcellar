@@ -26,6 +26,8 @@ import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDel
 import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
 import { useUnmount } from 'ahooks';
 import { DetailFolderOperation } from '@/modules/object/components/DetailFolderOperation';
+import { UpdateObjectTagsOperation } from './UpdateObjectTagsOperation';
+import { EditObjectTagsOperation } from './EditObjectTagsOperation';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
@@ -44,9 +46,15 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const [id, operation, params] = objectOperation[level];
   const bucketName = params?.bucketName || _bucketName;
-  const isDrawer = ['folder_detail', 'detail', 'create_folder', 'share', 'upload'].includes(
-    operation,
-  );
+  const isDrawer = [
+    'folder_detail',
+    'detail',
+    'create_folder',
+    'share',
+    'upload',
+    'edit_tags',
+    'update_tags',
+  ].includes(operation);
   const isModal = ['delete', 'cancel', 'download', 'batch_delete'].includes(operation);
   const _operation = useModalValues<ObjectOperationsType>(operation);
   const selectObjectInfo = objectsInfo[id] || {};
@@ -195,10 +203,24 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
             onClose={onClose}
           />
         );
+      case 'update_tags':
+        return <UpdateObjectTagsOperation id={id} object={_selectObjectInfo} onClose={onClose} />;
+      case 'edit_tags':
+        return <EditObjectTagsOperation onClose={onClose} />;
       default:
         return null;
     }
-  }, [_operation, id, _selectObjectInfo, selectBucket, bucketAccountDetail, primarySp, params]);
+  }, [
+    selectBucket,
+    bucketAccountDetail,
+    primarySp,
+    id,
+    _operation,
+    _selectObjectInfo,
+    refetch,
+    onClose,
+    params,
+  ]);
 
   return (
     <>

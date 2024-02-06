@@ -17,7 +17,7 @@ import {
   toast,
 } from '@totejs/uikit';
 import { find } from 'lodash-es';
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { PaymentAccountSelector } from '../components/PaymentAccountSelector';
 import { DCButton } from '@/components/common/DCButton';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
@@ -27,7 +27,7 @@ import { UpdateBucketInfoPayload, updateBucketInfo } from '@/facade/bucket';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { useAccount } from 'wagmi';
-import { setReadBucketPaymentAccount } from '@/store/slices/bucket';
+import { TBucket, setReadBucketPaymentAccount } from '@/store/slices/bucket';
 import { BN } from '@/utils/math';
 import {
   useChangePaymentAccountFee,
@@ -37,16 +37,17 @@ import { BalanceOn } from '@/components/Fee/BalanceOn';
 import { InsufficientBalance } from '@/components/Fee/InsufficientBalance';
 import { ChangePaymentTotalFee } from './ChangePaymentTotalFees';
 
-export const ManagePaymentAccount = ({ onClose }: { onClose: () => void }) => {
+export const PaymentAccountOperation = memo(function PaymentAccountOperation({
+  bucket,
+  onClose,
+}: {
+  bucket: TBucket;
+  onClose: () => void;
+}) {
   const dispatch = useAppDispatch();
   const { connector } = useAccount();
-  const {
-    editPaymentAccount: [bucketName],
-  } = useAppSelector((root) => root.bucket);
   const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
   const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const bucket = bucketInfo[bucketName] || {};
   const { loginAccount } = useAppSelector((root) => root.persist);
   const PAList = useAppSelector(selectPaymentAccounts(loginAccount));
   const [newPaymentAccount, setNewPaymentAccount] = useState<TAccount>({} as TAccount);
@@ -162,13 +163,13 @@ export const ManagePaymentAccount = ({ onClose }: { onClose: () => void }) => {
     onClose();
     dispatch(
       setReadBucketPaymentAccount({
-        bucketName: bucketName,
+        bucketName: bucket.BucketName,
         paymentAddress: newPaymentAccount.address,
       }),
     );
     dispatch(
       setReadBucketPaymentAccount({
-        bucketName: bucketName,
+        bucketName: bucket.BucketName,
         paymentAddress: newPaymentAccount.address,
       }),
     );
@@ -227,7 +228,7 @@ export const ManagePaymentAccount = ({ onClose }: { onClose: () => void }) => {
       </QDrawerFooter>
     </>
   );
-};
+});
 
 const Field = styled(Flex)`
   align-items: center;

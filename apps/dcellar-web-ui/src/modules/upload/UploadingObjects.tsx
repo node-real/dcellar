@@ -22,7 +22,7 @@ import { UploadProgress } from './UploadProgress';
 import { IconFont } from '@/components/IconFont';
 import cn from 'classnames';
 import { useScroll } from 'ahooks';
-import { EditTags } from '@/components/common/ManageTag';
+import { EditTags } from '@/components/common/ManageTags';
 
 interface UploadingObjectsProps {}
 

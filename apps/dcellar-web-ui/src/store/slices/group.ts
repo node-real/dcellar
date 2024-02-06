@@ -3,7 +3,7 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { getGroupMembers, getGroups } from '@/facade/group';
 import { BucketInfo, GroupInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { toast } from '@totejs/uikit';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 
 export type GroupMember = {
   AccountId: string;
@@ -15,7 +15,7 @@ export type GroupMember = {
   ExpirationTime: number;
 };
 
-export type GroupOperationsType = 'create' | 'detail' | 'edit' | 'add' | 'remove' | 'delete' | '';
+export type GroupOperationsType = 'create' | 'detail' | 'edit' | 'add' | 'remove' | 'delete' | 'edit_tags' | 'update_tags' | '';
 
 interface GroupState {
   groups: Record<string, GroupInfo[]>;
@@ -81,8 +81,8 @@ export const groupSlice = createSlice({
       const { account, list } = payload;
       state.groups[account] = list;
     },
-    setGroupTags(state, { payload }: PayloadAction<{account: string, groupId: string, tags: ResourceTags_Tag[] }>) {
-      const {account, groupId, tags } = payload;
+    setGroupTags(state, { payload }: PayloadAction<{ account: string, groupId: string, tags: ResourceTags_Tag[] }>) {
+      const { account, groupId, tags } = payload;
       const group = state.groups[account].find(item => item.id === groupId);
       if (!group) return;
       group['tags'] = {

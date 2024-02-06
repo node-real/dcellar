@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { TBucket, setBucketOperation, BucketOperationsType } from '@/store/slices/bucket';
@@ -14,6 +14,9 @@ import { DeleteBucketOperation } from '@/modules/bucket/components/DeleteBucketO
 import { ModalCloseButton } from '@totejs/uikit';
 import { ShareOperation } from '@/modules/object/components/ShareOperation';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { PaymentAccountOperation } from './PaymentAccountOperation';
+import { EditBucketTagsOperation } from './EditBucketTagsOperation';
+import { UpdateBucketTagsOperation } from './UpdateBucketTagsOperation';
 
 interface BucketOperationsProps {
   level?: 0 | 1;
@@ -25,7 +28,15 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   const dispatch = useAppDispatch();
   const { bucketOperation, bucketInfo } = useAppSelector((root) => root.bucket);
   const [id, operation] = bucketOperation[level];
-  const isDrawer = ['detail', 'create', 'share'].includes(operation);
+  const isDrawer = [
+    'detail',
+    'create',
+    'share',
+    'payment_account',
+    'tags',
+    'edit_tags',
+    'update_tags',
+  ].includes(operation);
   const isModal = ['delete'].includes(operation);
   const _operation = useModalValues<BucketOperationsType>(operation);
   const selectBucketInfo = bucketInfo[id] || {};
@@ -58,10 +69,16 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
         return (
           <ShareOperation selectObjectInfo={nullObjectMeta} primarySp={primarySp} objectName={''} />
         );
+      case 'payment_account':
+        return <PaymentAccountOperation bucket={_selectBucketInfo} onClose={onClose} />;
+      case 'edit_tags':
+        return <EditBucketTagsOperation onClose={onClose} />;
+      case 'update_tags':
+        return <UpdateBucketTagsOperation bucket={_selectBucketInfo} onClose={onClose} />;
       default:
         return null;
     }
-  }, [_operation, _selectBucketInfo, primarySp]);
+  }, [_operation, _selectBucketInfo, onClose, primarySp]);
 
   return (
     <>

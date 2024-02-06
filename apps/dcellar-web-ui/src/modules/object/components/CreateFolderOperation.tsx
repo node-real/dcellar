@@ -46,8 +46,8 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useChecksumApi } from '@/modules/checksum';
 import { DeliverTxResponse, broadcastMulTxs, resolve } from '@/facade/common';
 import {
-  setEditObjectTags,
   setEditObjectTagsData,
+  setObjectOperation,
   setStatusDetail,
   TStatusDetail,
 } from '@/store/slices/object';
@@ -68,7 +68,7 @@ import { removeTrailingSlash } from '@/utils/string';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -107,7 +107,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     dispatch(setStatusDetail({} as TStatusDetail));
   };
   const onEditTags = () => {
-    dispatch(setEditObjectTags(['new', 'create']));
+    dispatch(setObjectOperation({level: 1, operation: ['', 'edit_tags']}))
   };
   const validTags = getValidTags(editTagsData);
   const isSetTags = validTags.length > 0;

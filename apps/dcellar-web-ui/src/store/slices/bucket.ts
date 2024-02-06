@@ -8,11 +8,19 @@ import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { setAuthModalOpen } from '@/store/slices/global';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { convertObjectKey } from '@/utils/common';
 
-export type BucketOperationsType = 'detail' | 'delete' | 'create' | 'marketplace' | 'share' | '';
+export type BucketOperationsType = 'detail'
+  | 'delete'
+  | 'create'
+  | 'share'
+  | 'marketplace'
+  | 'payment_account'
+  | 'edit_tags'
+  | 'update_tags'
+  | '';
 
 export type BucketProps = BucketMetaWithVGF;
 export type TBucket = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
@@ -36,11 +44,7 @@ export interface BucketState {
   owner: boolean;
   editQuota: string[];
   bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
-  // TODO update
-  editTags: [string, string];
   editTagsData: ResourceTags_Tag[];
-  // [bucketName, from];
-  editPaymentAccount: [string, FromType];
 }
 
 const initialState: BucketState = {
@@ -54,9 +58,7 @@ const initialState: BucketState = {
   owner: true,
   editQuota: ['', ''],
   bucketOperation: { 0: ['', ''], 1: ['', ''] },
-  editTags: ['', ''],
   editTagsData: [DEFAULT_TAG],
-  editPaymentAccount: ['', ''],
 };
 
 export const bucketSlice = createSlice({
@@ -127,9 +129,6 @@ export const bucketSlice = createSlice({
         })
         .sort((a, b) => b.CreateAt - a.CreateAt);
     },
-    setEditBucketTags(state, { payload }: PayloadAction<[string, string]>) {
-      state.editTags = payload;
-    },
     setEditBucketTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
       state.editTagsData = payload;
     },
@@ -143,9 +142,6 @@ export const bucketSlice = createSlice({
         TBucket['Tags'],
         { Tags: any }
       >['Tags'];
-    },
-    setEditBucketPaymentAccount(state, { payload }: PayloadAction<[string, FromType]>) {
-      state.editPaymentAccount = payload;
     },
     setReadBucketPaymentAccount(state, { payload }: PayloadAction<{
       bucketName: string; paymentAddress: string;
@@ -178,43 +174,43 @@ export const setupBucket =
 
 export const setupBuckets =
   (address: string, forceLoading = false) =>
-  async (dispatch: AppDispatch, getState: GetState) => {
-    const { oneSp, spInfo, allSps } = getState().sp;
-    const { buckets, loading } = getState().bucket;
-    const sp = spInfo[oneSp];
-    if (loading) return;
-    if (!(address in buckets) || forceLoading) {
-      dispatch(setLoading(true));
-    }
-    const [res, error] = await getUserBuckets(address, sp.endpoint);
-    dispatch(setLoading(false));
-    if (error || !res || res.code !== 0) {
-      if (!res?.message?.includes('record not found')) {
-        toast.error({ description: error || res?.message });
+    async (dispatch: AppDispatch, getState: GetState) => {
+      const { oneSp, spInfo, allSps } = getState().sp;
+      const { buckets, loading } = getState().bucket;
+      const sp = spInfo[oneSp];
+      if (loading) return;
+      if (!(address in buckets) || forceLoading) {
+        dispatch(setLoading(true));
       }
-      if (!buckets[address]?.length) {
-        dispatch(setBucketList({ address, buckets: [] }));
+      const [res, error] = await getUserBuckets(address, sp.endpoint);
+      dispatch(setLoading(false));
+      if (error || !res || res.code !== 0) {
+        if (!res?.message?.includes('record not found')) {
+          toast.error({ description: error || res?.message });
+        }
+        if (!buckets[address]?.length) {
+          dispatch(setBucketList({ address, buckets: [] }));
+        }
+        return;
       }
-      return;
-    }
-    const bucketList =
-      res.body?.map((bucket) => {
-        return {
-          ...bucket,
-          BucketInfo: {
-            ...bucket.BucketInfo,
-          },
-        };
-      }) || [];
+      const bucketList =
+        res.body?.map((bucket) => {
+          return {
+            ...bucket,
+            BucketInfo: {
+              ...bucket.BucketInfo,
+            },
+          };
+        }) || [];
 
-    const bucketSpInfo = bucketList.map((b) => ({
-      bucketName: b.BucketInfo.BucketName,
-      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
-    }));
+      const bucketSpInfo = bucketList.map((b) => ({
+        bucketName: b.BucketInfo.BucketName,
+        sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
+      }));
 
-    dispatch(setPrimarySpInfos(bucketSpInfo));
-    dispatch(setBucketList({ address, buckets: bucketList }));
-  };
+      dispatch(setPrimarySpInfos(bucketSpInfo));
+      dispatch(setBucketList({ address, buckets: bucketList }));
+    };
 
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -261,9 +257,7 @@ export const {
   setQuotaLoading,
   setBucketOperation,
   setBucketTags,
-  setEditBucketTags,
   setEditBucketTagsData,
-  setEditBucketPaymentAccount,
   setReadBucketPaymentAccount,
 } = bucketSlice.actions;
 

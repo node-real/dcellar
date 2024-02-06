@@ -25,8 +25,6 @@ import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';
-import { ManageBucketTagsDrawer } from './ManageBucketTagsDrawer';
-import { ManagePaymentAccountDrawer } from './ManagePaymentAccountDrawer';
 
 const Actions: MenuOption[] = [
   {
@@ -162,8 +160,6 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
         />
       )}
       <BucketOperations />
-      <ManageBucketTagsDrawer />
-      <ManagePaymentAccountDrawer />
       <DCTable
         loading={loadingComponent}
         rowKey="BucketName"

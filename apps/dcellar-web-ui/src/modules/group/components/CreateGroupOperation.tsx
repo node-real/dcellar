@@ -12,8 +12,8 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectGroupList,
-  setEditGroupTags,
   setEditGroupTagsData,
+  setGroupOperation,
   setupGroups,
 } from '@/store/slices/group';
 import { InputItem } from '@/components/formitems/InputItem';
@@ -30,7 +30,7 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { useUnmount } from 'ahooks';
 import { broadcastMulTxs } from '@/facade/common';
@@ -154,7 +154,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
   };
 
   const onAddTags = () => {
-    dispatch(setEditGroupTags(['new', 'create']));
+    dispatch(setGroupOperation({level: 1, operation: ['', 'edit_tags']}))
   };
 
   useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));

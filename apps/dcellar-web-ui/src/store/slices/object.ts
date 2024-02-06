@@ -23,7 +23,7 @@ import {
   ObjectInfo,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { convertObjectKey } from '@/utils/common';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
@@ -71,6 +71,8 @@ export type ObjectOperationsType =
   | 'create_folder'
   | 'batch_delete'
   | 'marketplace'
+  | 'update_tags'
+  | 'edit_tags'
   | '';
 
 export type TEditUploadContent = {
@@ -108,7 +110,6 @@ export interface ObjectState {
   filterSizeTo: ObjectFilterSize;
   policyResources: Record<string, ObjectResource>;
   shareModePath: string;
-  editTags: [string, string];
   editTagsData: ResourceTags_Tag[];
 }
 
@@ -138,7 +139,6 @@ const initialState: ObjectState = {
   objectsTruncate: {},
   policyResources: {},
   shareModePath: '',
-  editTags: ['', ''],
   editTagsData: [DEFAULT_TAG],
 };
 
@@ -352,19 +352,16 @@ export const objectSlice = createSlice({
     setListRefreshing(state, { payload }: PayloadAction<boolean>) {
       state.refreshing = payload;
     },
-    setEditObjectTags(state, { payload }: PayloadAction<[string, string]>) {
-      state.editTags = payload;
-    },
     setEditObjectTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
       state.editTagsData = payload;
     },
     setObjectTags(
       state,
-      { payload }: PayloadAction<{ fullObjectName: string; tags: ResourceTags_Tag[] }>,
+      { payload }: PayloadAction<{ id: string; tags: ResourceTags_Tag[] }>,
     ) {
-      const { fullObjectName, tags } = payload;
+      const { id, tags } = payload;
       const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
-      state.objectsInfo[fullObjectName].ObjectInfo.Tags.Tags = newTags as Extract<
+      state.objectsInfo[id].ObjectInfo.Tags.Tags = newTags as Extract<
         ObjectInfo['Tags'],
         {
           Tags: any;
@@ -552,7 +549,6 @@ export const {
   setObjectPolicyResources,
   setShareModePath,
   setObjectTags,
-  setEditObjectTags,
   setEditObjectTagsData,
 } = objectSlice.actions;
 

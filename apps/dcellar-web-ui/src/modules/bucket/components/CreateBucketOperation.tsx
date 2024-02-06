@@ -40,7 +40,7 @@ import { TotalFees } from '@/modules/object/components/TotalFees';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import {
   selectBucketList,
-  setEditBucketTags,
+  setBucketOperation,
   setEditBucketTagsData,
   setupBuckets,
 } from '@/store/slices/bucket';
@@ -58,7 +58,7 @@ import { BN } from '@/utils/math';
 import { reportEvent } from '@/utils/gtag';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 import { broadcastMulTxs } from '@/facade/common';
 
 type ValidateNameAndGas = {
@@ -440,7 +440,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   );
 
   const onEditTags = () => {
-    dispatch(setEditBucketTags(['new', 'create']));
+    dispatch(setBucketOperation({level: 1, operation: ['', 'edit_tags']}));
   };
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));

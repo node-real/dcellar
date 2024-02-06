@@ -37,8 +37,6 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   SELECT_OBJECT_NUM_LIMIT,
-  setEditObjectTags,
-  setEditObjectTagsData,
   setStatusDetail,
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
@@ -88,7 +86,7 @@ import {
 } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
 import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
+import { getValidTags } from '@/components/common/ManageTags';
 import { setTempAccounts } from '@/store/slices/accounts';
 
 interface UploadObjectsOperationProps {
@@ -404,12 +402,6 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         };
       },
     });
-
-    // const onEditTags = () => {
-    //   dispatch(setEditObjectTags(['new', 'create']));
-    // };
-
-    // useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
 
     return (
       <>

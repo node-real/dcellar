@@ -12,6 +12,8 @@ import { EditGroupOperation } from '@/modules/group/components/EditGroupOperatio
 import { useUnmount } from 'ahooks';
 import { ModalCloseButton } from '@totejs/uikit';
 import { GroupMemberOperation } from '@/modules/group/components/GroupMemberOperation';
+import { EditGroupTagsOperation } from './EditGroupTagsOperation';
+import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';
 
 interface GroupOperationsProps {
   level?: 0 | 1;
@@ -23,7 +25,9 @@ export const GroupOperations = memo<GroupOperationsProps>(function GroupOperatio
   const { groupOperation } = useAppSelector((root) => root.group);
   const [id, operation] = groupOperation[level];
   const _operation = useModalValues<GroupOperationsType>(operation);
-  const isDrawer = ['detail', 'create', 'edit', 'add'].includes(operation);
+  const isDrawer = ['detail', 'create', 'edit', 'add', 'edit_tags', 'update_tags'].includes(
+    operation,
+  );
   const isModal = ['delete'].includes(operation);
   const groupList = useAppSelector(selectGroupList(loginAccount));
   const groupInfo = useMemo(() => {
@@ -58,10 +62,14 @@ export const GroupOperations = memo<GroupOperationsProps>(function GroupOperatio
         return <EditGroupOperation selectGroup={_groupInfo} onClose={onClose} />;
       case 'add':
         return <GroupMemberOperation selectGroup={_groupInfo} onClose={onClose} />;
+      case 'edit_tags':
+        return <EditGroupTagsOperation onClose={onClose} />;
+      case 'update_tags':
+        return <UpdateGroupTagsOperation group={groupInfo} onClose={onClose} />;
       default:
         return null;
     }
-  }, [_operation, _groupInfo]);
+  }, [_operation, _groupInfo, onClose, groupInfo]);
 
   return (
     <>

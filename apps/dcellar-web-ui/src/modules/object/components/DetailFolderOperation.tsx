@@ -1,21 +1,29 @@
 import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
 import { useMount, useUnmount } from 'ahooks';
 import { IconFont } from '@/components/IconFont';
 import { getListObjects } from '@/facade/object';
-import { setEditObjectTags, setEditObjectTagsData, setObjectList } from '@/store/slices/object';
+import {
+  setEditObjectTagsData,
+  setObjectList,
+  setObjectOperation,
+} from '@/store/slices/object';
 import { last } from 'lodash-es';
-import { renderAddressLink, renderPropRow, renderTags } from '@/modules/object/components/renderRows';
+import {
+  renderAddressLink,
+  renderPropRow,
+  renderTags,
+} from '@/modules/object/components/renderRows';
 import { formatFullTime } from '@/utils/time';
 import { formatId } from '@/utils/string';
 import { useModalValues } from '@/hooks/useModalValues';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { convertObjectKey } from '@/utils/common';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DEFAULT_TAG, getValidTags } from '@/components/common/ManageTag';
+import { DEFAULT_TAG, getValidTags } from '@/components/common/ManageTags';
 
 interface DetailFolderOperationProps {
   objectName: string;
@@ -33,10 +41,17 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
     const objectInfo = useModalValues(selectObjectInfo.ObjectInfo);
 
     const onEditTags = () => {
-      const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) => convertObjectKey(item, 'lowercase'));
+      const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) =>
+        convertObjectKey(item, 'lowercase'),
+      );
       dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
-      dispatch(setEditObjectTags([`${selectObjectInfo.ObjectInfo.BucketName}/${selectObjectInfo.ObjectInfo.ObjectName}`, 'detail']));
-    }
+      dispatch(
+        setObjectOperation({
+          level: 1,
+          operation: [`${objectInfo.BucketName}/${objectInfo.ObjectName}`, 'update_tags'],
+        }),
+      );
+    };
 
     useMount(async () => {
       const _query = new URLSearchParams();
