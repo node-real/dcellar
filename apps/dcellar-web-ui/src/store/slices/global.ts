@@ -51,11 +51,6 @@ export type TUploadStatus =
   | 'ERROR'
   | 'CANCEL';
 
-export type TTmpAccount = {
-  address: string;
-  privateKey: string;
-};
-
 export type WaitFile = {
   file: File;
   status: TFileStatus;
@@ -71,6 +66,7 @@ export type WaitFile = {
 
 export type UploadFile = {
   bucketName: string;
+  tempAccountAddress?: string;
   prefixFolders: string[];
   id: number;
   spAddress: string;
@@ -94,7 +90,6 @@ export interface GlobalState {
   waitQueue: WaitFile[];
   uploadQueue: Record<string, UploadFile[]>;
   taskManagement: boolean;
-  tmpAccount: TTmpAccount;
   sealingTs: Record<string, number>;
   authModalOpen: [boolean, AuthPostAction];
   disconnectWallet: boolean;
@@ -115,7 +110,6 @@ const initialState: GlobalState = {
   waitQueue: [],
   uploadQueue: {},
   taskManagement: false,
-  tmpAccount: {} as TTmpAccount,
   sealingTs: {},
   authModalOpen: [false, {} as AuthPostAction],
   disconnectWallet: false,
@@ -341,9 +335,6 @@ export const globalSlice = createSlice({
     ) {
       state.mainnetStoreFeeParams = payload.storeFeeParams;
     },
-    setTmpAccount(state, { payload }: PayloadAction<TTmpAccount>) {
-      state.tmpAccount = payload;
-    },
     resetUploadQueue(state, { payload }: PayloadAction<{ loginAccount: string }>) {
       const { loginAccount } = payload;
       if (!loginAccount) return;
@@ -423,7 +414,6 @@ export const {
   updateUploadProgress,
   setTaskManagement,
   removeFromWaitQueue,
-  setTmpAccount,
   resetWaitQueue,
   resetUploadQueue,
   cancelUploadFolder,
@@ -582,7 +572,7 @@ export const progressFetchList =
     await dispatch(refreshTaskFolder(task));
   };
 export const addTasksToUploadQueue =
-  (spAddress: string, visibility: VisibilityType, tags: ResourceTags_Tag[]) =>
+  ({ spAddress, visibility, tags, tempAccountAddress }: { spAddress: string, visibility: VisibilityType, tags: ResourceTags_Tag[], tempAccountAddress: string }) =>
     async (dispatch: AppDispatch, getState: GetState) => {
       const { waitQueue } = getState().global;
       const { bucketName, folders } = getState().object;
@@ -603,6 +593,7 @@ export const addTasksToUploadQueue =
           visibility,
           createHash: '',
           tags,
+          tempAccountAddress,
         };
         return uploadTask;
       });
