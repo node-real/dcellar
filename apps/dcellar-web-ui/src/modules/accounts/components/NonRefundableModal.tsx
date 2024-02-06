@@ -63,8 +63,8 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
           Set as Non-Refundable
         </Text>
         <Text fontSize="16px" textAlign={'center'} marginTop="8px" color={'readable.tertiary'}>
-          Making this payment account non-refundable means it can't be refunded anymore and this
-          action can't be undone.
+          Making this payment account non-refundable means it can&apos;t be refunded anymore and this
+          action can&apos;t be undone.
         </Text>
       </ModalBody>
       <ModalFooter flexDirection={'row'}>

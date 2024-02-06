@@ -19,7 +19,7 @@ export const StartBuildContent = ({ gaClickName }: { gaClickName: string }) => (
         },
       }}
     >
-      Start your business with BNB Greenfield's decentralized storage solution with DCellar, and
+      Start your business with BNB Greenfield&apos;s decentralized storage solution with DCellar, and
       easily expand your operations.
     </Text>
     <ConnectWallet

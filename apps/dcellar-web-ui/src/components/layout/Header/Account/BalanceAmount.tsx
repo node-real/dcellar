@@ -4,15 +4,13 @@ import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice, setupBnbPrice } from '@/store/slices/global';
-import React, { memo } from 'react';
+import { useAppSelector } from '@/store';
+import { selectBnbPrice } from '@/store/slices/global';
+import { memo } from 'react';
 import { IconFont } from '@/components/IconFont';
 
-interface NewBalanceProps {}
-
-const NewBalance = memo<NewBalanceProps>(function NewBalance() {
-  const dispatch = useAppDispatch();
+interface BalanceAmountProps {}
+export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { bankBalance } = useAppSelector((root) => root.accounts);
 
@@ -49,4 +47,4 @@ const NewBalance = memo<NewBalanceProps>(function NewBalance() {
     </Flex>
   );
 });
-export { NewBalance };
+

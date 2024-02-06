@@ -3,7 +3,7 @@ import React, { memo, PropsWithChildren } from 'react';
 
 interface ContainerProps extends BoxProps {}
 
-export const Container = memo<ContainerProps>(function ({ children, ...props }) {
+export const Container = memo<ContainerProps>(function Container({ children, ...props }) {
   return (
     <Box
       margin="0 auto"

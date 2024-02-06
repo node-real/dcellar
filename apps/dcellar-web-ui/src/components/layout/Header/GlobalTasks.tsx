@@ -42,7 +42,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
   const { loginAccount } = useAppSelector((root) => root.persist);
   const { spInfo } = useAppSelector((root) => root.sp);
-  const { tmpAccount, sealingTs } = useAppSelector((root) => root.global);
+  const { sealingTs } = useAppSelector((root) => root.global);
+  const tempAccounts = useAppSelector((root) => root.accounts.tempAccounts);
   const { bucketInfo } = useAppSelector((root) => root.bucket);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const signTask = useAppSelector(selectSignTask(loginAccount));
@@ -162,7 +163,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
         })
         .catch(async (e: Response | any) => {
-          console.log('upload error', e);
+          console.error('upload error', e);
           const { message } = await parseErrorXml(e);
           const authExpired = [
             'bad signature',
@@ -192,7 +193,8 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   // 2. sign
   useAsyncEffect(async () => {
     const task = signTask;
-    if (!task) return;
+    if (!task || !task.tempAccountAddress) return;
+    const tempAccount = tempAccounts[task.tempAccountAddress];
     dispatch(updateUploadStatus({ ids: [task.id], status: 'SIGN', account: loginAccount }));
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
@@ -200,7 +202,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     const createObjectPayload: CreateObjectApprovalRequest = {
       bucketName: task.bucketName,
       objectName: finalName,
-      creator: tmpAccount.address,
+      creator: tempAccount.address,
       visibility: reverseVisibilityType[task.visibility],
       fileType: task.waitFile.type || 'application/octet-stream',
       contentLength: task.waitFile.size,
@@ -209,10 +211,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     };
     const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
       type: 'ECDSA',
-      privateKey: tmpAccount.privateKey,
+      privateKey: tempAccount.privateKey,
     }).then(resolve, createTxFault);
     if (_createError) {
-      console.log('createError', _createError);
+      console.error('createError', _createError);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
@@ -227,7 +229,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       })
       .then(resolve, simulateFault);
     if (!simulateInfo || simulateError) {
-      console.log('simulateError', simulateError);
+      console.error('simulateError', simulateError);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,
@@ -240,15 +242,15 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       denom: 'BNB',
       gasLimit: Number(simulateInfo?.gasLimit),
       gasPrice: simulateInfo?.gasPrice || '5000000000',
-      payer: tmpAccount.address,
+      payer: tempAccount.address,
       granter: loginAccount,
-      privateKey: tmpAccount.privateKey,
+      privateKey: tempAccount.privateKey,
     };
     const [res, error] = await createObjectTx!
       .broadcast(broadcastPayload)
       .then(resolve, broadcastFault);
     if (!res || error) {
-      console.log('broadTxError', error);
+      console.error('broadTxError', error);
       return dispatch(
         setupUploadTaskErrorMsg({
           account: loginAccount,

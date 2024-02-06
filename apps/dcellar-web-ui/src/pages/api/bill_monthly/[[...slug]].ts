@@ -12,7 +12,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { data } = await axios.get(url);
     res.json(data);
   } catch (e) {
-    console.log('bill_monthly', e);
+    console.error('bill_monthly', e);
     res.json({});
   }
 };

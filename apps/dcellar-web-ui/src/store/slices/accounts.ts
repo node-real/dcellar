@@ -23,6 +23,11 @@ export type TAccount = {
   address: string;
 };
 
+export type TTempAccount = {
+  address: string;
+  privateKey: string;
+};
+
 export function isSpStreamRecord(arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
   return (arg as SpStreamRecord).Account !== undefined;
 }
@@ -65,6 +70,7 @@ interface AccountsState {
   bankBalance: string;
   accountOperation: [string, AccountOperationsType];
   totalPANetflowRate: Record<string, string>;
+  tempAccounts: Record<string, TTempAccount>;
 }
 
 export const getDefaultBalance = () => ({
@@ -95,6 +101,7 @@ const initialState: AccountsState = {
   bankBalance: '',
   accountOperation: ['', ''],
   totalPANetflowRate: {},
+  tempAccounts: {},
 };
 
 export const paymentAccountSlice = createSlice({
@@ -214,6 +221,9 @@ export const paymentAccountSlice = createSlice({
       const { loginAccount, totalNetflowRate } = payload;
       state['totalPANetflowRate'][loginAccount] = totalNetflowRate;
     },
+    setTempAccounts(state, { payload }: PayloadAction<TTempAccount>) {
+      state.tempAccounts[payload.address] = payload;
+    }
   },
 });
 
@@ -229,7 +239,9 @@ export const {
   setAccountType,
   setAccountOperation,
   setTotalPANetflowRate,
+  setTempAccounts,
 } = paymentAccountSlice.actions;
+
 const defaultAccountInfoAccount = {} as TAccountInfo;
 export const selectAccountDetail = (address: string) => (root: AppState) => {
   return root.accounts.accountInfo[address] || defaultAccountInfoAccount;
@@ -243,6 +255,11 @@ export const defaultPAList = Array<TAccount>();
 export const selectPaymentAccounts = (address: string) => (state: AppState) => {
   return state.accounts.paymentAccounts[address] || defaultPAList;
 };
+
+export const defaultTempAccount = {} as TTempAccount;
+export const selectTempAccount = (address: string) => (state: AppState) => {
+  return state.accounts.tempAccounts[address] || defaultTempAccount;
+}
 
 export const selectAvailableBalance = (address: string) => (state: AppState) => {
   const isOwnerAccount = address === state.persist.loginAccount;

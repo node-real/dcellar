@@ -95,8 +95,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
       !isOpen && onOpen();
       setStatus('success');
     } catch (e: any) {
-      // eslint-disable-next-line no-console
-      console.log('transfer in error', e);
+      console.error('transfer in error', e);
       !isOpen && onOpen();
       setStatus('failed');
       setErrorMsg(broadcastFault(e)[1]);

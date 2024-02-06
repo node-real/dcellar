@@ -91,6 +91,9 @@ const nextConfig = {
   },
   compiler: {
     emotion: true,
+    removeConsole: {
+      exclude: ['error', 'warn'],
+    },
   },
 };
 

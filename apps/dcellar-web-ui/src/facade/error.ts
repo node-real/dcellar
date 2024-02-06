@@ -91,7 +91,6 @@ export const createTxFault = (e: any): ErrorResponse => {
 };
 
 export const offChainAuthFault = (e: any): ErrorResponse => {
-  console.log(e);
   if (e?.response?.status === 500) {
     return [null, E_OFF_CHAIN_AUTH];
   }
