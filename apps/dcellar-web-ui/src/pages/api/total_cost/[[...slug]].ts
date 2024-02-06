@@ -11,7 +11,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { data } = await axios.get(url, { data: {} });
     res.json(data);
   } catch (e) {
-    console.log('total_cost', e);
+    console.error('total_cost', e);
     res.json({});
   }
 };

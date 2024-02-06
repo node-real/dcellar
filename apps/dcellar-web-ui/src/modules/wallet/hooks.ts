@@ -76,7 +76,7 @@ export const useTransferOutFee = () => {
       setIsLoading(false);
     } catch (e: any) {
       // eslint-disable-next-line no-console
-      console.log('transfer out error', e);
+      console.error('transfer out error', e);
       setError(e);
       setIsLoading(false);
     }
@@ -127,7 +127,7 @@ export const useSendFee = () => {
       setIsLoading(false);
     } catch (e: any) {
       // eslint-disable-next-line no-console
-      console.log('e', e);
+      console.error('e', e);
       setIsLoading(false);
       setError(e);
     }

@@ -23,7 +23,7 @@ type BarData = BarItem[];
 type Props = {
   address: string;
 };
-export const AccountCostTrend = memo(({ address }: Props) => {
+export const AccountCostTrend = memo(function AccountCostTrend({ address }: Props){
   const preDataRef = useRef<any>(null);
   const dayjs = getUtcDayjs();
   const accountCostTrend = useAppSelector(selectAccountCostTrend(address));

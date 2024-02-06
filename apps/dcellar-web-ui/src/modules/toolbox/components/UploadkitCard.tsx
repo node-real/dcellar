@@ -28,7 +28,7 @@ export const UploadKitCard = () => {
         Component
       </Badge>
       <Text color={'readable.secondary'}>
-        Greenfield Upload UIKit is offered by NodeReal, it's fully open sourced, developers can
+        Greenfield Upload UIKit is offered by NodeReal, it&apos;s fully open sourced, developers can
         easily integrate into their WebUI dApps.
       </Text>
     </Card>

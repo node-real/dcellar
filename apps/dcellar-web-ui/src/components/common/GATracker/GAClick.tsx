@@ -8,7 +8,7 @@ export interface GAClickProps {
   children: React.ReactElement;
 }
 
-export const GAClick = React.forwardRef((props: GAClickProps, ref: any) => {
+export const GAClick = React.forwardRef(function GAClick(props: GAClickProps, ref: any) {
   const { name = '', data, children, ...restProps } = props;
 
   const reportFuncRef = useReportFuncRef(name, data);

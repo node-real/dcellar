@@ -381,7 +381,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       <QDrawerHeader flexDirection={'column'}>
         <Box>Create a Folder</Box>
         <Text className="ui-drawer-sub">
-          Use folders to group objects in your bucket. Folder names can't contain "/".
+            Use folders to group objects in your bucket. Folder names can&apos;t contain &quot;/&quot;.
         </Text>
       </QDrawerHeader>
       <QDrawerBody>

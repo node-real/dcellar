@@ -277,7 +277,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
               }
             />
           </Flex>
-          <Text fontSize={12}>What's your estimated Storage Size?</Text>
+          <Text fontSize={12}>What&apos;s your estimated Storage Size?</Text>
           <Flex alignItems={'center'} flexWrap={'wrap'} gap={12}>
             <NumInput
               value={storageSize.size}

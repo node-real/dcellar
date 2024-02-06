@@ -7,7 +7,7 @@ import { BN } from '@/utils/math';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useTotalEstimateCost } from '../hooks';
 
-export const CurForecastCost = memo(({children, ...restProps}: BoxProps) => {
+export const CurForecastCost = memo(function CurForecastCost({children, ...restProps}: BoxProps) {
   const dayjs = getUtcDayjs();
   const { curCosted, curRemainingEstimateCost } = useTotalEstimateCost(['cur']);
   const isLoading = curCosted === '' || curRemainingEstimateCost === '';
@@ -23,7 +23,7 @@ export const CurForecastCost = memo(({children, ...restProps}: BoxProps) => {
     .toString();
   return (
     <CardContainer w={260} {...restProps}>
-      <CardTitle mb={8}>Current Month's Total Forecast Cost</CardTitle>
+      <CardTitle mb={8}>Current Month&apos;s Total Forecast Cost</CardTitle>
       <CardTime mb={16}>{costTime}</CardTime>
       <Flex gap={8}>
         <CardCost>{isLoading ? '--' : forecastCost}</CardCost>

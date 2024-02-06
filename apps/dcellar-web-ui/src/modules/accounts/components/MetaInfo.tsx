@@ -24,7 +24,7 @@ import { currencyFormatter } from '@/utils/formatter';
 type Props = {
   address: string;
 };
-export const MetaInfo = memo(({ address }: Props) => {
+export const MetaInfo = memo(function MetaInfo({ address }: Props) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const bnbPrice = useAppSelector(selectBnbPrice);

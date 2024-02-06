@@ -158,7 +158,7 @@ interface SelectInputProps extends InputProps {
   onEnter: () => void;
 }
 
-const SelectInput = React.forwardRef((props: SelectInputProps, ref: any) => {
+const SelectInput = React.forwardRef(function SelectInput(props: SelectInputProps, ref: any) {
   const {
     requestFocus,
     placeholder = '',
