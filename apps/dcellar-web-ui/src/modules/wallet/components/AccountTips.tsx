@@ -7,7 +7,7 @@ interface AccountTipsProps {
   type: AccountType;
 }
 
-export const AccountTips = memo<AccountTipsProps>(function ({ type }) {
+export const AccountTips = memo<AccountTipsProps>(function AccountTips({ type }) {
   const accountDisplay = getAccountDisplay(type);
   return (
     <>

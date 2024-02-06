@@ -18,7 +18,6 @@
     "antd": "5.11.0",
     "ahooks": "3.7.7",
     "hash-wasm": "4.10.0",
-    "@babel/core": "^7.20.12",
     "@bnb-chain/greenfield-js-sdk": "1.2.0",
     "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.30",
     "@emotion/react": "^11.10.5",
@@ -32,11 +31,9 @@
     "bignumber.js": "^9.1.1",
     "comlink": "^4.4.1",
     "dayjs": "^1.11.7",
-    "eslint-config-next": "~14.0.4",
     "ethers": "^5.7.2",
     "lodash-es": "^4.17.21",
-    "long": "^5.2.1",
-    "next": "~14.0.4",
+    "next": "~14.1.0",
     "query-string": "^8.1.0",
     "react": "~18.2.0",
     "react-dom": "~18.2.0",
@@ -62,14 +59,11 @@
     "set-interval-async": "~3.0.3"
   },
   "devDependencies": {
-    "@babel/plugin-syntax-flow": "^7.14.5",
-    "@babel/plugin-transform-react-jsx": "^7.14.9",
     "@builder.io/partytown": "^0.7.6",
     "@commitlint/cli": "^17.4.3",
     "@commitlint/config-conventional": "^17.4.3",
     "@next/eslint-plugin-next": "^13.1.6",
     "@svgr/webpack": "^6.5.1",
-    "@totejs/eslint-config": "^1.5.2",
     "@totejs/prettier-config": "^0.1.0",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "18.16.0",
@@ -79,7 +73,8 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "prettier": "^2.8.4",
-    "tsc-files": "~1.1.4"
+    "tsc-files": "~1.1.4",
+    "eslint-config-next": "~14.1.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -97,17 +92,7 @@
       "next/core-web-vitals"
     ],
     "rules": {
-      "no-console": 1,
-      "react/display-name": "off",
-      "react/react-in-jsx-scope": [
-        "off"
-      ],
-      "react/no-unknown-property": [
-        "off"
-      ],
-      "react/no-unescaped-entities": [
-        "off"
-      ]
+      "no-console": 1
     }
   }
 }

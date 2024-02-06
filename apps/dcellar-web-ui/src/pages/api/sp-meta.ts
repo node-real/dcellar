@@ -13,7 +13,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { data } = await axios.post(finalEndpoint, { data: {} });
     res.json(data);
   } catch (e) {
-    console.log(e);
+    console.error('sp-meta error', e);
     res.json([]);
   }
 };

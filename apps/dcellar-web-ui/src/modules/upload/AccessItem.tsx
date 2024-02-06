@@ -33,7 +33,7 @@ export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
   value = value || options[0].value;
   const option = find(options, (op) => op.value === value)!;
 
-  const CustomMenuButton = forwardRef((props: any, ref: any) => {
+  const CustomMenuButton = forwardRef(function CustomMenuButton(props: any, ref: any) {
     const { children, ...restProps } = props;
     return (
       <Button

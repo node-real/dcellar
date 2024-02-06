@@ -1,13 +1,13 @@
 import { Box, Flex, Grid, Link } from '@totejs/uikit';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
-import { AccountInfo } from '@/components/layout/Header/AccountInfo';
 import { SelectNetwork } from '../Common/SelectNetwork';
 import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
+import { Account } from './Account';
 
 interface HeaderProps {
   taskManagement?: boolean;
@@ -31,7 +31,7 @@ export const Header = memo<HeaderProps>(function Header({ taskManagement = true 
               <SelectNetwork />
             </>
           )}
-          <AccountInfo />
+          <Account />
         </Content>
         <CookiePolicyContainer />
       </HeaderContainer>

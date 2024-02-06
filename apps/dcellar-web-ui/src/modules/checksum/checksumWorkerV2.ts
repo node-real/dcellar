@@ -159,7 +159,7 @@ export const generateCheckSumV2 = async (file: File): Promise<THashResult> => {
       expectCheckSums: value,
     };
   } catch (e) {
-    console.log('check sum error', e);
+    console.error('check sum error', e);
   }
 
   return checkSumRes!;

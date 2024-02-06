@@ -1,12 +1,12 @@
 import { get } from '@/base/http';
 import { ErrorResponse, commonFault } from './error';
 
-
 export type GetDailyBucketListByOwnerParams = {
   page: number;
   per_page: number;
   owner: string;
 }
+
 export type DailyBucketStorage = {
   BucketNumID: string;
   BucketID: string;

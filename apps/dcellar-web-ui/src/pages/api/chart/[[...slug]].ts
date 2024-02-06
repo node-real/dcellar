@@ -12,7 +12,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { data } = await axios.get(url);
     res.json(data);
   } catch (e) {
-    console.log('explorer chart error', e);
+    console.error('explorer chart error', e);
     res.json({});
   }
 };
