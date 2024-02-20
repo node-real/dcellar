@@ -4,7 +4,7 @@ import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wall
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0Month } from '@/utils/time';
-import { Box, Divider, Flex, Loading, Text, useDisclosure, useMediaQuery } from '@totejs/uikit';
+import { Box, Divider, Flex, Loading, Text, useDisclosure, useMediaQuery } from '@node-real/uikit';
 import React, { useMemo, useState } from 'react';
 import { FeeItem } from './FeeItem';
 import { SizeMenu } from './SizeMenu';

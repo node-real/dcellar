@@ -11,7 +11,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { useAsyncEffect, useUnmount } from 'ahooks';
 import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';

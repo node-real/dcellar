@@ -1,4 +1,4 @@
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import { InternalRoutePaths } from '@/constants/paths';

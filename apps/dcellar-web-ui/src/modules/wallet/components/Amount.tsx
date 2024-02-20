@@ -9,7 +9,7 @@ import {
   InputRightElement,
   Link,
   Text,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useCallback, useMemo } from 'react';
 import { useAccount, useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';

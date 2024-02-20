@@ -1,6 +1,6 @@
 import React from 'react';
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
 import { IconFont, IconFontProps } from '@/components/IconFont';

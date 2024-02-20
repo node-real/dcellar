@@ -1,6 +1,6 @@
 import { LandingPage } from '@/components/layout/LandingPage';
 import { smMedia } from '@/modules/responsive';
-import { Box, Flex, Text, TextProps } from '@totejs/uikit';
+import { Box, Flex, Text, TextProps } from '@node-real/uikit';
 import React, { ReactElement } from 'react';
 
 const H1 = ({ children, ...restProps }: TextProps) => (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { QDrawer, QDrawerCloseButton, QDrawerProps } from '@totejs/uikit';
+import { QDrawer, QDrawerCloseButton, QDrawerProps } from '@node-real/uikit';
 import { GAShow } from '../GATracker';
 import { reportEvent } from '@/utils/gtag';
 export interface DCDrawerProps extends QDrawerProps {

@@ -10,7 +10,7 @@ import {
   MenuListProps,
   MenuProps,
   useDisclosure,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { useKeyDown } from '@/hooks/useKeyDown';
 import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';

@@ -9,7 +9,7 @@ import {
   Center,
   Text,
   IconButtonProps,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useEffect } from 'react';
 import { IconFont } from '@/components/IconFont';
 

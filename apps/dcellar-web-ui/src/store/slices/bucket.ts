@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { find, isEmpty, omit } from 'lodash-es';
 import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';

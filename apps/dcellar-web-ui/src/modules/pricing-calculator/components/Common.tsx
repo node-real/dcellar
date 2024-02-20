@@ -1,5 +1,5 @@
 import { smMedia } from '@/modules/responsive';
-import { TextProps, Text, Link, LinkProps } from '@totejs/uikit';
+import { TextProps, Text, Link, LinkProps } from '@node-real/uikit';
 
 export const H1 = ({ children, ...restProps }: TextProps) => (
   <Text

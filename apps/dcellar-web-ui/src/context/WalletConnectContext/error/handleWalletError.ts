@@ -1,5 +1,5 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { ConnectorNotFoundError } from 'wagmi';
 import * as Sentry from '@sentry/nextjs';
 import { disconnect } from '@wagmi/core';

@@ -1,5 +1,5 @@
 import { EllipsisText } from '@/components/common/EllipsisText';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { formatBytes } from '@/utils/formatter';
 import { contentIconTypeToExtension } from '@/modules/object/utils';
 import { IconFont } from '@/components/IconFont';

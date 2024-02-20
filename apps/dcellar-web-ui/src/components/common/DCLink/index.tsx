@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Link, LinkProps } from '@totejs/uikit';
+import { Link, LinkProps } from '@node-real/uikit';
 
 interface DCLinkProps extends LinkProps {}
 

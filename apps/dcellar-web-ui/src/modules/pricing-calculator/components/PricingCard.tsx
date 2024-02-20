@@ -1,8 +1,8 @@
 import { UnderlineLink } from '@/components/layout/Footer';
 import { TStoreFeeParams } from '@/store/slices/global';
 import { getUTC0FullMonth } from '@/utils/time';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { Flex, Text, Box, Menu, MenuButton, Button, MenuList, MenuItem } from '@totejs/uikit';
+import { MenuCloseIcon, MenuOpenIcon } from '@node-real/icons';
+import { Flex, Text, Box, Menu, MenuButton, Button, MenuList, MenuItem } from '@node-real/uikit';
 import React, { useMemo, useState } from 'react';
 import { Sizes, TSize, TTime, Times } from '../utils';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';

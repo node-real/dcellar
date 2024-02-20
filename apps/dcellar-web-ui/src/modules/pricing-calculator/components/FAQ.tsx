@@ -8,7 +8,7 @@ import {
   QAccordionPanel,
   Table,
   Text,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { PriceResponsiveContainer } from '..';
 import { H2 } from './Common';
 import { UnderlineLink } from '@/components/layout/Footer';

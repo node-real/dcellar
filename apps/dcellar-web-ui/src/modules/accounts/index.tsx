@@ -1,4 +1,4 @@
-import { Box, Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
+import { Box, Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@node-real/uikit';
 import { OwnerAccount } from './components/OwnerAccount';
 import { PaymentAccounts } from './components/PaymentAccounts';
 import { NonRefundableModal } from './components/NonRefundableModal';

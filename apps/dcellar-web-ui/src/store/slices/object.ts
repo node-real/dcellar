@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getListObjects, ListObjectsParams } from '@/facade/object';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
 import {
   GfSPListObjectsByBucketNameResponse,

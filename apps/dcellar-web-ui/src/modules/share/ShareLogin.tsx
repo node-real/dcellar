@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import { assetPrefix } from '@/base/env';
 import { css } from '@emotion/react';
 import { useMount } from 'ahooks';

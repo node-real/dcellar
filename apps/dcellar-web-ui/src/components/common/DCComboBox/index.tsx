@@ -1,6 +1,6 @@
 import { memo, ReactNode, useEffect, useRef, useState } from 'react';
 import { ConfigProvider, Select, SelectProps } from 'antd';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { antdTheme } from '@/base/theme/antd';
 import { IconFont } from '@/components/IconFont';

@@ -9,7 +9,7 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { toast, Tooltip } from '@totejs/uikit';
+import { toast, Tooltip } from '@node-real/uikit';
 import { encodeObjectName } from '@/utils/string';
 import { trimEnd } from 'lodash-es';
 import { getObjectInfoAndBucketQuota } from '@/facade/common';

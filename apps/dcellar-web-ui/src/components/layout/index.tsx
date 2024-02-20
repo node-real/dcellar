@@ -1,6 +1,6 @@
 import { memo, PropsWithChildren, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Grid } from '@totejs/uikit';
+import { Flex, Grid } from '@node-real/uikit';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
 import { useDrop } from 'react-dnd';

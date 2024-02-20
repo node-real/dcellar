@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@totejs/uikit';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@node-real/uikit';
 import Link from 'next/link';
 
 type Props = {

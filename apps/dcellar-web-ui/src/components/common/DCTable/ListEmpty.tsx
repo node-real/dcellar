@@ -1,5 +1,5 @@
 import { memo, PropsWithChildren } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { IconFont } from '@/components/IconFont';
 import styled from '@emotion/styled';
 

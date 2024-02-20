@@ -2,7 +2,7 @@ import { TBucket } from '@/store/slices/bucket';
 import { SpItem } from '@/store/slices/sp';
 import { memo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
+import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
 import { useMount, useUnmount } from 'ahooks';
 import { IconFont } from '@/components/IconFont';
 import { getListObjects } from '@/facade/object';

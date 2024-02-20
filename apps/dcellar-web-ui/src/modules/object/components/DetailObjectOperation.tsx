@@ -1,4 +1,4 @@
-import { Divider, Flex, QDrawerBody, QDrawerFooter, QDrawerHeader, Text } from '@totejs/uikit';
+import { Divider, Flex, QDrawerBody, QDrawerFooter, QDrawerHeader, Text } from '@node-real/uikit';
 import { encodeObjectName, formatId } from '@/utils/string';
 import React, { memo, useState } from 'react';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';

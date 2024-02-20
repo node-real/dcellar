@@ -1,4 +1,4 @@
-import { Box, FormErrorMessage } from '@totejs/uikit';
+import { Box, FormErrorMessage } from '@node-real/uikit';
 import { memo } from 'react';
 
 interface ErrorDisplayProps {

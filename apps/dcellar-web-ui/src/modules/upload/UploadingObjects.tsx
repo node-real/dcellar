@@ -11,7 +11,7 @@ import {
   TabPanels,
   Tabs,
   Text,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { Loading } from '@/components/common/Loading';
 import { UploadFile } from '@/store/slices/global';
 import { useTaskManagementTab } from './useTaskManagementTab';

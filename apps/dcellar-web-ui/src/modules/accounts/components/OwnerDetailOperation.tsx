@@ -1,7 +1,7 @@
 import { DCButton } from '@/components/common/DCButton';
 import { useAppSelector } from '@/store';
 import { TAccountInfo } from '@/store/slices/accounts';
-import { Flex, QDrawerFooter } from '@totejs/uikit';
+import { Flex, QDrawerFooter } from '@node-real/uikit';
 import { memo, useState } from 'react';
 import { useInterval, useUnmount } from 'ahooks';
 import { BasicInfo } from './BasicInfo';

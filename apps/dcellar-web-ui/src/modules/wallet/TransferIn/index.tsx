@@ -1,4 +1,4 @@
-import { Box, Divider, Flex, useDisclosure } from '@totejs/uikit';
+import { Box, Divider, Flex, useDisclosure } from '@node-real/uikit';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';

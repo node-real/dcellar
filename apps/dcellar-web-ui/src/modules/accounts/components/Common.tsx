@@ -3,7 +3,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { DCLink } from '@/components/common/DCLink';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import styled from '@emotion/styled';
-import { BoxProps, TextProps, Text, Box, Flex } from '@totejs/uikit';
+import { BoxProps, TextProps, Text, Box, Flex } from '@node-real/uikit';
 import { TimeRangePickerProps } from 'antd';
 import dayjs from 'dayjs';
 

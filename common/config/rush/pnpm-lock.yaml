@@ -16,12 +16,12 @@ importers:
       '@emotion/styled': ^11.10.5
       '@next/bundle-analyzer': ^13.1.6
       '@next/eslint-plugin-next': ^13.1.6
+      '@node-real/icons': ~2.20.3
+      '@node-real/uikit': ~2.54.8
       '@reduxjs/toolkit': ^1.9.5
       '@sentry/nextjs': ~7.86.0
       '@svgr/webpack': ^6.5.1
-      '@totejs/icons': ^2.17.0
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/uikit': ~2.54.2
       '@totejs/walletkit': ~1.0.7-alpha.5
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
@@ -73,10 +73,10 @@ importers:
       '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
       '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
       '@next/bundle-analyzer': 13.5.6
+      '@node-real/icons': 2.20.3_7ch5h7r5wd6efzixoihb5c76p4
+      '@node-real/uikit': 2.54.8_5yd7x4lo226drlrqzl7etm6ys4
       '@reduxjs/toolkit': 1.9.7_reiadaay42xu3uk4bvhmtbk5mu
       '@sentry/nextjs': 7.86.0_next@14.1.0+react@18.2.0
-      '@totejs/icons': 2.20.0_7ch5h7r5wd6efzixoihb5c76p4
-      '@totejs/uikit': 2.54.5_7ch5h7r5wd6efzixoihb5c76p4
       '@totejs/walletkit': 1.0.8_u4rurx3tsdwtryhwavg3nqina4
       '@wagmi/core': 1.4.13_e67w62csy4y75sby3mo4znpfy4
       ahooks: 3.7.7_react@18.2.0
@@ -2687,6 +2687,54 @@ packages:
     engines: {node: '>= 16'}
     dev: false
 
+  /@node-real/icons/2.20.3_7ch5h7r5wd6efzixoihb5c76p4:
+    resolution: {integrity: sha512-4Bz1xtL61/TI+XOIJCdFQbfGolVjzi+yHXt5V/bEf/AViXB3judSpWu5MtE8LCKgOIvWGsKu4Rnpxh5U0pnsmg==}
+    peerDependencies:
+      react: '>=17'
+      react-dom: '>=17'
+    dependencies:
+      '@node-real/styled-system': 2.14.2_7ch5h7r5wd6efzixoihb5c76p4
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    transitivePeerDependencies:
+      - '@emotion/react'
+      - '@emotion/styled'
+    dev: false
+
+  /@node-real/styled-system/2.14.2_7ch5h7r5wd6efzixoihb5c76p4:
+    resolution: {integrity: sha512-GcRNlG6lMe//lpS/gH5MQ5amJDM+JUDh8IHg1Z5rZn9D4UIcVNgTE9yuGaxMR0ML/3AdbtHdRoCduCymkc3Nfw==}
+    peerDependencies:
+      '@emotion/react': '>=11'
+      '@emotion/styled': '>=11'
+      react: '>=17'
+      react-dom: '>=17'
+    dependencies:
+      '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
+      '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
+      csstype: 3.1.3
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
+  /@node-real/uikit/2.54.8_5yd7x4lo226drlrqzl7etm6ys4:
+    resolution: {integrity: sha512-Rq2moBsGkwj1e5mJAO3q3V7KSWNEAsvh6gjL3mEipjkkB6NLtNJV0vtjWlvO/av5c5CmUvu8MAmr3xz5TY035Q==}
+    peerDependencies:
+      '@node-real/icons': '>=2'
+      react: '>=17'
+      react-dom: '>=17'
+    dependencies:
+      '@node-real/icons': 2.20.3_7ch5h7r5wd6efzixoihb5c76p4
+      '@node-real/styled-system': 2.14.2_7ch5h7r5wd6efzixoihb5c76p4
+      '@popperjs/core': 2.11.8
+      '@xobotyi/scrollbar-width': 1.9.5
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      react-fast-compare: 3.2.2
+    transitivePeerDependencies:
+      - '@emotion/react'
+      - '@emotion/styled'
+    dev: false
+
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -3115,14 +3163,14 @@ packages:
     resolution: {integrity: sha512-N1ZhksgwD3OBlwTv3R6KFEcPojl/W4ElJOeCZdi+vuI5QmTFwLq3OFf2zd2ROpKvxFdgZ6hUpb0dx9bVNEwYCA==}
     dependencies:
       '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
+      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.5
     dev: false
 
   /@scure/bip39/1.2.1:
     resolution: {integrity: sha512-Z3/Fsz1yr904dduJD0NpiyRHhRYHdcnyh73FZWiV+/qhWi83wNJ3NWolYqCEN+ZWsUz2TWwajJggcRE9r1zUYg==}
     dependencies:
-      '@noble/hashes': 1.3.2
+      '@noble/hashes': 1.3.3
       '@scure/base': 1.1.5
     dev: false
 
@@ -3640,36 +3688,6 @@ packages:
       use-sync-external-store: 1.2.0_react@18.2.0
     dev: false
 
-  /@totejs/icons/2.19.1_7ch5h7r5wd6efzixoihb5c76p4:
-    resolution: {integrity: sha512-cH0/sutCWyi8LrfBOzOvyshY2PBlKuB4qPCqrqTibPAHGXzQrEDZjYWz3oDK8DKRrIkiAsTjVL1Va6YWA2/f2Q==}
-    peerDependencies:
-      '@emotion/react': '>=11'
-      '@emotion/styled': '>=11'
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-    dependencies:
-      '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
-      '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
-      '@totejs/styled-system': 2.14.0_biqbaboplfbrettd7655fr4n2y
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
-  /@totejs/icons/2.20.0_7ch5h7r5wd6efzixoihb5c76p4:
-    resolution: {integrity: sha512-U9RRdfHRaSKX+mwFekk+Cy195QnyQ9rKKkrnLa/DN1o5Z61HwzTH0+vdyjYckMCe6j5tWZRYkaMSphD1JOQ5Yw==}
-    peerDependencies:
-      '@emotion/react': '>=11'
-      '@emotion/styled': '>=11'
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-    dependencies:
-      '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
-      '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
-      '@totejs/styled-system': 2.14.0_biqbaboplfbrettd7655fr4n2y
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
   /@totejs/prettier-config/0.1.0_prettier-eslint@15.0.1:
     resolution: {integrity: sha512-N7ayi2uD5BUV44XDNHqHPQ3kWkCa73gTTLRDX0Doz42iSVszTne2ZtFppGIx/FDXwJfehnJiyaM1ZOrUzgn7QQ==}
     dependencies:
@@ -3678,35 +3696,6 @@ packages:
       - prettier-eslint
       - supports-color
     dev: true
-
-  /@totejs/styled-system/2.14.0_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-Tzs5hs+nXhA20Pp6arQPuAfW9vZ5bo5ISaSCcuOMkg5Or82eeWIicoVDGHNzyOeN+b9AumREzwwo+8sz/jETZA==}
-    peerDependencies:
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-    dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-    dev: false
-
-  /@totejs/uikit/2.54.5_7ch5h7r5wd6efzixoihb5c76p4:
-    resolution: {integrity: sha512-Ylsw+nolwYZxvtc6Us3/M1NBmHHncJgzJVgoGvajXHlVn3174m3ZDUY/H1sfZyy1Eht2KEEJsoHF+LjpqKWMwQ==}
-    peerDependencies:
-      '@emotion/react': '>=11'
-      '@emotion/styled': '>=11'
-      react: '>=16.9.0'
-      react-dom: '>=16.9.0'
-    dependencies:
-      '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
-      '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
-      '@popperjs/core': 2.11.8
-      '@totejs/icons': 2.19.1_7ch5h7r5wd6efzixoihb5c76p4
-      '@totejs/styled-system': 2.14.0_biqbaboplfbrettd7655fr4n2y
-      '@xobotyi/scrollbar-width': 1.9.5
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      react-fast-compare: 3.2.2
-    dev: false
 
   /@totejs/walletkit/1.0.8_u4rurx3tsdwtryhwavg3nqina4:
     resolution: {integrity: sha512-mBxH4jQBHMyhq+MykvdWaoXfbOi0rUJQpURu/qyZYyhUHKhldN7rYo0C2acjcWwi9h4yMeIJs49b9wvfcd7a/A==}

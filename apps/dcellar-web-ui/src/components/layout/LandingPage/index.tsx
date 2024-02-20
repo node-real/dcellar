@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import { BaseHeader } from '../LandingHeader/BaseHeader';
 import { Footer } from '../Footer';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { MobileHeader } from '../LandingHeader/MobileHeader';
 import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
 

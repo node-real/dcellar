@@ -23,7 +23,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';

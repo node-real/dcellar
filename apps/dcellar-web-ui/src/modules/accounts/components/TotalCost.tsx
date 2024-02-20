@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { CardContainer, CardCost, CardTitle } from './Common';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { PieChart } from '@/components/charts/PieChart';
 import { cssVar, scrollToId } from '@/utils/common';

@@ -4,7 +4,7 @@ import { TAccount, selectAccount } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { BN } from '@/utils/math';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 
 type AccountBalanceProps = {

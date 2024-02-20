@@ -1,6 +1,6 @@
 import React from 'react';
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { smMedia } from '@/modules/responsive';
 import { IconFont } from '@/components/IconFont';
 import { INTER_FONT } from '@/modules/wallet/constants';

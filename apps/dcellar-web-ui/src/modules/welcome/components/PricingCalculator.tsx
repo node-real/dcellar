@@ -1,7 +1,7 @@
 import React from 'react';
 import { LandingH2, LandingResponsiveContainer } from '..';
 import { DCButton } from '@/components/common/DCButton';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { smMedia } from '@/modules/responsive';
 import { assetPrefix } from '@/base/env';
 import { INTER_FONT } from '@/modules/wallet/constants';

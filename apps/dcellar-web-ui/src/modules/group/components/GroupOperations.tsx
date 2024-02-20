@@ -10,7 +10,7 @@ import { DetailGroupOperation } from '@/modules/group/components/DetailGroupOper
 import { CreateGroupOperation } from '@/modules/group/components/CreateGroupOperation';
 import { EditGroupOperation } from '@/modules/group/components/EditGroupOperation';
 import { useUnmount } from 'ahooks';
-import { ModalCloseButton } from '@totejs/uikit';
+import { ModalCloseButton } from '@node-real/uikit';
 import { GroupMemberOperation } from '@/modules/group/components/GroupMemberOperation';
 import { EditGroupTagsOperation } from './EditGroupTagsOperation';
 import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';

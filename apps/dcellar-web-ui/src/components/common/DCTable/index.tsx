@@ -6,7 +6,7 @@ import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import { Badge, Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@totejs/uikit';
+import { Badge, Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectUploadQueue, UploadFile } from '@/store/slices/global';
 import { find } from 'lodash-es';

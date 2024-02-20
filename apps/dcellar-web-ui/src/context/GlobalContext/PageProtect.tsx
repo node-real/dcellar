@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNetwork } from 'wagmi';
-import { useDisclosure } from '@totejs/uikit';
+import { useDisclosure } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 
 import { isRightChain } from '@/modules/wallet/utils/isRightChain';

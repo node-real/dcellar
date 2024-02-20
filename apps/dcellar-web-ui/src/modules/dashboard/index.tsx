@@ -1,4 +1,4 @@
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
 import { ToolBox } from './components/ToolBox';
 import { TotalBalance } from './components/TotalBalance';
 import { Stats } from './components/Stats';

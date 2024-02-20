@@ -8,7 +8,7 @@ import {
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect } from 'ahooks';
 import Head from 'next/head';
-import { Box, Flex, Grid } from '@totejs/uikit';
+import { Box, Flex, Grid } from '@node-real/uikit';
 import { Logo } from '@/components/layout/Logo';
 import { ShareError } from '@/modules/share/ShareError';
 import { SharedFile } from '@/modules/share/SharedFile';

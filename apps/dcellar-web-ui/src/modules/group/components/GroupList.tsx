@@ -13,7 +13,7 @@ import { ColumnProps } from 'antd/es/table';
 import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
 import { Loading } from '@/components/common/Loading';
 import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import { CopyText } from '@/components/common/CopyText';
 import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { DeleteGroup } from '@/modules/group/components/DeleteGroup';

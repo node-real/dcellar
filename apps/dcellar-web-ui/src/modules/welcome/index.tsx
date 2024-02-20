@@ -1,5 +1,5 @@
 import { usePreloadPages } from '@/modules/welcome/hooks/usePreloadPages';
-import { Box, BoxProps, Flex, Heading, HeadingProps } from '@totejs/uikit';
+import { Box, BoxProps, Flex, Heading, HeadingProps } from '@node-real/uikit';
 import React from 'react';
 import { Banner } from './components/Banner';
 import { StartBuild } from './components/StartBuild';

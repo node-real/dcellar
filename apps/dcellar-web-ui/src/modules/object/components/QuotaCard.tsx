@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import styled from '@emotion/styled';
 import { setEditQuota } from '@/store/slices/bucket';

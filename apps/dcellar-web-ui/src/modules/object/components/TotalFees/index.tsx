@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import BigNumber from 'bignumber.js';

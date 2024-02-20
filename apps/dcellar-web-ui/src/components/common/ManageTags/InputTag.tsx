@@ -1,4 +1,4 @@
-import { FormControl, FormErrorMessage, Input } from '@totejs/uikit';
+import { FormControl, FormErrorMessage, Input } from '@node-real/uikit';
 import React from 'react';
 
 type InputTagProps = {

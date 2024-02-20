@@ -1,6 +1,6 @@
 import { createContext, useCallback, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
+import { ModalBody, Text, toast, useDisclosure } from '@node-real/uikit';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '@/components/common/DCModal';

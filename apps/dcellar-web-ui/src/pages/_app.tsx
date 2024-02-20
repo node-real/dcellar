@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@totejs/uikit';
+import { ThemeProvider } from '@node-real/uikit';
 import type { AppProps } from 'next/app';
 import App from 'next/app';
 import { Provider } from 'react-redux';

@@ -3,7 +3,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
 import { IgnoreFooterPaths } from '@/constants/paths';
-import { Flex } from '@totejs/uikit';
+import { Flex } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 

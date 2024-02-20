@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, TextProps } from '@totejs/uikit';
+import { Flex, TextProps } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';

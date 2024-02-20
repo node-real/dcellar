@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Box, Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
 import { useAccount, useNetwork } from 'wagmi';
 import { isEmpty } from 'lodash-es';
 import { DCButton } from '@/components/common/DCButton';

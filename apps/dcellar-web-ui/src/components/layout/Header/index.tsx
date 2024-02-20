@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, Link } from '@totejs/uikit';
+import { Box, Flex, Grid, Link } from '@node-real/uikit';
 import { memo } from 'react';
 import { TaskManagement } from '@/modules/upload/TaskManagement';
 import styled from '@emotion/styled';

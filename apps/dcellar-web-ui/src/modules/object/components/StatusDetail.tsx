@@ -1,4 +1,4 @@
-import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
+import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import {
   FILE_STATUS_DOWNLOADING,
   FILE_TITLE_CANCEL_FAILED,

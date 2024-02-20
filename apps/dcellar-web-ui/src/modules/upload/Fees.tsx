@@ -4,7 +4,7 @@ import {
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect } from 'ahooks';
 import { WaitFile, setupStoreFeeParams } from '@/store/slices/global';

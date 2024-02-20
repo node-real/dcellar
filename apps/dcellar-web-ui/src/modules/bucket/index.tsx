@@ -5,7 +5,7 @@ import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { BucketList } from '@/modules/bucket/components/BucketList';
 import Head from 'next/head';
 import React from 'react';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { runtimeEnv } from '@/base/env';
 import { networkTag } from '@/utils/common';
 

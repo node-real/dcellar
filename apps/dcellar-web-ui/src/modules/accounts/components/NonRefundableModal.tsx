@@ -2,7 +2,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditDisablePaymentAccount, setupAccountInfo } from '@/store/slices/accounts';
 import React, { memo } from 'react';
-import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
+import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAccount } from 'wagmi';

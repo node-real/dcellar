@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { AccountBreadCrumb } from './components/BreadCrumb';
-import { Flex } from '@totejs/uikit';
+import { Flex } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupAccountInfo, setupPaymentAccounts } from '@/store/slices/accounts';

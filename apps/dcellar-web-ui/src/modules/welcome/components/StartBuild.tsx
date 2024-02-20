@@ -1,7 +1,7 @@
 import { StartBuildContent } from '@/modules/pricing-calculator/components/StartBuild';
 import { LandingResponsiveContainer, smMedia } from '..';
 import { assetPrefix } from '@/base/env';
-import { Flex } from '@totejs/uikit';
+import { Flex } from '@node-real/uikit';
 
 export const StartBuild = () => (
   <LandingResponsiveContainer>

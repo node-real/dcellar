@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { CardContainer, CardCost, CardTime, CardTitle } from './Common';
 import { getUtcDayjs } from '@/utils/time';
-import { BoxProps, Flex } from '@totejs/uikit';
+import { BoxProps, Flex } from '@node-real/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { BN } from '@/utils/math';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';

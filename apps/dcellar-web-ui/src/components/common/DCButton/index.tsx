@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Button, ButtonProps, HTMLProps } from '@totejs/uikit';
+import { Button, ButtonProps, HTMLProps } from '@node-real/uikit';
 import { buttonConfig } from '@/components/common/DCButton/style';
 import { GAClick, GAShow } from '@/components/common/GATracker';
 

@@ -1,4 +1,4 @@
-import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
+import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import React, { memo, useMemo } from 'react';
 import { DCModal } from '@/components/common/DCModal';
 import { DCButton } from '@/components/common/DCButton';

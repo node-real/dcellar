@@ -1,5 +1,5 @@
 import { useAppSelector } from '@/store';
-import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
 import React, { useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { trimAddress, trimFloatZero } from '@/utils/string';

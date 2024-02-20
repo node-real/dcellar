@@ -1,5 +1,5 @@
 import { Fragment, memo } from 'react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@totejs/uikit';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@node-real/uikit';
 import { GAClick } from '@/components/common/GATracker';
 import Link from 'next/link';
 import { encodeObjectName, trimLongStr } from '@/utils/string';

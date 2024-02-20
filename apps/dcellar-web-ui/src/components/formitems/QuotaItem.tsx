@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';

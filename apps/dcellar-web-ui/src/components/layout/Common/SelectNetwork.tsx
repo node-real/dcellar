@@ -1,6 +1,6 @@
 import { runtimeEnv } from '@/base/env';
 import { capitalizeFLetter } from '@/utils/common';
-import { ButtonProps, MenuButton } from '@totejs/uikit';
+import { ButtonProps, MenuButton } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';

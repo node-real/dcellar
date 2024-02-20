@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardTitle } from './Common';
 import { LineChart } from '@/components/charts/LineChart';
 import { formatChartTime, mergeArr } from '@/utils/dashboard';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { FilterBuckets } from './FilterBuckets';
 import { FilterContainer } from '@/modules/accounts/components/Common';

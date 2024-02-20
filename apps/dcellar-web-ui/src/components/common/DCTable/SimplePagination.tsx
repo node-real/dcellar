@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Box, Flex, MenuButton } from '@totejs/uikit';
+import { Box, Flex, MenuButton } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/css';
 import { css } from '@emotion/react';

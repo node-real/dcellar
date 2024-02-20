@@ -55,7 +55,7 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { formatBytes } from '@/utils/formatter';
 import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
 import dayjs from 'dayjs';
-import { Flex } from '@totejs/uikit';
+import { Flex } from '@node-real/uikit';
 import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';

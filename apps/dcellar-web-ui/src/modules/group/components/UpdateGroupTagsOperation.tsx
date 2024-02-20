@@ -13,7 +13,7 @@ import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { useStatusModal } from '@/hooks/useStatusModal';
 import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
 import { Animates } from '@/components/AnimatePng';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { useAccount } from 'wagmi';
 
 export const UpdateGroupTagsOperation = ({

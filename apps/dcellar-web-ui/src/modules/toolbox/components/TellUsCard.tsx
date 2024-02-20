@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from './Common';
-import { Box, Text, Tooltip } from '@totejs/uikit';
+import { Box, Text, Tooltip } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { assetPrefix } from '@/base/env';
 

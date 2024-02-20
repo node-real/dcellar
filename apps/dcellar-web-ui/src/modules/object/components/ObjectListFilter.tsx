@@ -1,7 +1,7 @@
 import { memo } from 'react';
-import { Flex, InputLeftElement, InputRightElement } from '@totejs/uikit';
+import { Flex, InputLeftElement, InputRightElement } from '@node-real/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
-import { SearchIcon } from '@totejs/icons';
+import { SearchIcon } from '@node-real/icons';
 import styled from '@emotion/styled';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setFilterExpand, setFilterText } from '@/store/slices/object';

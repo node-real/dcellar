@@ -1,7 +1,7 @@
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import React, { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Flex, Grid, Text } from '@totejs/uikit';
+import { Flex, Grid, Text } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import {

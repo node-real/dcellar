@@ -11,7 +11,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { InputItem } from '@/components/formitems/InputItem';
 import { DCButton } from '@/components/common/DCButton';
 import {

@@ -7,7 +7,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { OwnerDetailOperation } from '@/modules/accounts/components/OwnerDetailOperation';
 import { PaymentDetailOperation } from '@/modules/accounts/components/PaymentDetailOperation';
 import { useUnmount } from 'ahooks';
-import { ModalCloseButton } from '@totejs/uikit';
+import { ModalCloseButton } from '@node-real/uikit';
 
 interface AccountOperationsProps {}
 

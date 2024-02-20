@@ -1,4 +1,4 @@
-import { Box, Flex, Menu, MenuButton, MenuList, Text } from '@totejs/uikit';
+import { Box, Flex, Menu, MenuButton, MenuList, Text } from '@node-real/uikit';
 import React from 'react';
 import { DCLink } from '@/components/common/DCLink';
 import { IconFont } from '@/components/IconFont';

@@ -1,6 +1,6 @@
 import { useAppSelector } from '@/store';
 import { UploadFile } from '@/store/slices/global';
-// import { ColoredAlertIcon } from '@totejs/icons';
+// import { ColoredAlertIcon } from '@node-real/icons';
 
 import { sortBy } from 'lodash-es';
 import { useMemo, useState } from 'react';

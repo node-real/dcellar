@@ -1,8 +1,8 @@
 import React, { ChangeEvent, memo, PropsWithChildren } from 'react';
-import { Flex, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
+import { Flex, MenuButton, MenuItem, MenuList, Text } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { ButtonVariantType } from '@totejs/uikit/dist/src/components/forms/Button';
+import { ButtonVariantType } from '@node-real/uikit/dist/src/components/forms/Button';
 
 interface UploadMenuListProps extends PropsWithChildren {
   disabled: boolean;

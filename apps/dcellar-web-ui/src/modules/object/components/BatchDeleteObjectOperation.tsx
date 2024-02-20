@@ -1,4 +1,4 @@
-import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
 import { useAccount } from 'wagmi';
 import React, { memo, useMemo, useState } from 'react';
 import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
@@ -20,7 +20,7 @@ import {
 import { createTempAccount } from '@/facade/account';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
-import { ColoredWaitingIcon } from '@totejs/icons';
+import { ColoredWaitingIcon } from '@node-real/icons';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { cancelCreateObject, deleteObject } from '@/facade/object';
 import { useSettlementFee } from '@/hooks/useSettlementFee';

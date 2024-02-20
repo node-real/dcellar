@@ -1,5 +1,5 @@
 import { GAShow } from '@/components/common/GATracker';
-import { Flex, FlexProps, Tooltip, TooltipProps } from '@totejs/uikit';
+import { Flex, FlexProps, Tooltip, TooltipProps } from '@node-real/uikit';
 import React, { ReactElement, memo, useState } from 'react';
 import { IconFont } from '@/components/IconFont';
 import { DCLink } from '../DCLink';

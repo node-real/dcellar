@@ -13,7 +13,7 @@ import {
   Loading,
   toast,
   useDisclosure,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 
 import Amount from '../components/Amount';
 import { Head } from '../components/Head';

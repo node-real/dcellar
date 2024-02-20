@@ -1,6 +1,6 @@
-import { ModalProps } from '@totejs/uikit';
+import { ModalProps } from '@node-real/uikit';
 import React from 'react';
-import { Modal } from '@totejs/uikit';
+import { Modal } from '@node-real/uikit';
 import { useLockBodyScroll } from 'react-use';
 import { GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/gtag';

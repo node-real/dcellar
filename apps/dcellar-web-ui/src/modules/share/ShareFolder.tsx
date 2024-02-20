@@ -2,7 +2,7 @@ import React, { memo, useEffect } from 'react';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { SpItem } from '@/store/slices/sp';
 import styled from '@emotion/styled';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { IconFont } from '@/components/IconFont';
 import { useRouter } from 'next/router';
 import { decodeObjectName } from '@/utils/string';

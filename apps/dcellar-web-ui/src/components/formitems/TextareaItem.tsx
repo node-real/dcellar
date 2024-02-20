@@ -1,4 +1,4 @@
-import { Textarea, TextareaProps } from '@totejs/uikit';
+import { Textarea, TextareaProps } from '@node-real/uikit';
 import { memo, useEffect, useRef, useState } from 'react';
 
 interface TextareaItemProps extends TextareaProps {

@@ -1,4 +1,4 @@
-import { Flex, Menu, QListItem } from '@totejs/uikit';
+import { Flex, Menu, QListItem } from '@node-real/uikit';
 import React, { ChangeEvent, useMemo } from 'react';
 import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
 import { useAppDispatch, useAppSelector } from '@/store';

@@ -1,6 +1,6 @@
 import { runtimeEnv } from '@/base/env';
 import { IconFont } from '@/components/IconFont';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 
 export const Faucet = () => {
   if (runtimeEnv !== 'testnet') {

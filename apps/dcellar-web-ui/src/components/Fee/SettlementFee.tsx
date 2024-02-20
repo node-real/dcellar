@@ -3,8 +3,8 @@ import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
 import { TAccount } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { BoxProps } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { BoxProps } from '@node-real/uikit';
 
 export type SettlementFeeProps =  {
   amount: string;

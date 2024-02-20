@@ -10,7 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
   Text,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import BigNumber from 'bignumber.js';
 import { useUnmount } from 'ahooks';

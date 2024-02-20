@@ -1,5 +1,5 @@
 import { memo, ReactNode } from 'react';
-import { Box, Menu, MenuListProps, MenuProps, Portal } from '@totejs/uikit';
+import { Box, Menu, MenuListProps, MenuProps, Portal } from '@node-real/uikit';
 import { DCMenuList, MenuOption } from '@/components/common/DCMenuList';
 import styled from '@emotion/styled';
 

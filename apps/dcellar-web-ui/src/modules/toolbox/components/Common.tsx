@@ -1,4 +1,4 @@
-import { Center, CircleProps, Flex, FlexProps, LinkProps, Tooltip } from '@totejs/uikit';
+import { Center, CircleProps, Flex, FlexProps, LinkProps, Tooltip } from '@node-real/uikit';
 
 export const Card = ({ children, ...props }: FlexProps) => {
   return (

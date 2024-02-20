@@ -1,4 +1,4 @@
-import { useDisclosure } from '@totejs/uikit';
+import { useDisclosure } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { BN } from '@/utils/math';

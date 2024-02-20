@@ -1,5 +1,5 @@
-import { IconProps } from '@totejs/icons';
-import { CenterProps, Center, keyframes } from '@totejs/uikit';
+import { IconProps } from '@node-real/icons';
+import { CenterProps, Center, keyframes } from '@node-real/uikit';
 
 import { LoadingIcon } from '../SvgIcon/LoadingIcon';
 

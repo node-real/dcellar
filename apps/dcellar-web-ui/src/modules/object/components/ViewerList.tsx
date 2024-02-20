@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { memo, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@totejs/uikit';
+import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@node-real/uikit';
 import { DCComboBox } from '@/components/common/DCComboBox';
 import { DCButton } from '@/components/common/DCButton';
 import { deleteObjectPolicy, putBucketPolicies, putObjectPolicies } from '@/facade/object';

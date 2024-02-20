@@ -3,7 +3,7 @@ import { DCModal } from '@/components/common/DCModal';
 import { useLogin } from '@/hooks/useLogin';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setDisconnectWallet } from '@/store/slices/global';
-import { ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@totejs/uikit';
+import { ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@node-real/uikit';
 
 export const DisconnectWalletModal = () => {
   const dispatch = useAppDispatch();

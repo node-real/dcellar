@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useState } from 'react';
-import { Box, Text } from '@totejs/uikit';
+import { Box, Text } from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';

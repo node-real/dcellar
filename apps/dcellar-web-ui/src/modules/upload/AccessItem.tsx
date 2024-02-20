@@ -1,4 +1,4 @@
-import { Box, Button, Center, Flex, MenuButton, Text } from '@totejs/uikit';
+import { Box, Button, Center, Flex, MenuButton, Text } from '@node-real/uikit';
 import React, { forwardRef } from 'react';
 import { find } from 'lodash-es';
 import { useMount } from 'ahooks';

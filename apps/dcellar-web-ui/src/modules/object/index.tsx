@@ -14,7 +14,7 @@ import {
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { dropRight, last } from 'lodash-es';
 import { NewObject } from '@/modules/object/components/NewObject';
-import { Flex, Tooltip } from '@totejs/uikit';
+import { Flex, Tooltip } from '@node-real/uikit';
 import { setFolders } from '@/store/slices/object';
 import { ObjectList } from '@/modules/object/components/ObjectList';
 import React, { useEffect } from 'react';

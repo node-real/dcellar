@@ -10,7 +10,7 @@ import { updateBucketTags } from '@/facade/bucket';
 import { useAccount } from 'wagmi';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { Animates } from '@/components/AnimatePng';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { BUTTON_GOT_IT, useStatusModal } from '@/hooks/useStatusModal';
 
 export const UpdateBucketTagsOperation = ({

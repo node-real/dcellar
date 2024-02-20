@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, Link, Text } from '@totejs/uikit';
+import { Flex, Link, Text } from '@node-real/uikit';
 import { CopyText } from '@/components/common/CopyText';
 import { formatAddress, trimAddress } from '@/utils/string';
 import { GAClick } from '@/components/common/GATracker';

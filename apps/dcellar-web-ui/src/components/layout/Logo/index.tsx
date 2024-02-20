@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Box, BoxProps } from '@totejs/uikit';
+import { Box, BoxProps } from '@node-real/uikit';
 import { IconFont } from '@/components/IconFont';
 
 interface ILogo extends BoxProps {

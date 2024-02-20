@@ -1,4 +1,4 @@
-import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
+import { Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@node-real/uikit';
 import { LandingH2, LandingResponsiveContainer } from '..';
 import { keyFeatureList } from './KeyFeatures';
 import FeatureItem from './FeatureItem';

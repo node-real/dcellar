@@ -1,5 +1,5 @@
 import { IconFont } from '@/components/IconFont';
-import { Badge, Flex, Text } from '@totejs/uikit';
+import { Badge, Flex, Text } from '@node-real/uikit';
 import { Card, CircleLink } from './Common';
 
 export const UploadKitCard = () => {

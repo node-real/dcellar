@@ -1,7 +1,7 @@
 import React, { ChangeEvent, memo, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { GAClick } from '@/components/common/GATracker';
-import { Flex, Menu, toast, Tooltip } from '@totejs/uikit';
+import { Flex, Menu, toast, Tooltip } from '@node-real/uikit';
 import {
   ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,

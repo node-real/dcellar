@@ -1,4 +1,4 @@
-import { Flex, Text, Image, useMediaQuery, Square } from '@totejs/uikit';
+import { Flex, Text, Image, useMediaQuery, Square } from '@node-real/uikit';
 import { TFeatureItem } from './KeyFeatures';
 import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';

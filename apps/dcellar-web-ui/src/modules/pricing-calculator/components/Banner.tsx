@@ -1,5 +1,5 @@
 import { smMedia } from '@/modules/responsive';
-import { Box } from '@totejs/uikit';
+import { Box } from '@node-real/uikit';
 import { H1, SubTitle } from './Common';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';

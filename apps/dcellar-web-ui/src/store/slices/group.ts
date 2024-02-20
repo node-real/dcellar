@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { getGroupMembers, getGroups } from '@/facade/group';
 import { BucketInfo, GroupInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 
 export type GroupMember = {

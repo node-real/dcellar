@@ -12,7 +12,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAccount } from 'wagmi';

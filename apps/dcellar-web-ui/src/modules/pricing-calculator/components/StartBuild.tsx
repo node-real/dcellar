@@ -1,5 +1,5 @@
 import { assetPrefix } from '@/base/env';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import React from 'react';
 import { PriceResponsiveContainer } from '..';
 import { smMedia } from '@/modules/responsive';

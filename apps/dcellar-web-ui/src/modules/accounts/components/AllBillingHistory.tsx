@@ -2,7 +2,7 @@ import { DCTable } from '@/components/common/DCTable';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React, { useCallback, useMemo } from 'react';
 import {

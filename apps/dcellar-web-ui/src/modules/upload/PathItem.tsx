@@ -1,6 +1,6 @@
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { memo } from 'react';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import Link from 'next/link';
 import { encodeObjectName } from '@/utils/string';
 import { setTaskManagement } from '@/store/slices/global';

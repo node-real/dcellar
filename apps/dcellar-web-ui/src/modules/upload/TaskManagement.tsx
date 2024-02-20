@@ -1,4 +1,4 @@
-import { Box, Text } from '@totejs/uikit';
+import { Box, Text } from '@node-real/uikit';
 import React from 'react';
 import { UploadingObjects } from './UploadingObjects';
 import { useAppDispatch, useAppSelector } from '@/store';

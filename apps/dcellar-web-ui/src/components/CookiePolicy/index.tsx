@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
 import { ConfirmModal } from './component/ConfirmModal';
 import { DCButton } from '../common/DCButton';
 import { reportEvent } from '@/utils/gtag';

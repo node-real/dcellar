@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { CardContainer } from './Common';
-import { Box } from '@totejs/uikit';
+import { Box } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { MonthlyCost, selectAllCostTrend } from '@/store/slices/billing';
 import { getEveryMonth, getUtcDayjs } from '@/utils/time';

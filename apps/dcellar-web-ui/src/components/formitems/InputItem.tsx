@@ -1,4 +1,4 @@
-import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@totejs/uikit';
+import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@node-real/uikit';
 import { memo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Tips } from '@/components/common/Tips';
 

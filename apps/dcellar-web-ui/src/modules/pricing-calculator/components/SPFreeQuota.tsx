@@ -1,7 +1,7 @@
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { Loading } from '@/components/common/Loading';
-import { ExternalLinkIcon } from '@totejs/icons';
-import { Flex, Text, Link } from '@totejs/uikit';
+import { ExternalLinkIcon } from '@node-real/icons';
+import { Flex, Text, Link } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import React from 'react';
 import { PriceResponsiveContainer } from '../index';

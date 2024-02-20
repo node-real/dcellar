@@ -1,4 +1,4 @@
-import { Box, BoxProps } from '@totejs/uikit';
+import { Box, BoxProps } from '@node-real/uikit';
 import React, { memo, PropsWithChildren } from 'react';
 
 interface ContainerProps extends BoxProps {}

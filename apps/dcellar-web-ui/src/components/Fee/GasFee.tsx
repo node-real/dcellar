@@ -2,7 +2,7 @@ import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips'
 import { renderFeeValue } from '@/modules/object/utils'
 import { useAppSelector } from '@/store'
 import { selectBnbPrice } from '@/store/slices/global'
-import { Flex, Text } from '@totejs/uikit'
+import { Flex, Text } from '@node-real/uikit'
 import React from 'react'
 
 export const GasFee = ({amount}: {amount: string}) => {

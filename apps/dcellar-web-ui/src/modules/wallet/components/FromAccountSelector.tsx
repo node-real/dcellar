@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Grid, Text } from '@totejs/uikit';
+import { Box, Grid, Text } from '@node-real/uikit';
 import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppSelector } from '@/store';

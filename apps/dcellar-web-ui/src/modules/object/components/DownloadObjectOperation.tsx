@@ -1,4 +1,4 @@
-import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
+import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node-real/uikit';
 import React, { memo, useEffect, useState } from 'react';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';

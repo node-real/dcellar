@@ -1,8 +1,8 @@
 /// <reference types="redux-persist" />
-import { BaseThemeTypings } from '@totejs/uikit';
+import { BaseThemeTypings } from '@node-real/uikit';
 import type { SwiperSlideProps, SwiperProps } from 'swiper/react';
 
-declare module '@totejs/uikit' {
+declare module '@node-real/uikit' {
   export interface CustomThemeTypings {
     colors:
       | BaseThemeTypings['colors']

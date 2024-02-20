@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { DCSelect } from '@/components/common/DCSelect';
 import { trimLongStr } from '@/utils/string';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useMount } from 'ahooks';
 import { setSpLatency, SpItem, updateSpLatency } from '@/store/slices/sp';
-import { ExternalLinkIcon } from '@totejs/icons';
+import { ExternalLinkIcon } from '@node-real/icons';
 import styled from '@emotion/styled';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { transientOptions } from '@/utils/css';

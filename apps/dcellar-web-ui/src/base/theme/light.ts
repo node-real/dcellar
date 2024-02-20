@@ -1,4 +1,4 @@
-import { rgba } from '@totejs/uikit';
+import { rgba } from '@node-real/uikit';
 
 export const light = {
   colors: {

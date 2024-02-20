@@ -7,7 +7,7 @@ import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { trimLongStr } from '@/utils/string';
 import { deleteGroup } from '@/facade/group';

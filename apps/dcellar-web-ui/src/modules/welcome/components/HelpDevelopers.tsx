@@ -1,6 +1,6 @@
 import { assetPrefix } from '@/base/env';
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text, Image, useMediaQuery, Square } from '@totejs/uikit';
+import { Box, Flex, Text, Image, useMediaQuery, Square } from '@node-real/uikit';
 import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
 import { INTER_FONT } from '@/modules/wallet/constants';

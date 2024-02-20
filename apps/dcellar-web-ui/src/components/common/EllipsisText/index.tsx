@@ -1,4 +1,4 @@
-import { Text, TextProps, Tooltip } from '@totejs/uikit';
+import { Text, TextProps, Tooltip } from '@node-real/uikit';
 import React, { memo } from 'react';
 
 interface EllipsisTextProps extends TextProps {

@@ -5,7 +5,7 @@ import { selectStoreFeeParams } from '@/store/slices/global';
 import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { Box, Flex, Link, Text } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';

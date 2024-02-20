@@ -1,4 +1,4 @@
-import { Box, Divider, Flex, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, Text } from '@node-real/uikit';
 import React, { memo, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 

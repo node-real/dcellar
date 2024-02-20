@@ -1,4 +1,4 @@
-import { Box, Center, MenuItem, MenuList, MenuListProps, Text } from '@totejs/uikit';
+import { Box, Center, MenuItem, MenuList, MenuListProps, Text } from '@node-real/uikit';
 import { memo, ReactElement, ReactNode } from 'react';
 import styled from '@emotion/styled';
 import cn from 'classnames';

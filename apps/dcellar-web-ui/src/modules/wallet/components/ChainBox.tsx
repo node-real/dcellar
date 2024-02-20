@@ -1,4 +1,4 @@
-import { Box, Flex, FormLabel, Text } from '@totejs/uikit';
+import { Box, Flex, FormLabel, Text } from '@node-real/uikit';
 import React, { memo } from 'react';
 
 import { ChainInfos } from '../constants';

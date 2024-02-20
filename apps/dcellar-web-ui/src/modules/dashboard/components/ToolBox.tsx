@@ -4,7 +4,7 @@ import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { useAppSelector } from '@/store';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { isEmpty } from 'lodash-es';
 

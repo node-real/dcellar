@@ -5,7 +5,7 @@ import { GroupList } from '@/modules/group/components/GroupList';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { setupGroups } from '@/store/slices/group';
-import { Box, Flex } from '@totejs/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
 

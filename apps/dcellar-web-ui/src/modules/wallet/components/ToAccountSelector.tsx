@@ -1,10 +1,10 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Grid, Loading, Text } from '@totejs/uikit';
+import { Box, Grid, Loading, Text } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { keyBy } from 'lodash-es';
 import { selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
 import { DCInputSelect } from '@/components/common/DCInputSelect';
-import { MenuCloseIcon } from '@totejs/icons';
+import { MenuCloseIcon } from '@node-real/icons';
 import { getAccountDisplay } from '@/utils/accounts';
 import { AccountTips } from './AccountTips';
 import { MenuOption } from '@/components/common/DCMenuList';

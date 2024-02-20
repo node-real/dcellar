@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAsyncEffect, useUnmount } from 'ahooks';
-import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';

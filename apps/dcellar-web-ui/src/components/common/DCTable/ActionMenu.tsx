@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Center, Flex, MenuButton } from '@totejs/uikit';
+import { Center, Flex, MenuButton } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { transientOptions } from '@/utils/css';
 import { ActionButton } from './ActionButton';

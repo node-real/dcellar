@@ -12,7 +12,7 @@ import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTa
 import { ColumnProps } from 'antd/es/table';
 import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { Loading } from '@/components/common/Loading';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';

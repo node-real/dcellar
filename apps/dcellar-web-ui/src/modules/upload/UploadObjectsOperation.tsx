@@ -12,7 +12,7 @@ import {
   Tabs,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { Fees } from './Fees';
 import { DCButton } from '@/components/common/DCButton';

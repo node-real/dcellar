@@ -1,4 +1,4 @@
-import { useColorMode, useColorModeValue, useTheme } from '@totejs/uikit';
+import { useColorMode, useColorModeValue, useTheme } from '@node-real/uikit';
 import { useEffect, useState } from 'react';
 import { merge } from 'lodash-es';
 import { cssVar } from '@/utils/common';

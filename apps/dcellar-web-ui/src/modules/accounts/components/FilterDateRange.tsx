@@ -1,5 +1,5 @@
 import { DCButton } from '@/components/common/DCButton';
-import { Box } from '@totejs/uikit';
+import { Box } from '@node-real/uikit';
 import dayjs, { Dayjs } from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import cn from 'classnames';

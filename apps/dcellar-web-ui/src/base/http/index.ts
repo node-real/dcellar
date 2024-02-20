@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import axiosRetry from 'axios-retry';
-import { toast } from '@totejs/uikit';
+import { toast } from '@node-real/uikit';
 import qs from 'query-string';
 
 import { genRequestId } from './utils/genRequestId';

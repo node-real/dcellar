@@ -1,4 +1,4 @@
-import { Box, Button, Circle, Divider, Flex, Text } from '@totejs/uikit';
+import { Box, Button, Circle, Divider, Flex, Text } from '@node-real/uikit';
 import { Card, CardProps } from './Common';
 import { EllipsisText } from '@/components/common/EllipsisText';
 import { displayTokenSymbol } from '@/utils/wallet';

@@ -1,4 +1,4 @@
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
 import { ColumnProps } from 'antd/es/table';
 import React from 'react';
 import { DCTable } from '@/components/common/DCTable';

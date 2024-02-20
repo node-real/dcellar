@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import styled from '@emotion/styled';
-import { Button, Flex, MenuButton, Text } from '@totejs/uikit';
+import { Button, Flex, MenuButton, Text } from '@node-real/uikit';
 import { find } from 'lodash-es';
 import { GAClick } from '@/components/common/GATracker';
 import { IconFont } from '@/components/IconFont';

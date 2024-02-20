@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Box, Text } from '@totejs/uikit';
+import { Box, Text } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
 import React from 'react';

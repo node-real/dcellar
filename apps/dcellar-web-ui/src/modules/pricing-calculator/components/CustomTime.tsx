@@ -7,7 +7,7 @@ import {
   PopoverHeader,
   PopoverTrigger,
   useOutsideClick,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';

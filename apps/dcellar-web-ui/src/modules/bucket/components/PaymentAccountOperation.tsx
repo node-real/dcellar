@@ -15,7 +15,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { find } from 'lodash-es';
 import { memo, useMemo, useState } from 'react';
 import { PaymentAccountSelector } from '../components/PaymentAccountSelector';

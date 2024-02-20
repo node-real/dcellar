@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import FeatureItem from './FeatureItem';
 import { useRef, useState } from 'react';
 import Swiper from 'swiper';

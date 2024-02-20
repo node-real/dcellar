@@ -1,4 +1,4 @@
-import { useMediaQuery } from '@totejs/uikit';
+import { useMediaQuery } from '@node-real/uikit';
 import { assetPrefix } from '@/base/env';
 import { KeyFeaturesMobile } from './KeyFeaturesMobile';
 import { KeyFeaturesPC } from './KeyFeaturesPC';

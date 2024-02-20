@@ -12,7 +12,7 @@ import {
   QAccordionPanel,
   QListItem,
   Switch,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { SendIcon } from './SendIcon';
 import { reportEvent } from '@/utils/gtag';
 import { DCButton } from '@/components/common/DCButton';

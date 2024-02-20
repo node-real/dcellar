@@ -5,7 +5,7 @@ import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
 import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@totejs/uikit';
+import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React, { memo, useState } from 'react';

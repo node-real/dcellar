@@ -1,7 +1,7 @@
 import { useAppSelector } from '@/store';
 import { selectLocateBucket } from '@/store/slices/object';
-import { ColoredWarningIcon } from '@totejs/icons';
-import { Flex, Link } from '@totejs/uikit';
+import { ColoredWarningIcon } from '@node-real/icons';
+import { Flex, Link } from '@node-real/uikit';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { useUnFreezeAmount } from '@/modules/accounts/hooks';

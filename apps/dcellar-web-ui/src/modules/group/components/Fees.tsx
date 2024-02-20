@@ -1,6 +1,6 @@
 import React, { memo, useEffect } from 'react';
 import { useAppSelector } from '@/store';
-import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
 import {
   renderBalanceNumber,

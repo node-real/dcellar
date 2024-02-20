@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/store';
-import { Box, Divider, Flex, Link, Text } from '@totejs/uikit';
+import { Box, Divider, Flex, Link, Text } from '@node-real/uikit';
 import React, { memo, useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { formatAddress, trimFloatZero } from '@/utils/string';

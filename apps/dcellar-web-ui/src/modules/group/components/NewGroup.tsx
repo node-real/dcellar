@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import { Flex } from '@totejs/uikit';
+import { Flex } from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setGroupOperation, setupGroups } from '@/store/slices/group';
 import { DCButton } from '@/components/common/DCButton';

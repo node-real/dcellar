@@ -1,5 +1,5 @@
 import { memo, PropsWithChildren, useEffect } from 'react';
-import { Button, useClipboard } from '@totejs/uikit';
+import { Button, useClipboard } from '@node-real/uikit';
 import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 

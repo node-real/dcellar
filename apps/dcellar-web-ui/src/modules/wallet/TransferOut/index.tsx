@@ -1,4 +1,4 @@
-import { Box, Divider, Flex, FormControl, useDisclosure } from '@totejs/uikit';
+import { Box, Divider, Flex, FormControl, useDisclosure } from '@node-real/uikit';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useForm } from 'react-hook-form';

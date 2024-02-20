@@ -1,4 +1,4 @@
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import { memo } from 'react';
 import { useAppSelector } from '@/store';
 

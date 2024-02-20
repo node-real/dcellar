@@ -1,4 +1,4 @@
-import { Flex, FlexProps, Link, LinkProps, Text } from '@totejs/uikit';
+import { Flex, FlexProps, Link, LinkProps, Text } from '@node-real/uikit';
 import React from 'react';
 import { getUTC0Year } from '@/utils/time';
 import { GAClick } from '@/components/common/GATracker';

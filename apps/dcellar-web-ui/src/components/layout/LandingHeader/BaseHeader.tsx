@@ -1,8 +1,8 @@
-import { Badge, Box, Flex, Link } from '@totejs/uikit';
+import { Badge, Box, Flex, Link } from '@node-real/uikit';
 import NextLink from 'next/link';
 import { Logo } from '../Logo';
 import { GAClick } from '@/components/common/GATracker';
-import { ExternalLinkIcon, IconProps } from '@totejs/icons';
+import { ExternalLinkIcon, IconProps } from '@node-real/icons';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { useRouter } from 'next/router';
 import { IconFont } from '@/components/IconFont';

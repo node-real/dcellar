@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { html, HTMLProps } from '@totejs/uikit';
+import { html, HTMLProps } from '@node-real/uikit';
 
 export interface IconFontProps extends HTMLProps<'svg'> {
   type: string;

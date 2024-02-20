@@ -1,4 +1,4 @@
-import { Flex, Text, toast } from '@totejs/uikit';
+import { Flex, Text, toast } from '@node-real/uikit';
 import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,

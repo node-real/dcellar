@@ -1,4 +1,4 @@
-import { Circle, Flex, Text } from '@totejs/uikit';
+import { Circle, Flex, Text } from '@node-real/uikit';
 import React, { useMemo } from 'react';
 import { Card } from './Common';
 import { IconFont } from '@/components/IconFont';

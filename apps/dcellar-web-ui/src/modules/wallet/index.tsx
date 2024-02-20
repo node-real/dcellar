@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Box, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
+import { Box, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 
 import { TransferIn } from './TransferIn';

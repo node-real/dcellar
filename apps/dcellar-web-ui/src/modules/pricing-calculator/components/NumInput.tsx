@@ -1,4 +1,4 @@
-import { Input, InputProps } from '@totejs/uikit';
+import { Input, InputProps } from '@node-real/uikit';
 import React from 'react';
 
 type NumInputProps = InputProps & {

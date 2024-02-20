@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, ModalBody, ModalFooter, Text } from '@totejs/uikit';
+import { Flex, ModalBody, ModalFooter, Text } from '@node-real/uikit';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { DCModal } from '../common/DCModal';

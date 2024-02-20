@@ -1,5 +1,5 @@
 import { IconFont } from '@/components/IconFont';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import React, { useMemo } from 'react';
 import { useAppSelector } from '@/store';
 import { useNetwork } from 'wagmi';

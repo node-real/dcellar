@@ -9,7 +9,7 @@ import {
   QDrawerHeader,
   Text,
   Tooltip,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setEditQuota,

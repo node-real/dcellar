@@ -1,6 +1,6 @@
 import React, { memo, ReactNode } from 'react';
 import styled from '@emotion/styled';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { transientOptions } from '@/utils/css';
 import { setObjectOperation, setupObjectPolicies } from '@/store/slices/object';

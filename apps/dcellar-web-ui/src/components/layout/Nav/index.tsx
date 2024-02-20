@@ -1,4 +1,4 @@
-import { Box, Text } from '@totejs/uikit';
+import { Box, Text } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import styled from '@emotion/styled';

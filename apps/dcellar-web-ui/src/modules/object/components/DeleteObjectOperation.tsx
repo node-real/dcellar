@@ -1,4 +1,4 @@
-import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
+import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
 import { useAccount } from 'wagmi';
 import React, { memo, useMemo, useState } from 'react';
 import {

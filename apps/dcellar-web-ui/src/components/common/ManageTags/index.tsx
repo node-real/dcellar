@@ -10,7 +10,7 @@ import {
   QDrawerFooter,
   QDrawerHeader,
   ButtonProps,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { DCButton } from '../DCButton';
 import { useState } from 'react';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';

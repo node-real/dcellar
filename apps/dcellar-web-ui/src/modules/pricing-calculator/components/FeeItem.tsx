@@ -1,4 +1,4 @@
-import { Flex, Text, Box } from '@totejs/uikit';
+import { Flex, Text, Box } from '@node-real/uikit';
 import React from 'react';
 import { displayUsd } from './Calculator';
 import { smMedia } from '@/modules/responsive';

@@ -1,6 +1,6 @@
 import { runtimeEnv } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
-import { ButtonGroup, Flex } from '@totejs/uikit';
+import { ButtonGroup, Flex } from '@node-real/uikit';
 import React from 'react';
 
 const LINKS = {

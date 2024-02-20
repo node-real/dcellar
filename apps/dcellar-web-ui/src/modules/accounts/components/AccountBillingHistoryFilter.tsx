@@ -1,4 +1,4 @@
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import dayjs from 'dayjs';
 import { setAccountFilterRange, setAccountFilterTypes } from '@/store/slices/billing';
 import { useAppDispatch, useAppSelector } from '@/store';

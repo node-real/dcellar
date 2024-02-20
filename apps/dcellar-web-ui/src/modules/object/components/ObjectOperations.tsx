@@ -17,7 +17,7 @@ import { get, isEmpty } from 'lodash-es';
 import { Loading } from '@/components/common/Loading';
 import { DetailObjectOperation } from '@/modules/object/components/DetailObjectOperation';
 import { DeleteObjectOperation } from '@/modules/object/components/DeleteObjectOperation';
-import { ModalCloseButton } from '@totejs/uikit';
+import { ModalCloseButton } from '@node-real/uikit';
 import { CancelObjectOperation } from '@/modules/object/components/CancelObjectOperation';
 import { CreateFolderOperation } from '@/modules/object/components/CreateFolderOperation';
 import { DownloadObjectOperation } from '@/modules/object/components/DownloadObjectOperation';

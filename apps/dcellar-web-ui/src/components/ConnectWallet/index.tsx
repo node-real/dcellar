@@ -1,6 +1,6 @@
 import React, { memo, ReactElement, useState } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import { smMedia } from '@/modules/responsive';
 import { useRouter } from 'next/router';
 import { useAccount, useDisconnect } from 'wagmi';

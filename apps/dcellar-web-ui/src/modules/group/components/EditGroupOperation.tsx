@@ -8,7 +8,7 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupGroups } from '@/store/slices/group';
 import { InputItem } from '@/components/formitems/InputItem';

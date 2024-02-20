@@ -7,7 +7,7 @@ import {
   Text,
   toast,
   useClipboard,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
 import { AccessItem } from '@/modules/object/components/AccessItem';

@@ -1,4 +1,4 @@
-import { rgba, useColorMode, useColorModeValue, useTheme } from '@totejs/uikit';
+import { rgba, useColorMode, useColorModeValue, useTheme } from '@node-real/uikit';
 import { useEffect, useState } from 'react';
 import {merge} from 'lodash-es';
 import * as echarts from 'echarts/core';

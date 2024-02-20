@@ -1,5 +1,5 @@
 import { assetPrefix } from '@/base/env';
-import { Box, Flex, Image, Text } from '@totejs/uikit';
+import { Box, Flex, Image, Text } from '@node-real/uikit';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { smMedia } from '@/modules/responsive';
 import { LandingResponsiveContainer, lgMedia, mdMedia } from '..';
