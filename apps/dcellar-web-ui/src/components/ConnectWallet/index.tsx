@@ -9,7 +9,7 @@ import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { useAppDispatch } from '@/store';
-import { useModal } from '@totejs/walletkit';
+import { useModal } from '@node-real/walletkit';
 import { InternalRoutePaths } from '@/constants/paths';
 
 interface ConnectWalletProps extends DCButtonProps {

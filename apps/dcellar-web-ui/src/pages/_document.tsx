@@ -1,7 +1,7 @@
 import { Html, Head, Main, NextScript } from 'next/document';
 import { Ga4 } from '@/components/common/Ga4';
 import { GA_ID, assetPrefix } from '@/base/env';
-import { EthereumScript } from '@totejs/walletkit';
+import { EthereumScript } from '@node-real/walletkit';
 
 export default function Document() {
   return (

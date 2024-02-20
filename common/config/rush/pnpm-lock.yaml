@@ -18,11 +18,11 @@ importers:
       '@next/eslint-plugin-next': ^13.1.6
       '@node-real/icons': ~2.20.3
       '@node-real/uikit': ~2.54.8
+      '@node-real/walletkit': 1.0.10-alpha.1
       '@reduxjs/toolkit': ^1.9.5
       '@sentry/nextjs': ~7.86.0
       '@svgr/webpack': ^6.5.1
       '@totejs/prettier-config': ^0.1.0
-      '@totejs/walletkit': ~1.0.7-alpha.5
       '@types/lodash-es': ^4.17.6
       '@types/node': 18.16.0
       '@types/react': 18.0.38
@@ -75,9 +75,14 @@ importers:
       '@next/bundle-analyzer': 13.5.6
       '@node-real/icons': 2.20.3_7ch5h7r5wd6efzixoihb5c76p4
       '@node-real/uikit': 2.54.8_5yd7x4lo226drlrqzl7etm6ys4
+      '@node-real/walletkit': 1.0.10-alpha.1_u4rurx3tsdwtryhwavg3nqina4
       '@reduxjs/toolkit': 1.9.7_reiadaay42xu3uk4bvhmtbk5mu
+<<<<<<< HEAD
       '@sentry/nextjs': 7.86.0_next@14.1.0+react@18.2.0
       '@totejs/walletkit': 1.0.8_u4rurx3tsdwtryhwavg3nqina4
+=======
+      '@sentry/nextjs': 7.86.0_next@14.0.4+react@18.2.0
+>>>>>>> 82d8d1b (feat(dcellar-web-ui): migrate to @node-real/walletkit)
       '@wagmi/core': 1.4.13_e67w62csy4y75sby3mo4znpfy4
       ahooks: 3.7.7_react@18.2.0
       antd: 5.11.0_biqbaboplfbrettd7655fr4n2y
@@ -2735,6 +2740,25 @@ packages:
       - '@emotion/styled'
     dev: false
 
+  /@node-real/walletkit/1.0.10-alpha.1_u4rurx3tsdwtryhwavg3nqina4:
+    resolution: {integrity: sha512-/gS5lm7f6kDJdRCeLKrsZ9xjXQODavbm7ntlx9vLDTUQS0xklw1bABv7F9EXvYICyuIad1Tti54pkoYs9X19jA==}
+    peerDependencies:
+      react: '>=17'
+      react-dom: '>=17'
+      viem: ^1.0.0
+      wagmi: ^1.0.0
+    dependencies:
+      '@particle-network/auth': 1.3.1
+      '@particle-network/provider': 1.3.2_b3guvw2hq722luv3ohe6cnrjee
+      qrcode: 1.5.3
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+      viem: 1.19.15_typescript@5.2.2
+      wagmi: 1.4.13_jhl4td3v7ogiujz66twl7zic5a
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -3697,21 +3721,6 @@ packages:
       - supports-color
     dev: true
 
-  /@totejs/walletkit/1.0.8_u4rurx3tsdwtryhwavg3nqina4:
-    resolution: {integrity: sha512-mBxH4jQBHMyhq+MykvdWaoXfbOi0rUJQpURu/qyZYyhUHKhldN7rYo0C2acjcWwi9h4yMeIJs49b9wvfcd7a/A==}
-    peerDependencies:
-      react: '>=17'
-      react-dom: '>=17'
-      viem: ^1.0.0
-      wagmi: ^1.0.0
-    dependencies:
-      qrcode: 1.5.3
-      react: 18.2.0
-      react-dom: 18.2.0_react@18.2.0
-      viem: 1.19.15_typescript@5.2.2
-      wagmi: 1.4.13_jhl4td3v7ogiujz66twl7zic5a
-    dev: false
-
   /@trysound/sax/0.2.0:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
@@ -3842,6 +3851,10 @@ packages:
 
   /@types/use-sync-external-store/0.0.3:
     resolution: {integrity: sha512-EwmlvuaxPNej9+T4v5AuBPJa2x2UOJVdjCtDHgcDqitUeOtjnJKJ+apYjVcAoBEMjKW1VVFGZLUb5+qqa09XFA==}
+    dev: false
+
+  /@types/uuid/8.3.4:
+    resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
     dev: false
 
   /@types/ws/7.4.7:
@@ -5478,6 +5491,10 @@ packages:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  /crypto-js/4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    dev: false
+
   /css-in-js-utils/3.1.0:
     resolution: {integrity: sha512-fJAcud6B3rRu+KHYk+Bwf+WFL2MDCJJ1XG9x137tJQ0xYxor7XziQtuGFbWNdqrvF4Tk26O3H73nfVqXt/fW1A==}
     dependencies:
@@ -5706,6 +5723,13 @@ packages:
     dependencies:
       is-obj: 2.0.0
     dev: true
+
+  /draggabilly/3.0.0:
+    resolution: {integrity: sha512-aEs+B6prbMZQMxc9lgTpCBfyCUhRur/VFucHhIOvlvvdARTj7TcDmX/cdOUtqbjJJUh7+agyJXR5Z6IFe1MxwQ==}
+    dependencies:
+      get-size: 3.0.0
+      unidragger: 3.0.1
+    dev: false
 
   /duplexer/0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
@@ -6256,6 +6280,10 @@ packages:
       strip-hex-prefix: 1.0.0
     dev: false
 
+  /ev-emitter/2.1.2:
+    resolution: {integrity: sha512-jQ5Ql18hdCQ4qS+RCrbLfz1n+Pags27q5TwMKvZyhp5hh2UULUYZUy1keqj6k6SYsdqIYjnmz7xyyEY0V67B8Q==}
+    dev: false
+
   /eventemitter3/4.0.7:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
     dev: false
@@ -6517,6 +6545,10 @@ packages:
 
   /get-port-please/3.1.1:
     resolution: {integrity: sha512-3UBAyM3u4ZBVYDsxOQfJDxEa6XTbpBDrOjp4mf7ExFRt5BKs/QywQQiJsh2B+hxcZLSapWqCRvElUe8DnKcFHA==}
+    dev: false
+
+  /get-size/3.0.0:
+    resolution: {integrity: sha512-Y8aiXLq4leR7807UY0yuKEwif5s3kbVp1nTv+i4jBeoUzByTLKkLWu/HorS6/pB+7gsB0o7OTogC8AoOOeT0Hw==}
     dev: false
 
   /get-stdin/8.0.0:
@@ -10257,6 +10289,12 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /unidragger/3.0.1:
+    resolution: {integrity: sha512-RngbGSwBFmqGBWjkaH+yB677uzR95blSQyxq6hYbrQCejH3Mx1nm8DVOuh3M9k2fQyTstWUG5qlgCnNqV/9jVw==}
+    dependencies:
+      ev-emitter: 2.1.2
+    dev: false
+
   /universalify/2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
@@ -10381,6 +10419,13 @@ packages:
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
+    dev: false
+
+  /uuidv4/6.2.13:
+    resolution: {integrity: sha512-AXyzMjazYB3ovL3q051VLH06Ixj//Knx7QnUSi1T//Ie3io6CpsPu9nVMOx5MoLWh6xV0B9J0hIaxungxXUbPQ==}
+    dependencies:
+      '@types/uuid': 8.3.4
+      uuid: 8.3.2
     dev: false
 
   /v8-compile-cache-lib/3.0.1:

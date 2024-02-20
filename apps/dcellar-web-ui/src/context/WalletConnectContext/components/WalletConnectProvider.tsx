@@ -1,10 +1,10 @@
-import '@totejs/walletkit/styles.css';
+import '@node-real/walletkit/styles.css';
 import { createConfig, WagmiConfig } from 'wagmi';
 import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
-import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
+import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@node-real/walletkit';
 import { Text } from '@node-real/uikit';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { metaMask, trustWallet, walletConnect } from '@totejs/walletkit/wallets';
+import { metaMask, trustWallet, walletConnect } from '@node-real/walletkit/wallets';
 import * as Sentry from '@sentry/nextjs';
 import { reportEvent } from '@/utils/gtag';
 import * as process from 'process';

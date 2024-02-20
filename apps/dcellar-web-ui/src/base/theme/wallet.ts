@@ -1,4 +1,4 @@
-import { CustomTheme } from '@totejs/walletkit/dist/themes/base';
+import { CustomTheme } from '@node-real/walletkit/dist/themes/base';
 
 export const customTheme: CustomTheme = {
   colors: {
