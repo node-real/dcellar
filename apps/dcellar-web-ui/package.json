@@ -86,7 +86,6 @@
     ],
     "*.ts?(x)": "tsc-files --noEmit"
   },
-  "prettier": "@totejs/prettier-config",
   "eslintConfig": {
     "extends": [
       "next/core-web-vitals"

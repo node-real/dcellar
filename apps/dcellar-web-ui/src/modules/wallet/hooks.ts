@@ -17,7 +17,7 @@ import { calTransferInFee } from '@/facade/wallet';
 import { useAsyncEffect } from 'ahooks';
 import { ErrorResponse } from '@/facade/error';
 
-export const useGetFeeBasic = () => {
+export const useGetFeeConfig = () => {
   const { transType } = useAppSelector((root) => root.wallet);
   const curInfo = WalletOperationInfos[transType];
   const { chain } = useNetwork();
@@ -35,7 +35,7 @@ export const useGetFeeBasic = () => {
 };
 
 export const useTransferOutFee = () => {
-  const { type, isRight, address } = useGetFeeBasic();
+  const { type, isRight, address } = useGetFeeConfig();
   const [feeData, setFeeData] = useState<TFeeData>({
     gasFee: BigNumber(DefaultTransferFee['transfer_out'].gasFee),
     relayerFee: BigNumber(DefaultTransferFee['transfer_out'].relayerFee),
@@ -92,7 +92,7 @@ export const useTransferOutFee = () => {
 };
 
 export const useSendFee = () => {
-  const { type, address, isRight } = useGetFeeBasic();
+  const { type, address, isRight } = useGetFeeConfig();
   const [feeData, setFeeData] = useState<TFeeData>({
     gasFee: BigNumber(DefaultTransferFee['send'].gasFee),
     relayerFee: BigNumber(DefaultTransferFee['send'].relayerFee),

@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { ChainBox } from '../components/ChainBox';
 import Amount from '../components/Amount';
 import { Head } from '../components/Head';
-import { SwapIcon } from '../components/SwapIcon';
+import { SwapButton } from '../components/SwapButton';
 import { StatusModal } from '../components/StatusModal';
 import Container from '../components/Container';
 import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -27,7 +27,6 @@ import { useTransferInFee } from '../hooks';
 
 interface TransferInProps {}
 export const TransferIn = memo<TransferInProps>(function TransferIn() {
-  const { transType } = useAppSelector((root) => root.wallet);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
@@ -71,11 +70,7 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
     onOpen();
 
     try {
-      const cInstance = new ethers.Contract(
-        crossChainContract,
-        crossChainAbi,
-        signer!,
-      );
+      const cInstance = new ethers.Contract(crossChainContract, crossChainAbi, signer!);
       const tInstance = new ethers.Contract(tokenHubContract, tokenHubAbi, signer!);
 
       const transferInAmount = data.amount;
@@ -113,12 +108,12 @@ export const TransferIn = memo<TransferInProps>(function TransferIn() {
 
   return (
     <>
+      <Head />
       <Container>
-        <Head />
         <Flex mb={'24px'} justifyContent={'space-between'} alignItems="center">
           <ChainBox type="from" chainId={BSC_CHAIN_ID} />
           <GAClick name="dc.wallet.transferin.exchange_btn.click">
-            <SwapIcon onClick={onChangeTransfer} />
+            <SwapButton onClick={onChangeTransfer} />
           </GAClick>
           <ChainBox type="to" chainId={GREENFIELD_CHAIN_ID} />
         </Flex>

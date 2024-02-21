@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import Head from 'next/head';
 import { Wallet } from '@/modules/wallet';
 import { useRouter } from 'next/router';
@@ -8,7 +8,7 @@ import { isTrans, setFrom, setSendAmount, setTo, setTransType } from '@/store/sl
 import { runtimeEnv } from '@/base/env';
 import { networkTag } from '@/utils/common';
 
-const Index = () => {
+const WalletPage = () => {
   const dispatch = useAppDispatch();
   const { query } = useRouter();
 
@@ -32,4 +32,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default WalletPage;

@@ -9,7 +9,6 @@ importers:
     specifiers:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
       '@bnb-chain/greenfield-js-sdk': 1.2.0
-      '@builder.io/partytown': ^0.7.6
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
       '@emotion/react': ^11.10.5
@@ -77,12 +76,8 @@ importers:
       '@node-real/uikit': 2.54.8_5yd7x4lo226drlrqzl7etm6ys4
       '@node-real/walletkit': 1.0.10-alpha.1_u4rurx3tsdwtryhwavg3nqina4
       '@reduxjs/toolkit': 1.9.7_reiadaay42xu3uk4bvhmtbk5mu
-<<<<<<< HEAD
       '@sentry/nextjs': 7.86.0_next@14.1.0+react@18.2.0
       '@totejs/walletkit': 1.0.8_u4rurx3tsdwtryhwavg3nqina4
-=======
-      '@sentry/nextjs': 7.86.0_next@14.0.4+react@18.2.0
->>>>>>> 82d8d1b (feat(dcellar-web-ui): migrate to @node-real/walletkit)
       '@wagmi/core': 1.4.13_e67w62csy4y75sby3mo4znpfy4
       ahooks: 3.7.7_react@18.2.0
       antd: 5.11.0_biqbaboplfbrettd7655fr4n2y
@@ -1526,11 +1521,6 @@ packages:
   /@bnb-chain/greenfield-zk-crypto/1.0.0:
     resolution: {integrity: sha512-QlHNIleujENh02oPidtLFVNMArVpSQDdV9omOUTLjKA1j2/rrd4OKfMLh1gpeVKl53vw50ReGkbm2VlBXTZRbQ==}
     dev: false
-
-  /@builder.io/partytown/0.7.6:
-    resolution: {integrity: sha512-snXIGNiZpqjno3XYQN2lbBB+05hsQR/LSttbtIW1c0gmZ7Kh/DIo0YrxlDxCDulAMFPFM8J+4voLwvYepSj3sw==}
-    hasBin: true
-    dev: true
 
   /@coinbase/wallet-sdk/3.7.2:
     resolution: {integrity: sha512-lIGvXMsgpsQWci/XOMQIJ2nIZ8JUy/L+bvC0wkRaYarr0YylwpXrJ2gRM3hCXPS477pkyO7N/kSiAoRgEXUdJQ==}

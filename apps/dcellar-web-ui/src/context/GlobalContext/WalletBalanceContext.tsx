@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { Address, useBalance, useNetwork } from 'wagmi';
 
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
@@ -44,7 +44,7 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
     chainId: GREENFIELD_CHAIN_ID,
   });
 
-  const availableChainBalances = {
+  const balances = {
     isLoading: isBscLoading || isGnfdLoading,
     isError: isBscError || isGnfdError,
     defaultChainId: chain?.id,
@@ -65,7 +65,7 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
   };
 
   return (
-    <WalletBalanceContext.Provider value={availableChainBalances}>
+    <WalletBalanceContext.Provider value={balances}>
       {children}
     </WalletBalanceContext.Provider>
   );

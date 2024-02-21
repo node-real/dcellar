@@ -1,5 +1,5 @@
 import { Box, Divider, Flex, Text } from '@node-real/uikit';
-import React, { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
 
 import { EOperation, TFeeData } from '../type';

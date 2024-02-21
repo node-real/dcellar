@@ -1,5 +1,5 @@
 import { Flex, FlexProps } from '@node-real/uikit';
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 import { IconFont } from '@/components/IconFont';
 

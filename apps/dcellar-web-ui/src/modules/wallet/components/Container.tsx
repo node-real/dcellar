@@ -1,5 +1,5 @@
 import { Box, BoxProps } from '@node-real/uikit';
-import React, { memo, PropsWithChildren } from 'react';
+import { memo } from 'react';
 
 interface ContainerProps extends BoxProps {}
 
