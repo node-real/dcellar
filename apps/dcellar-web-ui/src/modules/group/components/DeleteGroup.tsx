@@ -1,18 +1,18 @@
-import React, { memo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useAccount } from 'wagmi';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { setRemoveGroup, setupGroups } from '@/store/slices/group';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { toast } from '@node-real/uikit';
-import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { trimLongStr } from '@/utils/string';
-import { deleteGroup } from '@/facade/group';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
 import { Animates } from '@/components/AnimatePng';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { deleteGroup } from '@/facade/group';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setRemoveGroup, setupGroups } from '@/store/slices/group';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { trimLongStr } from '@/utils/string';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { toast } from '@node-real/uikit';
+import { memo } from 'react';
+import { useAccount } from 'wagmi';
 
 interface DeleteGroupProps {}
 

@@ -5,7 +5,7 @@ export interface ICancelManagerOptions {
 }
 
 export interface ICancelManagerPendingRequests {
-  [key: string]: Function;
+  [key: string]: (reason: string) => void;
 }
 
 export default class CancelManager {
@@ -17,7 +17,7 @@ export default class CancelManager {
     this.pendingRequests = {};
   }
 
-  addRequest(requestId: string, cancelFn: Function) {
+  addRequest(requestId: string, cancelFn: (reason: string) => void) {
     this.log(`adding request ${requestId}`);
 
     if (this.has(requestId)) {
@@ -55,8 +55,8 @@ export default class CancelManager {
   }
 
   cancelAllRequests(reason: string) {
-    for (let requestId in this.pendingRequests) {
-      let _reason = reason || `cancelRequest(${requestId}) from RequestManager.cancelAllRequests`;
+    for (const requestId in this.pendingRequests) {
+      const _reason = reason || `cancelRequest(${requestId}) from RequestManager.cancelAllRequests`;
       this.cancelRequest(requestId, _reason);
     }
   }

@@ -1,17 +1,15 @@
-import { TBucket } from '@/store/slices/bucket';
-import { ManageTags } from '@/components/common/ManageTags';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
-import { setBucketTags, setEditBucketTagsData } from '@/store/slices/bucket';
-import { DEFAULT_TAG, getValidTags } from '@/components/common/ManageTags';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { updateBucketTags } from '@/facade/bucket';
-import { useAccount } from 'wagmi';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { Animates } from '@/components/AnimatePng';
-import { toast } from '@node-real/uikit';
+import { DEFAULT_TAG, ManageTags, getValidTags } from '@/components/common/ManageTags';
+import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { updateBucketTags } from '@/facade/bucket';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { BUTTON_GOT_IT, useStatusModal } from '@/hooks/useStatusModal';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { TBucket, setBucketTags, setEditBucketTagsData } from '@/store/slices/bucket';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { toast } from '@node-real/uikit';
+import { useAccount } from 'wagmi';
 
 export const UpdateBucketTagsOperation = ({
   bucket,

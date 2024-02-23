@@ -1,4 +1,4 @@
-import { useAppDispatch } from '@/store'
+import { useAppDispatch } from '@/store';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 
 export const BUTTON_GOT_IT = 'Got It';
@@ -16,20 +16,25 @@ export function useStatusModal() {
       );
     },
     end: () => {
-      dispatch(setStatusDetail({} as TStatusDetail))
+      dispatch(setStatusDetail({} as TStatusDetail));
     },
-    error: ({ title, errorText, icon, ...props }: Omit<TStatusDetail, 'icon'> & { icon?: string }) => {
+    error: ({
+      title,
+      errorText,
+      icon,
+      ...props
+    }: Omit<TStatusDetail, 'icon'> & { icon?: string }) => {
       return dispatch(
         setStatusDetail({
           title,
           icon: icon || 'status-failed',
           buttonText: BUTTON_GOT_IT,
           errorText: 'Error message: ' + errorText,
-          ...props
+          ...props,
         }),
       );
     },
   };
 
-  return { modal }
+  return { modal };
 }

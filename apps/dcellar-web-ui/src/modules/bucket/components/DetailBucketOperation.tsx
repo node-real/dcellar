@@ -1,4 +1,24 @@
-import React, { memo, PropsWithChildren, useEffect } from 'react';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { CopyText } from '@/components/common/CopyText';
+import { DCButton } from '@/components/common/DCButton';
+import { GAClick } from '@/components/common/GATracker';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { IconFont } from '@/components/IconFont';
+import { SharePermission } from '@/modules/object/components/SharePermission';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  setBucketOperation,
+  setEditBucketTagsData,
+  setEditQuota,
+  setupBucketQuota,
+  TBucket,
+} from '@/store/slices/bucket';
+import { selectBucketSp } from '@/store/slices/sp';
+import { convertObjectKey } from '@/utils/common';
+import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
+import { formatFullTime, getMillisecond } from '@/utils/time';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import {
   Box,
   Divider,
@@ -10,29 +30,9 @@ import {
   Text,
   Tooltip,
 } from '@node-real/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  setEditQuota,
-  TBucket,
-  setupBucketQuota,
-  setEditBucketTagsData,
-  setBucketOperation,
-} from '@/store/slices/bucket';
-import { formatFullTime, getMillisecond } from '@/utils/time';
-import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { GAClick } from '@/components/common/GATracker';
-import { CopyText } from '@/components/common/CopyText';
-import { selectBucketSp } from '@/store/slices/sp';
-import dayjs from 'dayjs';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import { convertObjectKey } from '@/utils/common';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useUnmount } from 'ahooks';
-import { DEFAULT_TAG } from '@/components/common/ManageTags';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { SharePermission } from '@/modules/object/components/SharePermission';
+import dayjs from 'dayjs';
+import { memo, PropsWithChildren, useEffect } from 'react';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">

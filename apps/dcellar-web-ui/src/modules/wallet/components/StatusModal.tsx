@@ -1,10 +1,11 @@
 import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
-import React, { memo, useMemo } from 'react';
-import { DCModal } from '@/components/common/DCModal';
-import { DCButton } from '@/components/common/DCButton';
-import { useAppSelector } from '@/store';
+import { memo, useMemo } from 'react';
+
 import { AnimatePng } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
 import { IconFont } from '@/components/IconFont';
+import { useAppSelector } from '@/store';
 
 const contentTexts = {
   pending: {
@@ -61,7 +62,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
                 size={'lg'}
                 variant="ghost"
                 as="a"
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO */
                 target={'_blank'}
                 href={viewTxUrl}
                 gaClickName={gaOptions.nextActionName}
@@ -79,7 +80,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
               <DCButton
                 size={'lg'}
                 variant="ghost"
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO how to inherit as function */
                 target={'_blank'}
                 href={viewTxUrl}
                 as="a"
@@ -99,7 +100,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
                 size={'lg'}
                 variant="ghost"
                 as={'a'}
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO */
                 target={'_blank'}
                 href={viewTxUrl}
                 gaClickName={gaOptions.nextActionName}

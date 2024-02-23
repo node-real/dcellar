@@ -1,13 +1,13 @@
 import { Chain, configureChains } from 'wagmi';
-import { publicProvider } from "wagmi/providers/public";
+import { publicProvider } from 'wagmi/providers/public';
 
 import {
   BSC_CHAIN_ID,
-  BSC_RPC_URL,
-  GREENFIELD_CHAIN_RPC_URL,
-  GREENFIELD_CHAIN_ID,
-  GREENFIELD_CHAIN_EXPLORER_URL,
   BSC_EXPLORER_URL,
+  BSC_RPC_URL,
+  GREENFIELD_CHAIN_EXPLORER_URL,
+  GREENFIELD_CHAIN_ID,
+  GREENFIELD_CHAIN_RPC_URL,
 } from '@/base/env';
 import { CHAIN_NAMES } from '@/constants/wallet';
 

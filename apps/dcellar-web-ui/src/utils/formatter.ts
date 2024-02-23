@@ -1,5 +1,5 @@
-import { getNumInDigits } from '@/utils/wallet';
 import { FIAT_CURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { getNumInDigits } from '@/utils/wallet';
 
 export const formatBytes = (bytes: number | string, isFloor = false) => {
   if (typeof bytes === 'string') {

@@ -1,7 +1,7 @@
-import { Flex, Text } from '@node-real/uikit';
-import { useEffect, useState } from 'react';
-import NextLink from 'next/link';
 import { InternalRoutePaths } from '@/constants/paths';
+import { Flex, Text } from '@node-real/uikit';
+import NextLink from 'next/link';
+import { useEffect, useState } from 'react';
 
 export type InsufficientBalanceProps = {
   loginAccount: string;
@@ -10,19 +10,18 @@ export type InsufficientBalanceProps = {
 export const InsufficientBalance = ({ loginAccount, accounts }: InsufficientBalanceProps) => {
   const [activeWays, setActiveWays] = useState<{ link: string; text: string }[]>([]);
   useEffect(() => {
-    const ways = accounts
-      .map((account) => {
-        const isOwnerAccount = account.address === loginAccount;
-        return isOwnerAccount
-          ? {
-              link: InternalRoutePaths.transfer_in,
-              text: 'Transfer in',
-            }
-          : {
-              link: `${InternalRoutePaths.send}&from=${loginAccount}&to=${account.address}`,
-              text: 'Send',
-            };
-      });
+    const ways = accounts.map((account) => {
+      const isOwnerAccount = account.address === loginAccount;
+      return isOwnerAccount
+        ? {
+            link: InternalRoutePaths.transfer_in,
+            text: 'Transfer in',
+          }
+        : {
+            link: `${InternalRoutePaths.send}&from=${loginAccount}&to=${account.address}`,
+            text: 'Send',
+          };
+    });
     setActiveWays(ways);
   }, [loginAccount, accounts]);
 

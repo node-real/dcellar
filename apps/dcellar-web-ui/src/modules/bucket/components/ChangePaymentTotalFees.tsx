@@ -1,15 +1,15 @@
-import { useDisclosure } from '@node-real/uikit';
+import { BankBalance } from '@/components/Fee/BankBalance';
+import { FullBalance } from '@/components/Fee/FullBalance';
+import { GasFee } from '@/components/Fee/GasFee';
+import { PrepaidFee } from '@/components/Fee/PrepaidFee';
+import { SettlementFee } from '@/components/Fee/SettlementFee';
+import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
+import { LearnMoreTips } from '@/components/common/Tips';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
-import { PrepaidFee } from '@/components/Fee/PrepaidFee';
-import { SettlementFee } from '@/components/Fee/SettlementFee';
-import { GasFee } from '@/components/Fee/GasFee';
-import { FullBalance } from '@/components/Fee/FullBalance';
-import { BankBalance } from '@/components/Fee/BankBalance';
-import { LearnMoreTips } from '@/components/common/Tips';
+import { useDisclosure } from '@node-real/uikit';
 
 export type TSettlementFee = {
   address: string;

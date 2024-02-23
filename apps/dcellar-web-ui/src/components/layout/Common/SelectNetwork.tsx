@@ -1,12 +1,12 @@
 import { runtimeEnv } from '@/base/env';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { InternalRoutePaths } from '@/constants/paths';
 import { capitalizeFLetter } from '@/utils/common';
 import { ButtonProps, MenuButton } from '@node-real/uikit';
 import { useRouter } from 'next/router';
-import { DCMenu } from '@/components/common/DCMenu';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { IconFont } from '@/components/IconFont';
-import { DCButton } from '@/components/common/DCButton';
-import { InternalRoutePaths } from '@/constants/paths';
 
 interface TNetwork extends MenuOption {
   label: string;

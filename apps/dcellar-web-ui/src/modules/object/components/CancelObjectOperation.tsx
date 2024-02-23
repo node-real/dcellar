@@ -1,6 +1,13 @@
-import { Box, Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
-import { useAccount } from 'wagmi';
-import React, { memo, useEffect, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { Tips } from '@/components/common/Tips';
+import { USER_REJECT_STATUS_NUM } from '@/constants/legacy';
+import { getClient } from '@/facade';
+import { resolve } from '@/facade/common';
+import { commonFault } from '@/facade/error';
+import { queryLockFee } from '@/facade/object';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_CANCEL_ERROR,
@@ -8,36 +15,38 @@ import {
   GAS_FEE_DOC,
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
-import { USER_REJECT_STATUS_NUM } from '@/constants/legacy';
-import { Tips } from '@/components/common/Tips';
-import { DCButton } from '@/components/common/DCButton';
-import {
-  addDeletedObject,
-  setSelectedRowKeys,
-  setStatusDetail,
-  TStatusDetail,
-} from '@/store/slices/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useAsyncEffect } from 'ahooks';
-import { queryLockFee } from '@/facade/object';
-import { formatLockFee } from '@/utils/object';
-import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
-import { commonFault } from '@/facade/error';
-import { resolve } from '@/facade/common';
-import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { selectAvailableBalance, TAccountInfo } from '@/store/slices/accounts';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { SpItem } from '@/store/slices/sp';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderPaymentInsufficientBalance,
 } from '@/modules/object/utils';
-import { getClient } from '@/facade';
-import { signTypedDataCallback } from '@/facade/wallet';
-import { Animates } from '@/components/AnimatePng';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { TAccountInfo, selectAvailableBalance } from '@/store/slices/accounts';
+import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
+import {
+  TStatusDetail,
+  addDeletedObject,
+  setSelectedRowKeys,
+  setStatusDetail,
+} from '@/store/slices/object';
+import { SpItem } from '@/store/slices/sp';
+import { formatLockFee } from '@/utils/object';
+import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import {
+  Box,
+  Flex,
+  Link,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Text,
+  toast,
+} from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
 import { without } from 'lodash-es';
+import React, { memo, useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 export const renderFee = (
   key: string,
@@ -66,11 +75,7 @@ export const renderFee = (
             </>
           )}
         </Text>
-        {keyIcon && (
-          <Box>
-            {keyIcon}
-          </Box>
-        )}
+        {keyIcon && <Box>{keyIcon}</Box>}
       </Flex>
       <Text fontSize={'14px'} lineHeight={'28px'} fontWeight={400} color={'readable.tertiary'}>
         {renderFeeValue(bnbValue, exchangeRate)}

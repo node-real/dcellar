@@ -1,9 +1,18 @@
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import React, { memo, useState } from 'react';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import styled from '@emotion/styled';
 import { Flex, Grid, Text } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { memo, useState } from 'react';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
-import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
+import { Loading } from '@/components/common/Loading';
+import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { quotaRemains } from '@/facade/bucket';
+import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import {
   downloadObject,
   getCanObjectAccess,
@@ -11,23 +20,15 @@ import {
   hasObjectPermission,
   previewObject,
 } from '@/facade/object';
-import { quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { Loading } from '@/components/common/Loading';
-import { useAppDispatch } from '@/store';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { SpItem } from '@/store/slices/sp';
-import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { setStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT } from '@/modules/object/constant';
-import { reportEvent } from '@/utils/gtag';
+import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
+import { useAppDispatch } from '@/store';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { setStatusDetail } from '@/store/slices/object';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { SpItem } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
-import { IconFont } from '@/components/IconFont';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { useAsyncEffect } from 'ahooks';
+import { reportEvent } from '@/utils/gtag';
 
 interface SharedFileProps {
   fileName: string;
@@ -78,7 +79,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           ? 'dc.shared_ui.preview.download.click'
           : 'dc.shared_ui.preview.view.click',
     });
-    let remainQuota = quotaRemains(quotaData, size);
+    const remainQuota = quotaRemains(quotaData, size);
     if (!remainQuota) return onError(E_NO_QUOTA);
 
     setAction(e);

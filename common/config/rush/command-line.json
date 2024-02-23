@@ -70,6 +70,17 @@
       "summary": "Extract translation in react components and convert into {t('label')} call",
       "autoinstallerName": "extract-translation",
       "shellCommand": "node common/autoinstallers/extract-translation/bin/index.js"
+    },
+    {
+      "name": "prettier",
+      "commandKind": "global",
+      "summary": "Used by the pre-commit Git hook. This command invokes Prettier to reformat staged changes.",
+      "safeForSimultaneousRushProcesses": true,
+
+      "autoinstallerName": "rush-prettier",
+
+      // common/autoinstallers/rush-prettier/node_modules/.bin/pretty-quick
+      "shellCommand": "pretty-quick --staged"
     }
     // {
     //   /**

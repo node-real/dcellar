@@ -2,8 +2,8 @@ import { createContext, useContext } from 'react';
 import { Address, useBalance, useNetwork } from 'wagmi';
 
 import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID } from '@/base/env';
-import { useAppSelector } from '@/store';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { useAppSelector } from '@/store';
 import { BN } from '@/utils/math';
 
 type TChainBalance = {
@@ -53,22 +53,22 @@ export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
         chainId: BSC_CHAIN_ID,
         isLoading: isBscLoading,
         isError: isBscError,
-        availableBalance: BN(bscBalance?.formatted ?? 0).dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(),
+        availableBalance: BN(bscBalance?.formatted ?? 0)
+          .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+          .toString(),
       },
       {
         chainId: GREENFIELD_CHAIN_ID,
         isLoading: isGnfdLoading,
         isError: isGnfdError,
-        availableBalance: BN(gnfdBalance?.formatted ?? 0).dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString(),
+        availableBalance: BN(gnfdBalance?.formatted ?? 0)
+          .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+          .toString(),
       },
     ],
   };
 
-  return (
-    <WalletBalanceContext.Provider value={balances}>
-      {children}
-    </WalletBalanceContext.Provider>
-  );
+  return <WalletBalanceContext.Provider value={balances}>{children}</WalletBalanceContext.Provider>;
 };
 
 export const useChainsBalance = () => {

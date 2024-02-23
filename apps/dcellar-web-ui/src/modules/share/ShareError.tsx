@@ -1,8 +1,9 @@
 import styled from '@emotion/styled';
 import { Heading, Text } from '@node-real/uikit';
-import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
-import React, { memo } from 'react';
+import { memo } from 'react';
+
+import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
 
 export const SHARE_ERROR_TYPES = {

@@ -1,8 +1,9 @@
-import React, { memo } from 'react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
-import { isRightChain } from '../utils/isRightChain';
+
 import { WalletOperationInfos } from '../constants';
+import { isRightChain } from '../utils/isRightChain';
+
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';

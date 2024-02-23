@@ -1,7 +1,16 @@
 import { AxiosRequestConfig } from 'axios';
 
-export const genRequestId = (config: AxiosRequestConfig) => {
-  let { url, method, params, data } = config;
-  if (typeof data === 'string') data = JSON.parse(data);
-  return [url, method, JSON.stringify(params), JSON.stringify(data)].join('&');
+export const genRequestId = (config: AxiosRequestConfig): string => {
+  const { url, method, params, data } = config;
+  const parts = [url, method];
+  parts.push(JSON.stringify(params));
+
+  try {
+    parts.push(typeof data === 'string' ? JSON.stringify(JSON.parse(data)) : JSON.stringify(data));
+  } catch (error) {
+    console.error('Parsing error in genRequestId:', error);
+    parts.push(JSON.stringify(data));
+  }
+
+  return parts.join('&');
 };

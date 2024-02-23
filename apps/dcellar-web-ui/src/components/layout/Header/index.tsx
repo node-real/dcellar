@@ -1,12 +1,12 @@
+import { runtimeEnv } from '@/base/env';
+import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
+import { IconFont } from '@/components/IconFont';
+import { TaskManagement } from '@/modules/upload/TaskManagement';
+import { networkTag } from '@/utils/common';
+import styled from '@emotion/styled';
 import { Box, Flex, Grid, Link } from '@node-real/uikit';
 import { memo } from 'react';
-import { TaskManagement } from '@/modules/upload/TaskManagement';
-import styled from '@emotion/styled';
-import { IconFont } from '@/components/IconFont';
 import { SelectNetwork } from '../Common/SelectNetwork';
-import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
-import { networkTag } from '@/utils/common';
-import { runtimeEnv } from '@/base/env';
 import { Account } from './Account';
 
 interface HeaderProps {

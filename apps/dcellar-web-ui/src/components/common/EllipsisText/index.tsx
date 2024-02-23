@@ -5,7 +5,7 @@ interface EllipsisTextProps extends TextProps {
   text?: string;
 }
 
-export const EllipsisText = memo(function EllipsisText(props: EllipsisTextProps) {
+export const EllipsisText = memo(function EllispsisText(props: EllipsisTextProps) {
   const [isOverflowing, setIsOverflowing] = React.useState(false);
   return (
     <Tooltip

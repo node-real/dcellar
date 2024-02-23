@@ -1,4 +1,16 @@
-import React, { memo, useCallback } from 'react';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { CopyText } from '@/components/common/CopyText';
+import { DCLink } from '@/components/common/DCLink';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { Loading } from '@/components/common/Loading';
+import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
+import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
+import { GroupOperations } from '@/modules/group/components/GroupOperations';
+import { NewGroup } from '@/modules/group/components/NewGroup';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectGroupList,
@@ -6,24 +18,12 @@ import {
   setGroupOperation,
   setRemoveGroup,
 } from '@/store/slices/group';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { SorterType, updateGroupPageSize, updateGroupSorter } from '@/store/slices/persist';
-import { ColumnProps } from 'antd/es/table';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
-import { Loading } from '@/components/common/Loading';
-import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { Text } from '@node-real/uikit';
-import { CopyText } from '@/components/common/CopyText';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { ColumnProps } from 'antd/es/table';
 import { ethers } from 'ethers';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { NewGroup } from '@/modules/group/components/NewGroup';
-import { DCLink } from '@/components/common/DCLink';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { GroupOperations } from '@/modules/group/components/GroupOperations';
+import { memo, useCallback } from 'react';
 
 const Actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },

@@ -1,14 +1,13 @@
-import React from 'react';
 import { Flex, ModalBody, ModalFooter, Text } from '@node-real/uikit';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { DCModal } from '../common/DCModal';
-import { DCButton } from '../common/DCButton';
-import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
-import { useLogin } from '@/hooks/useLogin';
 import { IconFont } from '@/components/IconFont';
 import { CHAIN_NAMES } from '@/constants/wallet';
+import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
+import { useLogin } from '@/hooks/useLogin';
 import { useAccount } from 'wagmi';
+import { DCButton } from '../common/DCButton';
+import { DCModal } from '../common/DCModal';
 
 export const WrongNetworkModal = ({ isOpen, onClose }: any) => {
   const { logout } = useLogin();

@@ -1,29 +1,29 @@
-import React, { ChangeEvent, memo, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { Flex, Menu, toast, Tooltip } from '@node-real/uikit';
+import { BatchOperations } from '@/modules/object/components/BatchOperations';
+import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount } from '@/store/slices/accounts';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { addToWaitQueue } from '@/store/slices/global';
 import {
   ObjectItem,
   SELECT_OBJECT_NUM_LIMIT,
+  SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
   setListRefreshing,
   setObjectOperation,
   setRestoreCurrent,
   setSelectedRowKeys,
   setupListObjects,
-  SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
-import { addToWaitQueue } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { BatchOperations } from '@/modules/object/components/BatchOperations';
-import { setupBucketQuota } from '@/store/slices/bucket';
-import { debounce } from 'lodash-es';
-import { getTimestamp } from '@/utils/time';
-import { selectAccount } from '@/store/slices/accounts';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
 import { formatBytes } from '@/utils/formatter';
-import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
+import { getTimestamp } from '@/utils/time';
+import { Flex, Menu, Tooltip, toast } from '@node-real/uikit';
+import { debounce } from 'lodash-es';
+import { ChangeEvent, memo, useCallback } from 'react';
 
 interface NewObjectProps {
   showRefresh?: boolean;
@@ -246,12 +246,12 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
                 discontinue
                   ? 'Bucket in the discontinue status cannot upload objects.'
                   : accountDetail?.clientFrozen
-                  ? 'The payment account in the frozen status cannot upload objects.'
-                  : uploadDisabled
-                  ? 'Path invalid'
-                  : `Please limit object size to ${formatBytes(
-                      SINGLE_OBJECT_MAX_SIZE,
-                    )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
+                    ? 'The payment account in the frozen status cannot upload objects.'
+                    : uploadDisabled
+                      ? 'Path invalid'
+                      : `Please limit object size to ${formatBytes(
+                          SINGLE_OBJECT_MAX_SIZE,
+                        )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
               }
             >
               <div>

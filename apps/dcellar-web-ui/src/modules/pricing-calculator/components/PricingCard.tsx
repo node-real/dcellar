@@ -1,16 +1,18 @@
-import { UnderlineLink } from '@/components/layout/Footer';
-import { TStoreFeeParams } from '@/store/slices/global';
-import { getUTC0FullMonth } from '@/utils/time';
 import { MenuCloseIcon, MenuOpenIcon } from '@node-real/icons';
-import { Flex, Text, Box, Menu, MenuButton, Button, MenuList, MenuItem } from '@node-real/uikit';
-import React, { useMemo, useState } from 'react';
-import { Sizes, TSize, TTime, Times } from '../utils';
-import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { Box, Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@node-real/uikit';
+import { useMemo, useState } from 'react';
+
 import { PriceResponsiveContainer } from '..';
-import { smMedia } from '@/modules/responsive';
+import { Sizes, TSize, TTime, Times } from '../utils';
 import { H2 } from './Common';
+
+import { UnderlineLink } from '@/components/layout/Footer';
+import { smMedia } from '@/modules/responsive';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { TStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
+import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
+import { getUTC0FullMonth } from '@/utils/time';
 
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
@@ -94,7 +96,9 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           }}
         >
           Global prices will update monthly based on all the SPs&apos; suggested prices.{' '}
-          <UnderlineLink href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment">Learn More</UnderlineLink>
+          <UnderlineLink href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment">
+            Learn More
+          </UnderlineLink>
         </Text>
         <Menu matchWidth>
           {({ isOpen }) => (

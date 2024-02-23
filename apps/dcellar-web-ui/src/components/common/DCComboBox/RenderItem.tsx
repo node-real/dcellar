@@ -1,8 +1,8 @@
-import { memo } from 'react';
-import { Flex } from '@node-real/uikit';
 import { trimAddress, trimLongStr } from '@/utils/string';
 import { CloseIcon } from '@node-real/icons';
+import { Flex } from '@node-real/uikit';
 import * as React from 'react';
+import { memo } from 'react';
 // import { ADDRESS_RE } from '@/constants/legacy';
 import { IconFont } from '@/components/IconFont';
 import { ADDRESS_RE } from '@/constants/legacy';

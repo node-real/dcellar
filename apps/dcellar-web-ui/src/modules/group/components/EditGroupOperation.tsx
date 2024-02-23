@@ -1,4 +1,19 @@
-import React, { memo, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { DCButton } from '@/components/common/DCButton';
+import { DotLoading } from '@/components/common/DotLoading';
+import { InputItem } from '@/components/formitems/InputItem';
+import { TextareaItem } from '@/components/formitems/TextareaItem';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { updateGroupExtra } from '@/facade/group';
+import { Fees } from '@/modules/group/components/Fees';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setupGroups } from '@/store/slices/group';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import {
   Flex,
   FormControl,
@@ -9,24 +24,9 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupGroups } from '@/store/slices/group';
-import { InputItem } from '@/components/formitems/InputItem';
-import { TextareaItem } from '@/components/formitems/TextareaItem';
-import { DCButton } from '@/components/common/DCButton';
-import { DotLoading } from '@/components/common/DotLoading';
-import { Fees } from '@/modules/group/components/Fees';
-import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { updateGroupExtra } from '@/facade/group';
-import { useAccount } from 'wagmi';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useMount } from 'ahooks';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { Animates } from '@/components/AnimatePng';
+import { memo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface EditGroupOperationProps {
   selectGroup: GroupInfo;

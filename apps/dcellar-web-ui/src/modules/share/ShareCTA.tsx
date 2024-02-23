@@ -1,11 +1,11 @@
 import styled from '@emotion/styled';
 import { Box, Text } from '@node-real/uikit';
-import { DCButton } from '@/components/common/DCButton';
 import Link from 'next/link';
-import React from 'react';
+
+import { DCButton } from '@/components/common/DCButton';
+import { DCLink } from '@/components/common/DCLink';
 import { GAClick } from '@/components/common/GATracker';
 import { IconFont } from '@/components/IconFont';
-import { DCLink } from '@/components/common/DCLink';
 
 export const ShareCTA = () => {
   return (

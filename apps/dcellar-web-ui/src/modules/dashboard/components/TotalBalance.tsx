@@ -1,19 +1,19 @@
-import { Box, Button, Circle, Divider, Flex, Text } from '@node-real/uikit';
-import { Card, CardProps } from './Common';
-import { EllipsisText } from '@/components/common/EllipsisText';
-import { displayTokenSymbol } from '@/utils/wallet';
-import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
-import { useRouter } from 'next/router';
+import { EllipsisText } from '@/components/common/EllipsisText';
 import { InternalRoutePaths } from '@/constants/paths';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
 import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { useMemo } from 'react';
-import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
+import { displayTokenSymbol } from '@/utils/wallet';
+import styled from '@emotion/styled';
+import { Box, Button, Circle, Divider, Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
+import { Card, CardProps } from './Common';
 import { TotalBalanceTips } from './TotalBalanceTips';
 
 const FeeOptions: {

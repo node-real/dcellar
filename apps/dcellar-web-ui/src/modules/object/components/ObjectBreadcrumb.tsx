@@ -1,11 +1,11 @@
-import { Fragment, memo } from 'react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@node-real/uikit';
-import { GAClick } from '@/components/common/GATracker';
-import Link from 'next/link';
-import { encodeObjectName, trimLongStr } from '@/utils/string';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
+import { GAClick } from '@/components/common/GATracker';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { setShareModePath } from '@/store/slices/object';
+import { encodeObjectName, trimLongStr } from '@/utils/string';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@node-real/uikit';
+import Link from 'next/link';
+import { Fragment, memo } from 'react';
 
 interface ObjectBreadcrumbProps {
   hideLeft?: number;

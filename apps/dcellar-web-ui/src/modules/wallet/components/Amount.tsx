@@ -10,12 +10,13 @@ import {
   Link,
   Text,
 } from '@node-real/uikit';
-import { useCallback, useMemo } from 'react';
-import { useAccount, useNetwork } from 'wagmi';
-import { isEmpty } from 'lodash-es';
 import BigNumber from 'bignumber.js';
+import { isEmpty } from 'lodash-es';
+import { useCallback, useMemo } from 'react';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useAccount, useNetwork } from 'wagmi';
 
+import { MaxButton } from './MaxButton';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -23,20 +24,20 @@ import {
   MIN_AMOUNT,
   WalletOperationInfos,
 } from '../constants';
+import { TxType } from '../Send';
 import { EOperation, TFeeData, TWalletFromValues } from '../type';
+import { setMaxAmount } from '../utils/common';
+import { isRightChain } from '../utils/isRightChain';
+
+import { IconFont } from '@/components/IconFont';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { ErrorResponse } from '@/facade/error';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { TxType } from '../Send';
-import { trimFloatZero } from '@/utils/string';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { IconFont } from '@/components/IconFont';
+import { trimFloatZero } from '@/utils/string';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { isRightChain } from '../utils/isRightChain';
-import { MaxButton } from './MaxButton';
-import { ErrorResponse } from '@/facade/error';
-import { setMaxAmount } from '../utils/common';
 
 type AmountProps = {
   disabled: boolean;
@@ -54,7 +55,8 @@ type AmountProps = {
 };
 
 const AmountErrors = {
-  validateWithdrawStaticBalance: "The payment account doesn't have enough balance to pay settlement fee.",
+  validateWithdrawStaticBalance:
+    "The payment account doesn't have enough balance to pay settlement fee.",
   validateWithdrawBankBalance: "The owner account doesn't have enough balance to pay gas fee.",
   validateBalance: 'Insufficient balance.',
   validateFormat: 'Invalid amount.',
@@ -130,7 +132,10 @@ export const Amount = ({
   const onMaxClick = async () => {
     if (!balance || !feeData) return setValue('amount', '0', { shouldValidate: true });
     if (txType === 'withdraw_from_payment_account') {
-      const cal = BN(balance).minus(settlementFee || '0').dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString();
+      const cal = BN(balance)
+        .minus(settlementFee || '0')
+        .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+        .toString();
       const maxAmount = BN(cal).lt(0) ? '0' : cal;
 
       return setValue('amount', maxAmount, {
@@ -187,7 +192,7 @@ export const Amount = ({
   const validateWithdrawStaticBalance = (val: string) => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(balance).isGreaterThanOrEqualTo(BN(settlementFee || '0').plus(val));
-  }
+  };
   const onPaste = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -259,7 +264,7 @@ export const Amount = ({
           </InputRightElement>
         </InputGroup>
         <FormErrorMessage textAlign={'right'}>
-          {/* @ts-ignore */}
+          {/* @ts-expect-error TODO */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
         {!isSendPage && (

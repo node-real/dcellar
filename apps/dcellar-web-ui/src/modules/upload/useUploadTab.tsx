@@ -1,5 +1,6 @@
-import { useAppSelector } from '@/store';
 import { useMemo, useState } from 'react';
+
+import { useAppSelector } from '@/store';
 
 export type TTabKey = 'ALL' | 'WAIT' | 'ERROR';
 
@@ -12,9 +13,9 @@ export const useUploadTab = () => {
     return {
       allLen,
       waitLen,
-      errorLen
-    }
-  }, [waitQueue])
+      errorLen,
+    };
+  }, [waitQueue]);
   const tabOptions: {
     title: string;
     key: TTabKey;
@@ -44,5 +45,5 @@ export const useUploadTab = () => {
     tabOptions,
     activeKey,
     setActiveKey,
-  }
+  };
 };

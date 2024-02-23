@@ -1,16 +1,21 @@
-import { cssVar } from '../common';
 import { OWNER_ACCOUNT_NAME, TX_TYPE_MAP } from '@/constants/wallet';
+import { cssVar } from '../common';
 import { BN } from '../math';
 
 export const getMoM = (preCost: string, curCost: string) => {
   const preCostIsZero = !preCost || BN(preCost).isEqualTo(0);
   const curCostIsZero = !curCost || BN(curCost).isEqualTo(0);
-  if (preCostIsZero && curCostIsZero || preCostIsZero) {
-    return 0
+  if ((preCostIsZero && curCostIsZero) || preCostIsZero) {
+    return 0;
   }
 
-  return (BN(curCost).minus(preCost || 0)).dividedBy(preCost).multipliedBy(100).dp(2).toNumber();
-}
+  return BN(curCost)
+    .minus(preCost || 0)
+    .dividedBy(preCost)
+    .multipliedBy(100)
+    .dp(2)
+    .toNumber();
+};
 export const getStyles = () => {
   return {
     box: `
@@ -38,7 +43,7 @@ export const getStyles = () => {
       font-weight: 500;
     `,
   };
-}
+};
 
 export function formatTxType(inputType = '') {
   const mappedTxType = TX_TYPE_MAP[inputType];
@@ -57,8 +62,12 @@ export function getShortAccountName(accountName: string) {
   if (accountName === OWNER_ACCOUNT_NAME) {
     return 'oa';
   }
-  const spiltArr = accountName.split(" ");
+  const spiltArr = accountName.split(' ');
   const lastIndex = [spiltArr.pop() || ''];
 
-  return spiltArr.map(item => item[0]).concat(lastIndex).join('').toLowerCase();
+  return spiltArr
+    .map((item) => item[0])
+    .concat(lastIndex)
+    .join('')
+    .toLowerCase();
 }

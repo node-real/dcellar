@@ -1,10 +1,11 @@
-import { assetPrefix } from '@/base/env';
 import { Text } from '@node-real/uikit';
-import React from 'react';
-import { PriceResponsiveContainer } from '..';
-import { smMedia } from '@/modules/responsive';
+
 import { H2 } from './Common';
+import { PriceResponsiveContainer } from '..';
+
+import { assetPrefix } from '@/base/env';
 import { ConnectWallet } from '@/components/ConnectWallet';
+import { smMedia } from '@/modules/responsive';
 
 export const StartBuildContent = ({ gaClickName }: { gaClickName: string }) => (
   <>
@@ -19,8 +20,8 @@ export const StartBuildContent = ({ gaClickName }: { gaClickName: string }) => (
         },
       }}
     >
-      Start your business with BNB Greenfield&apos;s decentralized storage solution with DCellar, and
-      easily expand your operations.
+      Start your business with BNB Greenfield&apos;s decentralized storage solution with DCellar,
+      and easily expand your operations.
     </Text>
     <ConnectWallet
       text="Get Started"

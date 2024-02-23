@@ -1,5 +1,55 @@
-import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
-import BigNumber from 'bignumber.js';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { DCButton } from '@/components/common/DCButton';
+import { DotLoading } from '@/components/common/DotLoading';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
+import { InputItem } from '@/components/formitems/InputItem';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { broadcastMulTxs, resolve } from '@/facade/common';
+import {
+  E_OFF_CHAIN_AUTH,
+  E_USER_REJECT_STATUS_NUM,
+  ErrorResponse,
+  createTxFault,
+  simulateFault,
+} from '@/facade/error';
+import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useChecksumApi } from '@/modules/checksum';
+import {
+  BUTTON_GOT_IT,
+  DUPLICATE_OBJECT_NAME,
+  FOLDER_CREATE_FAILED,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
+  GET_GAS_FEE_LACK_BALANCE_ERROR,
+  LOCK_FEE_LACK_BALANCE_ERROR,
+  UNKNOWN_ERROR,
+  WALLET_CONFIRM,
+} from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { TAccountInfo, setupAccountInfo } from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
+import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
+import {
+  TStatusDetail,
+  setEditObjectTagsData,
+  setObjectOperation,
+  setStatusDetail,
+} from '@/store/slices/object';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { SpItem } from '@/store/slices/sp';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
+import { removeTrailingSlash } from '@/utils/string';
+import {
+  CreateObjectApprovalRequest,
+  MsgCreateObjectTypeUrl,
+  MsgSetTagTypeUrl,
+  TxResponse,
+} from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
   Flex,
@@ -12,63 +62,12 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { InputItem } from '@/components/formitems/InputItem';
-import { DCButton } from '@/components/common/DCButton';
-import {
-  BUTTON_GOT_IT,
-  DUPLICATE_OBJECT_NAME,
-  FOLDER_CREATE_FAILED,
-  FOLDER_DESCRIPTION_CREATE_ERROR,
-  GET_GAS_FEE_LACK_BALANCE_ERROR,
-  LOCK_FEE_LACK_BALANCE_ERROR,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
-import { DotLoading } from '@/components/common/DotLoading';
-import {
-  CreateObjectApprovalRequest,
-  MsgCreateObjectTypeUrl,
-  MsgSetTagTypeUrl,
-  TxResponse,
-} from '@bnb-chain/greenfield-js-sdk';
-import { useAccount } from 'wagmi';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import {
-  broadcastFault,
-  createTxFault,
-  E_OFF_CHAIN_AUTH,
-  E_USER_REJECT_STATUS_NUM,
-  ErrorResponse,
-  simulateFault,
-} from '@/facade/error';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { useChecksumApi } from '@/modules/checksum';
-import { DeliverTxResponse, broadcastMulTxs, resolve } from '@/facade/common';
-import {
-  setEditObjectTagsData,
-  setObjectOperation,
-  setStatusDetail,
-  TStatusDetail,
-} from '@/store/slices/object';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
 import { useAsyncEffect, useUnmount } from 'ahooks';
+import BigNumber from 'bignumber.js';
 import { isEmpty } from 'lodash-es';
-import { setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
-import { getStoreNetflowRate } from '@/utils/payment';
+import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { TBucket } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
-import { BN } from '@/utils/math';
-import { removeTrailingSlash } from '@/utils/string';
-import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -107,7 +106,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     dispatch(setStatusDetail({} as TStatusDetail));
   };
   const onEditTags = () => {
-    dispatch(setObjectOperation({level: 1, operation: ['', 'edit_tags']}))
+    dispatch(setObjectOperation({ level: 1, operation: ['', 'edit_tags'] }));
   };
   const validTags = getValidTags(editTagsData);
   const isSetTags = validTags.length > 0;
@@ -138,8 +137,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
     const netflowRate = getStoreNetflowRate(0, storeFeeParams);
-    const storeFee = BN(netflowRate)
-      .times(storeFeeParams.reserveTime)
+    const storeFee = BN(netflowRate).times(storeFeeParams.reserveTime);
 
     return storeFee.toString();
   }, [storeFeeParams]);
@@ -381,7 +379,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       <QDrawerHeader flexDirection={'column'}>
         <Box>Create a Folder</Box>
         <Text className="ui-drawer-sub">
-            Use folders to group objects in your bucket. Folder names can&apos;t contain &quot;/&quot;.
+          Use folders to group objects in your bucket. Folder names can&apos;t contain
+          &quot;/&quot;.
         </Text>
       </QDrawerHeader>
       <QDrawerBody>

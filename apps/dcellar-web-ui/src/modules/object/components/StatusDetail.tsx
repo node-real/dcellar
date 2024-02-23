@@ -1,35 +1,35 @@
-import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
+import { AnimatePng, AnimatePngProps, Animates } from '@/components/AnimatePng';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
+import { DotLoading } from '@/components/common/DotLoading';
+import { LCP_IMAGES } from '@/constants/legacy';
+import { useModalValues } from '@/hooks/useModalValues';
+import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import {
   FILE_STATUS_DOWNLOADING,
-  FILE_TITLE_CANCEL_FAILED,
   FILE_TITLE_CANCELING,
+  FILE_TITLE_CANCEL_FAILED,
   FILE_TITLE_DELETE_FAILED,
   FILE_TITLE_DELETING,
-  FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_DOWNLOADING,
+  FILE_TITLE_DOWNLOAD_FAILED,
   FILE_TITLE_FILE_EMPTY,
   FILE_TITLE_FILE_NAME_ERROR,
   FILE_TITLE_FILE_TOO_LARGE,
   FILE_TITLE_SP_REJECTED,
-  FILE_TITLE_UPLOAD_FAILED,
   FILE_TITLE_UPLOADING,
+  FILE_TITLE_UPLOAD_FAILED,
   FOLDER_CREATING,
   NOT_ENOUGH_QUOTA,
 } from '@/modules/object/constant';
-import { DCModal } from '@/components/common/DCModal';
-import { DotLoading } from '@/components/common/DotLoading';
-import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { memo } from 'react';
-import { useUnmount } from 'ahooks';
-import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
 import { setEditQuota } from '@/store/slices/bucket';
-import { useModalValues } from '@/hooks/useModalValues';
-import { AnimatePng, AnimatePngProps, Animates } from '@/components/AnimatePng';
-import { IconFont } from '@/components/IconFont';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
 import Head from 'next/head';
-import { LCP_IMAGES } from '@/constants/legacy';
+import { memo } from 'react';
 
 interface StatusDetailProps {}
 

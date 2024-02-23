@@ -1,12 +1,12 @@
-import { memo } from 'react';
-import { BucketItem } from '@/store/slices/bucket';
-import { formatFullTime } from '@/utils/time';
-import { DiscontinueNotice } from './DiscontinueNotice';
-import Link from 'next/link';
-import styled from '@emotion/styled';
-import { useAppDispatch } from '@/store';
-import { setCurrentObjectPage } from '@/store/slices/object';
 import { IconFont } from '@/components/IconFont';
+import { useAppDispatch } from '@/store';
+import { BucketItem } from '@/store/slices/bucket';
+import { setCurrentObjectPage } from '@/store/slices/object';
+import { formatFullTime } from '@/utils/time';
+import styled from '@emotion/styled';
+import Link from 'next/link';
+import { memo } from 'react';
+import { DiscontinueNotice } from './DiscontinueNotice';
 
 interface BucketNameColumnProps {
   item: BucketItem;

@@ -1,21 +1,20 @@
-import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
-import { ColumnProps } from 'antd/es/table';
-import React from 'react';
+import { MenuOption } from '@/components/common/DCMenuList';
 import { DCTable } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { Loading } from '@/components/common/Loading';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
 import { TAccountInfo } from '@/store/slices/accounts';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { useRouter } from 'next/router';
-import styled from '@emotion/styled';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
-import { currencyFormatter } from '@/utils/formatter';
 import { selectBnbPrice } from '@/store/slices/global';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
 import { trimFloatZero } from '@/utils/string';
+import { displayTokenSymbol } from '@/utils/wallet';
+import styled from '@emotion/styled';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
 import { isEmpty } from 'lodash-es';
-import { Loading } from '@/components/common/Loading';
+import { useRouter } from 'next/router';
 import { ShortTxCopy } from './Common';
 
 const actions: MenuOption[] = [
@@ -61,7 +60,7 @@ export const OwnerAccount = () => {
       title: 'Account Address',
       key: 'address',
       width: isLessThan1100 ? 130 : 'auto',
-      render: (_: string, record: TAccountInfo) => (<ShortTxCopy address={record.address}/>),
+      render: (_: string, record: TAccountInfo) => <ShortTxCopy address={record.address} />,
     },
     {
       title: 'Balance',

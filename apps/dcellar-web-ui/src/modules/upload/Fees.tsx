@@ -1,22 +1,24 @@
-import { useAppDispatch, useAppSelector } from '@/store';
 import {
   MsgCreateObjectTypeUrl,
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
 import { Text } from '@node-real/uikit';
-import React, { useEffect, useMemo } from 'react';
 import { useAsyncEffect } from 'ahooks';
-import { WaitFile, setupStoreFeeParams } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
-import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
-import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
-import { DECIMAL_NUMBER } from '../wallet/constants';
-import { getStoreNetflowRate } from '@/utils/payment';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useEffect, useMemo } from 'react';
+
 import { TotalFees } from '../object/components/TotalFees';
-import { BN } from '@/utils/math';
+import { DECIMAL_NUMBER } from '../wallet/constants';
+
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { WaitFile, setupStoreFeeParams } from '@/store/slices/global';
+import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
 
 export const Fees = () => {
   const dispatch = useAppDispatch();
@@ -74,7 +76,9 @@ export const Fees = () => {
       return singleTxGasFee;
     }
 
-    return BN(waitUploadCount).times(singleTxGasFee).plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
+    return BN(waitUploadCount)
+      .times(singleTxGasFee)
+      .plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
       .toString(DECIMAL_NUMBER);
   }, [createTmpAccountGasFee, isChecking, singleTxGasFee, waitQueue]);
 

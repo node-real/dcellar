@@ -1,25 +1,25 @@
-import { useAppSelector } from '@/store';
-import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
-import React, { useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { trimAddress, trimFloatZero } from '@/utils/string';
+import { IconFont } from '@/components/IconFont';
 import { CopyText } from '@/components/common/CopyText';
-import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
+import { Tips } from '@/components/common/Tips';
+import { InternalRoutePaths } from '@/constants/paths';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { LoadingAdaptor } from './LoadingAdaptor';
-import { Tips } from '@/components/common/Tips';
-import { useRouter } from 'next/router';
+import { useAppSelector } from '@/store';
 import { TAccountInfo } from '@/store/slices/accounts';
-import { formatFullTime, getMillisecond } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { InternalRoutePaths } from '@/constants/paths';
+import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
-import { IconFont } from '@/components/IconFont';
+import { BN } from '@/utils/math';
+import { trimAddress, trimFloatZero } from '@/utils/string';
+import { formatFullTime, getMillisecond } from '@/utils/time';
 import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Divider, Flex, Link, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
+import { LoadingAdaptor } from './LoadingAdaptor';
 
 type Props = {
   loading: boolean;
@@ -184,7 +184,10 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
                       <Text fontSize={14} fontWeight={400} color="readable.normal" mb={4}>
                         Your account is suspended due to insufficient balance. To reactivate your
                         account, please deposit at least &nbsp;
-                        <strong>{unFreezeAmount} &nbsp;{displayTokenSymbol()}</strong>&nbsp; immediately.
+                        <strong>
+                          {unFreezeAmount} &nbsp;{displayTokenSymbol()}
+                        </strong>
+                        &nbsp; immediately.
                       </Text>
                       <Link
                         cursor={'pointer'}

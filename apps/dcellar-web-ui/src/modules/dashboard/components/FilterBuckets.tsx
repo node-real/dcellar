@@ -1,19 +1,23 @@
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { DCMenu } from '@/components/common/DCMenu';
-import { useEffect, useState } from 'react';
-import { xor } from 'lodash-es';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { InputItem } from '@/components/formitems/InputItem';
-import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
-import { SearchIcon } from '@node-real/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import { trimLongStr } from '@/utils/string';
-import cn from 'classnames';
-import { useRouter } from 'next/router';
 import { Badge, MenuFooter, MenuHeader } from '@/modules/accounts/components/Common';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBucketDailyStorage, selectFilterBuckets, setFilterBuckets } from '@/store/slices/dashboard';
+import {
+  selectBucketDailyStorage,
+  selectFilterBuckets,
+  setFilterBuckets,
+} from '@/store/slices/dashboard';
+import { trimLongStr } from '@/utils/string';
+import { SearchIcon } from '@node-real/icons';
+import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
+import cn from 'classnames';
+import { xor } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 export const FilterBuckets = () => {
   const router = useRouter();

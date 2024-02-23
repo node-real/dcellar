@@ -1,37 +1,38 @@
-import { NextPage, NextPageContext } from 'next';
-import { last, trimEnd } from 'lodash-es';
-import { decodeObjectName } from '@/utils/string';
-import React, { ReactNode, useState } from 'react';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import {
   BucketInfo,
   ObjectInfo,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { useAsyncEffect } from 'ahooks';
-import Head from 'next/head';
-import { Box, Flex, Grid } from '@node-real/uikit';
-import { Logo } from '@/components/layout/Logo';
-import { ShareError } from '@/modules/share/ShareError';
-import { SharedFile } from '@/modules/share/SharedFile';
-import { Footer } from '@/components/layout/Footer';
-import { ShareCTA } from '@/modules/share/ShareCTA';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import styled from '@emotion/styled';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { ShareLogin } from '@/modules/share/ShareLogin';
-import { Header } from '@/components/layout/Header';
-import { useIsMounted } from '@/hooks/useIsMounted';
+import { Box, Flex, Grid } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { last, trimEnd } from 'lodash-es';
+import { NextPage, NextPageContext } from 'next';
+import Head from 'next/head';
+import { ReactNode, useState } from 'react';
+
+import { runtimeEnv } from '@/base/env';
 import { Loading } from '@/components/common/Loading';
+import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { Logo } from '@/components/layout/Logo';
+import { headBucket } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
+import { hasObjectPermission, headObject } from '@/facade/object';
+import { useIsMounted } from '@/hooks/useIsMounted';
+import { useLogin } from '@/hooks/useLogin';
+import { ShareCTA } from '@/modules/share/ShareCTA';
+import { SharedFile } from '@/modules/share/SharedFile';
+import { ShareError } from '@/modules/share/ShareError';
+import { ShareFolder } from '@/modules/share/ShareFolder';
+import { ShareLogin } from '@/modules/share/ShareLogin';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { hasObjectPermission, headObject } from '@/facade/object';
-import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
-import { headBucket } from '@/facade/bucket';
-import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
-import { useLogin } from '@/hooks/useLogin';
+import { SpItem, getPrimarySpInfo } from '@/store/slices/sp';
 import { networkTag } from '@/utils/common';
-import { runtimeEnv } from '@/base/env';
-import { ShareFolder } from '@/modules/share/ShareFolder';
+import { decodeObjectName } from '@/utils/string';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);

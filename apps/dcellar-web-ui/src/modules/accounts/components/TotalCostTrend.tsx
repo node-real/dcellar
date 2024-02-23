@@ -1,17 +1,17 @@
-import { useMemo, useRef } from 'react';
-import { CardContainer } from './Common';
-import { Box } from '@node-real/uikit';
+import { BarChart } from '@/components/charts/BarChart';
+import { Loading } from '@/components/common/Loading';
 import { useAppSelector } from '@/store';
 import { MonthlyCost, selectAllCostTrend } from '@/store/slices/billing';
-import { getEveryMonth, getUtcDayjs } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { useTotalEstimateCost } from '../hooks';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { getMoM, getStyles } from '@/utils/billing';
-import { Loading } from '@/components/common/Loading';
 import { formatObjectAddress } from '@/utils/accounts';
+import { getMoM, getStyles } from '@/utils/billing';
+import { BN } from '@/utils/math';
+import { getEveryMonth, getUtcDayjs } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
-import { BarChart } from '@/components/charts/BarChart';
+import { useMemo, useRef } from 'react';
+import { useTotalEstimateCost } from '../hooks';
+import { CardContainer } from './Common';
 
 const colors = ['#00BA34', '#C2EECE', '#1184EE'];
 
@@ -138,8 +138,8 @@ export const TotalCostTrend = () => {
           return `
             <div style="${styles.box}">
               <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${
-            curData.totalCost || 0
-          } ${TokenSymbol}</div>
+                curData.totalCost || 0
+              } ${TokenSymbol}</div>
               </div>
               ${DetailFragment}
               ${EstimateFragment}

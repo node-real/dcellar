@@ -1,6 +1,7 @@
-import { smMedia } from '@/modules/responsive';
 import { IconProps, MenuCloseIcon, MenuOpenIcon } from '@node-real/icons';
 import { Button, ButtonProps, Menu, MenuButton, MenuItem, MenuList } from '@node-real/uikit';
+
+import { smMedia } from '@/modules/responsive';
 
 type Props = {
   value: string;
@@ -33,7 +34,7 @@ export const SizeMenu = ({
               border: '1px solid brand.brand5',
             }}
             _expanded={{
-              border: '1px solid brand.brand5'
+              border: '1px solid brand.brand5',
             }}
             sx={{
               [smMedia]: {

@@ -3,19 +3,19 @@ import { HYDRATE } from 'next-redux-wrapper';
 import { persistReducer } from 'redux-persist';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import storage from 'redux-persist/lib/storage';
-import global from '@/store/slices/global';
-import sp from '@/store/slices/sp';
-import persist from '@/store/slices/persist';
-import bucket from '@/store/slices/bucket';
-import wallet from '@/store/slices/wallet';
-import object from '@/store/slices/object';
-import apollo from '@/store/slices/apollo';
-import group from '@/store/slices/group';
-import accounts from '@/store/slices/accounts';
-import billing from '@/store/slices/billing';
-import dashboard  from '@/store/slices/dashboard';
 
 import { runtimeEnv } from '@/base/env';
+import accounts from '@/store/slices/accounts';
+import apollo from '@/store/slices/apollo';
+import billing from '@/store/slices/billing';
+import bucket from '@/store/slices/bucket';
+import dashboard from '@/store/slices/dashboard';
+import global from '@/store/slices/global';
+import group from '@/store/slices/group';
+import object from '@/store/slices/object';
+import persist from '@/store/slices/persist';
+import sp from '@/store/slices/sp';
+import wallet from '@/store/slices/wallet';
 
 const rootReducer = combineReducers({
   global,
@@ -53,5 +53,5 @@ export const persistConfig = {
   stateReconciler: autoMergeLevel2,
 };
 
-// @ts-ignore, strict null check
+// @ts-expect-error, strict null check
 export const persistedReducer = persistReducer<CombinedState<RootState>>(persistConfig, reducer);

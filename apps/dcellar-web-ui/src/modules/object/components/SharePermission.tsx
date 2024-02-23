@@ -1,19 +1,19 @@
-import React, { memo, ReactNode } from 'react';
-import styled from '@emotion/styled';
-import { Box, Flex, Text } from '@node-real/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { transientOptions } from '@/utils/css';
-import { setObjectOperation, setupObjectPolicies } from '@/store/slices/object';
-import { CopyButton } from '@/modules/object/components/CopyButton';
-import { getShareLink } from '@/utils/string';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { useAsyncEffect } from 'ahooks';
-import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { Avatar } from '@/components/Avatar';
 import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
+import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
+import { CopyButton } from '@/modules/object/components/CopyButton';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { setBucketOperation } from '@/store/slices/bucket';
+import { setObjectOperation, setupObjectPolicies } from '@/store/slices/object';
+import { transientOptions } from '@/utils/css';
+import { getShareLink } from '@/utils/string';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import styled from '@emotion/styled';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { memo, ReactNode } from 'react';
 
 interface SharePermissionProps {
   selectObjectInfo: ObjectMeta;

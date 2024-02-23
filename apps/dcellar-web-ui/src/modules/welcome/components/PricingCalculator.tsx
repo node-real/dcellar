@@ -1,11 +1,10 @@
-import React from 'react';
-import { LandingH2, LandingResponsiveContainer } from '..';
-import { DCButton } from '@/components/common/DCButton';
-import { Flex, Text } from '@node-real/uikit';
-import { smMedia } from '@/modules/responsive';
 import { assetPrefix } from '@/base/env';
-import { INTER_FONT } from '@/modules/wallet/constants';
+import { DCButton } from '@/components/common/DCButton';
 import { InternalRoutePaths } from '@/constants/paths';
+import { smMedia } from '@/modules/responsive';
+import { INTER_FONT } from '@/modules/wallet/constants';
+import { Flex, Text } from '@node-real/uikit';
+import { LandingH2, LandingResponsiveContainer } from '..';
 
 export const PricingCalculator = () => {
   return (
@@ -25,7 +24,7 @@ export const PricingCalculator = () => {
             bgSize: 160,
             textAlign: 'center',
             bg: `none`,
-            bgColor: '#f9f9f9'
+            bgColor: '#f9f9f9',
           },
         }}
       >
@@ -34,7 +33,7 @@ export const PricingCalculator = () => {
           fontFamily={INTER_FONT}
           mb={24}
           maxW={660}
-          color='readable.secondary'
+          color="readable.secondary"
           sx={{
             [smMedia]: {
               mb: 16,
@@ -52,8 +51,8 @@ export const PricingCalculator = () => {
           w={'fit-content'}
           sx={{
             [smMedia]: {
-              h: 33
-            }
+              h: 33,
+            },
           }}
         >
           Calculate Now

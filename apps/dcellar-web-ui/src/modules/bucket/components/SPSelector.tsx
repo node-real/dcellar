@@ -1,20 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Flex, Text } from '@node-real/uikit';
-import { DCSelect } from '@/components/common/DCSelect';
-import { trimLongStr } from '@/utils/string';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useMount } from 'ahooks';
-import { setSpLatency, SpItem, updateSpLatency } from '@/store/slices/sp';
-import { ExternalLinkIcon } from '@node-real/icons';
-import styled from '@emotion/styled';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { transientOptions } from '@/utils/css';
-import { css } from '@emotion/react';
-import { find, sortBy } from 'lodash-es';
-import { DCTooltip } from '@/components/common/DCTooltip';
 import { IconFont } from '@/components/IconFont';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { DCSelect } from '@/components/common/DCSelect';
+import { DCTooltip } from '@/components/common/DCTooltip';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { SpItem, setSpLatency, updateSpLatency } from '@/store/slices/sp';
+import { transientOptions } from '@/utils/css';
 import { formatBytes } from '@/utils/formatter';
+import { trimLongStr } from '@/utils/string';
+import { css } from '@emotion/react';
+import styled from '@emotion/styled';
+import { ExternalLinkIcon } from '@node-real/icons';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { useMount } from 'ahooks';
+import { find, sortBy } from 'lodash-es';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface SPSelector {
   onChange: (value: SpItem) => void;
@@ -294,8 +294,8 @@ const TD = styled(Box, transientOptions)<{ $dot?: number }>`
         background-color: ${props.$dot < 100
           ? '#00BA34'
           : props.$dot < 200
-          ? '#EEBE11'
-          : '#EE3911'};
+            ? '#EEBE11'
+            : '#EE3911'};
       }
     `}
 `;

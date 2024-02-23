@@ -1,25 +1,25 @@
-import { useAppDispatch, useAppSelector } from '@/store';
-import { Box, Divider, Flex, Link, Text } from '@node-real/uikit';
-import React, { memo, useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { formatAddress, trimFloatZero } from '@/utils/string';
+import { IconFont } from '@/components/IconFont';
 import { CopyText } from '@/components/common/CopyText';
-import { selectBnbPrice } from '@/store/slices/global';
+import { DCButton } from '@/components/common/DCButton';
+import { Loading } from '@/components/common/Loading';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { LoadingAdaptor } from './LoadingAdaptor';
-import { useRouter } from 'next/router';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccountDetail, setEditDisablePaymentAccount } from '@/store/slices/accounts';
-import { formatFullTime, getMillisecond } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { IconFont } from '@/components/IconFont';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { isEmpty } from 'lodash-es';
-import { Loading } from '@/components/common/Loading';
-import { DCButton } from '@/components/common/DCButton';
+import { selectBnbPrice } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
+import { formatAddress, trimFloatZero } from '@/utils/string';
+import { formatFullTime, getMillisecond } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Divider, Flex, Link, Text } from '@node-real/uikit';
+import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo } from 'react';
+import { LoadingAdaptor } from './LoadingAdaptor';
 
 type Props = {
   address: string;

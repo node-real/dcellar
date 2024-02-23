@@ -1,17 +1,17 @@
-import { memo, useEffect, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { DCModal } from '@/components/common/DCModal';
 import { useModalValues } from '@/hooks/useModalValues';
-import { GroupOperationsType, selectGroupList, setGroupOperation } from '@/store/slices/group';
-import { find } from 'lodash-es';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DetailGroupOperation } from '@/modules/group/components/DetailGroupOperation';
 import { CreateGroupOperation } from '@/modules/group/components/CreateGroupOperation';
+import { DetailGroupOperation } from '@/modules/group/components/DetailGroupOperation';
 import { EditGroupOperation } from '@/modules/group/components/EditGroupOperation';
-import { useUnmount } from 'ahooks';
-import { ModalCloseButton } from '@node-real/uikit';
 import { GroupMemberOperation } from '@/modules/group/components/GroupMemberOperation';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { GroupOperationsType, selectGroupList, setGroupOperation } from '@/store/slices/group';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ModalCloseButton } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
+import { find } from 'lodash-es';
+import { memo, useEffect, useMemo } from 'react';
 import { EditGroupTagsOperation } from './EditGroupTagsOperation';
 import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';
 

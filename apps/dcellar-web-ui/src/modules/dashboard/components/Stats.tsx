@@ -1,13 +1,13 @@
-import { Circle, Flex, Text } from '@node-real/uikit';
-import React, { useMemo } from 'react';
-import { Card } from './Common';
 import { IconFont } from '@/components/IconFont';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
-import { selectBucketList } from '@/store/slices/bucket';
 import { selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectBucketList } from '@/store/slices/bucket';
+import { Circle, Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
+import { useMemo } from 'react';
+import { Card } from './Common';
 
 export const Stats = () => {
   const router = useRouter();
@@ -22,7 +22,7 @@ export const Stats = () => {
         name: 'Buckets',
         icon: 'bucket',
         value: isEmpty(buckets) ? '--' : bucketList?.length || 0,
-        link: InternalRoutePaths.buckets
+        link: InternalRoutePaths.buckets,
       },
       // {
       //   name: 'Objects',

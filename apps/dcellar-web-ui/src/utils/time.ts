@@ -1,12 +1,12 @@
 import dayjs, { Dayjs } from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 export const getUtcDayjs = () => {
   dayjs.extend(utc);
 
   return dayjs;
-}
+};
 
 export const getUTC0Year = () => {
   dayjs.extend(utc);
@@ -20,7 +20,7 @@ export const getMillisecond = (second: number) => {
 
 export const getSecond = (ms: number) => {
   return Math.floor(ms / 1000);
-}
+};
 
 export const getTimestamp = () => {
   return +new Date();
@@ -80,13 +80,13 @@ export const getUTC0Month = () => {
   dayjs.extend(utc);
 
   return `${dayjs().utc().format('YYYY.MM')} (UTC${dayjs.utc().format('Z')})`;
-}
+};
 
 export const getUTC0FullMonth = () => {
   dayjs.extend(utc);
 
-  return `${dayjs().utc().startOf('M').format('MMM D')} - ${dayjs().utc().endOf('M').format('DD, YYYY')}`
-}
+  return `${dayjs().utc().startOf('M').format('MMM D')} - ${dayjs().utc().endOf('M').format('DD, YYYY')}`;
+};
 
 export const getEveryMonth = (startMonth: string, endMonth: string) => {
   if (!startMonth || !endMonth) return [];
@@ -99,14 +99,14 @@ export const getEveryMonth = (startMonth: string, endMonth: string) => {
   while (dayjs(curTime).startOf('M').valueOf() <= dayjs(endTime).startOf('M').valueOf()) {
     const time = {
       yyyym: dayjs(curTime).format('YYYY-M'),
-      mmm: dayjs(curTime).format('MMM')
-    }
+      mmm: dayjs(curTime).format('MMM'),
+    };
     times.push(time);
     curTime = dayjs(curTime).add(1, 'month');
   }
 
   return times;
-}
+};
 
 export function formatDateUTC(date: number | string, format = 'YYYY-M-D hh:mm:ss A +UTC') {
   if (!date) {

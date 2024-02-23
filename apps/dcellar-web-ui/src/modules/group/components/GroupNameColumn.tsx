@@ -1,7 +1,7 @@
-import { memo } from 'react';
-import styled from '@emotion/styled';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { IconFont } from '@/components/IconFont';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import styled from '@emotion/styled';
+import { memo } from 'react';
 
 interface GroupNameColumnProps {
   item: GroupInfo;

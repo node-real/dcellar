@@ -1,31 +1,31 @@
-import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
-import { ColumnProps } from 'antd/es/table';
-import React, { useCallback, useMemo } from 'react';
-import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
-import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  setCurrentPAPage,
-  setEditDisablePaymentAccount,
-  TAccount,
-  TAccountInfo,
-} from '@/store/slices/accounts';
-import { chunk, reverse, sortBy } from 'lodash-es';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
-import { useRouter } from 'next/router';
-import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/persist';
-import { NewPA } from './NewPA';
-import { Loading } from '@/components/common/Loading';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { DCLink } from '@/components/common/DCLink';
 import { MenuOption } from '@/components/common/DCMenuList';
-import { BN } from '@/utils/math';
+import { DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { Loading } from '@/components/common/Loading';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
-import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
-import { currencyFormatter } from '@/utils/formatter';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  TAccount,
+  TAccountInfo,
+  setCurrentPAPage,
+  setEditDisablePaymentAccount,
+} from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
+import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/persist';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
 import { trimFloatZero } from '@/utils/string';
+import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
+import { chunk, reverse, sortBy } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { useCallback, useMemo } from 'react';
+import { NewPA } from './NewPA';
 
 const actions: MenuOption[] = [
   { label: 'View Details', value: 'detail' },

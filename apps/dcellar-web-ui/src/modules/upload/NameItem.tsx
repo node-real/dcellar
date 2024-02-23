@@ -1,13 +1,13 @@
-import { EllipsisText } from '@/components/common/EllipsisText';
 import { Box, Flex, Text } from '@node-real/uikit';
-import { formatBytes } from '@/utils/formatter';
-import { contentIconTypeToExtension } from '@/modules/object/utils';
-import { IconFont } from '@/components/IconFont';
-import React from 'react';
-import { useAppDispatch } from '@/store';
-import { setObjectOperation } from '@/store/slices/object';
-import { setTaskManagement, UploadFile } from '@/store/slices/global';
 import { useRouter } from 'next/router';
+
+import { EllipsisText } from '@/components/common/EllipsisText';
+import { IconFont } from '@/components/IconFont';
+import { contentIconTypeToExtension } from '@/modules/object/utils';
+import { useAppDispatch } from '@/store';
+import { UploadFile, setTaskManagement } from '@/store/slices/global';
+import { setObjectOperation } from '@/store/slices/object';
+import { formatBytes } from '@/utils/formatter';
 import { encodeObjectName } from '@/utils/string';
 
 type Props = {

@@ -1,16 +1,17 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
-import { AppDispatch, AppState, GetState } from '@/store';
 import { QueryMsgGasParamsResponse } from '@bnb-chain/greenfield-cosmos-types/cosmos/gashub/v1beta1/query';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { find, keyBy } from 'lodash-es';
+
+import { AuthPostAction } from '@/context/off-chain-auth/OffChainAuthContext';
+import { getClient } from '@/facade';
+import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
+import { getStoreFeeParams } from '@/facade/payment';
+import { AppDispatch, AppState, GetState } from '@/store';
 import { setupListObjects, updateObjectStatus } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { Long, MsgGrantAllowanceTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { getStoreFeeParams } from '@/facade/payment';
-import { getClient } from '@/facade';
-import { AuthPostAction } from '@/context/off-chain-auth/OffChainAuthContext';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 
 export type TGasList = {
   [msgTypeUrl: string]: {
@@ -435,7 +436,7 @@ export const selectHashTask = (address: string) => (root: AppState) => {
   const hashQueue = uploadQueue.filter((task) => task.status === 'HASH');
   const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT');
 
-  return !!hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
+  return hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
 };
 
 export const selectSignTask = (address: string) => (root: AppState) => {
@@ -516,15 +517,14 @@ export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState:
   dispatch(setIsLoadingPLF(false));
 };
 
-export const setupMainnetStoreFeeParams =
-  () => async (dispatch: AppDispatch, getState: GetState) => {
-    const storeFeeParams = await getStoreFeeParams({ network: 'mainnet' });
-    dispatch(
-      globalSlice.actions.setMainnetStoreFeeParams({
-        storeFeeParams,
-      }),
-    );
-  };
+export const setupMainnetStoreFeeParams = () => async (dispatch: AppDispatch) => {
+  const storeFeeParams = await getStoreFeeParams({ network: 'mainnet' });
+  dispatch(
+    globalSlice.actions.setMainnetStoreFeeParams({
+      storeFeeParams,
+    }),
+  );
+};
 
 export const refreshTaskFolder =
   (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -565,12 +565,11 @@ export const uploadQueueAndRefresh =
 const fetchedList: Record<string, boolean> = {};
 
 // ensure upload file in file list
-export const progressFetchList =
-  (task: UploadFile) => async (dispatch: AppDispatch, getState: GetState) => {
-    if (fetchedList[task.id]) return;
-    fetchedList[task.id] = true;
-    await dispatch(refreshTaskFolder(task));
-  };
+export const progressFetchList = (task: UploadFile) => async (dispatch: AppDispatch) => {
+  if (fetchedList[task.id]) return;
+  fetchedList[task.id] = true;
+  await dispatch(refreshTaskFolder(task));
+};
 export const addTasksToUploadQueue =
   ({ spAddress, visibility, tags, tempAccountAddress }: { spAddress: string, visibility: VisibilityType, tags: ResourceTags_Tag[], tempAccountAddress: string }) =>
     async (dispatch: AppDispatch, getState: GetState) => {
@@ -600,6 +599,7 @@ export const addTasksToUploadQueue =
       dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
     };
 
+
 export const addSignedTasksToUploadQueue =
   ({
     spAddress,
@@ -616,50 +616,50 @@ export const addSignedTasksToUploadQueue =
     createHash: string;
     tags: ResourceTags_Tag[];
   }) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { bucketName, folders } = getState().object;
-      const { loginAccount } = getState().persist;
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { bucketName, folders } = getState().object;
+    const { loginAccount } = getState().persist;
 
-      const newUploadQueue: UploadFile = {
-        bucketName,
-        prefixFolders: folders,
-        spAddress,
-        id: waitFile.id,
-        waitFile: waitFile,
-        msg: '',
-        status: 'SIGNED',
-        progress: 0,
-        checksum: checksums,
-        visibility,
-        createHash,
-        tags: tags,
-      };
-      dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
+    const newUploadQueue: UploadFile = {
+      bucketName,
+      prefixFolders: folders,
+      spAddress,
+      id: waitFile.id,
+      waitFile: waitFile,
+      msg: '',
+      status: 'SIGNED',
+      progress: 0,
+      checksum: checksums,
+      visibility,
+      createHash,
+      tags: tags,
     };
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
+  };
 
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadFile; errorMsg: string }) =>
-    async (dispatch: AppDispatch) => {
-      const isFolder = task.waitFile.name.endsWith('/');
-      dispatch(
-        updateUploadTaskMsg({
-          account,
-          id: task.id,
-          msg: errorMsg || 'The object failed to be created.',
-        }),
-      );
-      isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
-    };
+  async (dispatch: AppDispatch) => {
+    const isFolder = task.waitFile.name.endsWith('/');
+    dispatch(
+      updateUploadTaskMsg({
+        account,
+        id: task.id,
+        msg: errorMsg || 'The object failed to be created.',
+      }),
+    );
+    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+  };
 
 export const setupWaitTaskErrorMsg =
   ({ id, errorMsg }: { id: number; errorMsg: string }) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { waitQueue } = getState().global;
-      const task = waitQueue.find((t) => t.id === id);
-      if (!task) return;
-      const isFolder = task.name.endsWith('/');
-      dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-      isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
-    };
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { waitQueue } = getState().global;
+    const task = waitQueue.find((t) => t.id === id);
+    if (!task) return;
+    const isFolder = task.name.endsWith('/');
+    dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
+    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+  };
 
 export default globalSlice.reducer;

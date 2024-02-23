@@ -1,8 +1,8 @@
 import { IconFont } from '@/components/IconFont';
 import { Tips } from '@/components/common/Tips';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
-import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { Box, Flex, Link, Text } from '@node-real/uikit';

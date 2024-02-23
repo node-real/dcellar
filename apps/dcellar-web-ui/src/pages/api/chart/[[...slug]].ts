@@ -7,7 +7,7 @@ import { EXPLORER_API_URL } from '@/base/env';
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { slug, ...query } = req.query;
   const slugs = slug as string[];
-  const url = `${EXPLORER_API_URL}/greenfield/chart/${slugs.join('/')}?${qs.stringify(query)}`
+  const url = `${EXPLORER_API_URL}/greenfield/chart/${slugs.join('/')}?${qs.stringify(query)}`;
   try {
     const { data } = await axios.get(url);
     res.json(data);

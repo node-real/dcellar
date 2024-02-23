@@ -1,9 +1,6 @@
-import { AccountType, TAccountInfo } from '@/store/slices/accounts';
 import { IconFont } from '@/components/IconFont';
 import { BillingHistoryQuery } from '@/modules/accounts';
-import dayjs from 'dayjs';
-import { InternalRoutePaths } from '@/constants/paths';
-import { stringify } from 'querystring';
+import { AccountType, TAccountInfo } from '@/store/slices/accounts';
 
 export const getAccountDisplay = (type: AccountType) => {
   const accountDisplays = {
@@ -42,12 +39,12 @@ export const formatObjectAddress = (accountInfo: Record<string, TAccountInfo>) =
     const lowerKey = key.toLowerCase();
     lowerKeyAccountInfo[lowerKey] = {
       ...value,
-      address: value.address.toLowerCase()
-    }
+      address: value.address.toLowerCase(),
+    };
   });
 
   return lowerKeyAccountInfo;
-}
+};
 
 export const getCurMonthDetailUrl = () => {
   const curQuery: BillingHistoryQuery = {

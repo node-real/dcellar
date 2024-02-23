@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
 import ErrorComponent from '@/components/ErrorComponent';
+import { ReactNode } from 'react';
 
 export default function NotFoundPage() {
   return <ErrorComponent statusCode={404} />;

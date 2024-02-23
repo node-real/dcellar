@@ -5,7 +5,7 @@ import { ConnectorData, useAccount } from 'wagmi';
 export type WalletSwitchAccountHandler = (data: ConnectorData) => void;
 
 export function useWalletSwitchAccount(handler: WalletSwitchAccountHandler) {
-  const {address, connector } = useAccount();
+  const { address, connector } = useAccount();
 
   const handlerRef = useSaveFuncRef(handler);
 

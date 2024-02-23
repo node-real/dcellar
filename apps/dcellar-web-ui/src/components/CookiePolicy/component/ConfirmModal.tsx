@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
+import { reportEvent } from '@/utils/gtag';
 import styled from '@emotion/styled';
 import {
   Divider,
@@ -13,15 +15,13 @@ import {
   QListItem,
   Switch,
 } from '@node-real/uikit';
+import React, { useState } from 'react';
 import { SendIcon } from './SendIcon';
-import { reportEvent } from '@/utils/gtag';
-import { DCButton } from '@/components/common/DCButton';
-import { DCModal } from '@/components/common/DCModal';
 
 type Props = {
   open: boolean;
-  cancelFn: Function;
-  confirmFn: Function;
+  cancelFn: () => void;
+  confirmFn: (arg1: string, arg2: string) => void;
 };
 export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => {
   const [gaAccept, setGaAccept] = useState(true);

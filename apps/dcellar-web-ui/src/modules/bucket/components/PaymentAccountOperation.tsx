@@ -1,9 +1,24 @@
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Animates } from '@/components/AnimatePng';
+import { BalanceOn } from '@/components/Fee/BalanceOn';
+import { InsufficientBalance } from '@/components/Fee/InsufficientBalance';
 import { IconFont } from '@/components/IconFont';
 import { CopyText } from '@/components/common/CopyText';
+import { DCButton } from '@/components/common/DCButton';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { UpdateBucketInfoPayload, updateBucketInfo } from '@/facade/bucket';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import {
+  useChangePaymentAccountFee,
+  useValidateChangePaymentFee,
+} from '@/hooks/useChangePaymentAccountFee';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TAccount, selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { TBucket, setReadBucketPaymentAccount } from '@/store/slices/bucket';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { BN } from '@/utils/math';
 import { trimLongStr } from '@/utils/string';
 import styled from '@emotion/styled';
 import {
@@ -18,23 +33,8 @@ import {
 } from '@node-real/uikit';
 import { find } from 'lodash-es';
 import { memo, useMemo, useState } from 'react';
-import { PaymentAccountSelector } from '../components/PaymentAccountSelector';
-import { DCButton } from '@/components/common/DCButton';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { Animates } from '@/components/AnimatePng';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { UpdateBucketInfoPayload, updateBucketInfo } from '@/facade/bucket';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { useAccount } from 'wagmi';
-import { TBucket, setReadBucketPaymentAccount } from '@/store/slices/bucket';
-import { BN } from '@/utils/math';
-import {
-  useChangePaymentAccountFee,
-  useValidateChangePaymentFee,
-} from '@/hooks/useChangePaymentAccountFee';
-import { BalanceOn } from '@/components/Fee/BalanceOn';
-import { InsufficientBalance } from '@/components/Fee/InsufficientBalance';
+import { PaymentAccountSelector } from '../components/PaymentAccountSelector';
 import { ChangePaymentTotalFee } from './ChangePaymentTotalFees';
 
 export const PaymentAccountOperation = memo(function PaymentAccountOperation({
@@ -63,7 +63,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   } = useChangePaymentAccountFee({
     from: bucket.PaymentAddress,
     to: newPaymentAccount.address,
-    // @ts-ignore
+    // @ts-expect-error TODO
     storageSize: bucket.StorageSize,
   });
 

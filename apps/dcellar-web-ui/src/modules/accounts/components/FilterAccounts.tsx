@@ -1,20 +1,20 @@
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { DCMenu } from '@/components/common/DCMenu';
-import React, { useEffect, useState } from 'react';
-import { useAccountList } from '../hooks';
-import { keyBy, xor } from 'lodash-es';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { InputItem } from '@/components/formitems/InputItem';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setAllFilterAccounts } from '@/store/slices/billing';
-import { Badge, MenuFooter, MenuHeader } from './Common';
-import { InputItem } from '@/components/formitems/InputItem';
-import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
-import { SearchIcon } from '@node-real/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
 import { trimLongStr } from '@/utils/string';
+import { SearchIcon } from '@node-real/icons';
+import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
 import cn from 'classnames';
+import { keyBy, xor } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useAccountList } from '../hooks';
+import { Badge, MenuFooter, MenuHeader } from './Common';
 
 export const FilterAccounts = () => {
   const router = useRouter();
@@ -47,7 +47,7 @@ export const FilterAccounts = () => {
   };
   useEffect(() => {
     setSelectedAccount(allFilterAccounts);
-  }, [router.asPath])
+  }, [router.asPath]);
 
   return (
     <DCMenu

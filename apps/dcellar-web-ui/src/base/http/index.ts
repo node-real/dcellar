@@ -1,11 +1,11 @@
+import { toast } from '@node-real/uikit';
 import axios, { AxiosRequestConfig } from 'axios';
 import axiosRetry from 'axios-retry';
-import { toast } from '@node-real/uikit';
 import qs from 'query-string';
 
-import { genRequestId } from './utils/genRequestId';
 import CancelManager from './cancel/cancelManager';
 import { errorCodes, TErrorCodeKey } from './utils/errorCodes';
+import { genRequestId } from './utils/genRequestId';
 
 type TCustomOptions = {
   needNotify?: boolean;
@@ -20,7 +20,7 @@ type RequestOptions = {
 
 type CustomRequestOptions = {
   url: string;
-  data?: Object;
+  data?: object;
   options?: AxiosRequestConfig;
   customOptions?: TCustomOptions;
 };
@@ -116,7 +116,7 @@ const request = ({ url, options, customOptions }: RequestOptions) => {
 };
 
 const get = ({ url, data, options, customOptions }: CustomRequestOptions) => {
-  const _url = data ? `${url}?${qs.stringify(data, {arrayFormat: 'comma'})}` : url;
+  const _url = data ? `${url}?${qs.stringify(data, { arrayFormat: 'comma' })}` : url;
 
   return request({
     url: _url,
@@ -158,6 +158,6 @@ const del = ({ url, data, options, customOptions }: CustomRequestOptions) =>
     customOptions,
   });
 
-export { request, post, get, put, del, cancelRequest, cancelAllRequest };
+export { cancelAllRequest, cancelRequest, del, get, post, put, request };
 
 export default request;

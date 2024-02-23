@@ -1,8 +1,8 @@
 import { Box, Divider, Flex, Text } from '@node-real/uikit';
-import { memo, useMemo } from 'react';
 import BigNumber from 'bignumber.js';
+import { isEmpty } from 'lodash-es';
+import { memo, useMemo } from 'react';
 
-import { EOperation, TFeeData } from '../type';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -10,16 +10,17 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
   INIT_FEE_DATA,
 } from '../constants';
+import { EOperation, TFeeData } from '../type';
+
 import { Tips } from '@/components/common/Tips';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
+import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
-import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
-import { currencyFormatter } from '@/utils/formatter';
-import { renderFeeValue } from '@/modules/object/utils';
-import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 import { renderFee } from '@/utils/common';
+import { currencyFormatter } from '@/utils/formatter';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { isEmpty } from 'lodash-es';
 
 interface FeeProps {
   amount: string;
@@ -87,7 +88,14 @@ export const Fee = memo<FeeProps>(function Fee({
     return `${totalFee
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
       .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
-  }, [TOKEN_SYMBOL, defaultTransferFee, formatFeeUsdPrice, isShowDefault, totalFee, defaultFeeUsdPrice]);
+  }, [
+    TOKEN_SYMBOL,
+    defaultTransferFee,
+    formatFeeUsdPrice,
+    isShowDefault,
+    totalFee,
+    defaultFeeUsdPrice,
+  ]);
   const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
@@ -120,13 +128,7 @@ export const Fee = memo<FeeProps>(function Fee({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [
-    transType,
-    gasFee,
-    defaultTransferFee,
-    TOKEN_SYMBOL,
-    relayerFee,
-  ]);
+  }, [transType, gasFee, defaultTransferFee, TOKEN_SYMBOL, relayerFee]);
 
   const amountUsd = currencyFormatter(
     BigNumber(amount || 0)

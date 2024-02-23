@@ -1,13 +1,13 @@
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
+import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditDisablePaymentAccount, setupAccountInfo } from '@/store/slices/accounts';
-import React, { memo } from 'react';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
-import { DCButton } from '@/components/common/DCButton';
-import { disablePaymentAccountRefund } from '@/facade/account';
+import { memo } from 'react';
 import { useAccount } from 'wagmi';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { IconFont } from '@/components/IconFont';
 
 interface NonRefundableModal {}
 
@@ -63,8 +63,8 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
           Set as Non-Refundable
         </Text>
         <Text fontSize="16px" textAlign={'center'} marginTop="8px" color={'readable.tertiary'}>
-          Making this payment account non-refundable means it can&apos;t be refunded anymore and this
-          action can&apos;t be undone.
+          Making this payment account non-refundable means it can&apos;t be refunded anymore and
+          this action can&apos;t be undone.
         </Text>
       </ModalBody>
       <ModalFooter flexDirection={'row'}>

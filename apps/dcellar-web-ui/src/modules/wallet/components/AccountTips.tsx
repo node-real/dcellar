@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
 import { Box, Tooltip } from '@node-real/uikit';
+import { memo } from 'react';
+
 import { AccountType } from '@/store/slices/accounts';
 import { getAccountDisplay } from '@/utils/accounts';
 

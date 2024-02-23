@@ -1,30 +1,31 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch, AppState, GetState } from '@/store';
-import { getListObjects, ListObjectsParams } from '@/facade/object';
-import { toast } from '@node-real/uikit';
-import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
-import {
-  GfSPListObjectsByBucketNameResponse,
-  GRNToString,
-  ListObjectsByBucketNameRequest,
-  newObjectGRN,
-} from '@bnb-chain/greenfield-js-sdk';
-import { ErrorResponse } from '@/facade/error';
-import { Key } from 'react';
-import { getMillisecond } from '@/utils/time';
-import { numberToHex } from 'viem';
 import {
   BucketInfo,
   ResourceTags_Tag,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
+  GRNToString,
+  GfSPListObjectsByBucketNameResponse,
+  ListObjectsByBucketNameRequest,
+  newObjectGRN,
+} from '@bnb-chain/greenfield-js-sdk';
+import {
+  ObjectInfo,
   ObjectMeta,
   PolicyMeta,
-  ObjectInfo,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
+import { toast } from '@node-real/uikit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
+import { Key } from 'react';
+import { numberToHex } from 'viem';
+
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
+import { ErrorResponse } from '@/facade/error';
+import { ListObjectsParams, getListObjects } from '@/facade/object';
+import { AppDispatch, AppState, GetState } from '@/store';
 import { convertObjectKey } from '@/utils/common';
+import { getMillisecond } from '@/utils/time';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
@@ -223,7 +224,6 @@ export const objectSlice = createSlice({
       item.visibility = visibility;
       const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
       if (!info) return;
-      // @ts-ignore
       info.ObjectInfo.Visibility = visibility;
     },
     setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
@@ -355,10 +355,7 @@ export const objectSlice = createSlice({
     setEditObjectTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
       state.editTagsData = payload;
     },
-    setObjectTags(
-      state,
-      { payload }: PayloadAction<{ id: string; tags: ResourceTags_Tag[] }>,
-    ) {
+    setObjectTags(state, { payload }: PayloadAction<{ id: string; tags: ResourceTags_Tag[] }>) {
       const { id, tags } = payload;
       const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
       state.objectsInfo[id].ObjectInfo.Tags.Tags = newTags as Extract<

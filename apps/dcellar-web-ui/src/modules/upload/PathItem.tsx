@@ -1,10 +1,11 @@
-import { EllipsisText } from '@/components/common/EllipsisText';
-import { memo } from 'react';
 import { Text } from '@node-real/uikit';
 import Link from 'next/link';
-import { encodeObjectName } from '@/utils/string';
-import { setTaskManagement } from '@/store/slices/global';
+import { memo } from 'react';
+
+import { EllipsisText } from '@/components/common/EllipsisText';
 import { useAppDispatch } from '@/store';
+import { setTaskManagement } from '@/store/slices/global';
+import { encodeObjectName } from '@/utils/string';
 
 interface PathItemProps {
   path: string;

@@ -1,6 +1,6 @@
+import { EXPLORER_API_URL } from '@/base/env';
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { EXPLORER_API_URL } from '@/base/env';
 
 // eslint-disable-next-line
 export default async (req: NextApiRequest, res: NextApiResponse) => {

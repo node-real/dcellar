@@ -1,4 +1,6 @@
-import React, { memo, useMemo, useRef, useState } from 'react';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import styled from '@emotion/styled';
 import {
   Box,
   Flex,
@@ -13,14 +15,31 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAsyncEffect, useScroll, useUnmount } from 'ahooks';
+import cn from 'classnames';
+import { parseEther } from 'ethers/lib/utils.js';
+import { isEmpty, round, toPairs, trimEnd } from 'lodash-es';
+import { memo, useMemo, useRef, useState } from 'react';
+import { DropTargetMonitor, useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
+import { useAccount } from 'wagmi';
+
+import AccessItem from './AccessItem';
 import { Fees } from './Fees';
+import { ListItem } from './ListItem';
+import { useUploadTab } from './useUploadTab';
+import { useChecksumApi } from '../checksum';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
+import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
-import AccessItem from './AccessItem';
+import { getValidTags } from '@/components/common/ManageTags';
+import { IconFont } from '@/components/IconFont';
+import { reverseVisibilityType } from '@/constants/legacy';
+import { broadcastTx, resolve } from '@/facade/common';
 import {
-  broadcastFault,
-  createTxFault,
   E_FILE_IS_EMPTY,
   E_FILE_TOO_LARGE,
   E_FOLDER_NAME_TOO_LONG,
@@ -32,17 +51,15 @@ import {
   E_OBJECT_NAME_NOT_UTF8,
   E_OBJECT_NAME_TOO_LONG,
   E_UNKNOWN,
-  simulateFault,
+  createTxFault,
 } from '@/facade/error';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
+import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  SELECT_OBJECT_NUM_LIMIT,
-  setStatusDetail,
-  SINGLE_OBJECT_MAX_SIZE,
-  TEditUploadContent,
-  TStatusDetail,
-} from '@/store/slices/object';
-import {
+  UPLOADING_STATUSES,
+  WaitFile,
   addSignedTasksToUploadQueue,
   addTasksToUploadQueue,
   addToWaitQueue,
@@ -50,44 +67,27 @@ import {
   setTaskManagement,
   setupWaitTaskErrorMsg,
   updateWaitFileStatus,
-  UPLOADING_STATUSES,
-  WaitFile,
 } from '@/store/slices/global';
-import { useAsyncEffect, useScroll, useUnmount } from 'ahooks';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { isEmpty, round, toPairs, trimEnd } from 'lodash-es';
-import { ListItem } from './ListItem';
-import { useUploadTab } from './useUploadTab';
-import { createTempAccount } from '@/facade/account';
-import { parseEther } from 'ethers/lib/utils.js';
-import { useAccount } from 'wagmi';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { SpItem } from '@/store/slices/sp';
-import { formatBytes } from '@/utils/formatter';
-import { isUTF8 } from '@/utils/coder';
-import { Animates } from '@/components/AnimatePng';
-import cn from 'classnames';
-import { useChecksumApi } from '../checksum';
-import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
-import { reverseVisibilityType } from '@/constants/legacy';
-import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+import {
+  SELECT_OBJECT_NUM_LIMIT,
+  SINGLE_OBJECT_MAX_SIZE,
+  TEditUploadContent,
+  TStatusDetail,
+  setStatusDetail,
+} from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { broadcastTx, resolve } from '@/facade/common';
-import styled from '@emotion/styled';
-import { IconFont } from '@/components/IconFont';
-import { DropTargetMonitor, useDrop } from 'react-dnd';
-import { NativeTypes } from 'react-dnd-html5-backend';
+import { SpItem } from '@/store/slices/sp';
+import { isUTF8 } from '@/utils/coder';
 import {
   DragItemProps,
   DragMonitorProps,
   TransferItemTree,
   traverseTransferItems,
 } from '@/utils/dom';
+import { formatBytes } from '@/utils/formatter';
 import { getTimestamp } from '@/utils/time';
-import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
-import { getValidTags } from '@/components/common/ManageTags';
 import { setTempAccounts } from '@/store/slices/accounts';
+import { createTempAccount } from '@/facade/account';
 
 interface UploadObjectsOperationProps {
   onClose?: () => void;
@@ -297,7 +297,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           connector: connector!,
         });
         if (!txRes || error) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
+          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error ?? '' }));
           closeModal();
           return;
         }

@@ -1,7 +1,7 @@
-import { Flex, Text, Image, useMediaQuery, Square } from '@node-real/uikit';
-import { TFeatureItem } from './KeyFeatures';
 import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
+import { Flex, Image, Square, Text, useMediaQuery } from '@node-real/uikit';
+import { TFeatureItem } from './KeyFeatures';
 
 export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeatureItem) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
@@ -60,7 +60,7 @@ export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeature
           fontFamily={INTER_FONT}
           sx={{
             fontSize: 16,
-            color: 'readable.secondary'
+            color: 'readable.secondary',
           }}
         >
           {desc}

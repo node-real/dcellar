@@ -1,15 +1,12 @@
 import { Text } from '@node-real/uikit';
 import { memo } from 'react';
+
 import { useAppSelector } from '@/store';
 
 const HeadContent = {
   transfer_in: {
     title: 'transfer in',
-    subtitle: (
-      <>
-        Transfer BNB from BNB Smart Chain to your BNB Greenfield account.
-      </>
-    ),
+    subtitle: <>Transfer BNB from BNB Smart Chain to your BNB Greenfield account.</>,
   },
   transfer_out: {
     title: 'transfer out',

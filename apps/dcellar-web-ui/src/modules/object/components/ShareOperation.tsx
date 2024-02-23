@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   Box,
   QDrawerBody,
@@ -8,30 +8,30 @@ import {
   toast,
   useClipboard,
 } from '@node-real/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { memo, useEffect } from 'react';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
+import { Animates } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { Loading } from '@/components/common/Loading';
+import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
+import { getListObjects, updateObjectInfo } from '@/facade/object';
 import { AccessItem } from '@/modules/object/components/AccessItem';
+import { ViewerList } from '@/modules/object/components/ViewerList';
+import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import {
   setObjectList,
   setStatusDetail,
   TStatusDetail,
   updateObjectVisibility,
 } from '@/store/slices/object';
-import { getListObjects, updateObjectInfo } from '@/facade/object';
-import { useAccount } from 'wagmi';
-import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
-import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { ViewerList } from '@/modules/object/components/ViewerList';
-import { getShareLink } from '@/utils/string';
-import { DCButton } from '@/components/common/DCButton';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { isEmpty, last, trimEnd } from 'lodash-es';
-import { Animates } from '@/components/AnimatePng';
-import { IconFont } from '@/components/IconFont';
-import { useMount } from 'ahooks';
 import { SpItem } from '@/store/slices/sp';
-import { Loading } from '@/components/common/Loading';
+import { getShareLink } from '@/utils/string';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { useMount } from 'ahooks';
+import { isEmpty, last, trimEnd } from 'lodash-es';
+import { useAccount } from 'wagmi';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;

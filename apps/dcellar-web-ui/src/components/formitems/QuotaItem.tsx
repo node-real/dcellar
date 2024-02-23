@@ -1,18 +1,18 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
-import { Box, Flex, Text } from '@node-real/uikit';
-import styled from '@emotion/styled';
-import { Tips } from '@/components/common/Tips';
 import { DCInputNumber } from '@/components/common/DCInputNumber';
 import { DCTooltip } from '@/components/common/DCTooltip';
+import { Tips } from '@/components/common/Tips';
 import { G_BYTES } from '@/constants/legacy';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { formatByGB } from '@/utils/string';
-import BigNumber from 'bignumber.js';
-import { getTimestampInSeconds } from '@/utils/time';
-import { BN } from '@/utils/math';
 import { renderBnb } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
+import { BN } from '@/utils/math';
+import { formatByGB } from '@/utils/string';
+import { getTimestampInSeconds } from '@/utils/time';
 import { displayTokenSymbol } from '@/utils/wallet';
+import styled from '@emotion/styled';
+import { Box, Flex, Text } from '@node-real/uikit';
+import BigNumber from 'bignumber.js';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 
 const MAX_SIZE = 100000;
 

@@ -1,7 +1,22 @@
-import React, { memo, useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useAccount } from 'wagmi';
+import { Animates } from '@/components/AnimatePng';
+import { Avatar } from '@/components/Avatar';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { DCComboBox } from '@/components/common/DCComboBox';
+import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { Loading } from '@/components/common/Loading';
+import { ADDRESS_RE } from '@/constants/legacy';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   GroupMember,
   selectMemberList,
@@ -9,11 +24,11 @@ import {
   setSelectedGroupMember,
   setupGroupMembers,
 } from '@/store/slices/group';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { trimAddress } from '@/utils/string';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { useAsyncEffect, useUnmount } from 'ahooks';
+import { MsgUpdateGroupMemberTypeUrl, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
+import styled from '@emotion/styled';
 import {
   Box,
   Divider,
@@ -24,27 +39,12 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { DCComboBox } from '@/components/common/DCComboBox';
-import { DCButton } from '@/components/common/DCButton';
-import { addMemberToGroup, removeMemberFromGroup } from '@/facade/group';
-import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
-import { MsgUpdateGroupMemberTypeUrl, toTimestamp } from '@bnb-chain/greenfield-js-sdk';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
-import { trimAddress } from '@/utils/string';
-import styled from '@emotion/styled';
-import { Loading } from '@/components/common/Loading';
-import { Avatar } from '@/components/Avatar';
-import { ADDRESS_RE } from '@/constants/legacy';
-import { IconFont } from '@/components/IconFont';
-import { DCMenu } from '@/components/common/DCMenu';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { Animates } from '@/components/AnimatePng';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { uniq, without, xor } from 'lodash-es';
+import { useAsyncEffect, useUnmount } from 'ahooks';
 import cn from 'classnames';
 import dayjs, { Dayjs } from 'dayjs';
+import { uniq, without, xor } from 'lodash-es';
+import { memo, useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 const menus: MenuOption[] = [
   { label: 'Member', value: 'member' },

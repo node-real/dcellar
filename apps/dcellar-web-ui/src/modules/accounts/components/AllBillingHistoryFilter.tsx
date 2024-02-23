@@ -1,15 +1,15 @@
-import { Flex, Text } from '@node-real/uikit';
-import dayjs from 'dayjs';
-import { setAllFilterRange, setAllFilterTypes } from '@/store/slices/billing';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { FilterContainer } from './Common';
-import { useRouter } from 'next/router';
 import { InternalRoutePaths } from '@/constants/paths';
-import { stringify } from 'querystring';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setAllFilterRange, setAllFilterTypes } from '@/store/slices/billing';
+import { Flex, Text } from '@node-real/uikit';
 import { useUpdateEffect } from 'ahooks';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/router';
+import { stringify } from 'querystring';
+import { FilterContainer } from './Common';
 import { FilterAccounts } from './FilterAccounts';
-import { FilterTypes } from './FilterTypes';
 import { FilterDateRange } from './FilterDateRange';
+import { FilterTypes } from './FilterTypes';
 
 export const AllBillingHistoryFilter = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +34,7 @@ export const AllBillingHistoryFilter = () => {
       delete query.to;
     } else {
       query.from = dayjs(allFilterRange[0]).format('YYYY-MM-DD');
-      query.to = allFilterRange[1] ? dayjs(allFilterRange[1]).format('YYYY-MM-DD') : ''
+      query.to = allFilterRange[1] ? dayjs(allFilterRange[1]).format('YYYY-MM-DD') : '';
     }
     query.page = '1';
     router.push(`${InternalRoutePaths.accounts}?${stringify(query)}`, undefined, {

@@ -1,9 +1,8 @@
-import { Flex, FlexProps, Link, LinkProps, Text } from '@node-real/uikit';
-import React from 'react';
-import { getUTC0Year } from '@/utils/time';
 import { GAClick } from '@/components/common/GATracker';
-import { smMedia } from '@/modules/responsive';
 import { InternalRoutePaths, NODEREAL_URL } from '@/constants/paths';
+import { smMedia } from '@/modules/responsive';
+import { getUTC0Year } from '@/utils/time';
+import { Flex, FlexProps, Link, LinkProps, Text } from '@node-real/uikit';
 
 export const UnderlineLink = (props: LinkProps) => (
   <Link

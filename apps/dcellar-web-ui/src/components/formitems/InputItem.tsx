@@ -1,6 +1,6 @@
-import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@node-real/uikit';
-import { memo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Tips } from '@/components/common/Tips';
+import { Box, Input, InputGroup, InputProps, InputRightElement, Text } from '@node-real/uikit';
+import { ReactNode, memo, useEffect, useRef, useState } from 'react';
 
 interface InputItemProps extends InputProps {
   tips?: { title: string; rules: string[] };

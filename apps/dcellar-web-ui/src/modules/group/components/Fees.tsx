@@ -1,13 +1,13 @@
-import React, { memo, useEffect } from 'react';
-import { useAppSelector } from '@/store';
-import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
-import BigNumber from 'bignumber.js';
+import { IconFont } from '@/components/IconFont';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/object/utils';
-import { IconFont } from '@/components/IconFont';
+import { useAppSelector } from '@/store';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
+import BigNumber from 'bignumber.js';
+import { memo, useEffect } from 'react';
 
 export type FeeItem = {
   label: string;
@@ -29,7 +29,7 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
   const _fees = fees.map((fee) => ({
     label: fee.label,
     value: fee.value ?? fee.types.reduce((res, cur) => res + gasObjects?.[cur]?.gasFee, 0),
-      // (gasObjects?.[fee.type]?.gasFee || 0),
+    // (gasObjects?.[fee.type]?.gasFee || 0),
   }));
 
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));

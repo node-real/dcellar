@@ -1,56 +1,56 @@
-import * as React from 'react';
-import { memo, useEffect, useState } from 'react';
-import styled from '@emotion/styled';
-import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@node-real/uikit';
-import { DCComboBox } from '@/components/common/DCComboBox';
-import { DCButton } from '@/components/common/DCButton';
-import { deleteObjectPolicy, putBucketPolicies, putObjectPolicies } from '@/facade/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useAccount } from 'wagmi';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import {
-  ObjectResource,
-  setObjectPoliciesPage,
-  setSelectedShareMembers,
-  setStatusDetail,
-  setupObjectPolicies,
-  TStatusDetail,
-} from '@/store/slices/object';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { BUTTON_GOT_IT, FILE_ACCESS, WALLET_CONFIRM } from '@/modules/object/constant';
-import {
-  GRNToString,
-  MsgDeletePolicyTypeUrl,
-  MsgPutPolicyTypeUrl,
-  newBucketGRN,
-  newObjectGRN,
-  PermissionTypes,
-  toTimestamp,
-} from '@bnb-chain/greenfield-js-sdk';
-import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
-import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
-import { escapeRegExp, uniq, without, xor } from 'lodash-es';
-import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { Loading } from '@/components/common/Loading';
-import { trimAddress } from '@/utils/string';
-import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
-import { Avatar } from '@/components/Avatar';
-import { ADDRESS_RE, GROUP_ID } from '@/constants/legacy';
-import { Animates } from '@/components/AnimatePng';
-import { IconFont } from '@/components/IconFont';
-import { DCMenu } from '@/components/common/DCMenu';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import cn from 'classnames';
-import dayjs, { Dayjs } from 'dayjs';
-import { ActionTypeValue } from '@/modules/object/utils';
 import {
   Principal,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
+import {
+  GRNToString,
+  MsgDeletePolicyTypeUrl,
+  MsgPutPolicyTypeUrl,
+  PermissionTypes,
+  newBucketGRN,
+  newObjectGRN,
+  toTimestamp,
+} from '@bnb-chain/greenfield-js-sdk';
+import { ObjectMeta, PolicyMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import styled from '@emotion/styled';
+import { Box, Divider, Flex, Grid, MenuButton, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect, useMount, useUnmount } from 'ahooks';
+import cn from 'classnames';
+import dayjs, { Dayjs } from 'dayjs';
+import { escapeRegExp, uniq, without, xor } from 'lodash-es';
+import { memo, useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
+
+import { Animates } from '@/components/AnimatePng';
+import { Avatar } from '@/components/Avatar';
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { DCComboBox } from '@/components/common/DCComboBox';
+import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { Loading } from '@/components/common/Loading';
+import { ADDRESS_RE, GROUP_ID } from '@/constants/legacy';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { deleteObjectPolicy, putBucketPolicies, putObjectPolicies } from '@/facade/object';
+import { BUTTON_GOT_IT, FILE_ACCESS, WALLET_CONFIRM } from '@/modules/object/constant';
+import { ActionTypeValue } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
+import {
+  ObjectResource,
+  TStatusDetail,
+  setObjectPoliciesPage,
+  setSelectedShareMembers,
+  setStatusDetail,
+  setupObjectPolicies,
+} from '@/store/slices/object';
+import { trimAddress } from '@/utils/string';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -182,7 +182,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   const onAddMember = async (_removed?: string[]) => {
     if ((!values.length || loading || invalid) && !_removed) return;
 
-    let deleteBucketPolicy: Array<{
+    const deleteBucketPolicy: Array<{
       p: Principal;
       r: string;
     }> = [];

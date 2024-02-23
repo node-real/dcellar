@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
-import { Card, CardProps, CardTitle, CircleIcon } from './Common';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { useAppSelector } from '@/store';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { useAppSelector } from '@/store';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { Box, Flex, Text } from '@node-real/uikit';
 import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
+import { useMemo } from 'react';
+import { Card, CardProps, CardTitle, CircleIcon } from './Common';
 
 const DEFAULT_STORE_SIZE = 1024 * 1024 * 1034;
 const DEFAULT_STORE_TIME = 30 * 24 * 60 * 60;
@@ -84,7 +84,8 @@ export const ToolBox = ({ children, ...restProps }: CardProps) => {
               {item.label}
             </Text>
             <Box fontSize={14} fontWeight={500}>
-              <Text as="span">{isLoading ? '--' : item.value}</Text> <Text as="span">{item.symbol}</Text>
+              <Text as="span">{isLoading ? '--' : item.value}</Text>{' '}
+              <Text as="span">{item.symbol}</Text>
             </Box>
           </Box>
         </Flex>

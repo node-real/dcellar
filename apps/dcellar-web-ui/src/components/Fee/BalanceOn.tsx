@@ -1,8 +1,7 @@
-import React from 'react';
-import { Text, TextProps } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
+import { Text, TextProps } from '@node-real/uikit';
 
 type BalanceOnProps = TextProps & {
   amount: string;

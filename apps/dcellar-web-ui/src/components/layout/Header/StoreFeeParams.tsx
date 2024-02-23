@@ -1,6 +1,6 @@
-import { useAppDispatch } from "@/store";
-import { setupStoreFeeParams } from "@/store/slices/global";
-import { useAsyncEffect } from "ahooks";
+import { useAppDispatch } from '@/store';
+import { setupStoreFeeParams } from '@/store/slices/global';
+import { useAsyncEffect } from 'ahooks';
 
 export const StoreFeeParams = () => {
   const dispatch = useAppDispatch();
@@ -8,5 +8,5 @@ export const StoreFeeParams = () => {
     dispatch(setupStoreFeeParams());
   }, [dispatch, setupStoreFeeParams]);
 
-  return <></>
-}
+  return <></>;
+};

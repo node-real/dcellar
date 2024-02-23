@@ -1,25 +1,26 @@
-import React, { memo, useEffect } from 'react';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
-import { SpItem } from '@/store/slices/sp';
+import { Global, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Box, Flex, Text } from '@node-real/uikit';
-import { IconFont } from '@/components/IconFont';
-import { useRouter } from 'next/router';
-import { decodeObjectName } from '@/utils/string';
-import { trimEnd } from 'lodash-es';
-import { setFolders, setShareModePath } from '@/store/slices/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
-import { PanelContent } from '@/modules/object/objects.style';
-import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
-import { NewObject } from '@/modules/object/components/NewObject';
-import { ObjectList } from '@/modules/object/components/ObjectList';
-import { DCLink } from '@/components/common/DCLink';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { useUnmount } from 'ahooks';
+import { trimEnd } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo, useEffect } from 'react';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { DCLink } from '@/components/common/DCLink';
+import { IconFont } from '@/components/IconFont';
+import { NewObject } from '@/modules/object/components/NewObject';
+import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
-import { Global, css } from '@emotion/react';
+import { ObjectList } from '@/modules/object/components/ObjectList';
+import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
+import { PanelContent } from '@/modules/object/objects.style';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { setupBucket } from '@/store/slices/bucket';
+import { setFolders, setShareModePath } from '@/store/slices/object';
+import { SpItem } from '@/store/slices/sp';
+import { decodeObjectName } from '@/utils/string';
 
 interface ShareFolderProps {
   fileName: string;

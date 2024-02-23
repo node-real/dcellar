@@ -1,10 +1,12 @@
+import { getTimestampInSeconds } from '../time';
+
 import { getStreamRecord } from '@/facade/account';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { TStoreFeeParams } from '@/store/slices/global';
-import { getTimestampInSeconds } from '../time';
 import { BN } from '@/utils/math';
 
 export const getSettlementFee = async (address: string) => {
+  console.log('12313');
   const [res, error] = await getStreamRecord(address);
   if (!res || error) return [null, error];
   const { streamRecord } = res;
@@ -34,8 +36,7 @@ export const getStoreNetflowRate = (size: number, storeFeeParams: TStoreFeeParam
   const secondarySpNum = redundantDataChunkNum + redundantParityChunkNum;
   let secondarySpRate = BN(secondarySpStorePrice).times(BN(chargeSize));
   secondarySpRate = secondarySpRate.times(secondarySpNum);
-  const validatorTax = BN(validatorTaxRate)
-    .times(primarySpRate.plus(secondarySpRate));
+  const validatorTax = BN(validatorTaxRate).times(primarySpRate.plus(secondarySpRate));
   const netflowRate = primarySpRate.plus(secondarySpRate).plus(validatorTax);
 
   return netflowRate.dividedBy(10 ** 18).toString();
@@ -43,12 +44,13 @@ export const getStoreNetflowRate = (size: number, storeFeeParams: TStoreFeeParam
 
 export const getQuotaNetflowRate = (size: number, storeFeeParams: TStoreFeeParams) => {
   const { validatorTaxRate, readPrice } = storeFeeParams;
-  const primaryQuotaRate = BN(readPrice)
-    .times(size);
-  const taxRate = BN(validatorTaxRate)
-    .times(primaryQuotaRate);
+  const primaryQuotaRate = BN(readPrice).times(size);
+  const taxRate = BN(validatorTaxRate).times(primaryQuotaRate);
 
-  return primaryQuotaRate.plus(taxRate).dividedBy(10 ** 18).toString();
+  return primaryQuotaRate
+    .plus(taxRate)
+    .dividedBy(10 ** 18)
+    .toString();
 };
 
 export const getClientFrozen = (settleTime: number, bufferTime: number) => {

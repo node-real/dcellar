@@ -1,24 +1,26 @@
+import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { Box, BoxProps, Flex } from '@node-real/uikit';
-import { StartBuild } from './components/StartBuild';
 import { useAsyncEffect, useMount } from 'ahooks';
+import { keyBy } from 'lodash-es';
 import { useState } from 'react';
+
+import { Banner } from './components/Banner';
+import { Calculator } from './components/Calculator';
+import { FAQ } from './components/FAQ';
+import { PricingCard } from './components/PricingCard';
+import { SEOHead } from './components/SEOHead';
+import { SPFreeQuota } from './components/SPFreeQuota';
+import { StartBuild } from './components/StartBuild';
+
+import { assetPrefix } from '@/base/env';
+import { getSpMeta, getStorageProviders } from '@/facade/sp';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectBnbPrice,
   selectMainnetStoreFeeParams,
   setupBnbPrice,
   setupMainnetStoreFeeParams,
 } from '@/store/slices/global';
-import { assetPrefix } from '@/base/env';
-import { FAQ } from './components/FAQ';
-import { SPFreeQuota } from './components/SPFreeQuota';
-import { PricingCard } from './components/PricingCard';
-import { Banner } from './components/Banner';
-import { Calculator } from './components/Calculator';
-import { MsgCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { getSpMeta, getStorageProviders } from '@/facade/sp';
-import { keyBy } from 'lodash-es';
-import { SEOHead } from './components/SEOHead';
-import { useAppDispatch, useAppSelector } from '@/store';
 
 type TQuotaSP = {
   name: string;

@@ -1,46 +1,46 @@
-import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
-import { useAccount } from 'wagmi';
-import React, { memo, useMemo, useState } from 'react';
-import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { createTempAccount } from '@/facade/account';
 import { E_OBJECT_NOT_EXISTS, E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { cancelCreateObject, deleteObject } from '@/facade/object';
+import { getStoreFeeParams } from '@/facade/payment';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  TAccountInfo,
+  selectAccount,
+  selectAvailableBalance,
+  setTempAccounts,
+  setupAccountInfo,
+} from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
+import {
+  TStatusDetail,
   addDeletedObject,
   setSelectedRowKeys,
   setStatusDetail,
-  TStatusDetail,
 } from '@/store/slices/object';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
+import { getTimestampInSeconds } from '@/utils/time';
 import {
   MsgCancelCreateObjectTypeUrl,
   MsgDeleteObjectTypeUrl,
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
-import { createTempAccount } from '@/facade/account';
+import { ColoredWaitingIcon } from '@node-real/icons';
+import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
-import { ColoredWaitingIcon } from '@node-real/icons';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { cancelCreateObject, deleteObject } from '@/facade/object';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { useAsyncEffect } from 'ahooks';
-import { getTimestampInSeconds } from '@/utils/time';
-import { getStoreFeeParams } from '@/facade/payment';
-import { getStoreNetflowRate } from '@/utils/payment';
-import {
-  selectAccount,
-  selectAvailableBalance,
-  setTempAccounts,
-  setupAccountInfo,
-  TAccountInfo,
-} from '@/store/slices/accounts';
-import { TBucket } from '@/store/slices/bucket';
-import { BN } from '@/utils/math';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { TotalFees } from '@/modules/object/components/TotalFees';
-import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { memo, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface BatchDeleteObjectOperationProps {
   selectBucket: TBucket;
@@ -96,12 +96,9 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       const refundAmount = deleteObjects.reduce((acc, cur) => {
         const netflowRate = getStoreNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
         const offsetTime = curTime - cur.ObjectInfo.CreateAt;
-        const reserveTime = Number(latestStoreFeeParams.reserveTime)
+        const reserveTime = Number(latestStoreFeeParams.reserveTime);
         const refundTime = offsetTime > reserveTime ? offsetTime - reserveTime : 0;
-        const objectRefund = BN(netflowRate)
-          .times(refundTime)
-          .abs()
-          .toString();
+        const objectRefund = BN(netflowRate).times(refundTime).abs().toString();
 
         return BN(acc).plus(objectRefund).toString();
       }, '0');
@@ -111,7 +108,6 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
 
     const simulateGasFee = BN(
       deleteObjects.reduce(
-        // @ts-ignore
         (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
         0,
       ),
@@ -175,7 +171,6 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             connector: connector!,
             privateKey,
           };
-          // @ts-ignore
           const [txRes, error] = await (ObjectStatus === 1
             ? deleteObject(payload)
             : cancelCreateObject(payload));

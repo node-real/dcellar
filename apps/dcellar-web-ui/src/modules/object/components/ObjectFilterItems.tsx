@@ -1,6 +1,24 @@
-import * as React from 'react';
-import { KeyboardEvent, memo, MouseEvent, useEffect, useState } from 'react';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { DCRangePicker } from '@/components/common/DCDatePicker';
+import { DCInputNumber } from '@/components/common/DCInputNumber';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { InputItem } from '@/components/formitems/InputItem';
+import { IconFont } from '@/components/IconFont';
 import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  ObjectFilterSize,
+  resetObjectListFilter,
+  selectObjectList,
+  setFilterRange,
+  setFilterSizeFrom,
+  setFilterSizeTo,
+  setFilterTypes,
+} from '@/store/slices/object';
+import { trimLongStr } from '@/utils/string';
+import styled from '@emotion/styled';
+import { SearchIcon } from '@node-real/icons';
 import {
   Box,
   Collapse,
@@ -11,32 +29,13 @@ import {
   Text,
   Tooltip,
 } from '@node-real/uikit';
-import styled from '@emotion/styled';
-import {
-  ObjectFilterSize,
-  resetObjectListFilter,
-  selectObjectList,
-  setFilterRange,
-  setFilterSizeFrom,
-  setFilterSizeTo,
-  setFilterTypes,
-} from '@/store/slices/object';
-import { DCMenu } from '@/components/common/DCMenu';
-import { uniq, xor } from 'lodash-es';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import cn from 'classnames';
-import { InputItem } from '@/components/formitems/InputItem';
-import { SearchIcon } from '@node-real/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { trimLongStr } from '@/utils/string';
-import dayjs, { Dayjs } from 'dayjs';
-import { DCRangePicker } from '@/components/common/DCDatePicker';
-import { TimeRangePickerProps } from 'antd';
 import { useClickAway } from 'ahooks';
-import { DCInputNumber } from '@/components/common/DCInputNumber';
+import { TimeRangePickerProps } from 'antd';
+import cn from 'classnames';
+import dayjs, { Dayjs } from 'dayjs';
+import { uniq, xor } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { MouseEvent, KeyboardEvent, memo, useEffect, useState } from 'react';
 
 export const INTERNAL_FOLDER_EXTENSION = '0xDB8040c64d24840BD1D6BcAC7112D2A143CC2EEa';
 
@@ -79,8 +78,8 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
     !typeFilter.trim()
       ? true
       : type === INTERNAL_FOLDER_EXTENSION
-      ? 'folder'.includes(typeFilter.trim().toLowerCase())
-      : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
+        ? 'folder'.includes(typeFilter.trim().toLowerCase())
+        : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
   );
 
   const typeToOption = (type: string) => ({
@@ -446,10 +445,10 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                     filterSizeTo.value
                   }${filterSizeTo.unit === '1' ? 'KB' : 'MB'}`
                 : filterSizeFrom?.value !== null && filterSizeTo?.value === null
-                ? `>= ${filterSizeFrom.value}${filterSizeFrom.unit === '1' ? 'KB' : 'MB'}`
-                : filterSizeTo?.value !== null && filterSizeFrom?.value === null
-                ? `<= ${filterSizeTo.value}${filterSizeTo.unit === '1' ? 'KB' : 'MB'}`
-                : 'Size'}
+                  ? `>= ${filterSizeFrom.value}${filterSizeFrom.unit === '1' ? 'KB' : 'MB'}`
+                  : filterSizeTo?.value !== null && filterSizeFrom?.value === null
+                    ? `<= ${filterSizeTo.value}${filterSizeTo.unit === '1' ? 'KB' : 'MB'}`
+                    : 'Size'}
             </MenuButton>
           )}
         </DCMenu>

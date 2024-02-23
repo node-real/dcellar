@@ -1,8 +1,7 @@
-import React from 'react';
-import { Flex, TextProps } from '@node-real/uikit';
 import { useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
+import { Flex, TextProps } from '@node-real/uikit';
 import { LearnMoreTips } from '../common/Tips';
 
 type BankBalanceProps = TextProps & {

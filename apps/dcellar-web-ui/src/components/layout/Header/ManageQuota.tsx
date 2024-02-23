@@ -1,7 +1,35 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Animates } from '@/components/AnimatePng';
+import { CopyText } from '@/components/common/CopyText';
+import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
+import { QuotaItem } from '@/components/formitems/QuotaItem';
+import { G_BYTES } from '@/constants/legacy';
+import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import {
+  UpdateBucketInfoPayload,
+  getBucketExtraInfo,
+  getBucketQuotaUpdateTime,
+  updateBucketInfo,
+} from '@/facade/bucket';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { getStoreFeeParams } from '@/facade/payment';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { setEditQuota, setupBucket, setupBucketQuota } from '@/store/slices/bucket';
+import { TStoreFeeParams, selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { getPrimarySpInfo } from '@/store/slices/sp';
+import { BN } from '@/utils/math';
+import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
+import { formatQuota, trimLongStr } from '@/utils/string';
+import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import styled from '@emotion/styled';
 import {
   Divider,
   Flex,
@@ -12,39 +40,11 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import styled from '@emotion/styled';
 import { useAsyncEffect, useUnmount } from 'ahooks';
-import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { find, isEmpty } from 'lodash-es';
-import { CopyText } from '@/components/common/CopyText';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { formatQuota, trimLongStr } from '@/utils/string';
-import { getPrimarySpInfo } from '@/store/slices/sp';
-import { QuotaItem } from '@/components/formitems/QuotaItem';
-import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
-import { G_BYTES } from '@/constants/legacy';
-import { DCButton } from '@/components/common/DCButton';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import {
-  getBucketExtraInfo,
-  getBucketQuotaUpdateTime,
-  updateBucketInfo,
-  UpdateBucketInfoPayload,
-} from '@/facade/bucket';
-import { useAccount } from 'wagmi';
-import { TotalFees } from '@/modules/object/components/TotalFees';
-import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { selectStoreFeeParams, setupStoreFeeParams, TStoreFeeParams } from '@/store/slices/global';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { getStoreFeeParams } from '@/facade/payment';
 import BigNumber from 'bignumber.js';
-import { BN } from '@/utils/math';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
+import { find, isEmpty } from 'lodash-es';
+import { memo, useEffect, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface ManageQuotaProps {
   onClose: () => void;

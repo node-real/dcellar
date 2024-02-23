@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
 import { Loading } from '@node-real/uikit';
+import React, { ReactNode } from 'react';
 
 type Props = {
   loading: boolean;

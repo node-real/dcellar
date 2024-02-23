@@ -1,6 +1,7 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { useChecksumApi } from '@/modules/checksum';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
+  UploadFile,
   progressFetchList,
   refreshTaskFolder,
   selectHashTask,
@@ -11,29 +12,28 @@ import {
   updateUploadCreateHash,
   updateUploadProgress,
   updateUploadStatus,
-  UploadFile,
   uploadQueueAndRefresh,
 } from '@/store/slices/global';
-import { useChecksumApi } from '@/modules/checksum';
-import { useAsyncEffect } from 'ahooks';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { useAsyncEffect } from 'ahooks';
+import { memo, useEffect, useMemo, useState } from 'react';
 
-import axios from 'axios';
-import { getObjectMeta } from '@/facade/object';
 import { reverseVisibilityType } from '@/constants/legacy';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
-import { parseErrorXml, sleep } from '@/utils/common';
-import { isEmpty } from 'lodash-es';
-import { setupSpMeta } from '@/store/slices/sp';
-import { setupAccountInfo } from '@/store/slices/accounts';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { AuthType, CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { getObjectMeta } from '@/facade/object';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import {
-  makePutObjectHeaders,
   TMakePutObjectHeaders,
+  makePutObjectHeaders,
 } from '@/modules/object/utils/generatePubObjectOptions';
+import { setupAccountInfo } from '@/store/slices/accounts';
+import { setupSpMeta } from '@/store/slices/sp';
+import { parseErrorXml, sleep } from '@/utils/common';
+import { AuthType, CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import axios from 'axios';
+import { isEmpty } from 'lodash-es';
 
 interface GlobalTasksProps {}
 
@@ -160,7 +160,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         })
         .then(async () => {
           // The connection is closed by this time.
-          dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }))
+          dispatch(updateUploadStatus({ ids: [task.id], status: 'SEAL', account: loginAccount }));
         })
         .catch(async (e: Response | any) => {
           console.error('upload error', e);
@@ -290,7 +290,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
 
         const endpoint = spInfo[task.spAddress].endpoint;
         const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
-        const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus!;
+        const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus ?? undefined;
         const preTs = sealingTs[task.id] || Date.now();
 
         // for folder object not sync to meta service

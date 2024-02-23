@@ -1,7 +1,6 @@
-import React from 'react';
+import { reportEvent } from '@/utils/gtag';
 import { QDrawer, QDrawerCloseButton, QDrawerProps } from '@node-real/uikit';
 import { GAShow } from '../GATracker';
-import { reportEvent } from '@/utils/gtag';
 export interface DCDrawerProps extends QDrawerProps {
   gaShowName?: string;
   gaShowData?: Record<string, any>;

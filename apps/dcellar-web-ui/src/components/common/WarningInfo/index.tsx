@@ -1,6 +1,4 @@
-import { Flex } from '@node-real/uikit';
-import React from 'react';
-import { Text } from '@node-real/uikit';
+import { Flex, Text } from '@node-real/uikit';
 
 import { IconFont } from '@/components/IconFont';
 

@@ -1,12 +1,13 @@
 import { Box, Text } from '@node-real/uikit';
-import React from 'react';
+import { useThrottleFn } from 'ahooks';
+
 import { UploadingObjects } from './UploadingObjects';
+
+import { DCButton } from '@/components/common/DCButton';
+import { DCDrawer } from '@/components/common/DCDrawer';
+import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global';
-import { DCButton } from '@/components/common/DCButton';
-import { Loading } from '@/components/common/Loading';
-import { DCDrawer } from '@/components/common/DCDrawer';
-import { useThrottleFn } from 'ahooks';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();

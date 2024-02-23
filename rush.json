@@ -8,7 +8,7 @@
   "eventHooks": {
     "preRushInstall": [],
     "postRushInstall": [
-       // https://github.com/microsoft/rushstack/issues/2837
+      // https://github.com/microsoft/rushstack/issues/2837
       "find ./common -name node_gyp_bins -type d -exec rm -r '{}' \\;"
     ],
     "preRushBuild": [],

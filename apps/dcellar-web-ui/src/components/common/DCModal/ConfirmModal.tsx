@@ -1,6 +1,12 @@
-import React, { memo, useEffect, useState } from 'react';
-import { useAppSelector } from '@/store';
+import { DCButton } from '@/components/common/DCButton';
 import { DCModal } from '@/components/common/DCModal/index';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import {
+  renderBalanceNumber,
+  renderFeeValue,
+  renderInsufficientBalance,
+} from '@/modules/object/utils';
+import { useAppSelector } from '@/store';
 import {
   ButtonProps,
   Divider,
@@ -11,15 +17,9 @@ import {
   ModalHeader,
   Text,
 } from '@node-real/uikit';
-import { DCButton } from '@/components/common/DCButton';
-import BigNumber from 'bignumber.js';
 import { useUnmount } from 'ahooks';
-import {
-  renderBalanceNumber,
-  renderFeeValue,
-  renderInsufficientBalance,
-} from '@/modules/object/utils';
-import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import BigNumber from 'bignumber.js';
+import { memo, useEffect, useState } from 'react';
 
 interface ConfirmModalProps {
   onClose?: () => void;

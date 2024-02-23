@@ -1,7 +1,7 @@
+import { IconFont } from '@/components/IconFont';
 import { GAShow } from '@/components/common/GATracker';
 import { Flex, FlexProps, Tooltip, TooltipProps } from '@node-real/uikit';
-import React, { ReactElement, memo, useState } from 'react';
-import { IconFont } from '@/components/IconFont';
+import { ReactElement, memo, useState } from 'react';
 import { DCLink } from '../DCLink';
 
 interface Props extends TooltipProps {
@@ -56,30 +56,24 @@ export const Tips = ({
 export type LearnMoreTipsProps = {
   href: string;
   text: string;
-}
-export const LearnMoreTips = memo<LearnMoreTipsProps>(
-  function LearnMoreTips({href, text}) {
-    return (
-      <Tips
-        placement={'top'}
-        w={'fit-content'}
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-        tips={
-          <>
-            Learn More about{' '}
-            <DCLink
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {text}
-            </DCLink>
-            .
-          </>
-        }
-      />
-    );
-  },
-);
+};
+export const LearnMoreTips = memo<LearnMoreTipsProps>(function LearnMoreTips({ href, text }) {
+  return (
+    <Tips
+      placement={'top'}
+      w={'fit-content'}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      tips={
+        <>
+          Learn More about{' '}
+          <DCLink href={href} target="_blank" rel="noopener noreferrer">
+            {text}
+          </DCLink>
+          .
+        </>
+      }
+    />
+  );
+});

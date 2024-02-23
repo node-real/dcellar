@@ -1,14 +1,16 @@
+import styled from '@emotion/styled';
 import { Flex, Menu, QListItem } from '@node-real/uikit';
-import React, { ChangeEvent, useMemo } from 'react';
-import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
-import { useAppDispatch, useAppSelector } from '@/store';
+import cn from 'classnames';
+import { isEmpty } from 'lodash-es';
+import { ChangeEvent, useMemo } from 'react';
+
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
+
 import { IconFont } from '@/components/IconFont';
-import styled from '@emotion/styled';
-import { isEmpty } from 'lodash-es';
-import cn from 'classnames';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
 import { TransferItemTree } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
 

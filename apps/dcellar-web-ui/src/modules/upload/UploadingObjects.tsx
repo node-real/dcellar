@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef } from 'react';
+import styled from '@emotion/styled';
 import {
   Empty,
   Flex,
@@ -12,17 +12,18 @@ import {
   Tabs,
   Text,
 } from '@node-real/uikit';
-import { Loading } from '@/components/common/Loading';
-import { UploadFile } from '@/store/slices/global';
-import { useTaskManagementTab } from './useTaskManagementTab';
-import styled from '@emotion/styled';
+import { useScroll } from 'ahooks';
+import cn from 'classnames';
+import { memo, useCallback, useRef } from 'react';
+
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
 import { UploadProgress } from './UploadProgress';
+import { useTaskManagementTab } from './useTaskManagementTab';
+
+import { Loading } from '@/components/common/Loading';
 import { IconFont } from '@/components/IconFont';
-import cn from 'classnames';
-import { useScroll } from 'ahooks';
-import { EditTags } from '@/components/common/ManageTags';
+import { UploadFile } from '@/store/slices/global';
 
 interface UploadingObjectsProps {}
 

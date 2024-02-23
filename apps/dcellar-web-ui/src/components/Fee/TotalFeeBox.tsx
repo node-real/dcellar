@@ -1,7 +1,7 @@
 import { renderFeeValue } from '@/modules/object/utils';
 import { Divider, Flex, FlexProps, Text } from '@node-real/uikit';
-import { IconFont } from '../IconFont';
 import React from 'react';
+import { IconFont } from '../IconFont';
 
 export type TotalFeeBoxProps = FlexProps & {
   expand: boolean;

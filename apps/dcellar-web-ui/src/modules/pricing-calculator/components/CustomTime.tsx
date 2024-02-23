@@ -1,19 +1,18 @@
+import { DCButton } from '@/components/common/DCButton';
+import { smMedia } from '@/modules/responsive';
 import {
   Popover,
   PopoverBody,
-  PopoverCloseButton,
   PopoverContent,
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
   useOutsideClick,
 } from '@node-real/uikit';
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { TTimeOption, TimeUnits, swapObj } from '../utils';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
-import { DCButton } from '@/components/common/DCButton';
-import { swapObj, TimeUnits, TTimeOption } from '../utils';
-import { smMedia } from '@/modules/responsive';
 
 type Props = {
   selected: boolean;
@@ -61,7 +60,7 @@ export const CustomTime = ({
   });
 
   return (
-    <Popover isOpen={isOpen} placement="bottom" >
+    <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>
         <DCButton
           variant="ghost"
@@ -90,7 +89,7 @@ export const CustomTime = ({
         p={16}
         borderRadius={4}
         bgColor={'#fff'}
-        border='1px solid readable.border'
+        border="1px solid readable.border"
         boxShadow={'0px 4px 20px 0px rgba(0, 0, 0, 0.04)'}
       >
         {/* <PopoverCloseButton onClick={onClose} color={'readable.tertiary'} /> */}
@@ -101,7 +100,7 @@ export const CustomTime = ({
           <NumInput
             w={120}
             h={32}
-            type='inter'
+            type="inter"
             borderRadius={4}
             value={customStorageTime.value}
             onChangeValue={(item) => {

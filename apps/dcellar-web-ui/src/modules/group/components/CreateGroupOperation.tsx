@@ -1,4 +1,26 @@
-import React, { memo, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { DCButton } from '@/components/common/DCButton';
+import { DotLoading } from '@/components/common/DotLoading';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
+import { InputItem } from '@/components/formitems/InputItem';
+import { TextareaItem } from '@/components/formitems/TextareaItem';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { broadcastMulTxs } from '@/facade/common';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { getCreateGroupTx, getUpdateGroupTagsTx } from '@/facade/group';
+import { Fees } from '@/modules/group/components/Fees';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  selectGroupList,
+  setEditGroupTagsData,
+  setGroupOperation,
+  setupGroups,
+} from '@/store/slices/group';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { MsgCreateGroupTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
 import {
   Flex,
   FormControl,
@@ -9,31 +31,9 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  selectGroupList,
-  setEditGroupTagsData,
-  setGroupOperation,
-  setupGroups,
-} from '@/store/slices/group';
-import { InputItem } from '@/components/formitems/InputItem';
-import { TextareaItem } from '@/components/formitems/TextareaItem';
-import { DCButton } from '@/components/common/DCButton';
-import { DotLoading } from '@/components/common/DotLoading';
-import { Fees } from '@/modules/group/components/Fees';
-import { MsgCreateGroupTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
-import { getCreateGroupTx, getUpdateGroupTagsTx } from '@/facade/group';
-import { useAccount } from 'wagmi';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
-import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { useUnmount } from 'ahooks';
-import { broadcastMulTxs } from '@/facade/common';
+import { memo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface CreateGroupOperationProps {
   onClose?: () => void;
@@ -154,7 +154,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
   };
 
   const onAddTags = () => {
-    dispatch(setGroupOperation({level: 1, operation: ['', 'edit_tags']}))
+    dispatch(setGroupOperation({ level: 1, operation: ['', 'edit_tags'] }));
   };
 
   useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));

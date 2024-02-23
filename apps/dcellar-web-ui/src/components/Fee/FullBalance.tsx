@@ -1,6 +1,6 @@
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { TAccount, selectAccount } from '@/store/slices/accounts';
+import { selectAccount } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { BN } from '@/utils/math';

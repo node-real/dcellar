@@ -1,10 +1,10 @@
 import { rgba, useColorMode, useColorModeValue, useTheme } from '@node-real/uikit';
-import { useEffect, useState } from 'react';
-import {merge} from 'lodash-es';
 import * as echarts from 'echarts/core';
+import { merge } from 'lodash-es';
+import { useEffect, useState } from 'react';
 
-import { cssVar } from '@/utils/common';
 import { noDataOptions } from '@/constants/chart';
+import { cssVar } from '@/utils/common';
 
 export function useLineChartOptions(options: any, noData: boolean) {
   const theme = useTheme();
@@ -84,7 +84,7 @@ export function useLineChartOptions(options: any, noData: boolean) {
         spiltLine: {
           lineStyle: {
             color: 'red',
-          }
+          },
         },
         axisTick: {
           show: true,

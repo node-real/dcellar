@@ -1,31 +1,31 @@
 import { Box, Divider, Flex, FormControl, useDisclosure } from '@node-real/uikit';
-import React, { memo, useCallback, useMemo, useState } from 'react';
-import { useAccount } from 'wagmi';
-import { useForm } from 'react-hook-form';
-import { isEmpty } from 'lodash-es';
 import { ethers } from 'ethers';
+import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAccount } from 'wagmi';
 
-import { ChainBox } from '../components/ChainBox';
-import Amount from '../components/Amount';
-import { Head } from '../components/Head';
-import { SwapButton } from '../components/SwapButton';
-import Container from '../components/Container';
-import { WalletButton } from '../components/WalletButton';
-import { BSC_CHAIN_ID, GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { StatusModal } from '../components/StatusModal';
-import { useTransferOutFee } from '../hooks';
-import { Fee } from '../components/Fee';
-import { TTransferOutFromValues } from '../type';
+import { BSC_CHAIN_ID, GREENFIELD_CHAIN_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
 import { GAClick } from '@/components/common/GATracker';
-import { useAppSelector } from '@/store';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { getClient } from '@/facade';
-import { signTypedDataCallback } from '@/facade/wallet';
-import { removeTrailingSlash } from '@/utils/string';
-import { InternalRoutePaths } from '@/constants/paths';
 import { broadcastFault } from '@/facade/error';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { useAppSelector } from '@/store';
+import { removeTrailingSlash } from '@/utils/string';
+import Amount from '../components/Amount';
+import { ChainBox } from '../components/ChainBox';
+import Container from '../components/Container';
+import { Fee } from '../components/Fee';
+import { Head } from '../components/Head';
 import { LargeAmountTip } from '../components/LargeAmountTip';
+import { StatusModal } from '../components/StatusModal';
+import { SwapButton } from '../components/SwapButton';
+import { WalletButton } from '../components/WalletButton';
+import { useTransferOutFee } from '../hooks';
+import { TTransferOutFromValues } from '../type';
 
 interface TransferOutProps {}
 
@@ -79,9 +79,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
         granter: '',
         signTypedDataCallback: signTypedDataCallback(connector!),
       });
-      const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
-        toutTxRes.transactionHash
-      }`;
+      const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${toutTxRes.transactionHash}`;
       setViewTxUrl(txUrl);
       reset();
       setStatus('success');

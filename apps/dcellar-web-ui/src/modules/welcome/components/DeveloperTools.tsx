@@ -1,9 +1,10 @@
-import React from 'react';
-import { LandingH2, LandingResponsiveContainer } from '..';
 import { Flex, Text } from '@node-real/uikit';
-import { smMedia } from '@/modules/responsive';
+
+import { LandingH2, LandingResponsiveContainer } from '..';
+
 import { GAClick } from '@/components/common/GATracker';
 import { IconFont, IconFontProps } from '@/components/IconFont';
+import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
 
 const ResponsiveIcon = ({ type, ...restProps }: IconFontProps) => {
@@ -22,49 +23,49 @@ const ResponsiveIcon = ({ type, ...restProps }: IconFontProps) => {
 };
 const datas = [
   {
-    icon: <ResponsiveIcon type="w-search" color={'readable.white'}/>,
+    icon: <ResponsiveIcon type="w-search" color={'readable.white'} />,
     iconBg: '#C372F6',
     name: 'BNB Greenfield Whitepaper',
     link: 'https://github.com/bnb-chain/greenfield-whitepaper',
     gaClickName: 'dc_lp.homepage.tool.whitepaper.click',
   },
   {
-    icon: <ResponsiveIcon type="w-docs" color={'readable.white'}/>,
+    icon: <ResponsiveIcon type="w-docs" color={'readable.white'} />,
     iconBg: '#F5A861',
     name: 'BNB Greenfield Docs',
     link: 'https://docs.bnbchain.org/greenfield-docs/docs/guide/home',
     gaClickName: 'dc_lp.homepage.tool.docs.click',
   },
   {
-    icon: <ResponsiveIcon type="w-discord" color={'readable.white'}/>,
+    icon: <ResponsiveIcon type="w-discord" color={'readable.white'} />,
     iconBg: '#7983EF',
     name: 'BNB Chain Community',
     link: 'https://discord.com/invite/bnbchain',
     gaClickName: 'dc_lp.homepage.tool.discord.click',
   },
   {
-    icon: <ResponsiveIcon type="w-explorer"/>,
+    icon: <ResponsiveIcon type="w-explorer" />,
     iconBg: '#88E286',
     name: 'Explorer-GreenfieldScan',
     link: 'https://greenfieldscan.com/',
     gaClickName: 'dc_lp.homepage.tool.greenfieldscan.click',
   },
   {
-    icon: <ResponsiveIcon type="w-calculator" color={'readable.white'}/>,
+    icon: <ResponsiveIcon type="w-calculator" color={'readable.white'} />,
     iconBg: '#69B2F4',
     name: 'BNB Greenfield Calculator',
     link: '/pricing-calculator',
     gaClickName: 'dc_lp.homepage.tool.pricingcalculator.click',
   },
   {
-    icon: <ResponsiveIcon type="w-github" w={36}/>,
+    icon: <ResponsiveIcon type="w-github" w={36} />,
     iconBg: '#000000',
     name: 'BNB Greenfield Github',
     link: 'https://github.com/bnb-chain/greenfield',
     gaClickName: 'dc_lp.homepage.tool.github.click',
   },
   {
-    icon: <ResponsiveIcon type="w-faucet" color={'readable.white'}/>,
+    icon: <ResponsiveIcon type="w-faucet" color={'readable.white'} />,
     iconBg: '#1DAC8A',
     name: 'BNB Chain Faucet',
     link: 'https://testnet.bnbchain.org/faucet-smart',

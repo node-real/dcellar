@@ -1,29 +1,25 @@
-import { TBucket } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
-import { memo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
-import { useMount, useUnmount } from 'ahooks';
 import { IconFont } from '@/components/IconFont';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { getListObjects } from '@/facade/object';
-import {
-  setEditObjectTagsData,
-  setObjectList,
-  setObjectOperation,
-} from '@/store/slices/object';
-import { last } from 'lodash-es';
+import { useModalValues } from '@/hooks/useModalValues';
+import { SharePermission } from '@/modules/object/components/SharePermission';
 import {
   renderAddressLink,
   renderPropRow,
   renderTags,
 } from '@/modules/object/components/renderRows';
-import { formatFullTime } from '@/utils/time';
-import { formatId } from '@/utils/string';
-import { useModalValues } from '@/hooks/useModalValues';
-import { SharePermission } from '@/modules/object/components/SharePermission';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { TBucket } from '@/store/slices/bucket';
+import { setEditObjectTagsData, setObjectList, setObjectOperation } from '@/store/slices/object';
+import { SpItem } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
+import { formatId } from '@/utils/string';
+import { formatFullTime } from '@/utils/time';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DEFAULT_TAG, getValidTags } from '@/components/common/ManageTags';
+import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
+import { useMount, useUnmount } from 'ahooks';
+import { last } from 'lodash-es';
+import { memo } from 'react';
 
 interface DetailFolderOperationProps {
   objectName: string;

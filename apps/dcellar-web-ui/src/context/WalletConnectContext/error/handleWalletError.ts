@@ -1,16 +1,16 @@
 import { ErrorMsgMap } from '@/context/WalletConnectContext/error/error';
+import { parseWCMessage } from '@/utils/common';
 import { toast } from '@node-real/uikit';
-import { ConnectorNotFoundError } from 'wagmi';
 import * as Sentry from '@sentry/nextjs';
 import { disconnect } from '@wagmi/core';
-import { parseWCMessage } from '@/utils/common';
+import { ConnectorNotFoundError } from 'wagmi';
 
 export function handleWalletError(err: any, args: any, context: unknown) {
   let text = '';
+  const { connector } = args;
 
   switch (true) {
     case err instanceof ConnectorNotFoundError:
-      const { connector } = args;
       if (connector.id === 'metaMask') {
         text = `Metamask not installed. Please install and reconnect.`;
       } else if (connector.id === 'trust') {
@@ -30,11 +30,15 @@ export function handleWalletError(err: any, args: any, context: unknown) {
   });
 
   // Compatible the walletConnect cannot switch network
-  if (JSON.stringify(err).includes("Cannot set properties of undefined (setting 'defaultChain')") || JSON.stringify(err).includes("undefined has no properties")) {
+  if (
+    JSON.stringify(err).includes("Cannot set properties of undefined (setting 'defaultChain')") ||
+    JSON.stringify(err).includes('undefined has no properties')
+  ) {
     toast.error({
-      description: 'Sorry, it seems like we lost the connection of your wallet, please login again to continue.'
+      description:
+        'Sorry, it seems like we lost the connection of your wallet, please login again to continue.',
     });
-    return disconnect()
+    return disconnect();
   }
 
   toast.error({

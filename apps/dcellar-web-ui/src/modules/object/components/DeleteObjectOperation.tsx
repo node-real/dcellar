@@ -1,6 +1,14 @@
-import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
-import { useAccount } from 'wagmi';
-import React, { memo, useMemo, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { getClient } from '@/facade';
+import { resolve } from '@/facade/common';
+import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
+import { getListObjects } from '@/facade/object';
+import { getStoreFeeParams } from '@/facade/payment';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { useModalValues } from '@/hooks/useModalValues';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { TotalFees } from '@/modules/object/components/TotalFees';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_DELETE_ERROR,
@@ -9,39 +17,31 @@ import {
   FOLDER_TITLE_NOT_EMPTY,
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
-import { DCButton } from '@/components/common/DCButton';
-import { broadcastFault, E_USER_REJECT_STATUS_NUM } from '@/facade/error';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { TAccountInfo, selectAccount, setupAccountInfo } from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
+import { selectStoreFeeParams } from '@/store/slices/global';
 import {
+  TStatusDetail,
   addDeletedObject,
   setObjectList,
   setSelectedRowKeys,
   setStatusDetail,
-  TStatusDetail,
 } from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { useAsyncEffect } from 'ahooks';
-import { selectStoreFeeParams } from '@/store/slices/global';
-import { resolve } from '@/facade/common';
-import { getListObjects } from '@/facade/object';
-import { selectAccount, setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
-import { getStoreFeeParams } from '@/facade/payment';
+import { SpItem } from '@/store/slices/sp';
+import { displayTime } from '@/utils/common';
+import { reportEvent } from '@/utils/gtag';
+import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
-import { displayTime } from '@/utils/common';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { TBucket } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
-import { useModalValues } from '@/hooks/useModalValues';
-import { BN } from '@/utils/math';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { getClient } from '@/facade';
-import { signTypedDataCallback } from '@/facade/wallet';
-import { reportEvent } from '@/utils/gtag';
-import { Animates } from '@/components/AnimatePng';
-import { TotalFees } from '@/modules/object/components/TotalFees';
+import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
 import { without } from 'lodash-es';
+import { memo, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;

@@ -1,9 +1,9 @@
-import { CookiePolicy, TCookieOperate, TCookieType } from '../CookiePolicy';
-import { useRouter } from 'next/router';
-import React, { useCallback, useEffect, useState } from 'react';
 import { GA_ID } from '@/base/env';
-import { forbidGaReport, forbidStReport, startGaReport, startStReport } from './utils';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
+import { CookiePolicy, TCookieOperate, TCookieType } from '../CookiePolicy';
 import { GAShow } from '../common/GATracker';
+import { forbidGaReport, forbidStReport, startGaReport, startStReport } from './utils';
 
 const EXCLUDE_ROUTE_PATH_LIST = ['/terms'];
 const GA_STORAGE_KEY = 'gaTrackingAccept';

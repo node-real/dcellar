@@ -1,5 +1,5 @@
-import { useMediaQuery } from '@node-real/uikit';
 import { assetPrefix } from '@/base/env';
+import { useMediaQuery } from '@node-real/uikit';
 import { KeyFeaturesMobile } from './KeyFeaturesMobile';
 import { KeyFeaturesPC } from './KeyFeaturesPC';
 
@@ -35,7 +35,7 @@ export const keyFeatureList: TFeatureItem[] = [
     desc: 'Cross-chain assets management enables transfer of assets between BNB Greenfield and BNB Smart Chain (BSC).',
     introImg: `${assetPrefix}/images/welcome/cross-chain.png`,
     introImgSm: `${assetPrefix}/images/welcome/cross-chain_sm.png`,
-    gaClickName: 'dc_lp.homepage.key_f.assets.click'
+    gaClickName: 'dc_lp.homepage.key_f.assets.click',
   },
   {
     label: 'Accounts Management',
@@ -43,7 +43,7 @@ export const keyFeatureList: TFeatureItem[] = [
     desc: 'Users can create multiple payment accounts and have the permission to link buckets to different payment accounts to pay for storage and data package.',
     introImg: `${assetPrefix}/images/welcome/accounts_1.png`,
     introImgSm: `${assetPrefix}/images/welcome/accounts_sm1.png`,
-    gaClickName: 'dc_lp.homepage.key_f.accounts.click'
+    gaClickName: 'dc_lp.homepage.key_f.accounts.click',
   },
   {
     label: 'Data Dashboard',
@@ -52,7 +52,7 @@ export const keyFeatureList: TFeatureItem[] = [
     desc: 'Comprehensive data dashboard displays storage usage, cost usage, and other relevant metrics.',
     introImg: `${assetPrefix}/images/welcome/dashboard_new.png`,
     introImgSm: `${assetPrefix}/images/welcome/dashboard_sm_new.png`,
-    gaClickName: 'dc_lp.homepage.key_f.dashboard.click'
+    gaClickName: 'dc_lp.homepage.key_f.dashboard.click',
   },
 ];
 

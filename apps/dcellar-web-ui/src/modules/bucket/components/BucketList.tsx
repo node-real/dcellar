@@ -1,4 +1,14 @@
-import { memo, useCallback } from 'react';
+import { IconFont } from '@/components/IconFont';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { Loading } from '@/components/common/Loading';
+import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
+import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
+import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   BucketItem,
@@ -8,23 +18,13 @@ import {
   setBucketOperation,
   setCurrentBucketPage,
 } from '@/store/slices/bucket';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
-import { ColumnProps } from 'antd/es/table';
-import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
-import { formatTime, getMillisecond } from '@/utils/time';
-import { Flex, Text } from '@node-real/uikit';
-import { Loading } from '@/components/common/Loading';
-import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { NewBucket } from '@/modules/bucket/components/NewBucket';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
-import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';
+import { formatTime, getMillisecond } from '@/utils/time';
+import { Flex, Text } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
+import { memo, useCallback } from 'react';
 
 const Actions: MenuOption[] = [
   {
@@ -106,7 +106,7 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       align: 'center' as AlignType,
       title: <></>,
       render: (_: string, record: BucketItem) => {
-        const _actions = !!LIST_FOR_SELL_ENDPOINT
+        const _actions = LIST_FOR_SELL_ENDPOINT
           ? Actions
           : Actions.filter((a) => a.value !== 'marketplace');
         return (

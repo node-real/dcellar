@@ -1,11 +1,10 @@
 import { FormControl, FormErrorMessage, Input } from '@node-real/uikit';
-import React from 'react';
 
 type InputTagProps = {
   value: string;
   index: number;
   onChange: (type: string, value: string, index: number) => void;
-}
+};
 export default function InputTag({ value, index, onChange }: InputTagProps) {
   return (
     <FormControl w={172}>

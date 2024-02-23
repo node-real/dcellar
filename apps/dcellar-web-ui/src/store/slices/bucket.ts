@@ -1,18 +1,21 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch, AppState, GetState } from '@/store';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
-import { toast } from '@node-real/uikit';
-import { find, isEmpty, omit } from 'lodash-es';
-import { getPrimarySpInfo, setPrimarySpInfos, SpItem } from './sp';
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
-import { setAuthModalOpen } from '@/store/slices/global';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { toast } from '@node-real/uikit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { find, isEmpty, omit } from 'lodash-es';
+
+import { SpItem, getPrimarySpInfo, setPrimarySpInfos } from './sp';
+
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
+import { AppDispatch, AppState, GetState } from '@/store';
+import { setAuthModalOpen } from '@/store/slices/global';
+import { getSpOffChainData } from '@/store/slices/persist';
 import { convertObjectKey } from '@/utils/common';
 
-export type BucketOperationsType = 'detail'
+export type BucketOperationsType =
+  | 'detail'
   | 'delete'
   | 'create'
   | 'share'
@@ -143,12 +146,18 @@ export const bucketSlice = createSlice({
         { Tags: any }
       >['Tags'];
     },
-    setReadBucketPaymentAccount(state, { payload }: PayloadAction<{
-      bucketName: string; paymentAddress: string;
-    }>) {
+    setReadBucketPaymentAccount(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        bucketName: string;
+        paymentAddress: string;
+      }>,
+    ) {
       const { bucketName, paymentAddress } = payload;
       state.bucketInfo[bucketName]['PaymentAddress'] = paymentAddress;
-    }
+    },
   },
 });
 
@@ -174,43 +183,43 @@ export const setupBucket =
 
 export const setupBuckets =
   (address: string, forceLoading = false) =>
-    async (dispatch: AppDispatch, getState: GetState) => {
-      const { oneSp, spInfo, allSps } = getState().sp;
-      const { buckets, loading } = getState().bucket;
-      const sp = spInfo[oneSp];
-      if (loading) return;
-      if (!(address in buckets) || forceLoading) {
-        dispatch(setLoading(true));
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { oneSp, spInfo, allSps } = getState().sp;
+    const { buckets, loading } = getState().bucket;
+    const sp = spInfo[oneSp];
+    if (loading) return;
+    if (!(address in buckets) || forceLoading) {
+      dispatch(setLoading(true));
+    }
+    const [res, error] = await getUserBuckets(address, sp.endpoint);
+    dispatch(setLoading(false));
+    if (error || !res || res.code !== 0) {
+      if (!res?.message?.includes('record not found')) {
+        toast.error({ description: error || res?.message });
       }
-      const [res, error] = await getUserBuckets(address, sp.endpoint);
-      dispatch(setLoading(false));
-      if (error || !res || res.code !== 0) {
-        if (!res?.message?.includes('record not found')) {
-          toast.error({ description: error || res?.message });
-        }
-        if (!buckets[address]?.length) {
-          dispatch(setBucketList({ address, buckets: [] }));
-        }
-        return;
+      if (!buckets[address]?.length) {
+        dispatch(setBucketList({ address, buckets: [] }));
       }
-      const bucketList =
-        res.body?.map((bucket) => {
-          return {
-            ...bucket,
-            BucketInfo: {
-              ...bucket.BucketInfo,
-            },
-          };
-        }) || [];
+      return;
+    }
+    const bucketList =
+      res.body?.map((bucket) => {
+        return {
+          ...bucket,
+          BucketInfo: {
+            ...bucket.BucketInfo,
+          },
+        };
+      }) || [];
 
-      const bucketSpInfo = bucketList.map((b) => ({
-        bucketName: b.BucketInfo.BucketName,
-        sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
-      }));
+    const bucketSpInfo = bucketList.map((b) => ({
+      bucketName: b.BucketInfo.BucketName,
+      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
+    }));
 
-      dispatch(setPrimarySpInfos(bucketSpInfo));
-      dispatch(setBucketList({ address, buckets: bucketList }));
-    };
+    dispatch(setPrimarySpInfos(bucketSpInfo));
+    dispatch(setBucketList({ address, buckets: bucketList }));
+  };
 
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {

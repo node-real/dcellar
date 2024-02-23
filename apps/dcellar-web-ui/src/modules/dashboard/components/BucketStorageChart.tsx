@@ -1,18 +1,18 @@
-import { useMemo } from 'react';
-import { Card, CardTitle } from './Common';
 import { LineChart } from '@/components/charts/LineChart';
-import { formatChartTime, mergeArr } from '@/utils/dashboard';
-import { Box, Flex } from '@node-real/uikit';
 import { DCButton } from '@/components/common/DCButton';
-import { FilterBuckets } from './FilterBuckets';
+import { Loading } from '@/components/common/Loading';
 import { FilterContainer } from '@/modules/accounts/components/Common';
 import { useAppSelector } from '@/store';
-import { isEmpty } from 'lodash-es';
 import { selectFilterBuckets } from '@/store/slices/dashboard';
-import { getUtcDayjs } from '@/utils/time';
+import { formatChartTime, mergeArr } from '@/utils/dashboard';
 import { formatBytes } from '@/utils/formatter';
+import { getUtcDayjs } from '@/utils/time';
+import { Box, Flex } from '@node-real/uikit';
+import { isEmpty } from 'lodash-es';
+import { useMemo } from 'react';
 import { LABEL_STYLES, VALUE_STYLES } from '../constants';
-import { Loading } from '@/components/common/Loading';
+import { Card, CardTitle } from './Common';
+import { FilterBuckets } from './FilterBuckets';
 
 export const BucketStorageChart = () => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);

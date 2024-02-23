@@ -1,8 +1,37 @@
-import React, { memo, useCallback } from 'react';
+import { IconFont } from '@/components/IconFont';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { Loading } from '@/components/common/Loading';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { quotaRemains } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import {
+  E_GET_QUOTA_FAILED,
+  E_NO_QUOTA,
+  E_OBJECT_NAME_EXISTS,
+  E_OFF_CHAIN_AUTH,
+  E_UNKNOWN,
+} from '@/facade/error';
+import { downloadObject } from '@/facade/object';
+import { NewObject } from '@/modules/object/components/NewObject';
+import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
+import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
+import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
+import { OBJECT_SEALED_STATUS } from '@/modules/object/constant';
+import { StyledRow } from '@/modules/object/objects.style';
+import { contentTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount } from '@/store/slices/accounts';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { UploadFile, selectUploadQueue } from '@/store/slices/global';
 import {
   ObjectItem,
   ObjectOperationsType,
+  SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
   selectPathCurrent,
   selectPathLoading,
@@ -12,54 +41,25 @@ import {
   setSelectedRowKeys,
   setStatusDetail,
   setupListObjects,
-  SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
-import { find, uniq, without, xor } from 'lodash-es';
-import { ColumnProps } from 'antd/es/table';
 import {
-  getSpOffChainData,
   SorterType,
+  getSpOffChainData,
   updateObjectPageSize,
   updateObjectSorter,
 } from '@/store/slices/persist';
-import { AlignType, DCTable, SortIcon, SortItem, UploadStatus } from '@/components/common/DCTable';
-import { formatTime, getMillisecond } from '@/utils/time';
-import { Loading } from '@/components/common/Loading';
-import { useAsyncEffect, useUpdateEffect } from 'ahooks';
-import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
-import { ObjectNameColumn } from '@/modules/object/components/ObjectNameColumn';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { quotaRemains } from '@/facade/bucket';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import {
-  E_GET_QUOTA_FAILED,
-  E_NO_QUOTA,
-  E_OBJECT_NAME_EXISTS,
-  E_OFF_CHAIN_AUTH,
-  E_UNKNOWN,
-} from '@/facade/error';
-import { downloadObject } from '@/facade/object';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { OBJECT_SEALED_STATUS } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { StyledRow } from '@/modules/object/objects.style';
-import { selectUploadQueue, UploadFile } from '@/store/slices/global';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { selectAccount } from '@/store/slices/accounts';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { NewObject } from '@/modules/object/components/NewObject';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
-import { contentTypeToExtension } from '@/modules/object/utils';
-import { formatBytes } from '@/utils/formatter';
-import { INTERNAL_FOLDER_EXTENSION } from '@/modules/object/components/ObjectFilterItems';
-import dayjs from 'dayjs';
-import { Flex } from '@node-real/uikit';
-import { IconFont } from '@/components/IconFont';
 import { openLink } from '@/utils/bom';
-import { apolloUrlTemplate } from '@/utils/string';
+import { formatBytes } from '@/utils/formatter';
 import { pickAction, removeAction } from '@/utils/object';
+import { apolloUrlTemplate } from '@/utils/string';
+import { formatTime, getMillisecond } from '@/utils/time';
+import { Flex } from '@node-real/uikit';
+import { useAsyncEffect, useUpdateEffect } from 'ahooks';
+import { ColumnProps } from 'antd/es/table';
+import dayjs from 'dayjs';
+import { find, uniq, without, xor } from 'lodash-es';
+import { memo, useCallback } from 'react';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 // import { ManageObjectTagsDrawer } from './ManageObjectTagsDrawer';
 
 export type ObjectActionValueType =
@@ -246,7 +246,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         if (!quotaData) {
           return onError(E_GET_QUOTA_FAILED);
         }
-        let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+        const remainQuota = quotaRemains(quotaData, object.payloadSize + '');
         // update quota data.
         dispatch(setReadQuota({ bucketName, quota: quotaData }));
         if (!remainQuota) return onError(E_NO_QUOTA);
@@ -291,7 +291,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     switch (menu) {
       case 'detail':
       case 'delete':
-      case 'cancel':
+      case 'cancel': {
         const folder = record.objectName.endsWith('/');
         if (folder && menu === 'detail') {
           return dispatch(
@@ -303,6 +303,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         return dispatch(
           setObjectOperation({ operation: [`${record.bucketName}/${record.objectName}`, menu] }),
         );
+      }
       case 'download':
         return download(record);
       case 'share':
@@ -503,17 +504,17 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           filtered || shareMode
             ? 'No Results'
             : discontinue
-            ? 'Discontinue Notice'
-            : 'Upload Objects and Start Your Work Now'
+              ? 'Discontinue Notice'
+              : 'Upload Objects and Start Your Work Now'
         }
         desc={
           filtered || shareMode
             ? 'No results found. Please try different conditions.'
             : discontinue
-            ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
-            : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
-                SINGLE_OBJECT_MAX_SIZE,
-              )}.`
+              ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
+              : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
+                  SINGLE_OBJECT_MAX_SIZE,
+                )}.`
         }
         empty={empty}
       >

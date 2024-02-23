@@ -13,53 +13,58 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import BigNumber from 'bignumber.js';
+import { debounce, isEmpty } from 'lodash-es';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAccount } from 'wagmi';
-import { debounce, isEmpty } from 'lodash-es';
-import BigNumber from 'bignumber.js';
 
-import { Tips } from '@/components/common/Tips';
-import { MIN_AMOUNT } from '@/modules/wallet/constants';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { DCButton } from '@/components/common/DCButton';
-import { SPSelector } from './SPSelector';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { CreateBucketApprovalRequest, MsgCreateBucketTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
-import { ChainVisibilityEnum } from '@/modules/object/type';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { SpItem } from '@/store/slices/sp';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { useAsyncEffect, useUnmount } from 'ahooks';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
-import { selectAccount, setupAccountInfo, TAccount } from '@/store/slices/accounts';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
+import { Tips } from '@/components/common/Tips';
 import { QuotaItem } from '@/components/formitems/QuotaItem';
 import { G_BYTES } from '@/constants/legacy';
-import { getQuotaNetflowRate } from '@/utils/payment';
-import { TotalFees } from '@/modules/object/components/TotalFees';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import {
-  selectBucketList,
-  setBucketOperation,
-  setEditBucketTagsData,
-  setupBuckets,
-} from '@/store/slices/bucket';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import {
   getCreateBucketTx,
   getUpdateBucketTagsTx,
   pollingGetBucket,
   simulateCreateBucket,
 } from '@/facade/bucket';
-import { BN } from '@/utils/math';
-import { reportEvent } from '@/utils/gtag';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 import { broadcastMulTxs } from '@/facade/common';
+import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
+import { ChainVisibilityEnum } from '@/modules/object/type';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { MIN_AMOUNT } from '@/modules/wallet/constants';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { TAccount, selectAccount, setupAccountInfo } from '@/store/slices/accounts';
+import {
+  selectBucketList,
+  setBucketOperation,
+  setEditBucketTagsData,
+  setupBuckets,
+} from '@/store/slices/bucket';
+import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { SpItem } from '@/store/slices/sp';
+import { reportEvent } from '@/utils/gtag';
+import { BN } from '@/utils/math';
+import { getQuotaNetflowRate } from '@/utils/payment';
+import {
+  CreateBucketApprovalRequest,
+  MsgCreateBucketTypeUrl,
+  MsgSetTagTypeUrl,
+  TxResponse,
+} from '@bnb-chain/greenfield-js-sdk';
+import { useAsyncEffect, useUnmount } from 'ahooks';
+import { SPSelector } from './SPSelector';
 
 type ValidateNameAndGas = {
   isValidating: boolean;
@@ -129,19 +134,19 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateBucketTypeUrl] || {};
     const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
 
-    if (validTags.length ===  0) {
+    if (validTags.length === 0) {
       return createBucketGasFee || 0;
     }
 
-    return BN(createBucketGasFee || 0).plus(BN(setTagsGasFee || 0)).toNumber();
+    return BN(createBucketGasFee || 0)
+      .plus(BN(setTagsGasFee || 0))
+      .toNumber();
   }, [gasObjects, validTags.length]);
 
   const quotaFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
     const netflowRate = getQuotaNetflowRate(chargeQuota * G_BYTES, storeFeeParams);
-    return BN(netflowRate)
-      .times(storeFeeParams.reserveTime)
-      .toString();
+    return BN(netflowRate).times(storeFeeParams.reserveTime).toString();
   }, [storeFeeParams, chargeQuota]);
 
   const {
@@ -440,7 +445,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   );
 
   const onEditTags = () => {
-    dispatch(setBucketOperation({level: 1, operation: ['', 'edit_tags']}));
+    dispatch(setBucketOperation({ level: 1, operation: ['', 'edit_tags'] }));
   };
 
   useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
@@ -516,10 +521,9 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
                     />
                   </InputRightElement>
                 </InputGroup>
-                {/* @ts-ignore */}
-                {errors?.bucketName && Object.values(errors.bucketName.types).length > 0 && (
-                  // @ts-ignore
-                  <ErrorDisplay errorMsgs={Object.values(errors.bucketName.types)} />
+                {/* @ts-check-error Ignore */}
+                {errors?.bucketName && Object.values(errors.bucketName?.types || {}).length > 0 && (
+                  <ErrorDisplay errorMsgs={Object.values(errors.bucketName?.types || {})} />
                 )}
               </FormControl>
 

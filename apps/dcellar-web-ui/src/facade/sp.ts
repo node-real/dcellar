@@ -1,8 +1,8 @@
 import { resolve } from '@/facade/common';
 import { commonFault } from '@/facade/error';
-import axios from 'axios';
-import { SpMeta } from '@/store/slices/sp';
 import { getClient } from '@/facade/index';
+import { SpMeta } from '@/store/slices/sp';
+import axios from 'axios';
 
 export const getStorageProviders = async (network?: 'mainnet') => {
   const client = await getClient(network);

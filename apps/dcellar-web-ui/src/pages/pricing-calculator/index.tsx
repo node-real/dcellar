@@ -11,7 +11,7 @@ PriceCalculatorPage.getLayout = (page: ReactElement) => {
   return <LandingPage page={page} />;
 };
 
-PriceCalculatorPage.getInitialProps = wrapper.getInitialAppProps((store) => async (appCtx) => {
+PriceCalculatorPage.getInitialProps = wrapper.getInitialAppProps(() => async () => {
   return {
     pageProps: {},
   };

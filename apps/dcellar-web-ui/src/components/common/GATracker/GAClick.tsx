@@ -1,6 +1,6 @@
 import { mergeRefs } from '@node-real/uikit';
-import { useReportFuncRef } from './useReportFuncRef';
 import React, { useMemo } from 'react';
+import { useReportFuncRef } from './useReportFuncRef';
 
 export interface GAClickProps {
   name?: string;

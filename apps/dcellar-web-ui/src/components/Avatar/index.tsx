@@ -1,5 +1,5 @@
-import { memo } from 'react';
 import { IconFont } from '@/components/IconFont';
+import { memo } from 'react';
 
 export interface AvatarProps {
   id: string;

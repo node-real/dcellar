@@ -1,8 +1,8 @@
 import { ManageTags, getValidTags } from '@/components/common/ManageTags';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { useUnmount } from 'ahooks';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { setEditObjectTagsData } from '@/store/slices/object';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { useUnmount } from 'ahooks';
 
 export const EditObjectTagsOperation = ({ onClose }: { onClose: () => void }) => {
   const dispatch = useAppDispatch();

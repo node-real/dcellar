@@ -1,8 +1,9 @@
-import React from 'react';
-import { Card } from './Common';
 import { Box, Text, Tooltip } from '@node-real/uikit';
-import { DCButton } from '@/components/common/DCButton';
+
+import { Card } from './Common';
+
 import { assetPrefix } from '@/base/env';
+import { DCButton } from '@/components/common/DCButton';
 
 export const TellUsCard = () => {
   const onNavigateExternal = (url: string) => {

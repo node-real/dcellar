@@ -1,5 +1,4 @@
 import { Input, InputProps } from '@node-real/uikit';
-import React from 'react';
 
 type NumInputProps = InputProps & {
   value: string;
@@ -38,11 +37,11 @@ export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }:
           onChangeValue(value);
         } else if (type === 'float') {
           if (value.includes('.')) {
-            return onChangeValue(value.replace(/^00+/, '0')+'');
+            return onChangeValue(value.replace(/^00+/, '0') + '');
           }
-          onChangeValue(Number(value.replace(/^00+/, '0'))+'');
+          onChangeValue(Number(value.replace(/^00+/, '0')) + '');
         } else {
-          onChangeValue(Number(value.replace(/\D/g, '0'))+'');
+          onChangeValue(Number(value.replace(/\D/g, '0')) + '');
         }
       }}
     />

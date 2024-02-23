@@ -1,6 +1,6 @@
-import { chunk, reverse, sortBy } from 'lodash-es';
 import { SorterType } from '@/store/slices/persist';
 import { useCreation } from 'ahooks';
+import { chunk, reverse, sortBy } from 'lodash-es';
 
 type TableNavProps<T> = {
   list: Array<T>;

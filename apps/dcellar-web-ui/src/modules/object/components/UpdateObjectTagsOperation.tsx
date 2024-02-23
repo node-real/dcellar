@@ -1,18 +1,18 @@
-import { DEFAULT_TAG, ManageTags, getValidTags } from '@/components/common/ManageTags';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { useUnmount } from 'ahooks';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { BUTTON_GOT_IT } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { useStatusModal } from '@/hooks/useStatusModal';
-import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
 import { Animates } from '@/components/AnimatePng';
-import { toast } from '@node-real/uikit';
-import { setObjectTags, setEditObjectTagsData } from '@/store/slices/object';
+import { DEFAULT_TAG, ManageTags, getValidTags } from '@/components/common/ManageTags';
+import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { updateObjectTags } from '@/facade/object';
-import { useAccount } from 'wagmi';
+import { useStatusModal } from '@/hooks/useStatusModal';
+import { BUTTON_GOT_IT } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setEditObjectTagsData, setObjectTags } from '@/store/slices/object';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { toast } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
+import { useAccount } from 'wagmi';
 
 export const UpdateObjectTagsOperation = ({
   id,

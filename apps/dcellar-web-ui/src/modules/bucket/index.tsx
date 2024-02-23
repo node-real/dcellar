@@ -1,13 +1,12 @@
+import { runtimeEnv } from '@/base/env';
+import { BucketList } from '@/modules/bucket/components/BucketList';
 import { NewBucket } from '@/modules/bucket/components/NewBucket';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupBuckets } from '@/store/slices/bucket';
-import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
-import { BucketList } from '@/modules/bucket/components/BucketList';
-import Head from 'next/head';
-import React from 'react';
-import { Box, Flex } from '@node-real/uikit';
-import { runtimeEnv } from '@/base/env';
 import { networkTag } from '@/utils/common';
+import { Box, Flex } from '@node-real/uikit';
+import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
+import Head from 'next/head';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();

@@ -1,19 +1,19 @@
+import { Animates } from '@/components/AnimatePng';
 import { DEFAULT_TAG, ManageTags, getValidTags } from '@/components/common/ManageTags';
+import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { updateGroupTags } from '@/facade/group';
+import { useStatusModal } from '@/hooks/useStatusModal';
+import { BUTTON_GOT_IT } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditGroupTagsData, setGroupTags } from '@/store/slices/group';
-import { useUnmount } from 'ahooks';
 import {
   GroupInfo,
   ResourceTags_Tag,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { updateGroupTags } from '@/facade/group';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { BUTTON_GOT_IT } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { useStatusModal } from '@/hooks/useStatusModal';
-import { TAGS_UPDATED_SUCCESS, TAGS_UPDATE_FAILED, TAGS_UPDATING } from '@/constants/tags';
-import { Animates } from '@/components/AnimatePng';
 import { toast } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
 import { useAccount } from 'wagmi';
 
 export const UpdateGroupTagsOperation = ({

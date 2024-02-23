@@ -2,15 +2,15 @@ import { PropsWithChildren, useCallback, useEffect, useMemo, useRef } from 'reac
 
 import { LoginContext } from '@/context/LoginContext/index';
 
-import { useAccount, useDisconnect } from 'wagmi';
 import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
 import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
-import { useRouter } from 'next/router';
+import { ssrLandingRoutes } from '@/pages/_app';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
 import { checkSpOffChainMayExpired, setLogin, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect, useMount } from 'ahooks';
-import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
-import { ssrLandingRoutes } from '@/pages/_app';
+import { useRouter } from 'next/router';
+import { useAccount, useDisconnect } from 'wagmi';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button

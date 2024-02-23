@@ -1,58 +1,61 @@
+import { GROUP_ID } from '@/constants/legacy';
+import { quotaRemains } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
 import {
-  generateUrlByBucketName,
-  GRNToString,
-  IQuotaProps,
-  ISimulateGasFee,
-  ListObjectsByBucketNameRequest,
-  ListObjectsByBucketNameResponse,
-  newBucketGRN,
-  newObjectGRN,
-  PermissionTypes,
-  SpResponse,
-  TxResponse,
-} from '@bnb-chain/greenfield-js-sdk';
-import {
-  broadcastFault,
-  commonFault,
-  createTxFault,
-  E_NO_QUOTA,
   E_NOT_FOUND,
+  E_NO_QUOTA,
   E_OFF_CHAIN_AUTH,
   E_PERMISSION_DENIED,
   E_UNKNOWN,
   ErrorMsg,
   ErrorResponse,
+  broadcastFault,
+  commonFault,
+  createTxFault,
   queryLockFeeFault,
   simulateFault,
 } from '@/facade/error';
-import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
-import {
-  MsgPutPolicy,
-  MsgUpdateObjectInfo,
-} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { Connector } from 'wagmi';
+import { getClient } from '@/facade/index';
 import { signTypedDataCallback } from '@/facade/wallet';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { quotaRemains } from '@/facade/bucket';
-import { ObjectInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { encodeObjectName } from '@/utils/string';
-import axios from 'axios';
+import { batchDownload, directlyDownload } from '@/modules/object/utils';
+import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
 import { SpItem } from '@/store/slices/sp';
-import {
-  QueryHeadObjectResponse,
-  QueryLockFeeRequest,
-} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import { encodeObjectName } from '@/utils/string';
 import {
   ActionType,
   Principal,
   PrincipalType,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/permission/common';
-import { XMLParser } from 'fast-xml-parser';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import {
+  QueryHeadObjectResponse,
+  QueryLockFeeRequest,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import {
+  MsgPutPolicy,
+  MsgUpdateObjectInfo,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import {
+  ObjectInfo,
+  ResourceTags_Tag,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import {
+  GRNToString,
+  IQuotaProps,
+  ISimulateGasFee,
+  ListObjectsByBucketNameRequest,
+  ListObjectsByBucketNameResponse,
+  PermissionTypes,
+  SpResponse,
+  TxResponse,
+  generateUrlByBucketName,
+  newBucketGRN,
+  newObjectGRN,
+} from '@bnb-chain/greenfield-js-sdk';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { getClient } from '@/facade/index';
-import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
-import { batchDownload, directlyDownload } from '@/modules/object/utils';
-import { GROUP_ID } from '@/constants/legacy';
+import axios from 'axios';
+import { XMLParser } from 'fast-xml-parser';
+import { Connector } from 'wagmi';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -323,7 +326,7 @@ export const headObject = async (bucketName: string, objectName: string) => {
   const client = await getClient();
   const { objectInfo } = await client.object
     .headObject(bucketName, objectName)
-    .catch(() => ({} as QueryHeadObjectResponse));
+    .catch(() => ({}) as QueryHeadObjectResponse);
   return objectInfo || null;
 };
 
@@ -385,7 +388,7 @@ export const deleteObjectPolicy = async (
   );
 
   for (const [opt, error] of tasks) {
-    if (!!error) return [null, error];
+    if (error) return [null, error];
   }
 
   const _tasks = tasks.map((task) => task[0] as TxResponse);
@@ -424,7 +427,7 @@ export const putObjectPolicies = async (
   );
 
   for (const [opt, error] of opts) {
-    if (!!error) return [null, error];
+    if (error) return [null, error];
   }
 
   const _opts = opts.map((opt) => opt[0] as TxResponse);
@@ -488,7 +491,7 @@ export const putBucketPolicies = async (
   );
 
   for (const [opt, error] of opts) {
-    if (!!error) return [null, error];
+    if (error) return [null, error];
   }
 
   const _opts = opts.map((opt) => opt[0] as TxResponse);
@@ -534,7 +537,7 @@ export const putBucketPolicies = async (
   );
 
   for (const [opt3, error3] of deleteTasks) {
-    if (!!error3) return [null, error3];
+    if (error3) return [null, error3];
   }
 
   const _tasks = deleteTasks.map((task) => task[0] as TxResponse);
@@ -581,9 +584,7 @@ export const legacyGetObjectMeta = async (
   objectName: string,
   endpoint: string,
 ) => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
-    objectName,
-  )}?object-meta`;
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(objectName)}?object-meta`;
 
   const errorHandle = async () => {
     return axios.get(url).catch(() => {
@@ -611,9 +612,7 @@ export const getObjectMeta = async (
   objectName: string,
   endpoint: string,
 ): Promise<[ObjectMeta, null] | [null, { code: number; message: string }]> => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
-    objectName,
-  )}?object-meta`;
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(objectName)}?object-meta`;
 
   return axios.get(url).then(
     (e) => {
@@ -637,22 +636,29 @@ export type UpdateObjectTagsParams = {
   address: string;
   bucketName: string;
   objectName: string;
-  tags: ResourceTags_Tag[]
-}
+  tags: ResourceTags_Tag[];
+};
 
-export const getUpdateObjectTagsTx = async ({ address, bucketName, objectName, tags }: UpdateObjectTagsParams): Promise<[TxResponse, null] | ErrorResponse > => {
+export const getUpdateObjectTagsTx = async ({
+  address,
+  bucketName,
+  objectName,
+  tags,
+}: UpdateObjectTagsParams): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const resource = GRNToString(newObjectGRN(bucketName, objectName));
-  const [tx, error1] = await client.storage.setTag({
-    operator: address,
-    resource,
-    tags: {
-      tags: tags
-    }
-  }).then(resolve, createTxFault);
+  const [tx, error1] = await client.storage
+    .setTag({
+      operator: address,
+      resource,
+      tags: {
+        tags: tags,
+      },
+    })
+    .then(resolve, createTxFault);
   if (!tx) return [null, error1];
 
-  return [tx, error1]
+  return [tx, error1];
 };
 
 export const updateObjectTags = async (params: UpdateObjectTagsParams, connector: Connector) => {
@@ -672,4 +678,4 @@ export const updateObjectTags = async (params: UpdateObjectTagsParams, connector
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
-}
+};

@@ -1,16 +1,16 @@
-import React, { memo, ReactElement, useState } from 'react';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
-import { Text } from '@node-real/uikit';
-import { smMedia } from '@/modules/responsive';
-import { useRouter } from 'next/router';
-import { useAccount, useDisconnect } from 'wagmi';
-import { ssrLandingRoutes } from '@/pages/_app';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
-import { useAsyncEffect } from 'ahooks';
-import { useAppDispatch } from '@/store';
-import { useModal } from '@node-real/walletkit';
 import { InternalRoutePaths } from '@/constants/paths';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { smMedia } from '@/modules/responsive';
+import { ssrLandingRoutes } from '@/pages/_app';
+import { useAppDispatch } from '@/store';
+import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
+import { Text } from '@node-real/uikit';
+import { useModal } from '@node-real/walletkit';
+import { useAsyncEffect } from 'ahooks';
+import { useRouter } from 'next/router';
+import { ReactElement, memo, useState } from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
 
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
@@ -32,7 +32,7 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
 
   const redirect = () => {
     router.push(
-      !!router.query.originAsPath
+      router.query.originAsPath
         ? decodeURIComponent(router.query.originAsPath as string)
         : InternalRoutePaths.dashboard,
     );

@@ -1,6 +1,6 @@
 import { WorkerApi } from '@/modules/checksum/checksumWorkerV2';
-import * as Comlink from 'comlink';
 import { useMount } from 'ahooks';
+import * as Comlink from 'comlink';
 
 const getChecksumApi = () => {
   const worker = new Worker(new URL('@/modules/checksum/checksumWorkerV2.ts', import.meta.url), {

@@ -14,10 +14,7 @@ const {
   NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_ID,
   NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_RPC_URL,
 } = publicRuntimeConfig || {};
-const {
-  NEXT_PRIVATE_BILLING_API_URL,
-  NEXT_PRIVATE_EXPLORER_API_URL,
-} = serverRuntimeConfig || {};
+const { NEXT_PRIVATE_BILLING_API_URL, NEXT_PRIVATE_EXPLORER_API_URL } = serverRuntimeConfig || {};
 
 export type TRuntimeEnv = 'development' | 'qa' | 'testnet' | 'mainnet';
 

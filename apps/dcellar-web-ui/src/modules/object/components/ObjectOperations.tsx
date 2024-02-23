@@ -1,33 +1,33 @@
-import { memo, useCallback, useEffect, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { DCDrawer } from '@/components/common/DCDrawer';
+import { DCModal } from '@/components/common/DCModal';
+import { Loading } from '@/components/common/Loading';
 import { useModalValues } from '@/hooks/useModalValues';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDeleteObjectOperation';
+import { CancelObjectOperation } from '@/modules/object/components/CancelObjectOperation';
+import { CreateFolderOperation } from '@/modules/object/components/CreateFolderOperation';
+import { DeleteObjectOperation } from '@/modules/object/components/DeleteObjectOperation';
+import { DetailFolderOperation } from '@/modules/object/components/DetailFolderOperation';
+import { DetailObjectOperation } from '@/modules/object/components/DetailObjectOperation';
+import { DownloadObjectOperation } from '@/modules/object/components/DownloadObjectOperation';
+import { ShareOperation } from '@/modules/object/components/ShareOperation';
+import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount } from '@/store/slices/accounts';
 import {
   ObjectOperationsType,
+  TEditUploadContent,
   setObjectOperation,
   setupDummyFolder,
   setupListObjects,
-  TEditUploadContent,
 } from '@/store/slices/object';
-import { DCDrawer } from '@/components/common/DCDrawer';
-import { DCModal } from '@/components/common/DCModal';
-import { selectAccount } from '@/store/slices/accounts';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { get, isEmpty } from 'lodash-es';
-import { Loading } from '@/components/common/Loading';
-import { DetailObjectOperation } from '@/modules/object/components/DetailObjectOperation';
-import { DeleteObjectOperation } from '@/modules/object/components/DeleteObjectOperation';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { ModalCloseButton } from '@node-real/uikit';
-import { CancelObjectOperation } from '@/modules/object/components/CancelObjectOperation';
-import { CreateFolderOperation } from '@/modules/object/components/CreateFolderOperation';
-import { DownloadObjectOperation } from '@/modules/object/components/DownloadObjectOperation';
-import { ShareOperation } from '@/modules/object/components/ShareOperation';
-import { BatchDeleteObjectOperation } from '@/modules/object/components/BatchDeleteObjectOperation';
-import { UploadObjectsOperation } from '@/modules/upload/UploadObjectsOperation';
 import { useUnmount } from 'ahooks';
-import { DetailFolderOperation } from '@/modules/object/components/DetailFolderOperation';
-import { UpdateObjectTagsOperation } from './UpdateObjectTagsOperation';
+import { get, isEmpty } from 'lodash-es';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { EditObjectTagsOperation } from './EditObjectTagsOperation';
+import { UpdateObjectTagsOperation } from './UpdateObjectTagsOperation';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
@@ -152,7 +152,7 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
             onClose={onClose}
           />
         );
-      case 'download':
+      case 'download': {
         if (isEmpty(_selectObjectInfo) && isEmpty(params)) return <Loading />;
         const ObjectInfo = get(_selectObjectInfo, 'ObjectInfo');
 
@@ -165,6 +165,7 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
             actionParams={params}
           />
         );
+      }
       case 'share':
         if (isEmpty(_selectObjectInfo) && !objectName.endsWith('/')) return <Loading />;
         return (

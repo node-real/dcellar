@@ -1,20 +1,20 @@
-import React, { memo, useMemo } from 'react';
-import { CardContainer, CardCost, CardTitle } from './Common';
-import { Box, Flex, Text } from '@node-real/uikit';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { PieChart } from '@/components/charts/PieChart';
-import { cssVar, scrollToId } from '@/utils/common';
-import { useAppSelector } from '@/store';
-import { selectAllCost } from '@/store/slices/billing';
-import { BN } from '@/utils/math';
-import { TAccountInfo } from '@/store/slices/accounts';
-import { formatObjectAddress } from '@/utils/accounts';
-import { xlMedia } from '@/modules/welcome';
 import { IconFont } from '@/components/IconFont';
-import { BillingHistoryQuery } from '..';
+import { PieChart } from '@/components/charts/PieChart';
 import { InternalRoutePaths } from '@/constants/paths';
-import { stringify } from 'querystring';
+import { xlMedia } from '@/modules/welcome';
+import { useAppSelector } from '@/store';
+import { TAccountInfo } from '@/store/slices/accounts';
+import { selectAllCost } from '@/store/slices/billing';
+import { formatObjectAddress } from '@/utils/accounts';
+import { cssVar, scrollToId } from '@/utils/common';
+import { BN } from '@/utils/math';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { useRouter } from 'next/router';
+import { stringify } from 'querystring';
+import { memo, useMemo } from 'react';
+import { BillingHistoryQuery } from '..';
+import { CardContainer, CardCost, CardTitle } from './Common';
 
 const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
@@ -27,7 +27,7 @@ export const TotalCost = memo(function TotalCost() {
   const pieData = useMemo(() => {
     // TODO use date to judge loading
     if (loadingAllCost || loadingAllCostTrend || isLoadingPaymentAccounts) return;
-    const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo)
+    const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo);
     const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });
@@ -54,16 +54,22 @@ export const TotalCost = memo(function TotalCost() {
     }
     others.addresses.length > 0 && newData.push(others);
     return newData;
-  }, [accountInfo, isLoadingPaymentAccounts, loadingAllCost, loadingAllCostTrend, totalCost.detailCosts]);
+  }, [
+    accountInfo,
+    isLoadingPaymentAccounts,
+    loadingAllCost,
+    loadingAllCostTrend,
+    totalCost.detailCosts,
+  ]);
   const onBillingHistory = () => {
     const curQuery: BillingHistoryQuery = {
       page: 1,
       tab: 'b',
-    }
+    };
     const url = `${InternalRoutePaths.accounts}?${stringify(curQuery)}`;
     router.push(url, undefined, { scroll: false });
     scrollToId('tab_container', 24);
-  }
+  };
   const chartOptions = useMemo(() => {
     const legendNames = (pieData || []).map((item) => ({
       name: item.name,
@@ -108,11 +114,14 @@ export const TotalCost = memo(function TotalCost() {
   }, [pieData]);
 
   return (
-    <CardContainer flex={1} sx={{
-      [xlMedia]: {
-        maxW: 342
-      }
-    }}>
+    <CardContainer
+      flex={1}
+      sx={{
+        [xlMedia]: {
+          maxW: 342,
+        },
+      }}
+    >
       <CardTitle mb={16}>Total Cost</CardTitle>
       <Flex gap={8} mb={8}>
         <CardCost>{totalCost.totalCost}</CardCost>
@@ -127,7 +136,9 @@ export const TotalCost = memo(function TotalCost() {
           justifyContent={'flex-end'}
           gap={4}
           cursor={'pointer'}
-          onClick={() => {onBillingHistory()}}
+          onClick={() => {
+            onBillingHistory();
+          }}
         >
           <Text fontWeight={500}>View Detail</Text>
           <IconFont type="forward" />
@@ -158,4 +169,4 @@ function getStyles(color: string) {
       font-weight: 500;
     `,
   };
-};
+}

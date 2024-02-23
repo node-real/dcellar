@@ -1,15 +1,16 @@
 import { Flex, Text, toast } from '@node-real/uikit';
-import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { useMount } from 'ahooks';
+import NextLink from 'next/link';
+import { memo, useEffect, useState } from 'react';
+
+import { GAClick, GAShow } from '@/components/common/GATracker';
+import { InternalRoutePaths } from '@/constants/paths';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import React, { memo, useEffect, useState } from 'react';
-import { GAClick, GAShow } from '@/components/common/GATracker';
-import { useMount } from 'ahooks';
-import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
-import NextLink from 'next/link';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   // loading status
@@ -135,10 +136,7 @@ const contentIconTypeToExtension = (fileName: string) => {
 
 const renderBalanceNumber = (availableBalance: string) => {
   if (Number(availableBalance) < 0) return 'Fetching balance...';
-  return `${getNumInDigits(
-    availableBalance,
-    CRYPTOCURRENCY_DISPLAY_PRECISION,
-  )} ${displayTokenSymbol()}`;
+  return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
 };
 
 // bankBalance + gasFee, 校验余额够不够，
@@ -377,15 +375,15 @@ const renderPaymentInsufficientBalance = ({
   );
 };
 export {
-  renderFeeValue,
-  renderUsd,
-  renderBnb,
-  contentTypeToExtension,
   contentIconTypeToExtension,
-  renderBalanceNumber,
-  renderInsufficientBalance,
+  contentTypeToExtension,
   directlyDownload,
+  renderBalanceNumber,
+  renderBnb,
+  renderFeeValue,
+  renderInsufficientBalance,
   renderPaymentInsufficientBalance,
+  renderUsd,
 };
 
 export const ActionTypeValue: Record<string, number> = {

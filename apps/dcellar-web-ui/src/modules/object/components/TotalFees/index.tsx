@@ -1,15 +1,15 @@
-import { memo } from 'react';
-import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
+import { IconFont } from '@/components/IconFont';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
+import { TAccount, selectAvailableBalance, selectPaymentAccounts } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
-import { selectAvailableBalance, selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
+import { find } from 'lodash-es';
+import { memo } from 'react';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
-import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
-import { IconFont } from '@/components/IconFont';
-import { find } from 'lodash-es';
-import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 
 interface TotalFeesProps {
   gasFee: string | number;

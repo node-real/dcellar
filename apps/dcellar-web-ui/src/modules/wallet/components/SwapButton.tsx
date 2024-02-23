@@ -1,10 +1,10 @@
 import { Flex, FlexProps } from '@node-real/uikit';
-import { memo } from 'react';
+import { MouseEventHandler, memo } from 'react';
 
 import { IconFont } from '@/components/IconFont';
 
 type SwapIconProps = FlexProps & {
-  onClick: React.MouseEventHandler<HTMLDivElement>;
+  onClick: MouseEventHandler<HTMLDivElement>;
 };
 
 export const SwapIcon = memo<SwapIconProps>(function SwapIcon({ onClick, ...props }) {

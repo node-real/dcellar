@@ -1,21 +1,28 @@
+import { useAsyncEffect } from 'ahooks';
+import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNetwork, usePublicClient, useWalletClient } from 'wagmi';
-import BigNumber from 'bignumber.js';
 
-import { CROSS_CHAIN_ABI, DefaultTransferFee, MIN_AMOUNT, TOKENHUB_ABI, WalletOperationInfos } from './constants';
+import {
+  CROSS_CHAIN_ABI,
+  DefaultTransferFee,
+  MIN_AMOUNT,
+  TOKENHUB_ABI,
+  WalletOperationInfos,
+} from './constants';
 import { EOperation, TFeeData } from './type';
-import { getRelayFeeBySimulate } from './utils/simulate';
-import { isRightChain } from './utils/isRightChain';
+import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
 import { genSendTx } from './utils/genSendTx';
 import { genTransferOutTx } from './utils/genTransferOutTx';
-import { useAppSelector } from '@/store';
-import { getClient } from '@/facade';
-import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
+import { isRightChain } from './utils/isRightChain';
+import { getRelayFeeBySimulate } from './utils/simulate';
+
 import { BSC_CHAIN_ID } from '@/base/env';
-import { calTransferInFee } from '@/facade/wallet';
-import { useAsyncEffect } from 'ahooks';
+import { getClient } from '@/facade';
 import { ErrorResponse } from '@/facade/error';
+import { calTransferInFee } from '@/facade/wallet';
+import { useAppSelector } from '@/store';
 
 export const useGetFeeConfig = () => {
   const { transType } = useAppSelector((root) => root.wallet);
@@ -62,9 +69,9 @@ export const useTransferOutFee = () => {
 
       const relayFee = relayFeeInfo.params
         ? getRelayFeeBySimulate(
-          relayFeeInfo.params.bscTransferOutAckRelayerFee,
-          relayFeeInfo.params.bscTransferOutRelayerFee,
-        )
+            relayFeeInfo.params.bscTransferOutAckRelayerFee,
+            relayFeeInfo.params.bscTransferOutRelayerFee,
+          )
         : '0';
 
       const newData = {
@@ -153,7 +160,10 @@ export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
 
 export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
   const { data: walletClient } = useWalletClient({ chainId });
-  return useMemo(() => (walletClient ? walletClientToSigner(walletClient) : undefined), [walletClient]);
+  return useMemo(
+    () => (walletClient ? walletClientToSigner(walletClient) : undefined),
+    [walletClient],
+  );
 }
 
 export const useTransferInFee = () => {
@@ -181,14 +191,10 @@ export const useTransferInFee = () => {
         crossChainAbi: CROSS_CHAIN_ABI,
         tokenHubAbi: TOKENHUB_ABI,
       };
-      const [data, error] = await calTransferInFee(
-        params,
-        signer,
-        provider,
-      );
+      const [data, error] = await calTransferInFee(params, signer, provider);
       setIsGasLoading(false);
       if (!data) {
-        return [null, error]
+        return [null, error];
       }
 
       setFeeData(data);
@@ -204,8 +210,8 @@ export const useTransferInFee = () => {
   );
 
   useAsyncEffect(async () => {
-    await getFee(MIN_AMOUNT)
-  }, [getFee])
+    await getFee(MIN_AMOUNT);
+  }, [getFee]);
 
   return {
     feeData,
@@ -217,5 +223,5 @@ export const useTransferInFee = () => {
     tokenHubAbi: TOKENHUB_ABI,
     loginAccount,
     getFee,
-  }
-}
+  };
+};

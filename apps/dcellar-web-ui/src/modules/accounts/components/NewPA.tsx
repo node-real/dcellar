@@ -1,19 +1,19 @@
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
+import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { InternalRoutePaths } from '@/constants/paths';
 import { createPaymentAccount } from '@/facade/account';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { MsgCreatePaymentAccountTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
-import React, { memo, useState } from 'react';
+import { memo, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { InternalRoutePaths } from '@/constants/paths';
-import { Animates } from '@/components/AnimatePng';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
-import { MsgCreatePaymentAccountTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 
 interface NewPAProps {}
 

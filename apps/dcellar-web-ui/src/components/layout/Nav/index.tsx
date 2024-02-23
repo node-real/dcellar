@@ -1,16 +1,16 @@
-import { Box, Text } from '@node-real/uikit';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
+import styled from '@emotion/styled';
+import { Box, Text } from '@node-real/uikit';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { memo } from 'react';
 
 const MENU_ITEMS = [
   {
     icon: 'dashboard-menu',
     text: 'Dashboard',
-    trackId: 'dc.main.nav.dashboard.click'
+    trackId: 'dc.main.nav.dashboard.click',
   },
   {
     icon: 'bucket',

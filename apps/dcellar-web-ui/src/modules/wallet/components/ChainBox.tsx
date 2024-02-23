@@ -1,7 +1,8 @@
 import { Box, Flex, FormLabel, Text } from '@node-real/uikit';
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 import { ChainInfos } from '../constants';
+
 import { IconFont } from '@/components/IconFont';
 import { isGNFDTestnet } from '@/utils/wallet';
 

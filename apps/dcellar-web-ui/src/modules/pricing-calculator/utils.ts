@@ -1,5 +1,3 @@
-import object from "@/store/slices/object";
-
 export type TSize = 'MB' | 'GB' | 'TB';
 export type TTime = 'd' | 'm' | 'y';
 export const Sizes = {
@@ -18,7 +16,7 @@ export type TTimeOption = {
   unit: string;
   title: string;
   gaClickName?: string;
-}
+};
 export const TimeOptions: TTimeOption[] = [
   {
     value: '6',
@@ -40,15 +38,15 @@ export const TimeOptions: TTimeOption[] = [
     unit: 'd',
     title: 'Custom',
     gaClickName: 'dc_lp.calculator.time.custom.click',
-  }
+  },
 ];
 
-export const TimeUnits: {[key: string]: string}= {
-  'd': 'Day',
-  'm': 'Month',
-  'y': 'Year'
-}
+export const TimeUnits: { [key: string]: string } = {
+  d: 'Day',
+  m: 'Month',
+  y: 'Year',
+};
 
-export const swapObj = (obj: {[key: string]: string}) => {
-  return Object.fromEntries(Object.entries(obj).map(a => a.reverse()))
-}
+export const swapObj = (obj: { [key: string]: string }) => {
+  return Object.fromEntries(Object.entries(obj).map((a) => a.reverse()));
+};

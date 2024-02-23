@@ -1,9 +1,7 @@
-import { ModalProps } from '@node-real/uikit';
-import React from 'react';
-import { Modal } from '@node-real/uikit';
-import { useLockBodyScroll } from 'react-use';
 import { GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/gtag';
+import { Modal, ModalProps } from '@node-real/uikit';
+import { useLockBodyScroll } from 'react-use';
 
 export interface DCModalProps extends ModalProps {
   gaShowName?: string;

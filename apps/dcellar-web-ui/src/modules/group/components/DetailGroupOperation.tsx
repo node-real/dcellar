@@ -1,18 +1,18 @@
-import { memo } from 'react';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Avatar } from '@/components/Avatar';
+import { IconFont } from '@/components/IconFont';
+import { CopyText } from '@/components/common/CopyText';
+import { DCButton } from '@/components/common/DCButton';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { useAsyncEffect, useUnmount } from 'ahooks';
-import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
 import styled from '@emotion/styled';
-import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { CopyText } from '@/components/common/CopyText';
+import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
+import { useAsyncEffect, useUnmount } from 'ahooks';
 import { ethers } from 'ethers';
-import { Avatar } from '@/components/Avatar';
-import { IconFont } from '@/components/IconFont';
-import { DCButton } from '@/components/common/DCButton';
-import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { memo } from 'react';
 
 interface DetailGroupOperationProps {
   selectGroup: GroupInfo;
@@ -41,7 +41,7 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
   const onEditTag = () => {
     dispatch(setEditGroupTagsData(selectGroup?.tags?.tags ?? [DEFAULT_TAG]));
     dispatch(setGroupOperation({ level: 1, operation: [selectGroup.id, 'update_tags'] }));
-  }
+  };
 
   useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));
 
@@ -114,7 +114,13 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
             alignItems={'center'}
           >
             <Text color={'#76808F'}>Tags</Text>
-            <Flex alignItems={'center'} gap={4} color={'brand.brand6'} cursor={'pointer'} onClick={onEditTag}>
+            <Flex
+              alignItems={'center'}
+              gap={4}
+              color={'brand.brand6'}
+              cursor={'pointer'}
+              onClick={onEditTag}
+            >
               <IconFont type="pen" />
               {selectGroup?.tags?.tags?.length || 0} tags
             </Flex>

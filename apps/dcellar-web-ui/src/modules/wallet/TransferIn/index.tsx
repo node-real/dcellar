@@ -1,29 +1,29 @@
 import { Box, Divider, Flex, useDisclosure } from '@node-real/uikit';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { ethers } from 'ethers';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import { ChainBox } from '../components/ChainBox';
 import Amount from '../components/Amount';
-import { Head } from '../components/Head';
-import { SwapButton } from '../components/SwapButton';
-import { StatusModal } from '../components/StatusModal';
+import { ChainBox } from '../components/ChainBox';
 import Container from '../components/Container';
-import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
-import { WalletButton } from '../components/WalletButton';
-import { Fee } from '../components/Fee';
-import { TTransferInFromValues } from '../type';
-import { GAClick } from '@/components/common/GATracker';
-import { useAppSelector } from '@/store';
-import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { InternalRoutePaths } from '@/constants/paths';
-import { removeTrailingSlash } from '@/utils/string';
-import { broadcastFault } from '@/facade/error';
 import { Faucet } from '../components/Faucet';
+import { Fee } from '../components/Fee';
+import { Head } from '../components/Head';
 import { LargeAmountTip } from '../components/LargeAmountTip';
+import { StatusModal } from '../components/StatusModal';
+import { SwapButton } from '../components/SwapButton';
+import { WalletButton } from '../components/WalletButton';
 import { useTransferInFee } from '../hooks';
+import { TTransferInFromValues } from '../type';
+
+import { BSC_CHAIN_ID, BSC_EXPLORER_URL, GREENFIELD_CHAIN_ID } from '@/base/env';
+import { GAClick } from '@/components/common/GATracker';
+import { InternalRoutePaths } from '@/constants/paths';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { broadcastFault } from '@/facade/error';
+import { removeTrailingSlash } from '@/utils/string';
 
 interface TransferInProps {}
 export const TransferIn = memo<TransferInProps>(function TransferIn() {

@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
 import Head from 'next/head';
-import { Wallet } from '@/modules/wallet';
 import { useRouter } from 'next/router';
-import { useAppDispatch } from '@/store';
-import { EOperation } from '@/modules/wallet/type';
-import { isTrans, setFrom, setSendAmount, setTo, setTransType } from '@/store/slices/wallet';
+import { useEffect } from 'react';
+
 import { runtimeEnv } from '@/base/env';
+import { Wallet } from '@/modules/wallet';
+import { EOperation } from '@/modules/wallet/type';
+import { useAppDispatch } from '@/store';
+import { isTrans, setFrom, setSendAmount, setTo, setTransType } from '@/store/slices/wallet';
 import { networkTag } from '@/utils/common';
 
 const WalletPage = () => {

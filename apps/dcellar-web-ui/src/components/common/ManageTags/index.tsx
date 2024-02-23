@@ -1,19 +1,19 @@
 import { IconFont } from '@/components/IconFont';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   Box,
+  ButtonProps,
   Flex,
-  Text,
   FormControl,
   FormErrorMessage,
   Input,
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
-  ButtonProps,
+  Text,
 } from '@node-real/uikit';
-import { DCButton } from '../DCButton';
 import { useState } from 'react';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { DCButton } from '../DCButton';
 
 export const DEFAULT_TAG = {
   key: '',
@@ -75,7 +75,7 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
                   <Input
                     value={item.key}
                     onChange={(e) => onInputChange('key', e.target.value, index)}
-                    placeholder='Key'
+                    placeholder="Key"
                   />
                   {isInvalid('key', item.key) && (
                     <FormErrorMessage>{isInvalid('key', item.key)}</FormErrorMessage>
@@ -89,7 +89,7 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
                   <Input
                     value={item.value}
                     onChange={(e) => onInputChange('value', e.target.value, index)}
-                    placeholder='Value'
+                    placeholder="Value"
                   />
                   {isInvalid('value', item.value) && (
                     <FormErrorMessage>{isInvalid('value', item.value)}</FormErrorMessage>
@@ -105,11 +105,7 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
         <DCButton variant="ghost" w={'100%'} onClick={onCancel}>
           Cancel
         </DCButton>
-        <DCButton
-          variant="brand"
-          w={'100%'}
-          onClick={() => onSave(internalTags)}
-        >
+        <DCButton variant="brand" w={'100%'} onClick={() => onSave(internalTags)}>
           Save
         </DCButton>
       </QDrawerFooter>
@@ -123,7 +119,12 @@ export type EditTagsProps = {
   containerStyle?: ButtonProps;
   disabled?: false;
 };
-export const EditTags = ({ tagsData, onClick, disabled = false, containerStyle = {} }: EditTagsProps) => {
+export const EditTags = ({
+  tagsData,
+  onClick,
+  disabled = false,
+  containerStyle = {},
+}: EditTagsProps) => {
   const validTags = tagsData.filter((item) => item.key && item.value);
   const TagContent = () => {
     if (validTags && validTags.length > 0) {

@@ -1,7 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAccount } from 'wagmi';
-import { useForm } from 'react-hook-form';
-import { debounce, isEmpty } from 'lodash-es';
+import styled from '@emotion/styled';
 import {
   Box,
   Divider,
@@ -14,18 +11,36 @@ import {
   toast,
   useDisclosure,
 } from '@node-real/uikit';
+import { useMount, useTimeout } from 'ahooks';
+import { isAddress } from 'ethers/lib/utils.js';
+import { debounce, isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAccount } from 'wagmi';
 
 import Amount from '../components/Amount';
-import { Head } from '../components/Head';
 import Container from '../components/Container';
-import { WalletButton } from '../components/WalletButton';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { StatusModal } from '../components/StatusModal';
-import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
-import { TWalletFromValues } from '../type';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { FromAccountSelector } from '../components/FromAccountSelector';
+import { Head } from '../components/Head';
+import { StatusModal } from '../components/StatusModal';
+import { ToAccountSelector } from '../components/ToAccountSelector';
+import { WalletButton } from '../components/WalletButton';
+import { useSendFee } from '../hooks';
+import { TWalletFromValues } from '../type';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Loading as PageLoading } from '@/components/common/Loading';
+import { Tips } from '@/components/common/Tips';
+import { InternalRoutePaths } from '@/constants/paths';
+import {
+  depositToPaymentAccount,
+  sendToOwnerAccount,
+  withdrawFromPaymentAccount,
+} from '@/facade/account';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   TAccount,
   selectPaymentAccounts,
@@ -35,24 +50,10 @@ import {
   setupOwnerAccount,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
-import { ToAccountSelector } from '../components/ToAccountSelector';
-import {
-  depositToPaymentAccount,
-  sendToOwnerAccount,
-  withdrawFromPaymentAccount,
-} from '@/facade/account';
-import { isAddress } from 'ethers/lib/utils.js';
-import { Tips } from '@/components/common/Tips';
+import { selectBnbPrice } from '@/store/slices/global';
 import { setFromAccount, setToAccount } from '@/store/slices/wallet';
 import { renderFee } from '@/utils/common';
-import { selectBnbPrice } from '@/store/slices/global';
-import { useRouter } from 'next/router';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { removeTrailingSlash } from '@/utils/string';
-import { InternalRoutePaths } from '@/constants/paths';
-import styled from '@emotion/styled';
-import { Loading as PageLoading } from '@/components/common/Loading';
-import { useMount, useTimeout } from 'ahooks';
 
 export type TxType =
   | 'withdraw_from_payment_account'
@@ -132,7 +133,15 @@ export const Send = memo<SendProps>(function Send() {
     const initialToAccount = to && allList.find((item) => item.address === to);
     dispatch(setToAccount(initialToAccount || paymentAccounts[0]));
     initFormRef.current = true;
-  }, [paymentAccounts, paymentAccountsInitialize, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
+  }, [
+    paymentAccounts,
+    paymentAccountsInitialize,
+    dispatch,
+    from,
+    ownerAccount,
+    to,
+    isLoadingPaymentAccounts,
+  ]);
 
   const isDisableToAccount = !isEmpty(fromAccount) && fromAccount.address !== loginAccount;
   useEffect(() => {
@@ -212,7 +221,7 @@ export const Send = memo<SendProps>(function Send() {
       });
     }
     switch (txType) {
-      case 'send_to_payment_account':
+      case 'send_to_payment_account': {
         onOpen();
         const [pRes, pError] = await depositToPaymentAccount(
           {
@@ -224,7 +233,8 @@ export const Send = memo<SendProps>(function Send() {
         );
         txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address] });
         break;
-      case 'withdraw_from_payment_account':
+      }
+      case 'withdraw_from_payment_account': {
         onOpen();
         const [wRes, wError] = await withdrawFromPaymentAccount(
           {
@@ -236,7 +246,8 @@ export const Send = memo<SendProps>(function Send() {
         );
         txCallback({ res: wRes, error: wError, freshAddress: [fromAccount.address] });
         break;
-      case 'send_to_owner_account':
+      }
+      case 'send_to_owner_account': {
         onOpen();
         const [sRes, sError] = await sendToOwnerAccount(
           {
@@ -247,6 +258,8 @@ export const Send = memo<SendProps>(function Send() {
           connector,
         );
         txCallback({ res: sRes, error: sError });
+        break;
+      }
       default:
         break;
     }

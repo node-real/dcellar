@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
-import { ConfirmModal } from './component/ConfirmModal';
-import { DCButton } from '../common/DCButton';
 import { reportEvent } from '@/utils/gtag';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
+import { useState } from 'react';
+import { DCButton } from '../common/DCButton';
+import { ConfirmModal } from './component/ConfirmModal';
 
 export type TCookieType = 'ga' | 'st' | 'ga_st';
 export type TCookieOperate = 'deny_all' | 'accept_all' | 'optional' | 'close';

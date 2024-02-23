@@ -1,21 +1,21 @@
-import { memo, useCallback, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { TBucket, setBucketOperation, BucketOperationsType } from '@/store/slices/bucket';
-import { useModalValues } from '@/hooks/useModalValues';
 import { DCModal } from '@/components/common/DCModal';
-import {
-  defaultNullObject,
-  DetailBucketOperation,
-} from '@/modules/bucket/components/DetailBucketOperation';
+import { useModalValues } from '@/hooks/useModalValues';
 import { CreateBucketOperation } from '@/modules/bucket/components/CreateBucketOperation';
-import { useUnmount } from 'ahooks';
 import { DeleteBucketOperation } from '@/modules/bucket/components/DeleteBucketOperation';
-import { ModalCloseButton } from '@node-real/uikit';
+import {
+  DetailBucketOperation,
+  defaultNullObject,
+} from '@/modules/bucket/components/DetailBucketOperation';
 import { ShareOperation } from '@/modules/object/components/ShareOperation';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { BucketOperationsType, TBucket, setBucketOperation } from '@/store/slices/bucket';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { PaymentAccountOperation } from './PaymentAccountOperation';
+import { ModalCloseButton } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
+import { memo, useCallback, useMemo } from 'react';
 import { EditBucketTagsOperation } from './EditBucketTagsOperation';
+import { PaymentAccountOperation } from './PaymentAccountOperation';
 import { UpdateBucketTagsOperation } from './UpdateBucketTagsOperation';
 
 interface BucketOperationsProps {
@@ -58,7 +58,7 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
         return <CreateBucketOperation onClose={onClose} />;
       case 'delete':
         return <DeleteBucketOperation onClose={onClose} selectedBucketInfo={_selectBucketInfo} />;
-      case 'share':
+      case 'share': {
         const nullObjectMeta: ObjectMeta = {
           ...defaultNullObject,
           ObjectInfo: {
@@ -69,6 +69,7 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
         return (
           <ShareOperation selectObjectInfo={nullObjectMeta} primarySp={primarySp} objectName={''} />
         );
+      }
       case 'payment_account':
         return <PaymentAccountOperation bucket={_selectBucketInfo} onClose={onClose} />;
       case 'edit_tags':

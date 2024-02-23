@@ -1,17 +1,17 @@
-import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node-real/uikit';
-import React, { memo, useEffect, useState } from 'react';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
-import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { setStatusDetail } from '@/store/slices/object';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { setStatusDetail } from '@/store/slices/object';
+import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 import { SpItem } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
+import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node-real/uikit';
+import { memo, useEffect, useState } from 'react';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 
 const renderProp = (key: string, value: string) => {
   return (

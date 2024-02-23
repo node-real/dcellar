@@ -1,3 +1,4 @@
+import { UnderlineLink } from '@/components/layout/Footer';
 import {
   Box,
   Flex,
@@ -9,10 +10,9 @@ import {
   Table,
   Text,
 } from '@node-real/uikit';
+import { ReactElement } from 'react';
 import { PriceResponsiveContainer } from '..';
 import { H2 } from './Common';
-import { UnderlineLink } from '@/components/layout/Footer';
-import { ReactElement } from 'react';
 
 type TBillingFormula = {
   id: number;
@@ -125,8 +125,8 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
             In general, charge size is slightly larger than the real storage size.
           </Text>
           <Text as="div">
-            ChargeSize is calculated from the object&apos;s payload size, if the payload size is less
-            than 128k then ChargeSize is 128k, otherwise ChargeSize is equal to payload size.
+            ChargeSize is calculated from the object&apos;s payload size, if the payload size is
+            less than 128k then ChargeSize is 128k, otherwise ChargeSize is equal to payload size.
           </Text>
           <Text as="div">
             If Data Size &lt; 128K, ChargedSize = 128K; else, ChargedSize = Data Size
@@ -141,11 +141,11 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       answer: (
         <Text as={'div'}>
           Every SP can set their own suggested store price and read price via on-chain transactions.
-          At the first block of each month, the median all SPs&apos; store prices will be calculated as
-          the Primary SP Store Price, the Secondary SP Store Price will be calculated as a
+          At the first block of each month, the median all SPs&apos; store prices will be calculated
+          as the Primary SP Store Price, the Secondary SP Store Price will be calculated as a
           proportion of the Primary SP Store Price (e.g. 12%, which can be governed), and the median
-          of all SPs&apos; read prices will be calculated as the Primary SP Read Price. To learn more
-          about it, please refer to{' '}
+          of all SPs&apos; read prices will be calculated as the Primary SP Read Price. To learn
+          more about it, please refer to{' '}
           <UnderlineLink
             target="_blank"
             href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment"
@@ -163,8 +163,8 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
         <Text as="div">
           For each data related operation on Greenfield, validators can get some rewards for
           protecting the security and integrity of data (i.e. challenge). Through charging validator
-          tax, part of user&apos;s cost will go to validator tax pool, and then become validators&apos;
-          rewards.
+          tax, part of user&apos;s cost will go to validator tax pool, and then become
+          validators&apos; rewards.
         </Text>
       ),
     },
@@ -208,9 +208,9 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       answer: (
         <Text as="div">
           The storage fee will be charged on Greenfield in a steam payment style. The fees are paid
-            on Greenfield in the style of &quot;Stream&quot; from users to receiver accounts at a constant rate.
-          By reseveing some balance, users do not need to payment the fee in a very high frequency.
-          Currently, the reserve time is 6 months and it can be governed.
+          on Greenfield in the style of &quot;Stream&quot; from users to receiver accounts at a
+          constant rate. By reseveing some balance, users do not need to payment the fee in a very
+          high frequency. Currently, the reserve time is 6 months and it can be governed.
         </Text>
       ),
     },

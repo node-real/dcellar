@@ -1,13 +1,13 @@
-import { Flex, Text, Circle } from '@node-real/uikit';
-import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { IconFont } from '@/components/IconFont';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { useAppSelector } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { selectBnbPrice } from '@/store/slices/global';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { Circle, Flex, Text } from '@node-real/uikit';
 import { memo } from 'react';
-import { IconFont } from '@/components/IconFont';
 
 interface BalanceAmountProps {}
 export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {

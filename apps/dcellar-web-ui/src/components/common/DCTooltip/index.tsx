@@ -1,8 +1,8 @@
-import { memo } from 'react';
-import { ConfigProvider, Tooltip, TooltipProps } from 'antd';
 import { antdTheme } from '@/base/theme/antd';
+import { ConfigProvider, Tooltip, TooltipProps } from 'antd';
+import { memo } from 'react';
 
-type DCTooltipProps = TooltipProps & {};
+type DCTooltipProps = TooltipProps & object;
 
 export const DCTooltip = memo<DCTooltipProps>(function DCTooltip({
   arrow = false,

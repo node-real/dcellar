@@ -1,6 +1,8 @@
-import { IconFont } from '@/components/IconFont';
 import { Badge, Flex, Text } from '@node-real/uikit';
+
 import { Card, CircleLink } from './Common';
+
+import { IconFont } from '@/components/IconFont';
 
 export const UploadKitCard = () => {
   return (
@@ -10,7 +12,10 @@ export const UploadKitCard = () => {
         <Text fontSize={16} fontWeight={600} flex={1}>
           Greenfield UploadKit
         </Text>
-        <CircleLink title="github" href="https://github.com/node-real/greenfield-toolkit/tree/main/packages/uploadkit">
+        <CircleLink
+          title="github"
+          href="https://github.com/node-real/greenfield-toolkit/tree/main/packages/uploadkit"
+        >
           <IconFont type="line-github" w={16} />
         </CircleLink>
         <CircleLink title="doc" href="https://node-real.github.io/greenfield-toolkit">

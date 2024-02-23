@@ -1,6 +1,12 @@
-import React, { memo } from 'react';
-import Link from 'next/link';
-import styled from '@emotion/styled';
+import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { quotaRemains } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { previewObject } from '@/facade/object';
+import { contentIconTypeToExtension } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
 import {
   ObjectItem,
   setCurrentObjectPage,
@@ -8,24 +14,18 @@ import {
   setShareModePath,
   setStatusDetail,
 } from '@/store/slices/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { toast, Tooltip } from '@node-real/uikit';
-import { encodeObjectName } from '@/utils/string';
-import { trimEnd } from 'lodash-es';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { previewObject } from '@/facade/object';
+import { encodeObjectName } from '@/utils/string';
+import styled from '@emotion/styled';
+import { Tooltip, toast } from '@node-real/uikit';
+import { trimEnd } from 'lodash-es';
+import Link from 'next/link';
+import { memo } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
-import { quotaRemains } from '@/facade/bucket';
-import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { IconFont } from '@/components/IconFont';
-import { contentIconTypeToExtension } from '@/modules/object/utils';
 
 interface ObjectNameColumnProps {
   item: ObjectItem;
-  disabled: Boolean;
+  disabled: boolean;
   shareMode?: boolean;
 }
 
@@ -79,7 +79,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
         if (quotaData === null) {
           return onError(E_GET_QUOTA_FAILED);
         }
-        let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+        const remainQuota = quotaRemains(quotaData, object.payloadSize + '');
         // update quota data.
         dispatch(setReadQuota({ bucketName, quota: quotaData }));
         if (!remainQuota) return onError(E_NO_QUOTA);

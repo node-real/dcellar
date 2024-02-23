@@ -1,18 +1,18 @@
-import { DCMenu } from '@/components/common/DCMenu';
-import React, { useEffect, useState } from 'react';
-import { filter, xor } from 'lodash-es';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { Badge, MenuFooter, MenuHeader } from './Common';
-import { InputItem } from '@/components/formitems/InputItem';
-import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
-import { SearchIcon } from '@node-real/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { DCButton } from '@/components/common/DCButton';
 import { IconFont } from '@/components/IconFont';
-import { trimLongStr } from '@/utils/string';
-import cn from 'classnames';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { InputItem } from '@/components/formitems/InputItem';
 import { formatTxType } from '@/utils/billing';
+import { trimLongStr } from '@/utils/string';
+import { SearchIcon } from '@node-real/icons';
+import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
+import cn from 'classnames';
+import { xor } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { Badge, MenuFooter, MenuHeader } from './Common';
 
 const MAX_SELECTED_NUM = 10;
 const TYPES = [
@@ -30,7 +30,7 @@ const TYPES = [
 type FilterTypesProps = {
   filterTypes: string[];
   onSetFilterTypes: (types: string[]) => void;
-}
+};
 export const FilterTypes = ({ filterTypes, onSetFilterTypes }: FilterTypesProps) => {
   const router = useRouter();
   const [typeFilter, setTypeFilter] = useState('');
@@ -39,11 +39,8 @@ export const FilterTypes = ({ filterTypes, onSetFilterTypes }: FilterTypesProps)
     label: formatTxType(type),
     value: type,
   });
-  const types = TYPES
-    .filter((type) =>
-      !typeFilter.trim()
-        ? true
-        : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
+  const types = TYPES.filter((type) =>
+    !typeFilter.trim() ? true : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
   );
 
   const typeOptions: MenuOption[] = types.map(typeToOptions);
@@ -95,7 +92,7 @@ export const FilterTypes = ({ filterTypes, onSetFilterTypes }: FilterTypesProps)
       )}
       renderOption={({ label, value }) => (
         <DCCheckbox
-          disabled={!selectedType.includes(value) && selectedType.length >= MAX_SELECTED_NUM }
+          disabled={!selectedType.includes(value) && selectedType.length >= MAX_SELECTED_NUM}
           checked={selectedType.includes(value)}
           onClick={(e) => {
             e.stopPropagation();

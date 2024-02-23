@@ -1,8 +1,8 @@
-import { useColorMode, useColorModeValue, useTheme } from '@node-real/uikit';
-import { useEffect, useState } from 'react';
-import { merge } from 'lodash-es';
-import { cssVar } from '@/utils/common';
 import { noDataOptions } from '@/constants/chart';
+import { cssVar } from '@/utils/common';
+import { useColorMode, useColorModeValue, useTheme } from '@node-real/uikit';
+import { merge } from 'lodash-es';
+import { useEffect, useState } from 'react';
 
 export function useBarChartOptions(options: any, noData: boolean) {
   const theme = useTheme();
@@ -59,54 +59,57 @@ export function useBarChartOptions(options: any, noData: boolean) {
           fontWeight: 400,
         },
       },
-      xAxis: [{
-        type: 'category',
-        axisTick: {
-          show: true,
-          alignWithLabel: true,
-          lineStyle: {
-            color: cssVar('bg.bottom'),
+      xAxis: [
+        {
+          type: 'category',
+          axisTick: {
+            show: true,
+            alignWithLabel: true,
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
+          },
+          axisLabel: {
+            color: cssVar('readable.tertiary'),
+            fontSize: 12,
+            fontWeight: 500,
+            margin: 16,
+            lineHeight: 12,
+          },
+          axisLine: {
+            show: false,
+            margin: 18,
+          },
+          axisPointer: {
+            lineStyle: {
+              color: cssVar('readable.secondary'),
+              type: 'solid',
+            },
           },
         },
-        axisLabel: {
-          color: cssVar('readable.tertiary'),
-          fontSize: 12,
-          fontWeight: 500,
-          margin: 16,
-          lineHeight: 12,
-        },
-        axisLine: {
-          show: false,
-          margin: 18,
-        },
-        axisPointer: {
-          lineStyle: {
-            color: cssVar('readable.secondary'),
-            type: 'solid',
-          },
-        },
-      }],
-      yAxis: [{
-        type: 'value',
-        position: 'left',
-        alignTicks: true,
-        splitNumber: 5,
-        axisLine: {
-          show: false,
-        },
-        axisLabel: {
-          color: cssVar('readable.tertiary'),
-          fontSize: 12,
-          fontWeight: 500,
-        },
-        splitLine: {
-          lineStyle: {
-            color: cssVar('bg.bottom'),
-          },
-        },
-      }],
-      series: [
       ],
+      yAxis: [
+        {
+          type: 'value',
+          position: 'left',
+          alignTicks: true,
+          splitNumber: 5,
+          axisLine: {
+            show: false,
+          },
+          axisLabel: {
+            color: cssVar('readable.tertiary'),
+            fontSize: 12,
+            fontWeight: 500,
+          },
+          splitLine: {
+            lineStyle: {
+              color: cssVar('bg.bottom'),
+            },
+          },
+        },
+      ],
+      series: [],
     };
 
     const finalOptions = merge(defaultOptions, options);

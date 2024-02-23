@@ -1,14 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import {
   Description,
   StorageProvider,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/sp/types';
-import { AppDispatch, GetState } from '@/store';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { chunk, find, omit, random, sortBy } from 'lodash-es';
+
+import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { getVirtualGroupFamily } from '@/facade/virtual-group';
-import { TBucket } from '@/store/slices/bucket';
+import { AppDispatch, GetState } from '@/store';
 import { RootState } from '@/store/reducers';
+import { TBucket } from '@/store/slices/bucket';
 import { getDomain } from '@/utils/bom';
 
 const defaultDescription = (): Description => ({
@@ -172,34 +173,33 @@ export const getPrimarySpInfo =
     return sp;
   };
 
-export const updateSpLatency =
-  (endpoints: string[], address: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    // const { latencyCacheTime } = getState().sp;
-    //
-    // if (Date.now() - latencyCacheTime < 1000 * 60 * 5) {
-    //   return;
-    // }
+export const updateSpLatency = (endpoints: string[], address: string) => async () => {
+  // const { latencyCacheTime } = getState().sp;
+  //
+  // if (Date.now() - latencyCacheTime < 1000 * 60 * 5) {
+  //   return;
+  // }
 
-    const endpointsGroup = chunk(endpoints, 4);
-    for await (const group of endpointsGroup) {
-      if (!group.length) continue;
+  const endpointsGroup = chunk(endpoints, 4);
+  for await (const group of endpointsGroup) {
+    if (!group.length) continue;
 
-      await Promise.all(
-        group.map(async (endpoint) => {
-          await Promise.race([
-            window
-              .fetch(`${endpoint}/auth/request_nonce`, {
-                headers: new Headers({
-                  'X-Gnfd-User-Address': address,
-                  'X-Gnfd-App-Domain': getDomain(),
-                }),
-              })
-              .catch(),
-            new Promise((resolve) => setTimeout(resolve, 1000)),
-          ]);
-        }),
-      );
-    }
-  };
+    await Promise.all(
+      group.map(async (endpoint) => {
+        await Promise.race([
+          window
+            .fetch(`${endpoint}/auth/request_nonce`, {
+              headers: new Headers({
+                'X-Gnfd-User-Address': address,
+                'X-Gnfd-App-Domain': getDomain(),
+              }),
+            })
+            .catch(),
+          new Promise((resolve) => setTimeout(resolve, 1000)),
+        ]);
+      }),
+    );
+  }
+};
 
 export default spSlice.reducer;

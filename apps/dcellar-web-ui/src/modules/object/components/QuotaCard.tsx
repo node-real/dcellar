@@ -1,9 +1,9 @@
-import React, { memo } from 'react';
-import { Box, Flex, Text } from '@node-real/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import styled from '@emotion/styled';
 import { setEditQuota } from '@/store/slices/bucket';
 import { formatQuota } from '@/utils/string';
+import styled from '@emotion/styled';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { memo } from 'react';
 
 interface QuotaCardProps {}
 

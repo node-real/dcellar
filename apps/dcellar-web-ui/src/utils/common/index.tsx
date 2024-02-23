@@ -1,8 +1,10 @@
 import BigNumber from 'bignumber.js';
+
+import { displayTokenSymbol } from '../wallet';
+
+import { TRuntimeEnv } from '@/base/env';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { currencyFormatter } from '@/utils/formatter';
-import { TRuntimeEnv } from '@/base/env';
-import { displayTokenSymbol } from '../wallet';
 
 export const parseErrorXml = async (result: any) => {
   try {
@@ -82,7 +84,7 @@ export function parseWCMessage(jsonStr: string) {
   try {
     return JSON.parse(jsonStr)?.message ?? jsonStr;
   } catch (e) {
-    return jsonStr
+    return jsonStr;
   }
 }
 export function sleep(ms: number) {
@@ -92,7 +94,7 @@ export function sleep(ms: number) {
 export function convertObjectKey(
   obj: { [key: string]: any },
   type: 'lowercase' | 'uppercase',
-): {[key: string]: any} {
+): { [key: string]: any } {
   return Object.keys(obj).reduce((convertedObj: { [key: string]: any }, key: string) => {
     const newKey =
       type === 'lowercase' ? key.toLowerCase() : key.charAt(0).toUpperCase() + key.slice(1);
