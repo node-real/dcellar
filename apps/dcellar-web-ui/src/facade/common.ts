@@ -163,12 +163,12 @@ export const broadcastMulTxs = async ({
 
 export type BroadcastMultiTxByTmpAccount = {
   txs: TxResponse[];
-  tmpAccount: TTempAccount;
+  tempAccount: TTempAccount;
   address: string;
 };
 export const broadcastMultiTxByTmpAccount = async ({
   txs,
-  tmpAccount,
+  tempAccount,
   address,
 }: BroadcastMultiTxByTmpAccount): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
   if (!txs) {

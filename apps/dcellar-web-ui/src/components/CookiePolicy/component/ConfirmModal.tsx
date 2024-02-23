@@ -21,7 +21,7 @@ import { SendIcon } from './SendIcon';
 type Props = {
   open: boolean;
   cancelFn: () => void;
-  confirmFn: (arg1: string, arg2: string) => void;
+  confirmFn: (arg1: any, arg2: any) => void;
 };
 export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => {
   const [gaAccept, setGaAccept] = useState(true);

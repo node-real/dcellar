@@ -1,5 +1,11 @@
 import { useAppSelector } from '@/store';
-import { Box, Popover, PopoverContent, PopoverContentProps, PopoverTrigger } from '@totejs/uikit';
+import {
+  Box,
+  Popover,
+  PopoverContent,
+  PopoverContentProps,
+  PopoverTrigger,
+} from '@node-real/uikit';
 import { TransferEntry } from './TransferEntry';
 import { Address } from './Address';
 import { Balance } from './Balance';

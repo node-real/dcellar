@@ -1,7 +1,7 @@
 import { Avatar } from '@/components/Avatar';
 import { DCButton } from '@/components/common/DCButton';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 
 export type AddressProps = {
   address: string;

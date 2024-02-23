@@ -161,7 +161,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       async function deleteInRow() {
         if (!tempAccount) return;
         const { privateKey, address: operator } = tempAccount;
-        for await (let obj of deleteObjects) {
+        for await (const obj of deleteObjects) {
           const { ObjectName: objectName, ObjectStatus } = obj.ObjectInfo;
           const payload = {
             bucketName,

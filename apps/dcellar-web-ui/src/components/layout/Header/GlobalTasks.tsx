@@ -300,7 +300,11 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
 
         if (error?.code === 429 && Date.now() - preTs < 2 * 60 * 1000) {
           await sleep(1000);
-        } else if (error || ![0, 1].includes(objectStatus) || Date.now() - preTs > 2 * 60 * 1000) {
+        } else if (
+          error ||
+          ![0, 1].includes(objectStatus as number) ||
+          Date.now() - preTs > 2 * 60 * 1000
+        ) {
           dispatch(
             setupUploadTaskErrorMsg({
               account: loginAccount,
