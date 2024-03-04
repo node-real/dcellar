@@ -118,7 +118,6 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
 
   const price = useMemo(() => {
     return BN(readPrice)
-      .div(10 ** 18)
       .times(G_BYTES)
       .times(2_592_000)
       .div(10 ** 18)
