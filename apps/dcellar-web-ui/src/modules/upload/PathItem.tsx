@@ -10,6 +10,7 @@ import { encodeObjectName } from '@/utils/string';
 interface PathItemProps {
   path: string;
   status?: string;
+
   [key: string]: any;
 }
 
@@ -25,6 +26,7 @@ export const PathItem = memo<PathItemProps>(function PathItem({ path, status, ..
     : {
         cursor: 'default',
       };
+
   return (
     <EllipsisText
       color={'readable.tertiary'}

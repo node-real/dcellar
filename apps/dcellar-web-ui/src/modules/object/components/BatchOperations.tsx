@@ -6,12 +6,15 @@ import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { downloadObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { setObjectOperation, setSelectedRowKeys, setStatusDetail } from '@/store/slices/object';
+import { setBucketEditQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { setObjectOperation, setObjectSelectedKeys, setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { Box, Text } from '@node-real/uikit';
 import { useMount, useUnmount } from 'ahooks';
 import { memo, useMemo, useState } from 'react';
+import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+
+const DEFAULT_QUOTA = {} as IQuotaProps;
 
 interface BatchOperationsProps {
   shareMode?: boolean;
@@ -20,24 +23,20 @@ interface BatchOperationsProps {
 export const BatchOperations = memo<BatchOperationsProps>(function BatchOperations({
   shareMode = false,
 }) {
-  const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
   const dispatch = useAppDispatch();
+  const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+
   const { setOpenAuthModal } = useOffChainAuth();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName, objects, path } = useAppSelector((root) => root.object);
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const quotas = useAppSelector((root) => root.bucket.quotas);
-  const quotaData = quotas[bucketName] || {};
-  const primarySp = primarySpInfo[bucketName];
   const [quotaTooltip, setQuotaTooltip] = useState(false);
 
-  useMount(() => {
-    dispatch(setupBucketQuota(bucketName));
-  });
-
-  useUnmount(() => {
-    dispatch(setSelectedRowKeys([]));
-  });
+  const quotaData = bucketQuotaRecords[currentBucketName] || DEFAULT_QUOTA;
+  const primarySp = primarySpRecords[currentBucketName];
 
   const onError = (type: string) => {
     if (type === E_OFF_CHAIN_AUTH) {
@@ -51,8 +50,11 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
   };
 
   const items = useMemo(
-    () => objects[path]?.filter((i) => selectedRowKeys.includes(i.objectName)) || [],
-    [objects, path, selectedRowKeys],
+    () =>
+      objectListRecords[completeCommonPrefix]?.filter((i) =>
+        objectSelectedKeys.includes(i.objectName),
+      ) || [],
+    [objectListRecords, completeCommonPrefix, objectSelectedKeys],
   );
 
   const remainQuota = useMemo(
@@ -64,6 +66,9 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     [quotaData, items],
   );
 
+  const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
+  const downloadable = remainQuota && showDownload && !!items.length;
+
   const onBatchDownload = async () => {
     if (!remainQuota) return onError(E_NO_QUOTA);
     const operator = primarySp.operatorAddress;
@@ -73,20 +78,17 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
       const payload = { primarySp, objectInfo: item, address: loginAccount };
       await downloadObject(payload, seedString, items.length > 1);
     }
-    dispatch(setSelectedRowKeys([]));
-    dispatch(setupBucketQuota(bucketName));
+    dispatch(setObjectSelectedKeys([]));
+    dispatch(setupBucketQuota(currentBucketName));
   };
 
   const onBatchDelete = async () => {
     dispatch(setObjectOperation({ operation: ['', 'batch_delete'] }));
   };
 
-  const showDownload = items.every((i) => i.objectStatus === 1) || !items.length;
-  const downloadable = remainQuota && showDownload && !!items.length;
-
-  const openQuotaManage = () => {
+  const onOpenQuotaManage = () => {
     setQuotaTooltip(false);
-    dispatch(setEditQuota([bucketName, 'menu']));
+    dispatch(setBucketEditQuota([currentBucketName, 'menu']));
   };
 
   const onOpenChange = (v: boolean) => {
@@ -94,6 +96,14 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
     if (remainQuota && v) return;
     setQuotaTooltip(v);
   };
+
+  useMount(() => {
+    dispatch(setupBucketQuota(currentBucketName));
+  });
+
+  useUnmount(() => {
+    dispatch(setObjectSelectedKeys([]));
+  });
 
   return (
     <>
@@ -111,7 +121,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
                   color="#00BA34"
                   _hover={{ color: '#2EC659' }}
                   borderBottom="1px solid currentColor"
-                  onClick={openQuotaManage}
+                  onClick={onOpenQuotaManage}
                 >
                   Increase the quota
                 </Text>{' '}

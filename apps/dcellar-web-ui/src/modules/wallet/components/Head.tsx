@@ -21,8 +21,10 @@ const HeadContent = {
 interface HeadProps {}
 
 export const Head = memo<HeadProps>(function Head() {
-  const { transType } = useAppSelector((root) => root.wallet);
-  const content = HeadContent[transType];
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
+  const content = HeadContent[transferType];
+
   return (
     <>
       <Text

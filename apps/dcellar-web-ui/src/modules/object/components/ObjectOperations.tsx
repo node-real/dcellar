@@ -37,15 +37,22 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   level = 0,
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const {
-    objectOperation,
-    objectsInfo,
-    bucketName: _bucketName,
-  } = useAppSelector((root) => root.object);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const objectOperation = useAppSelector((root) => root.object.objectOperation);
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+
   const [id, operation, params] = objectOperation[level];
-  const bucketName = params?.bucketName || _bucketName;
+  const bucketName = params?.bucketName || currentBucketName;
+  const _operation = useModalValues<ObjectOperationsType>(operation);
+  const selectObjectInfo = objectRecords[id] || {};
+  const _selectObjectInfo = useModalValues<ObjectMeta>(selectObjectInfo);
+  const { BucketName } = _selectObjectInfo.ObjectInfo || {};
+  const selectBucket = useModalValues(bucketRecords[BucketName || bucketName] || {});
+  const bucketAccountDetail = useAppSelector(selectAccount(selectBucket.PaymentAddress));
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+  const primarySp = useModalValues(primarySpRecords[BucketName || bucketName]);
   const isDrawer = [
     'folder_detail',
     'detail',
@@ -56,32 +63,10 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
     'update_tags',
   ].includes(operation);
   const isModal = ['delete', 'cancel', 'download', 'batch_delete'].includes(operation);
-  const _operation = useModalValues<ObjectOperationsType>(operation);
-  const selectObjectInfo = objectsInfo[id] || {};
-  const _selectObjectInfo = useModalValues<ObjectMeta>(selectObjectInfo);
-  const { BucketName } = _selectObjectInfo.ObjectInfo || {};
-
-  const selectBucket = useModalValues(bucketInfo[BucketName || bucketName] || {});
-  const bucketAccountDetail = useAppSelector(selectAccount(selectBucket.PaymentAddress));
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const primarySp = useModalValues(primarySpInfo[BucketName || bucketName]);
 
   const onClose = useCallback(() => {
     dispatch(setObjectOperation({ level, operation: ['', ''] }));
-  }, [level]);
-
-  useEffect(() => {
-    const className = 'overflow-hidden';
-    const operation0 = objectOperation[0][1];
-    const operation1 = objectOperation[1][1];
-    if (!!operation0 || !!operation1) {
-      document.documentElement.classList.add(className);
-    } else {
-      document.documentElement.classList.remove(className);
-    }
-  }, [objectOperation]);
-
-  useUnmount(onClose);
+  }, [level, dispatch]);
 
   const refetch = useCallback(
     async (name?: string) => {
@@ -222,6 +207,19 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
     onClose,
     params,
   ]);
+
+  useEffect(() => {
+    const className = 'overflow-hidden';
+    const operation0 = objectOperation[0][1];
+    const operation1 = objectOperation[1][1];
+    if (!!operation0 || !!operation1) {
+      document.documentElement.classList.add(className);
+    } else {
+      document.documentElement.classList.remove(className);
+    }
+  }, [objectOperation]);
+
+  useUnmount(onClose);
 
   return (
     <>

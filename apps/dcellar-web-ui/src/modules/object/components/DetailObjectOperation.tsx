@@ -14,15 +14,15 @@ import {
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TAccountInfo } from '@/store/slices/accounts';
-import { TBucket, setReadQuota } from '@/store/slices/bucket';
+import { TBucket, setBucketQuota } from '@/store/slices/bucket';
 import {
   ObjectActionType,
-  setEditObjectTagsData,
+  setObjectEditTagsData,
   setObjectOperation,
   setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
 import { formatBytes } from '@/utils/formatter';
 import { encodeObjectName, formatId } from '@/utils/string';
@@ -40,23 +40,26 @@ interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
-  primarySp: SpItem;
+  primarySp: SpEntity;
 }
 
 export const DetailObjectOperation = memo<DetailObjectOperationProps>(
   function DetailOperation(props) {
     const { selectObjectInfo, selectBucket, bucketAccountDetail, primarySp } = props;
     const dispatch = useAppDispatch();
+    const accountRecords = useAppSelector((root) => root.persist.accountRecords);
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+
     const [action, setAction] = useState<ObjectActionType>('');
-    const { accounts, loginAccount } = useAppSelector((root) => root.persist);
-    const { directDownload: allowDirectDownload } = accounts?.[loginAccount] || {};
     const { setOpenAuthModal } = useOffChainAuth();
-    const { bucketName } = useAppSelector((root) => root.object);
-    const { owner } = useAppSelector((root) => root.bucket);
+
+    const { directDownload: allowDirectDownload } = accountRecords?.[loginAccount] || {};
     const objectInfo = selectObjectInfo.ObjectInfo;
     const name = last(objectInfo.ObjectName.split('/'));
 
-    const onError = (type: string) => {
+    const errorHandler = (type: string) => {
       setAction('');
       if (type === E_OFF_CHAIN_AUTH) {
         return setOpenAuthModal();
@@ -74,7 +77,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
         return dispatch(
           setObjectOperation({
             level: 1,
-            operation: [`${bucketName}/${objectInfo.ObjectName}`, 'download', { action: e }],
+            operation: [`${currentBucketName}/${objectInfo.ObjectName}`, 'download', { action: e }],
           }),
         );
       }
@@ -85,16 +88,16 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
         getSpOffChainData(loginAccount, primarySp.operatorAddress),
       );
       const [_, accessError, _objectInfo, quota] = await getCanObjectAccess(
-        bucketName,
+        currentBucketName,
         objectName,
         endpoint,
         loginAccount,
         seedString,
       );
       if (quota) {
-        dispatch(setReadQuota({ bucketName, quota }));
+        dispatch(setBucketQuota({ bucketName: currentBucketName, quota }));
       }
-      if (accessError) return onError(accessError);
+      if (accessError) return errorHandler(accessError);
 
       const params = {
         primarySp,
@@ -104,15 +107,16 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
       const [success, opsError] = await (e === 'download'
         ? downloadObject(params, seedString)
         : previewObject(params, seedString));
-      if (opsError) return onError(opsError);
+      if (opsError) return errorHandler(opsError);
       setAction('');
       return success;
     };
+
     const onEditTags = () => {
       const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) =>
         convertObjectKey(item, 'lowercase'),
       );
-      dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
+      dispatch(setObjectEditTagsData(lowerKeyTags as ResourceTags_Tag[]));
       dispatch(
         setObjectOperation({
           level: 1,
@@ -121,7 +125,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
       );
     };
 
-    useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+    useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
 
     return (
       <>
@@ -195,7 +199,9 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
               renderPropRow(
                 'Universal link',
                 renderUrlWithLink(
-                  `${primarySp.endpoint}/view/${bucketName}/${encodeObjectName(objectInfo.ObjectName)}`,
+                  `${primarySp.endpoint}/view/${currentBucketName}/${encodeObjectName(
+                    objectInfo.ObjectName,
+                  )}`,
                   true,
                   32,
                   'dc.file.f_detail_pop.universal.click',
@@ -210,7 +216,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
           <Divider />
           <SharePermission selectObjectInfo={selectObjectInfo} />
         </QDrawerBody>
-        {objectInfo.ObjectStatus === 1 && owner && (
+        {objectInfo.ObjectStatus === 1 && isBucketOwner && (
           <QDrawerFooter flexDirection={'column'}>
             <Flex w={'100%'} gap={16}>
               <DCButton

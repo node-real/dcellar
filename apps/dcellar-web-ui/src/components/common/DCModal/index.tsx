@@ -11,6 +11,7 @@ export interface DCModalProps extends ModalProps {
 
 export const DCModal = (props: DCModalProps) => {
   const { children, gaShowName, gaShowData, gaClickCloseName, onClose, ...restProps } = props;
+
   useLockBodyScroll(props.isOpen);
 
   const onBeforeClose = () => {

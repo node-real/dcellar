@@ -2,6 +2,7 @@ import { IconFont } from '@/components/IconFont';
 import { Circle, Flex, FlexProps, Text, TextProps } from '@node-real/uikit';
 
 export type CardProps = FlexProps;
+
 export const Card = ({ children, ...restProps }: CardProps) => {
   return (
     <Flex

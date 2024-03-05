@@ -13,11 +13,12 @@ import { FilterTypes } from './FilterTypes';
 
 export const AllBillingHistoryFilter = () => {
   const dispatch = useAppDispatch();
+  const allFilterAccounts = useAppSelector((root) => root.billing.billAccountFilter);
+
   const router = useRouter();
   const { query } = router;
-  const allFilterRange = useAppSelector((root) => root.billing.allFilterRange);
-  const allFilterAccounts = useAppSelector((root) => root.billing.allFilterAccounts);
-  const allFilterTypes = useAppSelector((root) => root.billing.allFilterTypes);
+  const billRangeFilter = useAppSelector((root) => root.billing.billRangeFilter);
+  const billTypeFilter = useAppSelector((root) => root.billing.billTypeFilter);
 
   useUpdateEffect(() => {
     if (query.tab === 'a') return;
@@ -27,32 +28,34 @@ export const AllBillingHistoryFilter = () => {
       scroll: false,
     });
   }, [allFilterAccounts.join('')]);
+
   useUpdateEffect(() => {
     if (query.tab === 'a') return;
-    if (!allFilterRange || (!allFilterRange[0] && !allFilterRange[1])) {
+    if (!billRangeFilter || (!billRangeFilter[0] && !billRangeFilter[1])) {
       delete query.from;
       delete query.to;
     } else {
-      query.from = dayjs(allFilterRange[0]).format('YYYY-MM-DD');
-      query.to = allFilterRange[1] ? dayjs(allFilterRange[1]).format('YYYY-MM-DD') : '';
+      query.from = dayjs(billRangeFilter[0]).format('YYYY-MM-DD');
+      query.to = billRangeFilter[1] ? dayjs(billRangeFilter[1]).format('YYYY-MM-DD') : '';
     }
     query.page = '1';
     router.push(`${InternalRoutePaths.accounts}?${stringify(query)}`, undefined, {
       scroll: false,
     });
-  }, [(allFilterRange || []).join('')]);
+  }, [(billRangeFilter || []).join('')]);
+
   useUpdateEffect(() => {
     if (query.tab === 'a') return;
-    if (!allFilterTypes) {
+    if (!billTypeFilter) {
       delete query.type;
     } else {
-      query.type = allFilterTypes;
+      query.type = billTypeFilter;
     }
     query.page = '1';
     router.push(`${InternalRoutePaths.accounts}?${stringify(query)}`, undefined, {
       scroll: false,
     });
-  }, [allFilterTypes?.join('')]);
+  }, [billTypeFilter?.join('')]);
 
   return (
     <Flex justifyContent={'space-between'} mt={16} alignItems={'center'}>
@@ -61,12 +64,12 @@ export const AllBillingHistoryFilter = () => {
       </Text>
       <FilterContainer>
         <FilterDateRange
-          filterDateRange={allFilterRange}
+          filterDateRange={billRangeFilter}
           onSetFilterDateRange={(dateRange) => dispatch(setAllFilterRange(dateRange))}
         />
         <FilterAccounts />
         <FilterTypes
-          filterTypes={allFilterTypes}
+          filterTypes={billTypeFilter}
           onSetFilterTypes={(types) => dispatch(setAllFilterTypes(types))}
         />
       </FilterContainer>

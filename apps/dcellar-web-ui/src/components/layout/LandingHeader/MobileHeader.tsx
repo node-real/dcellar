@@ -13,6 +13,7 @@ export const MobileHeader = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const drawTriggerRef = React.useRef(null);
   const isScroll = useDetectScroll();
+
   return (
     <Container
       as="header"

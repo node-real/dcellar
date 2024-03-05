@@ -35,12 +35,12 @@ import { TBucket } from '@/store/slices/bucket';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import {
   TStatusDetail,
-  setEditObjectTagsData,
+  setObjectEditTagsData,
   setObjectOperation,
   setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { removeTrailingSlash } from '@/utils/string';
@@ -72,7 +72,7 @@ import { TotalFees } from './TotalFees';
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
-  primarySp: SpItem;
+  primarySp: SpEntity;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -85,46 +85,37 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   primarySp,
 }) {
   const dispatch = useAppDispatch();
-  const { connector } = useAccount();
-
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const pathSegments = useAppSelector((root) => root.object.pathSegments);
+  const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
+  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
+
+  const { connector } = useAccount();
+  const { setOpenAuthModal } = useOffChainAuth();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, editTagsData } = useAppSelector(
-    (root) => root.object,
-  );
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const folderList = objects[path]?.filter((item) => item.objectName.endsWith('/')) || [];
   const { PaymentAddress } = bucket;
   const { settlementFee } = useSettlementFee(PaymentAddress);
-  const { setOpenAuthModal } = useOffChainAuth();
-  const isOwnerAccount = accountDetail.address === loginAccount;
   const [balanceEnough, setBalanceEnough] = useState(true);
-
-  const onCloseStatusModal = () => {
-    dispatch(setStatusDetail({} as TStatusDetail));
-  };
-  const onEditTags = () => {
-    dispatch(setObjectOperation({ level: 1, operation: ['', 'edit_tags'] }));
-  };
-  const validTags = getValidTags(editTagsData);
-  const isSetTags = validTags.length > 0;
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
 
-  useAsyncEffect(async () => {
-    if (isEmpty(storeFeeParams)) {
-      dispatch(setupStoreFeeParams());
-    }
-  }, []);
+  const folderList =
+    objectListRecords[completeCommonPrefix]?.filter((item) => item.objectName.endsWith('/')) || [];
+  const isOwnerAccount = accountDetail.address === loginAccount;
+  const validTags = getValidTags(objectEditTagsData);
+  const isSetTags = validTags.length > 0;
+  const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
+  const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
 
   const gasFee = useMemo(() => {
-    const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-    const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
-
     if (validTags.length === 0) {
       return createBucketGasFee || 0;
     }
@@ -132,7 +123,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     return BN(createBucketGasFee || 0)
       .plus(BN(setTagsGasFee || 0))
       .toNumber();
-  }, [gasObjects, validTags.length]);
+  }, [createBucketGasFee, setTagsGasFee, validTags.length]);
 
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
@@ -149,6 +140,14 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       ? `${folders.join('/')}/${name}/`
       : `${name}/`;
   }, []);
+
+  const onCloseStatusModal = () => {
+    dispatch(setStatusDetail({} as TStatusDetail));
+  };
+
+  const onEditTags = () => {
+    dispatch(setObjectOperation({ level: 1, operation: ['', 'edit_tags'] }));
+  };
 
   const showSuccessToast = (tx: string) => {
     toast.success({
@@ -175,7 +174,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     setLoading(true);
 
     // 1. create tx and validate folder by chain
-    const fullObjectName = getPath(inputFolderName, folders);
+    const fullObjectName = getPath(inputFolderName, pathSegments);
     const txs: TxResponse[] = [];
     const [createObjectTx, error] = await simulateCreateFolderTx(fullObjectName);
     if (!createObjectTx || typeof error === 'string') {
@@ -206,7 +205,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     if (isSetTags) {
       const [tagsTx, error2] = await getUpdateObjectTagsTx({
         address: loginAccount,
-        bucketName: bucketName,
+        bucketName: currentBucketName,
         objectName: fullObjectName,
         tags: validTags,
       });
@@ -265,8 +264,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     const { transactionHash } = txRes;
 
     // polling ensure create sealed
-    const fullPath = getPath(inputFolderName, folders);
-    await legacyGetObjectMeta(bucketName, fullPath, primarySp.endpoint);
+    const fullPath = getPath(inputFolderName, pathSegments);
+    await legacyGetObjectMeta(currentBucketName, fullPath, primarySp.endpoint);
 
     setLoading(false);
     showSuccessToast(transactionHash);
@@ -274,6 +273,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     onClose();
     refetch(inputFolderName);
   };
+
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
@@ -307,7 +307,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
     const createObjectPayload: CreateObjectApprovalRequest = {
-      bucketName,
+      bucketName: currentBucketName,
       objectName: fullFolderName,
       creator: loginAccount,
       visibility,
@@ -334,7 +334,6 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     return [createObjectTx, error];
   };
 
-  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
@@ -344,6 +343,12 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     }
     if (!lackGasFee) validateFolderName(folderName);
   };
+
+  useAsyncEffect(async () => {
+    if (isEmpty(storeFeeParams)) {
+      dispatch(setupStoreFeeParams());
+    }
+  }, []);
 
   useEffect(() => {
     if (isEmpty(storeFeeParams)) {
@@ -372,7 +377,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     storeFeeParams,
   ]);
 
-  useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+  useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
 
   return (
     <>

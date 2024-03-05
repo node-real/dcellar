@@ -26,7 +26,7 @@ import { useAppDispatch } from '@/store';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
 import { reportEvent } from '@/utils/gtag';
 
@@ -35,7 +35,7 @@ interface SharedFileProps {
   objectInfo: ObjectInfo;
   quotaData: IQuotaProps;
   loginAccount: string;
-  primarySp: SpItem;
+  primarySp: SpEntity;
 }
 
 type ActionType = 'view' | 'download' | '';
@@ -54,7 +54,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   const size = payloadSize.toString();
   const [createHash, setCreateHash] = useState('');
 
-  const onError = (type: string) => {
+  const errorHandler = (type: string) => {
     setAction('');
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
@@ -80,7 +80,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           : 'dc.shared_ui.preview.view.click',
     });
     const remainQuota = quotaRemains(quotaData, size);
-    if (!remainQuota) return onError(E_NO_QUOTA);
+    if (!remainQuota) return errorHandler(E_NO_QUOTA);
 
     setAction(e);
     const operator = primarySp.operatorAddress;
@@ -96,7 +96,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           seedString,
         );
         const errType = accessError as ShareErrorType;
-        if (errType) return onError(errType);
+        if (errType) return errorHandler(errType);
       } else {
         const res = await hasObjectPermission(
           bucketName,
@@ -105,7 +105,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           loginAccount,
         );
         if (res.effect !== PermissionTypes.Effect.EFFECT_ALLOW) {
-          return onError(E_PERMISSION_DENIED);
+          return errorHandler(E_PERMISSION_DENIED);
         }
       }
     }
@@ -117,7 +117,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
-    if (opsError) return onError(opsError as ShareErrorType);
+    if (opsError) return errorHandler(opsError as ShareErrorType);
     dispatch(setupBucketQuota(bucketName));
     setAction('');
     return success;

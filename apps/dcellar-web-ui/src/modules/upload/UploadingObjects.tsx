@@ -23,15 +23,16 @@ import { useTaskManagementTab } from './useTaskManagementTab';
 
 import { Loading } from '@/components/common/Loading';
 import { IconFont } from '@/components/IconFont';
-import { UploadFile } from '@/store/slices/global';
+import { UploadObject } from '@/store/slices/global';
 
 interface UploadingObjectsProps {}
 
 export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingObjects() {
   const ref = useRef(null);
   const scroll = useScroll(ref) || { top: 0 };
-  const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
-  const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
+  const { tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
+
+  const FileStatus = useCallback(({ task }: { task: UploadObject }) => {
     switch (task.status) {
       case 'WAIT':
         return (
@@ -162,6 +163,7 @@ const StyledTabList = styled(TabList)`
   &::-webkit-scrollbar {
     display: none;
   }
+
   scrollbar-width: none; /* firefox */
   -ms-overflow-style: none; /* IE 10+ */
   overflow-x: scroll;

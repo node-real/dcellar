@@ -11,6 +11,7 @@ export type AvailableBalanceProps = {
 };
 export const Balance = ({ address }: AvailableBalanceProps) => {
   const shortAddress = getShortenWalletAddress(address);
+
   return (
     <>
       <Flex

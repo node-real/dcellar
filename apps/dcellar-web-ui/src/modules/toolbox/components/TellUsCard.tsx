@@ -9,6 +9,7 @@ export const TellUsCard = () => {
   const onNavigateExternal = (url: string) => {
     window.open(url, '_blank', 'noreferrer');
   };
+
   return (
     <Card
       _hover={{}}

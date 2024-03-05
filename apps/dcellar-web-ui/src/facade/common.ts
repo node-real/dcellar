@@ -129,6 +129,7 @@ export type BroadcastMultiTx = {
   address: string;
   connector: Connector;
 };
+
 export const broadcastMulTxs = async ({
   txs,
   address,
@@ -166,6 +167,7 @@ export type BroadcastMultiTxByTmpAccount = {
   tempAccount: TTempAccount;
   address: string;
 };
+
 export const broadcastMultiTxByTmpAccount = async ({
   txs,
   tempAccount,

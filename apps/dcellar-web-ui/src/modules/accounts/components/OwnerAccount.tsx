@@ -26,26 +26,19 @@ const actions: MenuOption[] = [
 
 export const OwnerAccount = () => {
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
-  const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
-  const data = ownerAccount?.address ? [accountInfo[ownerAccount.address] || {}] : [];
   const router = useRouter();
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
 
+  const data = ownerAccount?.address ? [accountRecords[ownerAccount.address] || {}] : [];
   const spinning = isEmpty(ownerAccount);
+
   const loadingComponent = {
     spinning: spinning,
     indicator: <Loading />,
-  };
-  const onMenuClick = (e: string, record: TAccountInfo) => {
-    switch (e) {
-      case 'detail':
-        // return dispatch(setAccountOperation([record.address, 'oaDetail']));
-        return router.push(`/accounts/${record.address}`);
-      default:
-        return router.push(`/wallet?type=${e}`);
-    }
   };
 
   const columns: ColumnProps<TAccountInfo>[] = [
@@ -127,6 +120,16 @@ export const OwnerAccount = () => {
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
+  const onMenuClick = (e: string, record: TAccountInfo) => {
+    switch (e) {
+      case 'detail':
+        // return dispatch(setAccountOperation([record.address, 'oaDetail']));
+        return router.push(`/accounts/${record.address}`);
+      default:
+        return router.push(`/wallet?type=${e}`);
+    }
+  };
+
   return (
     <Container>
       <DCTable
@@ -142,7 +145,7 @@ export const OwnerAccount = () => {
         onRow={(record: TAccountInfo) => ({
           onClick: () => onMenuClick('detail', record),
         })}
-      ></DCTable>
+      />
     </Container>
   );
 };

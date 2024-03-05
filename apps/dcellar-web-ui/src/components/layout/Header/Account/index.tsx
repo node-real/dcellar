@@ -12,7 +12,7 @@ import { Balance } from './Balance';
 import { OperationEntry } from './OperationEntry';
 
 export const Account = () => {
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
   return (
     <Popover>

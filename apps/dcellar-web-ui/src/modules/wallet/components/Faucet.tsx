@@ -7,6 +7,7 @@ export const Faucet = memo(function Faucet() {
   if (runtimeEnv !== 'testnet') {
     return null;
   }
+
   return (
     <Flex
       margin="16px auto 0"

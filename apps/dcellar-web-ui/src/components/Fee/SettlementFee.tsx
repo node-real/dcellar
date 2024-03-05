@@ -10,6 +10,7 @@ export type SettlementFeeProps = {
 
 export const SettlementFee = ({ amount }: SettlementFeeProps) => {
   const exchangeRate = useAppSelector(selectBnbPrice);
+
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">
       <Flex alignItems="center">

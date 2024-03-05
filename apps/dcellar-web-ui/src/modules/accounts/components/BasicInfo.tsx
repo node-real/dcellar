@@ -29,12 +29,14 @@ type Props = {
 };
 
 export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: Props) => {
-  const router = useRouter();
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const router = useRouter();
+
+  const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
   const balance = isOwnerAccount
     ? BN(accountDetail?.staticBalance || 0)
         .plus(BN(bankBalance))
@@ -53,6 +55,7 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
 
     router.push(url);
   };
+
   const detailItems = [
     {
       label: 'Account address',

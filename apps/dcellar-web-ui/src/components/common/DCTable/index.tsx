@@ -5,7 +5,7 @@ import {
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
 import { useAppSelector } from '@/store';
-import { UploadFile, selectUploadQueue } from '@/store/slices/global';
+import { UploadObject, selectUploadQueue } from '@/store/slices/global';
 import { formatBytes } from '@/utils/formatter';
 import styled from '@emotion/styled';
 import { Badge, Box, Flex, Pagination, PaginationProps, Text, keyframes } from '@node-real/uikit';
@@ -164,10 +164,10 @@ export const UploadProgress = (props: { progress: number }) => {
 };
 
 export const UploadStatus = ({ object, size }: { object: string; size: number }) => {
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
 
-  const file = find<UploadFile>(queue, (q) => {
+  const file = find<UploadObject>(queue, (q) => {
     const objectInList = [
       q.bucketName,
       ...q.prefixFolders,

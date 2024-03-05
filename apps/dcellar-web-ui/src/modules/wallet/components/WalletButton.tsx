@@ -24,10 +24,12 @@ export const WalletButton = memo<WalletButtonProps>(function WalletButton({
   gaClickSubmitName,
   gaClickSwitchName,
 }) {
-  const { transType } = useAppSelector((root) => root.wallet);
-  const curInfo = WalletOperationInfos[transType];
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
   const { chain } = useNetwork();
   const { switchNetwork } = useWalletSwitchNetWork();
+
+  const curInfo = WalletOperationInfos[transferType];
 
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

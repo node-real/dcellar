@@ -23,6 +23,7 @@ type Props = {
   cancelFn: () => void;
   confirmFn: (arg1: any, arg2: any) => void;
 };
+
 export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => {
   const [gaAccept, setGaAccept] = useState(true);
   const [stAccept, setStAccept] = useState(true);
@@ -237,6 +238,7 @@ const StyledListItem = styled(QListItem)<any>`
   :hover {
     background-color: var(--ui-colors-bg-middle);
   }
+
   .title {
     margin-left: 16px;
     font-weight: 600;

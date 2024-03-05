@@ -35,6 +35,7 @@ export const ComingBillingHistory = memo(function ComingBillingHistory() {
     ),
     [],
   );
+
   return (
     <DCTable
       rowKey="key"

@@ -30,7 +30,7 @@ import { ShareFolder } from '@/modules/share/ShareFolder';
 import { ShareLogin } from '@/modules/share/ShareLogin';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { SpItem, getPrimarySpInfo } from '@/store/slices/sp';
+import { SpEntity, setupPrimarySpInfo } from '@/store/slices/sp';
 import { networkTag } from '@/utils/common';
 import { decodeObjectName } from '@/utils/string';
 
@@ -51,27 +51,28 @@ interface PageProps {
 }
 
 const SharePage: NextPage<PageProps> = (props) => {
-  const { oneSp } = useAppSelector((root) => root.sp);
+  const { objectName, fileName, bucketName } = props;
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
+
   const isMounted = useIsMounted();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
-  const [bucketInfo, setBucketInfo] = useState<BucketInfo | null>();
-  const { objectName, fileName, bucketName } = props;
-  const title = `${bucketName}${fileName ? `- ${fileName}` : ''}`;
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const dispatch = useAppDispatch();
   const [getPermission, setGetPermission] = useState(true);
-  const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
+  const [primarySp, setPrimarySp] = useState<SpEntity>({} as SpEntity);
   const { logout } = useLogin();
-  const isFolder = objectName.endsWith('/') || objectName === '';
+  const [bucketInfo, setBucketInfo] = useState<BucketInfo | null>();
 
+  const title = `${bucketName}${fileName ? `- ${fileName}` : ''}`;
+  const isFolder = objectName.endsWith('/') || objectName === '';
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE || isFolder;
   const walletConnected = !!loginAccount;
   const isOwner = objectInfo?.owner === loginAccount;
 
   useAsyncEffect(async () => {
-    if (!oneSp) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    if (!specifiedSp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, specifiedSp));
     const bucketInfo = await headBucket(bucketName);
     if (!bucketInfo) {
       // bucket not exist
@@ -80,7 +81,9 @@ const SharePage: NextPage<PageProps> = (props) => {
       setBucketInfo(null);
       return;
     }
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId));
+    const sp = await dispatch(
+      setupPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId),
+    );
 
     setBucketInfo(bucketInfo);
     if (!sp) {
@@ -119,7 +122,7 @@ const SharePage: NextPage<PageProps> = (props) => {
     }
     setObjectInfo(objectInfo);
     setQuotaData(quotaData || ({} as IQuotaProps));
-  }, [oneSp, walletConnected]);
+  }, [specifiedSp, walletConnected]);
 
   useAsyncEffect(async () => {
     if (!loginAccount || !bucketName) return;

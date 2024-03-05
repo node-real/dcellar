@@ -12,6 +12,7 @@ export type TFeatureItem = {
   introImgSm: string;
   gaClickName: string;
 };
+
 export const keyFeatureList: TFeatureItem[] = [
   {
     label: 'Storage Management',

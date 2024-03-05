@@ -7,13 +7,16 @@ import { ModalBody, ModalCloseButton, ModalFooter, ModalHeader } from '@node-rea
 
 export const DisconnectWalletModal = () => {
   const dispatch = useAppDispatch();
+  const walletDisconnected = useAppSelector((root) => root.global.walletDisconnected);
+
   const { logout } = useLogin();
-  const { disconnectWallet } = useAppSelector((root) => root.global);
+
   const onClose = () => {
     dispatch(setDisconnectWallet(false));
   };
+
   return (
-    <DCModal isOpen={disconnectWallet} onClose={onClose} gaShowName="" gaClickCloseName="">
+    <DCModal isOpen={walletDisconnected} onClose={onClose}>
       <ModalHeader>Disconnect Wallet</ModalHeader>
       <ModalCloseButton />
       <ModalBody color={'readable.tertiary'} textAlign={'center'} fontSize={18}>

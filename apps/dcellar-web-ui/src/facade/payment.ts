@@ -70,7 +70,8 @@ export const getStoreFeeParams = async (props: { time?: number; network?: 'mainn
   } = (storageParams && storageParams.versionedParams) || {};
 
   const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
-  const storeFeeParamsPayload = {
+
+  return {
     primarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
     readPrice: globalSpStoragePrice?.globalSpStorePrice.readPrice || '',
     secondarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.secondaryStorePrice || '',
@@ -80,8 +81,6 @@ export const getStoreFeeParams = async (props: { time?: number; network?: 'mainn
     redundantParityChunkNum,
     reserveTime: reserveTime?.toString() || '',
   };
-
-  return storeFeeParamsPayload;
 };
 
 export const listUserPaymentAccounts = async (

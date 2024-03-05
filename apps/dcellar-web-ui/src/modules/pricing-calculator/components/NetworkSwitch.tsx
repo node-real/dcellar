@@ -13,12 +13,15 @@ const LINKS = {
     internalUrl: '/pricing-calculator',
   },
 };
+
 export const NetworkSwitch = () => {
   const network = ['testnet', 'mainnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
+
   const onSwitchClick = (net: 'mainnet' | 'testnet') => {
     if (net === network) return;
     window.location.href = LINKS[net].fullUrl;
   };
+
   return (
     <Flex>
       <ButtonGroup

@@ -29,6 +29,7 @@ type Props = {
   onChangeButton: () => void;
   onChangeInput: (option: TTimeOption) => void;
 };
+
 export const CustomTime = ({
   isOpen,
   selected,
@@ -47,6 +48,7 @@ export const CustomTime = ({
     },
     [isOpen, onClose],
   );
+
   useEffect(() => {
     window.addEventListener('scroll', handleNavigation);
 
@@ -54,6 +56,7 @@ export const CustomTime = ({
       window.removeEventListener('scroll', handleNavigation);
     };
   }, [handleNavigation]);
+
   useOutsideClick({
     ref,
     handler: () => isOpen && onClose(),

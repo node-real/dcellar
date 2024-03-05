@@ -9,13 +9,16 @@ import { Flex, Link } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 
 export const InsufficientBalance = () => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const router = useRouter();
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const bucket = useAppSelector(selectLocateBucket);
   const accountDetail = useAppSelector(selectAccount(bucket.PaymentAddress));
+  const amount = useUnFreezeAmount(bucket.PaymentAddress);
+
   const isOwnerAccount = bucket.PaymentAddress === loginAccount;
   const isFrozen = accountDetail?.clientFrozen;
-  const amount = useUnFreezeAmount(bucket.PaymentAddress);
+
   const onTopUpClick = () => {
     const topUpUrl = isOwnerAccount
       ? InternalRoutePaths.transfer_in

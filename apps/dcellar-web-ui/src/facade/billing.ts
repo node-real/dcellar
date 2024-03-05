@@ -5,6 +5,7 @@ export type RawAccountCost = {
   Address: string;
   Cost: string;
 };
+
 export type GetMonthlyBillByOwnerParams = {
   owner: string;
   start_year: number | string;
@@ -12,6 +13,7 @@ export type GetMonthlyBillByOwnerParams = {
   end_year: number | string;
   end_month: number | string;
 };
+
 export type GetMonthlyBillByAddressParams = {
   address: string;
   start_year: number | string;
@@ -19,6 +21,7 @@ export type GetMonthlyBillByAddressParams = {
   end_year: number | string;
   end_month: number | string;
 };
+
 export type RawMonthlyBill = {
   Address: string;
   Year: number;
@@ -40,6 +43,7 @@ export type GetRealTimeBillCountByAddressParams = {
   end?: number;
   types?: string[];
 };
+
 export type GetRealTimeBillListByAddressParams = GetRealTimeBillCountByAddressParams & {
   page: number;
   per_page: number;
@@ -55,13 +59,16 @@ export type RawRealTimeBill = {
   TxHash: string;
   TxType: string;
 };
+
 export type GetRealTimeBillListByAddressResponse = RawRealTimeBill[];
+
 export type GetRealTimeBillByAddressCountParams = {
   address: string;
   start?: number;
   end?: number;
   types?: string[];
 };
+
 export type GetRealTimeBillByOwnerCountParams = {
   owner: string;
   payments?: string[];
@@ -69,11 +76,14 @@ export type GetRealTimeBillByOwnerCountParams = {
   end?: number;
   types?: string[];
 };
+
 export type GetRealTimeBillListByOwnerParams = GetRealTimeBillByOwnerCountParams & {
   page: number;
   per_page: number;
 };
+
 export type GetRealTimeBillListByOwnerResponse = RawRealTimeBill[];
+
 export const getTotalCostByOwner = (
   address: string,
 ): Promise<[RawAccountCost[], null] | ErrorResponse> => {
@@ -82,6 +92,7 @@ export const getTotalCostByOwner = (
     return [e.result, null];
   }, commonFault);
 };
+
 export const getTotalCostByAddress = (
   address: string,
 ): Promise<[RawAccountCost, null] | ErrorResponse> => {

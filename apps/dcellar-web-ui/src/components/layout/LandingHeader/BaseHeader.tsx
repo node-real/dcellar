@@ -41,6 +41,7 @@ export const BaseHeader = () => {
   const router = useRouter();
   const gaClickName = getGAOptions(router.pathname);
   const isScroll = useDetectScroll();
+
   return (
     <Container
       as="header"

@@ -16,12 +16,16 @@ import { FilterBuckets } from './FilterBuckets';
 
 export const BucketStorageChart = () => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const rawBucketDailyStorage = useAppSelector((root) => root.dashboard.bucketDailyStorage);
-  const bucketDailyStorage = rawBucketDailyStorage[loginAccount];
-  const isLoading = bucketDailyStorage === undefined;
   const filterBuckets = useAppSelector(selectFilterBuckets());
+  const bucketDailyStorageRecords = useAppSelector(
+    (root) => root.dashboard.bucketDailyStorageRecords,
+  );
+
+  const bucketDailyStorage = bucketDailyStorageRecords[loginAccount];
+  const isLoading = bucketDailyStorage === undefined;
   const dayjs = getUtcDayjs();
   const noData = !isLoading && isEmpty(bucketDailyStorage);
+
   const lineOptions = useMemo(() => {
     // line data according to day to generate;
     const data = bucketDailyStorage || [];

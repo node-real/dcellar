@@ -10,6 +10,7 @@ interface AccountTipsProps {
 
 export const AccountTips = memo<AccountTipsProps>(function AccountTips({ type }) {
   const accountDisplay = getAccountDisplay(type);
+
   return (
     <>
       {accountDisplay && (

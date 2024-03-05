@@ -33,6 +33,7 @@ interface AccessItemProps {
 export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
   value = value || options[0].value;
   const option = find(options, (op) => op.value === value)!;
+  const _options = options.map((v) => ({ ...v, value: String(v.value) }));
 
   const CustomMenuButton = forwardRef(function CustomMenuButton(props: any, ref: any) {
     const { children, ...restProps } = props;
@@ -69,8 +70,6 @@ export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
   useMount(() => {
     onChange(value);
   });
-
-  const _options = options.map((v) => ({ ...v, value: String(v.value) }));
 
   return (
     <DCMenu

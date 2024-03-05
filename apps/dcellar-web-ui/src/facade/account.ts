@@ -44,7 +44,7 @@ export type CreateTmpAccountParams = {
   amount: number;
   connector: Connector<any, any>;
   actionType?: 'delete' | 'create';
-}
+};
 export const createTempAccount = async ({
   address,
   bucketName,
@@ -285,6 +285,7 @@ export const sendToOwnerAccount = async (
 
   return [res, null];
 };
+
 export const depositToPaymentAccount = async (
   { fromAddress, toAddress, amount }: { fromAddress: string; toAddress: string; amount: string },
   connector: Connector,

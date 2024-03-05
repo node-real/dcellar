@@ -11,6 +11,7 @@ export type TotalFeeBoxProps = FlexProps & {
   onToggle: () => void;
   Tips?: React.ReactNode;
 };
+
 export const TotalFeeBox = ({
   expand,
   canExpand,

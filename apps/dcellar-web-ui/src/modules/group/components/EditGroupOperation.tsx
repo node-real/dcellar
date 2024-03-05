@@ -10,7 +10,7 @@ import { updateGroupExtra } from '@/facade/group';
 import { Fees } from '@/modules/group/components/Fees';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupGroups } from '@/store/slices/group';
+import { setupGroupList } from '@/store/slices/group';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -38,13 +38,18 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
   onClose = () => {},
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const [error, setError] = useState({ name: '', desc: '' });
   const [form, setForm] = useState({ name: '', desc: '' });
   const [balanceAvailable, setBalanceAvailable] = useState(true);
   const [loading, setLoading] = useState(false);
+
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
+
+  const fees = [{ label: 'Gas fee', types: [MsgUpdateGroupExtraTypeUrl] }];
+  const valid = !(error.name || error.desc);
 
   const validateForm = (values: Record<'name' | 'desc', string>) => {
     const { desc } = values;
@@ -56,12 +61,6 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     }
     setError(_error);
     return _error;
-  };
-
-  const onFormChange = (value: string, key: string) => {
-    const newValues = { ...form, [key]: value };
-    validateForm(newValues);
-    setForm(newValues);
   };
 
   const errorHandler = (error: string) => {
@@ -82,11 +81,13 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     }
   };
 
-  const fees = [{ label: 'Gas fee', types: [MsgUpdateGroupExtraTypeUrl] }];
+  const onFormValueChange = (value: string, key: string) => {
+    const newValues = { ...form, [key]: value };
+    validateForm(newValues);
+    setForm(newValues);
+  };
 
-  const valid = !(error.name || error.desc);
-
-  const onCreate = async () => {
+  const onUpdateGroup = async () => {
     const error = validateForm(form);
     if (error.name || error.desc) return;
     setLoading(true);
@@ -110,7 +111,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Group updated successfully!' });
-    dispatch(setupGroups(loginAccount));
+    dispatch(setupGroupList(loginAccount));
     onClose();
   };
 
@@ -131,7 +132,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
               disabled
               value={form.name}
               placeholder="Enter a group name"
-              onChange={(e) => onFormChange(e.target.value, 'name')}
+              onChange={(e) => onFormValueChange(e.target.value, 'name')}
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.name]} />
@@ -142,12 +143,12 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
               Description
             </Text>
             <TextareaItem
-              onKeyDown={(e) => e.key === 'Enter' && onCreate()}
+              onKeyDown={(e) => e.key === 'Enter' && onUpdateGroup()}
               value={form.desc}
               h={100}
               resize="none"
               placeholder="Enter description for your group. (Optional)"
-              onChange={(e) => onFormChange(e.target.value, 'desc')}
+              onChange={(e) => onFormValueChange(e.target.value, 'desc')}
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.desc]} />
@@ -167,7 +168,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
             disabled={!balanceAvailable || !valid || loading}
-            onClick={onCreate}
+            onClick={onUpdateGroup}
           >
             {loading ? (
               <>

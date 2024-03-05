@@ -98,18 +98,21 @@ export const Amount = ({
   watch,
   setValue,
 }: AmountProps) => {
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { transType } = useAppSelector((root) => root.wallet);
-  const defaultFee = DefaultFee[transType];
-  const curInfo = WalletOperationInfos[transType];
-  const { gasFee, relayerFee } = feeData;
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const { connector } = useAccount();
+
+  const defaultFee = DefaultFee[transferType];
+  const curInfo = WalletOperationInfos[transferType];
+  const { gasFee, relayerFee } = feeData;
+  const isSendPage = transferType === 'send';
+
   const isShowMaxButton = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
-  const isSendPage = transType === 'send';
 
   const Balance = useCallback(() => {
     if (isLoading) return null;
@@ -143,7 +146,7 @@ export const Amount = ({
       });
     }
 
-    if (transType === 'transfer_in' && refreshFee) {
+    if (transferType === 'transfer_in' && refreshFee) {
       const [realTimeFee, error] = await refreshFee(
         BN(balance).minus(DefaultTransferFee.transfer_in.total).toString(),
       );
@@ -162,7 +165,7 @@ export const Amount = ({
 
     let totalAmount = BigNumber(0);
     const balanceVal = BigNumber(balance || 0);
-    if (transType === EOperation.send) {
+    if (transferType === EOperation.send) {
       totalAmount =
         gasFee.toString() === '0'
           ? BigNumber(val).plus(BigNumber(defaultFee))
@@ -181,18 +184,22 @@ export const Amount = ({
     const precisionStr = val.split('.')[1];
     return !precisionStr || precisionStr.length <= CRYPTOCURRENCY_DISPLAY_PRECISION;
   };
+
   const validateWithdrawBankBalance = () => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(bankBalance as string).isGreaterThanOrEqualTo(gasFee);
   };
+
   const validateWithdrawMaxAmountError = (val: string) => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(val).lt(100);
   };
+
   const validateWithdrawStaticBalance = (val: string) => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(balance).isGreaterThanOrEqualTo(BN(settlementFee || '0').plus(val));
   };
+
   const onPaste = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -206,6 +213,7 @@ export const Amount = ({
   };
 
   watch('amount');
+
   return (
     <>
       <Flex justifyContent={'space-between'}>

@@ -21,6 +21,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
 
   return `${renderBnb(bnbValue)} ${displayTokenSymbol()} (${renderUsd(bnbValue, exchangeRate)})`;
 };
+
 const renderUsd = (bnbValue: string, exchangeRate: number | string) => {
   const numberInUsd = Number(bnbValue ?? 0) * Number(exchangeRate);
   return `$${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
@@ -72,6 +73,7 @@ const contentTypeToExtension = (contentType = '', fileName?: string) => {
       return contentType;
   }
 };
+
 const contentIconTypeToExtension = (fileName: string) => {
   if (fileName?.endsWith('/')) return 'FOLDER';
   const type = getFileExtension(fileName)?.split('-')[0].toLocaleLowerCase();
@@ -136,7 +138,10 @@ const contentIconTypeToExtension = (fileName: string) => {
 
 const renderBalanceNumber = (availableBalance: string) => {
   if (Number(availableBalance) < 0) return 'Fetching balance...';
-  return `${getNumInDigits(availableBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
+  return `${getNumInDigits(
+    availableBalance,
+    CRYPTOCURRENCY_DISPLAY_PRECISION,
+  )} ${displayTokenSymbol()}`;
 };
 
 // bankBalance + gasFee, 校验余额够不够，
@@ -374,6 +379,7 @@ const renderPaymentInsufficientBalance = ({
     </Flex>
   );
 };
+
 export {
   contentIconTypeToExtension,
   contentTypeToExtension,

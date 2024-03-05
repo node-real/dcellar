@@ -4,6 +4,7 @@ import { useAsyncEffect } from 'ahooks';
 
 export const GasObjects = () => {
   const dispatch = useAppDispatch();
+
   useAsyncEffect(async () => {
     dispatch(setupGasObjects());
   }, [dispatch, setupGasObjects]);

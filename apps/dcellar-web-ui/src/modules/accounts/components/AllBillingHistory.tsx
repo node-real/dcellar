@@ -21,22 +21,26 @@ import { AllBillingHistoryFilter } from './AllBillingHistoryFilter';
 import { ShortTxCopy } from './Common';
 
 export const AllBillingHistory = () => {
-  const router = useRouter();
-  const { query } = router;
+  const billListPage = useAppSelector((root) => root.billing.billListPage);
+  const billListLoading = useAppSelector((root) => root.billing.billListLoading);
+  const billPageSize = useAppSelector((root) => root.persist.billPageSize);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { curAllBillsPage, loadingAllBills } = useAppSelector((root) => root.billing);
-  const { allBillsPageSize } = useAppSelector((root) => root.persist);
   const allBills = useAppSelector(selectAllBills());
   const allBillsCount = useAppSelector(selectAllBillsCount());
-  const { accountInfo } = useAppSelector((root) => root.accounts);
+  const router = useRouter();
+
   const pageData = allBills;
+  const { query } = router;
+
   const lowerKeyAccountInfo = useMemo(() => {
     const newInfo: Record<string, TAccountInfo> = {};
-    Object.entries(accountInfo).forEach(([key, value]) => {
+    Object.entries(accountRecords).forEach(([key, value]) => {
       newInfo[key.toLowerCase()] = value;
     });
     return newInfo;
-  }, [accountInfo]);
+  }, [accountRecords]);
 
   const columns: ColumnProps<any>[] = [
     {
@@ -96,6 +100,7 @@ export const AllBillingHistory = () => {
       },
     },
   ];
+
   const empty = !allBills.length;
   const renderEmpty = useCallback(
     () => (
@@ -109,17 +114,17 @@ export const AllBillingHistory = () => {
     ),
     [empty],
   );
+  const loadingComponent = {
+    spinning: billListLoading,
+    indicator: <Loading />,
+  };
+
   const onPageChange = (page: number) => {
     const addQuery = { page };
     const newQuery = merge(query, addQuery);
     router.push(`${InternalRoutePaths.accounts}?${stringify(newQuery)}`, undefined, {
       scroll: false,
     });
-  };
-  const spinning = loadingAllBills;
-  const loadingComponent = {
-    spinning: spinning,
-    indicator: <Loading />,
   };
 
   return (
@@ -129,9 +134,9 @@ export const AllBillingHistory = () => {
         loading={loadingComponent}
         columns={columns}
         dataSource={pageData}
-        current={curAllBillsPage}
+        current={billListPage}
         total={allBillsCount}
-        pageSize={allBillsPageSize}
+        pageSize={billPageSize}
         showQuickJumper={true}
         pageChange={onPageChange}
         renderEmpty={renderEmpty}

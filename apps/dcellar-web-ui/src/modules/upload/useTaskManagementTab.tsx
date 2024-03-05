@@ -1,34 +1,15 @@
 import { useAppSelector } from '@/store';
-import { UploadFile } from '@/store/slices/global';
-// import { ColoredAlertIcon } from '@node-real/icons';
+import { UploadObject } from '@/store/slices/global';
 
 import { sortBy } from 'lodash-es';
 import { useMemo, useState } from 'react';
 
 export const useTaskManagementTab = () => {
-  const { uploadQueue } = useAppSelector((root) => root.global);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  // const queue = sortBy(uploadQueue[loginAccount] || [], [
-  //   (o) => {
-  //     switch (o.status) {
-  //       case 'SEAL':
-  //         return 0;
-  //       case 'UPLOAD':
-  //         return 1;
-  //       case 'HASH':
-  //         return 1;
-  //       case 'READY':
-  //         return 1;
-  //       case 'WAIT':
-  //         return 2;
-  //       case 'FINISH':
-  //         return 3;
-  //       case 'ERROR':
-  //         return 4;
-  //     }
-  //   },
-  // ]);
-  const queue = sortBy(uploadQueue[loginAccount] || [], (o) => o.waitFile.time);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const objectUploadQueue = useAppSelector((root) => root.global.objectUploadQueue);
+
+  const queue = sortBy(objectUploadQueue[loginAccount] || [], (o) => o.waitFile.time);
+
   const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
     const uploadingQueue = queue?.filter((i) => ['HASH', 'UPLOAD', 'SEAL'].includes(i.status));
     const completeQueue = queue?.filter((i) => i.status === 'FINISH');
@@ -44,7 +25,7 @@ export const useTaskManagementTab = () => {
     title: string;
     key: 'ALL' | 'HASH-UPLOAD-SEAL' | 'FINISH' | 'ERROR-CANCEL';
     icon?: React.ReactNode;
-    data: UploadFile[];
+    data: UploadObject[];
   }[] = [
     {
       title: 'All Objects',
@@ -68,6 +49,7 @@ export const useTaskManagementTab = () => {
       data: errorQueue,
     },
   ];
+
   const [activeKey, setActiveKey] = useState(tabOptions[0].key);
 
   return {

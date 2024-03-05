@@ -21,15 +21,17 @@ import { MetaInfo } from './components/MetaInfo';
 import { NonRefundableModal } from './components/NonRefundableModal';
 
 const emptyObject = {};
+
 export const AccountDetail = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+
   const { address, page, from, to, type } = router.query;
   const curAddress = address as string;
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = address === loginAccount;
-  const { accountInfo } = useAppSelector((root) => root.accounts);
-  const accountDetail = accountInfo?.[curAddress] || emptyObject;
+  const accountDetail = accountRecords?.[curAddress] || emptyObject;
 
   useMount(async () => {
     if (!curAddress) return;
@@ -40,6 +42,7 @@ export const AccountDetail = () => {
     isOwnerAccount ? dispatch(setupAccountInfo(curAddress)) : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
   });
+
   useEffect(() => {
     const filterRange: [string, string] =
       typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];

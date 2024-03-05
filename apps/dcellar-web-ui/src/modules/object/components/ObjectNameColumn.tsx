@@ -6,12 +6,12 @@ import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/f
 import { previewObject } from '@/facade/object';
 import { contentIconTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
 import {
-  ObjectItem,
-  setCurrentObjectPage,
+  ObjectEntity,
+  setObjectListPage,
   setObjectOperation,
-  setShareModePath,
+  setObjectShareModePath,
   setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
@@ -24,7 +24,7 @@ import { memo } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 
 interface ObjectNameColumnProps {
-  item: ObjectItem;
+  item: ObjectEntity;
   disabled: boolean;
   shareMode?: boolean;
 }
@@ -34,16 +34,20 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
   disabled,
   shareMode = false,
 }) {
-  const dispatch = useAppDispatch();
-  const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const { bucketName } = useAppSelector((root) => root.object);
-  const { owner } = useAppSelector((root) => root.bucket);
-  const primarySp = primarySpInfo[bucketName];
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.persist.accountRecords);
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+
+  const { setOpenAuthModal } = useOffChainAuth();
+
+  const primarySp = primarySpRecords[currentBucketName];
   const fileType = contentIconTypeToExtension(objectName);
-  const { loginAccount, accounts } = useAppSelector((root) => root.persist);
-  const onError = (type: string) => {
+
+  const errorHandler = (type: string) => {
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
     }
@@ -53,14 +57,15 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
 
     dispatch(setStatusDetail(errorData));
   };
-  const download = async (object: ObjectItem) => {
-    const config = accounts[loginAccount] || {};
+
+  const download = async (object: ObjectEntity) => {
+    const config = accountRecords[loginAccount] || {};
     if (config.directDownload || shareMode) {
       const { seedString } = await dispatch(
         getSpOffChainData(loginAccount, primarySp.operatorAddress),
       );
       const gParams = {
-        bucketName,
+        bucketName: currentBucketName,
         objectName: object.objectName,
         endpoint: primarySp.endpoint,
         seedString,
@@ -70,19 +75,19 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
       if (
         ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
       ) {
-        return onError(E_OFF_CHAIN_AUTH);
+        return errorHandler(E_OFF_CHAIN_AUTH);
       }
       if (objectInfo === null) {
-        return onError(E_UNKNOWN);
+        return errorHandler(E_UNKNOWN);
       }
       if (!shareMode) {
         if (quotaData === null) {
-          return onError(E_GET_QUOTA_FAILED);
+          return errorHandler(E_GET_QUOTA_FAILED);
         }
         const remainQuota = quotaRemains(quotaData, object.payloadSize + '');
         // update quota data.
-        dispatch(setReadQuota({ bucketName, quota: quotaData }));
-        if (!remainQuota) return onError(E_NO_QUOTA);
+        dispatch(setBucketQuota({ bucketName: currentBucketName, quota: quotaData }));
+        if (!remainQuota) return errorHandler(E_NO_QUOTA);
       }
       const params = {
         primarySp,
@@ -90,8 +95,8 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
         address: loginAccount,
       };
       const [success, opsError] = await previewObject(params, seedString);
-      if (opsError) return onError(opsError);
-      dispatch(setupBucketQuota(bucketName));
+      if (opsError) return errorHandler(opsError);
+      dispatch(setupBucketQuota(currentBucketName));
       return success;
     }
 
@@ -119,7 +124,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
   return (
     <Container>
       <Link
-        href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
+        href={`/buckets/${currentBucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
           if (disabled) {
             e.stopPropagation();
@@ -128,16 +133,18 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
           }
           e.stopPropagation();
           if (folder) {
-            const path = trimEnd([bucketName, objectName].join('/'), '/');
-            dispatch(setCurrentObjectPage({ path, current: 0 }));
+            const path = trimEnd([currentBucketName, objectName].join('/'), '/');
+            dispatch(setObjectListPage({ path, current: 0 }));
             if (shareMode) {
               e.stopPropagation();
               e.preventDefault();
-              dispatch(setShareModePath(`${bucketName}/${encodeObjectName(objectName)}`));
+              dispatch(
+                setObjectShareModePath(`${currentBucketName}/${encodeObjectName(objectName)}`),
+              );
             }
             return;
           }
-          if (!owner && !shareMode) {
+          if (!isBucketOwner && !shareMode) {
             toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
             e.stopPropagation();
             e.preventDefault();

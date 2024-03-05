@@ -9,22 +9,25 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { setupAllCostTrend, setupTotalCost } from '@/store/slices/billing';
 import { useMount } from 'ahooks';
-import { setupBuckets } from '@/store/slices/bucket';
+import { setupBucketList } from '@/store/slices/bucket';
 import { setupBucketDailyStorage } from '@/store/slices/dashboard';
 import Link from 'next/link';
 import { getCurMonthDetailUrl } from '@/utils/accounts';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const [isLessThan1200] = useMediaQuery('(max-width: 1200px)');
+
   const curMonthDetailUrl = getCurMonthDetailUrl();
-  useMount(async () => {
+
+  useMount(() => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
     dispatch(setupAllCostTrend());
     dispatch(setupPaymentAccounts());
-    dispatch(setupBuckets(loginAccount));
+    dispatch(setupBucketList(loginAccount));
     dispatch(setupBucketDailyStorage());
   });
 

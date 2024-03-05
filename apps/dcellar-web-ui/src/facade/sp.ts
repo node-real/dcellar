@@ -1,7 +1,7 @@
 import { resolve } from '@/facade/common';
 import { commonFault } from '@/facade/error';
 import { getClient } from '@/facade/index';
-import { SpMeta } from '@/store/slices/sp';
+import { SpRecommendMeta } from '@/store/slices/sp';
 import axios from 'axios';
 
 export const getStorageProviders = async (network?: 'mainnet') => {
@@ -13,6 +13,6 @@ export const getStorageProviders = async (network?: 'mainnet') => {
 export const getSpMeta = async (network?: 'mainnet') => {
   const baseUrl = '/api/sp-meta';
   const url = network ? `${baseUrl}?network=${network}` : baseUrl;
-  const { data } = await axios.get<Array<SpMeta>>(url);
+  const { data } = await axios.get<Array<SpRecommendMeta>>(url);
   return data;
 };

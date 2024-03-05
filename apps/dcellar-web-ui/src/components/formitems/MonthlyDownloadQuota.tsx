@@ -16,13 +16,6 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 
 const MAX_SIZE = 100000;
 
-interface QuotaItemProps {
-  value: number;
-  current?: number;
-  onChange: (v: number) => void;
-  quotaUpdateAt?: number;
-}
-
 const percentToValue = (percent: number) => {
   percent = percent < 0 ? 0 : percent > 100 ? 100 : percent;
   let value;
@@ -48,7 +41,14 @@ const valueToPercent = (value: number) => {
   return Math.min(98, percent);
 };
 
-export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
+interface MonthlyDownloadQuotaProps {
+  value: number;
+  current?: number;
+  onChange: (v: number) => void;
+  quotaUpdateAt?: number;
+}
+
+export const MonthlyDownloadQuota = memo<MonthlyDownloadQuotaProps>(function MonthlyDownloadQuota({
   value,
   current,
   onChange,
@@ -56,24 +56,22 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
 }) {
   const dispatch = useAppDispatch();
   const [_, forceUpdate] = useState(0);
+  const [invalid, setInvalid] = useState(false);
+  const { readPrice = 0 } = useAppSelector(selectStoreFeeParams);
+
   const percent = valueToPercent(value);
   const title = formatByGB(value * G_BYTES).replace(' ', '');
   const originPercent = valueToPercent(current || 0);
   const originValue = !current ? '0GB' : formatByGB(current * G_BYTES).replace(' ', '');
-  const { readPrice = 0 } = useAppSelector(selectStoreFeeParams);
-  const [invalid, setInvalid] = useState(false);
   const overlayStyles = { color: '#fff', borderColor: invalid ? '#EE3911' : '#14151A' };
 
-  useEffect(() => {
-    if (!current || !quotaUpdateAt) return;
-    const now = getTimestampInSeconds();
-    const days = (now - quotaUpdateAt) / 86400;
-    setInvalid(value < (current || 0) && days < 30);
-  }, [value, current, quotaUpdateAt]);
-
-  useEffect(() => {
-    dispatch(setupStoreFeeParams());
-  }, [dispatch]);
+  const price = useMemo(() => {
+    return BN(readPrice)
+      .times(G_BYTES)
+      .times(2_592_000)
+      .div(10 ** 18)
+      .toString();
+  }, [readPrice]);
 
   const onTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -116,14 +114,16 @@ export const QuotaItem = memo<QuotaItemProps>(function QuotaItem({
     document.addEventListener('mouseup', mouseup);
   };
 
-  const price = useMemo(() => {
-    return BN(readPrice)
-      .div(10 ** 18)
-      .times(G_BYTES)
-      .times(2_592_000)
-      .div(10 ** 18)
-      .toString();
-  }, [readPrice]);
+  useEffect(() => {
+    if (!current || !quotaUpdateAt) return;
+    const now = getTimestampInSeconds();
+    const days = (now - quotaUpdateAt) / 86400;
+    setInvalid(value < (current || 0) && days < 30);
+  }, [value, current, quotaUpdateAt]);
+
+  useEffect(() => {
+    dispatch(setupStoreFeeParams());
+  }, [dispatch]);
 
   return (
     <FormItem>

@@ -17,6 +17,7 @@ import { getUTC0FullMonth } from '@/utils/time';
 type PricingCardProps = {
   storeParams: TStoreFeeParams;
 };
+
 const UnitOptions = [
   {
     title: `BNB/MB/month`,
@@ -34,9 +35,11 @@ const UnitOptions = [
     time: 'm',
   },
 ];
+
 export const PricingCard = ({ storeParams }: PricingCardProps) => {
   const curFullMonth = getUTC0FullMonth();
   const [unit, setUnit] = useState(UnitOptions[1]);
+
   const prices = useMemo(() => {
     const storeSize = Sizes[unit.size as TSize];
     const storeTime = Times[unit.time as TTime];
@@ -53,6 +56,7 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
       quotaFee,
     };
   }, [storeParams, unit.size, unit.time]);
+
   return (
     <PriceResponsiveContainer
       display={'flex'}

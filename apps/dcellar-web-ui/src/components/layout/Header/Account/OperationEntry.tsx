@@ -11,9 +11,11 @@ export const OperationEntry = () => {
   const router = useRouter();
   const { logout } = useLogin();
   const isUploading = useAppSelector(selectHasUploadingTask);
+
   const onNavigate = (target: string) => () => {
     router.push(target);
   };
+
   const onDisconnectClick = () => {
     if (!isUploading) {
       return logout(true);

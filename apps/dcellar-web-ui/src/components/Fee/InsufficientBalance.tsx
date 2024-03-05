@@ -7,8 +7,10 @@ export type InsufficientBalanceProps = {
   loginAccount: string;
   accounts: { address: string }[];
 };
+
 export const InsufficientBalance = ({ loginAccount, accounts }: InsufficientBalanceProps) => {
   const [activeWays, setActiveWays] = useState<{ link: string; text: string }[]>([]);
+
   useEffect(() => {
     const ways = accounts.map((account) => {
       const isOwnerAccount = account.address === loginAccount;

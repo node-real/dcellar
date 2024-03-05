@@ -5,6 +5,7 @@ import { TFeatureItem } from './KeyFeatures';
 
 export const FeatureItem = ({ title, desc, tag, introImg, introImgSm }: TFeatureItem) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
+
   return (
     <Flex
       borderRadius={'4px'}

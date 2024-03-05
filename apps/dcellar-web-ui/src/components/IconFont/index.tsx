@@ -10,6 +10,7 @@ export const IconFont = forwardRef<SVGSVGElement, IconFontProps>(function IconFo
   ref,
 ) {
   if (!type) return null;
+
   return (
     <html.svg ref={ref} w={w} h={h} flexShrink={0} {...props}>
       <use xlinkHref={`#icon-${type.toLowerCase()}`} />

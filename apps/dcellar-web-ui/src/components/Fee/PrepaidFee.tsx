@@ -7,8 +7,10 @@ import { Flex, Text } from '@node-real/uikit';
 export type PrepaidFeeProps = {
   amount: string;
 };
+
 export const PrepaidFee = ({ amount }: PrepaidFeeProps) => {
   const exchangeRate = useAppSelector(selectBnbPrice);
+
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">
       <Flex alignItems="center">

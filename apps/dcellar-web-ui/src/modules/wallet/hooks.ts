@@ -25,16 +25,19 @@ import { calTransferInFee } from '@/facade/wallet';
 import { useAppSelector } from '@/store';
 
 export const useGetFeeConfig = () => {
-  const { transType } = useAppSelector((root) => root.wallet);
-  const curInfo = WalletOperationInfos[transType];
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+  const address = useAppSelector((root) => root.persist.loginAccount);
+
   const { chain } = useNetwork();
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+
+  const curInfo = WalletOperationInfos[transferType];
+
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
 
   return {
-    type: transType,
+    type: transferType,
     isRight,
     chain,
     address,
@@ -155,11 +158,13 @@ export const useSendFee = () => {
 
 export function useEthersProvider({ chainId }: { chainId?: number } = {}) {
   const publicClient = usePublicClient({ chainId });
+
   return useMemo(() => publicClientToProvider(publicClient), [publicClient]);
 }
 
 export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
   const { data: walletClient } = useWalletClient({ chainId });
+
   return useMemo(
     () => (walletClient ? walletClientToSigner(walletClient) : undefined),
     [walletClient],
@@ -167,18 +172,22 @@ export function useEthersSigner({ chainId }: { chainId?: number } = {}) {
 }
 
 export const useTransferInFee = () => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const APOLLO_TOKEN_HUB_CONTRACT_ADDRESS = useAppSelector(
+    (root) => root.apollo.TOKEN_HUB_CONTRACT_ADDRESS,
+  );
+  const APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS = useAppSelector(
+    (root) => root.apollo.CROSS_CHAIN_CONTRACT_ADDRESS,
+  );
+
   const [feeData, setFeeData] = useState<TFeeData>({
     gasFee: BigNumber(DefaultTransferFee['transfer_in'].gasFee),
     relayerFee: BigNumber(DefaultTransferFee['transfer_in'].relayerFee),
   });
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const [isGasLoading, setIsGasLoading] = useState(false);
-  const {
-    TOKEN_HUB_CONTRACT_ADDRESS: APOLLO_TOKEN_HUB_CONTRACT_ADDRESS,
-    CROSS_CHAIN_CONTRACT_ADDRESS: APOLLO_CROSS_CHAIN_CONTRACT_ADDRESS,
-  } = useAppSelector((root) => root.apollo);
   const provider = useEthersProvider({ chainId: BSC_CHAIN_ID });
   const signer = useEthersSigner({ chainId: BSC_CHAIN_ID });
+
   const getFee = useCallback(
     async (transferAmount: string): Promise<ErrorResponse | [TFeeData, null]> => {
       if (!signer || !provider) return [null, 'no signer or provider'];

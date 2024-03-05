@@ -8,8 +8,8 @@ import { SharePermission } from '@/modules/object/components/SharePermission';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBucketOperation,
-  setEditBucketTagsData,
-  setEditQuota,
+  setBucketTagsEditData,
+  setBucketEditQuota,
   setupBucketQuota,
   TBucket,
 } from '@/store/slices/bucket';
@@ -66,27 +66,48 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   selectedBucketInfo,
 }) {
   const dispatch = useAppDispatch();
-  const { quotas } = useAppSelector((root) => root.bucket);
-  const quota = quotas[selectedBucketInfo.BucketName];
-  const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
-  const formattedQuota = formatQuota(quota);
-  const { accountInfo } = useAppSelector((root) => root.accounts);
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
+
+  const bucketQuota = bucketQuotaRecords[selectedBucketInfo.BucketName];
+  const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
+  const formattedQuota = formatQuota(bucketQuota);
+  const nullObjectMeta: ObjectMeta = {
+    ...defaultNullObject,
+    ObjectInfo: {
+      ...defaultNullObject.ObjectInfo,
+      BucketName: selectedBucketInfo.BucketName,
+    },
+  };
 
   const onEditTags = () => {
     const tags = selectedBucketInfo.Tags.Tags.map((item) =>
       convertObjectKey(item, 'lowercase'),
     ) as ResourceTags_Tag[];
-    dispatch(setEditBucketTagsData(tags));
+    dispatch(setBucketTagsEditData(tags));
     dispatch(
       setBucketOperation({ level: 1, operation: [selectedBucketInfo.BucketName, 'update_tags'] }),
+    );
+  };
+
+  const onManageQuota = () => {
+    dispatch(setBucketEditQuota([selectedBucketInfo.BucketName, 'drawer']));
+  };
+
+  const onManagePaymentAccount = () => {
+    dispatch(
+      setBucketOperation({
+        level: 1,
+        operation: [selectedBucketInfo.BucketName, 'payment_account'],
+      }),
     );
   };
 
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
     const spName = primarySp.moniker;
-    const payAccountName = accountInfo[selectedBucketInfo.PaymentAddress]?.name;
+    const payAccountName = accountRecords[selectedBucketInfo.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,
@@ -168,7 +189,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                         gap={4}
                         color={'brand.brand6'}
                         cursor={'pointer'}
-                        onClick={managePaymentAccount}
+                        onClick={onManagePaymentAccount}
                         w={16}
                         h={16}
                       >
@@ -288,28 +309,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     dispatch(setupBucketQuota(selectedBucketInfo.BucketName));
   }, [selectedBucketInfo.BucketName, dispatch]);
 
-  const manageQuota = () => {
-    dispatch(setEditQuota([selectedBucketInfo.BucketName, 'drawer']));
-  };
-
-  const managePaymentAccount = () => {
-    dispatch(
-      setBucketOperation({
-        level: 1,
-        operation: [selectedBucketInfo.BucketName, 'payment_account'],
-      }),
-    );
-  };
-
-  useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
-
-  const nullObjectMeta: ObjectMeta = {
-    ...defaultNullObject,
-    ObjectInfo: {
-      ...defaultNullObject.ObjectInfo,
-      BucketName: selectedBucketInfo.BucketName,
-    },
-  };
+  useUnmount(() => dispatch(setBucketTagsEditData([DEFAULT_TAG])));
 
   return (
     <>
@@ -367,7 +367,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                 color="#00BA34"
                 _hover={{ color: '#2EC659' }}
                 cursor="pointer"
-                onClick={manageQuota}
+                onClick={onManageQuota}
               >
                 Increase Quota
               </Text>
@@ -380,7 +380,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
         <SharePermission selectObjectInfo={nullObjectMeta} />
       </QDrawerBody>
       <QDrawerFooter>
-        <DCButton size="lg" w={'100%'} onClick={manageQuota}>
+        <DCButton size="lg" w={'100%'} onClick={onManageQuota}>
           Manage Quota
         </DCButton>
       </QDrawerFooter>

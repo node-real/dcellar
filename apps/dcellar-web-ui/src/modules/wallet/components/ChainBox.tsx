@@ -6,10 +6,7 @@ import { ChainInfos } from '../constants';
 import { IconFont } from '@/components/IconFont';
 import { isGNFDTestnet } from '@/utils/wallet';
 
-type Props = {
-  chainId: number;
-  type: 'from' | 'to';
-};
+type Props = { chainId: number; type: 'from' | 'to' };
 
 interface ChainBoxProps {
   chainId: number;
@@ -19,6 +16,7 @@ interface ChainBoxProps {
 export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }: Props) {
   const chain = ChainInfos.find((item) => item.chainId === chainId);
   const isTestnet = isGNFDTestnet();
+
   return (
     <Box position={'relative'}>
       <FormLabel

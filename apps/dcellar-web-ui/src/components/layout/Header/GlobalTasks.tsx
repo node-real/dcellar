@@ -1,7 +1,7 @@
 import { useChecksumApi } from '@/modules/checksum';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  UploadFile,
+  UploadObject,
   progressFetchList,
   refreshTaskFolder,
   selectHashTask,
@@ -39,19 +39,21 @@ interface GlobalTasksProps {}
 
 export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   const dispatch = useAppDispatch();
-  const { SP_RECOMMEND_META } = useAppSelector((root) => root.apollo);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { spInfo } = useAppSelector((root) => root.sp);
-  const { sealingTs } = useAppSelector((root) => root.global);
-  const tempAccounts = useAppSelector((root) => root.accounts.tempAccounts);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
+  const SP_RECOMMEND_META = useAppSelector((root) => root.apollo.SP_RECOMMEND_META);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const spRecords = useAppSelector((root) => root.sp.spRecords);
+  const objectSealingTimestamp = useAppSelector((root) => root.global.objectSealingTimestamp);
+  const tempAccountRecords = useAppSelector((root) => root.accounts.tempAccountRecords);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
   const hashTask = useAppSelector(selectHashTask(loginAccount));
   const signTask = useAppSelector(selectSignTask(loginAccount));
+  const queue = useAppSelector(selectUploadQueue(loginAccount));
+
   const checksumApi = useChecksumApi();
   const [counter, setCounter] = useState(0);
   const { setOpenAuthModal, isAuthPending } = useOffChainAuth();
   const [authModal, setAuthModal] = useState(false);
-  const queue = useAppSelector(selectUploadQueue(loginAccount));
+
   const uploadQueue = queue.filter((t) => t.status === 'UPLOAD');
   const signedQueue = queue.filter((t) => t.status === 'SIGNED');
   const uploadOffset = 1 - uploadQueue.length;
@@ -61,38 +63,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
   }, [uploadOffset, signedQueue]);
   const sealQueue = queue.filter((q) => q.status === 'SEAL').map((s) => s.id);
 
-  // 1. hash
-  useAsyncEffect(async () => {
-    if (!hashTask) return;
-    dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
-    const a = performance.now();
-    const res = await checksumApi?.generateCheckSumV2(hashTask.waitFile.file);
-    console.log('hashing time', performance.now() - a);
-    if (isEmpty(res)) {
-      return dispatch(
-        setupUploadTaskErrorMsg({
-          account: loginAccount,
-          task: hashTask,
-          errorMsg: 'calculating hash error',
-        }),
-      );
-    }
-    const { expectCheckSums } = res!;
-    dispatch(
-      updateUploadChecksum({
-        account: loginAccount,
-        id: hashTask.id,
-        checksum: expectCheckSums,
-      }),
-    );
-  }, [hashTask, dispatch]);
-
-  useEffect(() => {
-    if (isAuthPending) return;
-    setAuthModal(false);
-  }, [isAuthPending]);
-
-  const runUploadTask = async (task: UploadFile) => {
+  const runUploadTask = async (task: UploadObject) => {
     if (authModal) return;
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
     const fullObjectName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
@@ -102,7 +73,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
       bucketName: task.bucketName,
       objectName: fullObjectName,
       body: task.waitFile.file,
-      endpoint: spInfo[task.spAddress].endpoint,
+      endpoint: spRecords[task.spAddress].endpoint,
       txnHash: task.createHash,
     };
     const authType = {
@@ -190,11 +161,42 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
     }
   };
 
+  // 1. hash
+  useAsyncEffect(async () => {
+    if (!hashTask) return;
+    dispatch(updateUploadStatus({ ids: [hashTask.id], status: 'HASH', account: loginAccount }));
+    const a = performance.now();
+    const res = await checksumApi?.generateCheckSumV2(hashTask.waitFile.file);
+    console.log('hashing time', performance.now() - a);
+    if (isEmpty(res)) {
+      return dispatch(
+        setupUploadTaskErrorMsg({
+          account: loginAccount,
+          task: hashTask,
+          errorMsg: 'calculating hash error',
+        }),
+      );
+    }
+    const { expectCheckSums } = res!;
+    dispatch(
+      updateUploadChecksum({
+        account: loginAccount,
+        id: hashTask.id,
+        checksum: expectCheckSums,
+      }),
+    );
+  }, [hashTask, dispatch]);
+
+  useEffect(() => {
+    if (isAuthPending) return;
+    setAuthModal(false);
+  }, [isAuthPending]);
+
   // 2. sign
   useAsyncEffect(async () => {
     const task = signTask;
     if (!task || !task.tempAccountAddress) return;
-    const tempAccount = tempAccounts[task.tempAccountAddress];
+    const tempAccount = tempAccountRecords[task.tempAccountAddress];
     dispatch(updateUploadStatus({ ids: [task.id], status: 'SIGN', account: loginAccount }));
     const finalName = [...task.prefixFolders, task.waitFile.relativePath, task.waitFile.name]
       .filter((item) => !!item)
@@ -288,10 +290,10 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
           .filter((item) => !!item)
           .join('/');
 
-        const endpoint = spInfo[task.spAddress].endpoint;
+        const endpoint = spRecords[task.spAddress].endpoint;
         const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
         const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus ?? undefined;
-        const preTs = sealingTs[task.id] || Date.now();
+        const preTs = objectSealingTimestamp[task.id] || Date.now();
 
         // for folder object not sync to meta service
         if (error?.code === 404) {
@@ -316,7 +318,7 @@ export const GlobalTasks = memo<GlobalTasksProps>(function GlobalTasks() {
         }
         if (objectStatus === 1) {
           dispatch(uploadQueueAndRefresh(task));
-          const bucket = bucketInfo[task.bucketName];
+          const bucket = bucketRecords[task.bucketName];
           dispatch(setupAccountInfo(bucket.PaymentAddress));
         }
         return objectStatus;

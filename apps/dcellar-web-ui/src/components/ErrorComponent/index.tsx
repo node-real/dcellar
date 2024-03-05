@@ -20,11 +20,6 @@ const Container = styled.main`
 const Content = styled.div`
   margin: auto;
   text-align: center;
-  /* img {
-    aspect-ratio: 275/ 240;
-    width: 275px;
-    margin: auto;
-  } */
 `;
 
 const Logo = styled.img`
@@ -39,11 +34,13 @@ interface ErrorComponentProps {
 }
 
 function ErrorComponent({ statusCode }: ErrorComponentProps) {
+  const address = useAppSelector((root) => root.persist.loginAccount);
+
   const { colorMode } = useColorMode();
   const router = useRouter();
+
   const { err } = router.query;
   const isNoBucket = err === 'noBucket';
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
   const text = isNoBucket
     ? 'Bucket Not Exist or Deleted'
     : statusCode === 404

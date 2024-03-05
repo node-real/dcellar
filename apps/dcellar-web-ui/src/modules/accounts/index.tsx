@@ -22,10 +22,10 @@ import { AllBillingHistory } from './components/AllBillingHistory';
 import { SectionHeader } from './components/Common';
 import { CurForecastCost } from './components/CurForecastCost';
 import { CurMonthCost } from './components/CurMonthCost';
-import { NewPA } from './components/NewPA';
+import { CreatePaymentAccount } from './components/CreatePaymentAccount';
 import { NonRefundableModal } from './components/NonRefundableModal';
 import { OwnerAccount } from './components/OwnerAccount';
-import { PaymentAccounts } from './components/PaymentAccounts';
+import { PaymentAccountList } from './components/PaymentAccountList';
 import { TotalCost } from './components/TotalCost';
 import { TotalCostTrend } from './components/TotalCostTrend';
 
@@ -37,16 +37,27 @@ export type BillingHistoryQuery = {
   address?: string[];
   type?: string[];
 };
+
 const formatTabKey = (t: string | string[] | undefined) => {
   return typeof t === 'string' && ['a', 'b'].includes(t) ? t : 'a';
 };
+
 export const Accounts = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const query = router.query;
   const { tab, page, from, to, address, type } = query;
-
   const activeKey = formatTabKey(tab);
+
+  const onChangeKey = (tabKey: string) => {
+    query.tab = tabKey;
+    // router.push(`/accounts?${stringify(query)}`, undefined, { shallow: false, scroll: false });
+    router.push(`/accounts?${stringify({ tab: tabKey })}`, undefined, {
+      shallow: false,
+      scroll: false,
+    });
+  };
+
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
@@ -67,15 +78,6 @@ export const Accounts = () => {
     dispatch(setCurrentAllBillsPage(curPage));
     dispatch(setupAllBills());
   }, [page, from, to, dispatch, address, type, tab]);
-
-  const onChangeKey = (tabKey: string) => {
-    query.tab = tabKey;
-    // router.push(`/accounts?${stringify(query)}`, undefined, { shallow: false, scroll: false });
-    router.push(`/accounts?${stringify({ tab: tabKey })}`, undefined, {
-      shallow: false,
-      scroll: false,
-    });
-  };
 
   return (
     <>
@@ -130,10 +132,10 @@ export const Accounts = () => {
                 <Flex flexDirection={'column'} gap={16}>
                   <Flex justifyContent={'space-between'} alignItems={'center'} marginTop={16}>
                     <SectionHeader>Account List</SectionHeader>
-                    <NewPA />
+                    <CreatePaymentAccount />
                   </Flex>
                   <OwnerAccount />
-                  <PaymentAccounts />
+                  <PaymentAccountList />
                 </Flex>
               </TabPanel>
               <TabPanel panelKey={'b'}>

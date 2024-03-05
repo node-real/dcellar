@@ -33,6 +33,7 @@ const formatInput = (value: string) => {
   }
   return value;
 };
+
 export const displayUsd = (fee: string, bnbPrice: string) => {
   return currencyFormatter(
     BN(fee || 0)
@@ -40,6 +41,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
       .toString(DECIMAL_NUMBER),
   );
 };
+
 export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
   const TOKEN_SYMBOL = 'BNB';
@@ -60,6 +62,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
   const [storageTime, setStorageTime] = useState(TimeOptions[0]);
   const [customStorageTime, setCustomStorageTime] = useState(TimeOptions[2]);
   const sizes = Object.keys(Sizes);
+
   const storeNetflowRate = useMemo(() => {
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getStoreNetflowRate(Sizes[storageSize.unit as TSize], storeParams))
@@ -67,6 +70,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize.unit, storeParams]);
+
   const storageFee = useMemo(() => {
     if (!storeParams.primarySpStorePrice) return;
     if (!+storageSize.size) return '0';
@@ -82,6 +86,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize, storeParams]);
+
   const quotaNetflowRate = useMemo(() => {
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getQuotaNetflowRate(Sizes[quotaSize.unit as TSize], storeParams))
@@ -89,6 +94,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [quotaSize.unit, storeParams]);
+
   const quotaFee = useMemo(() => {
     if (!storeParams.primarySpStorePrice) return;
     if (!+quotaSize.size) return '0';
@@ -200,6 +206,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
     storageTime.unit,
     storageTime.value,
   ]);
+
   return (
     <PriceResponsiveContainer
       margin={['20px auto', '40px auto']}

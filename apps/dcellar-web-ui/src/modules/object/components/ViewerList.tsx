@@ -30,7 +30,7 @@ import { DCComboBox } from '@/components/common/DCComboBox';
 import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { TxConfirmModal } from '@/components/common/DCModal/TxConfirmModal';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { Loading } from '@/components/common/Loading';
@@ -41,16 +41,17 @@ import { deleteObjectPolicy, putBucketPolicies, putObjectPolicies } from '@/faca
 import { BUTTON_GOT_IT, FILE_ACCESS, WALLET_CONFIRM } from '@/modules/object/constant';
 import { ActionTypeValue } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectGroupList, setMemberListPage, setupGroups } from '@/store/slices/group';
+import { selectGroupList, setGroupMemberListPage, setupGroupList } from '@/store/slices/group';
 import {
   ObjectResource,
   TStatusDetail,
-  setObjectPoliciesPage,
-  setSelectedShareMembers,
+  setObjectPolicyListPage,
+  setObjectShareSelectedMembers,
   setStatusDetail,
   setupObjectPolicies,
 } from '@/store/slices/object';
 import { trimAddress } from '@/utils/string';
+import { GAContextProvider } from '@/context/GAContext';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -66,52 +67,74 @@ interface ViewerListProps {
 }
 
 export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObjectInfo }) {
+  const dispatch = useAppDispatch();
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const objectPolicyListRecords = useAppSelector((root) => root.object.objectPolicyListRecords);
+  const objectPolicyListPage = useAppSelector((root) => root.object.objectPolicyListPage);
+  const objectShareSelectedMembers = useAppSelector(
+    (root) => root.object.objectShareSelectedMembers,
+  );
+  const objectPolicyResourcesRecords = useAppSelector(
+    (root) => root.object.objectPolicyResourcesRecords,
+  );
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const groupList = useAppSelector(selectGroupList(loginAccount));
+  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
-  const { connector } = useAccount();
-  const {
-    bucketName: _bucketName,
-    objectPolicies,
-    objectPoliciesPage,
-    selectedShareMembers,
-    policyResources,
-  } = useAppSelector((root) => root.object);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const groupList = useAppSelector(selectGroupList(loginAccount));
-  const { setOpenAuthModal } = useOffChainAuth();
-  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [invalidIds, setInvalidIds] = useState<string[]>([]);
-  const objectInfo = selectObjectInfo.ObjectInfo;
-  // share bucket
-  const bucketName = objectInfo.BucketName || _bucketName;
-  const path = [bucketName, objectInfo.ObjectName].join('/');
-  const memberList = (objectPolicies[path] || []) as Array<PolicyMeta & Partial<ObjectResource>>;
-  const memberListLoading = !(path in objectPolicies);
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [removeAccount, setRemoveAccount] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [expiration, setExpiration] = useState<Dayjs>();
+  const { connector } = useAccount();
+  const { setOpenAuthModal } = useOffChainAuth();
+
+  const objectInfo = selectObjectInfo.ObjectInfo;
+  // share bucket
+  const bucketName = objectInfo.BucketName || currentBucketName;
+  const path = [bucketName, objectInfo.ObjectName].join('/');
+  const memberList = (objectPolicyListRecords[path] || []) as Array<
+    PolicyMeta & Partial<ObjectResource>
+  >;
+  const memberListLoading = !(path in objectPolicyListRecords);
   const isFolder = objectInfo.ObjectName.endsWith('/') || objectInfo.ObjectName === '';
 
   const { page, canPrev, canNext } = useTableNav<PolicyMeta>({
     list: memberList,
     sorter: ['CreateTimestamp', 'descend'],
     pageSize: MEMBER_SIZE,
-    currentPage: objectPoliciesPage,
+    currentPage: objectPolicyListPage,
   });
 
-  useAsyncEffect(async () => {
-    if (!bucketName) return;
-    dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
-  }, [dispatch, bucketName]);
+  const groups = uniq(
+    values.concat(memberList.map((l) => l.PrincipalValue)).filter((v) => v.match(GROUP_ID)),
+  );
 
-  useUnmount(() => {
-    dispatch(setObjectPoliciesPage(0));
-  });
+  const invalid = !!error || !!invalidIds.length || groups.length > MAX_GROUP;
+
+  const options = groupList.map((g) => ({ label: g.groupName, value: g.id, desc: g.extra }));
+
+  const _options = options.filter((option) =>
+    option.label.toLowerCase().includes(searchValue.toLowerCase()),
+  );
+
+  const putFee = (gasObjects?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
+  const deleteFee = (gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * removeAccount.length;
+
+  const indeterminate = page.some((i) => objectShareSelectedMembers.includes(i.PrincipalValue));
+  const accounts = without(
+    page.map((i) => i.PrincipalValue),
+    loginAccount,
+  );
+  const allChecked =
+    accounts.every((i) => objectShareSelectedMembers.includes(i)) && !!accounts.length;
+
+  const members = objectShareSelectedMembers.length;
 
   const _onChange = (_e: string[]) => {
     const e = _e.map((i) => i.trim());
@@ -134,18 +157,12 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
 
   const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
     if (prev || next) {
-      return dispatch(setObjectPoliciesPage(objectPoliciesPage + (next ? 1 : -1)));
+      return dispatch(setObjectPolicyListPage(objectPolicyListPage + (next ? 1 : -1)));
     }
-    dispatch(setObjectPoliciesPage(0));
+    dispatch(setObjectPolicyListPage(0));
   };
 
-  const groups = uniq(
-    values.concat(memberList.map((l) => l.PrincipalValue)).filter((v) => v.match(GROUP_ID)),
-  );
-
-  const invalid = !!error || !!invalidIds.length || groups.length > MAX_GROUP;
-
-  const onError = (type: string) => {
+  const errorHandler = (type: string) => {
     switch (type) {
       case E_OFF_CHAIN_AUTH:
         setOpenAuthModal();
@@ -165,7 +182,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   };
 
   const updateMemberList = async (checkId: string, remove = false) => {
-    dispatch(setMemberListPage(0));
+    dispatch(setGroupMemberListPage(0));
     const fetch = () => {
       return dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
     };
@@ -198,9 +215,9 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         ? `${bucketName}-${value}`.toLowerCase()
         : `${bucketName}/${objectInfo.ObjectName}-${value}`.toLowerCase();
 
-      const resource = policyResources[key] || { Resources: [], Actions: [] };
+      const resource = objectPolicyResourcesRecords[key] || { Resources: [], Actions: [] };
 
-      if (key in policyResources && isFolder) {
+      if (key in objectPolicyResourcesRecords && isFolder) {
         deleteBucketPolicy.push({
           p: {
             type: value.match(GROUP_ID)
@@ -272,7 +289,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         dispatch(setStatusDetail({} as TStatusDetail));
         return;
       }
-      if (error) return onError(error);
+      if (error) return errorHandler(error);
       dispatch(setStatusDetail({} as TStatusDetail));
     }
 
@@ -295,55 +312,43 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         removeAccount,
       );
       setLoading(false);
-      if (error) return onError(error);
+      if (error) return errorHandler(error);
       dispatch(setStatusDetail({} as TStatusDetail));
       toast.success({ description: 'Access updated!' });
       updateMemberList(removeAccount[0], true);
     } else {
       await onAddMember(removeAccount);
     }
-    dispatch(setSelectedShareMembers(without(selectedShareMembers, ...removeAccount)));
+    dispatch(setObjectShareSelectedMembers(without(objectShareSelectedMembers, ...removeAccount)));
   };
-
-  useMount(() => {
-    dispatch(setupGroups(loginAccount));
-  });
-
-  const options = groupList.map((g) => ({ label: g.groupName, value: g.id, desc: g.extra }));
-
-  const _options = options.filter((option) =>
-    option.label.toLowerCase().includes(searchValue.toLowerCase()),
-  );
-
-  const putFee = (gasObjects?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
-  const deleteFee = (gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * removeAccount.length;
 
   const onSelectChange = (value: string) => {
-    dispatch(setSelectedShareMembers(xor(selectedShareMembers, [value])));
+    dispatch(setObjectShareSelectedMembers(xor(objectShareSelectedMembers, [value])));
   };
-
-  const indeterminate = page.some((i) => selectedShareMembers.includes(i.PrincipalValue));
-  const accounts = without(
-    page.map((i) => i.PrincipalValue),
-    loginAccount,
-  );
-  const allChecked = accounts.every((i) => selectedShareMembers.includes(i)) && !!accounts.length;
 
   const onSelectAllChange = () => {
     if (allChecked) {
       // cancel all
-      dispatch(setSelectedShareMembers(without(selectedShareMembers, ...accounts)));
+      dispatch(setObjectShareSelectedMembers(without(objectShareSelectedMembers, ...accounts)));
     } else {
       // select all
-      dispatch(setSelectedShareMembers(uniq(selectedShareMembers.concat(accounts))));
+      dispatch(setObjectShareSelectedMembers(uniq(objectShareSelectedMembers.concat(accounts))));
     }
   };
 
-  useUnmount(() => {
-    dispatch(setSelectedShareMembers([]));
+  useAsyncEffect(async () => {
+    if (!bucketName) return;
+    dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
+  }, [dispatch, bucketName]);
+
+  useMount(() => {
+    dispatch(setupGroupList(loginAccount));
   });
 
-  const members = selectedShareMembers.length;
+  useUnmount(() => {
+    dispatch(setObjectPolicyListPage(0));
+    dispatch(setObjectShareSelectedMembers([]));
+  });
 
   useEffect(() => {
     if (members > MAX_COUNT) {
@@ -355,49 +360,37 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
 
   return (
     <>
-      <ConfirmModal
-        confirmText="Confirm"
-        isOpen={confirmModal}
-        ga={{
-          gaClickCloseName: 'dc.object.add_object_policy_confirm.modal.show',
-          gaShowName: 'dc.object.add_object_policy_confirm.close.click',
-          balanceClickName: 'dc.object.add_object_policy_confirm.depost.show',
-          balanceShowName: 'dc.object.add_object_policy_confirm.transferin.click',
-          cancelButton: 'dc.object.add_object_policy_confirm.cancel.click',
-          confirmButton: 'dc.object.add_object_policy_confirm.delete.click',
-        }}
-        title="Allow Access"
-        fee={putFee}
-        onConfirm={onAddMember}
-        onClose={() => {
-          setConfirmModal(false);
-        }}
-        description="Please confirm the transaction in your wallet."
-      />
-      <ConfirmModal
-        confirmText="Remove"
-        isOpen={deleteModal}
-        ga={{
-          gaClickCloseName: 'dc.object.remove_object_policy_confirm.modal.show',
-          gaShowName: 'dc.object.remove_object_policy_confirm.close.click',
-          balanceClickName: 'dc.object.remove_object_policy_confirm.depost.show',
-          balanceShowName: 'dc.object.remove_object_policy_confirm.transferin.click',
-          cancelButton: 'dc.object.remove_object_policy_confirm.cancel.click',
-          confirmButton: 'dc.object.remove_object_policy_confirm.delete.click',
-        }}
-        title="Remove Access"
-        fee={deleteFee}
-        onConfirm={onRemoveMember}
-        onClose={() => {
-          setDeleteModal(false);
-        }}
-        variant={'scene'}
-        description={
-          removeAccount.length === 1
-            ? 'Please confirm the transaction in your wallet.'
-            : 'Are you sure you want to remove access to these addresses?'
-        }
-      />
+      <GAContextProvider prefix={'add_object_policy_confirm'}>
+        <TxConfirmModal
+          confirmText="Confirm"
+          isOpen={confirmModal}
+          title="Allow Access"
+          fee={putFee}
+          onConfirm={onAddMember}
+          onClose={() => {
+            setConfirmModal(false);
+          }}
+          description="Please confirm the transaction in your wallet."
+        />
+      </GAContextProvider>
+      <GAContextProvider prefix={'remove_object_policy_confirm'}>
+        <TxConfirmModal
+          confirmText="Remove"
+          isOpen={deleteModal}
+          title="Remove Access"
+          fee={deleteFee}
+          onConfirm={onRemoveMember}
+          onClose={() => {
+            setDeleteModal(false);
+          }}
+          variant={'scene'}
+          description={
+            removeAccount.length === 1
+              ? 'Please confirm the transaction in your wallet.'
+              : 'Are you sure you want to remove access to these addresses?'
+          }
+        />
+      </GAContextProvider>
       <FormItem>
         <Flex gap={12}>
           <DCComboBox
@@ -555,7 +548,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                   className={cn({ disabled: !members || members > MAX_COUNT })}
                   onClick={() => {
                     if (!members || members > MAX_COUNT) return;
-                    setRemoveAccount(selectedShareMembers);
+                    setRemoveAccount(objectShareSelectedMembers);
                     setDeleteModal(true);
                   }}
                 >
@@ -572,12 +565,12 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
                       key={p.PrincipalValue}
                       className={cn({
                         'select-disabled': owner,
-                        selected: selectedShareMembers.includes(p.PrincipalValue),
+                        selected: objectShareSelectedMembers.includes(p.PrincipalValue),
                       })}
                     >
                       <DCCheckbox
                         disabled={owner}
-                        checked={selectedShareMembers.includes(p.PrincipalValue)}
+                        checked={objectShareSelectedMembers.includes(p.PrincipalValue)}
                         onChange={() => onSelectChange(p.PrincipalValue)}
                       >
                         <Flex key={p.PrincipalValue + String(index)} alignItems="center" h={40}>

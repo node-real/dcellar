@@ -4,9 +4,7 @@ import { BucketMetaWithVGF } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/s
 import { toast } from '@node-real/uikit';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { find, isEmpty, omit } from 'lodash-es';
-
-import { SpItem, getPrimarySpInfo, setPrimarySpInfos } from './sp';
-
+import { SpEntity, setupPrimarySpInfo, setPrimarySpInfos } from './sp';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
 import { AppDispatch, AppState, GetState } from '@/store';
@@ -27,8 +25,7 @@ export type BucketOperationsType =
 
 export type BucketProps = BucketMetaWithVGF;
 export type TBucket = Omit<BucketProps, 'BucketInfo'> & BucketProps['BucketInfo'];
-export type FromType = 'menu' | 'drawer' | '';
-export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
+export type BucketEntity = Omit<BucketProps, 'BucketInfo'> & {
   BucketName: string;
   CreateAt: number;
   BucketStatus: number;
@@ -36,32 +33,32 @@ export type BucketItem = Omit<BucketProps, 'BucketInfo'> & {
 };
 
 export interface BucketState {
-  bucketInfo: Record<string, TBucket>;
-  buckets: Record<string, BucketItem[]>;
-  quotas: Record<string, IQuotaProps>;
-  loading: boolean;
-  quotaLoading: boolean;
-  currentPage: number;
+  bucketRecords: Record<string, TBucket>;
+  bucketListRecords: Record<string, BucketEntity[]>;
+  bucketQuotaRecords: Record<string, IQuotaProps>;
+  bucketListLoading: boolean;
+  bucketQuotaLoading: boolean;
+  bucketListPage: number;
   // current visit bucket;
-  discontinue: boolean;
-  owner: boolean;
-  editQuota: string[];
+  isBucketDiscontinue: boolean;
+  isBucketOwner: boolean;
+  bucketEditQuota: string[];
   bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
-  editTagsData: ResourceTags_Tag[];
+  bucketEditTagsData: ResourceTags_Tag[];
 }
 
 const initialState: BucketState = {
-  buckets: {},
-  bucketInfo: {},
-  quotas: {},
-  loading: false,
-  quotaLoading: false,
-  currentPage: 0,
-  discontinue: false,
-  owner: true,
-  editQuota: ['', ''],
+  bucketListRecords: {},
+  bucketRecords: {},
+  bucketQuotaRecords: {},
+  bucketListLoading: false,
+  bucketQuotaLoading: false,
+  bucketListPage: 0,
+  isBucketDiscontinue: false,
+  isBucketOwner: true,
+  bucketEditQuota: ['', ''],
   bucketOperation: { 0: ['', ''], 1: ['', ''] },
-  editTagsData: [DEFAULT_TAG],
+  bucketEditTagsData: [DEFAULT_TAG],
 };
 
 export const bucketSlice = createSlice({
@@ -70,58 +67,47 @@ export const bucketSlice = createSlice({
   reducers: {
     setBucketOperation(
       state,
-      {
-        payload,
-      }: PayloadAction<{
-        level?: 0 | 1;
-        operation: [string, BucketOperationsType];
-      }>,
+      { payload }: PayloadAction<{ level?: 0 | 1; operation: [string, BucketOperationsType] }>,
     ) {
       state.bucketOperation[payload.level || 0] = payload.operation;
     },
-    setReadQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
+    setBucketQuota(state, { payload }: PayloadAction<{ bucketName: string; quota: IQuotaProps }>) {
       const { bucketName, quota } = payload;
-      state.quotas[bucketName] = quota;
+      state.bucketQuotaRecords[bucketName] = quota;
     },
-    setEditQuota(state, { payload }: PayloadAction<string[]>) {
-      state.editQuota = payload;
+    setBucketEditQuota(state, { payload }: PayloadAction<string[]>) {
+      state.bucketEditQuota = payload;
     },
     setBucketStatus(state, { payload }: PayloadAction<{ discontinue: boolean; owner: boolean }>) {
       const { discontinue, owner } = payload;
-      state.discontinue = discontinue;
-      state.owner = owner;
+      state.isBucketDiscontinue = discontinue;
+      state.isBucketOwner = owner;
     },
-    setCurrentBucketPage(state, { payload }: PayloadAction<number>) {
-      state.currentPage = payload;
+    setBucketListPage(state, { payload }: PayloadAction<number>) {
+      state.bucketListPage = payload;
     },
-    setLoading(state, { payload }: PayloadAction<boolean>) {
-      state.loading = payload;
+    setBucketListLoading(state, { payload }: PayloadAction<boolean>) {
+      state.bucketListLoading = payload;
     },
-    setQuotaLoading(state, { payload }: PayloadAction<boolean>) {
-      state.quotaLoading = payload;
+    setBucketQuotaLoading(state, { payload }: PayloadAction<boolean>) {
+      state.bucketQuotaLoading = payload;
     },
-    setBucketInfo(state, { payload }: PayloadAction<{ address?: string; bucket: TBucket }>) {
+    setBucket(state, { payload }: PayloadAction<{ address?: string; bucket: TBucket }>) {
       const { address, bucket } = payload;
       if (!address) return;
       const bucketName = bucket.BucketName;
-      const info = state.bucketInfo[bucketName];
-      const newInfo = {
-        ...info,
-        ...bucket,
-      };
-      state.bucketInfo[bucketName] = newInfo;
-      state.owner = address === newInfo.Owner;
-      state.discontinue = newInfo.BucketStatus === 1;
+      const info = state.bucketRecords[bucketName];
+      const newInfo = { ...info, ...bucket };
+      state.bucketRecords[bucketName] = newInfo;
+      state.isBucketOwner = address === newInfo.Owner;
+      state.isBucketDiscontinue = newInfo.BucketStatus === 1;
     },
     setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
-      state.buckets[address] = buckets
+      state.bucketListRecords[address] = buckets
         .map((bucket) => {
           const { BucketName, CreateAt, BucketStatus, Id } = bucket.BucketInfo;
-          state.bucketInfo[BucketName] = {
-            ...bucket,
-            ...bucket.BucketInfo,
-          };
+          state.bucketRecords[BucketName] = { ...bucket, ...bucket.BucketInfo };
           return {
             ...omit(bucket, 'BucketInfo'),
             BucketName,
@@ -132,8 +118,8 @@ export const bucketSlice = createSlice({
         })
         .sort((a, b) => b.CreateAt - a.CreateAt);
     },
-    setEditBucketTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
-      state.editTagsData = payload;
+    setBucketTagsEditData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
+      state.bucketEditTagsData = payload;
     },
     setBucketTags(
       state,
@@ -141,33 +127,48 @@ export const bucketSlice = createSlice({
     ) {
       const { bucketName, tags } = payload;
       const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
-      state.bucketInfo[bucketName]['Tags']['Tags'] = newTags as Extract<
+      state.bucketRecords[bucketName]['Tags']['Tags'] = newTags as Extract<
         TBucket['Tags'],
         { Tags: any }
       >['Tags'];
     },
-    setReadBucketPaymentAccount(
+    setBucketPaymentAccount(
       state,
-      {
-        payload,
-      }: PayloadAction<{
-        bucketName: string;
-        paymentAddress: string;
-      }>,
+      { payload }: PayloadAction<{ bucketName: string; paymentAddress: string }>,
     ) {
       const { bucketName, paymentAddress } = payload;
-      state.bucketInfo[bucketName]['PaymentAddress'] = paymentAddress;
+      state.bucketRecords[bucketName]['PaymentAddress'] = paymentAddress;
     },
   },
 });
 
-const defaultBucketList = Array<BucketItem>();
+export const {
+  setBucketList,
+  setBucketListLoading,
+  setBucketListPage,
+  setBucket,
+  setBucketStatus,
+  setBucketQuota,
+  setBucketEditQuota,
+  setBucketQuotaLoading,
+  setBucketOperation,
+  setBucketTags,
+  setBucketTagsEditData,
+  setBucketPaymentAccount,
+} = bucketSlice.actions;
+
+const defaultBucketList = Array<BucketEntity>();
 export const selectBucketList = (address: string) => (root: AppState) => {
-  return root.bucket.buckets[address] || defaultBucketList;
+  return root.bucket.bucketListRecords[address] || defaultBucketList;
+};
+
+export const selectBucketListSpinning = (address: string) => (root: AppState) => {
+  const { bucketListLoading, bucketListRecords } = root.bucket;
+  return !(address in bucketListRecords) || bucketListLoading;
 };
 
 export const selectHasDiscontinue = (address: string) => (root: AppState) =>
-  (root.bucket.buckets[address] || defaultBucketList).some((i) => i.BucketStatus === 1);
+  (root.bucket.bucketListRecords[address] || defaultBucketList).some((i) => i.BucketStatus === 1);
 
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {
@@ -178,43 +179,40 @@ export const setupBucket =
       ...res?.body?.GfSpGetBucketMetaResponse.Bucket.BucketInfo,
     } as TBucket;
     const { loginAccount } = getState().persist;
-    dispatch(setBucketInfo({ address: address || loginAccount, bucket: bucket }));
+    dispatch(setBucket({ address: address || loginAccount, bucket: bucket }));
   };
 
-export const setupBuckets =
+export const setupBucketList =
   (address: string, forceLoading = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    const { oneSp, spInfo, allSps } = getState().sp;
-    const { buckets, loading } = getState().bucket;
-    const sp = spInfo[oneSp];
-    if (loading) return;
-    if (!(address in buckets) || forceLoading) {
-      dispatch(setLoading(true));
+    const { specifiedSp, spRecords, allSpList } = getState().sp;
+    const { bucketListRecords, bucketListLoading } = getState().bucket;
+    const sp = spRecords[specifiedSp];
+
+    if (bucketListLoading) return;
+    if (!(address in bucketListRecords) || forceLoading) {
+      dispatch(setBucketListLoading(true));
     }
+
     const [res, error] = await getUserBuckets(address, sp.endpoint);
-    dispatch(setLoading(false));
+    dispatch(setBucketListLoading(false));
+
     if (error || !res || res.code !== 0) {
       if (!res?.message?.includes('record not found')) {
         toast.error({ description: error || res?.message });
       }
-      if (!buckets[address]?.length) {
+      if (!bucketListRecords[address]?.length) {
         dispatch(setBucketList({ address, buckets: [] }));
       }
       return;
     }
+
     const bucketList =
-      res.body?.map((bucket) => {
-        return {
-          ...bucket,
-          BucketInfo: {
-            ...bucket.BucketInfo,
-          },
-        };
-      }) || [];
+      res.body?.map((bucket) => ({ ...bucket, BucketInfo: { ...bucket.BucketInfo } })) || [];
 
     const bucketSpInfo = bucketList.map((b) => ({
       bucketName: b.BucketInfo.BucketName,
-      sp: find<SpItem>(allSps, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
+      sp: find<SpEntity>(allSpList, (sp) => String(sp.id) === String(b.Vgf.PrimarySpId))!,
     }));
 
     dispatch(setPrimarySpInfos(bucketSpInfo));
@@ -224,16 +222,19 @@ export const setupBuckets =
 export const setupBucketQuota =
   (bucketName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { bucketInfo, quotaLoading } = getState().bucket;
-    if (quotaLoading) return;
-    const info = bucketInfo[bucketName];
+    const { bucketRecords, bucketQuotaLoading } = getState().bucket;
+    if (bucketQuotaLoading) return;
+
+    const info = bucketRecords[bucketName];
     if (!info) return;
-    dispatch(setQuotaLoading(true));
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
+
+    dispatch(setBucketQuotaLoading(true));
+    const sp = await dispatch(setupPrimarySpInfo(bucketName, +info.GlobalVirtualGroupFamilyId));
     if (!sp) {
-      dispatch(setQuotaLoading(false));
+      dispatch(setBucketQuotaLoading(false));
       return;
     }
+
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
     const [quota, error] = await getBucketReadQuota({
       bucketName,
@@ -241,7 +242,9 @@ export const setupBucketQuota =
       seedString,
       address: loginAccount,
     });
-    dispatch(setQuotaLoading(false));
+
+    dispatch(setBucketQuotaLoading(false));
+
     if (quota === null) {
       if (
         ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
@@ -252,22 +255,7 @@ export const setupBucketQuota =
       }
       return;
     }
-    dispatch(setReadQuota({ bucketName, quota }));
+    dispatch(setBucketQuota({ bucketName, quota }));
   };
-
-export const {
-  setBucketList,
-  setLoading,
-  setCurrentBucketPage,
-  setBucketInfo,
-  setBucketStatus,
-  setReadQuota,
-  setEditQuota,
-  setQuotaLoading,
-  setBucketOperation,
-  setBucketTags,
-  setEditBucketTagsData,
-  setReadBucketPaymentAccount,
-} = bucketSlice.actions;
 
 export default bucketSlice.reducer;

@@ -11,16 +11,18 @@ export const CurForecastCost = memo(function CurForecastCost({ children, ...rest
   const dayjs = getUtcDayjs();
   const { curCosted, curRemainingEstimateCost } = useTotalEstimateCost(['cur']);
   const isLoading = curCosted === '' || curRemainingEstimateCost === '';
+  const forecastCost = BN(curCosted || 0)
+    .plus(curRemainingEstimateCost || 0)
+    .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+    .toString();
+
   const costTime = useMemo(() => {
     const time = +new Date();
     const monthStart = dayjs(time).startOf('M').format('YYYY-MM-DD');
     const curTime = dayjs(time).endOf('M').format('YYYY-MM-DD');
     return `${monthStart} ~ ${curTime}`;
   }, [dayjs]);
-  const forecastCost = BN(curCosted || 0)
-    .plus(curRemainingEstimateCost || 0)
-    .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
-    .toString();
+
   return (
     <CardContainer w={260} {...restProps}>
       <CardTitle mb={8}>Current Month&apos;s Total Forecast Cost</CardTitle>

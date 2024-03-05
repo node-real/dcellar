@@ -34,16 +34,24 @@ const FeeOptions: {
 ];
 
 type TotalBalanceProps = CardProps;
+
 export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const paymentAccountListRecords = useAppSelector(
+    (root) => root.accounts.paymentAccountListRecords,
+  );
+
   const router = useRouter();
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountInfo, paymentAccounts } = useAppSelector((root) => root.accounts);
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
-  const isLoading = bankBalance === '' || isEmpty(accountInfo) || isEmpty(paymentAccounts);
+
+  const isLoading =
+    bankBalance === '' || isEmpty(accountRecords) || isEmpty(paymentAccountListRecords);
 
   const res = useMemo(() => {
-    const ownerInfo = accountInfo[loginAccount] || {};
+    const ownerInfo = accountRecords[loginAccount] || {};
     const ownerTotalBalance = BN(ownerInfo.staticBalance).plus(bankBalance);
     const ownerNetflowRate = BN(ownerInfo.netflowRate);
     const ownerPrepaidFee = BN(ownerInfo.bufferBalance);
@@ -51,7 +59,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
     let paymentTotalBalance = BN(0);
     let paymentTotalPrepaidFee = BN(0);
     paymentList.forEach((item: TAccount) => {
-      const paymentDetail = accountInfo[item.address];
+      const paymentDetail = accountRecords[item.address];
       paymentTotalNetflow = paymentTotalNetflow.plus(paymentDetail.netflowRate);
 
       paymentTotalBalance = paymentTotalBalance.plus(paymentDetail.staticBalance);
@@ -67,7 +75,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
       totalNetflowRate: totalNetflowRate.dp(18).toString(),
       totalPrepaidFee: totalPrepaidFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString(),
     };
-  }, [accountInfo, bankBalance, loginAccount, paymentList]);
+  }, [accountRecords, bankBalance, loginAccount, paymentList]);
 
   const onNavigate = (target: string) => () => {
     router.push(target);

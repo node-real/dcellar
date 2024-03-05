@@ -43,20 +43,20 @@ export const Fee = memo<FeeProps>(function Fee({
   bankBalance = '0',
   staticBalance = '0',
 }) {
+  const transferFromAccount = useAppSelector((root) => root.wallet.transferFromAccount);
+  const exchangeRate = useAppSelector((root) => root.global.bnbInfo.price);
+  const transferType = useAppSelector((root) => root.wallet.transferType);
   const bnbPrice = useAppSelector(selectBnbPrice);
+
   const TOKEN_SYMBOL = displayTokenSymbol();
-  const { fromAccount } = useAppSelector((root) => root.wallet);
-  const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { transType } = useAppSelector((root) => root.wallet);
   const { gasFee, relayerFee } = feeData;
-  const defaultTransferFee = DefaultTransferFee[transType];
+  const defaultTransferFee = DefaultTransferFee[transferType];
   const totalFee = gasFee.plus(relayerFee);
   const isShowDefault = gasFee.toString() === '0' && relayerFee.toString() === '0';
   const feeUsdPrice = totalFee && totalFee.times(BigNumber(bnbPrice));
   const formatFeeUsdPrice =
     feeUsdPrice &&
     currencyFormatter(feeUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
-
   const totalAmount = BigNumber(amount || 0)
     .plus(totalFee)
     .plus(settlementFee || '0')
@@ -65,18 +65,30 @@ export const Fee = memo<FeeProps>(function Fee({
   const formatTotalUsdPrice =
     totalUsdPrice &&
     currencyFormatter(totalUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
+  const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
-  // const TotalFeeContent = `${totalFee
-  //   .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
-  //   .toString(DECIMAL_NUMBER)} ${TOKEN_SYMBOL} (${formatFeeUsdPrice})`;
-
-  //show defalut fee if cannot get fee data in 3000ms
+  //show default fee if cannot get fee data in 3000ms
   const defaultFeeUsdPrice = currencyFormatter(
     BigNumber(defaultTransferFee.total)
       .times(BigNumber(bnbPrice))
       .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
       .toString(DECIMAL_NUMBER),
   );
+
+  const amountUsd = currencyFormatter(
+    BigNumber(amount || 0)
+      .times(bnbPrice)
+      .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
+      .toString(DECIMAL_NUMBER),
+  );
+  const sendingAmount = `${amount} ${TOKEN_SYMBOL} (${amountUsd})`;
+  const paymentAccount = transferFromAccount.address?.substring(38);
+  const paymentLabel = `${transferFromAccount?.name} (${paymentAccount}) balance:`;
+  const showPaymentAccountBalance =
+    transferType === 'send' &&
+    !isEmpty(transferFromAccount) &&
+    transferFromAccount.name.includes('Payment');
+
   const TotalFeeContent = useMemo(() => {
     let total = totalFee;
     if (isShowDefault) {
@@ -96,10 +108,9 @@ export const Fee = memo<FeeProps>(function Fee({
     totalFee,
     defaultFeeUsdPrice,
   ]);
-  const TotalAmountContent = `${totalAmount} ${TOKEN_SYMBOL} (${formatTotalUsdPrice})`;
 
   const TipContent = useMemo(() => {
-    if (transType === EOperation.send) {
+    if (transferType === EOperation.send) {
       return null;
     }
     return (
@@ -128,20 +139,7 @@ export const Fee = memo<FeeProps>(function Fee({
         <Text>Relayer fee is paid to relayers for handling cross-chain packets.</Text>
       </Box>
     );
-  }, [transType, gasFee, defaultTransferFee, TOKEN_SYMBOL, relayerFee]);
-
-  const amountUsd = currencyFormatter(
-    BigNumber(amount || 0)
-      .times(bnbPrice)
-      .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
-      .toString(DECIMAL_NUMBER),
-  );
-
-  const sendingAmount = `${amount} ${TOKEN_SYMBOL} (${amountUsd})`;
-  const paymentAccount = fromAccount.address?.substring(38);
-  const paymentLabel = `${fromAccount?.name} (${paymentAccount}) balance:`;
-  const showPaymentAccountBalance =
-    transType === 'send' && !isEmpty(fromAccount) && fromAccount.name.includes('Payment');
+  }, [transferType, gasFee, defaultTransferFee, TOKEN_SYMBOL, relayerFee]);
 
   return (
     <Flex
@@ -187,7 +185,7 @@ export const Fee = memo<FeeProps>(function Fee({
       )}
       <Flex color="readable.tertiary" justifyContent={'space-between'} alignItems={'center'}>
         <Flex>
-          {transType !== 'send' && (
+          {transferType !== 'send' && (
             <Flex justifyContent={'flex-start'}>
               <Text>{'Gas fee'}</Text>{' '}
               <Tips
@@ -198,7 +196,7 @@ export const Fee = memo<FeeProps>(function Fee({
               />
             </Flex>
           )}
-          {transType === 'send' && (
+          {transferType === 'send' && (
             <>
               <Text>Gas fee</Text>
               <GasFeeTips />
@@ -207,7 +205,7 @@ export const Fee = memo<FeeProps>(function Fee({
         </Flex>
         <Text>{isGasLoading ? '--' : TotalFeeContent}</Text>
       </Flex>
-      {transType === 'send' && (
+      {transferType === 'send' && (
         <Flex
           fontSize={12}
           color="readable.disable"

@@ -6,6 +6,7 @@ import { Text, TextProps } from '@node-real/uikit';
 type BalanceOnProps = TextProps & {
   amount: string;
 };
+
 export const BalanceOn = ({ amount, ...restProps }: BalanceOnProps) => {
   const bnbPrice = useAppSelector(selectBnbPrice);
 

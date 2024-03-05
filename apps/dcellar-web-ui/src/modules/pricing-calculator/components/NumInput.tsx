@@ -5,6 +5,7 @@ type NumInputProps = InputProps & {
   type?: 'inter' | 'float';
   onChangeValue: (value: string) => void;
 };
+
 export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }: NumInputProps) => {
   return (
     <Input

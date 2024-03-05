@@ -2,7 +2,7 @@ import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { InputItem } from '@/components/formitems/InputItem';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setFilterExpand, setFilterText } from '@/store/slices/object';
+import { setObjectFilterVisible, setObjectNameFilter } from '@/store/slices/object';
 import styled from '@emotion/styled';
 import { SearchIcon } from '@node-real/icons';
 import { Flex, InputLeftElement, InputRightElement } from '@node-real/uikit';
@@ -12,16 +12,21 @@ import { memo } from 'react';
 interface ObjectListFilterProps {}
 
 export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListFilter() {
-  const filterExpand = useAppSelector((root) => root.object.filterExpand);
-  const { filterText, filterTypes, filterSizeTo, filterSizeFrom, filterRange } = useAppSelector(
-    (root) => root.object,
-  );
   const dispatch = useAppDispatch();
+  const objectFilterVisible = useAppSelector((root) => root.object.objectFilterVisible);
+  const objectNameFilter = useAppSelector((root) => root.object.objectNameFilter);
+  const objectTypeFilter = useAppSelector((root) => root.object.objectTypeFilter);
+  const objectSizeToFilter = useAppSelector((root) => root.object.objectSizeToFilter);
+  const objectSizeFromFilter = useAppSelector((root) => root.object.objectSizeFromFilter);
+  const objectCreationTimeRangeFilter = useAppSelector(
+    (root) => root.object.objectCreationTimeRangeFilter,
+  );
+
   const account = (() => {
     let _account = 0;
-    if (filterTypes.length) _account++;
-    if (filterRange?.[0] || filterRange?.[1]) _account++;
-    if (filterSizeTo.value || filterSizeFrom.value) _account++;
+    if (objectTypeFilter.length) _account++;
+    if (objectCreationTimeRangeFilter?.[0] || objectCreationTimeRangeFilter?.[1]) _account++;
+    if (objectSizeToFilter.value || objectSizeFromFilter.value) _account++;
     return _account;
   })();
 
@@ -37,11 +42,11 @@ export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListF
         }
         rightElement={
           <InputRightElement>
-            {filterText && (
+            {objectNameFilter && (
               <IconFont
                 onClick={(e) => {
                   e.stopPropagation();
-                  dispatch(setFilterText(''));
+                  dispatch(setObjectNameFilter(''));
                   const input = document.querySelector<HTMLInputElement>('.object-list-search');
                   if (!input) return;
                   input.focus();
@@ -58,19 +63,19 @@ export const ObjectListFilter = memo<ObjectListFilterProps>(function ObjectListF
           </InputRightElement>
         }
         placeholder="Search objects or folders"
-        value={filterText}
-        onChange={(e) => dispatch(setFilterText(e.target.value))}
+        value={objectNameFilter}
+        onChange={(e) => dispatch(setObjectNameFilter(e.target.value))}
       />
       <DCButton
         className={cn({
-          'filter-expand': filterExpand,
-          'filter-expand-button': !filterExpand && account > 0,
+          'filter-expand': objectFilterVisible,
+          'filter-expand-button': !objectFilterVisible && account > 0,
         })}
         variant="ghost"
         leftIcon={<IconFont w={24} type="filter" />}
-        onClick={() => dispatch(setFilterExpand(!filterExpand))}
+        onClick={() => dispatch(setObjectFilterVisible(!objectFilterVisible))}
       >
-        {!filterExpand && account > 0 && <Badge>{account}</Badge>}
+        {!objectFilterVisible && account > 0 && <Badge>{account}</Badge>}
       </DCButton>
     </Container>
   );

@@ -46,7 +46,5 @@ export const currencyFormatter = (amount: string) => {
     maximumFractionDigits: 0,
   });
   const template = currencyFormat.format(0);
-  const result = template.replace('0', amountFinal);
-
-  return result;
+  return template.replace('0', amountFinal);
 };

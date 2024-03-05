@@ -54,12 +54,12 @@ import {
   createTxFault,
 } from '@/facade/error';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
+import { MAX_FOLDER_LEVEL } from '@/modules/object/components/CreateObject';
 import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   UPLOADING_STATUSES,
-  WaitFile,
+  WaitObject,
   addSignedTasksToUploadQueue,
   addTasksToUploadQueue,
   addToWaitQueue,
@@ -76,7 +76,7 @@ import {
   setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { isUTF8 } from '@/utils/coder';
 import {
   DragItemProps,
@@ -89,16 +89,15 @@ import { getTimestamp } from '@/utils/time';
 import { setTempAccounts } from '@/store/slices/accounts';
 import { createTempAccount } from '@/facade/account';
 
-interface UploadObjectsOperationProps {
-  onClose?: () => void;
-  actionParams?: TEditUploadContent;
-  primarySp: SpItem;
-}
-
 const defaultScroll = { top: 0 };
 const defaultActionParams = {} as TEditUploadContent;
 
-// add memo avoid parent state change rerender
+interface UploadObjectsOperationProps {
+  onClose?: () => void;
+  actionParams?: TEditUploadContent;
+  primarySp: SpEntity;
+}
+
 export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
   function UploadObjectsOperation({
     onClose = () => {},
@@ -106,42 +105,42 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     primarySp,
   }) {
     const dispatch = useAppDispatch();
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+    const objectCommonPrefix = useAppSelector((root) => root.object.objectCommonPrefix);
+    const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+    const pathSegments = useAppSelector((root) => root.object.pathSegments);
+    const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
+    const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
+    const storeFeeParams = useAppSelector((root) => root.global.storeFeeParams);
+    const objectUploadQueue = useAppSelector((root) => root.global.objectUploadQueue);
+
     const checksumApi = useChecksumApi();
-    const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { bucketName, path, prefix, objects, folders, editTagsData } = useAppSelector(
-      (root) => root.object,
-    );
-    const { bucketInfo } = useAppSelector((root) => root.bucket);
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
     const [visibility, setVisibility] = useState<VisibilityType>(
       VisibilityType.VISIBILITY_TYPE_PRIVATE,
     );
     const { connector } = useAccount();
-    const selectedFiles = waitQueue;
-    const objectList = objects[path] || [];
-    const { uploadQueue } = useAppSelector((root) => root.global);
     const [creating, setCreating] = useState(false);
     const { tabOptions, activeKey, setActiveKey } = useUploadTab();
-    const bucket = bucketInfo[bucketName];
-    const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
     const ref = useRef(null);
     const scroll = useScroll(ref) || defaultScroll;
-    const validTags = getValidTags(editTagsData);
+    const bucket = bucketRecords[currentBucketName];
+    const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
 
-    const getErrorMsg = (type: string) => {
-      return OBJECT_ERROR_TYPES[type as ObjectErrorType]
-        ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
-        : OBJECT_ERROR_TYPES[E_UNKNOWN];
-    };
-
-    const closeModal = () => {
-      onClose();
-      dispatch(setStatusDetail({} as TStatusDetail));
-    };
-
-    const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
-    const uploadingObjectNames = (uploadQueue?.[loginAccount] || [])
+    const selectedFiles = objectWaitQueue;
+    const objectList = objectListRecords[completeCommonPrefix] || [];
+    const validTags = getValidTags(objectEditTagsData);
+    const loading = useMemo(() => {
+      return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
+    }, [storeFeeParams, selectedFiles]);
+    const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+    const objectListObjectNames = objectList.map(
+      (item) => currentBucketName + '/' + item.objectName,
+    );
+    const uploadingObjectNames = (objectUploadQueue?.[loginAccount] || [])
       .filter((item) => UPLOADING_STATUSES.includes(item.status))
       .map((item) => {
         return [
@@ -154,7 +153,18 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           .join('/');
       });
 
-    const validateFolder = (waitFile: WaitFile) => {
+    const getErrorMsg = (type: string) => {
+      return OBJECT_ERROR_TYPES[type as ObjectErrorType]
+        ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
+        : OBJECT_ERROR_TYPES[E_UNKNOWN];
+    };
+
+    const closeModal = () => {
+      onClose();
+      dispatch(setStatusDetail({} as TStatusDetail));
+    };
+
+    const validateFolder = (waitFile: WaitObject) => {
       const { file: folder, relativePath } = waitFile;
       if (!folder.name) {
         return E_FILE_IS_EMPTY;
@@ -166,11 +176,15 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       if (lastFolder && lastFolder.length > 70) {
         return E_FOLDER_NAME_TOO_LONG;
       }
-      const depth = trimEnd([prefix, relativePath, folder.name].join('/'), '/').split('/').length;
+      const depth = trimEnd([objectCommonPrefix, relativePath, folder.name].join('/'), '/').split(
+        '/',
+      ).length;
       if (depth > MAX_FOLDER_LEVEL) {
         return E_MAX_FOLDER_DEPTH;
       }
-      const fullObjectName = [path, relativePath, folder.name].filter((item) => !!item).join('/');
+      const fullObjectName = [completeCommonPrefix, relativePath, folder.name]
+        .filter((item) => !!item)
+        .join('/');
       const isExistObjectList = objectListObjectNames.includes(fullObjectName);
       const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
@@ -181,7 +195,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       return '';
     };
 
-    const validateFile = (waitFile: WaitFile) => {
+    const validateFile = (waitFile: WaitObject) => {
       const { relativePath, file } = waitFile;
       if (!file) {
         return E_FILE_IS_EMPTY;
@@ -198,7 +212,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       if (file.name.length > 256) {
         return E_OBJECT_NAME_TOO_LONG;
       }
-      const fullPathObject = prefix + '/' + relativePath + '/' + file.name;
+      const fullPathObject = objectCommonPrefix + '/' + relativePath + '/' + file.name;
       if (fullPathObject.length > 1024) {
         return E_FULL_OBJECT_NAME_TOO_LONG;
       }
@@ -209,7 +223,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         return E_OBJECT_NAME_CONTAINS_SLASH;
       }
       // Validation only works to data within the current path.
-      const fullObjectName = [path, relativePath, file.name].filter((item) => !!item).join('/');
+      const fullObjectName = [completeCommonPrefix, relativePath, file.name]
+        .filter((item) => !!item)
+        .join('/');
       const isExistObjectList = objectListObjectNames.includes(fullObjectName);
       const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
@@ -255,11 +271,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const { seedString } = await dispatch(
           getSpOffChainData(loginAccount, primarySp.operatorAddress),
         );
-        const finalName = [...folders, waitFile.relativePath, waitFile.name]
+        const finalName = [...pathSegments, waitFile.relativePath, waitFile.name]
           .filter((item) => !!item)
           .join('/');
         const createObjectPayload: CreateObjectApprovalRequest = {
-          bucketName: bucketName,
+          bucketName: currentBucketName,
           objectName: finalName,
           creator: loginAccount,
           visibility: reverseVisibilityType[visibility],
@@ -320,7 +336,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
             : round(Number(totalFee) * 1.05, 6);
         const [tempAccount, error] = await createTempAccount({
           address: loginAccount,
-          bucketName,
+          bucketName: currentBucketName,
           amount: parseEther(String(safeAmount)).toNumber(),
           connector: connector!,
         });
@@ -343,41 +359,15 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       setCreating(false);
     };
 
-    useAsyncEffect(async () => {
-      if (isEmpty(selectedFiles)) return;
-      selectedFiles.forEach((item) => {
-        const { file, id } = item;
-        const task = waitQueue.find((item) => item.id === id);
-        if (!task) return;
-        const isFolder = file.name.endsWith('/');
-        const error = isFolder ? validateFolder(item) : validateFile(item);
-        if (!error) {
-          task.status === 'CHECK' && dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
-          return;
-        }
-        dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));
-      });
-    }, [actionParams, waitQueue.length]);
-
-    useUnmount(() => {
-      dispatch(resetWaitQueue());
-    });
-
-    const loading = useMemo(() => {
-      return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
-    }, [storeFeeParams, selectedFiles]);
-
-    const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-
     const handleFolderTree = (tree: TransferItemTree) => {
-      const totalFiles = waitQueue.length + Object.keys(tree).length;
+      const totalFiles = objectWaitQueue.length + Object.keys(tree).length;
       if (totalFiles > SELECT_OBJECT_NUM_LIMIT) {
         return toast.error({
           description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
           isClosable: true,
         });
       }
-      if (totalFiles === waitQueue.length) {
+      if (totalFiles === objectWaitQueue.length) {
         return toast.error({
           description: 'You can only upload folders that contain objects.',
           isClosable: true,
@@ -401,6 +391,26 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           isOver: monitor.isOver(),
         };
       },
+    });
+
+    useAsyncEffect(async () => {
+      if (isEmpty(selectedFiles)) return;
+      selectedFiles.forEach((item) => {
+        const { file, id } = item;
+        const task = objectWaitQueue.find((item) => item.id === id);
+        if (!task) return;
+        const isFolder = file.name.endsWith('/');
+        const error = isFolder ? validateFolder(item) : validateFile(item);
+        if (!error) {
+          task.status === 'CHECK' && dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
+          return;
+        }
+        dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));
+      });
+    }, [actionParams, objectWaitQueue.length]);
+
+    useUnmount(() => {
+      dispatch(resetWaitQueue());
     });
 
     return (
@@ -441,7 +451,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               <TabPanels>
                 {tabOptions.map((item) => (
                   <TabPanel key={item.key} panelKey={item.key}>
-                    <ListItem handleFolderTree={handleFolderTree} path={path} type={item.key} />
+                    <ListItem
+                      handleFolderTree={handleFolderTree}
+                      path={completeCommonPrefix}
+                      type={item.key}
+                    />
                     {/* <EditTags
                       tagsData={editTagsData}
                       onClick={onEditTags}
@@ -452,7 +466,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               </TabPanels>
             </Tabs>
           </QDrawerBody>
-          {waitQueue?.length > 0 && (
+          {objectWaitQueue?.length > 0 && (
             <QDrawerFooter
               flexDirection={'column'}
               borderTop={'1px solid readable.border'}

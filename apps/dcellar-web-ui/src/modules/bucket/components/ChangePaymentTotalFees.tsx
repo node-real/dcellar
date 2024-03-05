@@ -15,6 +15,7 @@ export type TSettlementFee = {
   address: string;
   amount: string;
 };
+
 export type ChangePaymentTotalFeeProps = {
   gasFee: string;
   from: TSettlementFee;
@@ -32,9 +33,11 @@ export const ChangePaymentTotalFee = ({
   to,
   storeFee,
 }: ChangePaymentTotalFeeProps) => {
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const { isOpen, onToggle } = useDisclosure();
   const bnbPrice = useAppSelector(selectBnbPrice);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+
   const amount = BN(gasFee)
     .plus(from.amount)
     .plus(to.amount)

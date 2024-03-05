@@ -19,7 +19,7 @@ import { getClient } from '@/facade/index';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { batchDownload, directlyDownload } from '@/modules/object/utils';
 import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { encodeObjectName } from '@/utils/string';
 import {
   ActionType,
@@ -155,7 +155,7 @@ export const getCanObjectAccess = async (
 
 export type DownloadPreviewParams = {
   objectInfo: { bucketName: string; objectName: string; visibility: number };
-  primarySp: SpItem;
+  primarySp: SpEntity;
   address: string;
 };
 
@@ -584,7 +584,9 @@ export const legacyGetObjectMeta = async (
   objectName: string,
   endpoint: string,
 ) => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(objectName)}?object-meta`;
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+    objectName,
+  )}?object-meta`;
 
   const errorHandle = async () => {
     return axios.get(url).catch(() => {
@@ -612,7 +614,9 @@ export const getObjectMeta = async (
   objectName: string,
   endpoint: string,
 ): Promise<[ObjectMeta, null] | [null, { code: number; message: string }]> => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(objectName)}?object-meta`;
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+    objectName,
+  )}?object-meta`;
 
   return axios.get(url).then(
     (e) => {

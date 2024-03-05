@@ -8,7 +8,6 @@ export function useBarChartOptions(options: any, noData: boolean) {
   const theme = useTheme();
   const { colorMode } = useColorMode();
   const colors = useColorModeValue(theme.colors.light, theme.colors.dark);
-
   const [finalOptions, setFinalOptions] = useState({});
 
   useEffect(() => {

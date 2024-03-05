@@ -7,7 +7,8 @@ import {
 import { useAppSelector } from '@/store';
 import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
+import { useAsyncEffect } from 'ahooks';
 
 export type FeeItem = {
   label: string;
@@ -20,10 +21,11 @@ interface FeesProps {
   setBalanceAvailable?: (val: boolean) => void;
 }
 
-export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = () => {} }) {
-  const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable }) {
+  const exchangeRate = useAppSelector((root) => root.global.bnbInfo.price);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
 
   const _fees = fees.map((fee) => ({
@@ -31,12 +33,11 @@ export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = 
     value: fee.value ?? fee.types.reduce((res, cur) => res + gasObjects?.[cur]?.gasFee, 0),
     // (gasObjects?.[fee.type]?.gasFee || 0),
   }));
-
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));
-
   const enoughBalance = new BigNumber(bankBalance).minus(allFees).isPositive();
-  useEffect(() => {
-    setBalanceAvailable(enoughBalance);
+
+  useAsyncEffect(async () => {
+    setBalanceAvailable?.(enoughBalance);
   }, [enoughBalance]);
 
   return (

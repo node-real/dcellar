@@ -7,25 +7,24 @@ import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { Loading } from '@/components/common/Loading';
-import { DeleteGroup } from '@/modules/group/components/DeleteGroup';
 import { GroupNameColumn } from '@/modules/group/components/GroupNameColumn';
-import { GroupOperations } from '@/modules/group/components/GroupOperations';
-import { NewGroup } from '@/modules/group/components/NewGroup';
+import { CreateGroup } from '@/modules/group/components/CreateGroup';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectGroupList,
-  setCurrentGroupPage,
+  selectGroupSpinning,
+  setGroupListPage,
   setGroupOperation,
-  setRemoveGroup,
+  setGroupRemoving,
 } from '@/store/slices/group';
-import { SorterType, updateGroupPageSize, updateGroupSorter } from '@/store/slices/persist';
+import { setGroupListPageSize, setGroupSorter, SorterType } from '@/store/slices/persist';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { Text } from '@node-real/uikit';
 import { ColumnProps } from 'antd/es/table';
 import { ethers } from 'ethers';
 import { memo, useCallback } from 'react';
 
-const Actions: MenuOption[] = [
+const GROUP_ACTIONS: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Edit Group', value: 'edit' },
   { label: 'Manage Members', value: 'add' },
@@ -36,39 +35,26 @@ interface GroupListProps {}
 
 export const GroupList = memo<GroupListProps>(function GroupList() {
   const dispatch = useAppDispatch();
-  const { loginAccount, groupPageSize, groupSortBy } = useAppSelector((root) => root.persist);
-  const { loading, currentPage, groups } = useAppSelector((root) => root.group);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const groupPageSize = useAppSelector((root) => root.persist.groupPageSize);
+  const groupSortBy = useAppSelector((root) => root.persist.groupSortBy);
+  const groupListPage = useAppSelector((root) => root.group.groupListPage);
+
   const groupList = useAppSelector(selectGroupList(loginAccount));
+  const groupSpinning = useAppSelector(selectGroupSpinning(loginAccount));
+
   const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<GroupInfo>({
     list: groupList,
     sorter: groupSortBy,
     pageSize: groupPageSize,
-    currentPage,
+    currentPage: groupListPage,
   });
-
-  const updateSorter = (name: string, def: string) => {
-    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
-    if (sortName === name && dir === newSort) return;
-    dispatch(updateGroupSorter([name, newSort] as SorterType));
-  };
-
-  const onMenuClick = (menu: string, record: GroupInfo) => {
-    switch (menu) {
-      case 'detail':
-      case 'edit':
-        return dispatch(setGroupOperation({ operation: [record.id, menu] }));
-      case 'add':
-        return dispatch(setGroupOperation({ level: 1, operation: [record.id, menu] }));
-      case 'delete':
-        return dispatch(setRemoveGroup(record));
-    }
-  };
 
   const columns: ColumnProps<GroupInfo>[] = [
     {
       key: 'groupName',
       title: (
-        <SortItem onClick={() => updateSorter('groupName', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('groupName', 'ascend')}>
           Name{sortName === 'groupName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
@@ -78,7 +64,7 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
       key: 'id',
       width: 200,
       title: (
-        <SortItem onClick={() => updateSorter('id', 'descend')}>
+        <SortItem onClick={() => onSorterChange('id', 'descend')}>
           Group ID{sortName === 'id' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
@@ -100,7 +86,7 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
     {
       key: 'extra',
       title: (
-        <SortItem onClick={() => updateSorter('extra', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('extra', 'ascend')}>
           Description{sortName === 'extra' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
@@ -116,57 +102,73 @@ export const GroupList = memo<GroupListProps>(function GroupList() {
       align: 'center' as AlignType,
       title: <></>,
       render: (_: string, record: GroupInfo) => (
-        <ActionMenu menus={Actions} operations={['add']} onChange={(e) => onMenuClick(e, record)} />
+        <ActionMenu
+          menus={GROUP_ACTIONS}
+          operations={['add']}
+          onChange={(e) => onGroupMenuClick(e, record)}
+        />
       ),
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
-  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
-    if (prev || next) {
-      return dispatch(setCurrentGroupPage(currentPage + (next ? 1 : -1)));
-    }
-    dispatch(setCurrentGroupPage(0));
-    dispatch(updateGroupPageSize(pageSize));
-  };
-
-  const spinning = !(loginAccount in groups) || loading;
-  const empty = !spinning && !sortedList.length;
+  const empty = !groupSpinning && !sortedList.length;
 
   const loadingComponent = {
-    spinning: spinning,
+    spinning: groupSpinning,
     indicator: <Loading />,
   };
 
   const renderEmpty = useCallback(
     () => (
       <ListEmpty type="empty-group" title="No Groups" desc="Create a group!👏" empty={empty}>
-        <NewGroup showRefresh={false} />
+        <CreateGroup showRefresh={false} />
       </ListEmpty>
     ),
     [empty],
   );
 
+  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
+    if (prev || next) {
+      return dispatch(setGroupListPage(groupListPage + (next ? 1 : -1)));
+    }
+    dispatch(setGroupListPage(0));
+    dispatch(setGroupListPageSize(pageSize));
+  };
+
+  const onSorterChange = (name: string, def: string) => {
+    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
+    if (sortName === name && dir === newSort) return;
+    dispatch(setGroupSorter([name, newSort] as SorterType));
+  };
+
+  const onGroupMenuClick = (menu: string, record: GroupInfo) => {
+    switch (menu) {
+      case 'detail':
+      case 'edit':
+        return dispatch(setGroupOperation({ operation: [record.id, menu] }));
+      case 'add':
+        return dispatch(setGroupOperation({ level: 1, operation: [record.id, menu] }));
+      case 'delete':
+        return dispatch(setGroupRemoving(record));
+    }
+  };
+
   return (
-    <>
-      <DeleteGroup />
-      <GroupOperations />
-      <GroupOperations level={1} />
-      <DCTable
-        loading={loadingComponent}
-        rowKey="id"
-        columns={columns}
-        dataSource={page}
-        renderEmpty={renderEmpty}
-        pageSize={groupPageSize}
-        pageChange={onPageChange}
-        canNext={canNext}
-        canPrev={canPrev}
-        onRow={(record: GroupInfo) => ({
-          onClick: () => {
-            onMenuClick('detail', record);
-          },
-        })}
-      />
-    </>
+    <DCTable
+      loading={loadingComponent}
+      rowKey="id"
+      columns={columns}
+      dataSource={page}
+      renderEmpty={renderEmpty}
+      pageSize={groupPageSize}
+      pageChange={onPageChange}
+      canNext={canNext}
+      canPrev={canPrev}
+      onRow={(record: GroupInfo) => ({
+        onClick: () => {
+          onGroupMenuClick('detail', record);
+        },
+      })}
+    />
   );
 });

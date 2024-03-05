@@ -26,6 +26,7 @@ export const Tips = ({
   ...restProps
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+
   return (
     <Tooltip
       // visibility={visibility || 'visible'}

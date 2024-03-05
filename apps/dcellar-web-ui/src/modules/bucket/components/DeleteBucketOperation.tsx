@@ -10,7 +10,7 @@ import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modul
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
-import { TBucket, setupBuckets } from '@/store/slices/bucket';
+import { TBucket, setupBucketList } from '@/store/slices/bucket';
 import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { selectBucketSp } from '@/store/slices/sp';
@@ -32,29 +32,27 @@ interface DeleteBucketOperationProps {
 export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
   function DeleteBucketOperation({ selectedBucketInfo: bucket, onClose = () => {} }) {
     const dispatch = useAppDispatch();
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+
+    const PaymentAddress = bucket.PaymentAddress;
+    const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+    const storeFeeParams = useAppSelector(selectStoreFeeParams);
+    const primarySp = useAppSelector(selectBucketSp(bucket))!;
+
     const [isGasLoading, setIsGasLoading] = useState(false);
     // pending, fetching, failed, notEmpty
     const { connector } = useAccount();
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { bankBalance } = useAppSelector((root) => root.accounts);
+    const { setOpenAuthModal } = useOffChainAuth();
     const { chain } = useNetwork();
-    const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-    const PaymentAddress = bucket.PaymentAddress;
     const { settlementFee } = useSettlementFee(PaymentAddress);
-    const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+    const [loading, setLoading] = useState(false);
     const [balanceEnough, setBalanceEnough] = useState(true);
-    const storeFeeParams = useAppSelector(selectStoreFeeParams);
+
     const chargeQuota = bucket.ChargedReadQuota;
     const { gasFee } = gasObjects?.[MsgDeleteBucketTypeUrl] || {};
-    const [loading, setLoading] = useState(false);
-    const { setOpenAuthModal } = useOffChainAuth();
     const bucketName = bucket.BucketName;
-    const primarySp = useAppSelector(selectBucketSp(bucket))!;
-
-    useAsyncEffect(async () => {
-      if (!isEmpty(storeFeeParams)) return;
-      dispatch(setupStoreFeeParams());
-    }, [dispatch]);
 
     const errorHandler = (error: string) => {
       setLoading(false);
@@ -97,11 +95,6 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
       setIsGasLoading(false);
     }, [loginAccount, bucketName, gasObjects]);
 
-    useEffect(() => {
-      if (isEmpty(chain)) return;
-      requestGetBucketFee();
-    }, [chain, requestGetBucketFee]);
-
     const onDeleteClick = async () => {
       dispatch(
         setStatusDetail({
@@ -128,7 +121,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
       });
       setLoading(false);
       dispatch(setStatusDetail({} as TStatusDetail));
-      dispatch(setupBuckets(loginAccount));
+      dispatch(setupBucketList(loginAccount));
       toast.success({
         description: `Bucket deleted successfully!`,
       });
@@ -136,6 +129,16 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         name: 'dc.toast.bucket_delete.success.show',
       });
     };
+
+    useAsyncEffect(async () => {
+      if (!isEmpty(storeFeeParams)) return;
+      dispatch(setupStoreFeeParams());
+    }, [dispatch]);
+
+    useEffect(() => {
+      if (isEmpty(chain)) return;
+      requestGetBucketFee();
+    }, [chain, requestGetBucketFee]);
 
     return (
       <>

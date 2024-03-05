@@ -12,6 +12,7 @@ type TChainBalance = {
   isError: boolean;
   availableBalance: string | undefined;
 };
+
 type TWalletBalance = {
   defaultChainId: number | undefined;
   isLoading: boolean;
@@ -22,7 +23,8 @@ type TWalletBalance = {
 export const WalletBalanceContext = createContext<TWalletBalance>({} as TWalletBalance);
 
 export const WalletBalanceProvider: React.FC<any> = ({ children }) => {
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const address = useAppSelector((root) => root.persist.loginAccount);
+
   const { chain } = useNetwork();
 
   const {

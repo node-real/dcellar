@@ -1,29 +1,39 @@
 import { Animates } from '@/components/AnimatePng';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
+import { TxConfirmModal } from '@/components/common/DCModal/TxConfirmModal';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { deleteGroup } from '@/facade/group';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setRemoveGroup, setupGroups } from '@/store/slices/group';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { setGroupRemoving, setupGroupList } from '@/store/slices/group';
+import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { trimLongStr } from '@/utils/string';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { toast } from '@node-real/uikit';
 import { memo } from 'react';
 import { useAccount } from 'wagmi';
+import { GAContextProvider } from '@/context/GAContext';
 
 interface DeleteGroupProps {}
 
-export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
+export const DeleteGroupOperation = memo<DeleteGroupProps>(function DeleteGroup() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { removeGroup } = useAppSelector((root) => root.group);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const groupRemoving = useAppSelector((root) => root.group.groupRemoving);
+  const gasObjects = useAppSelector((root) => root.global.gasInfo).gasObjects || {};
+
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const isOpen = !!removeGroup.groupName;
+
+  const isOpen = !!groupRemoving.groupName;
+  const description = `Are you sure to delete this group ”${trimLongStr(
+    groupRemoving.groupName,
+    16,
+    16,
+    0,
+  )}”? `;
+  const fee = gasObjects?.[MsgDeleteGroupTypeUrl]?.gasFee || 0;
 
   const errorHandler = (error: string) => {
     switch (error) {
@@ -42,10 +52,11 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
         );
     }
   };
-  const onRemove = async () => {
+
+  const onDeleteGroup = async () => {
     const payload = {
       operator: loginAccount,
-      groupName: removeGroup.groupName,
+      groupName: groupRemoving.groupName,
     };
     dispatch(
       setStatusDetail({ icon: Animates.group, title: 'Deleting Group', desc: WALLET_CONFIRM }),
@@ -54,37 +65,23 @@ export const DeleteGroup = memo<DeleteGroupProps>(function DeleteGroup() {
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Group deleted successfully!' });
-    dispatch(setupGroups(loginAccount));
+    dispatch(setupGroupList(loginAccount));
   };
 
-  const description = `Are you sure to delete this group ”${trimLongStr(
-    removeGroup.groupName,
-    16,
-    16,
-    0,
-  )}”? `;
-  const fee = gasObjects?.[MsgDeleteGroupTypeUrl]?.gasFee || 0;
-
   return (
-    <ConfirmModal
-      confirmText="Delete"
-      isOpen={isOpen}
-      ga={{
-        gaClickCloseName: 'dc.group.delete_confirm.modal.show',
-        gaShowName: 'dc.group.delete_confirm.close.click',
-        balanceClickName: 'dc.group.delete_confirm.depost.show',
-        balanceShowName: 'dc.group.delete_confirm.transferin.click',
-        cancelButton: 'dc.group.delete_confirm.cancel.click',
-        confirmButton: 'dc.group.delete_confirm.delete.click',
-      }}
-      title="Confirm Delete"
-      fee={fee}
-      onConfirm={onRemove}
-      onClose={() => {
-        dispatch(setRemoveGroup({} as GroupInfo));
-      }}
-      variant={'scene'}
-      description={description}
-    />
+    <GAContextProvider prefix={'delete_confirm'}>
+      <TxConfirmModal
+        isOpen={isOpen}
+        confirmText="Delete"
+        title="Confirm Delete"
+        description={description}
+        fee={fee}
+        variant={'scene'}
+        onConfirm={onDeleteGroup}
+        onClose={() => {
+          dispatch(setGroupRemoving({} as GroupInfo));
+        }}
+      />
+    </GAContextProvider>
   );
 });

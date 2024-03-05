@@ -12,21 +12,20 @@ import {
   QDrawerHeader,
   Text,
 } from '@node-real/uikit';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { DCButton } from '../DCButton';
 
-export const DEFAULT_TAG = {
-  key: '',
-  value: '',
-};
+export const DEFAULT_TAG = { key: '', value: '' };
 
-export type ManageTagOperationProps = {
+interface ManageTagsProps {
   onSave: (updateTags: ResourceTags_Tag[]) => void;
   onCancel: () => void;
   tags: ResourceTags_Tag[];
-};
+}
 
-export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) => {
+export const ManageTags = memo<ManageTagsProps>(function ManageTags({ onSave, onCancel, tags }) {
+  const [internalTags, setInternalTags] = useState(tags);
+
   const isInvalid = (type: string, value: string) => {
     if (type === 'key' && value.length > 32) {
       return 'Should not exceed 32 characters.';
@@ -37,12 +36,7 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
 
     return false;
   };
-  const [internalTags, setInternalTags] = useState(tags);
-  const onAddTagItem = () => {
-    if (internalTags.length < 4) {
-      setInternalTags([...internalTags, DEFAULT_TAG]);
-    }
-  };
+
   const onInputChange = (type: 'key' | 'value', value: string, index: number) => {
     const newTags = internalTags.toSpliced(index, 1, {
       ...internalTags[index],
@@ -50,7 +44,14 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
     });
     setInternalTags(newTags);
   };
-  const onDelete = (index: number) => {
+
+  const onAddTag = () => {
+    if (internalTags.length < 4) {
+      setInternalTags([...internalTags, DEFAULT_TAG]);
+    }
+  };
+
+  const onRemoveTag = (index: number) => {
     setInternalTags(internalTags.filter((_, curIndex) => curIndex !== index));
   };
 
@@ -95,10 +96,10 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
                     <FormErrorMessage>{isInvalid('value', item.value)}</FormErrorMessage>
                   )}
                 </FormControl>
-                <IconFont type="delete" w={24} onClick={() => onDelete(index)} />
+                <IconFont type="delete" w={24} onClick={() => onRemoveTag(index)} />
               </Flex>
             ))}
-          <AddTagItem onClick={onAddTagItem} disabled={internalTags.length >= 4} />
+          <AddTagItem onClick={onAddTag} disabled={internalTags.length >= 4} />
         </Flex>
       </QDrawerBody>
       <QDrawerFooter>
@@ -111,21 +112,23 @@ export const ManageTags = ({ onSave, onCancel, tags }: ManageTagOperationProps) 
       </QDrawerFooter>
     </>
   );
-};
+});
 
-export type EditTagsProps = {
+interface EditTagsProps {
   tagsData: ResourceTags_Tag[];
   onClick: () => void;
   containerStyle?: ButtonProps;
   disabled?: false;
-};
-export const EditTags = ({
+}
+
+export const EditTags = memo<EditTagsProps>(function EditTags({
   tagsData,
   onClick,
   disabled = false,
   containerStyle = {},
-}: EditTagsProps) => {
+}) {
   const validTags = tagsData.filter((item) => item.key && item.value);
+
   const TagContent = () => {
     if (validTags && validTags.length > 0) {
       return (
@@ -164,15 +167,14 @@ export const EditTags = ({
       <TagContent />
     </DCButton>
   );
-};
+});
 
-export const AddTagItem = ({
-  onClick,
-  disabled = false,
-}: {
+interface AddTagItemProps {
   onClick: () => void;
   disabled?: boolean;
-}) => {
+}
+
+export const AddTagItem = memo<AddTagItemProps>(function AddTagItem({ onClick, disabled = false }) {
   return (
     <DCButton
       variant="ghost"
@@ -187,7 +189,7 @@ export const AddTagItem = ({
       Add Tags
     </DCButton>
   );
-};
+});
 
 export const getValidTags = (tags: ResourceTags_Tag[]) => {
   if (!tags) return [];

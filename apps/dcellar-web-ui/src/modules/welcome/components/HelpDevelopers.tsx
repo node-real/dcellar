@@ -28,8 +28,10 @@ const datas = [
     gaClickName: 'dc_lp.homepage.use_case.hosting.click',
   },
 ];
+
 export const HelpDevelopers = () => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
+
   return (
     <LandingResponsiveContainer>
       <Flex
