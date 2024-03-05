@@ -24,9 +24,9 @@ import {
   setObjectList,
   setStatusDetail,
   TStatusDetail,
-  updateObjectVisibility,
+  setObjectVisibility,
 } from '@/store/slices/object';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { getShareLink } from '@/utils/string';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { useMount } from 'ahooks';
@@ -35,7 +35,7 @@ import { useAccount } from 'wagmi';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;
-  primarySp: SpItem;
+  primarySp: SpEntity;
   objectName: string;
 }
 
@@ -46,44 +46,17 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
   objectName,
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName: _bucketName, path } = useAppSelector((root) => root.object);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
+
   const objectInfo = selectObjectInfo.ObjectInfo || {};
   // share bucket
-  const bucketName = selectObjectInfo.ObjectInfo.BucketName || _bucketName;
-
-  useMount(async () => {
-    if (!objectName.endsWith('/') || objectName === '') return;
-    const _query = new URLSearchParams();
-    _query.append('delimiter', '/');
-    _query.append('maxKeys', '2');
-    _query.append('prefix', `${objectName}`);
-
-    const params = {
-      address: primarySp.operatorAddress,
-      bucketName: bucketName,
-      prefix: objectName,
-      query: _query,
-      endpoint: primarySp.endpoint,
-      seedString: '',
-    };
-
-    const [res, error] = await getListObjects(params);
-    // should never happen
-    if (error || !res || res.code !== 0) return false;
-    const { GfSpListObjectsByBucketNameResponse } = res.body!;
-    // 更新文件夹objectInfo
-    dispatch(
-      setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
-    );
-  });
-
-  useEffect(() => {
-    setValue(getShareLink(bucketName, objectInfo.ObjectName));
-  }, [setValue, bucketName, objectInfo.ObjectName]);
+  const bucketName = selectObjectInfo.ObjectInfo.BucketName || currentBucketName;
 
   const handleError = (msg: ErrorMsg) => {
     switch (msg) {
@@ -126,8 +99,42 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     if (error) return handleError(error);
     dispatch(setStatusDetail({} as TStatusDetail));
     toast.success({ description: 'Access updated!' });
-    dispatch(updateObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
+    dispatch(setObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
   };
+
+  useMount(async () => {
+    if (!objectName.endsWith('/') || objectName === '') return;
+    const _query = new URLSearchParams();
+    _query.append('delimiter', '/');
+    _query.append('maxKeys', '2');
+    _query.append('prefix', `${objectName}`);
+
+    const params = {
+      address: primarySp.operatorAddress,
+      bucketName: bucketName,
+      prefix: objectName,
+      query: _query,
+      endpoint: primarySp.endpoint,
+      seedString: '',
+    };
+
+    const [res, error] = await getListObjects(params);
+    // should never happen
+    if (error || !res || res.code !== 0) return false;
+    const { GfSpListObjectsByBucketNameResponse } = res.body!;
+    // 更新文件夹objectInfo
+    dispatch(
+      setObjectList({
+        path: completeCommonPrefix,
+        list: GfSpListObjectsByBucketNameResponse || [],
+        infoOnly: true,
+      }),
+    );
+  });
+
+  useEffect(() => {
+    setValue(getShareLink(bucketName, objectInfo.ObjectName));
+  }, [setValue, bucketName, objectInfo.ObjectName]);
 
   // handle folder object info
   if (isEmpty(selectObjectInfo) || objectName !== objectInfo?.ObjectName) return <Loading />;

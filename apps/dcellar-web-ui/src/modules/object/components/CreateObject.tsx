@@ -8,14 +8,14 @@ import { selectAccount } from '@/store/slices/accounts';
 import { setupBucketQuota } from '@/store/slices/bucket';
 import { addToWaitQueue } from '@/store/slices/global';
 import {
-  ObjectItem,
+  ObjectEntity,
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
   selectObjectList,
-  setListRefreshing,
+  setObjectListRefreshing,
   setObjectOperation,
-  setRestoreCurrent,
-  setSelectedRowKeys,
+  setObjectListPageRestored,
+  setObjectSelectedKeys,
   setupListObjects,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
@@ -25,6 +25,9 @@ import { Flex, Menu, Tooltip, toast } from '@node-real/uikit';
 import { debounce } from 'lodash-es';
 import { ChangeEvent, memo, useCallback } from 'react';
 
+export const MAX_FOLDER_LEVEL = 10;
+export const MAX_FOLDER_NAME_LEN = 70;
+
 interface NewObjectProps {
   showRefresh?: boolean;
   gaFolderClickName?: string;
@@ -32,32 +35,35 @@ interface NewObjectProps {
   shareMode?: boolean;
 }
 
-export const MAX_FOLDER_LEVEL = 10;
-export const MAX_FOLDER_NAME_LEN = 70;
-
-export const NewObject = memo<NewObjectProps>(function NewObject({
+export const CreateObject = memo<NewObjectProps>(function NewObject({
   showRefresh = false,
   gaFolderClickName = '',
   gaUploadClickName = '',
   shareMode = false,
 }) {
   const dispatch = useAppDispatch();
-  const { discontinue, owner } = useAppSelector((root) => root.bucket);
-  const { folders, prefix, path, objectsInfo, bucketName, objects } = useAppSelector(
-    (root) => root.object,
-  );
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
-  const bucket = bucketInfo[bucketName];
+  const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+  const pathSegments = useAppSelector((root) => root.object.pathSegments);
+  const objectCommonPrefix = useAppSelector((root) => root.object.objectCommonPrefix);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+  const bucket = bucketRecords[currentBucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const primarySp = primarySpInfo[bucketName];
   const objectList = useAppSelector(selectObjectList);
+  const primarySp = primarySpRecords[currentBucketName];
+
   const onOpenCreateFolder = () => {
     if (disabled) return;
     dispatch(setObjectOperation({ operation: ['', 'create_folder'] }));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const refreshList = useCallback(
     debounce(async () => {
       const { seedString } = await dispatch(
@@ -69,17 +75,17 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         query,
         endpoint: primarySp.endpoint,
       };
-      dispatch(setSelectedRowKeys([]));
-      dispatch(setupBucketQuota(bucketName));
-      dispatch(setListRefreshing(true));
-      dispatch(setRestoreCurrent(false));
+      dispatch(setObjectSelectedKeys([]));
+      dispatch(setupBucketQuota(currentBucketName));
+      dispatch(setObjectListRefreshing(true));
+      dispatch(setObjectListPageRestored(false));
       await dispatch(setupListObjects(params));
-      dispatch(setListRefreshing(false));
+      dispatch(setObjectListRefreshing(false));
     }, 150),
-    [loginAccount, primarySp?.operatorAddress, bucketName],
+    [loginAccount, primarySp?.operatorAddress, currentBucketName],
   );
 
-  if (!owner && !shareMode)
+  if (!isBucketOwner && !shareMode)
     return (
       <>
         {showRefresh && (
@@ -92,18 +98,18 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       </>
     );
 
-  const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
+  const folderExist = !objectCommonPrefix ? true : !!objectRecords[completeCommonPrefix + '/'];
 
   const invalidPath =
-    folders.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;
-  const maxFolderDepth = invalidPath || folders.length >= MAX_FOLDER_LEVEL;
+    pathSegments.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;
+  const maxFolderDepth = invalidPath || pathSegments.length >= MAX_FOLDER_LEVEL;
 
-  const loading = !objects[path];
-  const disabled = maxFolderDepth || discontinue || loading || accountDetail.clientFrozen;
+  const loading = !objectListRecords[completeCommonPrefix];
+  const disabled = maxFolderDepth || isBucketDiscontinue || loading || accountDetail.clientFrozen;
   const uploadDisabled =
-    discontinue ||
+    isBucketDiscontinue ||
     invalidPath ||
-    folders.length > MAX_FOLDER_LEVEL ||
+    pathSegments.length > MAX_FOLDER_LEVEL ||
     loading ||
     accountDetail.clientFrozen;
 
@@ -153,9 +159,9 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
         isClosable: true,
       });
     }
-    const uploadFolderPath = [...folders, relativeRootFolder].join('/') + '/';
+    const uploadFolderPath = [...pathSegments, relativeRootFolder].join('/') + '/';
     const isFolderExist = objectList.some(
-      (object: ObjectItem) => object.objectName === uploadFolderPath,
+      (object: ObjectEntity) => object.objectName === uploadFolderPath,
     );
     if (isFolderExist) {
       e.target.value = '';
@@ -169,7 +175,8 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
       const webkitRelativePath = files[i].webkitRelativePath;
       const parts = webkitRelativePath.split('/');
       const folders = parts.slice(0, parts.length - 1);
-      const depth = folders.length + prefix.split('/').filter((item) => !!item).length || 0;
+      const depth =
+        folders.length + objectCommonPrefix.split('/').filter((item) => !!item).length || 0;
       if (depth > 10) {
         e.target.value = '';
         return toast.error({
@@ -243,7 +250,7 @@ export const NewObject = memo<NewObjectProps>(function NewObject({
             <Tooltip
               placement="top-end"
               content={
-                discontinue
+                isBucketDiscontinue
                   ? 'Bucket in the discontinue status cannot upload objects.'
                   : accountDetail?.clientFrozen
                     ? 'The payment account in the frozen status cannot upload objects.'

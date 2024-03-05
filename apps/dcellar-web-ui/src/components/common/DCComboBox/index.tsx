@@ -19,10 +19,10 @@ export const DCComboBox = memo<DCComboBoxProps>(function DCComboBox({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const dateChangeRef = useRef(dateChange);
   const now = new Date();
   now.setMonth(now.getMonth() + 6);
   const [date, setDate] = useState<Dayjs>(dayjs(now));
-  const dateChangeRef = useRef(dateChange);
 
   useEffect(() => {
     dateChangeRef.current(date);
@@ -80,6 +80,7 @@ const ExpireSelector = styled(Flex)`
   align-items: center;
   height: 28px;
   padding: 7px 8px 8px 8px;
+
   :before {
     content: '';
     position: absolute;
@@ -96,6 +97,7 @@ const ExpireSelector = styled(Flex)`
     transition: all 0.15s;
     cursor: pointer;
     color: var(--ui-colors-brand-brand6);
+
     :hover {
       color: var(--ui-colors-brand-brand5);
     }
@@ -107,13 +109,16 @@ const Container = styled(Flex)`
   position: relative;
   flex: 1;
   min-width: 0;
+
   .ant-select-selector {
     margin-bottom: 28px;
     height: auto !important;
   }
+
   .ant-select-multiple .ant-select-selection-overflow-item-suffix {
     height: 32px;
   }
+
   .ant-select-arrow > * {
     margin-bottom: 28px;
   }

@@ -8,9 +8,11 @@ import FeatureItem from './FeatureItem';
 import { keyFeatureList } from './KeyFeatures';
 
 type SwiperRef = HTMLElement & { swiper: Swiper; initialize: () => void };
+
 export const KeyFeaturesMobile = () => {
   const swiperElRef = useRef<SwiperRef>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
   return (
     <Box px={20} my={20}>
       <LandingH2 textAlign={'center'}>Key Features</LandingH2>

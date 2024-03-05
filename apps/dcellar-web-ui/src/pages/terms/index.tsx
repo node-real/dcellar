@@ -9,16 +9,19 @@ const H1 = ({ children, ...restProps }: TextProps) => (
     {children}
   </Text>
 );
+
 const H2 = ({ children, ...restProps }: TextProps) => (
   <Text as="h2" fontSize={24} fontWeight={600} {...restProps}>
     {children}
   </Text>
 );
+
 const Content = ({ children, ...restProps }: TextProps) => (
   <Text as="p" fontSize={16} fontWeight={400} {...restProps}>
     {children}
   </Text>
 );
+
 export default function TermsOfUsePage() {
   return (
     <Box w={'100%'} bgColor={'#fff'}>

@@ -111,8 +111,7 @@ export const decodeObjectName = (obj: string) => {
 
 export const formatId = (id: number) => {
   const hex = Number(id).toString(16).replace('0x', '');
-  const value = `0x${hex.padStart(64, '0')}`;
-  return value;
+  return `0x${hex.padStart(64, '0')}`;
 };
 
 export const copy = (text: string) => {
@@ -139,7 +138,9 @@ const getObjectPath = (bucketName = '', objectName = '') => {
 };
 
 export const getShareLink = (bucketName: string, objectName: string) => {
-  return `${location.origin}/share?file=${encodeURIComponent(getObjectPath(bucketName, objectName))}`;
+  return `${location.origin}/share?file=${encodeURIComponent(
+    getObjectPath(bucketName, objectName),
+  )}`;
 };
 
 export const formatByGB = (num: number) => {

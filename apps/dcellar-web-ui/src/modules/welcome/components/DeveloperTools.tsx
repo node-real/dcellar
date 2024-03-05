@@ -21,6 +21,7 @@ const ResponsiveIcon = ({ type, ...restProps }: IconFontProps) => {
     />
   );
 };
+
 const datas = [
   {
     icon: <ResponsiveIcon type="w-search" color={'readable.white'} />,
@@ -72,6 +73,7 @@ const datas = [
     gaClickName: 'dc_lp.homepage.tool.faucet.click',
   },
 ];
+
 export const DeveloperTools = () => {
   return (
     <LandingResponsiveContainer>

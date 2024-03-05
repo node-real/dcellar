@@ -1,9 +1,10 @@
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { FetchBalanceResult, fetchBalance } from '@wagmi/core';
+import { fetchBalance, FetchBalanceResult } from '@wagmi/core';
 import { useCallback, useEffect, useState } from 'react';
-import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from 'set-interval-async';
+import { clearIntervalAsync, setIntervalAsync, SetIntervalAsyncTimer } from 'set-interval-async';
 
 type Timer = { [key: string]: SetIntervalAsyncTimer<[]> | null };
+
 export const useBalance = ({
   address,
   chainId = GREENFIELD_CHAIN_ID,
@@ -30,11 +31,10 @@ export const useBalance = ({
     const timer = timers[key];
     if (timer) return;
     Object.values(timers).forEach((timer) => timer && clearIntervalAsync(timer));
-    const newTimer = setIntervalAsync(async () => {
+    timers[key] = setIntervalAsync(async () => {
       const data = await refetch();
       setBalance(data);
     }, intervalMs);
-    timers[key] = newTimer;
     setTimers(timers);
 
     return () => {

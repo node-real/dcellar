@@ -18,8 +18,16 @@ interface FromAccountSelectorProps {
 
 export const FromAccountSelector = memo<FromAccountSelectorProps>(
   function FromAccountSelector(props) {
-    const { loginAccount } = useAppSelector((root) => root.persist);
+    const { onChange, from } = props;
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+
+    const [account, setAccount] = useState({} as TAccount);
+    const [total, setTotal] = useState(0);
+    const saveOnChangeRef = useRef(onChange);
+
+    saveOnChangeRef.current = onChange;
+
     const accountList = useMemo(
       () => [
         {
@@ -33,24 +41,19 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(
     );
     const keyAccountList = keyBy(accountList, 'address');
     const len = accountList?.length;
-    const [account, setAccount] = useState({} as TAccount);
-    const [total, setTotal] = useState(0);
-    const { onChange, from } = props;
-    const saveOnChangeRef = useRef(onChange);
-    saveOnChangeRef.current = onChange;
 
-    useEffect(() => {
-      if (!len) return;
-      setTotal(len);
-      const initialAccount = accountList.find((item) => item.address === from);
-      setAccount(initialAccount || accountList[0]);
-      saveOnChangeRef.current?.(account);
-    }, [from, accountList]);
-
-    useEffect(() => {
-      if (!account) return;
-      saveOnChangeRef.current?.(account);
-    }, [account]);
+    const options = useMemo(
+      () =>
+        accountList.map((item) => {
+          const { name, address } = item;
+          return {
+            label: name,
+            value: address,
+            name,
+          };
+        }),
+      [accountList],
+    );
 
     const onChangeAccount = (value: string) => {
       setAccount(keyAccountList[value]);
@@ -67,18 +70,18 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(
       return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
     };
 
-    const options = useMemo(
-      () =>
-        accountList.map((item) => {
-          const { name, address } = item;
-          return {
-            label: name,
-            value: address,
-            name,
-          };
-        }),
-      [accountList],
-    );
+    useEffect(() => {
+      if (!len) return;
+      setTotal(len);
+      const initialAccount = accountList.find((item) => item.address === from);
+      setAccount(initialAccount || accountList[0]);
+      saveOnChangeRef.current?.(account);
+    }, [from, accountList]);
+
+    useEffect(() => {
+      if (!account) return;
+      saveOnChangeRef.current?.(account);
+    }, [account]);
 
     const Footer = () => (
       <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">

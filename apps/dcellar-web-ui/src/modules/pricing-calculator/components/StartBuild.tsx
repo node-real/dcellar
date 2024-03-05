@@ -40,6 +40,7 @@ export const StartBuildContent = ({ gaClickName }: { gaClickName: string }) => (
     />
   </>
 );
+
 export const StartBuild = () => (
   <PriceResponsiveContainer
     display={'flex'}

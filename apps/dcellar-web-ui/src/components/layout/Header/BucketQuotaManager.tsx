@@ -3,7 +3,7 @@ import { Animates } from '@/components/AnimatePng';
 import { CopyText } from '@/components/common/CopyText';
 import { DCButton } from '@/components/common/DCButton';
 import { DCDrawer } from '@/components/common/DCDrawer';
-import { QuotaItem } from '@/components/formitems/QuotaItem';
+import { MonthlyDownloadQuota } from '@/components/formitems/MonthlyDownloadQuota';
 import { G_BYTES } from '@/constants/legacy';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
@@ -21,10 +21,10 @@ import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/c
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { setEditQuota, setupBucket, setupBucketQuota } from '@/store/slices/bucket';
+import { setBucketEditQuota, setupBucket, setupBucketQuota, TBucket } from '@/store/slices/bucket';
 import { TStoreFeeParams, selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
-import { getPrimarySpInfo } from '@/store/slices/sp';
+import { setupPrimarySpInfo } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { formatQuota, trimLongStr } from '@/utils/string';
@@ -46,61 +46,46 @@ import { find, isEmpty } from 'lodash-es';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
+const EMPTY_BUCKET = {} as TBucket;
+
 interface ManageQuotaProps {
   onClose: () => void;
 }
 
-export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose }) {
+export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ onClose }) {
   const dispatch = useAppDispatch();
-  const { editQuota, bucketInfo, quotas } = useAppSelector((root) => root.bucket);
-  const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const PAList = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] || {};
+  const bucketEditQuota = useAppSelector((root) => root.bucket.bucketEditQuota);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+
+  const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
-  const [bucketName] = editQuota;
-  const bucket = bucketInfo[bucketName] || {};
-  const PaymentAddress = bucket.PaymentAddress;
-  const { settlementFee } = useSettlementFee(PaymentAddress);
-  const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+
+  const [loading, setLoading] = useState(false);
   const [balanceEnough, setBalanceEnough] = useState(true);
-  const quota = quotas[bucketName];
   const [moniker, setMoniker] = useState('--');
   const [newChargedQuota, setNewChargedQuota] = useState(0);
-  const currentQuota = quota?.readQuota;
-  const { setOpenAuthModal } = useOffChainAuth();
-  const [loading, setLoading] = useState(false);
-  const { connector } = useAccount();
-  const formattedQuota = formatQuota(quota);
   const [preStoreFeeParams, setPreStoreFeeParams] = useState({} as TStoreFeeParams);
   const [chargeSize, setChargeSize] = useState(0);
   const [refund, setRefund] = useState(false);
   const [quotaUpdateTime, setQuotaUpdateTime] = useState<number>();
+  const { connector } = useAccount();
+  const { setOpenAuthModal } = useOffChainAuth();
 
-  useAsyncEffect(async () => {
-    if (!bucketName) return;
-    const updateAt = await getBucketQuotaUpdateTime(bucketName);
-    setQuotaUpdateTime(updateAt);
-  }, [bucketName]);
-
-  useAsyncEffect(async () => {
-    if (!isEmpty(storeFeeParams)) return;
-    dispatch(setupStoreFeeParams());
-  }, [dispatch]);
-
-  useAsyncEffect(async () => {
-    if (!PaymentAddress) return;
-    const { extraInfo } = await getBucketExtraInfo(bucketName);
-    const { priceTime, localVirtualGroups = [] } = extraInfo || {};
-    const totalChargeSize = localVirtualGroups
-      .reduce((a, b) => a.plus(Number(b.totalChargeSize)), BigNumber(0))
-      .toNumber();
-    setChargeSize(totalChargeSize);
-    const preStoreFeeParams = await getStoreFeeParams({ time: Number(priceTime) });
-    setPreStoreFeeParams(preStoreFeeParams);
-  }, [PaymentAddress]);
+  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] || {};
+  const [bucketName] = bucketEditQuota;
+  const bucket = bucketRecords[bucketName] || EMPTY_BUCKET;
+  const PaymentAddress = bucket.PaymentAddress;
+  const { settlementFee } = useSettlementFee(PaymentAddress);
+  const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+  const quota = bucketQuotaRecords[bucketName];
+  const currentQuota = quota?.readQuota;
+  const formattedQuota = formatQuota(quota);
+  const valid = balanceEnough && !loading && newChargedQuota * G_BYTES > (currentQuota || 0);
 
   const totalFee = useMemo(() => {
     if (isEmpty(storeFeeParams) || isEmpty(preStoreFeeParams)) return '-1';
@@ -120,7 +105,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   const paymentAccount = useMemo(() => {
     if (!bucket) return '--';
     const address = bucket.PaymentAddress;
-    const pa = find(PAList, (a) => a.address === address);
+    const pa = find(paymentAccountList, (a) => a.address === address);
     const oa = ownerAccount.address === address;
 
     if (!pa && !oa) return '--';
@@ -147,24 +132,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
         <CopyText value={link} />
       </>
     );
-  }, [ownerAccount, PAList, bucket]);
-
-  useEffect(() => {
-    if (!bucketName) return;
-    dispatch(setupBucket(bucketName));
-  }, [bucketName, dispatch]);
-
-  useEffect(() => {
-    if (!quota) return;
-    setNewChargedQuota(currentQuota / G_BYTES);
-  }, [currentQuota]);
-
-  useAsyncEffect(async () => {
-    if (!bucket) return;
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
-    if (!sp) return;
-    setMoniker(sp.moniker);
-  }, [bucket, bucketName]);
+  }, [ownerAccount, paymentAccountList, bucket]);
 
   const errorHandler = (error: string) => {
     switch (error) {
@@ -213,7 +181,45 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
     dispatch(setupBucketQuota(bucketName));
   };
 
-  const valid = balanceEnough && !loading && newChargedQuota * G_BYTES > (currentQuota || 0);
+  useAsyncEffect(async () => {
+    if (!bucketName) return;
+    const updateAt = await getBucketQuotaUpdateTime(bucketName);
+    setQuotaUpdateTime(updateAt);
+  }, [bucketName]);
+
+  useAsyncEffect(async () => {
+    if (!isEmpty(storeFeeParams)) return;
+    dispatch(setupStoreFeeParams());
+  }, [dispatch]);
+
+  useAsyncEffect(async () => {
+    if (!PaymentAddress) return;
+    const { extraInfo } = await getBucketExtraInfo(bucketName);
+    const { priceTime, localVirtualGroups = [] } = extraInfo || {};
+    const totalChargeSize = localVirtualGroups
+      .reduce((a, b) => a.plus(Number(b.totalChargeSize)), BigNumber(0))
+      .toNumber();
+    setChargeSize(totalChargeSize);
+    const preStoreFeeParams = await getStoreFeeParams({ time: Number(priceTime) });
+    setPreStoreFeeParams(preStoreFeeParams);
+  }, [PaymentAddress]);
+
+  useEffect(() => {
+    if (!bucketName) return;
+    dispatch(setupBucket(bucketName));
+  }, [bucketName, dispatch]);
+
+  useEffect(() => {
+    if (!quota) return;
+    setNewChargedQuota(currentQuota / G_BYTES);
+  }, [currentQuota]);
+
+  useAsyncEffect(async () => {
+    if (!bucket) return;
+    const sp = await dispatch(setupPrimarySpInfo(bucketName, +bucket.GlobalVirtualGroupFamilyId));
+    if (!sp) return;
+    setMoniker(sp.moniker);
+  }, [bucket, bucketName]);
 
   return (
     <>
@@ -246,7 +252,7 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
             onConfirm();
           }}
         >
-          <QuotaItem
+          <MonthlyDownloadQuota
             current={!quota ? 0 : currentQuota / G_BYTES}
             value={newChargedQuota}
             onChange={setNewChargedQuota}
@@ -287,15 +293,15 @@ export const ManageQuota = memo<ManageQuotaProps>(function ManageQuota({ onClose
   );
 });
 
-interface ManageQuotaDrawerProps {}
+interface BucketQuotaDrawerProps {}
 
-export const ManageQuotaDrawer = memo<ManageQuotaDrawerProps>(function ManageQuotaDrawer() {
+export const BucketQuotaDrawer = memo<BucketQuotaDrawerProps>(function BucketQuotaDrawer() {
   const dispatch = useAppDispatch();
-  const { editQuota } = useAppSelector((root) => root.bucket);
-  const [bucketName, from] = editQuota;
+  const bucketEditQuota = useAppSelector((root) => root.bucket.bucketEditQuota);
+  const [bucketName] = bucketEditQuota;
 
   const onClose = () => {
-    dispatch(setEditQuota(['', '']));
+    dispatch(setBucketEditQuota(['', '']));
   };
 
   useUnmount(onClose);
@@ -303,7 +309,7 @@ export const ManageQuotaDrawer = memo<ManageQuotaDrawerProps>(function ManageQuo
   return (
     <DCDrawer isOpen={!!bucketName} onClose={onClose}>
       <QDrawerHeader>Manage Quota</QDrawerHeader>
-      <ManageQuota onClose={onClose} />
+      <BucketQuotaManager onClose={onClose} />
     </DCDrawer>
   );
 });

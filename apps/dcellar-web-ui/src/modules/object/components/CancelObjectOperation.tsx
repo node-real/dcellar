@@ -25,11 +25,11 @@ import { TAccountInfo, selectAvailableBalance } from '@/store/slices/accounts';
 import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
 import {
   TStatusDetail,
-  addDeletedObject,
-  setSelectedRowKeys,
+  setDeletedObject,
+  setObjectSelectedKeys,
   setStatusDetail,
 } from '@/store/slices/object';
-import { SpItem } from '@/store/slices/sp';
+import { SpEntity } from '@/store/slices/sp';
 import { formatLockFee } from '@/utils/object';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
@@ -88,7 +88,7 @@ interface CancelObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
   bucketAccountDetail: TAccountInfo;
-  primarySp: SpItem;
+  primarySp: SpEntity;
   refetch?: () => void;
   onClose?: () => void;
 }
@@ -103,21 +103,36 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
     primarySp,
   }) {
     const dispatch = useAppDispatch();
-    const [refundStoreFee, setRefundStoreFee] = useState<string | null>(null);
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-    const { bankBalance } = useAppSelector((root) => root.accounts);
-    const {
-      bnb: { price: bnbPrice },
-    } = useAppSelector((root) => root.global);
-    const { bucketName, selectedRowKeys } = useAppSelector((root) => root.object);
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+    const { price: bnbPrice } = useAppSelector((root) => root.global.bnbInfo);
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
+
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
-    const exchangeRate = +bnbPrice ?? 0;
+    const { loading: isLoadingSF, settlementFee } = useSettlementFee(bucket.PaymentAddress);
+    const [refundStoreFee, setRefundStoreFee] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [buttonDisabled, setButtonDisabled] = useState(false);
-    const objectInfo = selectObjectInfo.ObjectInfo;
+    const { connector } = useAccount();
 
+    const exchangeRate = +bnbPrice ?? 0;
+    const objectInfo = selectObjectInfo.ObjectInfo;
     const simulateGasFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
+    const filePath = objectInfo.ObjectName.split('/');
+    const showName = filePath[filePath.length - 1];
+    const description = `Are you sure you want to cancel uploading the object "${showName}"?`;
+
+    const setFailedStatusModal = (description: string, error: any) => {
+      setStatusDetail({
+        icon: 'status-failed',
+        title: FILE_TITLE_CANCEL_FAILED,
+        desc: description,
+        buttonText: BUTTON_GOT_IT,
+        errorText: 'Error message: ' + error?.message ?? '',
+      });
+    };
 
     useAsyncEffect(async () => {
       const params = {
@@ -136,8 +151,6 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
       setRefundStoreFee(formatLockFee(data?.amount));
     }, []);
 
-    const { loading: isLoadingSF, settlementFee } = useSettlementFee(bucket.PaymentAddress);
-
     useEffect(() => {
       if (
         !simulateGasFee ||
@@ -155,21 +168,6 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
       }
       setButtonDisabled(true);
     }, [simulateGasFee, availableBalance, refundStoreFee]);
-    const { connector } = useAccount();
-
-    const filePath = objectInfo.ObjectName.split('/');
-    const showName = filePath[filePath.length - 1];
-    const description = `Are you sure you want to cancel uploading the object "${showName}"?`;
-
-    const setFailedStatusModal = (description: string, error: any) => {
-      setStatusDetail({
-        icon: 'status-failed',
-        title: FILE_TITLE_CANCEL_FAILED,
-        desc: description,
-        buttonText: BUTTON_GOT_IT,
-        errorText: 'Error message: ' + error?.message ?? '',
-      });
-    };
 
     return (
       <>
@@ -245,7 +243,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                 );
                 const client = await getClient();
                 const cancelObjectTx = await client.object.cancelCreateObject({
-                  bucketName,
+                  bucketName: currentBucketName,
                   objectName: objectInfo.ObjectName,
                   operator: loginAccount,
                 });
@@ -270,15 +268,17 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                 if (txRes && txRes.code === 0) {
                   toast.success({ description: 'Upload cancelled successfully.' });
                   dispatch(
-                    addDeletedObject({
-                      path: [bucketName, objectInfo.ObjectName].join('/'),
+                    setDeletedObject({
+                      path: [currentBucketName, objectInfo.ObjectName].join('/'),
                       ts: Date.now(),
                     }),
                   );
                   // unselected
-                  dispatch(setSelectedRowKeys(without(selectedRowKeys, objectInfo.ObjectName)));
+                  dispatch(
+                    setObjectSelectedKeys(without(objectSelectedKeys, objectInfo.ObjectName)),
+                  );
                   refetch();
-                  dispatch(setupBucketQuota(bucketName));
+                  dispatch(setupBucketQuota(currentBucketName));
                 } else {
                   toast.error({ description: 'Upload cancellation failed.' });
                 }

@@ -21,6 +21,7 @@ export interface CopyTextProps extends FlexProps {
   gaClickName?: string;
   gaClickData?: Record<string, any>;
 }
+
 export function CopyText(props: CopyTextProps) {
   const {
     value,

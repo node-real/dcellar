@@ -62,18 +62,11 @@ export function DCInputSelect(props: DCSelectProps) {
     emptyText,
     ...restProps
   } = props;
-
-  const Right = RightIcon ? RightIcon : () => <SearchIcon />;
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [resultOptions, setResultOptions] = useState<Array<MenuOption>>();
-
   const saveOnSearchRef = useSaveFuncRef(onSearch);
-  useEffect(() => {
-    if (isOpen) {
-      setResultOptions(options);
-      saveOnSearchRef.current?.(options);
-    }
-  }, [isOpen, options, saveOnSearchRef]);
+
+  const Right = RightIcon ? RightIcon : () => <SearchIcon />;
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -99,6 +92,14 @@ export function DCInputSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setResultOptions(options);
+      saveOnSearchRef.current?.(options);
+    }
+  }, [isOpen, options, saveOnSearchRef]);
+
   return (
     <DCMenu
       value={value}

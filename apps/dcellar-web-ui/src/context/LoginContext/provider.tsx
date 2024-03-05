@@ -7,7 +7,7 @@ import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
-import { checkSpOffChainMayExpired, setLogin, setLogout } from '@/store/slices/persist';
+import { checkSpOffChainMayExpired, setLoginAccount, setLogout } from '@/store/slices/persist';
 import { useAsyncEffect, useMount } from 'ahooks';
 import { useRouter } from 'next/router';
 import { useAccount, useDisconnect } from 'wagmi';
@@ -17,10 +17,11 @@ export interface LoginContextProviderProps {
 }
 
 export function LoginContextProvider(props: PropsWithChildren<LoginContextProviderProps>) {
-  const dispatch = useAppDispatch();
   const { children, inline = false } = props;
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
+  const { pass } = useLoginGuard(inline);
   const { disconnect } = useDisconnect();
 
   const logout = useCallback(
@@ -89,13 +90,11 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
         return;
       }
       if (!loginAccount && !spMayExpired) {
-        dispatch(setLogin(walletAddress));
+        dispatch(setLoginAccount(walletAddress));
         return;
       }
     }
   }, [walletAddress, loginAccount]);
-
-  const { pass } = useLoginGuard(inline);
 
   if (!pass && !ssrLandingRoutes.some((item) => item === pathname)) {
     return null;

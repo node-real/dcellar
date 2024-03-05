@@ -6,16 +6,20 @@ import { ConfirmModal } from './component/ConfirmModal';
 
 export type TCookieType = 'ga' | 'st' | 'ga_st';
 export type TCookieOperate = 'deny_all' | 'accept_all' | 'optional' | 'close';
+
 type Props = {
   onClose: (type: TCookieType, operate: TCookieOperate) => void;
 };
+
 export const CookiePolicy = ({ onClose }: Props) => {
   const [open, setOpen] = useState(false);
   const [isMobile] = useMediaQuery('(max-width: 767px)');
+
   const onConfirmClick = (type: TCookieType, operate: TCookieOperate) => {
     onClose(type, operate);
     setOpen(false);
   };
+
   return (
     <Flex
       sx={{

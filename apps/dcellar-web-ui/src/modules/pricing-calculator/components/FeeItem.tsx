@@ -10,6 +10,7 @@ type FeeItemProps = {
   fee: string;
   bnbPrice: string;
 };
+
 export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItemProps) => (
   <Flex alignItems={'center'} justifyContent={'space-between'}>
     <Flex

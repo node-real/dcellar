@@ -16,9 +16,11 @@ interface OwnerDetailOperationProps {
 export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function OwnerDetailOperation({
   selectAccount,
 }) {
-  const [availableBalance, setAvailableBalance] = useState('0');
-  const { isLoadingAccountInfo, bankBalance } = useAppSelector((root) => root.accounts);
+  const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const router = useRouter();
+  const [availableBalance, setAvailableBalance] = useState('0');
 
   const onAction = (e: string) => {
     return router.push(`/wallet?type=${e}`);
@@ -40,7 +42,7 @@ export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function Own
   return (
     <>
       <BasicInfo
-        loading={!!isLoadingAccountInfo}
+        loading={!!accountInfoLoading}
         title="Account Detail"
         accountDetail={selectAccount}
         availableBalance={availableBalance}

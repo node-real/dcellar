@@ -30,16 +30,15 @@ type Props = {
 export const AccountBillingHistory = ({ address }: Props) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const query = router.query;
+  const accountBillListPage = useAppSelector((root) => root.billing.accountBillListPage);
+  const accountBillListLoading = useAppSelector((root) => root.billing.accountBillListLoading);
+  const accountBillPageSize = useAppSelector((root) => root.persist.accountBillPageSize);
   const bnbPrice = useAppSelector(selectBnbPrice);
   const accountBills = useAppSelector(selectAccountBills(address));
   const accountBillsCount = useAppSelector(selectAccountBillsCount(address));
-  const { curAccountBillsPage, loadingAccountBills } = useAppSelector((root) => root.billing);
-  const { accountBillsPageSize } = useAppSelector((root) => root.persist);
+
+  const query = router.query;
   const pageData = accountBills;
-  useAsyncEffect(async () => {
-    await dispatch(setupAccountBills(address));
-  }, []);
 
   const columns: ColumnProps<any>[] = [
     {
@@ -95,6 +94,11 @@ export const AccountBillingHistory = ({ address }: Props) => {
     ),
     [empty],
   );
+  const loadingComponent = {
+    spinning: accountBillListLoading,
+    indicator: <Loading />,
+  };
+
   const onPageChange = (page: number) => {
     const addQuery = { page };
     const newQuery = merge(query, addQuery);
@@ -103,11 +107,10 @@ export const AccountBillingHistory = ({ address }: Props) => {
       scroll: false,
     });
   };
-  const spinning = loadingAccountBills;
-  const loadingComponent = {
-    spinning: spinning,
-    indicator: <Loading />,
-  };
+
+  useAsyncEffect(async () => {
+    await dispatch(setupAccountBills(address));
+  }, []);
 
   return (
     <>
@@ -116,9 +119,9 @@ export const AccountBillingHistory = ({ address }: Props) => {
         loading={loadingComponent}
         columns={columns}
         dataSource={pageData}
-        current={curAccountBillsPage}
+        current={accountBillListPage}
         total={accountBillsCount}
-        pageSize={accountBillsPageSize}
+        pageSize={accountBillPageSize}
         showQuickJumper={true}
         pageChange={onPageChange}
         renderEmpty={renderEmpty}

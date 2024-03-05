@@ -15,6 +15,7 @@ type ChangePaymentAccountFee = {
   storeFee: string;
   gasFee: string;
 };
+
 export const useChangePaymentAccountFee = ({
   from,
   to,
@@ -24,15 +25,18 @@ export const useChangePaymentAccountFee = ({
   to: string;
   storageSize: number;
 }): ChangePaymentAccountFee => {
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] ?? {};
+  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+
+  const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const { settlementFee: fromSettlementFee, loading: loading1 } = useSettlementFee(from);
   const { settlementFee: toSettlementFee, loading: loading2 } = useSettlementFee(to);
-  const storeFeeParams = useAppSelector(selectStoreFeeParams);
+
+  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] ?? {};
   const storeFee = BN(getStoreNetflowRate(storageSize, storeFeeParams))
     .times(storeFeeParams.reserveTime)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
+
   return {
     loading: loading1 || loading2,
     fromSettlementFee,
@@ -49,11 +53,16 @@ export const useValidateChangePaymentFee = ({
   toSettlementFee,
   storeFee,
   gasFee,
-}: Omit<ChangePaymentAccountFee, 'loading'> & { from: string; to: string }) => {
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { loginAccount } = useAppSelector((root) => root.persist);
+}: Omit<ChangePaymentAccountFee, 'loading'> & {
+  from: string;
+  to: string;
+}) => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const fromAccountDetail = useAppSelector(selectAccountDetail(from));
   const toAccountDetail = useAppSelector(selectAccountDetail(to));
+
   const validFrom = useMemo(() => {
     const isOwnerAccount = loginAccount === from;
     const remainingBankBalance = BN(bankBalance).minus(gasFee);
@@ -103,8 +112,5 @@ export const useValidateChangePaymentFee = ({
     toSettlementFee,
   ]);
 
-  return {
-    validFrom,
-    validTo,
-  };
+  return { validFrom, validTo };
 };

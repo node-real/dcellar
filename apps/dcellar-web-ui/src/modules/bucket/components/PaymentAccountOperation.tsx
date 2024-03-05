@@ -16,7 +16,7 @@ import {
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TAccount, selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { TBucket, setReadBucketPaymentAccount } from '@/store/slices/bucket';
+import { TBucket, setBucketPaymentAccount } from '@/store/slices/bucket';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { trimLongStr } from '@/utils/string';
@@ -45,13 +45,15 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   onClose: () => void;
 }) {
   const dispatch = useAppDispatch();
-  const { connector } = useAccount();
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const PAList = useAppSelector(selectPaymentAccounts(loginAccount));
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+
+  const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
   const [newPaymentAccount, setNewPaymentAccount] = useState<TAccount>({} as TAccount);
+  const newAccountDetail = useAppSelector(selectAccount(newPaymentAccount.address));
   const [loading, setLoading] = useState(false);
+  const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
 
   const {
@@ -75,10 +77,18 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     fromSettlementFee,
     toSettlementFee,
   });
+
   const InsufficientAccounts = [];
   !loadingFee && !validFrom && InsufficientAccounts.push({ address: bucket.PaymentAddress });
   !loadingFee && !validTo && InsufficientAccounts.push({ address: newPaymentAccount.address });
-  const newAccountDetail = useAppSelector(selectAccount(newPaymentAccount.address));
+  const valid =
+    !loading &&
+    !loadingFee &&
+    validFrom &&
+    validTo &&
+    bucket &&
+    bucket?.PaymentAddress.toLowerCase() !== newPaymentAccount.address.toLowerCase();
+
   const newAccountBalance = useMemo(() => {
     const isOwner = newPaymentAccount.address === loginAccount;
     if (isOwner) {
@@ -90,7 +100,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   const paymentAccount = useMemo(() => {
     if (!bucket) return '--';
     const address = bucket.PaymentAddress;
-    const pa = find(PAList, (a) => a.address === address);
+    const pa = find(paymentAccountList, (a) => a.address === address);
     const oa = ownerAccount.address === address;
 
     if (!pa && !oa) return '--';
@@ -117,7 +127,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
         <CopyText value={link} />
       </>
     );
-  }, [ownerAccount, PAList, bucket]);
+  }, [ownerAccount, paymentAccountList, bucket]);
 
   const errorHandler = (error: string) => {
     switch (error) {
@@ -136,6 +146,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
         );
     }
   };
+
   const onChangeConfirm = async () => {
     if (loading) return;
     setLoading(true);
@@ -162,26 +173,18 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     toast.success({ description: 'Payment account updated!' });
     onClose();
     dispatch(
-      setReadBucketPaymentAccount({
+      setBucketPaymentAccount({
         bucketName: bucket.BucketName,
         paymentAddress: newPaymentAccount.address,
       }),
     );
     dispatch(
-      setReadBucketPaymentAccount({
+      setBucketPaymentAccount({
         bucketName: bucket.BucketName,
         paymentAddress: newPaymentAccount.address,
       }),
     );
   };
-
-  const valid =
-    !loading &&
-    !loadingFee &&
-    validFrom &&
-    validTo &&
-    bucket &&
-    bucket?.PaymentAddress.toLowerCase() !== newPaymentAccount.address.toLowerCase();
 
   return (
     <>
@@ -212,14 +215,8 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
         <ChangePaymentTotalFee
           gasFee={gasFee}
           storeFee={storeFee}
-          from={{
-            address: bucket.PaymentAddress,
-            amount: fromSettlementFee,
-          }}
-          to={{
-            address: newPaymentAccount.address,
-            amount: toSettlementFee,
-          }}
+          from={{ address: bucket.PaymentAddress, amount: fromSettlementFee }}
+          to={{ address: newPaymentAccount.address, amount: toSettlementFee }}
         />
         <InsufficientBalance loginAccount={loginAccount} accounts={InsufficientAccounts} />
         <DCButton size={'lg'} variant="brand" disabled={!valid} onClick={onChangeConfirm}>

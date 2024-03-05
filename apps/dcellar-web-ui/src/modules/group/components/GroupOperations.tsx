@@ -11,7 +11,7 @@ import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage
 import { ModalCloseButton } from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
 import { find } from 'lodash-es';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { EditGroupTagsOperation } from './EditGroupTagsOperation';
 import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';
 
@@ -21,36 +21,24 @@ interface GroupOperationsProps {
 
 export const GroupOperations = memo<GroupOperationsProps>(function GroupOperations({ level = 0 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { groupOperation } = useAppSelector((root) => root.group);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const groupOperation = useAppSelector((root) => root.group.groupOperation);
+  const groupList = useAppSelector(selectGroupList(loginAccount));
+
   const [id, operation] = groupOperation[level];
   const _operation = useModalValues<GroupOperationsType>(operation);
   const isDrawer = ['detail', 'create', 'edit', 'add', 'edit_tags', 'update_tags'].includes(
     operation,
   );
   const isModal = ['delete'].includes(operation);
-  const groupList = useAppSelector(selectGroupList(loginAccount));
   const groupInfo = useMemo(() => {
     return find<GroupInfo>(groupList, (g) => g.id === id);
   }, [groupList, id]);
   const _groupInfo = useModalValues<GroupInfo>(groupInfo!);
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     dispatch(setGroupOperation({ level, operation: ['', ''] }));
-  };
-
-  useEffect(() => {
-    const className = 'overflow-hidden';
-    const operation0 = groupOperation[0][1];
-    const operation1 = groupOperation[1][1];
-    if (!!operation0 || !!operation1) {
-      document.documentElement.classList.add(className);
-    } else {
-      document.documentElement.classList.remove(className);
-    }
-  }, [groupOperation]);
-
-  useUnmount(onClose);
+  }, [level, dispatch]);
 
   const modalContent = useMemo(() => {
     switch (_operation) {
@@ -70,6 +58,19 @@ export const GroupOperations = memo<GroupOperationsProps>(function GroupOperatio
         return null;
     }
   }, [_operation, _groupInfo, onClose, groupInfo]);
+
+  useEffect(() => {
+    const className = 'overflow-hidden';
+    const operation0 = groupOperation[0][1];
+    const operation1 = groupOperation[1][1];
+    if (!!operation0 || !!operation1) {
+      document.documentElement.classList.add(className);
+    } else {
+      document.documentElement.classList.remove(className);
+    }
+  }, [groupOperation]);
+
+  useUnmount(onClose);
 
   return (
     <>

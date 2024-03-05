@@ -1,16 +1,24 @@
 import { ManageTags, getValidTags } from '@/components/common/ManageTags';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditBucketTagsData } from '@/store/slices/bucket';
+import { setBucketTagsEditData } from '@/store/slices/bucket';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { memo } from 'react';
 
-export const EditBucketTagsOperation = ({ onClose }: { onClose: () => void }) => {
-  const dispatch = useAppDispatch();
-  const { editTagsData } = useAppSelector((root) => root.bucket);
-  const onSave = async (updateTags: ResourceTags_Tag[]) => {
-    const validTags = getValidTags(updateTags);
-    dispatch(setEditBucketTagsData(validTags));
-    onClose();
-  };
+interface EditBucketTagsOperationProps {
+  onClose: () => void;
+}
 
-  return <ManageTags tags={editTagsData} onCancel={onClose} onSave={onSave} />;
-};
+export const EditBucketTagsOperation = memo<EditBucketTagsOperationProps>(
+  function EditBucketTagsOperation({ onClose }) {
+    const dispatch = useAppDispatch();
+    const bucketEditTagsData = useAppSelector((root) => root.bucket.bucketEditTagsData);
+
+    const onSave = async (updateTags: ResourceTags_Tag[]) => {
+      const validTags = getValidTags(updateTags);
+      dispatch(setBucketTagsEditData(validTags));
+      onClose();
+    };
+
+    return <ManageTags tags={bucketEditTagsData} onCancel={onClose} onSave={onSave} />;
+  },
+);

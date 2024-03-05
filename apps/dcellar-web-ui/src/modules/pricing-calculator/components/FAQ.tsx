@@ -19,6 +19,7 @@ type TBillingFormula = {
   name: string;
   value: ReactElement;
 };
+
 const BillingFormula = () => {
   const columns = [
     {
@@ -97,6 +98,7 @@ const BillingFormula = () => {
     ></Table>
   );
 };
+
 type FAQProps = { openKeys: number[]; toggleOpenKeys: (key: number) => void };
 
 export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
@@ -215,6 +217,7 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
       ),
     },
   ];
+
   return (
     <PriceResponsiveContainer>
       <H2 id="#faq" marginBottom={'16px'}>

@@ -5,7 +5,7 @@ import { EllipsisText } from '@/components/common/EllipsisText';
 import { IconFont } from '@/components/IconFont';
 import { contentIconTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch } from '@/store';
-import { UploadFile, setTaskManagement } from '@/store/slices/global';
+import { UploadObject, setTaskManagement } from '@/store/slices/global';
 import { setObjectOperation } from '@/store/slices/object';
 import { formatBytes } from '@/utils/formatter';
 import { encodeObjectName } from '@/utils/string';
@@ -15,9 +15,10 @@ type Props = {
   size: number;
   msg?: string;
   status?: string;
-  task?: UploadFile;
+  task?: UploadObject;
   [key: string]: any;
 };
+
 export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props) => {
   const dispatch = useAppDispatch();
   const router = useRouter();

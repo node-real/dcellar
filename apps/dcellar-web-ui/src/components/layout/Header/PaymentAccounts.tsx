@@ -2,7 +2,7 @@ import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { useBalance } from '@/hooks/useBalance';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  setBankBalance,
+  setBankOrWalletBalance,
   setupAccountInfo,
   setupOwnerAccount,
   setupPaymentAccounts,
@@ -13,10 +13,16 @@ import { useRouter } from 'next/router';
 
 export const PaymentAccounts = () => {
   const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+
   const { asPath } = useRouter();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
-  const { bucketName } = useAppSelector((root) => root.object);
+  const { data: gnfdBalance, refetch } = useBalance({
+    address: loginAccount as any,
+    chainId: GREENFIELD_CHAIN_ID,
+  });
+  const metamaskValue = gnfdBalance?.formatted ?? '0';
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
@@ -26,24 +32,19 @@ export const PaymentAccounts = () => {
     dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
 
-  const { data: gnfdBalance, refetch } = useBalance({
-    address: loginAccount as any,
-    chainId: GREENFIELD_CHAIN_ID,
-  });
-  const metamaskValue = gnfdBalance?.formatted ?? '0';
   useAsyncEffect(async () => {
     if (!loginAccount) return;
     // update metamask
     refetch();
-    dispatch(setBankBalance(metamaskValue));
+    dispatch(setBankOrWalletBalance(metamaskValue));
   }, [asPath, refetch, loginAccount]);
 
   useThrottleEffect(() => {
-    dispatch(setBankBalance(metamaskValue));
+    dispatch(setBankOrWalletBalance(metamaskValue));
   }, [metamaskValue]);
 
   useThrottleEffect(() => {
-    const paymentAddress = bucketInfo[bucketName]?.PaymentAddress;
+    const paymentAddress = bucketRecords[currentBucketName]?.PaymentAddress;
     paymentAddress && dispatch(setupAccountInfo(paymentAddress));
   }, [asPath]);
 

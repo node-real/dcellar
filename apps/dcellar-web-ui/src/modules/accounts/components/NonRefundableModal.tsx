@@ -3,7 +3,7 @@ import { DCButton } from '@/components/common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditDisablePaymentAccount, setupAccountInfo } from '@/store/slices/accounts';
+import { setEditingPaymentAccountRefundable, setupAccountInfo } from '@/store/slices/accounts';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import { memo } from 'react';
@@ -13,13 +13,18 @@ interface NonRefundableModal {}
 
 export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundableModal() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { editDisablePaymentAccount } = useAppSelector((root) => root.accounts);
-  const isOpen = !!editDisablePaymentAccount;
-  const onClose = () => {
-    dispatch(setEditDisablePaymentAccount(''));
-  };
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const editingPaymentAccountRefundable = useAppSelector(
+    (root) => root.accounts.editingPaymentAccountRefundable,
+  );
+
   const { connector } = useAccount();
+
+  const isOpen = !!editingPaymentAccountRefundable;
+
+  const onClose = () => {
+    dispatch(setEditingPaymentAccountRefundable(''));
+  };
 
   const onContinueClick = async () => {
     if (!connector) return;
@@ -32,7 +37,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
       }),
     );
     const [res, error] = await disablePaymentAccountRefund(
-      { address: loginAccount, paymentAccount: editDisablePaymentAccount },
+      { address: loginAccount, paymentAccount: editingPaymentAccountRefundable },
       connector,
     );
     if (error || (res && res.code !== 0)) {
@@ -50,7 +55,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
         }),
       );
     }
-    dispatch(setupAccountInfo(editDisablePaymentAccount));
+    dispatch(setupAccountInfo(editingPaymentAccountRefundable));
     dispatch(setStatusDetail({} as TStatusDetail));
   };
 

@@ -16,10 +16,12 @@ interface PaymentDetailOperationProps {
 
 export const PaymentDetailOperation = memo<PaymentDetailOperationProps>(
   function PaymentDetailOperation({ selectAccount: paymentAccount, selectAccountId }) {
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
+
     const [availableBalance, setAvailableBalance] = useState('0');
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { isLoadingAccountInfo } = useAppSelector((root) => root.accounts);
     const router = useRouter();
+
     const isNonRefundable = paymentAccount.refundable;
     const isFrozen = paymentAccount.status === 1;
 
@@ -46,12 +48,12 @@ export const PaymentDetailOperation = memo<PaymentDetailOperationProps>(
     return (
       <>
         <BasicInfo
-          loading={!!isLoadingAccountInfo}
+          loading={!!accountInfoLoading}
           title="Account Detail"
           accountDetail={paymentAccount}
           availableBalance={availableBalance}
         />
-        {!isLoadingAccountInfo && (
+        {!accountInfoLoading && (
           <QDrawerFooter>
             <Flex w={'100%'} gap={16}>
               <DCButton

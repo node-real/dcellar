@@ -16,6 +16,7 @@ export const mdMedia = `@media (min-width: 768px) and (max-width: 977px)`;
 export const smMedia = `@media (max-width: 767px)`;
 
 type LandingResponsiveProps = BoxProps & React.PropsWithChildren;
+
 export const LandingResponsiveContainer = ({ children, ...restProps }: LandingResponsiveProps) => {
   return (
     <Box

@@ -1,4 +1,4 @@
-import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
+import { MAX_FOLDER_LEVEL } from '@/modules/object/components/CreateObject';
 import { SINGLE_OBJECT_MAX_SIZE } from '@/store/slices/object';
 import { formatBytes } from '@/utils/formatter';
 

@@ -1,7 +1,7 @@
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setGroupOperation, setupGroups } from '@/store/slices/group';
+import { setGroupOperation, setupGroupList } from '@/store/slices/group';
 import { Flex } from '@node-real/uikit';
 import { debounce } from 'lodash-es';
 import { memo, useCallback } from 'react';
@@ -10,13 +10,14 @@ interface NewGroupProps {
   showRefresh?: boolean;
 }
 
-export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = true }) {
+export const CreateGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = true }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
-  const onRefresh = useCallback(
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onGroupListRefresh = useCallback(
     debounce(() => {
-      dispatch(setupGroups(loginAccount, true));
+      dispatch(setupGroupList(loginAccount, true));
     }, 150),
     [loginAccount],
   );
@@ -27,7 +28,7 @@ export const NewGroup = memo<NewGroupProps>(function NewGroup({ showRefresh = tr
         <DCButton
           variant="ghost"
           leftIcon={<IconFont type="refresh" w={24} />}
-          onClick={onRefresh}
+          onClick={onGroupListRefresh}
         />
       )}
       <DCButton onClick={() => dispatch(setGroupOperation({ operation: ['', 'create'] }))}>

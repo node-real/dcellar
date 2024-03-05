@@ -13,24 +13,19 @@ interface AccountOperationsProps {}
 
 export const AccountOperations = memo<AccountOperationsProps>(function AccountOperations() {
   const dispatch = useAppDispatch();
-  const { accountOperation } = useAppSelector((root) => root.accounts);
+  const accountOperation = useAppSelector((root) => root.accounts.accountOperation);
+
   const [id, operation] = accountOperation;
-  const isDrawer = ['oaDetail', 'paDetail'].includes(operation);
-  const isModal = ['delete', 'paCreate'].includes(operation);
   const _operation = useModalValues<AccountOperationsProps>(operation);
   const accountDetail = useAppSelector(selectAccount(id));
   const _accountDetail = useModalValues(accountDetail);
 
+  const isDrawer = ['oaDetail', 'paDetail'].includes(operation);
+  const isModal = ['delete', 'paCreate'].includes(operation);
+
   const onClose = () => {
     dispatch(setAccountOperation(['', '']));
   };
-
-  useUnmount(onClose);
-
-  useEffect(() => {
-    if (!id) return;
-    dispatch(setupAccountInfo(id));
-  }, [id]);
 
   const modalContent = useMemo(() => {
     switch (_operation) {
@@ -42,6 +37,13 @@ export const AccountOperations = memo<AccountOperationsProps>(function AccountOp
         return null;
     }
   }, [_operation, id, _accountDetail]);
+
+  useEffect(() => {
+    if (!id) return;
+    dispatch(setupAccountInfo(id));
+  }, [id, dispatch]);
+
+  useUnmount(onClose);
 
   return (
     <>

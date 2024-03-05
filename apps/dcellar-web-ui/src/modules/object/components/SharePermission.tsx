@@ -41,22 +41,23 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
   selectObjectInfo,
 }) {
   const dispatch = useAppDispatch();
-  const { bucketName: _bucketName, objectPolicies } = useAppSelector((root) => root.object);
-  const { owner } = useAppSelector((root) => root.bucket);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const objectPolicyListRecords = useAppSelector((root) => root.object.objectPolicyListRecords);
+  const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+
   const objectInfo = selectObjectInfo.ObjectInfo;
-  const bucketName = selectObjectInfo.ObjectInfo.BucketName || _bucketName;
+  const bucketName = selectObjectInfo.ObjectInfo.BucketName || currentBucketName;
+  const CurrentAccess = Access[objectInfo.Visibility] ? Access[objectInfo.Visibility] : Access[2];
+  const path = [bucketName, objectInfo.ObjectName].join('/');
+  const loading = !(path in objectPolicyListRecords);
+  const members = objectPolicyListRecords[path] || [];
+  const total = members.length;
+  const empty = !loading && !total;
+  const moreText = total <= 5 ? '' : total === 1000 ? '>1000' : `+${total - 5}`;
 
   useAsyncEffect(async () => {
     dispatch(setupObjectPolicies(bucketName, objectInfo.ObjectName));
   }, [dispatch]);
-
-  const CurrentAccess = Access[objectInfo.Visibility] ? Access[objectInfo.Visibility] : Access[2];
-  const path = [bucketName, objectInfo.ObjectName].join('/');
-  const loading = !(path in objectPolicies);
-  const members = objectPolicies[path] || [];
-  const total = members.length;
-  const empty = !loading && !total;
-  const moreText = total <= 5 ? '' : total === 1000 ? '>1000' : `+${total - 5}`;
 
   return (
     <>
@@ -99,7 +100,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
               </LoadingAdaptor>
             </Flex>
             <Flex gap={8} flex={1} />
-            {owner && (
+            {isBucketOwner && (
               <ManageAccess
                 variant={'ghost'}
                 onClick={() => {
@@ -115,7 +116,7 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
                   );
                 }}
               >
-                Manage Access 1111
+                Manage Access
               </ManageAccess>
             )}
           </AccessRow>

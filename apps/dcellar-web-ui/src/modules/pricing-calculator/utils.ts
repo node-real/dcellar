@@ -5,11 +5,13 @@ export const Sizes = {
   GB: 1024 * 1024 * 1024,
   TB: 1024 * 1024 * 1024 * 1024,
 };
+
 export const Times = {
   d: 24 * 60 * 60,
   m: 30 * 24 * 60 * 60,
   y: 12 * 30 * 24 * 60 * 60,
 };
+
 export type TTimeOption = {
   value: string;
   id: string;
@@ -17,6 +19,7 @@ export type TTimeOption = {
   title: string;
   gaClickName?: string;
 };
+
 export const TimeOptions: TTimeOption[] = [
   {
     value: '6',

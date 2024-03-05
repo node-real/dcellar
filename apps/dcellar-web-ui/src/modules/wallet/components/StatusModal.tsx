@@ -40,9 +40,10 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
   status,
   errorMsg,
 }) {
-  const { transType } = useAppSelector((root) => root.wallet);
+  const transferType = useAppSelector((root) => root.wallet.transferType);
 
-  const gaOptions = getGAOptions(transType, status);
+  const gaOptions = getGAOptions(transferType, status);
+  const contentText = contentTexts[status];
 
   const FooterButton = useMemo(() => {
     if (status === 'pending') return null;
@@ -54,7 +55,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
       );
     }
     if (status === 'success') {
-      switch (transType) {
+      switch (transferType) {
         case 'transfer_in':
           return (
             <>
@@ -116,9 +117,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
           break;
       }
     }
-  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, transType, status, viewTxUrl]);
-
-  const contentText = contentTexts[status];
+  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, transferType, status, viewTxUrl]);
 
   return (
     <DCModal

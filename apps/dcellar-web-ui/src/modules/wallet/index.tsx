@@ -27,9 +27,11 @@ const tabConfig = [
 ];
 
 interface WalletProps {}
+
 export const Wallet = memo<WalletProps>(function Wallet() {
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
   const router = useRouter();
-  const { transType } = useAppSelector((root) => root.wallet);
 
   const onChange = (key: string) => {
     const url = `/wallet?type=${key}`;
@@ -42,7 +44,7 @@ export const Wallet = memo<WalletProps>(function Wallet() {
         <Text as={'h1'} fontWeight="700" fontSize={'24px'} mb={16}>
           Wallet
         </Text>
-        <Tabs activeKey={transType} onChange={(key) => onChange(key.toString())}>
+        <Tabs activeKey={transferType} onChange={(key) => onChange(key.toString())}>
           <TabList gap={'24px'} borderBottom="1px solid readable.border !important">
             {tabConfig.map((item) => (
               <GAClick name={item.gaClickName} key={item.key}>

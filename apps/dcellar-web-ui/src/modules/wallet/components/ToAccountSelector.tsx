@@ -3,9 +3,7 @@ import { Box, Grid, Loading, Text } from '@node-real/uikit';
 import { keyBy } from 'lodash-es';
 import Link from 'next/link';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-
 import { AccountTips } from './AccountTips';
-
 import { DCInputSelect } from '@/components/common/DCInputSelect';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
@@ -29,9 +27,14 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   isError,
   disabled = false,
 }) {
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountTypeRecords = useAppSelector((root) => root.accounts.accountTypeRecords);
+
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { accountTypes } = useAppSelector((root) => root.accounts);
+  const [account, setAccount] = useState({} as TAccount);
+  const [total, setTotal] = useState(0);
+  const saveOnChangeRef = useRef(onChange);
+
   const accountList = useMemo(
     () => [
       {
@@ -45,26 +48,21 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   );
   const keyAccountList = keyBy(accountList, 'address');
   const len = accountList?.length;
-  const [account, setAccount] = useState({} as TAccount);
-  const [total, setTotal] = useState(0);
-  const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
-  useEffect(() => {
-    if (!len) return;
-    setTotal(len);
-  }, [len]);
-
-  useEffect(() => {
-    if (account.address === value || !value) return;
-    const initialAccount = accountList.find((item) => item.address === value);
-    setAccount(initialAccount || { name: 'Custom Account', address: value, id: 'CA' });
-  }, [accountList, value]);
-
-  useEffect(() => {
-    if (!account) return;
-    saveOnChangeRef.current?.(account);
-  }, [account]);
+  const options = useMemo(
+    () =>
+      accountList
+        .map((item) => {
+          const { name, address } = item;
+          return {
+            label: name,
+            value: address,
+          };
+        })
+        .filter((item) => item.value !== loginAccount),
+    [accountList],
+  );
 
   const onChangeAccount = (value: string) => {
     setAccount(
@@ -86,20 +84,6 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
-  const options = useMemo(
-    () =>
-      accountList
-        .map((item) => {
-          const { name, address } = item;
-          return {
-            label: name,
-            value: address,
-          };
-        })
-        .filter((item) => item.value !== loginAccount),
-    [accountList],
-  );
-
   const Footer = () => (
     <Grid borderTop={'1px solid readable.border'} h={33} placeItems="center">
       <Link href="/accounts" passHref legacyBehavior>
@@ -114,10 +98,26 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
     if (loading) {
       return <Loading size={12} marginX={4} color="readable.normal" />;
     }
-    const accountType = isError ? 'error_account' : accountTypes[value];
+    const accountType = isError ? 'error_account' : accountTypeRecords[value];
     const accountDisplay = getAccountDisplay(accountType);
     return accountDisplay ? <AccountTips type={accountType} /> : <MenuCloseIcon />;
   };
+
+  useEffect(() => {
+    if (!len) return;
+    setTotal(len);
+  }, [len]);
+
+  useEffect(() => {
+    if (account.address === value || !value) return;
+    const initialAccount = accountList.find((item) => item.address === value);
+    setAccount(initialAccount || { name: 'Custom Account', address: value, id: 'CA' });
+  }, [accountList, value]);
+
+  useEffect(() => {
+    if (!account) return;
+    saveOnChangeRef.current?.(account);
+  }, [account]);
 
   return (
     <DCInputSelect
@@ -144,6 +144,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
 
 function OptionItem(props: MenuOption) {
   const { value: address, label: name } = props;
+
   return (
     <Box key={address} display="flex" flexDir="column" alignItems="flex-start" whiteSpace="normal">
       <Text

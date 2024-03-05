@@ -2,7 +2,7 @@ import { GAPageView } from '@/components/common/GATracker';
 import { DisconnectWalletModal } from '@/components/layout/Header/DisconnectWalletModal';
 import { GasObjects } from '@/components/layout/Header/GasObjects';
 import { GlobalTasks } from '@/components/layout/Header/GlobalTasks';
-import { ManageQuotaDrawer } from '@/components/layout/Header/ManageQuota';
+import { BucketQuotaDrawer } from '@/components/layout/Header/BucketQuotaManager';
 import { PaymentAccounts } from '@/components/layout/Header/PaymentAccounts';
 import { StoreFeeParams } from '@/components/layout/Header/StoreFeeParams';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
@@ -15,17 +15,17 @@ import { memo } from 'react';
 interface GlobalManagementsProps {}
 
 export const GlobalManagements = memo<GlobalManagementsProps>(function GlobalManagements() {
-  const { allSps } = useAppSelector((root) => root.sp);
+  const allSpList = useAppSelector((root) => root.sp.allSpList);
 
   return (
     <>
       <Head>
-        {allSps.length > 0 &&
-          allSps.map(({ endpoint }) => <link key={endpoint} rel="preconnect" href={endpoint} />)}
+        {allSpList.length > 0 &&
+          allSpList.map(({ endpoint }) => <link key={endpoint} rel="preconnect" href={endpoint} />)}
       </Head>
       <GAPageView />
       <StatusDetail />
-      <ManageQuotaDrawer />
+      <BucketQuotaDrawer />
       <GlobalTasks />
       <GasObjects />
       <PaymentAccounts />

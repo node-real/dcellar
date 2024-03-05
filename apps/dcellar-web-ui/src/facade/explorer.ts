@@ -6,6 +6,7 @@ export type GetDailyBucketListByOwnerParams = {
   per_page: number;
   owner: string;
 };
+
 export type DailyBucketStorage = {
   BucketNumID: string;
   BucketID: string;

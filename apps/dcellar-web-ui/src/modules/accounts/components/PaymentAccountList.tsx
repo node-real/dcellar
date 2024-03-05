@@ -11,11 +11,15 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   TAccount,
   TAccountInfo,
-  setCurrentPAPage,
-  setEditDisablePaymentAccount,
+  setPaymentAccountListPage,
+  setEditingPaymentAccountRefundable,
 } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
-import { SorterType, updatePAPageSize, updatePASorter } from '@/store/slices/persist';
+import {
+  SorterType,
+  setPaymentAccountListPageSize,
+  setPaymentAccountSorter,
+} from '@/store/slices/persist';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { trimFloatZero } from '@/utils/string';
@@ -25,63 +29,88 @@ import { ColumnProps } from 'antd/es/table';
 import { chunk, reverse, sortBy } from 'lodash-es';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo } from 'react';
-import { NewPA } from './NewPA';
+import { CreatePaymentAccount } from './CreatePaymentAccount';
+import { memo } from 'react';
 
-const actions: MenuOption[] = [
+const ACCOUNT_ACTIONS: MenuOption[] = [
   { label: 'View Details', value: 'detail' },
   { label: 'Deposit', value: 'deposit' },
   { label: 'Withdraw', value: 'withdraw' },
   { label: 'Set as Non-refundable', value: 'setNonRefundable' },
 ];
 
-export const PaymentAccounts = () => {
+interface PaymentAccountListProps {}
+
+export const PaymentAccountList = memo<PaymentAccountListProps>(function PaymentAccountList() {
   const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const paymentAccountPageSize = useAppSelector((root) => root.persist.paymentAccountPageSize);
+  const [sortName, dir] = useAppSelector((root) => root.persist.paymentAccountSortBy);
+  const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
+  const paymentAccountListPage = useAppSelector((root) => root.accounts.paymentAccountListPage);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const paymentAccountListRecords = useAppSelector(
+    (root) => root.accounts.paymentAccountListRecords,
+  );
+
+  const bnbPrice = useAppSelector(selectBnbPrice);
   const router = useRouter();
   const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const {
-    loginAccount,
-    PAPageSize,
-    paymentAccountSortBy: [sortName, dir],
-  } = useAppSelector((root) => root.persist);
-  const { isLoadingPaymentAccounts, currentPAPage, ownerAccount, accountInfo, paymentAccounts } =
-    useAppSelector((root) => root.accounts);
+
   const detailList = useMemo(() => {
     if (!loginAccount) return [];
     return (
-      (paymentAccounts[loginAccount] || []).map((item) => ({
-        ...accountInfo[item.address],
+      (paymentAccountListRecords[loginAccount] || []).map((item) => ({
+        ...accountRecords[item.address],
       })) || []
     );
-  }, [accountInfo, loginAccount, paymentAccounts]);
+  }, [accountRecords, loginAccount, paymentAccountListRecords]);
   const ascend = sortBy(detailList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
-  const updateSorter = (name: string, def: string) => {
-    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
-    dispatch(updatePASorter([name, newSort] as SorterType));
+  const chunks = useMemo(
+    () => chunk(sortedList, paymentAccountPageSize),
+    [sortedList, paymentAccountPageSize],
+  );
+  const pages = chunks.length;
+  const current = paymentAccountListPage >= pages ? 0 : paymentAccountListPage;
+  const page = chunks[current];
+  const canNext = current < pages - 1;
+  const canPrev = current > 0;
+  const spinning = !(loginAccount in paymentAccountListRecords) || paymentAccountsLoading;
+  const empty = !spinning && !sortedList.length;
+
+  const loadingComponent = {
+    spinning: spinning,
+    indicator: <Loading />,
   };
 
-  const onMenuClick = (e: string, record: TAccount) => {
-    if (e === 'detail') {
-      // dispatch(setAccountOperation([record.address, 'paDetail']));
-      return router.push(`/accounts/${record.address}`);
-    }
-    if (e === 'setNonRefundable') {
-      return dispatch(setEditDisablePaymentAccount(record.address));
-    }
-    if (e === 'deposit') {
-      return router.push(`/wallet?type=send&from=${ownerAccount.address}&to=${record.address}`);
-    }
-    if (e === 'withdraw') {
-      return router.push(`/wallet?type=send&from=${record.address}&to=${ownerAccount.address}`);
-    }
+  const renderEmpty = useCallback(
+    () => (
+      <ListEmpty
+        type="empty-account"
+        title="No Payment Accounts"
+        desc="Create payment accounts to pay for storage and bandwidth. "
+        empty={empty}
+        h={274}
+      >
+        <CreatePaymentAccount />
+      </ListEmpty>
+    ),
+    [empty],
+  );
+
+  const onSorterChange = (name: string, def: string) => {
+    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
+    dispatch(setPaymentAccountSorter([name, newSort] as SorterType));
   };
+
   const columns: ColumnProps<TAccountInfo>[] = [
     {
       key: 'name',
       title: (
         // account for default sort
-        <SortItem onClick={() => updateSorter('account', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('account', 'ascend')}>
           <Text>Name</Text>
           {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -94,7 +123,7 @@ export const PaymentAccounts = () => {
       key: 'address',
       width: isLessThan1100 ? 130 : 'auto',
       title: (
-        <SortItem onClick={() => updateSorter('address', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('address', 'ascend')}>
           Account Address
           {sortName === 'address' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -113,7 +142,7 @@ export const PaymentAccounts = () => {
     {
       key: 'staticBalance',
       title: (
-        <SortItem onClick={() => updateSorter('staticBalance', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('staticBalance', 'ascend')}>
           Balance
           {sortName === 'balance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -139,7 +168,7 @@ export const PaymentAccounts = () => {
     {
       key: 'bufferBalance',
       title: (
-        <SortItem onClick={() => updateSorter('bufferBalance', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('bufferBalance', 'ascend')}>
           Prepaid Fee
           {sortName === 'bufferBalance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -158,7 +187,7 @@ export const PaymentAccounts = () => {
     {
       key: 'netflowRate',
       title: (
-        <SortItem onClick={() => updateSorter('netflowRate', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('netflowRate', 'ascend')}>
           Flow Rate
           {sortName === 'netflowRate' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
@@ -182,7 +211,7 @@ export const PaymentAccounts = () => {
       width: 150,
       render: (_: string, record: TAccountInfo) => {
         let operations = ['deposit', 'withdraw'];
-        let finalActions = actions;
+        let finalActions = ACCOUNT_ACTIONS;
         if (record.refundable === false) {
           finalActions = finalActions.filter(
             (item) => !['setNonRefundable', 'withdraw'].includes(item.value),
@@ -202,40 +231,29 @@ export const PaymentAccounts = () => {
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
-  const chunks = useMemo(() => chunk(sortedList, PAPageSize), [sortedList, PAPageSize]);
-  const pages = chunks.length;
-  const current = currentPAPage >= pages ? 0 : currentPAPage;
-  const page = chunks[current];
-  const canNext = current < pages - 1;
-  const canPrev = current > 0;
-  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
-    if (prev || next) {
-      return dispatch(setCurrentPAPage(currentPAPage + (next ? 1 : -1)));
+  const onMenuClick = (e: string, record: TAccount) => {
+    if (e === 'detail') {
+      // dispatch(setAccountOperation([record.address, 'paDetail']));
+      return router.push(`/accounts/${record.address}`);
     }
-    dispatch(setCurrentPAPage(0));
-    dispatch(updatePAPageSize(pageSize));
+    if (e === 'setNonRefundable') {
+      return dispatch(setEditingPaymentAccountRefundable(record.address));
+    }
+    if (e === 'deposit') {
+      return router.push(`/wallet?type=send&from=${ownerAccount.address}&to=${record.address}`);
+    }
+    if (e === 'withdraw') {
+      return router.push(`/wallet?type=send&from=${record.address}&to=${ownerAccount.address}`);
+    }
   };
 
-  const spinning = !(loginAccount in paymentAccounts) || isLoadingPaymentAccounts;
-  const empty = !spinning && !sortedList.length;
-  const loadingComponent = {
-    spinning: spinning,
-    indicator: <Loading />,
+  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
+    if (prev || next) {
+      return dispatch(setPaymentAccountListPage(paymentAccountListPage + (next ? 1 : -1)));
+    }
+    dispatch(setPaymentAccountListPage(0));
+    dispatch(setPaymentAccountListPageSize(pageSize));
   };
-  const renderEmpty = useCallback(
-    () => (
-      <ListEmpty
-        type="empty-account"
-        title="No Payment Accounts"
-        desc="Create payment accounts to pay for storage and bandwidth. "
-        empty={empty}
-        h={274}
-      >
-        <NewPA />
-      </ListEmpty>
-    ),
-    [empty],
-  );
 
   return (
     <DCTable
@@ -244,7 +262,7 @@ export const PaymentAccounts = () => {
       columns={columns}
       dataSource={page}
       renderEmpty={renderEmpty}
-      pageSize={PAPageSize}
+      pageSize={paymentAccountPageSize}
       pageChange={onPageChange}
       canNext={canNext}
       canPrev={canPrev}
@@ -253,4 +271,4 @@ export const PaymentAccounts = () => {
       })}
     />
   );
-};
+});

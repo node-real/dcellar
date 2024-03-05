@@ -27,8 +27,10 @@ const TOOL_OPTIONS = [
 ];
 
 export const ToolBox = ({ children, ...restProps }: CardProps) => {
-  const { storeFeeParams } = useAppSelector((root) => root.global);
+  const storeFeeParams = useAppSelector((root) => root.global.storeFeeParams);
+
   const isLoading = isEmpty(storeFeeParams);
+
   const priceOptions = useMemo(() => {
     const storageFee = BN(getStoreNetflowRate(DEFAULT_STORE_SIZE, storeFeeParams))
       .times(DEFAULT_STORE_TIME)
@@ -54,6 +56,7 @@ export const ToolBox = ({ children, ...restProps }: CardProps) => {
       },
     ];
   }, [storeFeeParams]);
+
   return (
     <Card w={374} flex={1} {...restProps}>
       <CardTitle>ToolBox</CardTitle>

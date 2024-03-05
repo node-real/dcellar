@@ -57,14 +57,7 @@ export function DCSelect(props: DCSelectProps) {
 
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [resultOptions, setResultOptions] = useState<MenuOption[]>();
-
   const saveOnSearchRef = useSaveFuncRef(onSearch);
-  useEffect(() => {
-    if (isOpen) {
-      setResultOptions(options);
-      saveOnSearchRef.current?.(options);
-    }
-  }, [isOpen, options, saveOnSearchRef]);
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -91,6 +84,13 @@ export function DCSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setResultOptions(options);
+      saveOnSearchRef.current?.(options);
+    }
+  }, [isOpen, options, saveOnSearchRef]);
 
   return (
     <DCMenu

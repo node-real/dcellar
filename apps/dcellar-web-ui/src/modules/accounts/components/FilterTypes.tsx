@@ -31,29 +31,32 @@ type FilterTypesProps = {
   filterTypes: string[];
   onSetFilterTypes: (types: string[]) => void;
 };
+
 export const FilterTypes = ({ filterTypes, onSetFilterTypes }: FilterTypesProps) => {
   const router = useRouter();
   const [typeFilter, setTypeFilter] = useState('');
   const [selectedType, setSelectedType] = useState<Array<string>>([]);
-  const typeToOptions = (type: string) => ({
-    label: formatTxType(type),
-    value: type,
-  });
   const types = TYPES.filter((type) =>
     !typeFilter.trim() ? true : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
   );
 
+  const typeToOptions = (type: string) => ({
+    label: formatTxType(type),
+    value: type,
+  });
   const typeOptions: MenuOption[] = types.map(typeToOptions);
   const selectedTypeOptions = filterTypes.map(typeToOptions);
+
   const accountClose = () => {
     onSetFilterTypes(selectedType);
   };
+
   const accountOpen = () => {
     setSelectedType(filterTypes);
   };
 
   useEffect(() => {
-    return setSelectedType(filterTypes);
+    setSelectedType(filterTypes);
   }, [router.asPath]);
 
   return (

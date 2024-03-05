@@ -29,12 +29,14 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
     refund = false,
     expandable = true,
   } = props;
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const exchangeRate = useAppSelector(selectBnbPrice);
   const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+
   const paymentAccount = find<TAccount>(paymentAccounts, (a) => a.address === payStoreFeeAddress);
   const str = payStoreFeeAddress.substring(38);
   const paymentLabel = paymentAccount && `${paymentAccount.name} (${str}) balance:`;

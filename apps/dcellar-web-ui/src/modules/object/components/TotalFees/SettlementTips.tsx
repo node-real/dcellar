@@ -10,6 +10,7 @@ interface SettlementTipsProps {}
 
 export const SettlementTips = memo<SettlementTipsProps>(function SettlementTips() {
   const { reserveTime } = useAppSelector(selectStoreFeeParams);
+
   return (
     <Tips
       w={330}

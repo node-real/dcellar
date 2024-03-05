@@ -4,7 +4,7 @@ import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { smMedia } from '@/modules/responsive';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useAppDispatch } from '@/store';
-import { checkOffChainDataAvailable, setLogin } from '@/store/slices/persist';
+import { checkOffChainDataAvailable, setLoginAccount } from '@/store/slices/persist';
 import { Text } from '@node-real/uikit';
 import { useModal } from '@node-real/walletkit';
 import { useAsyncEffect } from 'ahooks';
@@ -21,11 +21,11 @@ interface ConnectWalletProps extends DCButtonProps {
 let eventTriggerTime = Date.now();
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
-  const { onOpen, onClose } = useModal();
+  const { icon, text, ...restProps } = props;
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { onOpen, onClose } = useModal();
   const { address, connector, isConnected } = useAccount();
-  const { icon, text, ...restProps } = props;
   const [trustEvent, setTrustEvent] = useState(0);
   const { isAuthPending, onOffChainAuth } = useOffChainAuth();
   const { disconnect } = useDisconnect();
@@ -37,33 +37,6 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
         : InternalRoutePaths.dashboard,
     );
   };
-
-  useAsyncEffect(async () => {
-    if (trustEvent !== eventTriggerTime || isAuthPending || !address || !isConnected) return;
-
-    const isAvailable = await dispatch(checkOffChainDataAvailable(address));
-
-    if (!isAvailable) {
-      const res = await onOffChainAuth(address);
-      onClose();
-      if (res.code !== 0) {
-        disconnect();
-        return;
-      }
-      dispatch(setLogin(address));
-    } else {
-      onClose();
-      dispatch(setLogin(address));
-    }
-
-    // Only user trigger login at landing page that app needs redirect to the main page.
-    if (!ssrLandingRoutes.some((item) => item === router.pathname)) {
-      return;
-    }
-
-    // Redirect to the main page after user login manually.
-    redirect();
-  }, [address, trustEvent, isAuthPending, router]);
 
   // connector may be undefined when wallet throw '(index):7 Error in event handler: Error: write after end';
 
@@ -81,6 +54,33 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
     }
     setTimeout(() => (!connector ? openModal() : redirect()), 180);
   };
+
+  useAsyncEffect(async () => {
+    if (trustEvent !== eventTriggerTime || isAuthPending || !address || !isConnected) return;
+
+    const isAvailable = await dispatch(checkOffChainDataAvailable(address));
+
+    if (!isAvailable) {
+      const res = await onOffChainAuth(address);
+      onClose();
+      if (res.code !== 0) {
+        disconnect();
+        return;
+      }
+      dispatch(setLoginAccount(address));
+    } else {
+      onClose();
+      dispatch(setLoginAccount(address));
+    }
+
+    // Only user trigger login at landing page that app needs redirect to the main page.
+    if (!ssrLandingRoutes.some((item) => item === router.pathname)) {
+      return;
+    }
+
+    // Redirect to the main page after user login manually.
+    redirect();
+  }, [address, trustEvent, isAuthPending, router]);
 
   return (
     <DCButton

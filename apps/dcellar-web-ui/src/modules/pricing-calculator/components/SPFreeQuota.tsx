@@ -10,9 +10,8 @@ import { Loading } from '@/components/common/Loading';
 import { smMedia } from '@/modules/responsive';
 import { formatBytes } from '@/utils/formatter';
 
-type SPFreeQuotaProps = {
-  sps: any[];
-};
+type SPFreeQuotaProps = { sps: any[] };
+
 export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
   <PriceResponsiveContainer
     display={'flex'}

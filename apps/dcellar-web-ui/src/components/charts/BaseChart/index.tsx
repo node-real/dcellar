@@ -36,6 +36,7 @@ export interface BaseChartProps {
 
 export function BaseChart(props: BaseChartProps) {
   const { options } = props;
+
   return (
     <ReactEChartsCore
       echarts={echarts}

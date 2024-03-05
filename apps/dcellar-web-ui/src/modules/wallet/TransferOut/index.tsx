@@ -30,17 +30,21 @@ import { TTransferOutFromValues } from '../type';
 interface TransferOutProps {}
 
 export const TransferOut = memo<TransferOutProps>(function TransferOut() {
-  const { connector } = useAccount();
+  const address = useAppSelector((root) => root.persist.loginAccount);
+
   const router = useRouter();
+  const { connector } = useAccount();
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
   const [viewTxUrl, setViewTxUrl] = useState('');
   const { feeData, isLoading } = useTransferOutFee();
   const { all } = useChainsBalance();
+
   const balance = useMemo(() => {
     return all.find((item) => item.chainId === GREENFIELD_CHAIN_ID)?.availableBalance || '';
   }, [all]);
+
   const {
     handleSubmit,
     register,
@@ -53,7 +57,11 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
     mode: 'all',
   });
 
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
+  const inputAmount = getValues('amount');
+
+  const isShowFee = useCallback(() => {
+    return isEmpty(errors) && !isEmpty(inputAmount);
+  }, [errors, inputAmount]);
 
   const onSubmit = async (data: any) => {
     setStatus('pending');
@@ -79,7 +87,9 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
         granter: '',
         signTypedDataCallback: signTypedDataCallback(connector!),
       });
-      const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${toutTxRes.transactionHash}`;
+      const txUrl = `${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${
+        toutTxRes.transactionHash
+      }`;
       setViewTxUrl(txUrl);
       reset();
       setStatus('success');
@@ -92,17 +102,15 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
       !isOpen && onOpen();
     }
   };
+
   const onModalClose = () => {
     reset();
     onClose();
   };
+
   const onChangeTransfer = useCallback(() => {
     router.replace(InternalRoutePaths.transfer_in);
   }, [router]);
-  const inputAmount = getValues('amount');
-  const isShowFee = useCallback(() => {
-    return isEmpty(errors) && !isEmpty(inputAmount);
-  }, [errors, inputAmount]);
 
   return (
     <Container>

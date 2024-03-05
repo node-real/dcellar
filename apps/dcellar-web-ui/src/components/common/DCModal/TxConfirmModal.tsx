@@ -19,63 +19,44 @@ import {
 } from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
 import BigNumber from 'bignumber.js';
-import { memo, useEffect, useState } from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
+import { GAContext } from '@/context/GAContext';
 
-interface ConfirmModalProps {
-  onClose?: () => void;
+interface TxConfirmModalProps {
   isOpen: boolean;
-  description?: string;
-  ga: {
-    gaShowName?: string;
-    gaClickCloseName?: string;
-    balanceShowName: string;
-    balanceClickName: string;
-    cancelButton?: string;
-    confirmButton?: string;
-  };
   title: string;
+  description?: string;
   fee: string | number;
-  onConfirm: () => void;
   variant?: ButtonProps['variant'];
   confirmText: string;
+  onClose?: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
-export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
-  onClose = () => {},
+export const TxConfirmModal = memo<TxConfirmModalProps>(function TxConfirmModal({
   isOpen,
-  description,
-  ga,
   title,
+  description,
   fee,
-  onConfirm,
   variant = 'brand',
   confirmText,
+  onClose = () => {},
+  onConfirm,
 }) {
-  const {
-    gaClickCloseName,
-    gaShowName,
-    balanceClickName,
-    balanceShowName,
-    cancelButton,
-    confirmButton,
-  } = ga;
+  const exchangeRate = useAppSelector((root) => root.global.bnbInfo).price;
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
+  const { prefix } = useContext(GAContext);
   const [open, setOpen] = useState(isOpen);
-  const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { bankBalance: availableBalance } = useAppSelector((root) => root.accounts);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setOpen(isOpen);
-  }, [isOpen]);
+  const buttonDisabled = new BigNumber(bankBalance).minus(fee).isNegative();
 
   const _onClose = () => {
     // if (!isOpen) return;
     setOpen(false);
     setTimeout(onClose, 200);
   };
-
-  useUnmount(_onClose);
 
   const _onConfirm = async () => {
     setLoading(true);
@@ -84,15 +65,20 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
     setLoading(false);
   };
 
-  const buttonDisabled = new BigNumber(availableBalance).minus(fee).isNegative();
+  useUnmount(_onClose);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setOpen(isOpen);
+  }, [isOpen]);
 
   return (
     <DCModal
       isOpen={open}
       onClose={_onClose}
       w="568px"
-      gaShowName={gaShowName}
-      gaClickCloseName={gaClickCloseName}
+      gaShowName={`${prefix}.modal.show`}
+      gaClickCloseName={`${prefix}.close.click`}
     >
       <ModalHeader>{title}</ModalHeader>
       <ModalCloseButton />
@@ -134,23 +120,29 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
           </Flex>
           <Flex justifyContent={'flex-end'}>
             <Text fontSize={'12px'} color={'readable.disabled'}>
-              Owner Account balance: {renderBalanceNumber(availableBalance || '0')}
+              Owner Account balance: {renderBalanceNumber(bankBalance || '0')}
             </Text>
           </Flex>
         </Flex>
         {buttonDisabled && (
           <Flex w={'100%'} justifyContent={'space-between'} mt="8px">
             <Text fontSize={'14px'} color={'scene.danger.normal'}>
-              {renderInsufficientBalance(fee + '', '0', availableBalance || '0', {
-                gaShowName: balanceShowName,
-                gaClickName: balanceClickName,
+              {renderInsufficientBalance(fee + '', '0', bankBalance || '0', {
+                gaShowName: `${prefix}.deposit.show`,
+                gaClickName: `${prefix}.transferin.click`,
               })}
             </Text>
           </Flex>
         )}
       </ModalBody>
       <ModalFooter flexDirection={'row'}>
-        <DCButton size="lg" variant="ghost" flex={1} onClick={_onClose} gaClickName={cancelButton}>
+        <DCButton
+          size="lg"
+          variant="ghost"
+          flex={1}
+          onClick={_onClose}
+          gaClickName={`${prefix}.cancel.click`}
+        >
           Cancel
         </DCButton>
 
@@ -158,7 +150,7 @@ export const ConfirmModal = memo<ConfirmModalProps>(function ConfirmModal({
           variant={variant !== 'brand' ? 'scene' : 'brand'}
           colorScheme={'danger'}
           size="lg"
-          gaClickName={confirmButton}
+          gaClickName={`${prefix}.${confirmText.toLowerCase()}.click`}
           flex={1}
           onClick={_onConfirm}
           isLoading={loading}

@@ -8,7 +8,7 @@ import {
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccountDetail, setEditDisablePaymentAccount } from '@/store/slices/accounts';
+import { selectAccountDetail, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
 import { selectBnbPrice } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -21,18 +21,23 @@ import { useRouter } from 'next/router';
 import { memo } from 'react';
 import { LoadingAdaptor } from './LoadingAdaptor';
 
-type Props = {
-  address: string;
-};
+type Props = { address: string };
+
 export const MetaInfo = memo(function MetaInfo({ address }: Props) {
-  const router = useRouter();
   const dispatch = useAppDispatch();
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const isOwnerAccount = address === loginAccount;
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const accountDetail = useAppSelector(selectAccountDetail(address));
+  const bnbPrice = useAppSelector(selectBnbPrice);
+  const router = useRouter();
+
+  const isOwnerAccount = address === loginAccount;
   const loading = !address || isEmpty(accountDetail);
+  const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
+  const isRefundable = accountDetail.refundable;
+  const isFrozen = accountDetail.clientFrozen;
+
   const onAction = (e: string) => {
     if (e === 'withdraw') {
       return router.push(`/wallet?type=send&from=${address}`);
@@ -41,13 +46,11 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
       return router.push(`/wallet?type=send&from=${loginAccount}&to=${address}`);
     }
     if (e === 'setNonRefundable') {
-      return dispatch(setEditDisablePaymentAccount(address));
+      return dispatch(setEditingPaymentAccountRefundable(address));
     }
     return router.push(`/wallet?type=${e}`);
   };
-  const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
-  const isRefundable = accountDetail.refundable;
-  const isFrozen = accountDetail.clientFrozen;
+
   const detailItems = [
     {
       label: 'Account address',
@@ -130,6 +133,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
       </Box>
     );
   }
+
   return (
     <Box minW={570} p={16} border={'1px solid readable.border'} borderRadius={4} flex={1}>
       <Flex gap={12} flexDirection={'column'}>

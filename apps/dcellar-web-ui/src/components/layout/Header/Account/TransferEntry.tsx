@@ -63,6 +63,7 @@ export const TransferEntry = () => {
       link: InternalRoutePaths.send,
     },
   ];
+
   return (
     <Flex alignItems="center" mt="16px" width="100%" mb="12px" justifyContent="space-between">
       {options.map((item, index) => (

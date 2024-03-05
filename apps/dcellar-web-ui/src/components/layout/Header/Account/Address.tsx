@@ -9,6 +9,7 @@ export type AddressProps = {
 
 export const Address = ({ address }: AddressProps) => {
   const shortAddress = getShortenWalletAddress(address);
+
   return (
     <DCButton
       variant="ghost"

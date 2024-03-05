@@ -1,12 +1,14 @@
 import { reportEvent } from '@/utils/gtag';
 import { QDrawer, QDrawerCloseButton, QDrawerProps } from '@node-real/uikit';
 import { GAShow } from '../GATracker';
+
 export interface DCDrawerProps extends QDrawerProps {
   gaShowName?: string;
   gaShowData?: Record<string, any>;
   gaClickCloseName?: string;
   showCloseBtn?: boolean;
 }
+
 export const DCDrawer = (props: DCDrawerProps) => {
   const {
     children,

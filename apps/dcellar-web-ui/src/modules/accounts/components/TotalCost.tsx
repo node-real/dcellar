@@ -20,14 +20,17 @@ const colors = ['#009E2C', '#008425', '#005417', '#C2EECE'];
 
 export const TotalCost = memo(function TotalCost() {
   const router = useRouter();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { isLoadingPaymentAccounts, accountInfo } = useAppSelector((root) => root.accounts);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const costTrendLoading = useAppSelector((root) => root.billing.costTrendLoading);
+  const costLoading = useAppSelector((root) => root.billing.costLoading);
   const totalCost = useAppSelector(selectAllCost(loginAccount));
-  const { loadingAllCostTrend, loadingAllCost } = useAppSelector((root) => root.billing);
+
   const pieData = useMemo(() => {
     // TODO use date to judge loading
-    if (loadingAllCost || loadingAllCostTrend || isLoadingPaymentAccounts) return;
-    const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountInfo);
+    if (costLoading || costTrendLoading || paymentAccountsLoading) return;
+    const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountRecords);
     const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });
@@ -55,21 +58,13 @@ export const TotalCost = memo(function TotalCost() {
     others.addresses.length > 0 && newData.push(others);
     return newData;
   }, [
-    accountInfo,
-    isLoadingPaymentAccounts,
-    loadingAllCost,
-    loadingAllCostTrend,
+    accountRecords,
+    paymentAccountsLoading,
+    costLoading,
+    costTrendLoading,
     totalCost.detailCosts,
   ]);
-  const onBillingHistory = () => {
-    const curQuery: BillingHistoryQuery = {
-      page: 1,
-      tab: 'b',
-    };
-    const url = `${InternalRoutePaths.accounts}?${stringify(curQuery)}`;
-    router.push(url, undefined, { scroll: false });
-    scrollToId('tab_container', 24);
-  };
+
   const chartOptions = useMemo(() => {
     const legendNames = (pieData || []).map((item) => ({
       name: item.name,
@@ -77,8 +72,8 @@ export const TotalCost = memo(function TotalCost() {
     return {
       tooltip: {
         content: (params: any) => {
-          const { color, data } = params;
-          const styles = getStyles(color);
+          const { data } = params;
+          const styles = getStyles();
           return `
             <div style="${styles.box}">
               <div style="${styles.value}">
@@ -113,6 +108,16 @@ export const TotalCost = memo(function TotalCost() {
     };
   }, [pieData]);
 
+  const onBillingHistory = () => {
+    const curQuery: BillingHistoryQuery = {
+      page: 1,
+      tab: 'b',
+    };
+    const url = `${InternalRoutePaths.accounts}?${stringify(curQuery)}`;
+    router.push(url, undefined, { scroll: false });
+    scrollToId('tab_container', 24);
+  };
+
   return (
     <CardContainer
       flex={1}
@@ -136,9 +141,7 @@ export const TotalCost = memo(function TotalCost() {
           justifyContent={'flex-end'}
           gap={4}
           cursor={'pointer'}
-          onClick={() => {
-            onBillingHistory();
-          }}
+          onClick={onBillingHistory}
         >
           <Text fontWeight={500}>View Detail</Text>
           <IconFont type="forward" />
@@ -148,7 +151,7 @@ export const TotalCost = memo(function TotalCost() {
   );
 });
 
-function getStyles(color: string) {
+function getStyles() {
   return {
     box: `
       display: flex;

@@ -1,7 +1,7 @@
 import { IconFont } from '@/components/IconFont';
 import { useAppDispatch } from '@/store';
-import { BucketItem } from '@/store/slices/bucket';
-import { setCurrentObjectPage } from '@/store/slices/object';
+import { BucketEntity } from '@/store/slices/bucket';
+import { setObjectListPage } from '@/store/slices/object';
 import { formatFullTime } from '@/utils/time';
 import styled from '@emotion/styled';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import { memo } from 'react';
 import { DiscontinueNotice } from './DiscontinueNotice';
 
 interface BucketNameColumnProps {
-  item: BucketItem;
+  item: BucketEntity;
 }
 
 export const BucketNameColumn = memo<BucketNameColumnProps>(function BucketNameColumn({ item }) {
@@ -22,13 +22,14 @@ export const BucketNameColumn = memo<BucketNameColumnProps>(function BucketNameC
   );
   const more = 'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-discontinue';
   const content = `This item will be deleted by SP with an estimated time of ${estimateTime}. Please backup your data in time.`;
+
   return (
     <Container>
       <Link
         href={`/buckets/${BucketName}`}
         onClick={(e) => {
           e.stopPropagation();
-          dispatch(setCurrentObjectPage({ path: BucketName, current: 0 }));
+          dispatch(setObjectListPage({ path: BucketName, current: 0 }));
         }}
       >
         <IconFont type="bucket-thumbnail" w={20} />
@@ -42,10 +43,12 @@ export const BucketNameColumn = memo<BucketNameColumnProps>(function BucketNameC
 const Container = styled.div`
   display: flex;
   align-items: center;
+
   a {
     display: flex;
     align-items: center;
     min-width: 0;
+
     span {
       margin: 0 4px;
       min-width: 0;

@@ -10,8 +10,8 @@ import {
 } from '@/modules/object/components/renderRows';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { TBucket } from '@/store/slices/bucket';
-import { setEditObjectTagsData, setObjectList, setObjectOperation } from '@/store/slices/object';
-import { SpItem } from '@/store/slices/sp';
+import { setObjectEditTagsData, setObjectList, setObjectOperation } from '@/store/slices/object';
+import { SpEntity } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
 import { formatId } from '@/utils/string';
 import { formatFullTime } from '@/utils/time';
@@ -24,23 +24,27 @@ import { memo } from 'react';
 interface DetailFolderOperationProps {
   objectName: string;
   selectBucket: TBucket;
-  primarySp: SpItem;
+  primarySp: SpEntity;
 }
 
 export const DetailFolderOperation = memo<DetailFolderOperationProps>(
   function DetailFolderOperation({ selectBucket, primarySp, objectName }) {
     const dispatch = useAppDispatch();
-    const { path, objectsInfo } = useAppSelector((root) => root.object);
+    const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+    const objectRecords = useAppSelector((root) => root.object.objectRecords);
+
     const selectObjectInfo = useModalValues(
-      objectsInfo[[selectBucket.BucketName, objectName].join('/')] || {},
+      objectRecords[[selectBucket.BucketName, objectName].join('/')] || {},
     );
     const objectInfo = useModalValues(selectObjectInfo.ObjectInfo);
+    const folderName = last(objectName.replace(/\/$/, '').split('/'));
+    const loading = !objectInfo;
 
     const onEditTags = () => {
       const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) =>
         convertObjectKey(item, 'lowercase'),
       );
-      dispatch(setEditObjectTagsData(lowerKeyTags as ResourceTags_Tag[]));
+      dispatch(setObjectEditTagsData(lowerKeyTags as ResourceTags_Tag[]));
       dispatch(
         setObjectOperation({
           level: 1,
@@ -70,14 +74,15 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
       const { GfSpListObjectsByBucketNameResponse } = res.body!;
       // 更新文件夹objectInfo
       dispatch(
-        setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
+        setObjectList({
+          path: completeCommonPrefix,
+          list: GfSpListObjectsByBucketNameResponse || [],
+          infoOnly: true,
+        }),
       );
     });
 
-    const folderName = last(objectName.replace(/\/$/, '').split('/'));
-    const loading = !objectInfo;
-
-    useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+    useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
 
     return (
       <>

@@ -6,7 +6,6 @@ import { TStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 
 export const getSettlementFee = async (address: string) => {
-  console.log('12313');
   const [res, error] = await getStreamRecord(address);
   if (!res || error) return [null, error];
   const { streamRecord } = res;

@@ -4,7 +4,7 @@ import { MenuOption } from '@/components/common/DCMenuList';
 import { DCSelect } from '@/components/common/DCSelect';
 import { DCTooltip } from '@/components/common/DCTooltip';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { SpItem, setSpLatency, updateSpLatency } from '@/store/slices/sp';
+import { SpEntity, setSpLatency, setupSpLatency } from '@/store/slices/sp';
 import { transientOptions } from '@/utils/css';
 import { formatBytes } from '@/utils/formatter';
 import { trimLongStr } from '@/utils/string';
@@ -16,34 +16,43 @@ import { useMount } from 'ahooks';
 import { find, sortBy } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface SPSelector {
-  onChange: (value: SpItem) => void;
+import { memo } from 'react';
+
+interface SPSelectorProps {
+  onChange: (value: SpEntity) => void;
 }
 
-export function SPSelector(props: SPSelector) {
+export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
   const dispatch = useAppDispatch();
-  const { spInfo, oneSp, allSps, spMeta, latency } = useAppSelector((root) => root.sp);
-  const { faultySps, loginAccount } = useAppSelector((root) => root.persist);
-  const len = allSps.length;
-  const [sp, setSP] = useState({} as SpItem);
-  const { onChange } = props;
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const unAvailableSps = useAppSelector((root) => root.persist.unAvailableSps);
+  const spRecords = useAppSelector((root) => root.sp.spRecords);
+  const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
+  const allSpList = useAppSelector((root) => root.sp.allSpList);
+  const spMetaRecords = useAppSelector((root) => root.sp.spMetaRecords);
+
+  const [sp, setSP] = useState({} as SpEntity);
   const [total, setTotal] = useState(0);
+
+  const len = allSpList.length;
+  const { onChange } = props;
   const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
-  useMount(() => {
-    if (!len) return;
-    setTotal(allSps.length);
-    setSP(spInfo[oneSp]);
-  });
+  const renderOption = ({ value, disabled }: MenuOption) => {
+    const sp = find<SpEntity>(allSpList, (sp) => sp.operatorAddress === value)!;
+    return (
+      <OptionItem
+        address={sp.operatorAddress}
+        name={sp.moniker}
+        endpoint={sp.endpoint}
+        access={!disabled}
+      />
+    );
+  };
 
-  useEffect(() => {
-    if (!sp.operatorAddress) return;
-    saveOnChangeRef.current?.(sp);
-  }, [sp]);
-
-  const onChangeSP = (value: string) => {
-    setSP(spInfo[value]);
+  const onSpChange = (value: string) => {
+    setSP(spRecords[value]);
   };
 
   const onSearch = (result: MenuOption[]) => {
@@ -59,28 +68,41 @@ export function SPSelector(props: SPSelector) {
 
   const options: MenuOption[] = useMemo(
     () =>
-      sortBy(allSps, [
-        (i) => (faultySps.includes(i.operatorAddress) ? 1 : 0),
+      sortBy(allSpList, [
+        (i) => (unAvailableSps.includes(i.operatorAddress) ? 1 : 0),
         (sp) => {
-          const meta = spMeta[sp.endpoint];
+          const meta = spMetaRecords[sp.endpoint];
           return meta ? meta.Latency : Infinity;
         },
       ]).map((item) => {
         const { operatorAddress, moniker } = item;
-        const access = !faultySps.includes(operatorAddress);
+        const access = !unAvailableSps.includes(operatorAddress);
         return {
           label: moniker,
           value: operatorAddress,
           disabled: !access,
         };
       }),
-    [allSps, spMeta, faultySps],
+    [allSpList, spMetaRecords, unAvailableSps],
   );
 
   useMount(() => {
+    if (!len) return;
+    setTotal(allSpList.length);
+    setSP(spRecords[specifiedSp]);
+  });
+
+  useEffect(() => {
+    if (!sp.operatorAddress) return;
+    saveOnChangeRef.current?.(sp);
+  }, [sp]);
+
+  useMount(() => {
     dispatch(
-      updateSpLatency(
-        allSps.filter((sp) => !faultySps.includes(sp.operatorAddress)).map((sp) => sp.endpoint),
+      setupSpLatency(
+        allSpList
+          .filter((sp) => !unAvailableSps.includes(sp.operatorAddress))
+          .map((sp) => sp.endpoint),
         loginAccount,
       ),
     );
@@ -105,18 +127,6 @@ export function SPSelector(props: SPSelector) {
     };
   }, [dispatch]);
 
-  const renderOption = ({ value, disabled }: MenuOption) => {
-    const sp = find<SpItem>(allSps, (sp) => sp.operatorAddress === value)!;
-    return (
-      <OptionItem
-        address={sp.operatorAddress}
-        name={sp.moniker}
-        endpoint={sp.endpoint}
-        access={!disabled}
-      />
-    );
-  };
-
   return (
     <DCSelect
       value={sp.operatorAddress}
@@ -136,7 +146,7 @@ export function SPSelector(props: SPSelector) {
         alignItems: 'center',
       }}
       renderOption={renderOption}
-      onChange={onChangeSP}
+      onChange={onSpChange}
       onSearchFilter={onSearchFilter}
       onSearch={onSearch}
       itemProps={{
@@ -146,16 +156,18 @@ export function SPSelector(props: SPSelector) {
       }}
     />
   );
-}
+});
 
 const renderItem = (moniker: string, address: string) => {
   return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
 };
 
 function OptionItem(props: any) {
-  const { spMeta, latency } = useAppSelector((root) => root.sp);
+  const spMetaRecords = useAppSelector((root) => root.sp.spMetaRecords);
+  const spLatencyRecords = useAppSelector((root) => root.sp.spLatencyRecords);
+
   const { address, name, endpoint, access } = props;
-  const meta = spMeta[endpoint];
+  const meta = spMetaRecords[endpoint];
 
   const link = !access ? (
     <DCTooltip title="Check reasons in documentations" placement="bottomLeft">
@@ -192,7 +204,7 @@ function OptionItem(props: any) {
     </A>
   );
 
-  const spLatency = latency[endpoint.toLowerCase()] || 0;
+  const spLatency = spLatencyRecords[endpoint.toLowerCase()] || 0;
 
   return (
     <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>

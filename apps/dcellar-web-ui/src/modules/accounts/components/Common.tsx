@@ -14,6 +14,7 @@ export const CardContainer = ({ children, ...props }: BoxProps) => {
     </Box>
   );
 };
+
 export const CardTitle = ({ children, ...props }: TextProps) => {
   return (
     <Text fontSize={16} fontWeight={700} {...props}>
@@ -68,6 +69,7 @@ export const FilterContainer = styled(Flex)`
 
   .menu-list-empty-icon {
     display: none;
+
     + p {
       color: var(--ui-colors-readable-tertiary);
       font-size: 12px;
@@ -111,9 +113,11 @@ export const FilterContainer = styled(Flex)`
 
     .icon-selected {
       color: var(--ui-colors-readable-normal);
+
       &:hover {
         color: var(--ui-colors-brand-brand6);
       }
+
       display: inline;
     }
   }

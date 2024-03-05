@@ -26,7 +26,10 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   level = 0,
 }) {
   const dispatch = useAppDispatch();
-  const { bucketOperation, bucketInfo } = useAppSelector((root) => root.bucket);
+  const bucketOperation = useAppSelector((root) => root.bucket.bucketOperation);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+
   const [id, operation] = bucketOperation[level];
   const isDrawer = [
     'detail',
@@ -39,16 +42,13 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   ].includes(operation);
   const isModal = ['delete'].includes(operation);
   const _operation = useModalValues<BucketOperationsType>(operation);
-  const selectBucketInfo = bucketInfo[id] || {};
+  const selectBucketInfo = bucketRecords[id] || {};
   const _selectBucketInfo = useModalValues<TBucket>(selectBucketInfo);
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const primarySp = useModalValues(primarySpInfo[_selectBucketInfo.BucketName]);
+  const primarySp = useModalValues(primarySpRecords[_selectBucketInfo.BucketName]);
 
   const onClose = useCallback(() => {
     dispatch(setBucketOperation({ level, operation: ['', ''] }));
   }, [level, dispatch]);
-
-  useUnmount(onClose);
 
   const modalContent = useMemo(() => {
     switch (_operation) {
@@ -80,6 +80,8 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
         return null;
     }
   }, [_operation, _selectBucketInfo, onClose, primarySp]);
+
+  useUnmount(onClose);
 
   return (
     <>

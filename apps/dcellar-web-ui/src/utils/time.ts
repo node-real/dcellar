@@ -85,7 +85,10 @@ export const getUTC0Month = () => {
 export const getUTC0FullMonth = () => {
   dayjs.extend(utc);
 
-  return `${dayjs().utc().startOf('M').format('MMM D')} - ${dayjs().utc().endOf('M').format('DD, YYYY')}`;
+  return `${dayjs().utc().startOf('M').format('MMM D')} - ${dayjs()
+    .utc()
+    .endOf('M')
+    .format('DD, YYYY')}`;
 };
 
 export const getEveryMonth = (startMonth: string, endMonth: string) => {

@@ -24,7 +24,7 @@ import {
   NOT_ENOUGH_QUOTA,
 } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditQuota } from '@/store/slices/bucket';
+import { setBucketEditQuota } from '@/store/slices/bucket';
 import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { Box, Image, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
@@ -36,12 +36,16 @@ interface StatusDetailProps {}
 export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
   const dispatch = useAppDispatch();
   const _statusDetail = useAppSelector((root) => root.object.statusDetail);
-  const { bucketName } = useAppSelector((root) => root.object);
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
+  const statusDetail = useModalValues(_statusDetail);
+  const animateType =
+    statusDetail.icon in Animates ? (statusDetail.icon as AnimatePngProps['type']) : '';
+
   const isOpen = !!_statusDetail?.title;
   const gaOptions = getGAOptions(_statusDetail.title);
-  const statusDetail = useModalValues(_statusDetail);
-  const quotaBucket = bucketName || statusDetail?.extraParams?.[0];
+  const quotaBucket = currentBucketName || statusDetail?.extraParams?.[0];
   const NO_QUOTA =
     OBJECT_ERROR_TYPES['NO_QUOTA'].title === statusDetail.title && !!quotaBucket && !!loginAccount;
 
@@ -50,9 +54,6 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
   };
 
   useUnmount(onClose);
-
-  const animateType =
-    statusDetail.icon in Animates ? (statusDetail.icon as AnimatePngProps['type']) : '';
 
   return (
     <>
@@ -115,7 +116,7 @@ export const StatusDetail = memo<StatusDetailProps>(function StatusDetail() {
                 statusDetail.buttonOnClick?.();
                 onClose();
                 if (NO_QUOTA) {
-                  dispatch(setEditQuota([String(quotaBucket), 'modal']));
+                  dispatch(setBucketEditQuota([String(quotaBucket), 'modal']));
                 }
               }}
               gaClickName={gaOptions.closeName}

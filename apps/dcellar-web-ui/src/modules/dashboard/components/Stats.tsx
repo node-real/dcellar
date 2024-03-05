@@ -10,39 +10,34 @@ import { useMemo } from 'react';
 import { Card } from './Common';
 
 export const Stats = () => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bucketListRecords = useAppSelector((root) => root.bucket.bucketListRecords);
+  const paymentAccountListRecords = useAppSelector(
+    (root) => root.accounts.paymentAccountListRecords,
+  );
+
   const router = useRouter();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { buckets } = useAppSelector((root) => root.bucket);
-  const { paymentAccounts } = useAppSelector((root) => root.accounts);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
+
   const statsData = useMemo(() => {
     return [
       {
         name: 'Buckets',
         icon: 'bucket',
-        value: isEmpty(buckets) ? '--' : bucketList?.length || 0,
+        value: isEmpty(bucketListRecords) ? '--' : bucketList?.length || 0,
         link: InternalRoutePaths.buckets,
       },
-      // {
-      //   name: 'Objects',
-      //   icon: 'doc1',
-      //   value: 12321030213,
-      // },
-      // {
-      //   name: 'Groups',
-      //   icon: 'group',
-      //   value: 5,
-      // },
       {
         name: 'Accounts',
         icon: 'account',
         // payment account length + a owner account
-        value: isEmpty(paymentAccounts) ? '--' : (paymentList?.length || 0) + 1,
+        value: isEmpty(paymentAccountListRecords) ? '--' : (paymentList?.length || 0) + 1,
         link: InternalRoutePaths.accounts,
       },
     ];
-  }, [bucketList?.length, buckets, paymentAccounts, paymentList?.length]);
+  }, [bucketList?.length, bucketListRecords, paymentAccountListRecords, paymentList?.length]);
+
   const onNavigate = (target: string) => () => {
     router.push(target);
   };

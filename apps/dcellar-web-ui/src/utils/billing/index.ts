@@ -16,6 +16,7 @@ export const getMoM = (preCost: string, curCost: string) => {
     .dp(2)
     .toNumber();
 };
+
 export const getStyles = () => {
   return {
     box: `

@@ -1,20 +1,27 @@
 import { ManageTags, getValidTags } from '@/components/common/ManageTags';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditObjectTagsData } from '@/store/slices/object';
+import { setObjectEditTagsData } from '@/store/slices/object';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useUnmount } from 'ahooks';
+import { memo } from 'react';
 
-export const EditObjectTagsOperation = ({ onClose }: { onClose: () => void }) => {
-  const dispatch = useAppDispatch();
-  const { editTagsData } = useAppSelector((root) => root.object);
+interface EditObjectTagsOperationProps {
+  onClose: () => void;
+}
 
-  const onSave = async (updateTags: ResourceTags_Tag[]) => {
-    const validTags = getValidTags(updateTags);
-    dispatch(setEditObjectTagsData(validTags));
-    onClose();
-  };
+export const EditObjectTagsOperation = memo<EditObjectTagsOperationProps>(
+  function EditObjectTagsOperation({ onClose }) {
+    const dispatch = useAppDispatch();
+    const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
 
-  useUnmount(onClose);
+    const onSave = async (updateTags: ResourceTags_Tag[]) => {
+      const validTags = getValidTags(updateTags);
+      dispatch(setObjectEditTagsData(validTags));
+      onClose();
+    };
 
-  return <ManageTags tags={editTagsData} onCancel={onClose} onSave={onSave} />;
-};
+    useUnmount(onClose);
+
+    return <ManageTags tags={objectEditTagsData} onCancel={onClose} onSave={onSave} />;
+  },
+);
