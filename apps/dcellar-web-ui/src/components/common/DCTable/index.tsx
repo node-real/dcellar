@@ -171,8 +171,8 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
     const objectInList = [
       q.bucketName,
       ...q.prefixFolders,
-      q.waitFile.relativePath || '',
-      q.waitFile.name,
+      q.waitObject.relativePath || '',
+      q.waitObject.name,
     ]
       .filter((item) => !!item)
       .join('/');

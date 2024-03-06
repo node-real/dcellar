@@ -33,7 +33,7 @@ import { IconFont } from '@/components/IconFont';
 import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
 import { ErrorResponse } from '@/facade/error';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { trimFloatZero } from '@/utils/string';
@@ -100,7 +100,7 @@ export const Amount = ({
 }: AmountProps) => {
   const transferType = useAppSelector((root) => root.wallet.transferType);
 
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const { connector } = useAccount();
@@ -122,7 +122,7 @@ export const Amount = ({
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = BigNumber(balance || 0).times(BigNumber(bnbPrice));
+    const usdPrice = BigNumber(balance || 0).times(BigNumber(exchangeRate));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
@@ -130,7 +130,7 @@ export const Amount = ({
         Balance on {curInfo?.chainName}: {val} {displayTokenSymbol()} ({unifyUsdPrice})
       </>
     );
-  }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
+  }, [balance, exchangeRate, curInfo?.chainName, isLoading]);
 
   const onMaxClick = async () => {
     if (!balance || !feeData) return setValue('amount', '0', { shouldValidate: true });

@@ -8,7 +8,7 @@ import { DCInputSelect } from '@/components/common/DCInputSelect';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { useAppSelector } from '@/store';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { AccountEntity, selectPaymentAccounts } from '@/store/slices/accounts';
 import { getAccountDisplay } from '@/utils/accounts';
 import { getShortAccountName } from '@/utils/billing';
 
@@ -17,7 +17,7 @@ interface ToAccountSelectorProps {
   loading: boolean;
   isError: boolean;
   disabled?: boolean;
-  onChange: (value: TAccount) => void;
+  onChange: (value: AccountEntity) => void;
 }
 
 export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccountSelector({
@@ -31,7 +31,7 @@ export const ToAccountSelector = memo<ToAccountSelectorProps>(function ToAccount
   const accountTypeRecords = useAppSelector((root) => root.accounts.accountTypeRecords);
 
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const [account, setAccount] = useState({} as TAccount);
+  const [account, setAccount] = useState({} as AccountEntity);
   const [total, setTotal] = useState(0);
   const saveOnChangeRef = useRef(onChange);
 

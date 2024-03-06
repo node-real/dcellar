@@ -16,9 +16,9 @@ import { assetPrefix } from '@/base/env';
 import { getSpMeta, getStorageProviders } from '@/facade/sp';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  selectBnbPrice,
+  selectBnbUsdtExchangeRate,
   selectMainnetStoreFeeParams,
-  setupBnbPrice,
+  setupBnbUsdtExchangeRate,
   setupMainnetStoreFeeParams,
 } from '@/store/slices/global';
 
@@ -74,16 +74,8 @@ export const PriceCalculator = () => {
     setOpenKeys(Array.from(new Set([key])));
   };
   const mainnetStoreFeeParams = useAppSelector(selectMainnetStoreFeeParams);
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  // const [gasFee, setGasFee] = useState(DEFAULT_GAS_FEE);
-  // useAsyncEffect(async () => {
-  //   const [gasFees, error] = await getGasFees('mainnet');
-  //   const gasLimit =
-  //     gasFees?.msgGasParams.find((item) => item.msgTypeUrl === DEFAULT_TX_TYPE)?.fixedType?.fixedGas
-  //       .low || DEFAULT_GAS_LIMIT;
-  //   const gasFee = +GAS_PRICE * gasLimit;
-  //   setGasFee(gasFee + '');
-  // }, []);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+
   useAsyncEffect(async () => {
     const sps = await getStorageProviders('mainnet');
     const spMeta = await getSpMeta('mainnet');
@@ -99,7 +91,7 @@ export const PriceCalculator = () => {
   }, []);
 
   useMount(() => {
-    dispatch(setupBnbPrice());
+    dispatch(setupBnbUsdtExchangeRate());
     dispatch(setupMainnetStoreFeeParams());
   });
 
@@ -131,7 +123,7 @@ export const PriceCalculator = () => {
           <Calculator
             onOpenKey={onOpenKey}
             storeParams={mainnetStoreFeeParams}
-            bnbPrice={bnbPrice}
+            bnbPrice={exchangeRate}
           />
         </Flex>
         <PricingCard storeParams={mainnetStoreFeeParams} />

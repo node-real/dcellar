@@ -1,10 +1,10 @@
 import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { Flex, Text } from '@node-real/uikit';
 
 export const GasFee = ({ amount }: { amount: string }) => {
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">
@@ -13,7 +13,7 @@ export const GasFee = ({ amount }: { amount: string }) => {
           Gas fee
         </Text>
       </Flex>
-      <Text color="readable.tertiary">{renderFeeValue(String(amount), bnbPrice)}</Text>
+      <Text color="readable.tertiary">{renderFeeValue(String(amount), exchangeRate)}</Text>
     </Flex>
   );
 };

@@ -23,7 +23,7 @@ import { Connector } from 'wagmi';
 import { resolve } from './common';
 import { ErrorResponse, broadcastFault, commonFault, createTxFault, simulateFault } from './error';
 import { signTypedDataCallback } from './wallet';
-import { TTempAccount } from '@/store/slices/accounts';
+import { TempAccountEntity } from '@/store/slices/accounts';
 
 export type QueryBalanceRequest = { address: string; denom?: string };
 
@@ -51,7 +51,7 @@ export const createTempAccount = async ({
   amount,
   connector,
   actionType = 'create',
-}: CreateTmpAccountParams): Promise<ErrorResponse | [TTempAccount, null]> => {
+}: CreateTmpAccountParams): Promise<ErrorResponse | [TempAccountEntity, null]> => {
   //messages and resources are different for create and delete
   const isDelete = actionType === 'delete';
 

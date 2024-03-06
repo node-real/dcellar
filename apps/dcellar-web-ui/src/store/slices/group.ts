@@ -42,13 +42,20 @@ interface GroupInitialState {
   editTags: [string, string];
   groupEditTagsData: ResourceTags_Tag[];
 }
-
+const defaultGroupInfo: GroupInfo = {
+  owner: '',
+  groupName: '',
+  sourceType: -1,
+  id: '',
+  extra: '',
+  tags: { tags: [] },
+};
 const initialState: GroupInitialState = {
   groupListRecords: {},
   groupListLoading: false,
   groupListPage: 0,
   groupMemberListPage: 0,
-  groupRemoving: {} as GroupInfo,
+  groupRemoving: defaultGroupInfo,
   groupMemberListRecords: {},
   groupOperation: { 0: ['', '', {}], 1: ['', '', {}] },
   groupSelectedMembers: [],

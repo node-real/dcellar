@@ -7,12 +7,13 @@ import { downloadObject } from '@/facade/object';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setBucketEditQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { setObjectOperation, setObjectSelectedKeys, setStatusDetail } from '@/store/slices/object';
+import { setObjectOperation, setObjectSelectedKeys } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { Box, Text } from '@node-real/uikit';
 import { useMount, useUnmount } from 'ahooks';
 import { memo, useMemo, useState } from 'react';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+import { setSignatureAction } from '@/store/slices/global';
 
 const DEFAULT_QUOTA = {} as IQuotaProps;
 
@@ -46,7 +47,7 @@ export const BatchOperations = memo<BatchOperationsProps>(function BatchOperatio
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
 
   const items = useMemo(

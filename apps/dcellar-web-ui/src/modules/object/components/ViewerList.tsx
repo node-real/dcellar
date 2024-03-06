@@ -44,14 +44,13 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { selectGroupList, setGroupMemberListPage, setupGroupList } from '@/store/slices/group';
 import {
   ObjectResource,
-  TStatusDetail,
   setObjectPolicyListPage,
   setObjectShareSelectedMembers,
-  setStatusDetail,
   setupObjectPolicies,
 } from '@/store/slices/object';
 import { trimAddress } from '@/utils/string';
 import { GAContextProvider } from '@/context/GAContext';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
 
 const MAX_COUNT = 20;
 const MEMBER_SIZE = 20;
@@ -79,7 +78,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
   );
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const groupList = useAppSelector(selectGroupList(loginAccount));
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const [values, setValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState('');
@@ -123,8 +122,9 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     option.label.toLowerCase().includes(searchValue.toLowerCase()),
   );
 
-  const putFee = (gasObjects?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
-  const deleteFee = (gasObjects?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * removeAccount.length;
+  const putFee = (gnfdGasFeesConfig?.[MsgPutPolicyTypeUrl]?.gasFee || 0) * values.length;
+  const deleteFee =
+    (gnfdGasFeesConfig?.[MsgDeletePolicyTypeUrl]?.gasFee || 0) * removeAccount.length;
 
   const indeterminate = page.some((i) => objectShareSelectedMembers.includes(i.PrincipalValue));
   const accounts = without(
@@ -169,11 +169,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: FILE_ACCESS,
             icon: 'status-failed',
             buttonText: BUTTON_GOT_IT,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+            buttonOnClick: () => dispatch(setSignatureAction({})),
             errorText: 'Error message: ' + type,
           }),
         );
@@ -239,7 +239,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
               ...resource.Actions.map((r) => ActionTypeValue[r]),
               PermissionTypes.ActionType.ACTION_GET_OBJECT,
             ]),
-            // todo may empty resources
+            // may empty resources
             resources: isFolder
               ? _removed
                 ? xor(resource.Resources, [
@@ -276,7 +276,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
       setLoading(true);
 
       dispatch(
-        setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
+        setSignatureAction({
+          title: 'Updating Access',
+          icon: Animates.access,
+          desc: WALLET_CONFIRM,
+        }),
       );
 
       const [res, error, ids] = await (isFolder
@@ -286,11 +290,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
       setLoading(false);
       if (!res && !error) {
         setInvalidIds(ids!);
-        dispatch(setStatusDetail({} as TStatusDetail));
+        dispatch(setSignatureAction({}));
         return;
       }
       if (error) return errorHandler(error);
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     }
 
     setValues([]);
@@ -302,7 +306,11 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
     if (!isFolder) {
       setLoading(true);
       dispatch(
-        setStatusDetail({ title: 'Updating Access', icon: Animates.access, desc: WALLET_CONFIRM }),
+        setSignatureAction({
+          title: 'Updating Access',
+          icon: Animates.access,
+          desc: WALLET_CONFIRM,
+        }),
       );
       const [res, error] = await deleteObjectPolicy(
         connector!,
@@ -313,7 +321,7 @@ export const ViewerList = memo<ViewerListProps>(function ViewerList({ selectObje
       );
       setLoading(false);
       if (error) return errorHandler(error);
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
       toast.success({ description: 'Access updated!' });
       updateMemberList(removeAccount[0], true);
     } else {

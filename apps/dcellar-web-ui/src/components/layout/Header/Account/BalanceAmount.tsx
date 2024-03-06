@@ -4,7 +4,7 @@ import {
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 import { Circle, Flex, Text } from '@node-real/uikit';
 import { memo } from 'react';
@@ -13,7 +13,7 @@ interface BalanceAmountProps {}
 
 export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';

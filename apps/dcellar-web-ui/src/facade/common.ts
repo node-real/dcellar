@@ -13,7 +13,8 @@ import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storag
 import { IQuotaProps, Long, SpResponse, TxResponse } from '@bnb-chain/greenfield-js-sdk';
 import { Connector } from 'wagmi';
 import { signTypedDataCallback } from './wallet';
-import { TTempAccount } from '@/store/slices/accounts';
+import { BNB_USDT_EXCHANGE_RATE } from '@/store/slices/global';
+import { TempAccountEntity } from '@/store/slices/accounts';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -56,18 +57,14 @@ export const getObjectInfoAndBucketQuota = async ({
   return [objectInfo || null, body || null, message];
 };
 
-export type BnbPriceInfo = { price: string; symbol: string };
-
-export const getDefaultBnbInfo = () => ({ price: '300', symbol: 'BNBUSDT' });
-
-export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
+export const getBnbUsdtExchangeRate = async (): Promise<string> => {
   const [res, error] = await get({
     url: 'https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT',
     customOptions: { needNotify: false },
   }).then(resolve, commonFault);
 
-  if (error) return getDefaultBnbInfo();
-  return res as BnbPriceInfo;
+  if (error) return BNB_USDT_EXCHANGE_RATE;
+  return res.price;
 };
 
 export const getGasFees = async (network?: 'mainnet') => {
@@ -164,7 +161,7 @@ export const broadcastMulTxs = async ({
 
 export type BroadcastMultiTxByTmpAccount = {
   txs: TxResponse[];
-  tempAccount: TTempAccount;
+  tempAccount: TempAccountEntity;
   address: string;
 };
 

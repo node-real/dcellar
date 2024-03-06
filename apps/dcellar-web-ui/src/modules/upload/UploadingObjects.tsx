@@ -129,8 +129,8 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
                   >
                     <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
                       <NameItem
-                        name={task.waitFile.name}
-                        size={task.waitFile.size}
+                        name={task.waitObject.name}
+                        size={task.waitObject.size}
                         msg={task.msg}
                         status={task.status}
                         w={240}

@@ -3,8 +3,8 @@ import { EllipsisText } from '@/components/common/EllipsisText';
 import { InternalRoutePaths } from '@/constants/paths';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { AccountEntity, selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
@@ -44,7 +44,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
   );
 
   const router = useRouter();
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
 
   const isLoading =
@@ -58,7 +58,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
     let paymentTotalNetflow = BN(0);
     let paymentTotalBalance = BN(0);
     let paymentTotalPrepaidFee = BN(0);
-    paymentList.forEach((item: TAccount) => {
+    paymentList.forEach((item: AccountEntity) => {
       const paymentDetail = accountRecords[item.address];
       paymentTotalNetflow = paymentTotalNetflow.plus(paymentDetail.netflowRate);
 
@@ -96,7 +96,9 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
         </Flex>
         <Flex gap={4} color={'readable.disable'}>
           <EllipsisText>
-            {isLoading ? '--' : currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())}
+            {isLoading
+              ? '--'
+              : currencyFormatter(BN(res.totalBalance).times(exchangeRate).toString())}
           </EllipsisText>
           <Text>USD</Text>
         </Flex>

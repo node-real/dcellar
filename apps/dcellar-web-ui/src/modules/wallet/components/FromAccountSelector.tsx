@@ -7,12 +7,12 @@ import { MenuOption } from '@/components/common/DCMenuList';
 import { DCSelect } from '@/components/common/DCSelect';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
 import { useAppSelector } from '@/store';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { AccountEntity, selectPaymentAccounts } from '@/store/slices/accounts';
 import { getShortAccountName } from '@/utils/billing';
 import { trimLongStr } from '@/utils/string';
 
 interface FromAccountSelectorProps {
-  onChange: (value: TAccount) => void;
+  onChange: (value: AccountEntity) => void;
   from: string;
 }
 
@@ -22,7 +22,7 @@ export const FromAccountSelector = memo<FromAccountSelectorProps>(
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
 
-    const [account, setAccount] = useState({} as TAccount);
+    const [account, setAccount] = useState({} as AccountEntity);
     const [total, setTotal] = useState(0);
     const saveOnChangeRef = useRef(onChange);
 

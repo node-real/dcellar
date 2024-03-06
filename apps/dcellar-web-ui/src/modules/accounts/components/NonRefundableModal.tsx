@@ -3,8 +3,8 @@ import { DCButton } from '@/components/common/DCButton';
 import { DCModal } from '@/components/common/DCModal';
 import { disablePaymentAccountRefund } from '@/facade/account';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditingPaymentAccountRefundable, setupAccountInfo } from '@/store/slices/accounts';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { setEditingPaymentAccountRefundable, setupAccountRecords } from '@/store/slices/accounts';
+import { setSignatureAction } from '@/store/slices/global';
 import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
 import { memo } from 'react';
 import { useAccount } from 'wagmi';
@@ -30,7 +30,7 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
     if (!connector) return;
     onClose();
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: 'account-failed',
         title: 'Set as Non-Refundable',
         desc: 'Please confirm the transaction in your wallet.',
@@ -48,15 +48,15 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
         msg = 'This payment account has already be set as non-refundable.';
       }
       return dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: 'Set Failed',
           icon: 'account-failed',
           desc: msg,
         }),
       );
     }
-    dispatch(setupAccountInfo(editingPaymentAccountRefundable));
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setupAccountRecords(editingPaymentAccountRefundable));
+    dispatch(setSignatureAction({}));
   };
 
   return (

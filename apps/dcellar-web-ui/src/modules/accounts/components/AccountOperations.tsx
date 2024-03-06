@@ -4,7 +4,7 @@ import { useModalValues } from '@/hooks/useModalValues';
 import { OwnerDetailOperation } from '@/modules/accounts/components/OwnerDetailOperation';
 import { PaymentDetailOperation } from '@/modules/accounts/components/PaymentDetailOperation';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount, setAccountOperation, setupAccountInfo } from '@/store/slices/accounts';
+import { selectAccount, setAccountOperation, setupAccountRecords } from '@/store/slices/accounts';
 import { ModalCloseButton } from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
 import { memo, useEffect, useMemo } from 'react';
@@ -40,7 +40,7 @@ export const AccountOperations = memo<AccountOperationsProps>(function AccountOp
 
   useEffect(() => {
     if (!id) return;
-    dispatch(setupAccountInfo(id));
+    dispatch(setupAccountRecords(id));
   }, [id, dispatch]);
 
   useUnmount(onClose);

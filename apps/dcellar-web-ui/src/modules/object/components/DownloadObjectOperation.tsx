@@ -5,13 +5,13 @@ import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
 import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node-real/uikit';
 import { memo, useEffect, useState } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { setSignatureAction } from '@/store/slices/global';
 
 const renderProp = (key: string, value: string) => {
   return (
@@ -65,7 +65,7 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
 
   const remainingQuota = +quotaData?.readQuota + +quotaData?.freeQuota - +quotaData?.consumedQuota;

@@ -1,5 +1,5 @@
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { Flex, TextProps } from '@node-real/uikit';
 import { LearnMoreTips } from '../common/Tips';
@@ -12,7 +12,7 @@ const TipsLink = 'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-ban
 const TipsText = 'Bank Balance';
 
 export const BankBalance = ({ amount, ...restProps }: BankBalanceProps) => {
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   return (
     <Flex
@@ -23,7 +23,7 @@ export const BankBalance = ({ amount, ...restProps }: BankBalanceProps) => {
       justifyContent={'flex-end'}
     >
       Owner Account Bank Balance <LearnMoreTips href={TipsLink} text={TipsText} />:{' '}
-      {renderFee(amount, bnbPrice)}
+      {renderFee(amount, exchangeRate)}
     </Flex>
   );
 };

@@ -11,8 +11,12 @@ import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
 import { TBucket, setupBucketList } from '@/store/slices/bucket';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import {
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
 import { selectBucketSp } from '@/store/slices/sp';
 import { reportEvent } from '@/utils/gtag';
 import { BN } from '@/utils/math';
@@ -34,7 +38,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
     const dispatch = useAppDispatch();
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
     const PaymentAddress = bucket.PaymentAddress;
     const accountDetail = useAppSelector(selectAccount(PaymentAddress));
@@ -51,7 +55,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
     const [balanceEnough, setBalanceEnough] = useState(true);
 
     const chargeQuota = bucket.ChargedReadQuota;
-    const { gasFee } = gasObjects?.[MsgDeleteBucketTypeUrl] || {};
+    const { gasFee } = gnfdGasFeesConfig?.[MsgDeleteBucketTypeUrl] || {};
     const bucketName = bucket.BucketName;
 
     const errorHandler = (error: string) => {
@@ -62,7 +66,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
           return;
         default:
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               title: FILE_TITLE_DELETE_FAILED,
               icon: 'status-failed',
               buttonText: BUTTON_GOT_IT,
@@ -85,7 +89,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         if (error.toLowerCase().includes('not empty')) {
           onClose();
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               ...OBJECT_ERROR_TYPES['BUCKET_NOT_EMPTY'],
               buttonText: BUTTON_GOT_IT,
             }),
@@ -93,11 +97,11 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         }
       }
       setIsGasLoading(false);
-    }, [loginAccount, bucketName, gasObjects]);
+    }, [loginAccount, bucketName, gnfdGasFeesConfig]);
 
     const onDeleteClick = async () => {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: 'Deleting Bucket',
           icon: Animates.delete,
           desc: WALLET_CONFIRM,
@@ -120,7 +124,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         endpoint: primarySp.endpoint,
       });
       setLoading(false);
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
       dispatch(setupBucketList(loginAccount));
       toast.success({
         description: `Bucket deleted successfully!`,

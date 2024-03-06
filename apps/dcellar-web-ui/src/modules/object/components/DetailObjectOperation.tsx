@@ -13,14 +13,9 @@ import {
 } from '@/modules/object/components/renderRows';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo } from '@/store/slices/accounts';
 import { TBucket, setBucketQuota } from '@/store/slices/bucket';
-import {
-  ObjectActionType,
-  setObjectEditTagsData,
-  setObjectOperation,
-  setStatusDetail,
-} from '@/store/slices/object';
+import { ObjectActionType, setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
@@ -35,11 +30,12 @@ import { useUnmount } from 'ahooks';
 import { last } from 'lodash-es';
 import { memo, useState } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   primarySp: SpEntity;
 }
 
@@ -68,7 +64,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
         ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
         : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-      dispatch(setStatusDetail(errorData));
+      dispatch(setSignatureAction(errorData));
     };
 
     const onAction = async (e: ObjectActionType) => {

@@ -14,14 +14,14 @@ import { getUTC0Month } from '@/utils/time';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { BN } from '@/utils/math';
 import { currencyFormatter } from '@/utils/formatter';
-import { TStoreFeeParams } from '@/store/slices/global';
+import { StoreFeeParams } from '@/store/slices/global';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { smMedia } from '@/modules/responsive';
 import { Tips } from '@/components/common/Tips';
 import { DCButton } from '@/components/common/DCButton';
 
 type CalculatorProps = {
-  storeParams: TStoreFeeParams;
+  storeParams: StoreFeeParams;
   bnbPrice: string;
   onOpenKey: (key: number) => void;
   // gasFee: string;

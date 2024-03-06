@@ -12,13 +12,13 @@ import { getCreateGroupTx, getUpdateGroupTagsTx } from '@/facade/group';
 import { Fees } from '@/modules/group/components/Fees';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { setSignatureAction } from '@/store/slices/global';
 import {
   selectGroupList,
   setGroupTagsEditData,
   setGroupOperation,
   setupGroupList,
 } from '@/store/slices/group';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { MsgCreateGroup } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { MsgCreateGroupTypeUrl, MsgSetTagTypeUrl, TxResponse } from '@bnb-chain/greenfield-js-sdk';
 import {
@@ -95,7 +95,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Create Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -122,7 +122,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
       extra: form.desc,
     };
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Creating Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Creating Group', desc: WALLET_CONFIRM }),
     );
 
     const txs: TxResponse[] = [];
@@ -149,7 +149,7 @@ export const CreateGroupOperation = memo<CreateGroupOperationProps>(function Cre
     });
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(error3 || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Group created successfully!' });
     dispatch(setupGroupList(loginAccount));
     onClose();

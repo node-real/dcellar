@@ -4,13 +4,13 @@ import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { BUTTON_GOT_IT } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setGroupMemberListPage, setupGroupMembers } from '@/store/slices/group';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { Box, Divider, QDrawerBody, QDrawerHeader } from '@node-real/uikit';
 import { useAsyncEffect } from 'ahooks';
 import { memo } from 'react';
 import { AddGroupMember } from '@/modules/group/components/AddGroupMember';
 import { GroupMemberList } from '@/modules/group/components/GroupMemberList';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface GroupMemberOperationProps {
   selectGroup: GroupInfo;
@@ -36,13 +36,13 @@ export const GroupMemberOperation = memo<GroupMemberOperationProps>(function Gro
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Update Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
             buttonText: BUTTON_GOT_IT,
             errorText: 'Error message: ' + error,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+            buttonOnClick: () => dispatch(setSignatureAction({})),
           }),
         );
     }

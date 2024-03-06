@@ -13,7 +13,7 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
-import { setupStoreFeeParams, WaitObject } from '@/store/slices/global';
+import { selectGnfdGasFeesConfig, setupStoreFeeParams, WaitObject } from '@/store/slices/global';
 import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
@@ -23,7 +23,7 @@ interface FeesProps {}
 export const Fees = memo<FeesProps>(function Fees() {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
   const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
   const storeFeeParams = useAppSelector((root) => root.global.storeFeeParams);
   const objectOperation = useAppSelector((root) => root.object.objectOperation);
@@ -34,20 +34,20 @@ export const Fees = memo<FeesProps>(function Fees() {
   const availableBalance = useAppSelector(selectAvailableBalance(payStoreFeeAccount.address));
   const { settlementFee } = useSettlementFee(bucket.PaymentAddress);
 
-  const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
+  const { gasFee: singleTxGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
   const isOwnerAccount = payStoreFeeAccount.address === loginAccount;
   const isChecking =
     objectWaitQueue.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
   const operationName = objectOperation[0][1];
 
   const createTmpAccountGasFee = useMemo(() => {
-    const grantAllowTxFee = BN(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(
-      BN(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
+    const grantAllowTxFee = BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].gasFee).plus(
+      BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
     );
-    const putPolicyTxFee = BN(gasObjects[MsgPutPolicyTypeUrl].gasFee);
+    const putPolicyTxFee = BN(gnfdGasFeesConfig[MsgPutPolicyTypeUrl].gasFee);
 
     return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
-  }, [gasObjects]);
+  }, [gnfdGasFeesConfig]);
 
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams) || isChecking) {

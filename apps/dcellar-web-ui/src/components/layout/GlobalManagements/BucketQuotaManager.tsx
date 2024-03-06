@@ -22,8 +22,13 @@ import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { setBucketEditQuota, setupBucket, setupBucketQuota, TBucket } from '@/store/slices/bucket';
-import { TStoreFeeParams, selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import {
+  StoreFeeParams,
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
 import { setupPrimarySpInfo } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
@@ -60,7 +65,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
@@ -69,14 +74,14 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const [balanceEnough, setBalanceEnough] = useState(true);
   const [moniker, setMoniker] = useState('--');
   const [newChargedQuota, setNewChargedQuota] = useState(0);
-  const [preStoreFeeParams, setPreStoreFeeParams] = useState({} as TStoreFeeParams);
+  const [preStoreFeeParams, setPreStoreFeeParams] = useState({} as StoreFeeParams);
   const [chargeSize, setChargeSize] = useState(0);
   const [refund, setRefund] = useState(false);
   const [quotaUpdateTime, setQuotaUpdateTime] = useState<number>();
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
 
-  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] || {};
+  const { gasFee } = gnfdGasFeesConfig?.[MsgUpdateBucketInfoTypeUrl] || {};
   const [bucketName] = bucketEditQuota;
   const bucket = bucketRecords[bucketName] || EMPTY_BUCKET;
   const PaymentAddress = bucket.PaymentAddress;
@@ -141,7 +146,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Update Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -161,7 +166,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
     }
     setLoading(true);
     dispatch(
-      setStatusDetail({ icon: Animates.object, title: 'Updating Quota', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.object, title: 'Updating Quota', desc: WALLET_CONFIRM }),
     );
 
     const payload: UpdateBucketInfoPayload = {
@@ -175,7 +180,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
     const [txRes, txError] = await updateBucketInfo(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Quota updated!' });
     onClose();
     dispatch(setupBucketQuota(bucketName));

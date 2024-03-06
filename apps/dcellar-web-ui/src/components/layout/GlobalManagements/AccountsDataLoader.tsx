@@ -3,15 +3,15 @@ import { useBalance } from '@/hooks/useBalance';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setBankOrWalletBalance,
-  setupAccountInfo,
+  setupAccountRecords,
   setupOwnerAccount,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
-import { setupBnbPrice } from '@/store/slices/global';
+import { setupBnbUsdtExchangeRate } from '@/store/slices/global';
 import { useAsyncEffect, useThrottleEffect } from 'ahooks';
 import { useRouter } from 'next/router';
 
-export const PaymentAccounts = () => {
+export const AccountsDataLoader = () => {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
@@ -26,9 +26,8 @@ export const PaymentAccounts = () => {
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
-    dispatch(setupBnbPrice());
+    dispatch(setupBnbUsdtExchangeRate());
     dispatch(setupOwnerAccount());
-    // TODO opt init payment accounts
     dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
 
@@ -45,7 +44,7 @@ export const PaymentAccounts = () => {
 
   useThrottleEffect(() => {
     const paymentAddress = bucketRecords[currentBucketName]?.PaymentAddress;
-    paymentAddress && dispatch(setupAccountInfo(paymentAddress));
+    paymentAddress && dispatch(setupAccountRecords(paymentAddress));
   }, [asPath]);
 
   return <></>;

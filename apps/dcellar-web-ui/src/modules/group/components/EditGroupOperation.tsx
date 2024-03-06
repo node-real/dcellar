@@ -10,8 +10,8 @@ import { updateGroupExtra } from '@/facade/group';
 import { Fees } from '@/modules/group/components/Fees';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { setSignatureAction } from '@/store/slices/global';
 import { setupGroupList } from '@/store/slices/group';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import {
@@ -70,7 +70,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Update Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -104,12 +104,12 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
       return;
     }
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const [txRes, txError] = await updateGroupExtra(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Group updated successfully!' });
     dispatch(setupGroupList(loginAccount));
     onClose();

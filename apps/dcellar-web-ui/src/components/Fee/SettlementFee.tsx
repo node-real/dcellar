@@ -1,7 +1,7 @@
 import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
 import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { Flex, Text } from '@node-real/uikit';
 
 export type SettlementFeeProps = {
@@ -9,7 +9,7 @@ export type SettlementFeeProps = {
 };
 
 export const SettlementFee = ({ amount }: SettlementFeeProps) => {
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">

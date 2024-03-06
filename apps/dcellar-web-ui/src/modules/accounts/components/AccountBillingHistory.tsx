@@ -8,7 +8,7 @@ import {
   selectAccountBillsCount,
   setupAccountBills,
 } from '@/store/slices/billing';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { formatTxType } from '@/utils/billing';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -33,7 +33,7 @@ export const AccountBillingHistory = ({ address }: Props) => {
   const accountBillListPage = useAppSelector((root) => root.billing.accountBillListPage);
   const accountBillListLoading = useAppSelector((root) => root.billing.accountBillListLoading);
   const accountBillPageSize = useAppSelector((root) => root.persist.accountBillPageSize);
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const accountBills = useAppSelector(selectAccountBills(address));
   const accountBillsCount = useAppSelector(selectAccountBillsCount(address));
 
@@ -72,7 +72,7 @@ export const AccountBillingHistory = ({ address }: Props) => {
             (
             {currencyFormatter(
               BN(record.totalCost || 0)
-                .times(BN(bnbPrice))
+                .times(BN(exchangeRate))
                 .toString(),
             )}
             )

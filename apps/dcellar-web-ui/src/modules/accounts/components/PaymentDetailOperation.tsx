@@ -1,6 +1,6 @@
 import { DCButton } from '@/components/common/DCButton';
 import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo } from '@/store/slices/accounts';
 import { getTimestampInSeconds } from '@/utils/time';
 import { Flex, QDrawerFooter } from '@node-real/uikit';
 import { useInterval, useUnmount } from 'ahooks';
@@ -10,7 +10,7 @@ import { memo, useState } from 'react';
 import { BasicInfo } from './BasicInfo';
 
 interface PaymentDetailOperationProps {
-  selectAccount: TAccountInfo;
+  selectAccount: AccountInfo;
   selectAccountId: string;
 }
 

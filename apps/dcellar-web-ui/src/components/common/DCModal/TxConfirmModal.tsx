@@ -43,7 +43,7 @@ export const TxConfirmModal = memo<TxConfirmModalProps>(function TxConfirmModal(
   onClose = () => {},
   onConfirm,
 }) {
-  const exchangeRate = useAppSelector((root) => root.global.bnbInfo).price;
+  const exchangeRate = useAppSelector((root) => root.global.bnbUsdtExchangeRate);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const { prefix } = useContext(GAContext);

@@ -25,7 +25,7 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
 import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { selectUploadQueue, UploadObject } from '@/store/slices/global';
+import { selectUploadQueue, setSignatureAction, UploadObject } from '@/store/slices/global';
 import {
   ObjectEntity,
   ObjectOperationsType,
@@ -36,7 +36,6 @@ import {
   setObjectListPageRestored,
   setObjectOperation,
   setObjectSelectedKeys,
-  setStatusDetail,
   setupListObjects,
   SINGLE_OBJECT_MAX_SIZE,
 } from '@/store/slices/object';
@@ -335,7 +334,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           const file = find<UploadObject>(
             uploadQueue,
             (q) =>
-              [...q.prefixFolders, q.waitFile.name].join('/') === record.objectName &&
+              [...q.prefixFolders, q.waitObject.name].join('/') === record.objectName &&
               q.status !== 'ERROR',
           );
           // if is uploading, can not cancel;
@@ -403,7 +402,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
 
   const onSorterChange = (name: string, def: string) => {

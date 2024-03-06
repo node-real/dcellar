@@ -8,7 +8,7 @@ export const useTaskManagementTab = () => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const objectUploadQueue = useAppSelector((root) => root.global.objectUploadQueue);
 
-  const queue = sortBy(objectUploadQueue[loginAccount] || [], (o) => o.waitFile.time);
+  const queue = sortBy(objectUploadQueue[loginAccount] || [], (o) => o.waitObject.time);
 
   const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
     const uploadingQueue = queue?.filter((i) => ['HASH', 'UPLOAD', 'SEAL'].includes(i.status));

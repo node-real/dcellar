@@ -1,7 +1,7 @@
 import { MenuOption } from '@/components/common/DCMenuList';
 import { DCSelect } from '@/components/common/DCSelect';
 import { useAppSelector } from '@/store';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { AccountEntity, selectPaymentAccounts } from '@/store/slices/accounts';
 import { trimLongStr } from '@/utils/string';
 import { Box, Grid, Text } from '@node-real/uikit';
 import { useMount } from 'ahooks';
@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { memo } from 'react';
 
 interface PaymentAccountSelectorProps {
-  onChange: (value: TAccount) => void;
+  onChange: (value: AccountEntity) => void;
 }
 
 export const PaymentAccountSelector = memo<PaymentAccountSelectorProps>(
@@ -22,7 +22,7 @@ export const PaymentAccountSelector = memo<PaymentAccountSelectorProps>(
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
 
-    const [paymentAccount, setPaymentAccount] = useState({} as TAccount);
+    const [paymentAccount, setPaymentAccount] = useState({} as AccountEntity);
     const [accountCount, setAccountCount] = useState(0);
 
     const accountList = useMemo(

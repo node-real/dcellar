@@ -3,7 +3,7 @@ import { PieChart } from '@/components/charts/PieChart';
 import { InternalRoutePaths } from '@/constants/paths';
 import { xlMedia } from '@/modules/welcome';
 import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo } from '@/store/slices/accounts';
 import { selectAllCost } from '@/store/slices/billing';
 import { formatObjectAddress } from '@/utils/accounts';
 import { cssVar, scrollToId } from '@/utils/common';
@@ -30,7 +30,7 @@ export const TotalCost = memo(function TotalCost() {
   const pieData = useMemo(() => {
     // TODO use date to judge loading
     if (costLoading || costTrendLoading || paymentAccountsLoading) return;
-    const lowerKeyAccountInfo: Record<string, TAccountInfo> = formatObjectAddress(accountRecords);
+    const lowerKeyAccountInfo: Record<string, AccountInfo> = formatObjectAddress(accountRecords);
     const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });

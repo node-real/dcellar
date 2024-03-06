@@ -42,15 +42,15 @@ import {
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  TAccount,
+  AccountEntity,
   selectPaymentAccounts,
   setAccountType,
-  setupAccountInfo,
+  setupAccountRecords,
   setupAccountType,
   setupOwnerAccount,
   setupPaymentAccounts,
 } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { setTransferFromAccount, setTransferToAccount } from '@/store/slices/wallet';
 import { renderFee } from '@/utils/common';
 import { removeTrailingSlash } from '@/utils/string';
@@ -79,7 +79,7 @@ export const Send = memo<SendProps>(function Send() {
   const transferFromAddress = useAppSelector((root) => root.wallet.transferFromAddress);
   const transferToAddress = useAppSelector((root) => root.wallet.transferToAddress);
 
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
   const initFormRef = useRef(false);
   const router = useRouter();
@@ -181,7 +181,7 @@ export const Send = memo<SendProps>(function Send() {
     setViewTxUrl(txUrl);
     if (!isEmpty(freshAddress)) {
       freshAddress.forEach((address) => {
-        dispatch(setupAccountInfo(address));
+        dispatch(setupAccountRecords(address));
       });
     }
     setStatus('success');
@@ -253,7 +253,7 @@ export const Send = memo<SendProps>(function Send() {
     }
   };
 
-  const onChangeFromAccount = async (account: TAccount) => {
+  const onChangeFromAccount = async (account: AccountEntity) => {
     if (!isAddress(account.address)) return;
     const accountType = accountTypeRecords[account.address];
     const accountDetail = accountRecords[account.address];
@@ -267,11 +267,11 @@ export const Send = memo<SendProps>(function Send() {
     }
 
     dispatch(setTransferFromAccount(account));
-    await dispatch(setupAccountInfo(account.address));
+    await dispatch(setupAccountRecords(account.address));
   };
 
   const onChangeToAccount = useCallback(
-    debounce(async (account: TAccount) => {
+    debounce(async (account: AccountEntity) => {
       setToJsErrors([]);
       if (!!account.address && !isAddress(account.address)) {
         dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
@@ -284,7 +284,7 @@ export const Send = memo<SendProps>(function Send() {
       }
       setLoadingToAccount(true);
       dispatch(setTransferToAccount(account));
-      await dispatch(setupAccountInfo(account.address));
+      await dispatch(setupAccountRecords(account.address));
       await dispatch(setupAccountType(account.address));
       setLoadingToAccount(false);
     }, 500),

@@ -3,9 +3,9 @@ import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
 import { Loading } from '@/components/common/Loading';
 import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo } from '@/store/slices/accounts';
 import { AccountBill, selectAllBills, selectAllBillsCount } from '@/store/slices/billing';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { formatTxType } from '@/utils/billing';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -26,7 +26,7 @@ export const AllBillingHistory = () => {
   const billPageSize = useAppSelector((root) => root.persist.billPageSize);
   const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
 
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const allBills = useAppSelector(selectAllBills());
   const allBillsCount = useAppSelector(selectAllBillsCount());
   const router = useRouter();
@@ -35,7 +35,7 @@ export const AllBillingHistory = () => {
   const { query } = router;
 
   const lowerKeyAccountInfo = useMemo(() => {
-    const newInfo: Record<string, TAccountInfo> = {};
+    const newInfo: Record<string, AccountInfo> = {};
     Object.entries(accountRecords).forEach(([key, value]) => {
       newInfo[key.toLowerCase()] = value;
     });
@@ -90,7 +90,7 @@ export const AllBillingHistory = () => {
               (
               {currencyFormatter(
                 BN(record.totalCost || 0)
-                  .times(BN(bnbPrice))
+                  .times(BN(exchangeRate))
                   .toString(),
               )}
               )

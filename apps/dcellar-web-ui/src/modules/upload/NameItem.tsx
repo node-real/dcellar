@@ -33,10 +33,10 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
 
   const onClick = () => {
     if (!finished || !task) return;
-    const id = [task.bucketName, ...task.prefixFolders, task.waitFile.relativePath, name]
+    const id = [task.bucketName, ...task.prefixFolders, task.waitObject.relativePath, name]
       .filter(Boolean)
       .join('/');
-    const objectName = [...task.prefixFolders, task.waitFile.relativePath, name]
+    const objectName = [...task.prefixFolders, task.waitObject.relativePath, name]
       .filter(Boolean)
       .join('/');
 
@@ -54,7 +54,7 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
           {
             action: 'view',
             bucketName: task.bucketName,
-            payloadSize: task.waitFile.size,
+            payloadSize: task.waitObject.size,
             objectName,
           },
         ],

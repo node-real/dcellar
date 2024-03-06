@@ -7,7 +7,7 @@ import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
 import { LearnMoreTips } from '@/components/common/Tips';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { useDisclosure } from '@node-real/uikit';
 
@@ -36,7 +36,7 @@ export const ChangePaymentTotalFee = ({
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const { isOpen, onToggle } = useDisclosure();
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   const amount = BN(gasFee)
     .plus(from.amount)
@@ -50,7 +50,7 @@ export const ChangePaymentTotalFee = ({
       amount={amount}
       onToggle={onToggle}
       expand={isOpen}
-      exchangeRate={bnbPrice}
+      exchangeRate={exchangeRate}
       canExpand={true}
       Tips={Tips}
     >

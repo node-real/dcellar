@@ -1,7 +1,7 @@
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { BN } from '@/utils/math';
 import { Flex, Text } from '@node-real/uikit';
@@ -17,7 +17,7 @@ export const FullBalance = memo<FullBalanceProps>(function FullBalance({ address
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const accountDetail = useAppSelector(selectAccount(address));
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   const isOwnerAccount = address === loginAccount;
   const balance = isOwnerAccount
