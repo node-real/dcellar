@@ -7,7 +7,6 @@ import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupPaymentAccounts } from '@/store/slices/accounts';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { MsgCreatePaymentAccountTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { Box, Link, Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
@@ -15,6 +14,7 @@ import { useRouter } from 'next/router';
 import { memo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { GAContextProvider } from '@/context/GAContext';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
 
 interface CreatePaymentAccountProps {}
 
@@ -23,14 +23,14 @@ export const CreatePaymentAccount = memo<CreatePaymentAccountProps>(
     const dispatch = useAppDispatch();
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
     const router = useRouter();
     const { connector } = useAccount();
     const [confirmModal, setConfirmModal] = useState(false);
 
     const hasBankBalance = BigNumber(bankBalance).gt(BigNumber(MIN_AMOUNT));
-    const fee = gasObjects?.[MsgCreatePaymentAccountTypeUrl]?.gasFee || 0;
+    const fee = gnfdGasFeesConfig?.[MsgCreatePaymentAccountTypeUrl]?.gasFee || 0;
 
     const refreshPaymentAccountList = () => {
       dispatch(setupPaymentAccounts());
@@ -38,7 +38,7 @@ export const CreatePaymentAccount = memo<CreatePaymentAccountProps>(
 
     const onCreatePayment = async () => {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: 'Creating Payment Account',
           icon: Animates.object,
           desc: WALLET_CONFIRM,
@@ -49,7 +49,7 @@ export const CreatePaymentAccount = memo<CreatePaymentAccountProps>(
       const [res, error] = await createPaymentAccount(loginAccount, connector);
       if (error && typeof error === 'string') {
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Create Failed',
             icon: 'status-failed',
             desc: error || '',
@@ -59,7 +59,7 @@ export const CreatePaymentAccount = memo<CreatePaymentAccountProps>(
         return;
       }
       refreshPaymentAccountList();
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     };
 
     return (

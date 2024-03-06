@@ -24,7 +24,7 @@ import {
   SelectedText,
 } from '@/modules/object/objects.style';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupAccountInfo } from '@/store/slices/accounts';
+import { setupAccountRecords } from '@/store/slices/accounts';
 import { setBucketStatus, setupBucket } from '@/store/slices/bucket';
 import { setPathSegments } from '@/store/slices/object';
 import { setPrimarySpInfo, SpEntity } from '@/store/slices/sp';
@@ -63,11 +63,9 @@ export const ObjectsPage = () => {
 
   useAsyncEffect(async () => {
     if (!bucket) return;
-    // 1. Save cur bucket primary sp info.
     const sp = allSpList.find((item) => +item.id === +bucket.Vgf.PrimarySpId) as SpEntity;
     dispatch(setPrimarySpInfo({ bucketName, sp }));
-    // 2. Set cur bucket payment account info.
-    dispatch(setupAccountInfo(bucket.PaymentAddress));
+    dispatch(setupAccountRecords(bucket.PaymentAddress));
   }, [bucket, bucketName]);
 
   useAsyncEffect(async () => {

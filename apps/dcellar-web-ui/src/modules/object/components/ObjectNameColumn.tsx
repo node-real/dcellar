@@ -12,7 +12,6 @@ import {
   setObjectListPage,
   setObjectOperation,
   setObjectShareModePath,
-  setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { encodeObjectName } from '@/utils/string';
@@ -22,6 +21,7 @@ import { trimEnd } from 'lodash-es';
 import Link from 'next/link';
 import { memo } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface ObjectNameColumnProps {
   item: ObjectEntity;
@@ -55,7 +55,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
 
   const download = async (object: ObjectEntity) => {

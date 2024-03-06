@@ -9,7 +9,7 @@ import {
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccountDetail, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { formatAddress, trimFloatZero } from '@/utils/string';
@@ -29,7 +29,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const accountDetail = useAppSelector(selectAccountDetail(address));
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const router = useRouter();
 
   const isOwnerAccount = address === loginAccount;
@@ -163,7 +163,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
             ≈
             {currencyFormatter(
               BN(availableBalance || 0)
-                .times(BN(bnbPrice))
+                .times(BN(exchangeRate))
                 .toString(),
             )}
           </Text>

@@ -19,16 +19,14 @@ import {
 } from '@/modules/object/constant';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccountInfo, selectAccount, setupAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo, selectAccount, setupAccountRecords } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
-import { selectStoreFeeParams } from '@/store/slices/global';
 import {
-  TStatusDetail,
-  setDeletedObject,
-  setObjectList,
-  setObjectSelectedKeys,
-  setStatusDetail,
-} from '@/store/slices/object';
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+} from '@/store/slices/global';
+import { setDeletedObject, setObjectList, setObjectSelectedKeys } from '@/store/slices/object';
 import { SpEntity } from '@/store/slices/sp';
 import { displayTime } from '@/utils/common';
 import { reportEvent } from '@/utils/gtag';
@@ -46,7 +44,7 @@ import { useAccount } from 'wagmi';
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   primarySp: SpEntity;
   refetch?: () => void;
   onClose?: () => void;
@@ -69,7 +67,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
     const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
     const { reserveTime } = useAppSelector(selectStoreFeeParams);
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
 
@@ -85,7 +83,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(
       bucket.PaymentAddress,
     );
-    const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
+    const simulateGasFee = gnfdGasFeesConfig[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
     const isStoredAtMinimumTime = useMemo(() => {
       if (!reserveTime) return null;
       return BN(getTimestampInSeconds()).minus(objectInfo.CreateAt).minus(reserveTime).isPositive();
@@ -133,14 +131,14 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
 
     const setFailedStatusModal = (description: string, error: any) => {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: 'status-failed',
           title: FILE_TITLE_DELETE_FAILED,
           desc: description,
           buttonText: BUTTON_GOT_IT,
           errorText: 'Error message: ' + error?.message ?? '',
           buttonOnClick: () => {
-            dispatch(setStatusDetail({} as TStatusDetail));
+            dispatch(setSignatureAction({}));
           },
         }),
       );
@@ -151,7 +149,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
         setLoading(true);
         onClose();
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             icon: Animates.delete,
             title: isFolder ? 'Deleting Folder' : 'Deleting File',
             desc: WALLET_CONFIRM,
@@ -177,11 +175,11 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
           })
           .then(resolve, broadcastFault);
         if (txRes === null) {
-          dispatch(setStatusDetail({} as TStatusDetail));
+          dispatch(setSignatureAction({}));
           return toast.error({ description: error || 'Object deletion failed.' });
         }
         if (txRes.code === 0) {
-          await dispatch(setupAccountInfo(bucket.PaymentAddress));
+          await dispatch(setupAccountRecords(bucket.PaymentAddress));
           toast.success({
             description: isFolder ? 'Folder deleted successfully.' : 'Object deleted successfully.',
           });
@@ -201,13 +199,13 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
         }
         refetch();
         onClose();
-        dispatch(setStatusDetail({} as TStatusDetail));
+        dispatch(setSignatureAction({}));
         setLoading(false);
       } catch (error: any) {
         setLoading(false);
         const { code = '' } = error;
         if (code && String(code) === E_USER_REJECT_STATUS_NUM) {
-          dispatch(setStatusDetail({} as TStatusDetail));
+          dispatch(setSignatureAction({}));
           return;
         }
         // eslint-disable-next-line no-console
@@ -236,7 +234,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       const folderEmpty = await isFolderEmpty(objectName);
       if (!folderEmpty) {
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             icon: 'empty-bucket',
             title: FOLDER_TITLE_NOT_EMPTY,
             desc: '',
@@ -250,7 +248,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
         setLoading(false);
         setButtonDisabled(false);
       }
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     }, [isFolder]);
 
     return (

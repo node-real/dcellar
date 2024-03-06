@@ -9,6 +9,7 @@ import { Button, Flex, MenuButton, Text } from '@node-real/uikit';
 import { find } from 'lodash-es';
 import { memo, useState } from 'react';
 import { GAContextProvider } from '@/context/GAContext';
+import { selectGnfdGasFeesConfig } from '@/store/slices/global';
 
 interface AccessItemProps {
   value: number;
@@ -45,12 +46,12 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
   onChange = () => {},
   folder = false,
 }) {
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const [_value, setValue] = useState<number>(1);
   const [confirmModal, setConfirmModal] = useState(false);
 
-  const fee = gasObjects?.[MsgUpdateObjectInfoTypeUrl]?.gasFee || 0;
+  const fee = gnfdGasFeesConfig?.[MsgUpdateObjectInfoTypeUrl]?.gasFee || 0;
   const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
 
   return (

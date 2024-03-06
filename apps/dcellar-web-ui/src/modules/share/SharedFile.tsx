@@ -24,11 +24,11 @@ import { BUTTON_GOT_IT } from '@/modules/object/constant';
 import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
 import { useAppDispatch } from '@/store';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { setStatusDetail } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
 import { reportEvent } from '@/utils/gtag';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface SharedFileProps {
   fileName: string;
@@ -63,7 +63,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         ...errorData,
         buttonText: BUTTON_GOT_IT,
         extraParams: [bucketName],

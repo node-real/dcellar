@@ -1,7 +1,7 @@
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
 import { selectAccountDetail } from '@/store/slices/accounts';
-import { selectStoreFeeParams } from '@/store/slices/global';
+import { selectGnfdGasFeesConfig, selectStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -25,13 +25,13 @@ export const useChangePaymentAccountFee = ({
   to: string;
   storageSize: number;
 }): ChangePaymentAccountFee => {
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const { settlementFee: fromSettlementFee, loading: loading1 } = useSettlementFee(from);
   const { settlementFee: toSettlementFee, loading: loading2 } = useSettlementFee(to);
 
-  const { gasFee } = gasObjects?.[MsgUpdateBucketInfoTypeUrl] ?? {};
+  const { gasFee } = gnfdGasFeesConfig?.[MsgUpdateBucketInfoTypeUrl] ?? {};
   const storeFee = BN(getStoreNetflowRate(storageSize, storeFeeParams))
     .times(storeFeeParams.reserveTime)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)

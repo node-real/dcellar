@@ -6,7 +6,6 @@ import { deleteGroup } from '@/facade/group';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setGroupRemoving, setupGroupList } from '@/store/slices/group';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { trimLongStr } from '@/utils/string';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { MsgDeleteGroupTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -14,6 +13,7 @@ import { toast } from '@node-real/uikit';
 import { memo } from 'react';
 import { useAccount } from 'wagmi';
 import { GAContextProvider } from '@/context/GAContext';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
 
 interface DeleteGroupProps {}
 
@@ -21,7 +21,7 @@ export const DeleteGroupOperation = memo<DeleteGroupProps>(function DeleteGroup(
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const groupRemoving = useAppSelector((root) => root.group.groupRemoving);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo).gasObjects || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
@@ -33,7 +33,7 @@ export const DeleteGroupOperation = memo<DeleteGroupProps>(function DeleteGroup(
     16,
     0,
   )}”? `;
-  const fee = gasObjects?.[MsgDeleteGroupTypeUrl]?.gasFee || 0;
+  const fee = gnfdGasFeesConfig?.[MsgDeleteGroupTypeUrl]?.gasFee || 0;
 
   const errorHandler = (error: string) => {
     switch (error) {
@@ -42,7 +42,7 @@ export const DeleteGroupOperation = memo<DeleteGroupProps>(function DeleteGroup(
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Delete Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -59,11 +59,11 @@ export const DeleteGroupOperation = memo<DeleteGroupProps>(function DeleteGroup(
       groupName: groupRemoving.groupName,
     };
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Deleting Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Deleting Group', desc: WALLET_CONFIRM }),
     );
     const [txRes, txError] = await deleteGroup(payload, connector!);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Group deleted successfully!' });
     dispatch(setupGroupList(loginAccount));
   };

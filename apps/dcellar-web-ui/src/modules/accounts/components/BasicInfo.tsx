@@ -9,8 +9,8 @@ import {
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
-import { selectBnbPrice, selectStoreFeeParams } from '@/store/slices/global';
+import { AccountInfo } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
 import { trimAddress, trimFloatZero } from '@/utils/string';
@@ -24,7 +24,7 @@ import { LoadingAdaptor } from './LoadingAdaptor';
 type Props = {
   loading: boolean;
   title: string;
-  accountDetail: TAccountInfo;
+  accountDetail: AccountInfo;
   availableBalance: string;
 };
 
@@ -33,7 +33,7 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const router = useRouter();
 
   const isOwnerAccount = accountDetail?.name?.toLowerCase() === 'owner account';
@@ -94,7 +94,7 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
               <Text color="readable.tertiary" fontSize={12}>
                 &nbsp;(
                 {currencyFormatter(
-                  BN(availableBalance).times(BN(bnbPrice)).toString(DECIMAL_NUMBER),
+                  BN(availableBalance).times(BN(exchangeRate)).toString(DECIMAL_NUMBER),
                 )}
                 )
               </Text>

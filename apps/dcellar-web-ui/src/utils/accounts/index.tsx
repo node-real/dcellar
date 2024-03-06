@@ -1,6 +1,6 @@
 import { IconFont } from '@/components/IconFont';
 import { BillingHistoryQuery } from '@/modules/accounts';
-import { AccountType, TAccountInfo } from '@/store/slices/accounts';
+import { AccountType, AccountInfo } from '@/store/slices/accounts';
 import dayjs from 'dayjs';
 import { InternalRoutePaths } from '@/constants/paths';
 import { stringify } from 'querystring';
@@ -36,8 +36,8 @@ export const getAccountDisplay = (type: AccountType) => {
   return accountDisplays[type];
 };
 
-export const formatObjectAddress = (accountInfo: Record<string, TAccountInfo>) => {
-  const lowerKeyAccountInfo: Record<string, TAccountInfo> = {};
+export const formatObjectAddress = (accountInfo: Record<string, AccountInfo>) => {
+  const lowerKeyAccountInfo: Record<string, AccountInfo> = {};
   Object.entries(accountInfo).forEach(([key, value]) => {
     const lowerKey = key.toLowerCase();
     lowerKeyAccountInfo[lowerKey] = {

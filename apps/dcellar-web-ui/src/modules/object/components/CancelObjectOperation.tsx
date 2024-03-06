@@ -21,14 +21,10 @@ import {
   renderPaymentInsufficientBalance,
 } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccountInfo, selectAvailableBalance } from '@/store/slices/accounts';
+import { AccountInfo, selectAvailableBalance } from '@/store/slices/accounts';
 import { TBucket, setupBucketQuota } from '@/store/slices/bucket';
-import {
-  TStatusDetail,
-  setDeletedObject,
-  setObjectSelectedKeys,
-  setStatusDetail,
-} from '@/store/slices/object';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
+import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { SpEntity } from '@/store/slices/sp';
 import { formatLockFee } from '@/utils/object';
 import { Long, MsgCancelCreateObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
@@ -87,7 +83,7 @@ export const renderFee = (
 interface CancelObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   primarySp: SpEntity;
   refetch?: () => void;
   onClose?: () => void;
@@ -104,8 +100,8 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
   }) {
     const dispatch = useAppDispatch();
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
-    const { price: bnbPrice } = useAppSelector((root) => root.global.bnbInfo);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+    const exchangeRateStr = +useAppSelector((root) => root.global.bnbUsdtExchangeRate);
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
     const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
     const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
@@ -117,15 +113,15 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
     const [buttonDisabled, setButtonDisabled] = useState(false);
     const { connector } = useAccount();
 
-    const exchangeRate = +bnbPrice ?? 0;
+    const exchangeRate = +exchangeRateStr ?? 0;
     const objectInfo = selectObjectInfo.ObjectInfo;
-    const simulateGasFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
+    const simulateGasFee = gnfdGasFeesConfig[MsgCancelCreateObjectTypeUrl]?.gasFee + '';
     const filePath = objectInfo.ObjectName.split('/');
     const showName = filePath[filePath.length - 1];
     const description = `Are you sure you want to cancel uploading the object "${showName}"?`;
 
     const setFailedStatusModal = (description: string, error: any) => {
-      setStatusDetail({
+      setSignatureAction({
         icon: 'status-failed',
         title: FILE_TITLE_CANCEL_FAILED,
         desc: description,
@@ -235,7 +231,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                 setLoading(true);
                 onClose();
                 dispatch(
-                  setStatusDetail({
+                  setSignatureAction({
                     icon: Animates.object,
                     title: 'Canceling Uploading',
                     desc: WALLET_CONFIRM,
@@ -260,7 +256,7 @@ export const CancelObjectOperation = memo<CancelObjectOperationProps>(
                     signTypedDataCallback: signTypedDataCallback(connector!),
                   })
                   .then(resolve, commonFault);
-                dispatch(setStatusDetail({} as TStatusDetail));
+                dispatch(setSignatureAction({}));
                 if (txRes === null) {
                   toast.error({ description: error || 'Upload cancellation failed.' });
                   return;

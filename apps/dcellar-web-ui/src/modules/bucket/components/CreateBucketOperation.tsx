@@ -43,15 +43,19 @@ import { ChainVisibilityEnum } from '@/modules/object/type';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount, setupAccountInfo, TAccount } from '@/store/slices/accounts';
+import { selectAccount, setupAccountRecords, AccountEntity } from '@/store/slices/accounts';
 import {
   selectBucketList,
   setBucketOperation,
   setBucketTagsEditData,
   setupBucketList,
 } from '@/store/slices/bucket';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
+import {
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { reportEvent } from '@/utils/gtag';
@@ -92,14 +96,14 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
   const bucketEditTagsData = useAppSelector((root) => root.bucket.bucketEditTagsData);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig) || {};
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
 
   const [chargeQuota, setChargeQuota] = useState(0);
   const globalSP = spRecords[specifiedSp];
   const selectedSpRef = useRef<SpEntity>(globalSP);
-  const selectedPaRef = useRef<TAccount>({} as TAccount);
+  const selectedPaRef = useRef<AccountEntity>({} as AccountEntity);
   const nonceRef = useRef(0);
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
@@ -115,8 +119,8 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const validTags = getValidTags(bucketEditTagsData);
   const balance = useMemo(() => BigNumber(bankBalance || 0), [bankBalance]);
-  const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateBucketTypeUrl] || {};
-  const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
+  const { gasFee: createBucketGasFee } = gnfdGasFeesConfig?.[MsgCreateBucketTypeUrl] || {};
+  const { gasFee: setTagsGasFee } = gnfdGasFeesConfig?.[MsgSetTagTypeUrl] || {};
 
   const gasFee = useMemo(() => {
     if (validTags.length === 0) {
@@ -179,7 +183,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     }
 
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: 'status-failed',
         title: 'Create Failed',
         desc: 'Sorry, there’s something wrong when creating the bucket.',
@@ -309,7 +313,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const onSubmit = async (data: any) => {
     dispatch(
-      setStatusDetail({ icon: Animates.object, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.object, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
     );
     const { seedString } = await dispatch(
       getSpOffChainData(loginAccount, selectedSpRef.current.operatorAddress),
@@ -362,14 +366,14 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       bucketName: createBucketPayload.bucketName,
     });
 
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
 
     onClose();
     dispatch(setupBucketList(loginAccount));
     toast.success({
       description: `Bucket created successfully!`,
     });
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     reportEvent({
       name: 'dc.toast.bucket_create.success.show',
     });
@@ -402,7 +406,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       selectedSpRef.current = sp;
       const { value, available } = validateNameAndGas.name;
       if (spUpdate) {
-        // todo for reset gas simulator error
+        // for reset gas simulator error
         const valid = validateName(bucketName || '');
         if (!valid) return;
       } else {
@@ -416,12 +420,12 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   );
 
   const onPaymentAccountChange = useCallback(
-    async (pa: TAccount) => {
+    async (pa: AccountEntity) => {
       selectedPaRef.current = pa;
-      await dispatch(setupAccountInfo(pa.address));
+      await dispatch(setupAccountRecords(pa.address));
       const { value, available } = validateNameAndGas.name;
       if (paUpdate) {
-        // todo for reset gas simulator error
+        // for reset gas simulator error
         const valid = validateName(bucketName || '');
         if (!valid) return;
       } else {

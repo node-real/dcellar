@@ -9,12 +9,12 @@ import { RenderItem } from '@/components/common/DCComboBox/RenderItem';
 import { DCButton } from '@/components/common/DCButton';
 import { Dayjs } from 'dayjs';
 import { ADDRESS_RE } from '@/constants/legacy';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { Animates } from '@/components/AnimatePng';
 import { UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { addMemberToGroup } from '@/facade/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { useAccount } from 'wagmi';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
 
 const ITEM_LIMIT = 20;
 
@@ -31,7 +31,7 @@ export const AddGroupMember = memo<AddGroupMemberProps>(function AddGroupMember(
 }) {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const [confirmModal, setConfirmModal] = useState(false);
   const [values, setValues] = useState<string[]>([]);
@@ -42,7 +42,7 @@ export const AddGroupMember = memo<AddGroupMemberProps>(function AddGroupMember(
 
   const { connector } = useAccount();
 
-  const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
+  const fee = gnfdGasFeesConfig?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
   const invalid = !!error || invalidIds.length > 0;
 
   const onFieldValueChange = (_e: string[]) => {
@@ -62,7 +62,7 @@ export const AddGroupMember = memo<AddGroupMemberProps>(function AddGroupMember(
   const onAddGroupMember = async () => {
     setLoading(true);
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const membersToAdd = values.map((item) => ({
       member: item,
@@ -80,7 +80,7 @@ export const AddGroupMember = memo<AddGroupMemberProps>(function AddGroupMember(
     const [txRes, txError] = await addMemberToGroup(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Members added successfully!' });
     updateMemberList(values[0]);
     setValues([]);

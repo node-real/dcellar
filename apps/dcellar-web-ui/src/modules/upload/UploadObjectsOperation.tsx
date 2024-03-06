@@ -64,16 +64,15 @@ import {
   addTasksToUploadQueue,
   addToWaitQueue,
   resetWaitQueue,
+  setSignatureAction,
   setTaskManagement,
   setupWaitTaskErrorMsg,
-  updateWaitFileStatus,
+  updateWaitObjectStatus,
 } from '@/store/slices/global';
 import {
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
-  TStatusDetail,
-  setStatusDetail,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
@@ -86,7 +85,7 @@ import {
 } from '@/utils/dom';
 import { formatBytes } from '@/utils/formatter';
 import { getTimestamp } from '@/utils/time';
-import { setTempAccounts } from '@/store/slices/accounts';
+import { setTempAccountRecords } from '@/store/slices/accounts';
 import { createTempAccount } from '@/facade/account';
 
 const defaultScroll = { top: 0 };
@@ -146,8 +145,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         return [
           item.bucketName,
           ...item.prefixFolders,
-          item.waitFile.relativePath,
-          item.waitFile.name,
+          item.waitObject.relativePath,
+          item.waitObject.name,
         ]
           .filter((item) => !!item)
           .join('/');
@@ -161,11 +160,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
 
     const closeModal = () => {
       onClose();
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     };
 
-    const validateFolder = (waitFile: WaitObject) => {
-      const { file: folder, relativePath } = waitFile;
+    const validateFolder = (waitObject: WaitObject) => {
+      const { file: folder, relativePath } = waitObject;
       if (!folder.name) {
         return E_FILE_IS_EMPTY;
       }
@@ -195,8 +194,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       return '';
     };
 
-    const validateFile = (waitFile: WaitObject) => {
-      const { relativePath, file } = waitFile;
+    const validateFile = (waitObject: WaitObject) => {
+      const { relativePath, file } = waitObject;
       if (!file) {
         return E_FILE_IS_EMPTY;
       }
@@ -238,7 +237,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const errorHandler = (error: string) => {
       setCreating(false);
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: FILE_TITLE_UPLOAD_FAILED,
           icon: 'status-failed',
           desc: "Sorry, there's something wrong when signing with the wallet.",
@@ -254,7 +253,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       const isOneFile = validFiles.length === 1;
       setCreating(true);
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: Animates.upload,
           title: 'Uploading',
           desc: WALLET_CONFIRM,
@@ -262,16 +261,16 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       );
       if (isOneFile) {
         // 1. cal hash
-        const waitFile = validFiles[0];
+        const waitObject = validFiles[0];
         const a = performance.now();
-        const res = await checksumApi?.generateCheckSumV2(waitFile.file);
+        const res = await checksumApi?.generateCheckSumV2(waitObject.file);
         const expectCheckSums = res?.expectCheckSums || [];
         console.log('hashing time', performance.now() - a);
         // 2. getApproval & sign
         const { seedString } = await dispatch(
           getSpOffChainData(loginAccount, primarySp.operatorAddress),
         );
-        const finalName = [...pathSegments, waitFile.relativePath, waitFile.name]
+        const finalName = [...pathSegments, waitObject.relativePath, waitObject.name]
           .filter((item) => !!item)
           .join('/');
         const createObjectPayload: CreateObjectApprovalRequest = {
@@ -279,8 +278,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           objectName: finalName,
           creator: loginAccount,
           visibility: reverseVisibilityType[visibility],
-          fileType: waitFile.type || 'application/octet-stream',
-          contentLength: waitFile.size,
+          fileType: waitObject.type || 'application/octet-stream',
+          contentLength: waitObject.size,
           expectCheckSums,
         };
         const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
@@ -292,7 +291,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
 
         if (!createObjectTx) {
           // TODO refactor
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _createError }));
+          dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: _createError }));
           closeModal();
           return;
         }
@@ -303,7 +302,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         //   tags: validTags
         // });
         // if (!tagsTx) {
-        //   dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _tagsError }));
+        //   dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: _tagsError }));
         //   closeModal();
         //   return;
         // }
@@ -313,7 +312,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           connector: connector!,
         });
         if (!txRes || error) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error ?? '' }));
+          dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: error ?? '' }));
           closeModal();
           return;
         }
@@ -322,7 +321,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           addSignedTasksToUploadQueue({
             spAddress: primarySp.operatorAddress,
             visibility,
-            waitFile,
+            waitObject: waitObject,
             checksums: expectCheckSums,
             createHash,
             tags: validTags,
@@ -343,7 +342,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         if (!tempAccount) {
           return errorHandler(error);
         }
-        dispatch(setTempAccounts(tempAccount));
+        dispatch(setTempAccountRecords(tempAccount));
         dispatch(
           addTasksToUploadQueue({
             spAddress: primarySp.operatorAddress,
@@ -402,7 +401,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const isFolder = file.name.endsWith('/');
         const error = isFolder ? validateFolder(item) : validateFile(item);
         if (!error) {
-          task.status === 'CHECK' && dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
+          task.status === 'CHECK' && dispatch(updateWaitObjectStatus({ id, status: 'WAIT' }));
           return;
         }
         dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));

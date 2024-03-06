@@ -12,7 +12,6 @@ import { TxConfirmModal } from '@/components/common/DCModal/TxConfirmModal';
 import { trimAddress } from '@/utils/string';
 import { GAContextProvider } from '@/context/GAContext';
 import { MsgUpdateGroupMemberTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { Animates } from '@/components/AnimatePng';
 import { UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { removeMemberFromGroup } from '@/facade/group';
@@ -29,6 +28,7 @@ import { DCMenu } from '@/components/common/DCMenu';
 import { IconFont } from '@/components/IconFont';
 import { SimplePagination } from '@/components/common/DCTable/SimplePagination';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
 
 const MEMBER_ACTIONS: MenuOption[] = [
   { label: 'Member', value: 'member' },
@@ -53,7 +53,7 @@ export const GroupMemberList = memo<GroupMemberListProps>(function GroupMemberLi
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const groupSelectedMembers = useAppSelector((root) => root.group.groupSelectedMembers);
   const groupMemberListPage = useAppSelector((root) => root.group.groupMemberListPage);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
   const memberList = useAppSelector(selectMemberList(currentGroup.id));
 
   const [deleteModal, setDeleteModal] = useState(false);
@@ -61,7 +61,7 @@ export const GroupMemberList = memo<GroupMemberListProps>(function GroupMemberLi
 
   const { connector } = useAccount();
 
-  const fee = gasObjects?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
+  const fee = gnfdGasFeesConfig?.[MsgUpdateGroupMemberTypeUrl]?.gasFee || 0;
   const memberCount = groupSelectedMembers.length;
   const { page, canPrev, canNext } = useTableNav<GroupMember>({
     list: memberList,
@@ -78,7 +78,7 @@ export const GroupMemberList = memo<GroupMemberListProps>(function GroupMemberLi
 
   const onRemoveMember = async () => {
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const payload = {
       operator: loginAccount,
@@ -89,7 +89,7 @@ export const GroupMemberList = memo<GroupMemberListProps>(function GroupMemberLi
     };
     const [txRes, txError] = await removeMemberFromGroup(payload, connector!);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Members removed successfully!' });
     updateMemberList(removeAccount[0], true);
     dispatch(setGroupSelectedMembers(without(groupSelectedMembers, ...removeAccount)));

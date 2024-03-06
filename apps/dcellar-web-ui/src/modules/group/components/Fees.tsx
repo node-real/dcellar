@@ -9,6 +9,7 @@ import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
 import { memo } from 'react';
 import { useAsyncEffect } from 'ahooks';
+import { selectGnfdGasFeesConfig } from '@/store/slices/global';
 
 export type FeeItem = {
   label: string;
@@ -22,16 +23,15 @@ interface FeesProps {
 }
 
 export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable }) {
-  const exchangeRate = useAppSelector((root) => root.global.bnbInfo.price);
+  const exchangeRate = useAppSelector((root) => root.global.bnbUsdtExchangeRate);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
 
   const _fees = fees.map((fee) => ({
     label: fee.label,
-    value: fee.value ?? fee.types.reduce((res, cur) => res + gasObjects?.[cur]?.gasFee, 0),
-    // (gasObjects?.[fee.type]?.gasFee || 0),
+    value: fee.value ?? fee.types.reduce((res, cur) => res + gnfdGasFeesConfig?.[cur]?.gasFee, 0),
   }));
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));
   const enoughBalance = new BigNumber(bankBalance).minus(allFees).isPositive();

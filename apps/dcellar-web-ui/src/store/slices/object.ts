@@ -31,16 +31,6 @@ export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
 export const MAXIMUM_LIST_ITEMS = 10_000;
 
-export type TStatusDetail = {
-  icon: string;
-  title: string;
-  desc?: string;
-  buttonText?: string;
-  errorText?: string;
-  buttonOnClick?: () => void;
-  extraParams?: Array<string | number>;
-};
-
 export type ObjectResource = {
   Resources: string[];
   Actions: string[];
@@ -95,7 +85,6 @@ export interface ObjectState {
   objectRecords: Record<string, ObjectMeta>;
   objectListPageRecords: Record<string, number>;
   objectListPageRestored: boolean;
-  statusDetail: TStatusDetail;
   objectSelectedKeys: Key[];
   deletedObjectRecords: Record<string, number>;
   objectListRefreshing: boolean;
@@ -123,7 +112,6 @@ const initialState: ObjectState = {
   objectRecords: {},
   objectListPageRecords: {},
   objectListPageRestored: true,
-  statusDetail: {} as TStatusDetail,
   objectSelectedKeys: [],
   deletedObjectRecords: {},
   objectListRefreshing: false,
@@ -284,9 +272,6 @@ export const objectSlice = createSlice({
       state.objectCommonPrefix = !folders.length ? '' : folders.join('/') + '/';
       state.completeCommonPrefix = [bucketName, ...folders].join('/');
     },
-    setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
-      state.statusDetail = payload;
-    },
     setObjectList(
       state,
       {
@@ -339,11 +324,10 @@ export const objectSlice = createSlice({
           objectName: ObjectName,
           name: last(ObjectName.split('/'))!,
           payloadSize: Number(PayloadSize),
-          // todo fix it *second*
-          createAt: Number(CreateAt),
+          createAt: CreateAt,
           contentType: ContentType,
           folder: false,
-          objectStatus: Number(ObjectStatus),
+          objectStatus: ObjectStatus,
           visibility: Visibility,
           removed: i.Removed,
         };
@@ -357,7 +341,6 @@ export const objectSlice = createSlice({
           return !ts || ts < getMillisecond(o.createAt);
         });
 
-      // TODO
       if (infoOnly) return;
       state.objectListRecords[path] = folders.concat(objects as any[]);
     },
@@ -385,7 +368,6 @@ export const {
   setObjectListPage,
   setObjectList,
   setObjectListPageRestored,
-  setStatusDetail,
   setObjectStatus,
   setCreationDummyFolder,
   setObjectVisibility,

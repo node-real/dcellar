@@ -12,19 +12,15 @@ import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  TAccountInfo,
+  AccountInfo,
   selectAccount,
   selectAvailableBalance,
-  setTempAccounts,
-  setupAccountInfo,
+  setTempAccountRecords,
+  setupAccountRecords,
 } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
-import {
-  TStatusDetail,
-  setDeletedObject,
-  setObjectSelectedKeys,
-  setStatusDetail,
-} from '@/store/slices/object';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
+import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
@@ -44,7 +40,7 @@ import { useAccount } from 'wagmi';
 
 interface BatchDeleteObjectOperationProps {
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -62,7 +58,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
     const objectRecords = useAppSelector((root) => root.object.objectRecords);
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-    const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
@@ -78,18 +74,19 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     const deleteObjects = objectSelectedKeys.map((key) => {
       return objectRecords[currentBucketName + '/' + key];
     });
-    const deleteFee = (gasObjects[MsgDeleteObjectTypeUrl]?.gasFee || 0) * deleteObjects.length;
-    const cancelFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee || 0;
+    const deleteFee =
+      (gnfdGasFeesConfig[MsgDeleteObjectTypeUrl]?.gasFee || 0) * deleteObjects.length;
+    const cancelFee = gnfdGasFeesConfig[MsgCancelCreateObjectTypeUrl]?.gasFee || 0;
     const description = 'Are you sure you want to delete these objects?';
 
     const createTmpAccountGasFee = useMemo(() => {
-      const grantAllowTxFee = BN(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(
-        BN(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
+      const grantAllowTxFee = BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].gasFee).plus(
+        BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
       );
-      const putPolicyTxFee = BN(gasObjects[MsgPutPolicyTypeUrl].gasFee);
+      const putPolicyTxFee = BN(gnfdGasFeesConfig[MsgPutPolicyTypeUrl].gasFee);
 
       return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
-    }, [gasObjects]);
+    }, [gnfdGasFeesConfig]);
 
     const simulateGasFee = BN(
       deleteObjects.reduce(
@@ -108,7 +105,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           return;
         default:
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               title: FILE_TITLE_DELETE_FAILED,
               icon: 'status-failed',
               desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -123,7 +120,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       setLoading(true);
       onClose();
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: Animates.delete,
           title: 'Deleting File',
           desc: WALLET_CONFIRM,
@@ -136,8 +133,8 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
         connector: connector!,
         actionType: 'delete',
       });
-      if (!tempAccount) return errorHandler(err);
-      dispatch(setTempAccounts(tempAccount));
+      if (!tempAccount) return errorHandler(err ?? '');
+      dispatch(setTempAccountRecords(tempAccount));
 
       async function deleteInRow() {
         if (!tempAccount) return;
@@ -167,7 +164,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             }),
           );
         }
-        await dispatch(setupAccountInfo(bucket.PaymentAddress));
+        await dispatch(setupAccountRecords(bucket.PaymentAddress));
         return true;
       }
 
@@ -178,7 +175,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
 
       if (success) {
         dispatch(setObjectSelectedKeys([]));
-        dispatch(setStatusDetail({} as TStatusDetail));
+        dispatch(setSignatureAction({}));
       }
       setLoading(false);
     };

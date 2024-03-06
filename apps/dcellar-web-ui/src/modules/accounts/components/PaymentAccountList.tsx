@@ -9,12 +9,12 @@ import { Loading } from '@/components/common/Loading';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  TAccount,
-  TAccountInfo,
+  AccountEntity,
+  AccountInfo,
   setPaymentAccountListPage,
   setEditingPaymentAccountRefundable,
 } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import {
   SorterType,
   setPaymentAccountListPageSize,
@@ -54,7 +54,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
     (root) => root.accounts.paymentAccountListRecords,
   );
 
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const router = useRouter();
   const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
 
@@ -105,7 +105,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
     dispatch(setPaymentAccountSorter([name, newSort] as SorterType));
   };
 
-  const columns: ColumnProps<TAccountInfo>[] = [
+  const columns: ColumnProps<AccountInfo>[] = [
     {
       key: 'name',
       title: (
@@ -115,7 +115,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
           {sortName === 'account' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return <Box>{record.name}</Box>;
       },
     },
@@ -128,7 +128,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
           {sortName === 'address' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         const addressUrl = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${record.address}`;
         return (
           <CopyText value={record.address} boxSize={16} iconProps={{ mt: 2 }}>
@@ -147,7 +147,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
           {sortName === 'balance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return (
           <Flex flexWrap={'wrap'}>
             <Text fontSize={14} fontWeight={500}>
@@ -157,7 +157,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
             <Text color="readable.tertiary" fontSize={12}>
               &nbsp;(
               {currencyFormatter(
-                BN(record.staticBalance).times(BN(bnbPrice)).toString(DECIMAL_NUMBER),
+                BN(record.staticBalance).times(BN(exchangeRate)).toString(DECIMAL_NUMBER),
               )}
               )
             </Text>
@@ -173,7 +173,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
           {sortName === 'bufferBalance' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {BN(record.bufferBalance || 0)
@@ -192,7 +192,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
           {sortName === 'netflowRate' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         const value = BN(record?.netflowRate || 0)
           .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
           .toString();
@@ -209,7 +209,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
       key: 'Operation',
       title: <Text textAlign={'center'}>Operation</Text>,
       width: 150,
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         let operations = ['deposit', 'withdraw'];
         let finalActions = ACCOUNT_ACTIONS;
         if (record.refundable === false) {
@@ -231,7 +231,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
-  const onMenuClick = (e: string, record: TAccount) => {
+  const onMenuClick = (e: string, record: AccountEntity) => {
     if (e === 'detail') {
       // dispatch(setAccountOperation([record.address, 'paDetail']));
       return router.push(`/accounts/${record.address}`);
@@ -266,7 +266,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
       pageChange={onPageChange}
       canNext={canNext}
       canPrev={canPrev}
-      onRow={(record: TAccount) => ({
+      onRow={(record: AccountEntity) => ({
         onClick: () => onMenuClick('detail', record),
       })}
     />

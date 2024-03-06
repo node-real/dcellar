@@ -15,9 +15,8 @@ import {
 } from '@/hooks/useChangePaymentAccountFee';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccount, selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
+import { AccountEntity, selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { TBucket, setBucketPaymentAccount } from '@/store/slices/bucket';
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { trimLongStr } from '@/utils/string';
 import styled from '@emotion/styled';
@@ -36,6 +35,7 @@ import { memo, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { PaymentAccountSelector } from '../components/PaymentAccountSelector';
 import { ChangePaymentTotalFee } from './ChangePaymentTotalFees';
+import { setSignatureAction } from '@/store/slices/global';
 
 export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   bucket,
@@ -50,7 +50,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
 
   const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
-  const [newPaymentAccount, setNewPaymentAccount] = useState<TAccount>({} as TAccount);
+  const [newPaymentAccount, setNewPaymentAccount] = useState<AccountEntity>({} as AccountEntity);
   const newAccountDetail = useAppSelector(selectAccount(newPaymentAccount.address));
   const [loading, setLoading] = useState(false);
   const { connector } = useAccount();
@@ -136,7 +136,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Update Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -151,7 +151,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     if (loading) return;
     setLoading(true);
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: Animates.object,
         title: 'Updating payment account',
         desc: WALLET_CONFIRM,
@@ -169,7 +169,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     const [txRes, txError] = await updateBucketInfo(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Payment account updated!' });
     onClose();
     dispatch(
@@ -208,7 +208,9 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
           <Value>{paymentAccount}</Value>
         </Field>
         <Divider />
-        <PaymentAccountSelector onChange={(account: TAccount) => setNewPaymentAccount(account)} />
+        <PaymentAccountSelector
+          onChange={(account: AccountEntity) => setNewPaymentAccount(account)}
+        />
         <BalanceOn amount={newAccountBalance} />
       </QDrawerBody>
       <QDrawerFooter flexDirection={'column'}>

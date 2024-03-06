@@ -17,9 +17,9 @@ import { getShortAccountName } from '@/utils/billing';
 import { BN } from '@/utils/math';
 import { getClientFrozen } from '@/utils/payment';
 
-export type TAccount = { id: string; name: string; address: string };
+export type AccountEntity = { id: string; name: string; address: string };
 
-export type TTempAccount = { address: string; privateKey: string };
+export type TempAccountEntity = { address: string; privateKey: string };
 
 export function isSpStreamRecord(arg: ChainStreamRecord | SpStreamRecord): arg is SpStreamRecord {
   return (arg as SpStreamRecord).Account !== undefined;
@@ -34,7 +34,7 @@ export type AccountType =
 
 export type AccountOperationsType = 'oaDetail' | 'paDetail' | 'paCreate' | '';
 
-export type TAccountInfo = TAccount & {
+export type AccountInfo = AccountEntity & {
   name: string;
   address: string;
   bufferBalance: string;
@@ -69,16 +69,16 @@ interface AccountsState {
   paymentAccountsLoading: boolean;
   accountInfoLoading: string;
   accountTypeLoading: boolean;
-  ownerAccount: TAccount;
-  paymentAccountListRecords: Record<string, TAccount[]>;
+  ownerAccount: AccountEntity;
+  paymentAccountListRecords: Record<string, AccountEntity[]>;
   paymentAccountListPage: number;
-  accountRecords: Record<string, TAccountInfo>;
+  accountRecords: Record<string, AccountInfo>;
   accountTypeRecords: Record<string, AccountType>;
   editingPaymentAccountRefundable: string;
   bankOrWalletBalance: string; // aka. bankBalance
   accountOperation: [string, AccountOperationsType];
   paymentAccountNetflowRateRecords: Record<string, string>;
-  tempAccountRecords: Record<string, TTempAccount>;
+  tempAccountRecords: Record<string, TempAccountEntity>;
 }
 
 const initialState: AccountsState = {
@@ -86,7 +86,7 @@ const initialState: AccountsState = {
   paymentAccountsLoading: false,
   accountTypeLoading: false,
   paymentAccountListPage: 0,
-  ownerAccount: {} as TAccountInfo,
+  ownerAccount: {} as AccountInfo,
   paymentAccountListRecords: {},
   accountRecords: {},
   accountTypeRecords: {},
@@ -104,7 +104,7 @@ export const paymentAccountSlice = createSlice({
     setAccountOperation(state, { payload }: PayloadAction<[string, AccountOperationsType]>) {
       state.accountOperation = payload;
     },
-    setOwnerAccount: (state, { payload }: PayloadAction<TAccount>) => {
+    setOwnerAccount: (state, { payload }: PayloadAction<AccountEntity>) => {
       state.ownerAccount = payload;
     },
     setPaymentAccountList: (
@@ -118,7 +118,7 @@ export const paymentAccountSlice = createSlice({
         },
       );
     },
-    setAccountInfo: (
+    setAccountRecords: (
       state,
       {
         payload,
@@ -188,7 +188,7 @@ export const paymentAccountSlice = createSlice({
     setEditingPaymentAccountRefundable: (state, { payload }: PayloadAction<string>) => {
       state.editingPaymentAccountRefundable = payload;
     },
-    setAccountInfoLoading: (state, { payload }: PayloadAction<string>) => {
+    setAccountEntityLoading: (state, { payload }: PayloadAction<string>) => {
       state.accountInfoLoading = payload;
     },
     setPaymentAccountsLoading: (state, { payload }: PayloadAction<boolean>) => {
@@ -211,51 +211,51 @@ export const paymentAccountSlice = createSlice({
       const { loginAccount, totalNetflowRate } = payload;
       state.paymentAccountNetflowRateRecords[loginAccount] = totalNetflowRate;
     },
-    setTempAccounts(state, { payload }: PayloadAction<TTempAccount>) {
+    setTempAccountRecords(state, { payload }: PayloadAction<TempAccountEntity>) {
       state.tempAccountRecords[payload.address] = payload;
     },
   },
 });
 
 export const {
-  setAccountInfoLoading,
+  setAccountEntityLoading,
   setPaymentAccountsLoading,
   setOwnerAccount,
   setPaymentAccountList,
   setBankOrWalletBalance,
-  setAccountInfo,
+  setAccountRecords,
   setEditingPaymentAccountRefundable,
   setPaymentAccountListPage,
   setAccountType,
   setAccountOperation,
   setPaymentAccountNetflowRate,
-  setTempAccounts,
+  setTempAccountRecords,
 } = paymentAccountSlice.actions;
 
-const defaultAccountInfoAccount = {} as TAccountInfo;
+const defaultAccountInfoAccount = {} as AccountInfo;
 export const selectAccountDetail = (address: string) => (root: AppState) => {
   return root.accounts.accountRecords[address] || defaultAccountInfoAccount;
 };
 
-const defaultPaAccount = {} as TAccountInfo;
+const defaultPaAccount = {} as AccountInfo;
 export const selectAccount = (address: string) => (state: AppState) =>
   state.accounts.accountRecords[address] || defaultPaAccount;
 
-export const defaultPAList = Array<TAccount>();
+export const defaultPAList = Array<AccountEntity>();
 export const selectPaymentAccounts = (address: string) => (state: AppState) => {
   return state.accounts.paymentAccountListRecords[address] || defaultPAList;
 };
 
-export const defaultTempAccount = {} as TTempAccount;
-export const selectTempAccount = (address: string) => (state: AppState) => {
+export const defaultTempAccount = {} as TempAccountEntity;
+export const selectTempAccountRecords = (address: string) => (state: AppState) => {
   return state.accounts.tempAccountRecords[address] || defaultTempAccount;
 };
 
 export const selectAvailableBalance = (address: string) => (state: AppState) => {
   const isOwnerAccount = address === state.persist.loginAccount;
-  const accountDetail = state.accounts.accountRecords[address] as TAccountInfo;
+  const accountDetail = state.accounts.accountRecords[address] as AccountInfo;
   if (isOwnerAccount) {
-    // TODO Use static balance on next version
+    // Use static balance on next version
     // return BN(state.accounts.bankBalance).plus(accountDetail.staticBalance).toString();
     return BN(state.accounts.bankOrWalletBalance).toString();
   }
@@ -291,7 +291,7 @@ export const setupPaymentAccounts =
     }
 
     if (!data) {
-      // todo for empty 404 loading
+      // for empty 404 loading
       if (!loginPaymentAccounts.length) {
         dispatch(setPaymentAccountsLoading(false));
         dispatch(setPaymentAccountList({ loginAccount, paymentAccounts: [] }));
@@ -332,10 +332,10 @@ export const setupPaymentAccounts =
     );
     dispatch(setPaymentAccountsLoading(false));
     dispatch(setPaymentAccountList({ loginAccount, paymentAccounts: data.paymentAccounts }));
-    dispatch(setAccountInfo(newPaymentAccounts));
+    dispatch(setAccountRecords(newPaymentAccounts));
   };
 
-export const setupAccountInfo =
+export const setupAccountRecords =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
     if (!address) return;
     const { loginAccount } = getState().persist;
@@ -346,10 +346,10 @@ export const setupAccountInfo =
       { address: loginAccount, name: OWNER_ACCOUNT_NAME },
     ];
 
-    dispatch(setAccountInfoLoading(address));
+    dispatch(setAccountEntityLoading(address));
     const [PARes] = await getPaymentAccount(address);
     const [SRRes] = await getStreamRecord(address);
-    dispatch(setAccountInfoLoading(''));
+    dispatch(setAccountEntityLoading(''));
 
     const paymentAccountName = accountList.find((item) => item.address === address)?.name || '';
     const accountDetail = {
@@ -363,7 +363,7 @@ export const setupAccountInfo =
       bufferTime: CLIENT_FROZEN_ACCOUNT_BUFFER_TIME,
     };
 
-    dispatch(setAccountInfo([accountDetail]));
+    dispatch(setAccountRecords([accountDetail]));
   };
 
 export const setupOwnerAccount = () => async (dispatch: AppDispatch, getState: GetState) => {
@@ -374,7 +374,7 @@ export const setupOwnerAccount = () => async (dispatch: AppDispatch, getState: G
     id: getShortAccountName(OWNER_ACCOUNT_NAME),
   };
   dispatch(setOwnerAccount(account));
-  dispatch(setupAccountInfo(loginAccount));
+  dispatch(setupAccountRecords(loginAccount));
 };
 
 export const setupAccountType =

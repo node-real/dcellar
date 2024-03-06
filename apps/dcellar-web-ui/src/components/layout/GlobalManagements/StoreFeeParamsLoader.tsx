@@ -2,7 +2,7 @@ import { useAppDispatch } from '@/store';
 import { setupStoreFeeParams } from '@/store/slices/global';
 import { useAsyncEffect } from 'ahooks';
 
-export const StoreFeeParams = () => {
+export const StoreFeeParamsLoader = () => {
   const dispatch = useAppDispatch();
 
   useAsyncEffect(async () => {

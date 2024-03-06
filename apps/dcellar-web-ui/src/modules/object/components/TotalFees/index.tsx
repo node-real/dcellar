@@ -2,8 +2,12 @@ import { IconFont } from '@/components/IconFont';
 import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { TAccount, selectAvailableBalance, selectPaymentAccounts } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import {
+  AccountEntity,
+  selectAvailableBalance,
+  selectPaymentAccounts,
+} from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
 import { find } from 'lodash-es';
@@ -31,13 +35,16 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
   } = props;
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
 
-  const paymentAccount = find<TAccount>(paymentAccounts, (a) => a.address === payStoreFeeAddress);
+  const paymentAccount = find<AccountEntity>(
+    paymentAccounts,
+    (a) => a.address === payStoreFeeAddress,
+  );
   const str = payStoreFeeAddress.substring(38);
   const paymentLabel = paymentAccount && `${paymentAccount.name} (${str}) balance:`;
 

@@ -1,6 +1,6 @@
 import { EOperation } from '@/modules/wallet/type';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TAccount } from './accounts';
+import { AccountEntity } from './accounts';
 
 export function isTransferOperation(type: string): type is EOperation {
   return type in EOperation;
@@ -10,8 +10,8 @@ export type TransferType = keyof typeof EOperation;
 
 export interface WalletState {
   transferType: TransferType;
-  transferFromAccount: TAccount;
-  transferToAccount: TAccount;
+  transferFromAccount: AccountEntity;
+  transferToAccount: AccountEntity;
   transferFromAddress: string;
   transferToAddress: string;
   transferAmount: string;
@@ -19,8 +19,8 @@ export interface WalletState {
 
 const initialState: WalletState = {
   transferType: 'transfer_in',
-  transferFromAccount: {} as TAccount,
-  transferToAccount: {} as TAccount,
+  transferFromAccount: {} as AccountEntity,
+  transferToAccount: {} as AccountEntity,
   transferFromAddress: '',
   transferToAddress: '',
   transferAmount: '',
@@ -33,12 +33,12 @@ export const walletSlice = createSlice({
     setTransferType(state, { payload }: PayloadAction<TransferType>) {
       state.transferType = payload;
     },
-    setTransferFromAccount: (state, { payload }: PayloadAction<TAccount>) => {
+    setTransferFromAccount: (state, { payload }: PayloadAction<AccountEntity>) => {
       if (!payload) return;
       state.transferFromAccount = payload;
       state.transferFromAddress = payload.address;
     },
-    setTransferToAccount: (state, { payload }: PayloadAction<TAccount>) => {
+    setTransferToAccount: (state, { payload }: PayloadAction<AccountEntity>) => {
       if (!payload) return;
       state.transferToAccount = payload;
       state.transferToAddress = payload.address;

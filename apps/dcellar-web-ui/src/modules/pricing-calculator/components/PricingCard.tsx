@@ -9,13 +9,13 @@ import { H2 } from './Common';
 import { UnderlineLink } from '@/components/layout/Footer';
 import { smMedia } from '@/modules/responsive';
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { TStoreFeeParams } from '@/store/slices/global';
+import { StoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { getUTC0FullMonth } from '@/utils/time';
 
 type PricingCardProps = {
-  storeParams: TStoreFeeParams;
+  storeParams: StoreFeeParams;
 };
 
 const UnitOptions = [

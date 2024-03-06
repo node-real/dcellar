@@ -20,18 +20,14 @@ import { getListObjects, updateObjectInfo } from '@/facade/object';
 import { AccessItem } from '@/modules/object/components/AccessItem';
 import { ViewerList } from '@/modules/object/components/ViewerList';
 import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import {
-  setObjectList,
-  setStatusDetail,
-  TStatusDetail,
-  setObjectVisibility,
-} from '@/store/slices/object';
+import { setObjectList, setObjectVisibility } from '@/store/slices/object';
 import { SpEntity } from '@/store/slices/sp';
 import { getShareLink } from '@/utils/string';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { useMount } from 'ahooks';
 import { isEmpty, last, trimEnd } from 'lodash-es';
 import { useAccount } from 'wagmi';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -66,11 +62,11 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Updating Access',
             icon: 'status-failed',
             buttonText: BUTTON_GOT_IT,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
+            buttonOnClick: () => dispatch(setSignatureAction({})),
             errorText: 'Error message: ' + msg,
           }),
         );
@@ -87,7 +83,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     };
 
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: Animates.access,
         title: 'Updating Access',
         desc: WALLET_CONFIRM,
@@ -97,7 +93,7 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     const [_, error] = await updateObjectInfo(payload, connector!);
 
     if (error) return handleError(error);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Access updated!' });
     dispatch(setObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
   };

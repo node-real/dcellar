@@ -30,15 +30,15 @@ import {
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TAccountInfo, setupAccountInfo } from '@/store/slices/accounts';
+import { AccountInfo, setupAccountRecords } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
 import {
-  TStatusDetail,
-  setObjectEditTagsData,
-  setObjectOperation,
-  setStatusDetail,
-} from '@/store/slices/object';
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
+import { setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
@@ -71,7 +71,7 @@ import { TotalFees } from './TotalFees';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   primarySp: SpEntity;
   refetch?: (name?: string) => void;
   onClose?: () => void;
@@ -90,7 +90,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
   const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
   const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
-  const gasObjects = useAppSelector((root) => root.global.gasInfo.gasObjects) || {};
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
@@ -111,8 +111,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const isOwnerAccount = accountDetail.address === loginAccount;
   const validTags = getValidTags(objectEditTagsData);
   const isSetTags = validTags.length > 0;
-  const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-  const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
+  const { gasFee: createBucketGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
+  const { gasFee: setTagsGasFee } = gnfdGasFeesConfig?.[MsgSetTagTypeUrl] || {};
   const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
 
   const gasFee = useMemo(() => {
@@ -142,7 +142,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   }, []);
 
   const onCloseStatusModal = () => {
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
   };
 
   const onEditTags = () => {
@@ -195,7 +195,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
     txs.push(createObjectTx);
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: Animates.object,
         title: 'Creating Folder',
         desc: WALLET_CONFIRM,
@@ -212,7 +212,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
       if (!tagsTx) {
         return dispatch(
-          setStatusDetail({
+          setSignatureAction({
             icon: 'status-failed',
             title: FOLDER_CREATE_FAILED,
             desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -237,7 +237,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
         return;
       }
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -247,10 +247,10 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       );
       return;
     }
-    await dispatch(setupAccountInfo(PaymentAddress));
+    await dispatch(setupAccountRecords(PaymentAddress));
     if (txRes?.code !== 0) {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -269,7 +269,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
     setLoading(false);
     showSuccessToast(transactionHash);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     onClose();
     refetch(inputFolderName);
   };

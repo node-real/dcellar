@@ -17,7 +17,7 @@ import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
 import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { currencyFormatter } from '@/utils/formatter';
 import { displayTokenSymbol } from '@/utils/wallet';
@@ -44,16 +44,15 @@ export const Fee = memo<FeeProps>(function Fee({
   staticBalance = '0',
 }) {
   const transferFromAccount = useAppSelector((root) => root.wallet.transferFromAccount);
-  const exchangeRate = useAppSelector((root) => root.global.bnbInfo.price);
   const transferType = useAppSelector((root) => root.wallet.transferType);
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   const TOKEN_SYMBOL = displayTokenSymbol();
   const { gasFee, relayerFee } = feeData;
   const defaultTransferFee = DefaultTransferFee[transferType];
   const totalFee = gasFee.plus(relayerFee);
   const isShowDefault = gasFee.toString() === '0' && relayerFee.toString() === '0';
-  const feeUsdPrice = totalFee && totalFee.times(BigNumber(bnbPrice));
+  const feeUsdPrice = totalFee && totalFee.times(BigNumber(exchangeRate));
   const formatFeeUsdPrice =
     feeUsdPrice &&
     currencyFormatter(feeUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
@@ -61,7 +60,7 @@ export const Fee = memo<FeeProps>(function Fee({
     .plus(totalFee)
     .plus(settlementFee || '0')
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1);
-  const totalUsdPrice = totalAmount.times(BigNumber(bnbPrice));
+  const totalUsdPrice = totalAmount.times(BigNumber(exchangeRate));
   const formatTotalUsdPrice =
     totalUsdPrice &&
     currencyFormatter(totalUsdPrice.dp(FIAT_CURRENCY_DISPLAY_PRECISION).toString(DECIMAL_NUMBER));
@@ -70,14 +69,14 @@ export const Fee = memo<FeeProps>(function Fee({
   //show default fee if cannot get fee data in 3000ms
   const defaultFeeUsdPrice = currencyFormatter(
     BigNumber(defaultTransferFee.total)
-      .times(BigNumber(bnbPrice))
+      .times(BigNumber(exchangeRate))
       .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
       .toString(DECIMAL_NUMBER),
   );
 
   const amountUsd = currencyFormatter(
     BigNumber(amount || 0)
-      .times(bnbPrice)
+      .times(exchangeRate)
       .dp(FIAT_CURRENCY_DISPLAY_PRECISION)
       .toString(DECIMAL_NUMBER),
   );

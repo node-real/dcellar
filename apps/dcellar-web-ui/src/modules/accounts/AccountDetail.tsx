@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupAccountInfo, setupPaymentAccounts } from '@/store/slices/accounts';
+import { setupAccountRecords, setupPaymentAccounts } from '@/store/slices/accounts';
 import {
   setAccountFilterRange,
   setAccountFilterTypes,
@@ -39,7 +39,7 @@ export const AccountDetail = () => {
       router.replace('/no-account?err=noAccount');
       return;
     }
-    isOwnerAccount ? dispatch(setupAccountInfo(curAddress)) : dispatch(setupPaymentAccounts());
+    isOwnerAccount ? dispatch(setupAccountRecords(curAddress)) : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
   });
 

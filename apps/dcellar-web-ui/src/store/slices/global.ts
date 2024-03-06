@@ -7,16 +7,27 @@ import { find, keyBy } from 'lodash-es';
 
 import { AuthPostAction } from '@/context/off-chain-auth/OffChainAuthContext';
 import { getClient } from '@/facade';
-import { BnbPriceInfo, getBnbPrice, getDefaultBnbInfo } from '@/facade/common';
+import { getBnbUsdtExchangeRate } from '@/facade/common';
 import { getStoreFeeParams } from '@/facade/payment';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { setObjectStatus, setupListObjects } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 
 export const GAS_PRICE = '0.000000005';
+export const BNB_USDT_EXCHANGE_RATE = '350';
 export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'HASHED', 'SIGN', 'SIGNED', 'UPLOAD', 'SEAL'];
 
-export type TGasList = {
+export type SignatureAction = {
+  icon: string;
+  title: string;
+  desc?: string;
+  buttonText?: string;
+  errorText?: string;
+  buttonOnClick?: () => void;
+  extraParams?: Array<string | number>;
+};
+
+export type GasFeesConfig = {
   [msgTypeUrl: string]: {
     gasLimit: number;
     msgTypeUrl: string;
@@ -25,12 +36,7 @@ export type TGasList = {
   };
 };
 
-type TGas = {
-  gasPrice: string;
-  gasObjects: TGasList;
-};
-
-export type TStoreFeeParams = {
+export type StoreFeeParams = {
   readPrice: string;
   primarySpStorePrice: string;
   secondarySpStorePrice: string;
@@ -41,9 +47,9 @@ export type TStoreFeeParams = {
   reserveTime: string;
 };
 
-export type TFileStatus = 'CHECK' | 'WAIT' | 'ERROR';
+export type WaitObjectStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
-export type TUploadStatus =
+export type UploadObjectStatus =
   | 'WAIT'
   | 'HASH'
   | 'HASHED'
@@ -57,7 +63,7 @@ export type TUploadStatus =
 
 export type WaitObject = {
   file: File;
-  status: TFileStatus;
+  status: WaitObjectStatus;
   id: number;
   time: number;
   msg: string;
@@ -74,9 +80,9 @@ export type UploadObject = {
   prefixFolders: string[];
   id: number;
   spAddress: string;
-  waitFile: WaitObject;
+  waitObject: WaitObject;
   checksum: string[];
-  status: TUploadStatus;
+  status: UploadObjectStatus;
   visibility: VisibilityType;
   tags?: ResourceTags_Tag[];
   createHash: string;
@@ -85,12 +91,12 @@ export type UploadObject = {
 };
 
 export interface GlobalState {
-  bnbInfo: BnbPriceInfo;
-  gasInfo: TGas;
-  isLoadingPLF: boolean;
-  // Global data, different times may have different values
-  storeFeeParams: TStoreFeeParams;
-  mainnetStoreFeeParams: TStoreFeeParams;
+  bnbUsdtExchangeRate: string;
+  gnfdGasPrice: string;
+  gnfdGasFeesConfig: GasFeesConfig;
+  isFetchingStoreFeeParams: boolean;
+  storeFeeParams: StoreFeeParams;
+  mainnetStoreFeeParams: StoreFeeParams;
   objectWaitQueue: WaitObject[];
   objectUploadQueue: Record<string, UploadObject[]>;
   globalTaskManagementOpen: boolean;
@@ -98,24 +104,37 @@ export interface GlobalState {
   offchainAuthOpen: [boolean, AuthPostAction];
   walletDisconnected: boolean;
   walletConnected: boolean;
+  signatureAction: SignatureAction | object;
 }
-
+const defaultStoreFeeParams: StoreFeeParams = {
+  readPrice: '0',
+  primarySpStorePrice: '0',
+  secondarySpStorePrice: '0',
+  validatorTaxRate: '0',
+  minChargeSize: 0,
+  redundantDataChunkNum: 0,
+  redundantParityChunkNum: 0,
+  reserveTime: '0',
+};
+const defaultAuthPostAction: AuthPostAction = {
+  action: '',
+  params: {},
+};
 const initialState: GlobalState = {
-  bnbInfo: getDefaultBnbInfo(),
-  gasInfo: {
-    gasPrice: GAS_PRICE,
-    gasObjects: {},
-  },
-  storeFeeParams: {} as TStoreFeeParams,
-  mainnetStoreFeeParams: {} as TStoreFeeParams,
-  isLoadingPLF: false,
+  bnbUsdtExchangeRate: BNB_USDT_EXCHANGE_RATE,
+  gnfdGasPrice: GAS_PRICE,
+  gnfdGasFeesConfig: {},
+  storeFeeParams: defaultStoreFeeParams,
+  mainnetStoreFeeParams: defaultStoreFeeParams,
+  isFetchingStoreFeeParams: false,
   objectWaitQueue: [],
   objectUploadQueue: {},
   globalTaskManagementOpen: false,
   objectSealingTimestamp: {},
-  offchainAuthOpen: [false, {} as AuthPostAction],
+  offchainAuthOpen: [false, defaultAuthPostAction],
   walletDisconnected: false,
   walletConnected: false,
+  signatureAction: {},
 };
 
 export const globalSlice = createSlice({
@@ -193,7 +212,7 @@ export const globalSlice = createSlice({
       task.status = 'ERROR';
       task.msg = msg;
     },
-    updateWaitFileStatus(
+    updateWaitObjectStatus(
       state,
       { payload }: PayloadAction<{ id: number; status: WaitObject['status'] }>,
     ) {
@@ -304,20 +323,20 @@ export const globalSlice = createSlice({
       const existTasks = state.objectUploadQueue[account] || [];
       state.objectUploadQueue[account] = [...existTasks, ...tasks];
     },
-    setBnbInfo(state, { payload }: PayloadAction<BnbPriceInfo>) {
-      state.bnbInfo = payload;
+    setBnbUsdtExchangeRate(state, { payload }: PayloadAction<string>) {
+      state.bnbUsdtExchangeRate = payload;
     },
-    setGasObjects(state, { payload }: PayloadAction<QueryMsgGasParamsResponse>) {
-      const { gasPrice } = state.gasInfo;
-      state.gasInfo.gasObjects = keyBy(
+    setGnfdGasFeesConfig(state, { payload }: PayloadAction<QueryMsgGasParamsResponse>) {
+      const gnfdGasPrice = state.gnfdGasPrice;
+      state.gnfdGasFeesConfig = keyBy(
         payload.msgGasParams.map((item) => {
           let gasLimit = item.fixedType?.fixedGas.low || 0;
-          let gasFee = +gasPrice * gasLimit;
+          let gasFee = +gnfdGasPrice * gasLimit;
           let perItemFee = 0;
           if (item.msgTypeUrl === MsgGrantAllowanceTypeUrl) {
             gasLimit = item.grantAllowanceType?.fixedGas.low || 0;
-            gasFee = +gasPrice * gasLimit;
-            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * +gasPrice;
+            gasFee = +gnfdGasPrice * gasLimit;
+            perItemFee = (item.grantAllowanceType?.gasPerItem.low || 0) * +gnfdGasPrice;
           }
 
           return {
@@ -333,12 +352,12 @@ export const globalSlice = createSlice({
     setTaskManagement(state, { payload }: PayloadAction<boolean>) {
       state.globalTaskManagementOpen = payload;
     },
-    setStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>) {
+    setStoreFeeParams(state, { payload }: PayloadAction<{ storeFeeParams: StoreFeeParams }>) {
       state.storeFeeParams = payload.storeFeeParams;
     },
     setMainnetStoreFeeParams(
       state,
-      { payload }: PayloadAction<{ storeFeeParams: TStoreFeeParams }>,
+      { payload }: PayloadAction<{ storeFeeParams: StoreFeeParams }>,
     ) {
       state.mainnetStoreFeeParams = payload.storeFeeParams;
     },
@@ -363,12 +382,12 @@ export const globalSlice = createSlice({
       let uploadQueue = state.objectUploadQueue?.[account];
       if (!uploadQueue) return;
       uploadQueue = uploadQueue.map((task) => {
-        const isFolder = task.waitFile.name.endsWith('/');
+        const isFolder = task.waitObject.name.endsWith('/');
         // Only cancel subfolders and subfiles
-        if (isFolder && payload.folderName === task.waitFile.name) {
+        if (isFolder && payload.folderName === task.waitObject.name) {
           return task;
         }
-        const commonPath = isFolder ? task.waitFile.name : task.waitFile.relativePath + '/';
+        const commonPath = isFolder ? task.waitObject.name : task.waitObject.relativePath + '/';
         const isSubTask = commonPath.startsWith(payload.folderName);
         if (isSubTask) {
           task.status = 'CANCEL';
@@ -397,8 +416,8 @@ export const globalSlice = createSlice({
         return task;
       });
     },
-    setIsLoadingPLF(state, { payload }: PayloadAction<boolean>) {
-      state.isLoadingPLF = payload;
+    setIsFetchingStoreFeeParams(state, { payload }: PayloadAction<boolean>) {
+      state.isFetchingStoreFeeParams = payload;
     },
     setDisconnectWallet(state, { payload }: PayloadAction<boolean>) {
       state.walletDisconnected = payload;
@@ -406,12 +425,15 @@ export const globalSlice = createSlice({
     setConnectWallet(state, { payload }: PayloadAction<boolean>) {
       state.walletConnected = payload;
     },
+    setSignatureAction(state, { payload }: PayloadAction<SignatureAction | object>) {
+      state.signatureAction = payload;
+    },
   },
 });
 
 export const {
-  setBnbInfo,
-  updateWaitFileStatus,
+  setBnbUsdtExchangeRate,
+  updateWaitObjectStatus,
   addToWaitQueue,
   updateWaitTaskMsg,
   updateUploadTaskMsg,
@@ -425,10 +447,11 @@ export const {
   resetUploadQueue,
   cancelUploadFolder,
   cancelWaitUploadFolder,
-  setIsLoadingPLF,
+  setIsFetchingStoreFeeParams,
   setAuthModalOpen,
   setDisconnectWallet,
   updateUploadCreateHash,
+  setSignatureAction,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadObject>();
@@ -459,7 +482,11 @@ export const selectSignTask = (address: string) => (root: AppState) => {
   return hashedQueue[0] ? hashedQueue[0] : null;
 };
 
-export const selectBnbPrice = (state: AppState) => state.global.bnbInfo.price;
+export const selectBnbUsdtExchangeRate = (state: AppState) => state.global.bnbUsdtExchangeRate;
+
+const defaultGasFeesConfig: GasFeesConfig = {};
+export const selectGnfdGasFeesConfig = (state: AppState) =>
+  state.global.gnfdGasFeesConfig || defaultGasFeesConfig;
 
 export const selectStoreFeeParams = (state: AppState) => state.global.storeFeeParams;
 
@@ -473,12 +500,12 @@ export const selectHasUploadingTask = (state: AppState) => {
   );
 };
 
-export const setupBnbPrice = () => async (dispatch: AppDispatch) => {
-  const res = await getBnbPrice();
-  dispatch(setBnbInfo(res));
+export const setupBnbUsdtExchangeRate = () => async (dispatch: AppDispatch) => {
+  const res = await getBnbUsdtExchangeRate();
+  dispatch(setBnbUsdtExchangeRate(res));
 };
 
-export const setupGasObjects = () => async (dispatch: AppDispatch) => {
+export const setupGnfdGasFeesConfig = () => async (dispatch: AppDispatch) => {
   const client = await getClient();
 
   const res = await client.gashub.getMsgGasParams({
@@ -491,20 +518,20 @@ export const setupGasObjects = () => async (dispatch: AppDispatch) => {
       reverse: false,
     },
   });
-  dispatch(globalSlice.actions.setGasObjects(res));
+  dispatch(globalSlice.actions.setGnfdGasFeesConfig(res));
 };
 
 export const setupStoreFeeParams = () => async (dispatch: AppDispatch, getState: GetState) => {
-  const { isLoadingPLF } = getState().global;
-  if (isLoadingPLF) return;
-  dispatch(setIsLoadingPLF(true));
+  const { isFetchingStoreFeeParams } = getState().global;
+  if (isFetchingStoreFeeParams) return;
+  dispatch(setIsFetchingStoreFeeParams(true));
   const storeFeeParams = await getStoreFeeParams({});
   dispatch(
     globalSlice.actions.setStoreFeeParams({
       storeFeeParams,
     }),
   );
-  dispatch(setIsLoadingPLF(false));
+  dispatch(setIsFetchingStoreFeeParams(false));
 };
 
 export const setupMainnetStoreFeeParams = () => async (dispatch: AppDispatch) => {
@@ -545,7 +572,7 @@ export const uploadQueueAndRefresh =
         setObjectStatus({
           bucketName: task.bucketName,
           folders: task.prefixFolders,
-          name: task.waitFile.name,
+          name: task.waitObject.name,
           objectStatus: 1,
         }),
       );
@@ -585,7 +612,7 @@ export const addTasksToUploadQueue =
         prefixFolders: pathSegments,
         spAddress,
         id: task.id,
-        waitFile: task,
+        waitObject: task,
         msg: '',
         status: 'WAIT',
         progress: 0,
@@ -605,14 +632,14 @@ export const addSignedTasksToUploadQueue =
     spAddress,
     visibility,
     checksums,
-    waitFile,
+    waitObject,
     createHash,
     tags,
   }: {
     spAddress: string;
     visibility: VisibilityType;
     checksums: string[];
-    waitFile: WaitObject;
+    waitObject: WaitObject;
     createHash: string;
     tags: ResourceTags_Tag[];
   }) =>
@@ -624,8 +651,8 @@ export const addSignedTasksToUploadQueue =
       bucketName: currentBucketName,
       prefixFolders: pathSegments,
       spAddress,
-      id: waitFile.id,
-      waitFile: waitFile,
+      id: waitObject.id,
+      waitObject: waitObject,
       msg: '',
       status: 'SIGNED',
       progress: 0,
@@ -640,7 +667,7 @@ export const addSignedTasksToUploadQueue =
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadObject; errorMsg: string }) =>
   async (dispatch: AppDispatch) => {
-    const isFolder = task.waitFile.name.endsWith('/');
+    const isFolder = task.waitObject.name.endsWith('/');
     dispatch(
       updateUploadTaskMsg({
         account,
@@ -648,7 +675,7 @@ export const setupUploadTaskErrorMsg =
         msg: errorMsg || 'The object failed to be created.',
       }),
     );
-    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitFile.name }));
+    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
   };
 
 export const setupWaitTaskErrorMsg =
