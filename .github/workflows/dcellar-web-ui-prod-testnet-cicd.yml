@@ -28,7 +28,7 @@ on:
 jobs:
   pre-check:
     runs-on: ubuntu-latest
-    if: (github.event.pull_request.merged && (contains(github.event.pull_request.labels.*.name, 'dcellar-web-ui'))) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'testnet'))
+    if: (github.event.issue.pull_request.merged && (contains(github.event.issue.pull_request.labels.*.name, 'dcellar-web-ui'))) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'testnet'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
     steps:

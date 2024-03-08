@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-// eslint-disable-next-line
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const endpoint = ((global as any).__GLOBAL_CONFIG || {}).SP_RECOMMEND_META;
   const mainnetEndpoint = ((global as any).__GLOBAL_CONFIG || {}).MAINNET_SP_RECOMMEND_META;
   const finalEndpoint = req.query.network === 'mainnet' ? mainnetEndpoint : endpoint;
@@ -16,3 +15,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.json([]);
   }
 };
+
+export default handler;
