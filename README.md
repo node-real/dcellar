@@ -1,14 +1,19 @@
-# Monorepo for Dcellar FE projects
-
-It is the one big repo of DCellar's front-end projects.
+# DCellar
+DCellar is a powerful dapp that allows users to initiate their decentralized data management journey on the Greenfield platform.
 
 ## About this Repository
 
-This repository is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) that holds the source code to multiple DCellar apps. It is built using [Rush](http://rushjs.io/).
+This repository is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) that holds the source code to multiple projects. It is built using [Rush](http://rushjs.io/).
 
 See [rush.json](./rush.json) for the complete list of packages.
 
 Each package has its own **node_modules** directory that contains symbolic links to _common_ dependencies managed by Rush.
+
+## Projects
+|  folders   | Description  |
+|  ----  | ----  |
+| [/apps/dcellar-web-ui](./apps/dcellar-web-ui) | Storage Console for Developers on BNB Greenfield Network |
+
 
 ## Getting started
 
@@ -16,13 +21,14 @@ Each package has its own **node_modules** directory that contains symbolic links
 2. Install the Rush tool as global package: `npm install -g @microsoft/rush`
 3. Install dependency and build symbolic links for apps: `rush install`
 
-## Guides for developing existed app
+
+## Guides for developing a existed app
 
 Let's take `dcellar-web-ui` as example
 
 ### Prepare
 
-First, you need to cd into the app's directory, and make it will be your workding directory.
+First, you need to cd into the app's directory, and make it will be your working directory.
 
 ```shell
 $ cd apps/dcellar-web-ui
@@ -45,6 +51,8 @@ $ rushx dev  # It will run 'dev' script in package.json
 `rushx` is just like `npm run`
 
 Now you can modify things and see the changes.
+
+
 
 ### Add dependency
 
@@ -87,6 +95,13 @@ The vscode plugin [Monorepo Workspace](https://marketplace.visualstudio.com/item
 
 If you use editor other than vscode, just make your app's directory as your workspace and use `rush` commands to handle dependency. You can develop as usual.
 
+## Managing Environment Variables
+We use Next.js environment variables, specifically the NEXT_PUBLIC_ENV variable, to differentiate between environments. This approach also applies to variables that do not change frequently, which can be stored here as well. For more volatile environment data and alert notifications, we manage them through Apollo. However, if you prefer not to use Apollo, you can entirely rely on Next.js environment variables for management.
+
+If you decide against using Apollo, you can remove all Apollo configuration code. Additionally, places in the code that previously referenced Apollo variables should be updated to use Next.js environment variables instead.
+
+## How to manage easy to change env?
+We use [`Apollo`](https://www.apolloconfig.com/#/) to manage some easy to change or some alert message. You can refer [this doc](https://www.apolloconfig.com/#/) to build your apollo. Or you can also use next.js env to manage this values.
 
 ## FAQ
 
@@ -102,3 +117,9 @@ After we switched to monorepo, we have to add `next` as dependency in `package.j
 $ rush add -p next
 ```
 
+## Contributing
+Please follow our [DCellar Contribution Guide](./CONTRIBUTING.md).
+
+
+## License
+See [LICENSE](./LICENSE) for more information.
