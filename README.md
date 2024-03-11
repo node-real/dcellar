@@ -28,7 +28,7 @@ Each package has its own **node_modules** directory that contains symbolic links
 
 ## Getting started
 
-1. clone the repository: `git clone git@github.com:node-real/dcellar-fe.git`
+1. clone the repository: `git clone git@github.com:node-real/dcellar.git`
 2. Install the Rush tool as global package: `npm install -g @microsoft/rush`
 3. Install dependency and build symbolic links for apps: `rush install`
 

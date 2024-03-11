@@ -39,7 +39,7 @@ jobs:
   dcellar-web-ui-e2e-deploy-with-qa:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && ((github.event.comment.body == '/e2e-deploy:dcellar-web-ui') || (github.event.comment.body == '/e2e-deploy-qa:dcellar-web-ui')))
-    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    uses: node-real/dcellar/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
@@ -47,7 +47,7 @@ jobs:
   dcellar-web-ui-e2e-deploy-with-testnet:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/e2e-deploy-testnet:dcellar-web-ui'))
-    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    uses: node-real/dcellar/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
@@ -55,7 +55,7 @@ jobs:
   dcellar-web-ui-e2e-deploy-with-mainnet:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/e2e-deploy-mainnet:dcellar-web-ui'))
-    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    uses: node-real/dcellar/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
@@ -63,7 +63,7 @@ jobs:
   dcellar-web-ui-qa-deploy:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/qa-deploy:dcellar-web-ui'))
-    uses: node-real/dcellar-fe/.github/workflows/dcellar-web-ui-qa-cicd.yml@main
+    uses: node-real/dcellar/.github/workflows/dcellar-web-ui-qa-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
