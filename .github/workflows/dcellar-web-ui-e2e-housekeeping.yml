@@ -1,0 +1,13 @@
+name: e2e-housekeeping
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  remove-e2e-deployment:
+    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-e2e-housekeeping.yml@feat/opt-fe/devin
+    secrets: inherit
+    with:
+      app_name: dcellar-web-ui
