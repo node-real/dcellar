@@ -47,23 +47,27 @@ Each package has its own **node_modules** directory that contains symbolic links
 ###  Guides for developing a existed app
 
 Let's take `dcellar-web-ui` as example.
-First, you need to cd into the app's directory, and make it will be your working directory.
+1. You need to cd into the app's directory, and make it will be your working directory.
 
-```shell
-cd apps/dcellar-web-ui
-```
+    ```shell
+    cd apps/dcellar-web-ui
+    ```
 
-Then, build the internal libs that it dependents
+2. build the internal libs that it dependents
 
-```shell
-rush build -T .
-```
+    ```shell
+    rush build -T .
+    ```
 
-Finally, you can run `rushx` command to run scripts in `package.json`.
+3. Set up your `.env` file
+    ```shell
+    cp .env.example .env.local
+    ```
+4. you can run `rushx` command to run scripts in `package.json`.
 
-```shell
-rushx dev  # It will run 'dev' script in package.json
-```
+    ```shell
+    rushx dev  # It will run 'dev' script in package.json
+    ```
 
 `rushx` is just like `npm run`
 
