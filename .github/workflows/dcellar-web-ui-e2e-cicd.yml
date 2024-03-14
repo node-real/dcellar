@@ -16,7 +16,7 @@ on:
 
 jobs:
   CICD:
-    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-e2e-cicd.yml@feat/opt-fe/devin
+    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
       app_name: ${{ inputs.app_name }}

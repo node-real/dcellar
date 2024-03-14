@@ -7,7 +7,7 @@ on:
 jobs:
   pre-check:
     runs-on: ubuntu-latest
-    if: (contains(github.event.comment.body, '/e2e-deploy') || contains(github.event.comment.body, '/new-e2e-deploy') || contains(github.event.comment.body, '/qa-deploy'))
+    if: (contains(github.event.comment.body, '/e2e-deploy') || contains(github.event.comment.body, '/qa-deploy'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
     steps:
