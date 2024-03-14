@@ -1,7 +1,7 @@
+import { ButtonGroup, Flex } from '@node-real/uikit';
+
 import { runtimeEnv } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
-import { ButtonGroup, Flex } from '@totejs/uikit';
-import React from 'react';
 
 const LINKS = {
   mainnet: {
@@ -13,12 +13,15 @@ const LINKS = {
     internalUrl: '/pricing-calculator',
   },
 };
+
 export const NetworkSwitch = () => {
   const network = ['testnet', 'mainnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
+
   const onSwitchClick = (net: 'mainnet' | 'testnet') => {
     if (net === network) return;
     window.location.href = LINKS[net].fullUrl;
   };
+
   return (
     <Flex>
       <ButtonGroup

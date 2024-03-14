@@ -1,25 +1,30 @@
-import { Box, Text } from '@totejs/uikit';
-import React from 'react';
+import { Box, Text } from '@node-real/uikit';
+import { useThrottleFn } from 'ahooks';
+
 import { UploadingObjects } from './UploadingObjects';
+
+import { DCButton } from '@/components/common/DCButton';
+import { DCDrawer } from '@/components/common/DCDrawer';
+import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectHasUploadingTask, setTaskManagement } from '@/store/slices/global';
-import { DCButton } from '@/components/common/DCButton';
-import { Loading } from '@/components/common/Loading';
-import { DCDrawer } from '@/components/common/DCDrawer';
-import { useThrottleFn } from 'ahooks';
 
 export const TaskManagement = () => {
   const dispatch = useAppDispatch();
-  const { taskManagement } = useAppSelector((root) => root.global);
-  const isOpen = taskManagement;
-  const { run: onToggle } = useThrottleFn(() => dispatch(setTaskManagement(!isOpen)), {
-    wait: 200,
-  });
+  const globalTaskManagementOpen = useAppSelector((root) => root.global.globalTaskManagementOpen);
+
+  const isUploading = useAppSelector(selectHasUploadingTask);
+
+  const { run: onToggle } = useThrottleFn(
+    () => dispatch(setTaskManagement(!globalTaskManagementOpen)),
+    {
+      wait: 200,
+    },
+  );
+
   const setClose = () => {
     dispatch(setTaskManagement(false));
   };
-
-  const isUploading = useAppSelector(selectHasUploadingTask);
 
   const renderButton = () => {
     return (
@@ -51,7 +56,7 @@ export const TaskManagement = () => {
   return (
     <>
       {renderButton()}
-      <DCDrawer isOpen={isOpen} onClose={() => setClose()}>
+      <DCDrawer isOpen={globalTaskManagementOpen} onClose={() => setClose()}>
         <UploadingObjects />
       </DCDrawer>
     </>

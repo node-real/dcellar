@@ -3,13 +3,14 @@ import { SETTLEMENT_FEE_DOC } from '@/modules/object/constant';
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { displayTime } from '@/utils/common';
-import { Box, Link } from '@totejs/uikit';
+import { Box, Link } from '@node-real/uikit';
 import { memo } from 'react';
 
 interface SettlementTipsProps {}
 
 export const SettlementTips = memo<SettlementTipsProps>(function SettlementTips() {
   const { reserveTime } = useAppSelector(selectStoreFeeParams);
+
   return (
     <Tips
       w={330}

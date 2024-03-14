@@ -1,31 +1,32 @@
-import React, { memo, useEffect } from 'react';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
-import { SpItem } from '@/store/slices/sp';
+import { css, Global } from '@emotion/react';
 import styled from '@emotion/styled';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { IconFont } from '@/components/IconFont';
-import { useRouter } from 'next/router';
-import { decodeObjectName } from '@/utils/string';
-import { trimEnd } from 'lodash-es';
-import { setFolders, setShareModePath } from '@/store/slices/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
-import { PanelContent } from '@/modules/object/objects.style';
-import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
-import { NewObject } from '@/modules/object/components/NewObject';
-import { ObjectList } from '@/modules/object/components/ObjectList';
-import { DCLink } from '@/components/common/DCLink';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
+import { trimEnd } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo, useEffect } from 'react';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { DCLink } from '@/components/common/DCLink';
+import { IconFont } from '@/components/IconFont';
+import { CreateObject } from '@/modules/object/components/CreateObject';
+import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
-import { Global, css } from '@emotion/react';
+import { ObjectList } from '@/modules/object/components/ObjectList';
+import { ObjectListFilter } from '@/modules/object/components/ObjectListFilter';
+import { PanelContent } from '@/modules/object/objects.style';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { setupBucket } from '@/store/slices/bucket';
+import { setPathSegments, setObjectShareModePath } from '@/store/slices/object';
+import { SpEntity } from '@/store/slices/sp';
+import { decodeObjectName } from '@/utils/string';
 
 interface ShareFolderProps {
   fileName: string;
   quotaData: IQuotaProps;
   loginAccount: string;
-  primarySp: SpItem;
+  primarySp: SpEntity;
 }
 
 const headerDropDown = css`
@@ -37,22 +38,28 @@ const headerDropDown = css`
 export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileName }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
+  const objectShareModePath = useAppSelector((root) => root.object.objectShareModePath);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+
   const { file } = router.query;
-  const { objectsInfo, shareModePath } = useAppSelector((root) => root.object);
-  const { bucketInfo } = useAppSelector((root) => root.bucket);
-  const prefix = decodeObjectName(shareModePath || (file as string));
+  const prefix = decodeObjectName(objectShareModePath || (file as string));
   const items = trimEnd(prefix, '/').split('/');
   const [bucketName, ...folders] = items;
-  const info = objectsInfo[prefix];
-  const bucket = bucketInfo[bucketName];
+  const info = objectRecords[prefix];
+  const bucket = bucketRecords[bucketName];
   const omitLen = (file as string).split('/').length;
 
+  const hash = fileName
+    ? `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${info?.CreateTxHash}`
+    : `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${bucket?.CreateTxHash}`;
+
   useEffect(() => {
-    dispatch(setFolders({ bucketName, folders }));
+    dispatch(setPathSegments({ bucketName, folders }));
     return () => {
-      dispatch(setFolders({ bucketName: '', folders: [] }));
+      dispatch(setPathSegments({ bucketName: '', folders: [] }));
     };
-  }, [prefix, shareModePath, dispatch]);
+  }, [prefix, objectShareModePath, dispatch]);
 
   useEffect(() => {
     if (!fileName && bucketName) {
@@ -61,12 +68,8 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
   }, [bucketName, fileName, dispatch]);
 
   useUnmount(() => {
-    dispatch(setShareModePath(''));
+    dispatch(setObjectShareModePath(''));
   });
-
-  const hash = fileName
-    ? `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${info?.CreateTxHash}`
-    : `${GREENFIELD_CHAIN_EXPLORER_URL}/tx/${bucket?.CreateTxHash}`;
 
   return (
     <Box maxW={'calc(100% - 40px)'} minH={'100%'} w={'100%'}>
@@ -94,7 +97,7 @@ export const ShareFolder = memo<ShareFolderProps>(function ShareFolder({ fileNam
           </Flex>
           <PanelContent>
             <ObjectListFilter />
-            <NewObject
+            <CreateObject
               shareMode
               showRefresh={true}
               gaFolderClickName="dc.file.list.create_folder.click"

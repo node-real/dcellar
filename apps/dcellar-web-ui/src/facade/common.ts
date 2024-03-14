@@ -1,14 +1,20 @@
-import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { Long, TxResponse } from '@bnb-chain/greenfield-js-sdk';
-import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { get } from '@/base/http';
-import { broadcastFault, commonFault, ErrorMsg, ErrorResponse, simulateFault } from '@/facade/error';
-import { IQuotaProps, SpResponse } from '@bnb-chain/greenfield-js-sdk';
+import {
+  ErrorMsg,
+  ErrorResponse,
+  broadcastFault,
+  commonFault,
+  simulateFault,
+} from '@/facade/error';
 import { getClient } from '@/facade/index';
-import { signTypedDataCallback } from './wallet';
 import { UNKNOWN_ERROR } from '@/modules/object/constant';
+import { QueryHeadObjectResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { IQuotaProps, Long, SpResponse, TxResponse } from '@bnb-chain/greenfield-js-sdk';
 import { Connector } from 'wagmi';
-import { TTempAccount } from '@/store/slices/accounts';
+import { signTypedDataCallback } from './wallet';
+import { BNB_USDT_EXCHANGE_RATE } from '@/store/slices/global';
+import { TempAccountEntity } from '@/store/slices/accounts';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
@@ -29,7 +35,7 @@ export const getObjectInfoAndBucketQuota = async ({
 }): Promise<[ObjectInfo | null, IQuotaProps | null, ErrorMsg?]> => {
   const client = await getClient();
   const [{ objectInfo }, { body, message }] = await Promise.all([
-    client.object.headObject(bucketName, objectName).catch(() => ({} as QueryHeadObjectResponse)),
+    client.object.headObject(bucketName, objectName).catch(() => ({}) as QueryHeadObjectResponse),
     client.bucket
       .getBucketReadQuota(
         {
@@ -51,44 +57,42 @@ export const getObjectInfoAndBucketQuota = async ({
   return [objectInfo || null, body || null, message];
 };
 
-export type BnbPriceInfo = { price: string; symbol: string };
-
-export const getDefaultBnbInfo = () => ({ price: '300', symbol: 'BNBUSDT' });
-
-export const getBnbPrice = async (): Promise<BnbPriceInfo> => {
+export const getBnbUsdtExchangeRate = async (): Promise<string> => {
   const [res, error] = await get({
     url: 'https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT',
     customOptions: { needNotify: false },
   }).then(resolve, commonFault);
 
-  if (error) return getDefaultBnbInfo();
-  return res as BnbPriceInfo;
+  if (error) return BNB_USDT_EXCHANGE_RATE;
+  return res.price;
 };
 
 export const getGasFees = async (network?: 'mainnet') => {
   const client = await getClient(network);
-  return await client.gashub.getMsgGasParams({
-    msgTypeUrls: [],
-    pagination: {
-      countTotal: true,
-      key: Uint8Array.from([]),
-      limit: Long.fromInt(1000),
-      offset: Long.fromInt(0),
-      reverse: false,
-    },
-  }).then(resolve, commonFault);
-}
+  return await client.gashub
+    .getMsgGasParams({
+      msgTypeUrls: [],
+      pagination: {
+        countTotal: true,
+        key: Uint8Array.from([]),
+        limit: Long.fromInt(1000),
+        offset: Long.fromInt(0),
+        reverse: false,
+      },
+    })
+    .then(resolve, commonFault);
+};
 
 export type BroadcastTx = {
-  tx: TxResponse,
-  address: string,
-  connector: Connector,
-}
+  tx: TxResponse;
+  address: string;
+  connector: Connector;
+};
 
 export const broadcastTx = async ({
   tx,
   address,
-  connector
+  connector,
 }: BroadcastTx): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
   if (!tx) {
     return [null, 'tx is null'];
@@ -118,16 +122,17 @@ export const broadcastTx = async ({
 };
 
 export type BroadcastMultiTx = {
-  txs: TxResponse[],
-  address: string,
-  connector: Connector,
-}
+  txs: TxResponse[];
+  address: string;
+  connector: Connector;
+};
+
 export const broadcastMulTxs = async ({
   txs,
   address,
   connector,
 }: BroadcastMultiTx): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
-  const client = await getClient()
+  const client = await getClient();
   const multiTxs = await client.txClient.multiTx(txs);
   const [simulateInfo, simulateError] = await multiTxs
     .simulate({
@@ -155,14 +160,15 @@ export const broadcastMulTxs = async ({
 };
 
 export type BroadcastMultiTxByTmpAccount = {
-  txs: TxResponse[],
-  tempAccount: TTempAccount,
-  address: string,
-}
+  txs: TxResponse[];
+  tempAccount: TempAccountEntity;
+  address: string;
+};
+
 export const broadcastMultiTxByTmpAccount = async ({
   txs,
   tempAccount,
-  address
+  address,
 }: BroadcastMultiTxByTmpAccount): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
   if (!txs) {
     return [null, 'txs is null'];

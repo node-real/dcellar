@@ -1,10 +1,11 @@
-import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import React, { memo, useMemo } from 'react';
-import { DCModal } from '@/components/common/DCModal';
-import { DCButton } from '@/components/common/DCButton';
-import { useAppSelector } from '@/store';
+import { Flex, ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
+import { memo, useMemo } from 'react';
+
 import { AnimatePng } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
 import { IconFont } from '@/components/IconFont';
+import { useAppSelector } from '@/store';
 
 const contentTexts = {
   pending: {
@@ -39,9 +40,10 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
   status,
   errorMsg,
 }) {
-  const { transType } = useAppSelector((root) => root.wallet);
+  const transferType = useAppSelector((root) => root.wallet.transferType);
 
-  const gaOptions = getGAOptions(transType, status);
+  const gaOptions = getGAOptions(transferType, status);
+  const contentText = contentTexts[status];
 
   const FooterButton = useMemo(() => {
     if (status === 'pending') return null;
@@ -53,7 +55,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
       );
     }
     if (status === 'success') {
-      switch (transType) {
+      switch (transferType) {
         case 'transfer_in':
           return (
             <>
@@ -61,7 +63,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
                 size={'lg'}
                 variant="ghost"
                 as="a"
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO */
                 target={'_blank'}
                 href={viewTxUrl}
                 gaClickName={gaOptions.nextActionName}
@@ -79,7 +81,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
               <DCButton
                 size={'lg'}
                 variant="ghost"
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO how to inherit as function */
                 target={'_blank'}
                 href={viewTxUrl}
                 as="a"
@@ -99,7 +101,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
                 size={'lg'}
                 variant="ghost"
                 as={'a'}
-                /*@ts-ignore TODO how to inherit as function */
+                /*@ts-expect-error TODO */
                 target={'_blank'}
                 href={viewTxUrl}
                 gaClickName={gaOptions.nextActionName}
@@ -115,9 +117,7 @@ export const StatusModal = memo<StatusModalProps>(function StatusModal({
           break;
       }
     }
-  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, transType, status, viewTxUrl]);
-
-  const contentText = contentTexts[status];
+  }, [gaOptions.nextActionName, gaOptions.tryAgainName, onClose, transferType, status, viewTxUrl]);
 
   return (
     <DCModal

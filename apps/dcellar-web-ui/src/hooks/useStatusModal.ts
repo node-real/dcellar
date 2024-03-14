@@ -1,14 +1,14 @@
-import { useAppDispatch } from '@/store'
-import { TStatusDetail, setStatusDetail } from '@/store/slices/object';
+import { useAppDispatch } from '@/store';
+import { SignatureAction, setSignatureAction } from '@/store/slices/global';
 
 export const BUTTON_GOT_IT = 'Got It';
 
 export function useStatusModal() {
   const dispatch = useAppDispatch();
   const modal = {
-    start: ({ title, icon, ...props }: TStatusDetail) => {
+    start: ({ title, icon, ...props }: SignatureAction) => {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title,
           icon,
           ...props,
@@ -16,20 +16,25 @@ export function useStatusModal() {
       );
     },
     end: () => {
-      dispatch(setStatusDetail({} as TStatusDetail))
+      dispatch(setSignatureAction({}));
     },
-    error: ({ title, errorText, icon, ...props }: Omit<TStatusDetail, 'icon'> & { icon?: string }) => {
+    error: ({
+      title,
+      errorText,
+      icon,
+      ...props
+    }: Omit<SignatureAction, 'icon'> & { icon?: string }) => {
       return dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title,
           icon: icon || 'status-failed',
           buttonText: BUTTON_GOT_IT,
           errorText: 'Error message: ' + errorText,
-          ...props
+          ...props,
         }),
       );
     },
   };
 
-  return { modal }
+  return { modal };
 }

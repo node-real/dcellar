@@ -1,24 +1,27 @@
-import { useMemo } from 'react';
-import { CardContainer, CardCost, CardTime, CardTitle } from './Common';
-import { getUtcDayjs } from '@/utils/time';
-import { BoxProps, Flex, Text } from '@totejs/uikit';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
 import { InternalRoutePaths } from '@/constants/paths';
-import { stringify } from 'querystring';
-import { BillingHistoryQuery } from '..';
+import { useAppSelector } from '@/store';
+import { scrollToId } from '@/utils/common';
+import { getUtcDayjs } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { BoxProps, Flex, Text } from '@node-real/uikit';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
-import { scrollToId } from '@/utils/common';
+import { stringify } from 'querystring';
+import { useMemo } from 'react';
+import { BillingHistoryQuery } from '..';
+import { CardContainer, CardCost, CardTime, CardTitle } from './Common';
 
-type CurMonthCostProps = BoxProps & {
-  showLink?: boolean;
-};
+type CurMonthCostProps = BoxProps & { showLink?: boolean };
+
 export const CurMonthCost = ({ children, showLink = true, ...restProps }: CurMonthCostProps) => {
-  const utcDayjs = getUtcDayjs();
+  const monthTotalCost = useAppSelector((root) => root.billing.monthTotalCost);
+
   const router = useRouter();
-  const { curMonthTotalCosted } = useAppSelector((root) => root.billing);
+
+  const utcDayjs = getUtcDayjs();
+  const isLoading = monthTotalCost === '';
+
   const costTime = useMemo(() => {
     const time = +new Date();
     const monthStart = utcDayjs(time).startOf('M').format('YYYY-MM-DD');
@@ -40,16 +43,13 @@ export const CurMonthCost = ({ children, showLink = true, ...restProps }: CurMon
     router.push(url, undefined, { scroll: false });
     scrollToId('tab_container', 24);
   };
-  const isLoading = curMonthTotalCosted === '';
 
   return (
     <CardContainer w={260} flex={1} {...restProps}>
       <CardTitle mb={8}>Current Month Cost</CardTitle>
       <CardTime mb={16}>{costTime}</CardTime>
       <Flex gap={8} flexWrap={'wrap'} whiteSpace={'break-spaces'}>
-        <CardCost>
-            {isLoading ? '--' : curMonthTotalCosted}
-        </CardCost>
+        <CardCost>{isLoading ? '--' : monthTotalCost}</CardCost>
         <CardCost>{displayTokenSymbol()}</CardCost>
       </Flex>
       {showLink && (

@@ -1,61 +1,67 @@
 import { EOperation } from '@/modules/wallet/type';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TAccount } from './accounts';
+import { AccountEntity } from './accounts';
 
-export type TransType = keyof typeof EOperation;
-
-export function isTrans(type: string): type is EOperation {
+export function isTransferOperation(type: string): type is EOperation {
   return type in EOperation;
 }
 
+export type TransferType = keyof typeof EOperation;
+
 export interface WalletState {
-  transType: TransType;
-  fromAccount: TAccount;
-  toAccount: TAccount;
-  from: string;
-  to: string;
-  sendAmount: string;
+  transferType: TransferType;
+  transferFromAccount: AccountEntity;
+  transferToAccount: AccountEntity;
+  transferFromAddress: string;
+  transferToAddress: string;
+  transferAmount: string;
 }
 
 const initialState: WalletState = {
-  transType: 'transfer_in',
-  fromAccount: {} as TAccount,
-  toAccount: {} as TAccount,
-  from: '',
-  to: '',
-  sendAmount: '',
+  transferType: 'transfer_in',
+  transferFromAccount: {} as AccountEntity,
+  transferToAccount: {} as AccountEntity,
+  transferFromAddress: '',
+  transferToAddress: '',
+  transferAmount: '',
 };
 
 export const walletSlice = createSlice({
   name: 'wallet',
   initialState,
   reducers: {
-    setTransType(state, { payload }: PayloadAction<TransType>) {
-      state.transType = payload;
+    setTransferType(state, { payload }: PayloadAction<TransferType>) {
+      state.transferType = payload;
     },
-    setFromAccount: (state, { payload }: PayloadAction<TAccount>) => {
+    setTransferFromAccount: (state, { payload }: PayloadAction<AccountEntity>) => {
       if (!payload) return;
-      state.fromAccount = payload;
-      state.from = payload.address;
+      state.transferFromAccount = payload;
+      state.transferFromAddress = payload.address;
     },
-    setToAccount: (state, { payload }: PayloadAction<TAccount>) => {
+    setTransferToAccount: (state, { payload }: PayloadAction<AccountEntity>) => {
       if (!payload) return;
-      state.toAccount = payload;
-      state.to = payload.address;
+      state.transferToAccount = payload;
+      state.transferToAddress = payload.address;
     },
-    setTo: (state, { payload }: PayloadAction<string>) => {
-      state.to = payload;
+    setTransferFromAddress: (state, { payload }: PayloadAction<string>) => {
+      state.transferFromAddress = payload;
     },
-    setFrom: (state, { payload }: PayloadAction<string>) => {
-      state.from = payload;
+    setTransferToAddress: (state, { payload }: PayloadAction<string>) => {
+      state.transferToAddress = payload;
     },
-    setSendAmount: (state, { payload }: PayloadAction<string>) => {
-      state.sendAmount = payload;
+    setTransferAmount: (state, { payload }: PayloadAction<string>) => {
+      state.transferAmount = payload;
     },
   },
 });
 
-export const { setTransType, setFromAccount, setToAccount, setFrom, setTo, setSendAmount } =
-  walletSlice.actions;
+export const {
+  setTransferType,
+  setTransferFromAccount,
+  setTransferToAccount,
+  setTransferFromAddress,
+  setTransferToAddress,
+  setTransferAmount,
+} = walletSlice.actions;
 
 export default walletSlice.reducer;

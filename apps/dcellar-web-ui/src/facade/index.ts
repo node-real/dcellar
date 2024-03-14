@@ -1,5 +1,10 @@
+import {
+  GREENFIELD_CHAIN_ID,
+  GREENFIELD_CHAIN_RPC_URL,
+  GREENFIELD_MAINNET_ID,
+  GREENFIELD_MAINNET_RPC_URL,
+} from '@/base/env';
 import { Client } from '@bnb-chain/greenfield-js-sdk';
-import { GREENFIELD_CHAIN_ID, GREENFIELD_CHAIN_RPC_URL, GREENFIELD_MAINNET_ID, GREENFIELD_MAINNET_RPC_URL } from '@/base/env';
 
 export const getSingleton = function () {
   let client: Client | null;
@@ -15,7 +20,7 @@ export const getSingleton = function () {
       mainnetClient = Client.create(GREENFIELD_MAINNET_RPC_URL, String(GREENFIELD_MAINNET_ID));
     }
 
-    return env === 'mainnet' ? mainnetClient as Client : client as Client;
+    return env === 'mainnet' ? (mainnetClient as Client) : (client as Client);
   };
 };
 

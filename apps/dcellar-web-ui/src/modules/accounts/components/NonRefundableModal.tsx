@@ -1,38 +1,43 @@
-import { DCModal } from '@/components/common/DCModal';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditDisablePaymentAccount, setupAccountInfo } from '@/store/slices/accounts';
-import React, { memo } from 'react';
-import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@totejs/uikit';
-import { DCButton } from '@/components/common/DCButton';
-import { disablePaymentAccountRefund } from '@/facade/account';
-import { useAccount } from 'wagmi';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
 import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
+import { disablePaymentAccountRefund } from '@/facade/account';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setEditingPaymentAccountRefundable, setupAccountRecords } from '@/store/slices/accounts';
+import { setSignatureAction } from '@/store/slices/global';
+import { ModalBody, ModalCloseButton, ModalFooter, Text } from '@node-real/uikit';
+import { memo } from 'react';
+import { useAccount } from 'wagmi';
 
 interface NonRefundableModal {}
 
 export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundableModal() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { editDisablePaymentAccount } = useAppSelector((root) => root.accounts);
-  const isOpen = !!editDisablePaymentAccount;
-  const onClose = () => {
-    dispatch(setEditDisablePaymentAccount(''));
-  };
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const editingPaymentAccountRefundable = useAppSelector(
+    (root) => root.accounts.editingPaymentAccountRefundable,
+  );
+
   const { connector } = useAccount();
+
+  const isOpen = !!editingPaymentAccountRefundable;
+
+  const onClose = () => {
+    dispatch(setEditingPaymentAccountRefundable(''));
+  };
 
   const onContinueClick = async () => {
     if (!connector) return;
     onClose();
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: 'account-failed',
         title: 'Set as Non-Refundable',
         desc: 'Please confirm the transaction in your wallet.',
       }),
     );
     const [res, error] = await disablePaymentAccountRefund(
-      { address: loginAccount, paymentAccount: editDisablePaymentAccount },
+      { address: loginAccount, paymentAccount: editingPaymentAccountRefundable },
       connector,
     );
     if (error || (res && res.code !== 0)) {
@@ -43,15 +48,15 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
         msg = 'This payment account has already be set as non-refundable.';
       }
       return dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: 'Set Failed',
           icon: 'account-failed',
           desc: msg,
         }),
       );
     }
-    dispatch(setupAccountInfo(editDisablePaymentAccount));
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setupAccountRecords(editingPaymentAccountRefundable));
+    dispatch(setSignatureAction({}));
   };
 
   return (
@@ -63,8 +68,8 @@ export const NonRefundableModal = memo<NonRefundableModal>(function NonRefundabl
           Set as Non-Refundable
         </Text>
         <Text fontSize="16px" textAlign={'center'} marginTop="8px" color={'readable.tertiary'}>
-          Making this payment account non-refundable means it can&apos;t be refunded anymore and this
-          action can&apos;t be undone.
+          Making this payment account non-refundable means it can&apos;t be refunded anymore and
+          this action can&apos;t be undone.
         </Text>
       </ModalBody>
       <ModalFooter flexDirection={'row'}>

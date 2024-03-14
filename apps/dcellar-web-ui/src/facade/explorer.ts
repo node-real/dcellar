@@ -5,7 +5,7 @@ export type GetDailyBucketListByOwnerParams = {
   page: number;
   per_page: number;
   owner: string;
-}
+};
 
 export type DailyBucketStorage = {
   BucketNumID: string;
@@ -18,9 +18,11 @@ export type DailyBucketStorage = {
   DailyTotalChargedStorageSize: string[];
 };
 
-export const getDailyBucketStorageListByOwner = (params: GetDailyBucketListByOwnerParams): Promise<[DailyBucketStorage[], null] | ErrorResponse> => {
+export const getDailyBucketStorageListByOwner = (
+  params: GetDailyBucketListByOwnerParams,
+): Promise<[DailyBucketStorage[], null] | ErrorResponse> => {
   const url = `/api/chart/daily_bucket/list`;
   return get({ url, data: params }).then((res) => {
     return [res.result, null];
   }, commonFault);
-}
+};

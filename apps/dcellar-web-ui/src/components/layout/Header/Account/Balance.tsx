@@ -3,7 +3,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { DCLink } from '@/components/common/DCLink';
 import { Tips } from '@/components/common/Tips';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
 import { BalanceAmount } from './BalanceAmount';
 
 export type AvailableBalanceProps = {
@@ -11,6 +11,7 @@ export type AvailableBalanceProps = {
 };
 export const Balance = ({ address }: AvailableBalanceProps) => {
   const shortAddress = getShortenWalletAddress(address);
+
   return (
     <>
       <Flex

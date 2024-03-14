@@ -1,8 +1,9 @@
-import React from 'react';
+import { Box, Flex, Text } from '@node-real/uikit';
+
 import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { smMedia } from '@/modules/responsive';
+
 import { IconFont } from '@/components/IconFont';
+import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
 
 const datas = [
@@ -77,7 +78,7 @@ export const Building = () => {
           }}
         >
           <LandingH2>Building on BNB Greenfield</LandingH2>
-          <Text fontFamily={INTER_FONT} color='readable.secondary'>
+          <Text fontFamily={INTER_FONT} color="readable.secondary">
             BNB Greenfield is an innovative blockchain and storage platform that seeks to unleash
             the power of decentralized technology on data ownership and the data economy.
           </Text>
@@ -112,16 +113,26 @@ export const Building = () => {
                     {item.icon}
                   </Flex>
                 </Box>
-                <Flex gap={12} flexDirection={'column'} sx={{
-                  [smMedia]: {
-                    gap: 8
-                  }
-                }}>
-                  <Text fontFamily={INTER_FONT} as="h3" fontSize={20} fontWeight={700} sx={{
+                <Flex
+                  gap={12}
+                  flexDirection={'column'}
+                  sx={{
                     [smMedia]: {
-                      fontSize: 16
-                    }
-                  }}>
+                      gap: 8,
+                    },
+                  }}
+                >
+                  <Text
+                    fontFamily={INTER_FONT}
+                    as="h3"
+                    fontSize={20}
+                    fontWeight={700}
+                    sx={{
+                      [smMedia]: {
+                        fontSize: 16,
+                      },
+                    }}
+                  >
                     {item.title}
                   </Text>
                   <Text

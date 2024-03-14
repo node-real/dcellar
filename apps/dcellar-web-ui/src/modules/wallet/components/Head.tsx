@@ -1,15 +1,12 @@
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 import { memo } from 'react';
+
 import { useAppSelector } from '@/store';
 
 const HeadContent = {
   transfer_in: {
     title: 'transfer in',
-    subtitle: (
-      <>
-        Transfer BNB from BNB Smart Chain to your BNB Greenfield account.
-      </>
-    ),
+    subtitle: <>Transfer BNB from BNB Smart Chain to your BNB Greenfield account.</>,
   },
   transfer_out: {
     title: 'transfer out',
@@ -24,8 +21,10 @@ const HeadContent = {
 interface HeadProps {}
 
 export const Head = memo<HeadProps>(function Head() {
-  const { transType } = useAppSelector((root) => root.wallet);
-  const content = HeadContent[transType];
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
+  const content = HeadContent[transferType];
+
   return (
     <>
       <Text

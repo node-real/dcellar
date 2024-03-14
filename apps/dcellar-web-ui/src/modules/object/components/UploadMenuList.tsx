@@ -1,8 +1,7 @@
-import React, { ChangeEvent, memo, PropsWithChildren } from 'react';
-import { Flex, MenuButton, MenuItem, MenuList, Text } from '@totejs/uikit';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { ButtonVariantType } from '@totejs/uikit/dist/src/components/forms/Button';
+import { ButtonVariantType, Flex, MenuButton, MenuItem, MenuList, Text } from '@node-real/uikit';
+import { ChangeEvent, PropsWithChildren, memo } from 'react';
 
 interface UploadMenuListProps extends PropsWithChildren {
   disabled: boolean;
@@ -91,7 +90,7 @@ export const UploadMenuList = memo<UploadMenuListProps>(function UploadMenuList(
                   type="file"
                   id={`folder-picker-${name}`}
                   name={`folder-upload-${name}`}
-                  // @ts-ignore
+                  // @ts-expect-error webkitdirectory="true" and directory="true" are not in the types
                   webkitdirectory="true"
                   directory="true"
                   multiple

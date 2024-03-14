@@ -1,32 +1,35 @@
 import { IconFont } from '@/components/IconFont';
 import { Tips } from '@/components/common/Tips';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
-import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { Box, Flex, Link, Text } from '@totejs/uikit';
+import { Box, Flex, Link, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 
 export const AccountDetailNav = ({ address }: { address: string }) => {
-  const curAddress = address as string;
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const isOwnerAccount = address === loginAccount;
   const router = useRouter();
-  const { accountInfo } = useAppSelector((root) => root.accounts);
-  const accountDetail = accountInfo?.[curAddress] || {};
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const storeFeeParams = useAppSelector(selectStoreFeeParams);
+
+  const curAddress = address as string;
+  const isOwnerAccount = address === loginAccount;
+  const accountDetail = accountRecords?.[curAddress] || {};
   const isFrozen = accountDetail.clientFrozen;
   const loading = !address || isEmpty(accountDetail);
-  const storeFeeParams = useAppSelector(selectStoreFeeParams);
 
   const unFreezeAmount = useMemo(() => {
     return BN(storeFeeParams.reserveTime).times(BN(accountDetail?.frozenNetflowRate)).toString();
   }, [accountDetail?.frozenNetflowRate, storeFeeParams?.reserveTime]);
+
   const goBack = () => {
     router.push('/accounts');
   };
+
   const onTopUpClick = () => {
     const url = isOwnerAccount
       ? InternalRoutePaths.transfer_in
@@ -34,6 +37,7 @@ export const AccountDetailNav = ({ address }: { address: string }) => {
 
     router.push(url);
   };
+
   return (
     <Flex gap={16} alignItems={'center'} onClick={goBack} cursor={'pointer'}>
       <IconFont type="backward" w={24} />

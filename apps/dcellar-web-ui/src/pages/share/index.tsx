@@ -1,37 +1,38 @@
-import { NextPage, NextPageContext } from 'next';
-import { last, trimEnd } from 'lodash-es';
-import { decodeObjectName } from '@/utils/string';
-import React, { ReactNode, useState } from 'react';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import {
   BucketInfo,
   ObjectInfo,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { useAsyncEffect } from 'ahooks';
-import Head from 'next/head';
-import { Box, Flex, Grid } from '@totejs/uikit';
-import { Logo } from '@/components/layout/Logo';
-import { ShareError } from '@/modules/share/ShareError';
-import { SharedFile } from '@/modules/share/SharedFile';
-import { Footer } from '@/components/layout/Footer';
-import { ShareCTA } from '@/modules/share/ShareCTA';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import styled from '@emotion/styled';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { ShareLogin } from '@/modules/share/ShareLogin';
-import { Header } from '@/components/layout/Header';
-import { useIsMounted } from '@/hooks/useIsMounted';
+import { Box, Flex, Grid } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { last, trimEnd } from 'lodash-es';
+import { NextPage, NextPageContext } from 'next';
+import Head from 'next/head';
+import { ReactNode, useState } from 'react';
+
+import { runtimeEnv } from '@/base/env';
 import { Loading } from '@/components/common/Loading';
+import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { Logo } from '@/components/layout/Logo';
+import { headBucket } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import { E_NOT_FOUND, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
+import { hasObjectPermission, headObject } from '@/facade/object';
+import { useIsMounted } from '@/hooks/useIsMounted';
+import { useLogin } from '@/hooks/useLogin';
+import { ShareCTA } from '@/modules/share/ShareCTA';
+import { SharedFile } from '@/modules/share/SharedFile';
+import { ShareError } from '@/modules/share/ShareError';
+import { ShareFolder } from '@/modules/share/ShareFolder';
+import { ShareLogin } from '@/modules/share/ShareLogin';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { hasObjectPermission, headObject } from '@/facade/object';
-import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
-import { headBucket } from '@/facade/bucket';
-import { getPrimarySpInfo, SpItem } from '@/store/slices/sp';
-import { useLogin } from '@/hooks/useLogin';
+import { SpEntity, setupPrimarySpInfo } from '@/store/slices/sp';
 import { networkTag } from '@/utils/common';
-import { runtimeEnv } from '@/base/env';
-import { ShareFolder } from '@/modules/share/ShareFolder';
+import { decodeObjectName } from '@/utils/string';
 
 const Container = styled.main`
   min-height: calc(100vh - 48px);
@@ -50,27 +51,28 @@ interface PageProps {
 }
 
 const SharePage: NextPage<PageProps> = (props) => {
-  const { oneSp } = useAppSelector((root) => root.sp);
+  const { objectName, fileName, bucketName } = props;
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
+
   const isMounted = useIsMounted();
   const [objectInfo, setObjectInfo] = useState<ObjectInfo | null>();
   const [quotaData, setQuotaData] = useState<IQuotaProps | null>();
-  const [bucketInfo, setBucketInfo] = useState<BucketInfo | null>();
-  const { objectName, fileName, bucketName } = props;
-  const title = `${bucketName}${fileName ? `- ${fileName}` : ''}`;
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const dispatch = useAppDispatch();
   const [getPermission, setGetPermission] = useState(true);
-  const [primarySp, setPrimarySp] = useState<SpItem>({} as SpItem);
+  const [primarySp, setPrimarySp] = useState<SpEntity>({} as SpEntity);
   const { logout } = useLogin();
-  const isFolder = objectName.endsWith('/') || objectName === '';
+  const [bucketInfo, setBucketInfo] = useState<BucketInfo | null>();
 
+  const title = `${bucketName}${fileName ? `- ${fileName}` : ''}`;
+  const isFolder = objectName.endsWith('/') || objectName === '';
   const isPrivate = objectInfo?.visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE || isFolder;
   const walletConnected = !!loginAccount;
   const isOwner = objectInfo?.owner === loginAccount;
 
   useAsyncEffect(async () => {
-    if (!oneSp) return;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, oneSp));
+    if (!specifiedSp) return;
+    const { seedString } = await dispatch(getSpOffChainData(loginAccount, specifiedSp));
     const bucketInfo = await headBucket(bucketName);
     if (!bucketInfo) {
       // bucket not exist
@@ -79,7 +81,9 @@ const SharePage: NextPage<PageProps> = (props) => {
       setBucketInfo(null);
       return;
     }
-    const sp = await dispatch(getPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId));
+    const sp = await dispatch(
+      setupPrimarySpInfo(bucketName, +bucketInfo.globalVirtualGroupFamilyId),
+    );
 
     setBucketInfo(bucketInfo);
     if (!sp) {
@@ -118,7 +122,7 @@ const SharePage: NextPage<PageProps> = (props) => {
     }
     setObjectInfo(objectInfo);
     setQuotaData(quotaData || ({} as IQuotaProps));
-  }, [oneSp, walletConnected]);
+  }, [specifiedSp, walletConnected]);
 
   useAsyncEffect(async () => {
     if (!loginAccount || !bucketName) return;

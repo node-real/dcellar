@@ -1,4 +1,24 @@
-import React, { memo, PropsWithChildren, useEffect } from 'react';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { CopyText } from '@/components/common/CopyText';
+import { DCButton } from '@/components/common/DCButton';
+import { GAClick } from '@/components/common/GATracker';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { IconFont } from '@/components/IconFont';
+import { SharePermission } from '@/modules/object/components/SharePermission';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  setBucketOperation,
+  setBucketTagsEditData,
+  setBucketEditQuota,
+  setupBucketQuota,
+  TBucket,
+} from '@/store/slices/bucket';
+import { selectBucketSp } from '@/store/slices/sp';
+import { convertObjectKey } from '@/utils/common';
+import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
+import { formatFullTime, getMillisecond } from '@/utils/time';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import {
   Box,
   Divider,
@@ -9,31 +29,10 @@ import {
   QDrawerHeader,
   Text,
   Tooltip,
-} from '@totejs/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  setEditQuota,
-  TBucket,
-  setupBucketQuota,
-  setEditBucketTags,
-  setEditBucketTagsData,
-  setEditBucketPaymentAccount,
-} from '@/store/slices/bucket';
-import { formatFullTime, getMillisecond } from '@/utils/time';
-import { formatAddress, formatId, formatQuota, trimAddress } from '@/utils/string';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { GAClick } from '@/components/common/GATracker';
-import { CopyText } from '@/components/common/CopyText';
-import { selectBucketSp } from '@/store/slices/sp';
-import dayjs from 'dayjs';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import { convertObjectKey } from '@/utils/common';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+} from '@node-real/uikit';
 import { useUnmount } from 'ahooks';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { SharePermission } from '@/modules/object/components/SharePermission';
+import dayjs from 'dayjs';
+import { memo, PropsWithChildren, useEffect } from 'react';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -67,25 +66,48 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   selectedBucketInfo,
 }) {
   const dispatch = useAppDispatch();
-  const { quotas } = useAppSelector((root) => root.bucket);
-  const quota = quotas[selectedBucketInfo.BucketName];
-  const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
-  const formattedQuota = formatQuota(quota);
-  const { accountInfo } = useAppSelector((root) => root.accounts);
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
+  const bucketQuota = bucketQuotaRecords[selectedBucketInfo.BucketName];
+  const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
+  const formattedQuota = formatQuota(bucketQuota);
+  const nullObjectMeta: ObjectMeta = {
+    ...defaultNullObject,
+    ObjectInfo: {
+      ...defaultNullObject.ObjectInfo,
+      BucketName: selectedBucketInfo.BucketName,
+    },
+  };
+
   const onEditTags = () => {
-    const lowerKeyTags = selectedBucketInfo.Tags.Tags.map((item) =>
+    const tags = selectedBucketInfo.Tags.Tags.map((item) =>
       convertObjectKey(item, 'lowercase'),
+    ) as ResourceTags_Tag[];
+    dispatch(setBucketTagsEditData(tags));
+    dispatch(
+      setBucketOperation({ level: 1, operation: [selectedBucketInfo.BucketName, 'update_tags'] }),
     );
-    dispatch(setEditBucketTagsData(lowerKeyTags as ResourceTags_Tag[]));
-    dispatch(setEditBucketTags([selectedBucketInfo.BucketName, 'detail']));
+  };
+
+  const onManageQuota = () => {
+    dispatch(setBucketEditQuota([selectedBucketInfo.BucketName, 'drawer']));
+  };
+
+  const onManagePaymentAccount = () => {
+    dispatch(
+      setBucketOperation({
+        level: 1,
+        operation: [selectedBucketInfo.BucketName, 'payment_account'],
+      }),
+    );
   };
 
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
     const spName = primarySp.moniker;
-    const payAccountName = accountInfo[selectedBucketInfo.PaymentAddress]?.name;
+    const payAccountName = accountRecords[selectedBucketInfo.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,
@@ -167,9 +189,9 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                         gap={4}
                         color={'brand.brand6'}
                         cursor={'pointer'}
-                      onClick={managePaymentAccount}
-                      w={16}
-                      h={16}
+                        onClick={onManagePaymentAccount}
+                        w={16}
+                        h={16}
                       >
                         <IconFont type="pen" />
                       </Flex>
@@ -287,23 +309,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     dispatch(setupBucketQuota(selectedBucketInfo.BucketName));
   }, [selectedBucketInfo.BucketName, dispatch]);
 
-  const manageQuota = () => {
-    dispatch(setEditQuota([selectedBucketInfo.BucketName, 'drawer']));
-  };
-
-  const managePaymentAccount = () => {
-    dispatch(setEditBucketPaymentAccount([selectedBucketInfo.BucketName, 'drawer']));
-  };
-
-  useUnmount(() => dispatch(setEditBucketTagsData([DEFAULT_TAG])));
-
-  const nullObjectMeta: ObjectMeta = {
-    ...defaultNullObject,
-    ObjectInfo: {
-      ...defaultNullObject.ObjectInfo,
-      BucketName: selectedBucketInfo.BucketName,
-    },
-  };
+  useUnmount(() => dispatch(setBucketTagsEditData([DEFAULT_TAG])));
 
   return (
     <>
@@ -361,7 +367,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                 color="#00BA34"
                 _hover={{ color: '#2EC659' }}
                 cursor="pointer"
-                onClick={manageQuota}
+                onClick={onManageQuota}
               >
                 Increase Quota
               </Text>
@@ -374,7 +380,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
         <SharePermission selectObjectInfo={nullObjectMeta} />
       </QDrawerBody>
       <QDrawerFooter>
-        <DCButton size="lg" w={'100%'} onClick={manageQuota}>
+        <DCButton size="lg" w={'100%'} onClick={onManageQuota}>
           Manage Quota
         </DCButton>
       </QDrawerFooter>

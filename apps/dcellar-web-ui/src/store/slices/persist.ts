@@ -1,9 +1,9 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, AppState, GetState } from '@/store';
-import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
-import { updateSps } from '@/store/slices/sp';
-import { find } from 'lodash-es';
+import { setNewAvailableSpList } from '@/store/slices/sp';
 import { getTimestamp } from '@/utils/time';
+import { IReturnOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { find } from 'lodash-es';
 
 type OffChain = IReturnOffChainAuthKeyPairAndUpload;
 
@@ -28,25 +28,25 @@ export type PersistedAccountConfig = {
 };
 
 export interface PersistState {
-  accounts: Record<string, PersistedAccountConfig>;
+  accountRecords: Record<string, PersistedAccountConfig>;
   loginAccount: string;
-  faultySps: Array<string>;
+  unAvailableSps: Array<string>;
   bucketSortBy: SorterType;
   objectSortBy: SorterType;
   groupSortBy: SorterType;
   groupPageSize: number;
   objectPageSize: number;
   bucketPageSize: number;
-  PAPageSize: number;
-  allBillsPageSize: number;
-  accountBillsPageSize: number;
+  paymentAccountPageSize: number;
+  billPageSize: number;
+  accountBillPageSize: number;
   paymentAccountSortBy: SorterType;
 }
 
 const initialState: PersistState = {
-  accounts: {},
+  accountRecords: {},
   loginAccount: '',
-  faultySps: [],
+  unAvailableSps: [],
   bucketSortBy: ['CreateAt', 'descend'],
   bucketPageSize: 50,
   objectSortBy: ['createAt', 'descend'],
@@ -54,53 +54,53 @@ const initialState: PersistState = {
   groupSortBy: ['id', 'descend'],
   groupPageSize: 20,
   paymentAccountSortBy: ['account', 'ascend'],
-  PAPageSize: 20,
-  allBillsPageSize: 20,
-  accountBillsPageSize: 20,
+  paymentAccountPageSize: 20,
+  billPageSize: 20,
+  accountBillPageSize: 20,
 };
 
 export const persistSlice = createSlice({
   name: 'persist',
   initialState,
   reducers: {
-    updateGroupSorter(state, { payload }: PayloadAction<SorterType>) {
+    setGroupSorter(state, { payload }: PayloadAction<SorterType>) {
       state.groupSortBy = payload;
     },
-    updateGroupPageSize(state, { payload }: PayloadAction<number>) {
+    setGroupListPageSize(state, { payload }: PayloadAction<number>) {
       state.groupPageSize = payload;
     },
-    updateObjectPageSize(state, { payload }: PayloadAction<number>) {
+    setObjectListPageSize(state, { payload }: PayloadAction<number>) {
       state.objectPageSize = payload;
     },
-    updateObjectSorter(state, { payload }: PayloadAction<SorterType>) {
+    setObjectSorter(state, { payload }: PayloadAction<SorterType>) {
       state.objectSortBy = payload;
     },
-    updatePASorter(state, { payload }: PayloadAction<SorterType>) {
+    setPaymentAccountSorter(state, { payload }: PayloadAction<SorterType>) {
       state.paymentAccountSortBy = payload;
     },
-    updateBucketPageSize(state, { payload }: PayloadAction<number>) {
+    setBucketListPageSize(state, { payload }: PayloadAction<number>) {
       state.bucketPageSize = payload;
     },
-    updatePAPageSize(state, { payload }: PayloadAction<number>) {
-      state.PAPageSize = payload;
+    setPaymentAccountListPageSize(state, { payload }: PayloadAction<number>) {
+      state.paymentAccountPageSize = payload;
     },
-    updateAllBillsPageSize(state, { payload }: PayloadAction<number>) {
-      state.allBillsPageSize = payload;
+    setBillPageSize(state, { payload }: PayloadAction<number>) {
+      state.billPageSize = payload;
     },
-    updateAccountBillsPageSize(state, { payload }: PayloadAction<number>) {
-      state.accountBillsPageSize = payload;
+    setAccountBillPageSize(state, { payload }: PayloadAction<number>) {
+      state.accountBillPageSize = payload;
     },
-    updateBucketSorter(state, { payload }: PayloadAction<SorterType>) {
+    setBucketSorter(state, { payload }: PayloadAction<SorterType>) {
       state.bucketSortBy = payload;
     },
-    setLogin(state, { payload }: PayloadAction<string>) {
+    setLoginAccount(state, { payload }: PayloadAction<string>) {
       state.loginAccount = payload;
     },
     setLogout(state, { payload = false }: PayloadAction<boolean>) {
       if (payload) {
         const account = state.loginAccount;
-        const config = state.accounts[account];
-        state.accounts[account] = { ...config, offchain: [] };
+        const config = state.accountRecords[account];
+        state.accountRecords[account] = { ...config, offchain: [] };
       }
       state.loginAccount = '';
     },
@@ -109,35 +109,55 @@ export const persistSlice = createSlice({
       { payload }: PayloadAction<{ address: string; config: Partial<PersistedAccountConfig> }>,
     ) {
       const { address, config } = payload;
-      const _config = state.accounts[address] || getDefaultAccountConfig();
-      state.accounts[address] = { ..._config, ...config };
+      const _config = state.accountRecords[address] || getDefaultAccountConfig();
+      state.accountRecords[address] = { ..._config, ...config };
     },
-    setOffchain(state, { payload }: PayloadAction<{ address: string; offchain: OffChain[] }>) {
+    setAccountOffchain(
+      state,
+      { payload }: PayloadAction<{ address: string; offchain: OffChain[] }>,
+    ) {
       const { address, offchain } = payload;
-      const _config = state.accounts[address] || getDefaultAccountConfig();
-      state.accounts[address] = { ..._config, offchain };
+      const _config = state.accountRecords[address] || getDefaultAccountConfig();
+      state.accountRecords[address] = { ..._config, offchain };
     },
     setAccountSps(state, { payload }: PayloadAction<{ address: string; sps: string[] }>) {
       const { address, sps } = payload;
-      const _config = state.accounts[address] || getDefaultAccountConfig();
-      state.accounts[address] = { ..._config, sps };
+      const _config = state.accountRecords[address] || getDefaultAccountConfig();
+      state.accountRecords[address] = { ..._config, sps };
     },
-    setFaultySps(state, { payload }: PayloadAction<string[]>) {
-      state.faultySps = payload;
+    setUnAvailableSps(state, { payload }: PayloadAction<string[]>) {
+      state.unAvailableSps = payload;
     },
   },
 });
 
+export const {
+  setBucketSorter,
+  setLoginAccount,
+  setLogout,
+  setAccountConfig,
+  setAccountOffchain,
+  setAccountSps,
+  setUnAvailableSps,
+  setPaymentAccountSorter,
+  setPaymentAccountListPageSize,
+  setBucketListPageSize,
+  setObjectSorter,
+  setObjectListPageSize,
+  setGroupSorter,
+  setGroupListPageSize,
+} = persistSlice.actions;
+
 export const selectAccountConfig = (address: string) => (state: AppState) =>
-  state.persist.accounts[address] || defaultAccountConfig;
+  state.persist.accountRecords[address] || defaultAccountConfig;
 
 export const setupOffchain =
   (address: string, payload: IReturnOffChainAuthKeyPairAndUpload, needUpdate = false) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const sps = payload.spAddresses;
     const curTime = getTimestamp();
-    const config = getState().persist.accounts[address] || getDefaultAccountConfig();
-    const { allSps } = getState().sp;
+    const config = getState().persist.accountRecords[address] || getDefaultAccountConfig();
+    const { allSpList } = getState().sp;
     const { offchain } = config;
     const legacyOffchain = offchain
       .map((o) => ({
@@ -147,29 +167,20 @@ export const setupOffchain =
       .filter((o) => o.spAddresses.length && o.expirationTime > curTime);
     // filter livable sps
     if (needUpdate) {
-      const faultySps = allSps
+      const unAvailableSps = allSpList
         .filter((s) => !sps.includes(s.operatorAddress))
         .map((s) => s.operatorAddress);
-      dispatch(setFaultySps(faultySps));
+      dispatch(setUnAvailableSps(unAvailableSps));
       // persist all sps
-      dispatch(setAccountSps({ address, sps: allSps.map((s) => s.operatorAddress) }));
-      dispatch(updateSps(sps));
+      dispatch(setAccountSps({ address, sps: allSpList.map((s) => s.operatorAddress) }));
+      dispatch(setNewAvailableSpList(sps));
     }
-    dispatch(setOffchain({ address, offchain: [...legacyOffchain, payload] }));
-  };
-
-export const checkOffChainDataAvailable =
-  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const config = getState().persist.accounts[address] || getDefaultAccountConfig();
-    const { offchain } = config;
-    if (!offchain.length) return false;
-    const curTime = getTimestamp();
-    return offchain.some((o) => o.expirationTime > curTime);
+    dispatch(setAccountOffchain({ address, offchain: [...legacyOffchain, payload] }));
   };
 
 export const getSpOffChainData =
   (address: string, spAddress: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const config = getState().persist.accounts[address] || getDefaultAccountConfig();
+    const config = getState().persist.accountRecords[address] || getDefaultAccountConfig();
     const { offchain } = config;
     const curTime = getTimestamp();
     return (find<OffChain>(
@@ -178,43 +189,32 @@ export const getSpOffChainData =
     ) || {}) as OffChain;
   };
 
+export const checkOffChainDataAvailable =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const config = getState().persist.accountRecords[address] || getDefaultAccountConfig();
+    const { offchain } = config;
+    if (!offchain.length) return false;
+    const curTime = getTimestamp();
+    return offchain.some((o) => o.expirationTime > curTime);
+  };
+
 export const checkSpOffChainDataAvailable =
   (address: string, sp: string) => async (dispatch: AppDispatch) => {
     return !!(await dispatch(getSpOffChainData(address, sp))).seedString;
   };
 
-// todo refactor
 export const checkSpOffChainMayExpired =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { accounts, faultySps } = getState().persist;
-    const config = accounts[address] || getDefaultAccountConfig();
-    const allSps = getState().sp.allSps ?? [];
+    const { accountRecords, unAvailableSps } = getState().persist;
+    const config = accountRecords[address] || getDefaultAccountConfig();
+    const allSpList = getState().sp.allSpList ?? [];
     const { offchain = [], sps = [] } = config;
     const curTime = getTimestamp();
     const mayExpired = offchain.some((sp) => sp.expirationTime < curTime + 60 * 60 * 24 * 1000);
-    const hasNewSp = allSps.some(
-      (s) => !sps.includes(s.operatorAddress) && !faultySps.includes(s.operatorAddress),
+    const hasNewSp = allSpList.some(
+      (s) => !sps.includes(s.operatorAddress) && !unAvailableSps.includes(s.operatorAddress),
     );
     return !offchain.length || mayExpired || hasNewSp;
   };
-
-export const {
-  updateBucketSorter,
-  setLogin,
-  setLogout,
-  setAccountConfig,
-  setOffchain,
-  setAccountSps,
-  setFaultySps,
-  updatePASorter,
-  updatePAPageSize,
-  updateAllBillsPageSize,
-  updateAccountBillsPageSize,
-  updateBucketPageSize,
-  updateObjectSorter,
-  updateObjectPageSize,
-  updateGroupSorter,
-  updateGroupPageSize,
-} = persistSlice.actions;
 
 export default persistSlice.reducer;

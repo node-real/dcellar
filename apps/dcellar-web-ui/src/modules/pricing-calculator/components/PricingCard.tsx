@@ -1,20 +1,23 @@
-import { UnderlineLink } from '@/components/layout/Footer';
-import { TStoreFeeParams } from '@/store/slices/global';
-import { getUTC0FullMonth } from '@/utils/time';
-import { MenuCloseIcon, MenuOpenIcon } from '@totejs/icons';
-import { Flex, Text, Box, Menu, MenuButton, Button, MenuList, MenuItem } from '@totejs/uikit';
-import React, { useMemo, useState } from 'react';
-import { Sizes, TSize, TTime, Times } from '../utils';
-import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { MenuCloseIcon, MenuOpenIcon } from '@node-real/icons';
+import { Box, Button, Flex, Menu, MenuButton, MenuItem, MenuList, Text } from '@node-real/uikit';
+import { useMemo, useState } from 'react';
+
 import { PriceResponsiveContainer } from '..';
-import { smMedia } from '@/modules/responsive';
+import { Sizes, TSize, TTime, Times } from '../utils';
 import { H2 } from './Common';
+
+import { UnderlineLink } from '@/components/layout/Footer';
+import { smMedia } from '@/modules/responsive';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { StoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
+import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
+import { getUTC0FullMonth } from '@/utils/time';
 
 type PricingCardProps = {
-  storeParams: TStoreFeeParams;
+  storeParams: StoreFeeParams;
 };
+
 const UnitOptions = [
   {
     title: `BNB/MB/month`,
@@ -32,9 +35,11 @@ const UnitOptions = [
     time: 'm',
   },
 ];
+
 export const PricingCard = ({ storeParams }: PricingCardProps) => {
   const curFullMonth = getUTC0FullMonth();
   const [unit, setUnit] = useState(UnitOptions[1]);
+
   const prices = useMemo(() => {
     const storeSize = Sizes[unit.size as TSize];
     const storeTime = Times[unit.time as TTime];
@@ -51,6 +56,7 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
       quotaFee,
     };
   }, [storeParams, unit.size, unit.time]);
+
   return (
     <PriceResponsiveContainer
       display={'flex'}
@@ -94,7 +100,9 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
           }}
         >
           Global prices will update monthly based on all the SPs&apos; suggested prices.{' '}
-          <UnderlineLink href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment">Learn More</UnderlineLink>
+          <UnderlineLink href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment">
+            Learn More
+          </UnderlineLink>
         </Text>
         <Menu matchWidth>
           {({ isOpen }) => (

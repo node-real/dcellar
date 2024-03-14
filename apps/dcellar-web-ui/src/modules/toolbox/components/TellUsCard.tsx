@@ -1,13 +1,15 @@
-import React from 'react';
+import { Box, Text, Tooltip } from '@node-real/uikit';
+
 import { Card } from './Common';
-import { Box, Text, Tooltip } from '@totejs/uikit';
-import { DCButton } from '@/components/common/DCButton';
+
 import { assetPrefix } from '@/base/env';
+import { DCButton } from '@/components/common/DCButton';
 
 export const TellUsCard = () => {
   const onNavigateExternal = (url: string) => {
     window.open(url, '_blank', 'noreferrer');
   };
+
   return (
     <Card
       _hover={{}}

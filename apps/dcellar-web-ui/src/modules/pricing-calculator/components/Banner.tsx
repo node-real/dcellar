@@ -1,8 +1,8 @@
-import { smMedia } from '@/modules/responsive';
-import { Box } from '@totejs/uikit';
+import { Box } from '@node-real/uikit';
+
 import { H1, SubTitle } from './Common';
-import { networkTag } from '@/utils/common';
-import { runtimeEnv } from '@/base/env';
+
+import { smMedia } from '@/modules/responsive';
 
 export const Banner = () => {
   return (
@@ -18,8 +18,8 @@ export const Banner = () => {
     >
       <H1>BNB Greenfield Pricing Calculator</H1>
       <SubTitle>
-        With our pricing calculator, you can easily get an estimate for your project on <strong>BNB
-        Greenfield Mainnet</strong>.
+        With our pricing calculator, you can easily get an estimate for your project on{' '}
+        <strong>BNB Greenfield Mainnet</strong>.
       </SubTitle>
     </Box>
   );

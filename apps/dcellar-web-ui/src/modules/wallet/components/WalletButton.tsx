@@ -1,8 +1,9 @@
-import React, { memo } from 'react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useNetwork } from 'wagmi';
-import { isRightChain } from '../utils/isRightChain';
+
 import { WalletOperationInfos } from '../constants';
+import { isRightChain } from '../utils/isRightChain';
+
 import { DCButton } from '@/components/common/DCButton';
 import { WarningInfo } from '@/components/common/WarningInfo';
 import { useWalletSwitchNetWork } from '@/context/WalletConnectContext';
@@ -23,10 +24,12 @@ export const WalletButton = memo<WalletButtonProps>(function WalletButton({
   gaClickSubmitName,
   gaClickSwitchName,
 }) {
-  const { transType } = useAppSelector((root) => root.wallet);
-  const curInfo = WalletOperationInfos[transType];
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
   const { chain } = useNetwork();
   const { switchNetwork } = useWalletSwitchNetWork();
+
+  const curInfo = WalletOperationInfos[transferType];
 
   const isRight = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);

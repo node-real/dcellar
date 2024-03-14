@@ -1,7 +1,7 @@
-import { memo, PropsWithChildren, useEffect } from 'react';
-import { Button, useClipboard } from '@totejs/uikit';
-import styled from '@emotion/styled';
 import { IconFont } from '@/components/IconFont';
+import styled from '@emotion/styled';
+import { Button, useClipboard } from '@node-real/uikit';
+import { PropsWithChildren, memo, useEffect } from 'react';
 
 interface CopyButtonProps extends PropsWithChildren {
   text: string;

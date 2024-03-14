@@ -1,31 +1,31 @@
-import React, { memo } from 'react';
-import Link from 'next/link';
-import styled from '@emotion/styled';
-import {
-  ObjectItem,
-  setCurrentObjectPage,
-  setObjectOperation,
-  setShareModePath,
-  setStatusDetail,
-} from '@/store/slices/object';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { toast, Tooltip } from '@totejs/uikit';
-import { encodeObjectName } from '@/utils/string';
-import { trimEnd } from 'lodash-es';
-import { getObjectInfoAndBucketQuota } from '@/facade/common';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { previewObject } from '@/facade/object';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
-import { quotaRemains } from '@/facade/bucket';
-import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { quotaRemains } from '@/facade/bucket';
+import { getObjectInfoAndBucketQuota } from '@/facade/common';
+import { E_GET_QUOTA_FAILED, E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { previewObject } from '@/facade/object';
 import { contentIconTypeToExtension } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
+import {
+  ObjectEntity,
+  setObjectListPage,
+  setObjectOperation,
+  setObjectShareModePath,
+} from '@/store/slices/object';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { encodeObjectName } from '@/utils/string';
+import styled from '@emotion/styled';
+import { Tooltip, toast } from '@node-real/uikit';
+import { trimEnd } from 'lodash-es';
+import Link from 'next/link';
+import { memo } from 'react';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface ObjectNameColumnProps {
-  item: ObjectItem;
-  disabled: Boolean;
+  item: ObjectEntity;
+  disabled: boolean;
   shareMode?: boolean;
 }
 
@@ -34,16 +34,20 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
   disabled,
   shareMode = false,
 }) {
-  const dispatch = useAppDispatch();
-  const { setOpenAuthModal } = useOffChainAuth();
   const { folder, objectName, name, visibility } = item;
-  const { primarySpInfo } = useAppSelector((root) => root.sp);
-  const { bucketName } = useAppSelector((root) => root.object);
-  const { owner } = useAppSelector((root) => root.bucket);
-  const primarySp = primarySpInfo[bucketName];
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.persist.accountRecords);
+  const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+
+  const { setOpenAuthModal } = useOffChainAuth();
+
+  const primarySp = primarySpRecords[currentBucketName];
   const fileType = contentIconTypeToExtension(objectName);
-  const { loginAccount, accounts } = useAppSelector((root) => root.persist);
-  const onError = (type: string) => {
+
+  const errorHandler = (type: string) => {
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
     }
@@ -51,16 +55,17 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
-  const download = async (object: ObjectItem) => {
-    const config = accounts[loginAccount] || {};
+
+  const download = async (object: ObjectEntity) => {
+    const config = accountRecords[loginAccount] || {};
     if (config.directDownload || shareMode) {
       const { seedString } = await dispatch(
         getSpOffChainData(loginAccount, primarySp.operatorAddress),
       );
       const gParams = {
-        bucketName,
+        bucketName: currentBucketName,
         objectName: object.objectName,
         endpoint: primarySp.endpoint,
         seedString,
@@ -70,19 +75,19 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
       if (
         ['bad signature', 'invalid signature', 'user public key is expired'].includes(error || '')
       ) {
-        return onError(E_OFF_CHAIN_AUTH);
+        return errorHandler(E_OFF_CHAIN_AUTH);
       }
       if (objectInfo === null) {
-        return onError(E_UNKNOWN);
+        return errorHandler(E_UNKNOWN);
       }
       if (!shareMode) {
         if (quotaData === null) {
-          return onError(E_GET_QUOTA_FAILED);
+          return errorHandler(E_GET_QUOTA_FAILED);
         }
-        let remainQuota = quotaRemains(quotaData, object.payloadSize + '');
+        const remainQuota = quotaRemains(quotaData, object.payloadSize + '');
         // update quota data.
-        dispatch(setReadQuota({ bucketName, quota: quotaData }));
-        if (!remainQuota) return onError(E_NO_QUOTA);
+        dispatch(setBucketQuota({ bucketName: currentBucketName, quota: quotaData }));
+        if (!remainQuota) return errorHandler(E_NO_QUOTA);
       }
       const params = {
         primarySp,
@@ -90,8 +95,8 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
         address: loginAccount,
       };
       const [success, opsError] = await previewObject(params, seedString);
-      if (opsError) return onError(opsError);
-      dispatch(setupBucketQuota(bucketName));
+      if (opsError) return errorHandler(opsError);
+      dispatch(setupBucketQuota(currentBucketName));
       return success;
     }
 
@@ -119,7 +124,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
   return (
     <Container>
       <Link
-        href={`/buckets/${bucketName}/${encodeObjectName(objectName)}`}
+        href={`/buckets/${currentBucketName}/${encodeObjectName(objectName)}`}
         onClick={(e) => {
           if (disabled) {
             e.stopPropagation();
@@ -128,16 +133,18 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
           }
           e.stopPropagation();
           if (folder) {
-            const path = trimEnd([bucketName, objectName].join('/'), '/');
-            dispatch(setCurrentObjectPage({ path, current: 0 }));
+            const path = trimEnd([currentBucketName, objectName].join('/'), '/');
+            dispatch(setObjectListPage({ path, current: 0 }));
             if (shareMode) {
               e.stopPropagation();
               e.preventDefault();
-              dispatch(setShareModePath(`${bucketName}/${encodeObjectName(objectName)}`));
+              dispatch(
+                setObjectShareModePath(`${currentBucketName}/${encodeObjectName(objectName)}`),
+              );
             }
             return;
           }
-          if (!owner && !shareMode) {
+          if (!isBucketOwner && !shareMode) {
             toast.warning({ description: 'You are browsing a bucket created by someone else. ' });
             e.stopPropagation();
             e.preventDefault();

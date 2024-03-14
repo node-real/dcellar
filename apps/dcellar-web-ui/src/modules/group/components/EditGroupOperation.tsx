@@ -1,4 +1,19 @@
-import React, { memo, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { DCButton } from '@/components/common/DCButton';
+import { DotLoading } from '@/components/common/DotLoading';
+import { InputItem } from '@/components/formitems/InputItem';
+import { TextareaItem } from '@/components/formitems/TextareaItem';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { updateGroupExtra } from '@/facade/group';
+import { Fees } from '@/modules/group/components/Fees';
+import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setSignatureAction } from '@/store/slices/global';
+import { setupGroupList } from '@/store/slices/group';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import {
   Flex,
   FormControl,
@@ -8,25 +23,10 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupGroups } from '@/store/slices/group';
-import { InputItem } from '@/components/formitems/InputItem';
-import { TextareaItem } from '@/components/formitems/TextareaItem';
-import { DCButton } from '@/components/common/DCButton';
-import { DotLoading } from '@/components/common/DotLoading';
-import { Fees } from '@/modules/group/components/Fees';
-import { MsgUpdateGroupExtraTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { updateGroupExtra } from '@/facade/group';
-import { useAccount } from 'wagmi';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+} from '@node-real/uikit';
 import { useMount } from 'ahooks';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { Animates } from '@/components/AnimatePng';
+import { memo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface EditGroupOperationProps {
   selectGroup: GroupInfo;
@@ -38,13 +38,18 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
   onClose = () => {},
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const [error, setError] = useState({ name: '', desc: '' });
   const [form, setForm] = useState({ name: '', desc: '' });
   const [balanceAvailable, setBalanceAvailable] = useState(true);
   const [loading, setLoading] = useState(false);
+
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
+
+  const fees = [{ label: 'Gas fee', types: [MsgUpdateGroupExtraTypeUrl] }];
+  const valid = !(error.name || error.desc);
 
   const validateForm = (values: Record<'name' | 'desc', string>) => {
     const { desc } = values;
@@ -58,12 +63,6 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     return _error;
   };
 
-  const onFormChange = (value: string, key: string) => {
-    const newValues = { ...form, [key]: value };
-    validateForm(newValues);
-    setForm(newValues);
-  };
-
   const errorHandler = (error: string) => {
     switch (error) {
       case E_OFF_CHAIN_AUTH:
@@ -71,7 +70,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
         return;
       default:
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             title: 'Update Failed',
             icon: 'status-failed',
             desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -82,11 +81,13 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
     }
   };
 
-  const fees = [{ label: 'Gas fee', types: [MsgUpdateGroupExtraTypeUrl] }];
+  const onFormValueChange = (value: string, key: string) => {
+    const newValues = { ...form, [key]: value };
+    validateForm(newValues);
+    setForm(newValues);
+  };
 
-  const valid = !(error.name || error.desc);
-
-  const onCreate = async () => {
+  const onUpdateGroup = async () => {
     const error = validateForm(form);
     if (error.name || error.desc) return;
     setLoading(true);
@@ -103,14 +104,14 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
       return;
     }
     dispatch(
-      setStatusDetail({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
+      setSignatureAction({ icon: Animates.group, title: 'Updating Group', desc: WALLET_CONFIRM }),
     );
     const [txRes, txError] = await updateGroupExtra(payload, connector!);
     setLoading(false);
     if (!txRes || txRes.code !== 0) return errorHandler(txError || UNKNOWN_ERROR);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     toast.success({ description: 'Group updated successfully!' });
-    dispatch(setupGroups(loginAccount));
+    dispatch(setupGroupList(loginAccount));
     onClose();
   };
 
@@ -131,7 +132,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
               disabled
               value={form.name}
               placeholder="Enter a group name"
-              onChange={(e) => onFormChange(e.target.value, 'name')}
+              onChange={(e) => onFormValueChange(e.target.value, 'name')}
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.name]} />
@@ -142,12 +143,12 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
               Description
             </Text>
             <TextareaItem
-              onKeyDown={(e) => e.key === 'Enter' && onCreate()}
+              onKeyDown={(e) => e.key === 'Enter' && onUpdateGroup()}
               value={form.desc}
               h={100}
               resize="none"
               placeholder="Enter description for your group. (Optional)"
-              onChange={(e) => onFormChange(e.target.value, 'desc')}
+              onChange={(e) => onFormValueChange(e.target.value, 'desc')}
             />
           </FormLabel>
           <ErrorDisplay errorMsgs={[error.desc]} />
@@ -167,7 +168,7 @@ export const EditGroupOperation = memo<EditGroupOperationProps>(function CreateG
             justifyContent={'center'}
             gaClickName="dc.file.upload_modal.confirm.click"
             disabled={!balanceAvailable || !valid || loading}
-            onClick={onCreate}
+            onClick={onUpdateGroup}
           >
             {loading ? (
               <>

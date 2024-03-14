@@ -1,6 +1,6 @@
+import { InternalRoutePaths } from '@/constants/paths';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { InternalRoutePaths } from '@/constants/paths';
 
 export function usePreloadPages() {
   const router = useRouter();

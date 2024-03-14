@@ -1,50 +1,46 @@
-import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
-import { useAccount } from 'wagmi';
-import React, { memo, useMemo, useState } from 'react';
-import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { createTempAccount } from '@/facade/account';
 import { E_OBJECT_NOT_EXISTS, E_OFF_CHAIN_AUTH } from '@/facade/error';
+import { cancelCreateObject, deleteObject } from '@/facade/object';
+import { getStoreFeeParams } from '@/facade/payment';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  addDeletedObject,
-  setSelectedRowKeys,
-  setStatusDetail,
-  TStatusDetail,
-} from '@/store/slices/object';
+  AccountInfo,
+  selectAccount,
+  selectAvailableBalance,
+  setTempAccountRecords,
+  setupAccountRecords,
+} from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
+import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
+import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
+import { getTimestampInSeconds } from '@/utils/time';
 import {
   MsgCancelCreateObjectTypeUrl,
   MsgDeleteObjectTypeUrl,
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
-import { createTempAccount } from '@/facade/account';
+import { ColoredWaitingIcon } from '@node-real/icons';
+import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
 import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
-import { ColoredWaitingIcon } from '@totejs/icons';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { cancelCreateObject, deleteObject } from '@/facade/object';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { useAsyncEffect } from 'ahooks';
-import { getTimestampInSeconds } from '@/utils/time';
-import { getStoreFeeParams } from '@/facade/payment';
-import { getStoreNetflowRate } from '@/utils/payment';
-import {
-  selectAccount,
-  selectAvailableBalance,
-  setTempAccounts,
-  setupAccountInfo,
-  TAccountInfo,
-} from '@/store/slices/accounts';
-import { TBucket } from '@/store/slices/bucket';
-import { BN } from '@/utils/math';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { TotalFees } from '@/modules/object/components/TotalFees';
-import { DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { memo, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface BatchDeleteObjectOperationProps {
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
+  bucketAccountDetail: AccountInfo;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -57,71 +53,49 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     bucketAccountDetail: accountDetail,
   }) {
     const dispatch = useAppDispatch();
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const selectedRowKeys = useAppSelector((root) => root.object.selectedRowKeys);
-    const { bucketName, objectsInfo } = useAppSelector((root) => root.object);
-    const [loading, setLoading] = useState(false);
-    const [buttonDisabled] = useState(false);
-    const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { setOpenAuthModal } = useOffChainAuth();
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const objectRecords = useAppSelector((root) => root.object.objectRecords);
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
-    const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-    const [refundAmount, setRefundAmount] = useState<string | null>(null);
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
+    const [loading, setLoading] = useState(false);
+    const [refundAmount, setRefundAmount] = useState<string | null>(null);
     const [balanceEnough, setBalanceEnough] = useState(true);
+    const { connector } = useAccount();
+    const { setOpenAuthModal } = useOffChainAuth();
     const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(
       bucket?.PaymentAddress,
     );
-    const deleteObjects = selectedRowKeys.map((key) => {
-      return objectsInfo[bucketName + '/' + key];
+
+    const deleteObjects = objectSelectedKeys.map((key) => {
+      return objectRecords[currentBucketName + '/' + key];
     });
-    const deleteFee = (gasObjects[MsgDeleteObjectTypeUrl]?.gasFee || 0) * deleteObjects.length;
-    const cancelFee = gasObjects[MsgCancelCreateObjectTypeUrl]?.gasFee || 0;
+    const deleteFee =
+      (gnfdGasFeesConfig[MsgDeleteObjectTypeUrl]?.gasFee || 0) * deleteObjects.length;
+    const cancelFee = gnfdGasFeesConfig[MsgCancelCreateObjectTypeUrl]?.gasFee || 0;
+    const description = 'Are you sure you want to delete these objects?';
 
     const createTmpAccountGasFee = useMemo(() => {
-      const grantAllowTxFee = BN(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(
-        BN(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
+      const grantAllowTxFee = BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].gasFee).plus(
+        BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
       );
-      const putPolicyTxFee = BN(gasObjects[MsgPutPolicyTypeUrl].gasFee);
+      const putPolicyTxFee = BN(gnfdGasFeesConfig[MsgPutPolicyTypeUrl].gasFee);
 
       return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
-    }, [gasObjects]);
-
-    useAsyncEffect(async () => {
-      if (!crudTimestamp || !deleteObjects.length) return;
-      const curTime = getTimestampInSeconds();
-      const latestStoreFeeParams = await getStoreFeeParams({ time: crudTimestamp });
-
-      const refundAmount = deleteObjects.reduce((acc, cur) => {
-        const netflowRate = getStoreNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
-        const offsetTime = curTime - cur.ObjectInfo.CreateAt;
-        const reserveTime = Number(latestStoreFeeParams.reserveTime)
-        const refundTime = offsetTime > reserveTime ? offsetTime - reserveTime : 0;
-        const objectRefund = BN(netflowRate)
-          .times(refundTime)
-          .abs()
-          .toString();
-
-        return BN(acc).plus(objectRefund).toString();
-      }, '0');
-
-      setRefundAmount(refundAmount);
-    }, [crudTimestamp, deleteObjects]);
+    }, [gnfdGasFeesConfig]);
 
     const simulateGasFee = BN(
       deleteObjects.reduce(
-        // @ts-ignore
         (pre, cur) => pre + (cur.ObjectInfo.ObjectStatus === 1 ? deleteFee : cancelFee),
         0,
       ),
     )
       .plus(createTmpAccountGasFee)
       .toString();
-
-    const { connector } = useAccount();
-
-    const description = 'Are you sure you want to delete these objects?';
 
     const errorHandler = (error: string) => {
       setLoading(false);
@@ -131,7 +105,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           return;
         default:
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               title: FILE_TITLE_DELETE_FAILED,
               icon: 'status-failed',
               desc: 'Sorry, there’s something wrong when signing with the wallet.',
@@ -146,7 +120,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       setLoading(true);
       onClose();
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: Animates.delete,
           title: 'Deleting File',
           desc: WALLET_CONFIRM,
@@ -154,28 +128,27 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       );
       const [tempAccount, err] = await createTempAccount({
         address: loginAccount,
-        bucketName,
+        bucketName: currentBucketName,
         amount: parseEther(round(Number(availableBalance), 6).toString()).toNumber(),
         connector: connector!,
         actionType: 'delete',
       });
-      if (!tempAccount) return errorHandler(err);
-      dispatch(setTempAccounts(tempAccount));
+      if (!tempAccount) return errorHandler(err ?? '');
+      dispatch(setTempAccountRecords(tempAccount));
 
       async function deleteInRow() {
         if (!tempAccount) return;
         const { privateKey, address: operator } = tempAccount;
-        for await (let obj of deleteObjects) {
+        for await (const obj of deleteObjects) {
           const { ObjectName: objectName, ObjectStatus } = obj.ObjectInfo;
           const payload = {
-            bucketName,
+            bucketName: currentBucketName,
             objectName,
             loginAccount,
             operator,
             connector: connector!,
             privateKey,
           };
-          // @ts-ignore
           const [txRes, error] = await (ObjectStatus === 1
             ? deleteObject(payload)
             : cancelCreateObject(payload));
@@ -185,13 +158,13 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           }
           toast.success({ description: `${objectName} deleted successfully.` });
           dispatch(
-            addDeletedObject({
-              path: [bucketName, obj.ObjectInfo.ObjectName].join('/'),
+            setDeletedObject({
+              path: [currentBucketName, obj.ObjectInfo.ObjectName].join('/'),
               ts: Date.now(),
             }),
           );
         }
-        await dispatch(setupAccountInfo(bucket.PaymentAddress));
+        await dispatch(setupAccountRecords(bucket.PaymentAddress));
         return true;
       }
 
@@ -201,11 +174,29 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
       onClose();
 
       if (success) {
-        dispatch(setSelectedRowKeys([]));
-        dispatch(setStatusDetail({} as TStatusDetail));
+        dispatch(setObjectSelectedKeys([]));
+        dispatch(setSignatureAction({}));
       }
       setLoading(false);
     };
+
+    useAsyncEffect(async () => {
+      if (!crudTimestamp || !deleteObjects.length) return;
+      const curTime = getTimestampInSeconds();
+      const latestStoreFeeParams = await getStoreFeeParams({ time: crudTimestamp });
+
+      const refundAmount = deleteObjects.reduce((acc, cur) => {
+        const netflowRate = getStoreNetflowRate(cur.ObjectInfo.PayloadSize, latestStoreFeeParams);
+        const offsetTime = curTime - cur.ObjectInfo.CreateAt;
+        const reserveTime = Number(latestStoreFeeParams.reserveTime);
+        const refundTime = offsetTime > reserveTime ? offsetTime - reserveTime : 0;
+        const objectRefund = BN(netflowRate).times(refundTime).abs().toString();
+
+        return BN(acc).plus(objectRefund).toString();
+      }, '0');
+
+      setRefundAmount(refundAmount);
+    }, [crudTimestamp, deleteObjects]);
 
     return (
       <>
@@ -258,9 +249,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             flex={1}
             onClick={onConfirmDelete}
             isLoading={loading || loadingSettlementFee}
-            isDisabled={
-              buttonDisabled || loadingSettlementFee || refundAmount === null || !balanceEnough
-            }
+            isDisabled={loadingSettlementFee || refundAmount === null || !balanceEnough}
           >
             Delete
           </DCButton>

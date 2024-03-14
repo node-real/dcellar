@@ -1,46 +1,46 @@
 import { DCTable } from '@/components/common/DCTable';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { Loading } from '@/components/common/Loading';
+import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { ColumnProps } from 'antd/es/table';
-import React, { useCallback, useMemo } from 'react';
-import {
-  AccountBill,
-  selectAllBills,
-  selectAllBillsCount,
-} from '@/store/slices/billing';
-import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
+import { AccountInfo } from '@/store/slices/accounts';
+import { AccountBill, selectAllBills, selectAllBillsCount } from '@/store/slices/billing';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { formatTxType } from '@/utils/billing';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { Loading } from '@/components/common/Loading';
 import { formatTime } from '@/utils/time';
-import { TAccountInfo } from '@/store/slices/accounts';
-import { AllBillingHistoryFilter } from './AllBillingHistoryFilter';
-import { formatTxType } from '@/utils/billing';
-import { ShortTxCopy } from './Common';
-import { stringify } from 'querystring';
-import { useRouter } from 'next/router';
+import { displayTokenSymbol, getShortenWalletAddress } from '@/utils/wallet';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
 import { merge } from 'lodash-es';
-import { InternalRoutePaths } from '@/constants/paths';
+import { useRouter } from 'next/router';
+import { stringify } from 'querystring';
+import { useCallback, useMemo } from 'react';
+import { AllBillingHistoryFilter } from './AllBillingHistoryFilter';
+import { ShortTxCopy } from './Common';
 
 export const AllBillingHistory = () => {
-  const router = useRouter();
-  const { query } = router;
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { curAllBillsPage, loadingAllBills } = useAppSelector((root) => root.billing);
-  const { allBillsPageSize } = useAppSelector((root) => root.persist);
+  const billListPage = useAppSelector((root) => root.billing.billListPage);
+  const billListLoading = useAppSelector((root) => root.billing.billListLoading);
+  const billPageSize = useAppSelector((root) => root.persist.billPageSize);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const allBills = useAppSelector(selectAllBills());
   const allBillsCount = useAppSelector(selectAllBillsCount());
-  const { accountInfo } = useAppSelector((root) => root.accounts);
+  const router = useRouter();
+
   const pageData = allBills;
+  const { query } = router;
+
   const lowerKeyAccountInfo = useMemo(() => {
-    const newInfo: Record<string, TAccountInfo> = {};
-    Object.entries(accountInfo).forEach(([key, value]) => {
+    const newInfo: Record<string, AccountInfo> = {};
+    Object.entries(accountRecords).forEach(([key, value]) => {
       newInfo[key.toLowerCase()] = value;
     });
     return newInfo;
-  }, [accountInfo]);
+  }, [accountRecords]);
 
   const columns: ColumnProps<any>[] = [
     {
@@ -90,7 +90,7 @@ export const AllBillingHistory = () => {
               (
               {currencyFormatter(
                 BN(record.totalCost || 0)
-                  .times(BN(bnbPrice))
+                  .times(BN(exchangeRate))
                   .toString(),
               )}
               )
@@ -100,6 +100,7 @@ export const AllBillingHistory = () => {
       },
     },
   ];
+
   const empty = !allBills.length;
   const renderEmpty = useCallback(
     () => (
@@ -113,17 +114,17 @@ export const AllBillingHistory = () => {
     ),
     [empty],
   );
+  const loadingComponent = {
+    spinning: billListLoading,
+    indicator: <Loading />,
+  };
+
   const onPageChange = (page: number) => {
     const addQuery = { page };
     const newQuery = merge(query, addQuery);
     router.push(`${InternalRoutePaths.accounts}?${stringify(newQuery)}`, undefined, {
       scroll: false,
     });
-  };
-  const spinning = loadingAllBills;
-  const loadingComponent = {
-    spinning: spinning,
-    indicator: <Loading />,
   };
 
   return (
@@ -133,9 +134,9 @@ export const AllBillingHistory = () => {
         loading={loadingComponent}
         columns={columns}
         dataSource={pageData}
-        current={curAllBillsPage}
+        current={billListPage}
         total={allBillsCount}
-        pageSize={allBillsPageSize}
+        pageSize={billPageSize}
         showQuickJumper={true}
         pageChange={onPageChange}
         renderEmpty={renderEmpty}

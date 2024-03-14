@@ -1,4 +1,4 @@
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
 import { ToolBox } from './components/ToolBox';
 import { TotalBalance } from './components/TotalBalance';
 import { Stats } from './components/Stats';
@@ -9,26 +9,31 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { setupAllCostTrend, setupTotalCost } from '@/store/slices/billing';
 import { useMount } from 'ahooks';
-import { setupBuckets } from '@/store/slices/bucket';
+import { setupBucketList } from '@/store/slices/bucket';
 import { setupBucketDailyStorage } from '@/store/slices/dashboard';
 import { getCurMonthDetailUrl } from '@/utils/accounts';
 import { useRouter } from 'next/router';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
   const [isLessThan1200] = useMediaQuery('(max-width: 1200px)');
+
   const curMonthDetailUrl = getCurMonthDetailUrl();
+
   const router = useRouter();
+
   const onNavigate = (path: string) => {
     router.push(path);
   };
+
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
     dispatch(setupAllCostTrend());
     dispatch(setupPaymentAccounts());
-    dispatch(setupBuckets(loginAccount));
+    dispatch(setupBucketList(loginAccount));
     dispatch(setupBucketDailyStorage());
   });
 

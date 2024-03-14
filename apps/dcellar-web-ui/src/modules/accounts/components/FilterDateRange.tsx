@@ -1,17 +1,18 @@
-import { DCButton } from '@/components/common/DCButton';
-import { Box } from '@totejs/uikit';
-import dayjs, { Dayjs } from 'dayjs';
-import React, { useEffect, useState } from 'react';
-import cn from 'classnames';
 import { IconFont } from '@/components/IconFont';
-import { rangePresets } from './Common';
+import { DCButton } from '@/components/common/DCButton';
 import { DCRangePicker } from '@/components/common/DCDatePicker';
+import { Box } from '@node-real/uikit';
 import { useClickAway } from 'ahooks';
+import cn from 'classnames';
+import dayjs, { Dayjs } from 'dayjs';
+import { useEffect, useState } from 'react';
+import { rangePresets } from './Common';
 
 type FilterDateRangeProps = {
   filterDateRange: [string, string];
   onSetFilterDateRange: (dataRange: [string, string]) => void;
 };
+
 export const FilterDateRange = ({
   filterDateRange,
   onSetFilterDateRange,
@@ -19,6 +20,23 @@ export const FilterDateRange = ({
   const [activePicker, setActivePicker] = useState<0 | 1>(0);
   const [dateOpen, setDateOpen] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>();
+
+  const disabledDate = (current: Dayjs) => {
+    const isFeature = current.startOf('d').valueOf() > +new Date();
+    const isSixMonthsAgo =
+      current.startOf('d').valueOf() <=
+      dayjs(+new Date()).subtract(6, 'M').subtract(1, 'd').startOf('d').valueOf();
+    return isFeature || isSixMonthsAgo;
+  };
+
+  useClickAway(
+    () => setDateOpen(false),
+    [
+      () => document.querySelector('.object-list-date-filter'),
+      () => document.querySelector('.date-button'),
+    ],
+  );
+
   useEffect(() => {
     if (dateOpen) {
       return setDateRange([
@@ -34,21 +52,6 @@ export const FilterDateRange = ({
     }
     onSetFilterDateRange([from, to]);
   }, [dateOpen]);
-
-  useClickAway(
-    () => setDateOpen(false),
-    [
-      () => document.querySelector('.object-list-date-filter'),
-      () => document.querySelector('.date-button'),
-    ],
-  );
-  const disabledDate = (current: Dayjs) => {
-    const isFeature = current.startOf('d').valueOf() > +new Date();
-    const isSixMonthsAgo =
-      current.startOf('d').valueOf() <=
-      dayjs(+new Date()).subtract(6, 'M').subtract(1, 'd').startOf('d').valueOf();
-    return isFeature || isSixMonthsAgo;
-  };
 
   return (
     <Box position="relative">

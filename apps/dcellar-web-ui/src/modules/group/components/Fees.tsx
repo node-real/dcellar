@@ -1,13 +1,15 @@
-import React, { memo, useEffect } from 'react';
-import { useAppSelector } from '@/store';
-import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
-import BigNumber from 'bignumber.js';
+import { IconFont } from '@/components/IconFont';
 import {
   renderBalanceNumber,
   renderFeeValue,
   renderInsufficientBalance,
 } from '@/modules/object/utils';
-import { IconFont } from '@/components/IconFont';
+import { useAppSelector } from '@/store';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
+import BigNumber from 'bignumber.js';
+import { memo } from 'react';
+import { useAsyncEffect } from 'ahooks';
+import { selectGnfdGasFeesConfig } from '@/store/slices/global';
 
 export type FeeItem = {
   label: string;
@@ -20,23 +22,22 @@ interface FeesProps {
   setBalanceAvailable?: (val: boolean) => void;
 }
 
-export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable = () => {} }) {
-  const { price: exchangeRate } = useAppSelector((root) => root.global.bnb);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
+export const Fees = memo<FeesProps>(function Fees({ fees, setBalanceAvailable }) {
+  const exchangeRate = useAppSelector((root) => root.global.bnbUsdtExchangeRate);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+
   const { isOpen, onToggle } = useDisclosure({ defaultIsOpen: true });
 
   const _fees = fees.map((fee) => ({
     label: fee.label,
-    value: fee.value ?? fee.types.reduce((res, cur) => res + gasObjects?.[cur]?.gasFee, 0),
-      // (gasObjects?.[fee.type]?.gasFee || 0),
+    value: fee.value ?? fee.types.reduce((res, cur) => res + gnfdGasFeesConfig?.[cur]?.gasFee, 0),
   }));
-
   const allFees = _fees.reduce((res, cur) => res.plus(cur.value), new BigNumber(0));
-
   const enoughBalance = new BigNumber(bankBalance).minus(allFees).isPositive();
-  useEffect(() => {
-    setBalanceAvailable(enoughBalance);
+
+  useAsyncEffect(async () => {
+    setBalanceAvailable?.(enoughBalance);
   }, [enoughBalance]);
 
   return (

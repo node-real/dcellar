@@ -2,25 +2,26 @@ import { PropsWithChildren, useCallback, useEffect, useMemo, useRef } from 'reac
 
 import { LoginContext } from '@/context/LoginContext/index';
 
-import { useAccount, useDisconnect } from 'wagmi';
 import { useLoginGuard } from '@/context/LoginContext/useLoginGuard';
 import { useWalletSwitchAccount } from '@/context/WalletConnectContext';
-import { useRouter } from 'next/router';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { checkSpOffChainMayExpired, setLogin, setLogout } from '@/store/slices/persist';
-import { useAsyncEffect, useMount } from 'ahooks';
-import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
 import { ssrLandingRoutes } from '@/pages/_app';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { resetUploadQueue, setDisconnectWallet, setTaskManagement } from '@/store/slices/global';
+import { checkSpOffChainMayExpired, setLoginAccount, setLogout } from '@/store/slices/persist';
+import { useAsyncEffect, useMount } from 'ahooks';
+import { useRouter } from 'next/router';
+import { useAccount, useDisconnect } from 'wagmi';
 
 export interface LoginContextProviderProps {
   inline?: boolean; // for in page connect button
 }
 
 export function LoginContextProvider(props: PropsWithChildren<LoginContextProviderProps>) {
-  const dispatch = useAppDispatch();
   const { children, inline = false } = props;
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
+  const { pass } = useLoginGuard(inline);
   const { disconnect } = useDisconnect();
 
   const logout = useCallback(
@@ -89,13 +90,11 @@ export function LoginContextProvider(props: PropsWithChildren<LoginContextProvid
         return;
       }
       if (!loginAccount && !spMayExpired) {
-        dispatch(setLogin(walletAddress));
+        dispatch(setLoginAccount(walletAddress));
         return;
       }
     }
   }, [walletAddress, loginAccount]);
-
-  const { pass } = useLoginGuard(inline);
 
   if (!pass && !ssrLandingRoutes.some((item) => item === pathname)) {
     return null;

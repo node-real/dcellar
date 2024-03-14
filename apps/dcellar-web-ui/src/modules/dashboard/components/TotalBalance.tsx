@@ -1,19 +1,19 @@
-import { Box, Button, Circle, Divider, Flex, Text } from '@totejs/uikit';
-import { Card, CardProps } from './Common';
+import { IconFont } from '@/components/IconFont';
 import { EllipsisText } from '@/components/common/EllipsisText';
+import { InternalRoutePaths } from '@/constants/paths';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { useAppSelector } from '@/store';
+import { AccountEntity, selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
 import styled from '@emotion/styled';
-import { IconFont } from '@/components/IconFont';
-import { useRouter } from 'next/router';
-import { InternalRoutePaths } from '@/constants/paths';
-import { useAppSelector } from '@/store';
-import { TAccount, selectPaymentAccounts } from '@/store/slices/accounts';
-import { useMemo } from 'react';
-import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { currencyFormatter } from '@/utils/formatter';
-import { selectBnbPrice } from '@/store/slices/global';
+import { Box, Button, Circle, Divider, Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
+import { Card, CardProps } from './Common';
 import { TotalBalanceTips } from './TotalBalanceTips';
 
 const FeeOptions: {
@@ -34,24 +34,32 @@ const FeeOptions: {
 ];
 
 type TotalBalanceProps = CardProps;
+
 export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const paymentAccountListRecords = useAppSelector(
+    (root) => root.accounts.paymentAccountListRecords,
+  );
+
   const router = useRouter();
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance, accountInfo, paymentAccounts } = useAppSelector((root) => root.accounts);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
-  const isLoading = bankBalance === '' || isEmpty(accountInfo) || isEmpty(paymentAccounts);
+
+  const isLoading =
+    bankBalance === '' || isEmpty(accountRecords) || isEmpty(paymentAccountListRecords);
 
   const res = useMemo(() => {
-    const ownerInfo = accountInfo[loginAccount] || {};
+    const ownerInfo = accountRecords[loginAccount] || {};
     const ownerTotalBalance = BN(ownerInfo.staticBalance).plus(bankBalance);
     const ownerNetflowRate = BN(ownerInfo.netflowRate);
     const ownerPrepaidFee = BN(ownerInfo.bufferBalance);
     let paymentTotalNetflow = BN(0);
     let paymentTotalBalance = BN(0);
     let paymentTotalPrepaidFee = BN(0);
-    paymentList.forEach((item: TAccount) => {
-      const paymentDetail = accountInfo[item.address];
+    paymentList.forEach((item: AccountEntity) => {
+      const paymentDetail = accountRecords[item.address];
       paymentTotalNetflow = paymentTotalNetflow.plus(paymentDetail.netflowRate);
 
       paymentTotalBalance = paymentTotalBalance.plus(paymentDetail.staticBalance);
@@ -67,7 +75,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
       totalNetflowRate: totalNetflowRate.dp(18).toString(),
       totalPrepaidFee: totalPrepaidFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString(),
     };
-  }, [accountInfo, bankBalance, loginAccount, paymentList]);
+  }, [accountRecords, bankBalance, loginAccount, paymentList]);
 
   const onNavigate = (target: string) => () => {
     router.push(target);
@@ -88,7 +96,9 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
         </Flex>
         <Flex gap={4} color={'readable.disable'}>
           <EllipsisText>
-            {isLoading ? '--' : currencyFormatter(BN(res.totalBalance).times(bnbPrice).toString())}
+            {isLoading
+              ? '--'
+              : currencyFormatter(BN(res.totalBalance).times(exchangeRate).toString())}
           </EllipsisText>
           <Text>USD</Text>
         </Flex>

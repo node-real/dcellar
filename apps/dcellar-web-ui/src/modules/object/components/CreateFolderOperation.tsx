@@ -1,5 +1,55 @@
-import React, { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
-import BigNumber from 'bignumber.js';
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Animates } from '@/components/AnimatePng';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
+import { DCButton } from '@/components/common/DCButton';
+import { DotLoading } from '@/components/common/DotLoading';
+import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
+import { InputItem } from '@/components/formitems/InputItem';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { broadcastMulTxs, resolve } from '@/facade/common';
+import {
+  E_OFF_CHAIN_AUTH,
+  E_USER_REJECT_STATUS_NUM,
+  ErrorResponse,
+  createTxFault,
+  simulateFault,
+} from '@/facade/error';
+import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useChecksumApi } from '@/modules/checksum';
+import {
+  BUTTON_GOT_IT,
+  DUPLICATE_OBJECT_NAME,
+  FOLDER_CREATE_FAILED,
+  FOLDER_DESCRIPTION_CREATE_ERROR,
+  GET_GAS_FEE_LACK_BALANCE_ERROR,
+  LOCK_FEE_LACK_BALANCE_ERROR,
+  UNKNOWN_ERROR,
+  WALLET_CONFIRM,
+} from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { AccountInfo, setupAccountRecords } from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
+import {
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
+import { setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { SpEntity } from '@/store/slices/sp';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
+import { removeTrailingSlash } from '@/utils/string';
+import {
+  CreateObjectApprovalRequest,
+  MsgCreateObjectTypeUrl,
+  MsgSetTagTypeUrl,
+  TxResponse,
+} from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
   Flex,
@@ -11,69 +61,18 @@ import {
   QDrawerHeader,
   Text,
   toast,
-} from '@totejs/uikit';
-import { InputItem } from '@/components/formitems/InputItem';
-import { DCButton } from '@/components/common/DCButton';
-import {
-  BUTTON_GOT_IT,
-  DUPLICATE_OBJECT_NAME,
-  FOLDER_CREATE_FAILED,
-  FOLDER_DESCRIPTION_CREATE_ERROR,
-  GET_GAS_FEE_LACK_BALANCE_ERROR,
-  LOCK_FEE_LACK_BALANCE_ERROR,
-  UNKNOWN_ERROR,
-  WALLET_CONFIRM,
-} from '@/modules/object/constant';
-import { DotLoading } from '@/components/common/DotLoading';
-import {
-  CreateObjectApprovalRequest,
-  MsgCreateObjectTypeUrl,
-  MsgSetTagTypeUrl,
-  TxResponse,
-} from '@bnb-chain/greenfield-js-sdk';
-import { useAccount } from 'wagmi';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import {
-  broadcastFault,
-  createTxFault,
-  E_OFF_CHAIN_AUTH,
-  E_USER_REJECT_STATUS_NUM,
-  ErrorResponse,
-  simulateFault,
-} from '@/facade/error';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { useChecksumApi } from '@/modules/checksum';
-import { DeliverTxResponse, broadcastMulTxs, resolve } from '@/facade/common';
-import {
-  setEditObjectTags,
-  setEditObjectTagsData,
-  setStatusDetail,
-  TStatusDetail,
-} from '@/store/slices/object';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
+} from '@node-real/uikit';
 import { useAsyncEffect, useUnmount } from 'ahooks';
+import BigNumber from 'bignumber.js';
 import { isEmpty } from 'lodash-es';
-import { setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
-import { getStoreNetflowRate } from '@/utils/payment';
+import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { ErrorDisplay } from '@/components/ErrorDisplay';
-import { TBucket } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
-import { BN } from '@/utils/math';
-import { removeTrailingSlash } from '@/utils/string';
-import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
-  primarySp: SpItem;
+  bucketAccountDetail: AccountInfo;
+  primarySp: SpEntity;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -86,46 +85,37 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   primarySp,
 }) {
   const dispatch = useAppDispatch();
-  const { connector } = useAccount();
-
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const pathSegments = useAppSelector((root) => root.object.pathSegments);
+  const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
+
+  const { connector } = useAccount();
+  const { setOpenAuthModal } = useOffChainAuth();
   const checksumWorkerApi = useChecksumApi();
-  const { bucketName, folders, objects, path, editTagsData } = useAppSelector(
-    (root) => root.object,
-  );
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const folderList = objects[path]?.filter((item) => item.objectName.endsWith('/')) || [];
   const { PaymentAddress } = bucket;
   const { settlementFee } = useSettlementFee(PaymentAddress);
-  const { setOpenAuthModal } = useOffChainAuth();
-  const isOwnerAccount = accountDetail.address === loginAccount;
   const [balanceEnough, setBalanceEnough] = useState(true);
-
-  const onCloseStatusModal = () => {
-    dispatch(setStatusDetail({} as TStatusDetail));
-  };
-  const onEditTags = () => {
-    dispatch(setEditObjectTags(['new', 'create']));
-  };
-  const validTags = getValidTags(editTagsData);
-  const isSetTags = validTags.length > 0;
   const [loading, setLoading] = useState(false);
   const [inputFolderName, setInputFolderName] = useState('');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
 
-  useAsyncEffect(async () => {
-    if (isEmpty(storeFeeParams)) {
-      dispatch(setupStoreFeeParams());
-    }
-  }, []);
+  const folderList =
+    objectListRecords[completeCommonPrefix]?.filter((item) => item.objectName.endsWith('/')) || [];
+  const isOwnerAccount = accountDetail.address === loginAccount;
+  const validTags = getValidTags(objectEditTagsData);
+  const isSetTags = validTags.length > 0;
+  const { gasFee: createBucketGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
+  const { gasFee: setTagsGasFee } = gnfdGasFeesConfig?.[MsgSetTagTypeUrl] || {};
+  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
 
   const gasFee = useMemo(() => {
-    const { gasFee: createBucketGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-    const { gasFee: setTagsGasFee } = gasObjects?.[MsgSetTagTypeUrl] || {};
-
     if (validTags.length === 0) {
       return createBucketGasFee || 0;
     }
@@ -133,13 +123,12 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     return BN(createBucketGasFee || 0)
       .plus(BN(setTagsGasFee || 0))
       .toNumber();
-  }, [gasObjects, validTags.length]);
+  }, [createBucketGasFee, setTagsGasFee, validTags.length]);
 
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams)) return '-1';
     const netflowRate = getStoreNetflowRate(0, storeFeeParams);
-    const storeFee = BN(netflowRate)
-      .times(storeFeeParams.reserveTime)
+    const storeFee = BN(netflowRate).times(storeFeeParams.reserveTime);
 
     return storeFee.toString();
   }, [storeFeeParams]);
@@ -151,6 +140,14 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       ? `${folders.join('/')}/${name}/`
       : `${name}/`;
   }, []);
+
+  const onCloseStatusModal = () => {
+    dispatch(setSignatureAction({}));
+  };
+
+  const onEditTags = () => {
+    dispatch(setObjectOperation({ level: 1, operation: ['', 'edit_tags'] }));
+  };
 
   const showSuccessToast = (tx: string) => {
     toast.success({
@@ -177,7 +174,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     setLoading(true);
 
     // 1. create tx and validate folder by chain
-    const fullObjectName = getPath(inputFolderName, folders);
+    const fullObjectName = getPath(inputFolderName, pathSegments);
     const txs: TxResponse[] = [];
     const [createObjectTx, error] = await simulateCreateFolderTx(fullObjectName);
     if (!createObjectTx || typeof error === 'string') {
@@ -198,7 +195,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
     txs.push(createObjectTx);
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         icon: Animates.object,
         title: 'Creating Folder',
         desc: WALLET_CONFIRM,
@@ -208,14 +205,14 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     if (isSetTags) {
       const [tagsTx, error2] = await getUpdateObjectTagsTx({
         address: loginAccount,
-        bucketName: bucketName,
+        bucketName: currentBucketName,
         objectName: fullObjectName,
         tags: validTags,
       });
 
       if (!tagsTx) {
         return dispatch(
-          setStatusDetail({
+          setSignatureAction({
             icon: 'status-failed',
             title: FOLDER_CREATE_FAILED,
             desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -240,7 +237,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
         return;
       }
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -250,10 +247,10 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       );
       return;
     }
-    await dispatch(setupAccountInfo(PaymentAddress));
+    await dispatch(setupAccountRecords(PaymentAddress));
     if (txRes?.code !== 0) {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: 'status-failed',
           title: FOLDER_CREATE_FAILED,
           desc: FOLDER_DESCRIPTION_CREATE_ERROR,
@@ -267,15 +264,16 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     const { transactionHash } = txRes;
 
     // polling ensure create sealed
-    const fullPath = getPath(inputFolderName, folders);
-    await legacyGetObjectMeta(bucketName, fullPath, primarySp.endpoint);
+    const fullPath = getPath(inputFolderName, pathSegments);
+    await legacyGetObjectMeta(currentBucketName, fullPath, primarySp.endpoint);
 
     setLoading(false);
     showSuccessToast(transactionHash);
-    dispatch(setStatusDetail({} as TStatusDetail));
+    dispatch(setSignatureAction({}));
     onClose();
     refetch(inputFolderName);
   };
+
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
@@ -309,7 +307,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
     const createObjectPayload: CreateObjectApprovalRequest = {
-      bucketName,
+      bucketName: currentBucketName,
       objectName: fullFolderName,
       creator: loginAccount,
       visibility,
@@ -336,7 +334,6 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     return [createObjectTx, error];
   };
 
-  const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
   const onFolderNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const folderName = e.target.value;
     setInputFolderName(folderName);
@@ -346,6 +343,12 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     }
     if (!lackGasFee) validateFolderName(folderName);
   };
+
+  useAsyncEffect(async () => {
+    if (isEmpty(storeFeeParams)) {
+      dispatch(setupStoreFeeParams());
+    }
+  }, []);
 
   useEffect(() => {
     if (isEmpty(storeFeeParams)) {
@@ -374,14 +377,15 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     storeFeeParams,
   ]);
 
-  useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+  useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
 
   return (
     <>
       <QDrawerHeader flexDirection={'column'}>
         <Box>Create a Folder</Box>
         <Text className="ui-drawer-sub">
-            Use folders to group objects in your bucket. Folder names can&apos;t contain &quot;/&quot;.
+          Use folders to group objects in your bucket. Folder names can&apos;t contain
+          &quot;/&quot;.
         </Text>
       </QDrawerHeader>
       <QDrawerBody>

@@ -1,57 +1,35 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AppDispatch, AppState, GetState } from '@/store';
-import { getListObjects, ListObjectsParams } from '@/facade/object';
-import { toast } from '@totejs/uikit';
-import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
-import {
-  GfSPListObjectsByBucketNameResponse,
-  GRNToString,
-  ListObjectsByBucketNameRequest,
-  newObjectGRN,
-} from '@bnb-chain/greenfield-js-sdk';
-import { ErrorResponse } from '@/facade/error';
-import { Key } from 'react';
-import { getMillisecond } from '@/utils/time';
-import { numberToHex } from 'viem';
 import {
   BucketInfo,
   ResourceTags_Tag,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
+  GRNToString,
+  GfSPListObjectsByBucketNameResponse,
+  ListObjectsByBucketNameRequest,
+  newObjectGRN,
+} from '@bnb-chain/greenfield-js-sdk';
+import {
+  ObjectInfo,
   ObjectMeta,
   PolicyMeta,
-  ObjectInfo,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { toast } from '@node-real/uikit';
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { escapeRegExp, find, last, trimEnd } from 'lodash-es';
+import { Key } from 'react';
+import { numberToHex } from 'viem';
+
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { ErrorResponse } from '@/facade/error';
+import { ListObjectsParams, getListObjects } from '@/facade/object';
+import { AppDispatch, AppState, GetState } from '@/store';
 import { convertObjectKey } from '@/utils/common';
+import { getMillisecond } from '@/utils/time';
 
 export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
 export const SELECT_OBJECT_NUM_LIMIT = 100;
 export const MAXIMUM_LIST_ITEMS = 10_000;
-
-export type ObjectItem = {
-  bucketName: string;
-  objectName: string;
-  name: string;
-  payloadSize: number;
-  createAt: number;
-  contentType: string;
-  folder: boolean;
-  visibility: number;
-  objectStatus: number;
-  removed: boolean;
-};
-
-export type TStatusDetail = {
-  icon: string;
-  title: string;
-  desc?: string;
-  buttonText?: string;
-  errorText?: string;
-  buttonOnClick?: () => void;
-  extraParams?: Array<string | number>;
-};
 
 export type ObjectResource = {
   Resources: string[];
@@ -71,6 +49,8 @@ export type ObjectOperationsType =
   | 'create_folder'
   | 'batch_delete'
   | 'marketplace'
+  | 'update_tags'
+  | 'edit_tags'
   | '';
 
 export type TEditUploadContent = {
@@ -82,110 +62,122 @@ export type TEditUploadContent = {
 
 export type ObjectFilterSize = { value: number | null; unit: '1' | '1024' };
 
-export interface ObjectState {
+export type ObjectEntity = {
   bucketName: string;
-  folders: string[];
-  prefix: string;
-  path: string;
-  objects: Record<string, ObjectItem[]>;
-  objectsTruncate: Record<string, boolean>;
-  objectsInfo: Record<string, ObjectMeta>;
-  currentPage: Record<string, number>;
-  restoreCurrent: boolean;
-  statusDetail: TStatusDetail;
-  selectedRowKeys: Key[];
-  deletedObjects: Record<string, number>;
-  refreshing: boolean;
-  objectPolicies: Record<string, PolicyMeta[]>;
-  objectPoliciesPage: number;
+  objectName: string;
+  name: string;
+  payloadSize: number;
+  createAt: number;
+  contentType: string;
+  folder: boolean;
+  visibility: number;
+  objectStatus: number;
+  removed: boolean;
+};
+
+export interface ObjectState {
+  currentBucketName: string;
+  pathSegments: string[];
+  objectCommonPrefix: string;
+  completeCommonPrefix: string;
+  objectListRecords: Record<string, ObjectEntity[]>;
+  objectListTruncated: Record<string, boolean>;
+  objectRecords: Record<string, ObjectMeta>;
+  objectListPageRecords: Record<string, number>;
+  objectListPageRestored: boolean;
+  objectSelectedKeys: Key[];
+  deletedObjectRecords: Record<string, number>;
+  objectListRefreshing: boolean;
+  objectPolicyListRecords: Record<string, PolicyMeta[]>;
+  objectPolicyListPage: number;
   objectOperation: Record<0 | 1, [string, ObjectOperationsType, Record<string, any>?]>;
-  selectedShareMembers: string[];
-  filterText: string;
-  filterExpand: boolean;
-  filterTypes: Array<string>;
-  filterRange: [string, string];
-  filterSizeFrom: ObjectFilterSize;
-  filterSizeTo: ObjectFilterSize;
-  policyResources: Record<string, ObjectResource>;
-  shareModePath: string;
-  editTags: [string, string];
-  editTagsData: ResourceTags_Tag[];
+  objectShareSelectedMembers: string[];
+  objectNameFilter: string;
+  objectFilterVisible: boolean;
+  objectTypeFilter: Array<string>;
+  objectCreationTimeRangeFilter: [string, string];
+  objectSizeFromFilter: ObjectFilterSize;
+  objectSizeToFilter: ObjectFilterSize;
+  objectPolicyResourcesRecords: Record<string, ObjectResource>;
+  objectShareModePath: string;
+  objectEditTagsData: ResourceTags_Tag[];
 }
 
 const initialState: ObjectState = {
-  bucketName: '',
-  folders: [],
-  prefix: '',
-  path: '',
-  objects: {},
-  objectsInfo: {},
-  currentPage: {},
-  restoreCurrent: true,
-  statusDetail: {} as TStatusDetail,
-  selectedRowKeys: [],
-  deletedObjects: {},
-  refreshing: false,
-  objectPolicies: {},
-  objectPoliciesPage: 0,
+  currentBucketName: '',
+  pathSegments: [],
+  objectCommonPrefix: '',
+  completeCommonPrefix: '',
+  objectListRecords: {},
+  objectRecords: {},
+  objectListPageRecords: {},
+  objectListPageRestored: true,
+  objectSelectedKeys: [],
+  deletedObjectRecords: {},
+  objectListRefreshing: false,
+  objectPolicyListRecords: {},
+  objectPolicyListPage: 0,
   objectOperation: { 0: ['', '', {}], 1: ['', '', {}] },
-  selectedShareMembers: [],
-  filterText: '',
-  filterExpand: false,
-  filterTypes: [],
-  filterRange: ['', ''],
-  filterSizeFrom: { value: null, unit: '1' },
-  filterSizeTo: { value: null, unit: '1024' },
-  objectsTruncate: {},
-  policyResources: {},
-  shareModePath: '',
-  editTags: ['', ''],
-  editTagsData: [DEFAULT_TAG],
+  objectShareSelectedMembers: [],
+  objectNameFilter: '',
+  objectFilterVisible: false,
+  objectTypeFilter: [],
+  objectCreationTimeRangeFilter: ['', ''],
+  objectSizeFromFilter: { value: null, unit: '1' },
+  objectSizeToFilter: { value: null, unit: '1024' },
+  objectListTruncated: {},
+  objectPolicyResourcesRecords: {},
+  objectShareModePath: '',
+  objectEditTagsData: [DEFAULT_TAG],
 };
 
 export const objectSlice = createSlice({
   name: 'object',
   initialState,
   reducers: {
-    setShareModePath(state, { payload }: PayloadAction<string>) {
-      state.shareModePath = payload;
+    setObjectShareModePath(state, { payload }: PayloadAction<string>) {
+      state.objectShareModePath = payload;
     },
-    setObjectPolicyResources(state, { payload }: PayloadAction<Record<string, ObjectResource>>) {
-      state.policyResources = {
-        ...state.policyResources,
+    setObjectPolicyResourcesRecords(
+      state,
+      { payload }: PayloadAction<Record<string, ObjectResource>>,
+    ) {
+      state.objectPolicyResourcesRecords = {
+        ...state.objectPolicyResourcesRecords,
         ...payload,
       };
     },
-    setObjectsTruncate(state, { payload }: PayloadAction<{ path: string; truncate: boolean }>) {
+    setObjectListTruncated(state, { payload }: PayloadAction<{ path: string; truncate: boolean }>) {
       const { path, truncate } = payload;
-      state.objectsTruncate[path] = truncate;
+      state.objectListTruncated[path] = truncate;
     },
-    setFilterSizeFrom(state, { payload }: PayloadAction<ObjectFilterSize>) {
-      state.filterSizeFrom = payload;
+    setObjectSizeFromFilter(state, { payload }: PayloadAction<ObjectFilterSize>) {
+      state.objectSizeFromFilter = payload;
     },
-    setFilterSizeTo(state, { payload }: PayloadAction<ObjectFilterSize>) {
-      state.filterSizeTo = payload;
+    setObjectSizeToFilter(state, { payload }: PayloadAction<ObjectFilterSize>) {
+      state.objectSizeToFilter = payload;
     },
-    setFilterRange(state, { payload }: PayloadAction<[string, string]>) {
-      state.filterRange = payload;
+    setObjectCreationTimeRangeFilter(state, { payload }: PayloadAction<[string, string]>) {
+      state.objectCreationTimeRangeFilter = payload;
     },
-    setFilterTypes(state, { payload }: PayloadAction<string[]>) {
-      state.filterTypes = payload;
+    setObjectTypeFilter(state, { payload }: PayloadAction<string[]>) {
+      state.objectTypeFilter = payload;
     },
-    setFilterExpand(state, { payload }: PayloadAction<boolean>) {
-      state.filterExpand = payload;
+    setObjectFilterVisible(state, { payload }: PayloadAction<boolean>) {
+      state.objectFilterVisible = payload;
     },
-    setFilterText(state, { payload }: PayloadAction<string>) {
-      state.filterText = payload;
+    setObjectNameFilter(state, { payload }: PayloadAction<string>) {
+      state.objectNameFilter = payload;
     },
-    resetObjectListFilter(state) {
-      state.filterText = '';
-      state.filterTypes = [];
-      state.filterRange = ['', ''];
-      state.filterSizeFrom = { ...state.filterSizeFrom, value: null };
-      state.filterSizeTo = { ...state.filterSizeTo, value: null };
+    resetObjectFilter(state) {
+      state.objectNameFilter = '';
+      state.objectTypeFilter = [];
+      state.objectCreationTimeRangeFilter = ['', ''];
+      state.objectSizeFromFilter = { ...state.objectSizeFromFilter, value: null };
+      state.objectSizeToFilter = { ...state.objectSizeToFilter, value: null };
     },
-    setSelectedShareMembers(state, { payload }: PayloadAction<string[]>) {
-      state.selectedShareMembers = payload;
+    setObjectShareSelectedMembers(state, { payload }: PayloadAction<string[]>) {
+      state.objectShareSelectedMembers = payload;
     },
     setObjectOperation(
       state,
@@ -198,44 +190,52 @@ export const objectSlice = createSlice({
     ) {
       state.objectOperation[payload.level || 0] = payload.operation;
     },
-    setObjectPoliciesPage(state, { payload }: PayloadAction<number>) {
-      state.objectPoliciesPage = payload;
+    setObjectPolicyListPage(state, { payload }: PayloadAction<number>) {
+      state.objectPolicyListPage = payload;
     },
-    setObjectPolicies(state, { payload }: PayloadAction<{ path: string; policies: PolicyMeta[] }>) {
+    setObjectPolicyList(
+      state,
+      { payload }: PayloadAction<{ path: string; policies: PolicyMeta[] }>,
+    ) {
       const { path, policies } = payload;
-      state.objectPolicies[path] = policies;
+      state.objectPolicyListRecords[path] = policies;
     },
-    addDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
+    setDeletedObject(state, { payload }: PayloadAction<{ path: string; ts: number }>) {
       const { path, ts } = payload;
-      state.deletedObjects[path] = ts;
+      state.deletedObjectRecords[path] = ts;
     },
-    setSelectedRowKeys(state, { payload }: PayloadAction<Key[]>) {
-      state.selectedRowKeys = payload;
+    setObjectSelectedKeys(state, { payload }: PayloadAction<Key[]>) {
+      state.objectSelectedKeys = payload;
     },
-    updateObjectVisibility(
+    setObjectVisibility(
       state,
       { payload }: PayloadAction<{ objectName: string; visibility: number }>,
     ) {
       const { objectName, visibility } = payload;
-      const path = state.path;
-      const item = find<ObjectItem>(state.objects[path] || [], (i) => i.objectName === objectName);
+      const path = state.completeCommonPrefix;
+      const item = find<ObjectEntity>(
+        state.objectListRecords[path] || [],
+        (i) => i.objectName === objectName,
+      );
       if (!item) return;
       item.visibility = visibility;
-      const info = state.objectsInfo[[state.bucketName, item.objectName].join('/')];
+      const info = state.objectRecords[[state.currentBucketName, item.objectName].join('/')];
       if (!info) return;
-      // @ts-ignore
       info.ObjectInfo.Visibility = visibility;
     },
-    setDummyFolder(state, { payload }: PayloadAction<{ path: string; folder: ObjectItem }>) {
+    setCreationDummyFolder(
+      state,
+      { payload }: PayloadAction<{ path: string; folder: ObjectEntity }>,
+    ) {
       const { path, folder } = payload;
-      const items = state.objects[path];
+      const items = state.objectListRecords[path];
       if (items.some((i) => i.name === folder.name)) return;
       items.push(folder);
       const [bucketName] = path.split('/');
       const _path = [bucketName, folder.objectName].join('/');
-      state.deletedObjects[_path] = 0;
+      state.deletedObjectRecords[_path] = 0;
     },
-    updateObjectStatus(
+    setObjectStatus(
       state,
       {
         payload,
@@ -248,32 +248,29 @@ export const objectSlice = createSlice({
     ) {
       const { name, folders, objectStatus, bucketName } = payload;
       const path = [bucketName, ...folders].join('/');
-      const items = state.objects[path] || [];
+      const items = state.objectListRecords[path] || [];
       const objectName = [...folders, name].join('/');
-      const object = find<ObjectItem>(items, (i) => i.objectName === objectName);
+      const object = find<ObjectEntity>(items, (i) => i.objectName === objectName);
       if (object) {
         object.objectStatus = objectStatus;
       }
-      const info = state.objectsInfo[[path, objectName].join('/')];
+      const info = state.objectRecords[[path, objectName].join('/')];
       if (!info) return;
       info.ObjectInfo.ObjectStatus = objectStatus as any; // number
     },
-    setRestoreCurrent(state, { payload }: PayloadAction<boolean>) {
-      state.restoreCurrent = payload;
+    setObjectListPageRestored(state, { payload }: PayloadAction<boolean>) {
+      state.objectListPageRestored = payload;
     },
-    setCurrentObjectPage(state, { payload }: PayloadAction<{ path: string; current: number }>) {
+    setObjectListPage(state, { payload }: PayloadAction<{ path: string; current: number }>) {
       const { path, current } = payload;
-      state.currentPage[path] = current;
+      state.objectListPageRecords[path] = current;
     },
-    setFolders(state, { payload }: PayloadAction<{ bucketName: string; folders: string[] }>) {
+    setPathSegments(state, { payload }: PayloadAction<{ bucketName: string; folders: string[] }>) {
       const { bucketName, folders } = payload;
-      state.bucketName = bucketName;
-      state.folders = folders;
-      state.prefix = !folders.length ? '' : folders.join('/') + '/';
-      state.path = [bucketName, ...folders].join('/');
-    },
-    setStatusDetail(state, { payload }: PayloadAction<TStatusDetail>) {
-      state.statusDetail = payload;
+      state.currentBucketName = bucketName;
+      state.pathSegments = folders;
+      state.objectCommonPrefix = !folders.length ? '' : folders.join('/') + '/';
+      state.completeCommonPrefix = [bucketName, ...folders].join('/');
     },
     setObjectList(
       state,
@@ -303,7 +300,7 @@ export const objectSlice = createSlice({
         }))
         .filter((f) => {
           const path = [bucketName, f.objectName].join('/');
-          const ts = state.deletedObjects[path];
+          const ts = state.deletedObjectRecords[path];
           // manually update delete status when create new folder
           return !ts;
         });
@@ -320,18 +317,17 @@ export const objectSlice = createSlice({
         } = i.ObjectInfo;
 
         const path = [BucketName, ObjectName].join('/');
-        state.objectsInfo[path] = i;
+        state.objectRecords[path] = i;
 
         return {
           bucketName: BucketName,
           objectName: ObjectName,
           name: last(ObjectName.split('/'))!,
           payloadSize: Number(PayloadSize),
-          // todo fix it *second*
-          createAt: Number(CreateAt),
+          createAt: CreateAt,
           contentType: ContentType,
           folder: false,
-          objectStatus: Number(ObjectStatus),
+          objectStatus: ObjectStatus,
           visibility: Visibility,
           removed: i.Removed,
         };
@@ -341,30 +337,23 @@ export const objectSlice = createSlice({
         })
         .filter((o) => {
           const path = [bucketName, o.objectName].join('/');
-          const ts = state.deletedObjects[path];
+          const ts = state.deletedObjectRecords[path];
           return !ts || ts < getMillisecond(o.createAt);
         });
 
-      // TODO
       if (infoOnly) return;
-      state.objects[path] = folders.concat(objects as any[]);
+      state.objectListRecords[path] = folders.concat(objects as any[]);
     },
-    setListRefreshing(state, { payload }: PayloadAction<boolean>) {
-      state.refreshing = payload;
+    setObjectListRefreshing(state, { payload }: PayloadAction<boolean>) {
+      state.objectListRefreshing = payload;
     },
-    setEditObjectTags(state, { payload }: PayloadAction<[string, string]>) {
-      state.editTags = payload;
+    setObjectEditTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
+      state.objectEditTagsData = payload;
     },
-    setEditObjectTagsData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
-      state.editTagsData = payload;
-    },
-    setObjectTags(
-      state,
-      { payload }: PayloadAction<{ fullObjectName: string; tags: ResourceTags_Tag[] }>,
-    ) {
-      const { fullObjectName, tags } = payload;
+    setObjectTags(state, { payload }: PayloadAction<{ id: string; tags: ResourceTags_Tag[] }>) {
+      const { id, tags } = payload;
       const newTags = tags.map((item) => convertObjectKey(item, 'uppercase'));
-      state.objectsInfo[fullObjectName].ObjectInfo.Tags.Tags = newTags as Extract<
+      state.objectRecords[id].ObjectInfo.Tags.Tags = newTags as Extract<
         ObjectInfo['Tags'],
         {
           Tags: any;
@@ -373,6 +362,58 @@ export const objectSlice = createSlice({
     },
   },
 });
+
+export const {
+  setPathSegments,
+  setObjectListPage,
+  setObjectList,
+  setObjectListPageRestored,
+  setObjectStatus,
+  setCreationDummyFolder,
+  setObjectVisibility,
+  setDeletedObject,
+  setObjectListRefreshing,
+  setObjectSelectedKeys,
+  setObjectPolicyList,
+  setObjectPolicyListPage,
+  setObjectOperation,
+  setObjectShareSelectedMembers,
+  setObjectNameFilter,
+  setObjectFilterVisible,
+  setObjectTypeFilter,
+  setObjectCreationTimeRangeFilter,
+  setObjectSizeFromFilter,
+  setObjectSizeToFilter,
+  resetObjectFilter,
+  setObjectListTruncated,
+  setObjectPolicyResourcesRecords,
+  setObjectShareModePath,
+  setObjectTags,
+  setObjectEditTagsData,
+} = objectSlice.actions;
+
+export const selectPathLoading = (root: AppState) => {
+  const { objectListRecords, completeCommonPrefix, objectListRefreshing } = root.object;
+  return !(completeCommonPrefix in objectListRecords) || objectListRefreshing;
+};
+
+export const selectPathCurrent = (root: AppState) => {
+  const { objectListPageRecords, completeCommonPrefix } = root.object;
+  return objectListPageRecords[completeCommonPrefix] || 0;
+};
+
+const defaultLocateBucket = {} as BucketInfo;
+export const selectLocateBucket = (root: AppState) => {
+  const { bucketRecords } = root.bucket;
+  const { currentBucketName } = root.object;
+  return bucketRecords[currentBucketName] || defaultLocateBucket;
+};
+
+const defaultObjectList = Array<string>();
+export const selectObjectList = (root: AppState) => {
+  const { objectListRecords, completeCommonPrefix } = root.object;
+  return objectListRecords[completeCommonPrefix] || defaultObjectList;
+};
 
 export const _getAllList = async (
   params: ListObjectsByBucketNameRequest,
@@ -402,14 +443,14 @@ export const _getAllList = async (
 
 export const setupDummyFolder =
   (name: string) => async (dispatch: AppDispatch, getState: GetState) => {
-    const { bucketName, path, prefix } = getState().object;
-    if (!bucketName) return;
+    const { currentBucketName, completeCommonPrefix, objectCommonPrefix } = getState().object;
+    if (!currentBucketName) return;
     dispatch(
-      setDummyFolder({
-        path,
+      setCreationDummyFolder({
+        path: completeCommonPrefix,
         folder: {
-          bucketName,
-          objectName: prefix + name + '/',
+          bucketName: currentBucketName,
+          objectName: objectCommonPrefix + name + '/',
           name: last(trimEnd(name, '/').split('/'))!,
           payloadSize: 0,
           createAt: Date.now(),
@@ -422,61 +463,45 @@ export const setupDummyFolder =
       }),
     );
   };
+
 export const setupListObjects =
   (params: Partial<ListObjectsParams>, _path?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
-    const { prefix, bucketName, path, restoreCurrent } = getState().object;
+    const { objectCommonPrefix, currentBucketName, completeCommonPrefix, objectListPageRestored } =
+      getState().object;
     const { loginAccount: address } = getState().persist;
     const _query = new URLSearchParams(params.query?.toString() || '');
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
-    if (prefix) _query.append('prefix', prefix);
+    if (objectCommonPrefix) _query.append('prefix', objectCommonPrefix);
     // support any path list objects, bucketName & _path
-    const payload = { bucketName, ...params, query: _query, address } as ListObjectsParams;
+    const payload = {
+      bucketName: currentBucketName,
+      ...params,
+      query: _query,
+      address,
+    } as ListObjectsParams;
     // fix refresh then nav to other pages.
-    if (!bucketName) return;
+    if (!currentBucketName) return;
     const [res, error, truncate] = await _getAllList(payload);
     if (!res || error) {
       toast.error({ description: error });
       return;
     }
-    dispatch(setObjectsTruncate({ path: _path || path, truncate }));
-    dispatch(setObjectList({ path: _path || path, list: res! }));
-    dispatch(setRestoreCurrent(true));
-    if (!restoreCurrent) {
-      dispatch(setCurrentObjectPage({ path, current: 0 }));
+    dispatch(setObjectListTruncated({ path: _path || completeCommonPrefix, truncate }));
+    dispatch(setObjectList({ path: _path || completeCommonPrefix, list: res! }));
+    dispatch(setObjectListPageRestored(true));
+    if (!objectListPageRestored) {
+      dispatch(setObjectListPage({ path: completeCommonPrefix, current: 0 }));
     }
   };
-
-export const selectPathLoading = (root: AppState) => {
-  const { objects, path, refreshing } = root.object;
-  return !(path in objects) || refreshing;
-};
-
-export const selectPathCurrent = (root: AppState) => {
-  const { currentPage, path } = root.object;
-  return currentPage[path] || 0;
-};
-
-const defaultLocateBucket = {} as BucketInfo;
-export const selectLocateBucket = (root: AppState) => {
-  const { bucketInfo } = root.bucket;
-  const { bucketName } = root.object;
-  return bucketInfo[bucketName] || defaultLocateBucket;
-};
-
-const defaultObjectList = Array<string>();
-export const selectObjectList = (root: AppState) => {
-  const { objects, path } = root.object;
-  return objects[path] || defaultObjectList;
-};
 
 export const setupObjectPolicies =
   (bucketName: string, objectName: string) => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;
-    const { bucketInfo } = getState().bucket;
-    const sp = getState().sp.primarySpInfo[bucketName];
-    const bucketId = bucketInfo[bucketName].Id;
+    const { bucketRecords } = getState().bucket;
+    const sp = getState().sp.primarySpRecords[bucketName];
+    const bucketId = bucketRecords[bucketName].Id;
     const isFolder = objectName.endsWith('/') || objectName === '';
 
     let policies: (PolicyMeta & Partial<ObjectResource>)[] = await (isFolder
@@ -508,7 +533,7 @@ export const setupObjectPolicies =
       };
     });
 
-    dispatch(setObjectPolicyResources(resources));
+    dispatch(setObjectPolicyResourcesRecords(resources));
 
     policies = policies.filter((p) => {
       if (p.PrincipalValue === loginAccount || !p.Actions) return true;
@@ -521,39 +546,8 @@ export const setupObjectPolicies =
     });
 
     const path = [bucketName, objectName].join('/');
-    dispatch(setObjectPolicies({ path, policies }));
+    dispatch(setObjectPolicyList({ path, policies }));
     return policies;
   };
-
-export const {
-  setFolders,
-  setCurrentObjectPage,
-  setObjectList,
-  setRestoreCurrent,
-  setStatusDetail,
-  updateObjectStatus,
-  setDummyFolder,
-  updateObjectVisibility,
-  addDeletedObject,
-  setListRefreshing,
-  setSelectedRowKeys,
-  setObjectPolicies,
-  setObjectPoliciesPage,
-  setObjectOperation,
-  setSelectedShareMembers,
-  setFilterText,
-  setFilterExpand,
-  setFilterTypes,
-  setFilterRange,
-  setFilterSizeFrom,
-  setFilterSizeTo,
-  resetObjectListFilter,
-  setObjectsTruncate,
-  setObjectPolicyResources,
-  setShareModePath,
-  setObjectTags,
-  setEditObjectTags,
-  setEditObjectTagsData,
-} = objectSlice.actions;
 
 export default objectSlice.reducer;

@@ -1,17 +1,17 @@
+import { IconFont } from '@/components/IconFont';
 import { GAClick } from '@/components/common/GATracker';
 import {
-  Flex,
   Box,
+  Center,
+  Flex,
   FlexProps,
   IconButton,
+  IconButtonProps,
+  Text,
   Tooltip,
   useClipboard,
-  Center,
-  Text,
-  IconButtonProps,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import { useEffect } from 'react';
-import { IconFont } from '@/components/IconFont';
 
 export interface CopyTextProps extends FlexProps {
   value: string;
@@ -21,6 +21,7 @@ export interface CopyTextProps extends FlexProps {
   gaClickName?: string;
   gaClickData?: Record<string, any>;
 }
+
 export function CopyText(props: CopyTextProps) {
   const {
     value,

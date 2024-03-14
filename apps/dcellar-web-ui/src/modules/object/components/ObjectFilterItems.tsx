@@ -1,6 +1,24 @@
-import * as React from 'react';
-import { KeyboardEvent, memo, MouseEvent, useEffect, useState } from 'react';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
+import { DCRangePicker } from '@/components/common/DCDatePicker';
+import { DCInputNumber } from '@/components/common/DCInputNumber';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { InputItem } from '@/components/formitems/InputItem';
+import { IconFont } from '@/components/IconFont';
 import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  ObjectFilterSize,
+  resetObjectFilter,
+  selectObjectList,
+  setObjectCreationTimeRangeFilter,
+  setObjectSizeFromFilter,
+  setObjectSizeToFilter,
+  setObjectTypeFilter,
+} from '@/store/slices/object';
+import { trimLongStr } from '@/utils/string';
+import styled from '@emotion/styled';
+import { SearchIcon } from '@node-real/icons';
 import {
   Box,
   Collapse,
@@ -10,33 +28,14 @@ import {
   MenuButton,
   Text,
   Tooltip,
-} from '@totejs/uikit';
-import styled from '@emotion/styled';
-import {
-  ObjectFilterSize,
-  resetObjectListFilter,
-  selectObjectList,
-  setFilterRange,
-  setFilterSizeFrom,
-  setFilterSizeTo,
-  setFilterTypes,
-} from '@/store/slices/object';
-import { DCMenu } from '@/components/common/DCMenu';
-import { uniq, xor } from 'lodash-es';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import cn from 'classnames';
-import { InputItem } from '@/components/formitems/InputItem';
-import { SearchIcon } from '@totejs/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { trimLongStr } from '@/utils/string';
-import dayjs, { Dayjs } from 'dayjs';
-import { DCRangePicker } from '@/components/common/DCDatePicker';
-import { TimeRangePickerProps } from 'antd';
+} from '@node-real/uikit';
 import { useClickAway } from 'ahooks';
-import { DCInputNumber } from '@/components/common/DCInputNumber';
+import { TimeRangePickerProps } from 'antd';
+import cn from 'classnames';
+import dayjs, { Dayjs } from 'dayjs';
+import { uniq, xor } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { MouseEvent, KeyboardEvent, memo, useEffect, useState } from 'react';
 
 export const INTERNAL_FOLDER_EXTENSION = '0xDB8040c64d24840BD1D6BcAC7112D2A143CC2EEa';
 
@@ -50,6 +49,17 @@ interface ObjectFilterItemsProps {}
 
 export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFilterItems() {
   const dispatch = useAppDispatch();
+
+  const objectFilterVisible = useAppSelector((root) => root.object.objectFilterVisible);
+  const objectTypeFilter = useAppSelector((root) => root.object.objectTypeFilter);
+  const objectCreationTimeRangeFilter = useAppSelector(
+    (root) => root.object.objectCreationTimeRangeFilter,
+  );
+  const objectSizeFromFilter = useAppSelector((root) => root.object.objectSizeFromFilter);
+  const objectSizeToFilter = useAppSelector((root) => root.object.objectSizeToFilter);
+  const objectShareModePath = useAppSelector((root) => root.object.objectShareModePath);
+
+  const objectList = useAppSelector(selectObjectList);
   const [typeFilter, setTypeFilter] = useState('');
   const [selectedType, setSelectedType] = useState<Array<string>>([]);
   const [dateOpen, setDateOpen] = useState(false);
@@ -58,14 +68,8 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
   const [sizeFrom, setSizeFrom] = useState<ObjectFilterSize>({ value: null, unit: '1' });
   const [sizeTo, setSizeTo] = useState<ObjectFilterSize>({ value: null, unit: '1024' });
   const [sizeOpen, setSizeOpen] = useState(false);
-  const filterExpand = useAppSelector((root) => root.object.filterExpand);
-  const filterTypes = useAppSelector((root) => root.object.filterTypes);
-  const filterRange = useAppSelector((root) => root.object.filterRange);
-  const filterSizeFrom = useAppSelector((root) => root.object.filterSizeFrom);
-  const filterSizeTo = useAppSelector((root) => root.object.filterSizeTo);
-  const shareModePath = useAppSelector((root) => root.object.shareModePath);
-  const objectList = useAppSelector(selectObjectList);
   const router = useRouter();
+
   const allTypes = uniq(
     objectList.map((i) => {
       if (i.objectName.endsWith('/')) return INTERNAL_FOLDER_EXTENSION;
@@ -79,8 +83,8 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
     !typeFilter.trim()
       ? true
       : type === INTERNAL_FOLDER_EXTENSION
-      ? 'folder'.includes(typeFilter.trim().toLowerCase())
-      : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
+        ? 'folder'.includes(typeFilter.trim().toLowerCase())
+        : type.toLowerCase().includes(typeFilter.trim().toLowerCase()),
   );
 
   const typeToOption = (type: string) => ({
@@ -89,14 +93,14 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
   });
 
   const options: MenuOption[] = types.map(typeToOption);
-  const selectedOptions = filterTypes.map(typeToOption);
+  const selectedOptions = objectTypeFilter.map(typeToOption);
 
   const typeClose = () => {
-    dispatch(setFilterTypes(selectedType));
+    dispatch(setObjectTypeFilter(selectedType));
   };
 
   const typeOpen = () => {
-    setSelectedType(filterTypes);
+    setSelectedType(objectTypeFilter);
   };
 
   const rangePresets: TimeRangePickerProps['presets'] = [
@@ -105,10 +109,44 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
     { label: 'Last 6 Months', value: [dayjs().add(-6, 'month'), dayjs()] },
   ];
 
+  const onInputNumberKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!e.key.match(/[0-9]|backspace|enter|delete|arrow(left|right|up|down)/i)) e.preventDefault();
+  };
+
+  const onSetSize = () => {
+    setSizeOpen(false);
+    if (sizeFrom.value !== null && sizeTo.value !== null) {
+      const from = sizeFrom.value * Number(sizeFrom.unit);
+      const to = sizeTo.value * Number(sizeTo.unit);
+      if (to < from) {
+        dispatch(setObjectSizeFromFilter(sizeTo));
+        dispatch(setObjectSizeToFilter(sizeFrom));
+        return;
+      }
+    }
+    dispatch(setObjectSizeFromFilter(sizeFrom));
+    dispatch(setObjectSizeToFilter(sizeTo));
+  };
+
+  const onResetSize = (e: MouseEvent) => {
+    e.stopPropagation();
+    const from: ObjectFilterSize = { value: null, unit: '1' };
+    const to: ObjectFilterSize = { value: null, unit: '1024' };
+    dispatch(setObjectSizeFromFilter(from));
+    dispatch(setObjectSizeToFilter(to));
+    setSizeFrom(from);
+    setSizeTo(to);
+  };
+
+  const onSizeOpen = () => {
+    setSizeFrom(objectSizeFromFilter);
+    setSizeTo(objectSizeToFilter);
+  };
+
   useEffect(() => {
     setSelectedType([]);
-    dispatch(resetObjectListFilter());
-  }, [router.asPath, shareModePath]);
+    dispatch(resetObjectFilter());
+  }, [router.asPath, objectShareModePath]);
 
   useClickAway(
     () => setDateOpen(false),
@@ -123,48 +161,14 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
     const from = dateRange?.[0] ? dayjs(dateRange[0]).format('YYYY-MM-DD') : '';
     const to = dateRange?.[1] ? dayjs(dateRange[1]).format('YYYY-MM-DD') : '';
     if (!from && to) {
-      dispatch(setFilterRange([to, from]));
+      dispatch(setObjectCreationTimeRangeFilter([to, from]));
       return;
     }
-    dispatch(setFilterRange([from, to]));
+    dispatch(setObjectCreationTimeRangeFilter([from, to]));
   }, [dateOpen]);
 
-  const onInputNumberKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!e.key.match(/[0-9]|backspace|enter|delete|arrow(left|right|up|down)/i)) e.preventDefault();
-  };
-
-  const onSetSize = () => {
-    setSizeOpen(false);
-    if (sizeFrom.value !== null && sizeTo.value !== null) {
-      const from = sizeFrom.value * Number(sizeFrom.unit);
-      const to = sizeTo.value * Number(sizeTo.unit);
-      if (to < from) {
-        dispatch(setFilterSizeFrom(sizeTo));
-        dispatch(setFilterSizeTo(sizeFrom));
-        return;
-      }
-    }
-    dispatch(setFilterSizeFrom(sizeFrom));
-    dispatch(setFilterSizeTo(sizeTo));
-  };
-
-  const onResetSize = (e: MouseEvent) => {
-    e.stopPropagation();
-    const from: ObjectFilterSize = { value: null, unit: '1' };
-    const to: ObjectFilterSize = { value: null, unit: '1024' };
-    dispatch(setFilterSizeFrom(from));
-    dispatch(setFilterSizeTo(to));
-    setSizeFrom(from);
-    setSizeTo(to);
-  };
-
-  const onSizeOpen = () => {
-    setSizeFrom(filterSizeFrom);
-    setSizeTo(filterSizeTo);
-  };
-
   return (
-    <Collapse in={filterExpand}>
+    <Collapse in={objectFilterVisible}>
       <Divider />
       <Container>
         <DCMenu
@@ -224,7 +228,10 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
             >
               <MenuButton
                 className={cn(
-                  { 'menu-open': isOpen, 'button-filtered': !!filterTypes.length && !isOpen },
+                  {
+                    'menu-open': isOpen,
+                    'button-filtered': !!objectTypeFilter.length && !isOpen,
+                  },
                   'type-button',
                 )}
                 as={DCButton}
@@ -241,7 +248,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedType([]);
-                        dispatch(setFilterTypes([]));
+                        dispatch(setObjectTypeFilter([]));
                       }}
                       className={'icon-selected'}
                       w={24}
@@ -255,7 +262,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                 ) : (
                   <>
                     {trimLongStr(selectedOptions[0].label, 6, 6, 0)}{' '}
-                    <Badge>{filterTypes.length}</Badge>
+                    <Badge>{objectTypeFilter.length}</Badge>
                   </>
                 )}
               </MenuButton>
@@ -286,7 +293,7 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                   onClick={(e) => {
                     e.stopPropagation();
                     setDateRange(undefined);
-                    dispatch(setFilterRange(['', '']));
+                    dispatch(setObjectCreationTimeRangeFilter(['', '']));
                   }}
                   className={'icon-selected'}
                   w={24}
@@ -295,8 +302,9 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
               </>
             }
           >
-            {filterRange.filter(Boolean).length
-              ? filterRange.join(' ~ ') + (filterRange[1] ? '' : 'Now')
+            {objectCreationTimeRangeFilter.filter(Boolean).length
+              ? objectCreationTimeRangeFilter.join(' ~ ') +
+                (objectCreationTimeRangeFilter[1] ? '' : 'Now')
               : 'Date Created'}
           </DCButton>
           <DCRangePicker
@@ -419,7 +427,8 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                 {
                   'menu-open': isOpen,
                   'button-filtered':
-                    (filterSizeFrom.value !== null || filterSizeTo.value !== null) && !isOpen,
+                    (objectSizeFromFilter.value !== null || objectSizeToFilter.value !== null) &&
+                    !isOpen,
                 },
                 'size-button',
               )}
@@ -441,15 +450,17 @@ export const ObjectFilterItems = memo<ObjectFilterItemsProps>(function ObjectFil
                 </>
               }
             >
-              {filterSizeFrom?.value !== null && filterSizeTo?.value !== null
-                ? `${filterSizeFrom.value}${filterSizeFrom.unit === '1' ? 'KB' : 'MB'} ~ ${
-                    filterSizeTo.value
-                  }${filterSizeTo.unit === '1' ? 'KB' : 'MB'}`
-                : filterSizeFrom?.value !== null && filterSizeTo?.value === null
-                ? `>= ${filterSizeFrom.value}${filterSizeFrom.unit === '1' ? 'KB' : 'MB'}`
-                : filterSizeTo?.value !== null && filterSizeFrom?.value === null
-                ? `<= ${filterSizeTo.value}${filterSizeTo.unit === '1' ? 'KB' : 'MB'}`
-                : 'Size'}
+              {objectSizeFromFilter?.value !== null && objectSizeToFilter?.value !== null
+                ? `${objectSizeFromFilter.value}${
+                    objectSizeFromFilter.unit === '1' ? 'KB' : 'MB'
+                  } ~ ${objectSizeToFilter.value}${objectSizeToFilter.unit === '1' ? 'KB' : 'MB'}`
+                : objectSizeFromFilter?.value !== null && objectSizeToFilter?.value === null
+                  ? `>= ${objectSizeFromFilter.value}${
+                      objectSizeFromFilter.unit === '1' ? 'KB' : 'MB'
+                    }`
+                  : objectSizeToFilter?.value !== null && objectSizeFromFilter?.value === null
+                    ? `<= ${objectSizeToFilter.value}${objectSizeToFilter.unit === '1' ? 'KB' : 'MB'}`
+                    : 'Size'}
             </MenuButton>
           )}
         </DCMenu>

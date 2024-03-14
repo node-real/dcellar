@@ -1,57 +1,59 @@
-import { useAppDispatch, useAppSelector } from '@/store';
 import {
   MsgCreateObjectTypeUrl,
   MsgGrantAllowanceTypeUrl,
   MsgPutPolicyTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
-import { Text } from '@totejs/uikit';
-import React, { useEffect, useMemo } from 'react';
+import { Text } from '@node-real/uikit';
 import { useAsyncEffect } from 'ahooks';
-import { WaitFile, setupStoreFeeParams } from '@/store/slices/global';
 import { isEmpty } from 'lodash-es';
-import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
-import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
-import { DECIMAL_NUMBER } from '../wallet/constants';
-import { getStoreNetflowRate } from '@/utils/payment';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { memo, useEffect, useMemo } from 'react';
 import { TotalFees } from '../object/components/TotalFees';
-import { BN } from '@/utils/math';
+import { DECIMAL_NUMBER } from '../wallet/constants';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { renderPaymentInsufficientBalance } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccount, selectAvailableBalance } from '@/store/slices/accounts';
+import { selectGnfdGasFeesConfig, setupStoreFeeParams, WaitObject } from '@/store/slices/global';
+import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
+import { BN } from '@/utils/math';
+import { getStoreNetflowRate } from '@/utils/payment';
 
-export const Fees = () => {
+interface FeesProps {}
+
+export const Fees = memo<FeesProps>(function Fees() {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
-  const { objectOperation } = useAppSelector((root) => root.object);
-  const { gasFee: singleTxGasFee } = gasObjects?.[MsgCreateObjectTypeUrl] || {};
-  const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+  const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
+  const storeFeeParams = useAppSelector((root) => root.global.storeFeeParams);
+  const objectOperation = useAppSelector((root) => root.object.objectOperation);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const bucket = useAppSelector(selectLocateBucket);
   const payStoreFeeAccount = useAppSelector(selectAccount(bucket.PaymentAddress));
-  const { bankBalance } = useAppSelector((root) => root.accounts);
-  const isOwnerAccount = payStoreFeeAccount.address === loginAccount;
   const availableBalance = useAppSelector(selectAvailableBalance(payStoreFeeAccount.address));
-  const isChecking = waitQueue.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
   const { settlementFee } = useSettlementFee(bucket.PaymentAddress);
-  useAsyncEffect(async () => {
-    if (isEmpty(storeFeeParams)) {
-      return await dispatch(setupStoreFeeParams());
-    }
-  }, [storeFeeParams]);
+
+  const { gasFee: singleTxGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
+  const isOwnerAccount = payStoreFeeAccount.address === loginAccount;
+  const isChecking =
+    objectWaitQueue.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
+  const operationName = objectOperation[0][1];
 
   const createTmpAccountGasFee = useMemo(() => {
-    const grantAllowTxFee = BN(gasObjects[MsgGrantAllowanceTypeUrl].gasFee).plus(
-      BN(gasObjects[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
+    const grantAllowTxFee = BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].gasFee).plus(
+      BN(gnfdGasFeesConfig[MsgGrantAllowanceTypeUrl].perItemFee).times(1),
     );
-    const putPolicyTxFee = BN(gasObjects[MsgPutPolicyTypeUrl].gasFee);
+    const putPolicyTxFee = BN(gnfdGasFeesConfig[MsgPutPolicyTypeUrl].gasFee);
 
     return grantAllowTxFee.plus(putPolicyTxFee).toString(DECIMAL_NUMBER);
-  }, [gasObjects]);
+  }, [gnfdGasFeesConfig]);
 
   const storeFee = useMemo(() => {
     if (isEmpty(storeFeeParams) || isChecking) {
       return '-1';
     }
-    const calRes = waitQueue
+    return objectWaitQueue
       .filter((item) => item.status !== 'ERROR')
       .reduce(
         (sum, obj) =>
@@ -63,20 +65,22 @@ export const Fees = () => {
         BN(0),
       )
       .toString();
-
-    return calRes;
-  }, [waitQueue, isChecking, storeFeeParams]);
+  }, [objectWaitQueue, isChecking, storeFeeParams]);
 
   const gasFee = useMemo(() => {
     if (isChecking) return -1;
-    const waitUploadCount = waitQueue.filter((item: WaitFile) => item.status !== 'ERROR').length;
+    const waitUploadCount = objectWaitQueue.filter(
+      (item: WaitObject) => item.status !== 'ERROR',
+    ).length;
     if (waitUploadCount === 1) {
       return singleTxGasFee;
     }
 
-    return BN(waitUploadCount).times(singleTxGasFee).plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
+    return BN(waitUploadCount)
+      .times(singleTxGasFee)
+      .plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
       .toString(DECIMAL_NUMBER);
-  }, [createTmpAccountGasFee, isChecking, singleTxGasFee, waitQueue]);
+  }, [createTmpAccountGasFee, isChecking, singleTxGasFee, objectWaitQueue]);
 
   const isBalanceAvailable = useMemo(() => {
     if (isOwnerAccount) {
@@ -98,7 +102,11 @@ export const Fees = () => {
     }
   }, [bankBalance, gasFee, isOwnerAccount, storeFee, payStoreFeeAccount?.staticBalance]);
 
-  const operationName = objectOperation[0][1];
+  useAsyncEffect(async () => {
+    if (isEmpty(storeFeeParams)) {
+      return await dispatch(setupStoreFeeParams());
+    }
+  }, [storeFeeParams]);
 
   useEffect(() => {
     // when drawer unmounted stop update
@@ -151,4 +159,4 @@ export const Fees = () => {
       </Text>
     </>
   );
-};
+});

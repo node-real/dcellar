@@ -1,7 +1,7 @@
-import { Flex, Text } from '@totejs/uikit';
-import React, { ReactNode } from 'react';
 import { IconFont } from '@/components/IconFont';
 import { DISCONTINUED_BANNER_HEIGHT, DISCONTINUED_BANNER_MARGIN_BOTTOM } from '@/constants/legacy';
+import { Flex, Text } from '@node-real/uikit';
+import { ReactNode } from 'react';
 
 export const DiscontinueBanner = ({
   content,

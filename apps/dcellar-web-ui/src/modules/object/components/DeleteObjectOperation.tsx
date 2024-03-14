@@ -1,6 +1,14 @@
-import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
-import { useAccount } from 'wagmi';
-import React, { memo, useMemo, useState } from 'react';
+import { Animates } from '@/components/AnimatePng';
+import { DCButton } from '@/components/common/DCButton';
+import { getClient } from '@/facade';
+import { resolve } from '@/facade/common';
+import { E_USER_REJECT_STATUS_NUM, broadcastFault } from '@/facade/error';
+import { getListObjects } from '@/facade/object';
+import { getStoreFeeParams } from '@/facade/payment';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { useModalValues } from '@/hooks/useModalValues';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { TotalFees } from '@/modules/object/components/TotalFees';
 import {
   BUTTON_GOT_IT,
   FILE_DESCRIPTION_DELETE_ERROR,
@@ -9,45 +17,35 @@ import {
   FOLDER_TITLE_NOT_EMPTY,
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
-import { DCButton } from '@/components/common/DCButton';
-import { broadcastFault, E_USER_REJECT_STATUS_NUM } from '@/facade/error';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { AccountInfo, selectAccount, setupAccountRecords } from '@/store/slices/accounts';
+import { TBucket } from '@/store/slices/bucket';
 import {
-  addDeletedObject,
-  setObjectList,
-  setSelectedRowKeys,
-  setStatusDetail,
-  TStatusDetail,
-} from '@/store/slices/object';
-import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { useAsyncEffect } from 'ahooks';
-import { selectStoreFeeParams } from '@/store/slices/global';
-import { resolve } from '@/facade/common';
-import { getListObjects } from '@/facade/object';
-import { selectAccount, setupAccountInfo, TAccountInfo } from '@/store/slices/accounts';
-import { getStoreFeeParams } from '@/facade/payment';
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+} from '@/store/slices/global';
+import { setDeletedObject, setObjectList, setObjectSelectedKeys } from '@/store/slices/object';
+import { SpEntity } from '@/store/slices/sp';
+import { displayTime } from '@/utils/common';
+import { reportEvent } from '@/utils/gtag';
+import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { getTimestampInSeconds } from '@/utils/time';
-import { displayTime } from '@/utils/common';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { MsgDeleteObjectTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { TBucket } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
-import { useModalValues } from '@/hooks/useModalValues';
-import { BN } from '@/utils/math';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { getClient } from '@/facade';
-import { signTypedDataCallback } from '@/facade/wallet';
-import { reportEvent } from '@/utils/gtag';
-import { Animates } from '@/components/AnimatePng';
-import { TotalFees } from '@/modules/object/components/TotalFees';
+import { Flex, Link, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
 import { without } from 'lodash-es';
+import { memo, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 interface DeleteObjectOperationProps {
   selectObjectInfo: ObjectMeta;
   selectBucket: TBucket;
-  bucketAccountDetail: TAccountInfo;
-  primarySp: SpItem;
+  bucketAccountDetail: AccountInfo;
+  primarySp: SpEntity;
   refetch?: () => void;
   onClose?: () => void;
   objectName: string;
@@ -64,29 +62,157 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
     objectName: _objectName,
   }) {
     const dispatch = useAppDispatch();
-    const [refundAmount, setRefundAmount] = useState<string | null>(null);
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    // Since reserveTime rarely change, we can optimize performance by using global data.
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+    const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
     const { reserveTime } = useAppSelector(selectStoreFeeParams);
-    const { bucketName, path, selectedRowKeys } = useAppSelector((root) => root.object);
+    const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
+
+    const [refundAmount, setRefundAmount] = useState<string | null>(null);
     const [balanceEnough, setBalanceEnough] = useState(true);
     const [loading, setLoading] = useState(false);
+
     const [buttonDisabled, setButtonDisabled] = useState(false);
-    const objectInfo = selectObjectInfo.ObjectInfo || {};
+    const { connector } = useAccount();
     const objectName = useModalValues(_objectName);
+    const objectInfo = selectObjectInfo.ObjectInfo || {};
     const isFolder = objectName.endsWith('/');
-    const { bankBalance } = useAppSelector((root) => root.accounts);
     const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(
       bucket.PaymentAddress,
     );
-    const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-    const simulateGasFee = gasObjects[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
-    const { connector } = useAccount();
+    const simulateGasFee = gnfdGasFeesConfig[MsgDeleteObjectTypeUrl]?.gasFee ?? 0;
     const isStoredAtMinimumTime = useMemo(() => {
       if (!reserveTime) return null;
       return BN(getTimestampInSeconds()).minus(objectInfo.CreateAt).minus(reserveTime).isPositive();
     }, [objectInfo.CreateAt, reserveTime]);
-    const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
+
+    const isFolderEmpty = async (objectName: string) => {
+      const _query = new URLSearchParams();
+      _query.append('delimiter', '/');
+      _query.append('maxKeys', '2');
+      _query.append('prefix', `${objectName}`);
+
+      const params = {
+        address: primarySp.operatorAddress,
+        bucketName: currentBucketName,
+        prefix: objectName,
+        query: _query,
+        endpoint: primarySp.endpoint,
+        seedString: '',
+      };
+      const [res, error] = await getListObjects(params);
+      // should never happen
+      if (error || !res || res.code !== 0) return false;
+      const { GfSpListObjectsByBucketNameResponse } = res.body!;
+      // 更新文件夹objectInfo
+      dispatch(
+        setObjectList({
+          path: completeCommonPrefix,
+          list: GfSpListObjectsByBucketNameResponse || [],
+          infoOnly: true,
+        }),
+      );
+      return (
+        GfSpListObjectsByBucketNameResponse.KeyCount === '1' &&
+        GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName
+      );
+    };
+
+    const filePath = objectName.split('/');
+
+    const showName = filePath[filePath.length - 1];
+    const folderName = filePath[filePath.length - 2];
+    const description = isFolder
+      ? `Are you sure you want to delete folder "${folderName}"?`
+      : `Are you sure you want to delete object "${showName}"?`;
+
+    const setFailedStatusModal = (description: string, error: any) => {
+      dispatch(
+        setSignatureAction({
+          icon: 'status-failed',
+          title: FILE_TITLE_DELETE_FAILED,
+          desc: description,
+          buttonText: BUTTON_GOT_IT,
+          errorText: 'Error message: ' + error?.message ?? '',
+          buttonOnClick: () => {
+            dispatch(setSignatureAction({}));
+          },
+        }),
+      );
+    };
+
+    const onDeleteObject = async () => {
+      try {
+        setLoading(true);
+        onClose();
+        dispatch(
+          setSignatureAction({
+            icon: Animates.delete,
+            title: isFolder ? 'Deleting Folder' : 'Deleting File',
+            desc: WALLET_CONFIRM,
+          }),
+        );
+        const client = await getClient();
+        const delObjTx = await client.object.deleteObject({
+          bucketName: currentBucketName,
+          objectName: objectName,
+          operator: loginAccount,
+        });
+        const simulateInfo = await delObjTx.simulate({
+          denom: 'BNB',
+        });
+        const [txRes, error] = await delObjTx
+          .broadcast({
+            denom: 'BNB',
+            gasLimit: Number(simulateInfo?.gasLimit),
+            gasPrice: simulateInfo?.gasPrice || '5000000000',
+            payer: loginAccount,
+            granter: '',
+            signTypedDataCallback: signTypedDataCallback(connector!),
+          })
+          .then(resolve, broadcastFault);
+        if (txRes === null) {
+          dispatch(setSignatureAction({}));
+          return toast.error({ description: error || 'Object deletion failed.' });
+        }
+        if (txRes.code === 0) {
+          await dispatch(setupAccountRecords(bucket.PaymentAddress));
+          toast.success({
+            description: isFolder ? 'Folder deleted successfully.' : 'Object deleted successfully.',
+          });
+          reportEvent({
+            name: 'dc.toast.file_delete.success.show',
+          });
+          dispatch(
+            setDeletedObject({
+              path: [currentBucketName, objectName].join('/'),
+              ts: Date.now(),
+            }),
+          );
+          // unselected
+          dispatch(setObjectSelectedKeys(without(objectSelectedKeys, objectInfo.ObjectName)));
+        } else {
+          toast.error({ description: 'Object deletion failed.' });
+        }
+        refetch();
+        onClose();
+        dispatch(setSignatureAction({}));
+        setLoading(false);
+      } catch (error: any) {
+        setLoading(false);
+        const { code = '' } = error;
+        if (code && String(code) === E_USER_REJECT_STATUS_NUM) {
+          dispatch(setSignatureAction({}));
+          return;
+        }
+        // eslint-disable-next-line no-console
+        console.error('Object deletion failed.', error);
+        setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
+      }
+    };
 
     useAsyncEffect(async () => {
       if (!objectInfo.CreateAt) return;
@@ -101,34 +227,6 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       setRefundAmount(refundAmount);
     }, [crudTimestamp, objectInfo.CreateAt]);
 
-    const isFolderEmpty = async (objectName: string) => {
-      const _query = new URLSearchParams();
-      _query.append('delimiter', '/');
-      _query.append('maxKeys', '2');
-      _query.append('prefix', `${objectName}`);
-
-      const params = {
-        address: primarySp.operatorAddress,
-        bucketName: bucketName,
-        prefix: objectName,
-        query: _query,
-        endpoint: primarySp.endpoint,
-        seedString: '',
-      };
-      const [res, error] = await getListObjects(params);
-      // should never happen
-      if (error || !res || res.code !== 0) return false;
-      const { GfSpListObjectsByBucketNameResponse } = res.body!;
-      // 更新文件夹objectInfo
-      dispatch(
-        setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
-      );
-      return (
-        GfSpListObjectsByBucketNameResponse.KeyCount === '1' &&
-        GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName
-      );
-    };
-
     useAsyncEffect(async () => {
       if (!isFolder) return;
       setLoading(true);
@@ -136,7 +234,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       const folderEmpty = await isFolderEmpty(objectName);
       if (!folderEmpty) {
         dispatch(
-          setStatusDetail({
+          setSignatureAction({
             icon: 'empty-bucket',
             title: FOLDER_TITLE_NOT_EMPTY,
             desc: '',
@@ -150,30 +248,8 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
         setLoading(false);
         setButtonDisabled(false);
       }
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     }, [isFolder]);
-
-    const filePath = objectName.split('/');
-
-    const showName = filePath[filePath.length - 1];
-    const folderName = filePath[filePath.length - 2];
-    const description = isFolder
-      ? `Are you sure you want to delete folder "${folderName}"?`
-      : `Are you sure you want to delete object "${showName}"?`;
-    const setFailedStatusModal = (description: string, error: any) => {
-      dispatch(
-        setStatusDetail({
-          icon: 'status-failed',
-          title: FILE_TITLE_DELETE_FAILED,
-          desc: description,
-          buttonText: BUTTON_GOT_IT,
-          errorText: 'Error message: ' + error?.message ?? '',
-          buttonOnClick: () => {
-            dispatch(setStatusDetail({} as TStatusDetail));
-          },
-        }),
-      );
-    };
 
     return (
       <>
@@ -246,77 +322,7 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
             size="lg"
             gaClickName="dc.file.delete_confirm.delete.click"
             flex={1}
-            onClick={async () => {
-              try {
-                setLoading(true);
-                onClose();
-                dispatch(
-                  setStatusDetail({
-                    icon: Animates.delete,
-                    title: isFolder ? 'Deleting Folder' : 'Deleting File',
-                    desc: WALLET_CONFIRM,
-                  }),
-                );
-                const client = await getClient();
-                const delObjTx = await client.object.deleteObject({
-                  bucketName,
-                  objectName: objectName,
-                  operator: loginAccount,
-                });
-                const simulateInfo = await delObjTx.simulate({
-                  denom: 'BNB',
-                });
-                const [txRes, error] = await delObjTx
-                  .broadcast({
-                    denom: 'BNB',
-                    gasLimit: Number(simulateInfo?.gasLimit),
-                    gasPrice: simulateInfo?.gasPrice || '5000000000',
-                    payer: loginAccount,
-                    granter: '',
-                    signTypedDataCallback: signTypedDataCallback(connector!),
-                  })
-                  .then(resolve, broadcastFault);
-                if (txRes === null) {
-                  dispatch(setStatusDetail({} as TStatusDetail));
-                  return toast.error({ description: error || 'Object deletion failed.' });
-                }
-                if (txRes.code === 0) {
-                  await dispatch(setupAccountInfo(bucket.PaymentAddress));
-                  toast.success({
-                    description: isFolder
-                      ? 'Folder deleted successfully.'
-                      : 'Object deleted successfully.',
-                  });
-                  reportEvent({
-                    name: 'dc.toast.file_delete.success.show',
-                  });
-                  dispatch(
-                    addDeletedObject({
-                      path: [bucketName, objectName].join('/'),
-                      ts: Date.now(),
-                    }),
-                  );
-                  // unselected
-                  dispatch(setSelectedRowKeys(without(selectedRowKeys, objectInfo.ObjectName)));
-                } else {
-                  toast.error({ description: 'Object deletion failed.' });
-                }
-                refetch();
-                onClose();
-                dispatch(setStatusDetail({} as TStatusDetail));
-                setLoading(false);
-              } catch (error: any) {
-                setLoading(false);
-                const { code = '' } = error;
-                if (code && String(code) === E_USER_REJECT_STATUS_NUM) {
-                  dispatch(setStatusDetail({} as TStatusDetail));
-                  return;
-                }
-                // eslint-disable-next-line no-console
-                console.error('Object deletion failed.', error);
-                setFailedStatusModal(FILE_DESCRIPTION_DELETE_ERROR, error);
-              }
-            }}
+            onClick={onDeleteObject}
             isLoading={loading || refundAmount === null || loadingSettlementFee}
             isDisabled={
               buttonDisabled || refundAmount === null || loadingSettlementFee || !balanceEnough

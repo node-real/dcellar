@@ -1,22 +1,26 @@
-import { Flex, Text, Circle } from '@totejs/uikit';
-import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { IconFont } from '@/components/IconFont';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { Circle, Flex, Text } from '@node-real/uikit';
 import { memo } from 'react';
-import { IconFont } from '@/components/IconFont';
 
 interface BalanceAmountProps {}
+
 export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {
-  const exchangeRate = useAppSelector(selectBnbPrice);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
 
   const renderBalanceNumber = () => {
     if (Number(bankBalance) < 0) return 'Fetching balance...';
-    return `${getNumInDigits(bankBalance, CRYPTOCURRENCY_DISPLAY_PRECISION)} ${displayTokenSymbol()}`;
+    return `${getNumInDigits(
+      bankBalance,
+      CRYPTOCURRENCY_DISPLAY_PRECISION,
+    )} ${displayTokenSymbol()}`;
   };
 
   const renderUsd = () => {
@@ -47,4 +51,3 @@ export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {
     </Flex>
   );
 });
-

@@ -24,9 +24,9 @@ export const useDetectScroll = () => {
       }
     };
 
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener('scroll', onScroll);
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, [hasScroll]);
 
   return hasScroll;

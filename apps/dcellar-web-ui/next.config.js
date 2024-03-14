@@ -91,9 +91,12 @@ const nextConfig = {
   },
   compiler: {
     emotion: true,
-    removeConsole: {
-      exclude: ['error', 'warn'],
-    },
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
   },
 };
 

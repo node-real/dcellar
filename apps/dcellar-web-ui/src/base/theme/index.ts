@@ -1,5 +1,5 @@
+import { Theme } from '@node-real/uikit';
 import { light } from './light';
-import { Theme } from '@totejs/uikit';
 
 export const theme: Theme = {
   colors: {

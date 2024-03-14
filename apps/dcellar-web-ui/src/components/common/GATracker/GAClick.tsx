@@ -1,6 +1,6 @@
-import { mergeRefs } from '@totejs/uikit';
-import { useReportFuncRef } from './useReportFuncRef';
+import { mergeRefs } from '@node-real/uikit';
 import React, { useMemo } from 'react';
+import { useReportFuncRef } from './useReportFuncRef';
 
 export interface GAClickProps {
   name?: string;

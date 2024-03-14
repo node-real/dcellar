@@ -1,32 +1,35 @@
-import { GroupInfo, ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { resolve } from '@/facade/common';
 import {
+  ErrorResponse,
   broadcastFault,
   commonFault,
   createTxFault,
-  ErrorResponse,
   simulateFault,
 } from '@/facade/error';
-import { resolve } from '@/facade/common';
+import { getClient } from '@/facade/index';
+import { BroadcastResponse, DeliverResponse, xmlParser } from '@/facade/object';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { GroupMember } from '@/store/slices/group';
 import {
   MsgCreateGroup,
   MsgDeleteGroup,
   MsgUpdateGroupExtra,
   MsgUpdateGroupMember,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { BroadcastResponse, DeliverResponse, xmlParser } from '@/facade/object';
-import { signTypedDataCallback } from '@/facade/wallet';
-import { Connector } from 'wagmi';
+import {
+  GroupInfo,
+  ResourceTags_Tag,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { GRNToString, Long, TxResponse, newGroupGRN } from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
-import { GroupMember } from '@/store/slices/group';
-import { getClient } from '@/facade/index';
+import { Connector } from 'wagmi';
 
 export const getGroups = async (account: string): Promise<ErrorResponse | [GroupInfo[], null]> => {
   const client = await getClient();
   const [res, error] = await client.group
     .listGroup({
       groupOwner: account,
-      // @ts-ignore todo fix it
+      // @ts-expect-error TODO
       pagination: {
         key: Uint8Array.from([]),
         limit: Long.fromInt(200),
@@ -39,13 +42,15 @@ export const getGroups = async (account: string): Promise<ErrorResponse | [Group
   return [res.groupInfos, null];
 };
 
-export const getCreateGroupTx = async (msg: MsgCreateGroup): Promise<[TxResponse, null] | ErrorResponse> => {
+export const getCreateGroupTx = async (
+  msg: MsgCreateGroup,
+): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const [tx, error1] = await client.group.createGroup(msg).then(resolve, createTxFault);
   if (!tx) return [null, error1];
 
   return [tx, null];
-}
+};
 
 export const createGroup = async (msg: MsgCreateGroup, connector: Connector): BroadcastResponse => {
   const [tx, error1] = await getCreateGroupTx(msg);
@@ -199,25 +204,38 @@ export const getGroupMembers = async (
     .catch((e) => []);
 };
 
-export type UpdateGroupTagsParams = { address: string; groupName: string; tags: ResourceTags_Tag[] };
+export type UpdateGroupTagsParams = {
+  address: string;
+  groupName: string;
+  tags: ResourceTags_Tag[];
+};
 
-export const getUpdateGroupTagsTx = async ({ address, groupName, tags }: UpdateGroupTagsParams): Promise<[TxResponse, null] | ErrorResponse> => {
+export const getUpdateGroupTagsTx = async ({
+  address,
+  groupName,
+  tags,
+}: UpdateGroupTagsParams): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const resource = GRNToString(newGroupGRN(address, groupName));
-  const [tx, error1] = await client.storage.setTag({
-    operator: address,
-    resource,
-    tags: {
-      tags: tags
-    }
-  }).then(resolve, createTxFault);
+  const [tx, error1] = await client.storage
+    .setTag({
+      operator: address,
+      resource,
+      tags: {
+        tags: tags,
+      },
+    })
+    .then(resolve, createTxFault);
   if (!tx) return [null, error1];
 
-  return [tx, null]
-}
+  return [tx, null];
+};
 
-export const updateGroupTags = async ({ address, groupName, tags }:UpdateGroupTagsParams, connector: Connector) => {
-  const [tx, error1] = await getUpdateGroupTagsTx({ address, groupName, tags })
+export const updateGroupTags = async (
+  { address, groupName, tags }: UpdateGroupTagsParams,
+  connector: Connector,
+) => {
+  const [tx, error1] = await getUpdateGroupTagsTx({ address, groupName, tags });
   if (!tx) return [null, error1];
 
   const [simulate, error2] = await tx.simulate({ denom: 'BNB' }).then(resolve, simulateFault);
@@ -233,4 +251,4 @@ export const updateGroupTags = async ({ address, groupName, tags }:UpdateGroupTa
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
-}
+};

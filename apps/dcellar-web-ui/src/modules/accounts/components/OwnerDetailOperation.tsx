@@ -1,24 +1,26 @@
 import { DCButton } from '@/components/common/DCButton';
 import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
-import { Flex, QDrawerFooter } from '@totejs/uikit';
-import { memo, useState } from 'react';
-import { useInterval, useUnmount } from 'ahooks';
-import { BasicInfo } from './BasicInfo';
-import { useRouter } from 'next/router';
-import BigNumber from 'bignumber.js';
+import { AccountInfo } from '@/store/slices/accounts';
 import { getTimestampInSeconds } from '@/utils/time';
+import { Flex, QDrawerFooter } from '@node-real/uikit';
+import { useInterval, useUnmount } from 'ahooks';
+import BigNumber from 'bignumber.js';
+import { useRouter } from 'next/router';
+import { memo, useState } from 'react';
+import { BasicInfo } from './BasicInfo';
 
 interface OwnerDetailOperationProps {
-  selectAccount: TAccountInfo;
+  selectAccount: AccountInfo;
 }
 
 export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function OwnerDetailOperation({
   selectAccount,
 }) {
-  const [availableBalance, setAvailableBalance] = useState('0');
-  const { isLoadingAccountInfo, bankBalance } = useAppSelector((root) => root.accounts);
+  const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const router = useRouter();
+  const [availableBalance, setAvailableBalance] = useState('0');
 
   const onAction = (e: string) => {
     return router.push(`/wallet?type=${e}`);
@@ -40,7 +42,7 @@ export const OwnerDetailOperation = memo<OwnerDetailOperationProps>(function Own
   return (
     <>
       <BasicInfo
-        loading={!!isLoadingAccountInfo}
+        loading={!!accountInfoLoading}
         title="Account Detail"
         accountDetail={selectAccount}
         availableBalance={availableBalance}

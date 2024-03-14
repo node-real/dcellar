@@ -1,22 +1,30 @@
-import BigNumber from 'bignumber.js';
+import { resolve } from '@/facade/common';
+import {
+  ErrorResponse,
+  broadcastFault,
+  commonFault,
+  createTxFault,
+  offChainAuthFault,
+  simulateFault,
+} from '@/facade/error';
+import { getClient } from '@/facade/index';
+import { BroadcastResponse } from '@/facade/object';
+import { signTypedDataCallback } from '@/facade/wallet';
+import { ObjectResource } from '@/store/slices/object';
+import { parseError } from '@/utils/string';
+import { getTimestampInSeconds } from '@/utils/time';
 import {
   QueryHeadBucketResponse,
   QueryQuoteUpdateTimeResponse,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
+import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
-  broadcastFault,
-  commonFault,
-  createTxFault,
-  ErrorResponse,
-  offChainAuthFault,
-  simulateFault,
-} from '@/facade/error';
-import { resolve } from '@/facade/common';
-import {
+  AuthType,
   CreateBucketApprovalRequest,
+  GRNToString,
   GetBucketMetaResponse,
   GetUserBucketsResponse,
-  GRNToString,
   IQuotaProps,
   ISimulateGasFee,
   Long,
@@ -24,26 +32,18 @@ import {
   SpResponse,
   TxResponse,
   newBucketGRN,
-  AuthType,
 } from '@bnb-chain/greenfield-js-sdk';
-import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { Connector } from 'wagmi';
-import { BroadcastResponse } from '@/facade/object';
-import { signTypedDataCallback } from '@/facade/wallet';
 import {
   BucketMetaWithVGF,
   PolicyMeta,
 } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { GetListObjectPoliciesResponse } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListObjectPolicies';
-import { escapeRegExp, get, uniqBy } from 'lodash-es';
-import { getTimestampInSeconds } from '@/utils/time';
 import axios from 'axios';
+import BigNumber from 'bignumber.js';
 import { XMLParser } from 'fast-xml-parser';
-import { parseError } from '@/utils/string';
-import { getClient } from '@/facade/index';
+import { get } from 'lodash-es';
 import { hexToNumber, numberToHex } from 'viem';
-import { ObjectResource } from '@/store/slices/object';
-import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { Connector } from 'wagmi';
 
 export type TGetReadQuotaParams = {
   bucketName: string;
@@ -62,7 +62,7 @@ export const headBucket = async (bucketName: string) => {
   const client = await getClient();
   const { bucketInfo } = await client.bucket
     .headBucket(bucketName)
-    .catch(() => ({} as QueryHeadBucketResponse));
+    .catch(() => ({}) as QueryHeadBucketResponse);
   return bucketInfo || null;
 };
 
@@ -113,7 +113,7 @@ export const getBucketReadQuota = async ({
     })
     .then(resolve, offChainAuthFault);
   if (error) return [null, error];
-  if (res?.code === -1) return [null, res?.message!];
+  if (res?.code === -1) return [null, res?.message ?? ''];
 
   const quota = res?.body as IQuotaProps;
   return [quota, null];
@@ -258,14 +258,14 @@ export const getBucketQuotaUpdateTime = async (bucketName: string) => {
   const defaultValue = new Long(getTimestampInSeconds());
   const res = await storageClient
     .QueryQuotaUpdateTime({ bucketName })
-    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
+    .catch((e) => ({ updateAt: defaultValue }) as QueryQuoteUpdateTimeResponse);
   return Number(res?.updateAt || defaultValue);
 };
 
 export const getCreateBucketTx = async (
   params: CreateBucketApprovalRequest,
   authType: AuthType,
-): Promise<[TxResponse, null] | ErrorResponse> =>{
+): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const [createBucketTx, error1] = await client.bucket
     .createBucket(params, authType)
@@ -274,7 +274,7 @@ export const getCreateBucketTx = async (
   if (!createBucketTx) return [null, error1];
 
   return [createBucketTx, null];
-}
+};
 
 export const simulateCreateBucket = async (
   params: CreateBucketApprovalRequest,
@@ -331,91 +331,98 @@ export const getBucketMeta = async (params: {
 
 // todo refactor
 export const pollingCreateAsync =
-  <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
-    async (...args: T): Promise<any> => {
-      while (true) {
-        await new Promise((resolve) => setTimeout(resolve, interval));
-        try {
-          const result = (await fn(...args)) as any;
-          const xmlParser = new XMLParser({
-            isArray: (tagName: string) => {
-              if (tagName === 'Buckets') return true;
-              return false;
-            },
-            numberParseOptions: {
-              hex: false,
-              leadingZeros: true,
-              skipLike: undefined,
-              eNotation: false,
-            },
-          });
-          const xmlData = await result.data;
-          const data = xmlParser.parse(
-            xmlData,
-          ) as GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
-          if (data) {
-            const newBucketInfo = data.BucketInfo;
-            if (newBucketInfo?.BucketName === args[0].BucketName) {
-              return;
-            }
-          }
-        } catch (e: any) {
-          const { code } = parseError(e?.message);
-          if (+code !== 6 && e?.response?.status !== 404) {
-            throw e;
+  <T extends any[]>(fn: (...args: T) => Promise<any>, interval = 1000) =>
+  async (...args: T): Promise<any> => {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+      try {
+        const result = (await fn(...args)) as any;
+        const xmlParser = new XMLParser({
+          isArray: (tagName: string) => {
+            if (tagName === 'Buckets') return true;
+            return false;
+          },
+          numberParseOptions: {
+            hex: false,
+            leadingZeros: true,
+            skipLike: undefined,
+            eNotation: false,
+          },
+        });
+        const xmlData = await result.data;
+        const data = xmlParser.parse(
+          xmlData,
+        ) as GetUserBucketsResponse['GfSpGetUserBucketsResponse']['Buckets'][0];
+        if (data) {
+          const newBucketInfo = data.BucketInfo;
+          if (newBucketInfo?.BucketName === args[0].BucketName) {
+            return;
           }
         }
+      } catch (e: any) {
+        const { code } = parseError(e?.message);
+        if (+code !== 6 && e?.response?.status !== 404) {
+          throw e;
+        }
       }
-    };
+    }
+  };
 
 export const pollingDeleteAsync =
-  <T extends any[], U extends any>(fn: (...args: T) => Promise<U>, interval = 1000) =>
-    async (...args: T): Promise<any> => {
-      await new Promise((resolve) => setTimeout(resolve, interval));
+  <T extends any[], U>(fn: (...args: T) => Promise<U>, interval = 1000) =>
+  async (...args: T): Promise<any> => {
+    await new Promise((resolve) => setTimeout(resolve, interval));
 
-      while (true) {
-        try {
-          const res = (await fn(...args)) as any;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        const res = (await fn(...args)) as any;
 
-          if (res.response.status === 500 || res.response.status === 404) {
-            return;
-          }
-        } catch (e: any) {
-          if (e?.response?.status === 500 || e?.response?.status === 404) {
-            return;
-          }
-          const { code } = parseError(e?.response.message);
-          if (+code !== 6) {
-            throw e;
-          }
+        if (res.response.status === 500 || res.response.status === 404) {
+          return;
+        }
+      } catch (e: any) {
+        if (e?.response?.status === 500 || e?.response?.status === 404) {
+          return;
+        }
+        const { code } = parseError(e?.response.message);
+        if (+code !== 6) {
+          throw e;
         }
       }
-    };
+    }
+  };
 
 export const pollingGetBucket = pollingCreateAsync(getBucketMeta, 500);
 export const pollingDeleteBucket = pollingDeleteAsync(getBucketMeta, 500);
 
-
 export type UpdateBucketTagsParams = {
   address: string;
   bucketName: string;
-  tags: ResourceTags_Tag[]
+  tags: ResourceTags_Tag[];
 };
 
-export const getUpdateBucketTagsTx = async ({ address, bucketName, tags }: UpdateBucketTagsParams): Promise<[TxResponse, null] | ErrorResponse> => {
+export const getUpdateBucketTagsTx = async ({
+  address,
+  bucketName,
+  tags,
+}: UpdateBucketTagsParams): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const resource = GRNToString(newBucketGRN(bucketName));
-  const [tx, error1] = await client.storage.setTag({
-    operator: address,
-    resource,
-    tags: {
-      tags: tags
-    }
-  }).then(resolve, createTxFault);
+  const [tx, error1] = await client.storage
+    .setTag({
+      operator: address,
+      resource,
+      tags: {
+        tags: tags,
+      },
+    })
+    .then(resolve, createTxFault);
   if (!tx) return [null, error1];
 
-  return [tx, null]
-}
+  return [tx, null];
+};
 
 export const updateBucketTags = async (params: UpdateBucketTagsParams, connector: Connector) => {
   const [tx, error1] = await getUpdateBucketTagsTx(params);
@@ -439,4 +446,4 @@ export const updateBucketTags = async (params: UpdateBucketTagsParams, connector
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
-}
+};

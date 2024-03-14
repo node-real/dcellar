@@ -1,11 +1,9 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@totejs/uikit';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@node-real/uikit';
 import Link from 'next/link';
 
-type Props = {
-  name: string;
-}
+type Props = { name: string };
 
-export const AccountBreadCrumb = ({name = 'Account Detail'}: Props) => {
+export const AccountBreadCrumb = ({ name = 'Account Detail' }: Props) => {
   return (
     <Breadcrumb>
       <BreadcrumbItem>

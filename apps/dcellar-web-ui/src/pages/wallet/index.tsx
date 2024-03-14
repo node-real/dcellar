@@ -1,25 +1,32 @@
-import React, { useEffect } from 'react';
 import Head from 'next/head';
-import { Wallet } from '@/modules/wallet';
 import { useRouter } from 'next/router';
-import { useAppDispatch } from '@/store';
-import { EOperation } from '@/modules/wallet/type';
-import { isTrans, setFrom, setSendAmount, setTo, setTransType } from '@/store/slices/wallet';
+import { useEffect } from 'react';
+
 import { runtimeEnv } from '@/base/env';
+import { Wallet } from '@/modules/wallet';
+import { EOperation } from '@/modules/wallet/type';
+import { useAppDispatch } from '@/store';
+import {
+  isTransferOperation,
+  setTransferFromAddress,
+  setTransferAmount,
+  setTransferToAddress,
+  setTransferType,
+} from '@/store/slices/wallet';
 import { networkTag } from '@/utils/common';
 
-const Index = () => {
+const WalletPage = () => {
   const dispatch = useAppDispatch();
   const { query } = useRouter();
 
   useEffect(() => {
     const { type = EOperation.transfer_in, from, to, amount = '' } = query;
     const str = Array<string>().concat(type)[0];
-    const _type = isTrans(str) ? EOperation[str] : EOperation.transfer_in;
-    dispatch(setTransType(_type));
-    dispatch(setTo(to as string));
-    dispatch(setFrom(from as string));
-    dispatch(setSendAmount(amount as string));
+    const _type = isTransferOperation(str) ? EOperation[str] : EOperation.transfer_in;
+    dispatch(setTransferType(_type));
+    dispatch(setTransferToAddress(to as string));
+    dispatch(setTransferFromAddress(from as string));
+    dispatch(setTransferAmount(amount as string));
   }, [query, dispatch]);
 
   return (
@@ -32,4 +39,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default WalletPage;

@@ -1,15 +1,19 @@
-import { memo } from 'react';
-import { Divider, Flex, Text, useDisclosure } from '@totejs/uikit';
+import { IconFont } from '@/components/IconFont';
+import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
+import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import {
+  AccountEntity,
+  selectAvailableBalance,
+  selectPaymentAccounts,
+} from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { Divider, Flex, Text, useDisclosure } from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
-import { selectAvailableBalance, selectPaymentAccounts, TAccount } from '@/store/slices/accounts';
+import { find } from 'lodash-es';
+import { memo } from 'react';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
-import { renderBalanceNumber, renderFeeValue, renderUsd } from '@/modules/object/utils';
-import { IconFont } from '@/components/IconFont';
-import { find } from 'lodash-es';
-import { GasFeeTips } from '@/modules/object/components/TotalFees/GasFeeTips';
 
 interface TotalFeesProps {
   gasFee: string | number;
@@ -29,13 +33,18 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
     refund = false,
     expandable = true,
   } = props;
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const paymentAccount = find<TAccount>(paymentAccounts, (a) => a.address === payStoreFeeAddress);
+
+  const paymentAccount = find<AccountEntity>(
+    paymentAccounts,
+    (a) => a.address === payStoreFeeAddress,
+  );
   const str = payStoreFeeAddress.substring(38);
   const paymentLabel = paymentAccount && `${paymentAccount.name} (${str}) balance:`;
 

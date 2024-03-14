@@ -1,14 +1,16 @@
-import { Flex, Menu, QListItem } from '@totejs/uikit';
-import React, { ChangeEvent, useMemo } from 'react';
-import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
-import { useAppDispatch, useAppSelector } from '@/store';
+import styled from '@emotion/styled';
+import { Flex, Menu, QListItem } from '@node-real/uikit';
+import cn from 'classnames';
+import { isEmpty } from 'lodash-es';
+import { ChangeEvent, useMemo } from 'react';
+
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
+
 import { IconFont } from '@/components/IconFont';
-import styled from '@emotion/styled';
-import { isEmpty } from 'lodash-es';
-import cn from 'classnames';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
 import { TransferItemTree } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
 
@@ -20,24 +22,26 @@ type ListItemProps = {
 
 export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
   const dispatch = useAppDispatch();
-  const { waitQueue: selectedFiles } = useAppSelector((root) => root.global);
-  const onRemoveClick = (id: number) => {
-    dispatch(removeFromWaitQueue({ id }));
-  };
+  const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
+
   const list = useMemo(() => {
     switch (type) {
       case 'ALL':
-        return selectedFiles;
+        return objectWaitQueue;
       case 'WAIT':
-        return selectedFiles.filter((file) => file.status === 'WAIT');
+        return objectWaitQueue.filter((file) => file.status === 'WAIT');
       case 'ERROR':
-        return selectedFiles.filter((file) => file.status === 'ERROR');
+        return objectWaitQueue.filter((file) => file.status === 'ERROR');
       default:
-        return selectedFiles;
+        return objectWaitQueue;
     }
-  }, [selectedFiles, type]);
+  }, [objectWaitQueue, type]);
 
-  const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onRemove = (id: number) => {
+    dispatch(removeFromWaitQueue({ id }));
+  };
+
+  const onFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || !files.length) return;
     const tree: TransferItemTree = {};
@@ -51,7 +55,7 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
     e.target.value = '';
   };
 
-  const handlerFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     const tree: TransferItemTree = {};
     if (!files || !files.length) {
@@ -86,8 +90,8 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
               <UploadMenuList
                 variant={'text'}
                 disabled={false}
-                handleFilesChange={handleFilesChange}
-                handlerFolderChange={handlerFolderChange}
+                handleFilesChange={onFilesChange}
+                handlerFolderChange={onFolderChange}
                 name="drag"
                 gaUploadClickName="dc.file.drag.upload.click"
               >
@@ -120,7 +124,7 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
             }}
             right={
               <IconFont
-                onClick={() => onRemoveClick(selectedFile.id)}
+                onClick={() => onRemove(selectedFile.id)}
                 w={16}
                 type="close"
                 cursor="pointer"

@@ -1,6 +1,6 @@
-import { assetPrefix } from '@/base/env';
 import Head from 'next/head';
-import React from 'react';
+
+import { assetPrefix } from '@/base/env';
 
 export const SEOHead = () => {
   return (

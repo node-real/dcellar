@@ -1,15 +1,16 @@
-import { Flex, Text, toast } from '@totejs/uikit';
-import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { Flex, Text, toast } from '@node-real/uikit';
+import { useMount } from 'ahooks';
+import NextLink from 'next/link';
+import { memo, useEffect, useState } from 'react';
+
+import { GAClick, GAShow } from '@/components/common/GATracker';
+import { InternalRoutePaths } from '@/constants/paths';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FIAT_CURRENCY_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import React, { memo, useEffect, useState } from 'react';
-import { GAClick, GAShow } from '@/components/common/GATracker';
-import { useMount } from 'ahooks';
-import { InternalRoutePaths } from '@/constants/paths';
 import { BN } from '@/utils/math';
-import NextLink from 'next/link';
+import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   // loading status
@@ -20,6 +21,7 @@ const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
 
   return `${renderBnb(bnbValue)} ${displayTokenSymbol()} (${renderUsd(bnbValue, exchangeRate)})`;
 };
+
 const renderUsd = (bnbValue: string, exchangeRate: number | string) => {
   const numberInUsd = Number(bnbValue ?? 0) * Number(exchangeRate);
   return `$${getNumInDigits(numberInUsd, FIAT_CURRENCY_DISPLAY_PRECISION, true)}`;
@@ -71,6 +73,7 @@ const contentTypeToExtension = (contentType = '', fileName?: string) => {
       return contentType;
   }
 };
+
 const contentIconTypeToExtension = (fileName: string) => {
   if (fileName?.endsWith('/')) return 'FOLDER';
   const type = getFileExtension(fileName)?.split('-')[0].toLocaleLowerCase();
@@ -376,16 +379,17 @@ const renderPaymentInsufficientBalance = ({
     </Flex>
   );
 };
+
 export {
-  renderFeeValue,
-  renderUsd,
-  renderBnb,
-  contentTypeToExtension,
   contentIconTypeToExtension,
-  renderBalanceNumber,
-  renderInsufficientBalance,
+  contentTypeToExtension,
   directlyDownload,
+  renderBalanceNumber,
+  renderBnb,
+  renderFeeValue,
+  renderInsufficientBalance,
   renderPaymentInsufficientBalance,
+  renderUsd,
 };
 
 export const ActionTypeValue: Record<string, number> = {

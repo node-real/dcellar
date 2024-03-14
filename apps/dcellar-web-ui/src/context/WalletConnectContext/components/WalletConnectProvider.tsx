@@ -1,24 +1,24 @@
-import '@totejs/walletkit/styles.css';
-import { createConfig, WagmiConfig } from 'wagmi';
-import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
-import { getDefaultConfig, WalletKitOptions, WalletKitProvider } from '@totejs/walletkit';
-import { Text } from '@totejs/uikit';
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { metaMask, trustWallet, walletConnect } from '@totejs/walletkit/wallets';
-import * as Sentry from '@sentry/nextjs';
-import { reportEvent } from '@/utils/gtag';
-import * as process from 'process';
-import { ReactNode } from 'react';
 import { customTheme } from '@/base/theme/wallet';
 import { DCLink } from '@/components/common/DCLink';
+import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
+import { reportEvent } from '@/utils/gtag';
+import { Text } from '@node-real/uikit';
+import { WalletKitOptions, WalletKitProvider, getDefaultConfig } from '@node-real/walletkit';
+import '@node-real/walletkit/styles.css';
+import { metaMask, trustWallet, walletConnect } from '@node-real/walletkit/wallets';
+import * as Sentry from '@sentry/nextjs';
+import * as process from 'process';
+import { ReactNode } from 'react';
+import { WagmiConfig, createConfig } from 'wagmi';
 
 const config = createConfig(
   getDefaultConfig({
-    chains: [bscChain, greenFieldChain],
-    appName: 'Connect a Wallet',
     autoConnect: true,
+    appName: 'Connect a Wallet',
     /* WC 2.0 requires a project ID (get one here: https://cloud.walletconnect.com/sign-in) */
     walletConnectProjectId: '89848e3205cafe0bf76c91aa1aaa71d0',
+    chains: [bscChain, greenFieldChain],
     connectors: [trustWallet(), metaMask(), walletConnect()],
   }),
 );

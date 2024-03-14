@@ -1,3 +1,8 @@
+import { IconFont } from '@/components/IconFont';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { useKeyDown } from '@/hooks/useKeyDown';
+import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
 import {
   Box,
   BoxProps,
@@ -10,13 +15,8 @@ import {
   MenuListProps,
   MenuProps,
   useDisclosure,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { useKeyDown } from '@/hooks/useKeyDown';
-import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { DCMenu } from '@/components/common/DCMenu';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { IconFont } from '@/components/IconFont';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -57,14 +57,7 @@ export function DCSelect(props: DCSelectProps) {
 
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [resultOptions, setResultOptions] = useState<MenuOption[]>();
-
   const saveOnSearchRef = useSaveFuncRef(onSearch);
-  useEffect(() => {
-    if (isOpen) {
-      setResultOptions(options);
-      saveOnSearchRef.current?.(options);
-    }
-  }, [isOpen, options, saveOnSearchRef]);
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -91,6 +84,13 @@ export function DCSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setResultOptions(options);
+      saveOnSearchRef.current?.(options);
+    }
+  }, [isOpen, options, saveOnSearchRef]);
 
   return (
     <DCMenu

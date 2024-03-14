@@ -1,8 +1,9 @@
-import { Box, FormErrorMessage } from '@totejs/uikit';
+import { Box, FormErrorMessage } from '@node-real/uikit';
 import { memo } from 'react';
+import { ValidateResult } from 'react-hook-form';
 
 interface ErrorDisplayProps {
-  errorMsgs: string[];
+  errorMsgs: ValidateResult[];
 }
 
 export const ErrorDisplay = memo<ErrorDisplayProps>(function ErrorDisplay({ errorMsgs }) {

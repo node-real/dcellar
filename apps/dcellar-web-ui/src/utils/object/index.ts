@@ -1,5 +1,6 @@
-import { ObjectActionValueType } from '@/modules/object/components/ObjectList';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+
+import { ObjectActionValueType } from '@/modules/object/components/ObjectList';
 
 export type TKey = keyof typeof VisibilityType;
 export type TReverseVisibilityType = {
@@ -24,9 +25,9 @@ export const formatLockFee = (lockFee: string | undefined) => {
 };
 
 export const pickAction = (actions: ObjectActionValueType[], values: ObjectActionValueType[]) => {
-  return actions.filter(item => values.includes(item))
-}
+  return actions.filter((item) => values.includes(item));
+};
 
 export const removeAction = (actions: ObjectActionValueType[], values: ObjectActionValueType[]) => {
-  return actions.filter(item => !values.includes(item))
-}
+  return actions.filter((item) => !values.includes(item));
+};

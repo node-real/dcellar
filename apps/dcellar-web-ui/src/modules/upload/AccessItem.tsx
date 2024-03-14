@@ -1,10 +1,11 @@
-import { Box, Button, Center, Flex, MenuButton, Text } from '@totejs/uikit';
-import React, { forwardRef } from 'react';
-import { find } from 'lodash-es';
-import { useMount } from 'ahooks';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { IconFont } from '@/components/IconFont';
+import { Box, Button, Center, Flex, MenuButton, Text } from '@node-real/uikit';
+import { useMount } from 'ahooks';
+import { find } from 'lodash-es';
+import { forwardRef } from 'react';
+
 import { DCMenu } from '@/components/common/DCMenu';
+import { IconFont } from '@/components/IconFont';
 
 const options = [
   {
@@ -32,6 +33,7 @@ interface AccessItemProps {
 export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
   value = value || options[0].value;
   const option = find(options, (op) => op.value === value)!;
+  const _options = options.map((v) => ({ ...v, value: String(v.value) }));
 
   const CustomMenuButton = forwardRef(function CustomMenuButton(props: any, ref: any) {
     const { children, ...restProps } = props;
@@ -68,8 +70,6 @@ export const AccessItem = ({ value, freeze, onChange }: AccessItemProps) => {
   useMount(() => {
     onChange(value);
   });
-
-  const _options = options.map((v) => ({ ...v, value: String(v.value) }));
 
   return (
     <DCMenu

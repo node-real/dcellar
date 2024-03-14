@@ -1,34 +1,30 @@
-import { memo, useCallback } from 'react';
+import { IconFont } from '@/components/IconFont';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { useTableNav } from '@/components/common/DCTable/useTableNav';
+import { Loading } from '@/components/common/Loading';
+import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
+import { CreateBucket } from '@/modules/bucket/components/CreateBucket';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  BucketItem,
+  BucketEntity,
   BucketOperationsType,
   selectBucketList,
-  selectHasDiscontinue,
+  selectBucketListSpinning,
+  setBucketListPage,
   setBucketOperation,
-  setCurrentBucketPage,
 } from '@/store/slices/bucket';
-import { AlignType, DCTable, SortIcon, SortItem } from '@/components/common/DCTable';
-import { ColumnProps } from 'antd/es/table';
-import { BucketNameColumn } from '@/modules/bucket/components/BucketNameColumn';
-import { formatTime, getMillisecond } from '@/utils/time';
-import { Flex, Text } from '@totejs/uikit';
-import { Loading } from '@/components/common/Loading';
-import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
-import { SorterType, updateBucketPageSize, updateBucketSorter } from '@/store/slices/persist';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { NewBucket } from '@/modules/bucket/components/NewBucket';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
-import { IconFont } from '@/components/IconFont';
+import { setBucketListPageSize, setBucketSorter, SorterType } from '@/store/slices/persist';
 import { openLink } from '@/utils/bom';
 import { apolloUrlTemplate } from '@/utils/string';
-import { ManageBucketTagsDrawer } from './ManageBucketTagsDrawer';
-import { ManagePaymentAccountDrawer } from './ManagePaymentAccountDrawer';
+import { formatTime, getMillisecond } from '@/utils/time';
+import { Flex, Text } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
+import { memo, useCallback } from 'react';
 
-const Actions: MenuOption[] = [
+const BUCKET_ACTIONS: MenuOption[] = [
   {
     label: (
       <Flex alignItems={'center'}>
@@ -47,56 +43,41 @@ interface BucketListProps {}
 
 export const BucketList = memo<BucketListProps>(function BucketList() {
   const dispatch = useAppDispatch();
-  const { loginAccount, bucketPageSize, bucketSortBy } = useAppSelector((root) => root.persist);
-  const { buckets, currentPage, loading } = useAppSelector((root) => root.bucket);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bucketPageSize = useAppSelector((root) => root.persist.bucketPageSize);
+  const bucketSortBy = useAppSelector((root) => root.persist.bucketSortBy);
+  const bucketListPage = useAppSelector((root) => root.bucket.bucketListPage);
+  const LIST_FOR_SELL_ENDPOINT = useAppSelector((root) => root.apollo.LIST_FOR_SELL_ENDPOINT);
   const bucketList = useAppSelector(selectBucketList(loginAccount));
-  const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
-  const { LIST_FOR_SELL_ENDPOINT } = useAppSelector((root) => root.apollo);
-  const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<BucketItem>({
+  const bucketSpinning = useAppSelector(selectBucketListSpinning(loginAccount));
+
+  const { dir, sortName, sortedList, page, canPrev, canNext } = useTableNav<BucketEntity>({
     list: bucketList,
     sorter: bucketSortBy,
     pageSize: bucketPageSize,
-    currentPage,
+    currentPage: bucketListPage,
   });
 
-  const updateSorter = (name: string, def: string) => {
-    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
-    if (sortName === name && dir === newSort) return;
-    dispatch(updateBucketSorter([name, newSort] as SorterType));
-  };
-
-  const onMenuClick = (menu: BucketOperationsType, record: BucketItem) => {
-    if (menu === 'marketplace') {
-      const link = apolloUrlTemplate(
-        LIST_FOR_SELL_ENDPOINT,
-        `address=${loginAccount}&bid=${record.Id}`,
-      );
-      openLink(link);
-      return;
-    }
-    return dispatch(setBucketOperation({ operation: [record.BucketName, menu] }));
-  };
-
-  const columns: ColumnProps<BucketItem>[] = [
+  const columns: ColumnProps<BucketEntity>[] = [
     {
       key: 'BucketName',
       title: (
-        <SortItem onClick={() => updateSorter('BucketName', 'ascend')}>
+        <SortItem onClick={() => onSorterChange('BucketName', 'ascend')}>
           Name{sortName === 'BucketName' ? SortIcon[dir] : <span>{SortIcon['ascend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: BucketItem) => <BucketNameColumn item={record} />,
+      render: (_: string, record: BucketEntity) => <BucketNameColumn item={record} />,
     },
     {
       key: 'CreateAt',
       width: 200,
       title: (
-        <SortItem onClick={() => updateSorter('CreateAt', 'descend')}>
+        <SortItem onClick={() => onSorterChange('CreateAt', 'descend')}>
           Date Created
           {sortName === 'CreateAt' ? SortIcon[dir] : <span>{SortIcon['descend']}</span>}
         </SortItem>
       ),
-      render: (_: string, record: BucketItem) => (
+      render: (_: string, record: BucketEntity) => (
         <Text color={'readable.normal'} _hover={{ color: 'readable.normal' }}>
           {formatTime(getMillisecond(record.CreateAt))}
         </Text>
@@ -107,34 +88,25 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
       width: 200,
       align: 'center' as AlignType,
       title: <></>,
-      render: (_: string, record: BucketItem) => {
-        const _actions = !!LIST_FOR_SELL_ENDPOINT
-          ? Actions
-          : Actions.filter((a) => a.value !== 'marketplace');
+      render: (_: string, record: BucketEntity) => {
+        const _actions = LIST_FOR_SELL_ENDPOINT
+          ? BUCKET_ACTIONS
+          : BUCKET_ACTIONS.filter((a) => a.value !== 'marketplace');
         return (
           <ActionMenu
             operations={['share']}
             menus={_actions}
-            onChange={(e) => onMenuClick(e as BucketOperationsType, record)}
+            onChange={(e) => onBucketMenuClick(e as BucketOperationsType, record)}
           />
         );
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
 
-  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
-    if (prev || next) {
-      return dispatch(setCurrentBucketPage(currentPage + (next ? 1 : -1)));
-    }
-    dispatch(setCurrentBucketPage(0));
-    dispatch(updateBucketPageSize(pageSize));
-  };
-
-  const spinning = !(loginAccount in buckets) || loading;
-  const empty = !spinning && !sortedList.length;
+  const empty = !bucketSpinning && !sortedList.length;
 
   const loadingComponent = {
-    spinning: spinning,
+    spinning: bucketSpinning,
     indicator: <Loading />,
   };
 
@@ -146,38 +118,52 @@ export const BucketList = memo<BucketListProps>(function BucketList() {
         title="No Buckets"
         desc="Create a bucket to get started!👏"
       >
-        <NewBucket showRefresh={false} />
+        <CreateBucket showRefresh={false} />
       </ListEmpty>
     ),
     [empty],
   );
 
+  const onPageChange = (pageSize: number, next: boolean, prev: boolean) => {
+    if (prev || next) {
+      return dispatch(setBucketListPage(bucketListPage + (next ? 1 : -1)));
+    }
+    dispatch(setBucketListPage(0));
+    dispatch(setBucketListPageSize(pageSize));
+  };
+
+  const onSorterChange = (name: string, def: string) => {
+    const newSort = sortName === name ? (dir === 'ascend' ? 'descend' : 'ascend') : def;
+    if (sortName === name && dir === newSort) return;
+    dispatch(setBucketSorter([name, newSort] as SorterType));
+  };
+
+  const onBucketMenuClick = (menu: BucketOperationsType, record: BucketEntity) => {
+    if (menu === 'marketplace') {
+      const link = apolloUrlTemplate(
+        LIST_FOR_SELL_ENDPOINT,
+        `address=${loginAccount}&bid=${record.Id}`,
+      );
+      openLink(link);
+      return;
+    }
+    return dispatch(setBucketOperation({ operation: [record.BucketName, menu] }));
+  };
+
   return (
-    <>
-      {discontinue && (
-        <DiscontinueBanner
-          content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
-          height={44}
-          marginBottom={16}
-        />
-      )}
-      <BucketOperations />
-      <ManageBucketTagsDrawer />
-      <ManagePaymentAccountDrawer />
-      <DCTable
-        loading={loadingComponent}
-        rowKey="BucketName"
-        columns={columns}
-        dataSource={page}
-        renderEmpty={renderEmpty}
-        pageSize={bucketPageSize}
-        pageChange={onPageChange}
-        canNext={canNext}
-        canPrev={canPrev}
-        onRow={(record) => ({
-          onClick: () => onMenuClick('detail', record),
-        })}
-      />
-    </>
+    <DCTable
+      loading={loadingComponent}
+      rowKey="BucketName"
+      columns={columns}
+      dataSource={page}
+      renderEmpty={renderEmpty}
+      pageSize={bucketPageSize}
+      pageChange={onPageChange}
+      canNext={canNext}
+      canPrev={canPrev}
+      onRow={(record) => ({
+        onClick: () => onBucketMenuClick('detail', record),
+      })}
+    />
   );
 });

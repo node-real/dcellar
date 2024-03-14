@@ -1,5 +1,5 @@
+import { Loading } from '@node-real/uikit';
 import React, { ReactNode } from 'react';
-import { Loading } from '@totejs/uikit';
 
 type Props = {
   loading: boolean;
@@ -7,6 +7,7 @@ type Props = {
   emptyText?: ReactNode;
   children: React.ReactElement;
 };
+
 export const LoadingAdaptor = ({ loading, empty, children, emptyText = '--' }: Props) => {
   if (loading) return <Loading color="readable.normal" size={16} />;
   if (empty) return <>{emptyText}</>;

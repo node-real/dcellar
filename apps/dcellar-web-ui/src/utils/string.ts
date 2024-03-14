@@ -1,5 +1,5 @@
-import BigNumber from 'bignumber.js';
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+import BigNumber from 'bignumber.js';
 
 export const trimFloatZero = (str: string) => {
   const [intStr, floatStr] = str.split('.');
@@ -7,7 +7,7 @@ export const trimFloatZero = (str: string) => {
   if (floatStr) {
     const trimFloatStr = floatStr.replaceAll(/0+$/g, '');
 
-    return !!trimFloatStr ? `${intStr}.${trimFloatStr}` : intStr;
+    return trimFloatStr ? `${intStr}.${trimFloatStr}` : intStr;
   }
 
   return str;
@@ -91,6 +91,7 @@ export const encodeObjectName = (pathName: string) => {
       // others characters need to be encoded
       default:
         // . ! @ # $ % ^ & * ) ( - + = { } [ ] / " , ' < > ~ \ .` ? : ; | \\
+        // eslint-disable-next-line no-useless-escape
         if (/[.!@#$%^&*)(\-+={}\[\]\/",'<>~·`?:;|\\]+$/.test(s)) {
           // english characters
           const hexStr = s.charCodeAt(0).toString(16);
@@ -110,8 +111,7 @@ export const decodeObjectName = (obj: string) => {
 
 export const formatId = (id: number) => {
   const hex = Number(id).toString(16).replace('0x', '');
-  const value = `0x${hex.padStart(64, '0')}`;
-  return value;
+  return `0x${hex.padStart(64, '0')}`;
 };
 
 export const copy = (text: string) => {

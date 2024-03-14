@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 export const useSettlementFee = (address: string) => {
   const [settlementFee, setSettlementFee] = useState('-1');
+
   useAsyncEffect(async () => {
     if (!address) return;
 

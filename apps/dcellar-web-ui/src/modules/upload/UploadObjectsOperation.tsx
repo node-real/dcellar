@@ -1,4 +1,6 @@
-import React, { memo, useMemo, useRef, useState } from 'react';
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
+import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import styled from '@emotion/styled';
 import {
   Box,
   Flex,
@@ -12,15 +14,32 @@ import {
   Tabs,
   Text,
   toast,
-} from '@totejs/uikit';
-import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+} from '@node-real/uikit';
+import { useAsyncEffect, useScroll, useUnmount } from 'ahooks';
+import cn from 'classnames';
+import { parseEther } from 'ethers/lib/utils.js';
+import { isEmpty, round, toPairs, trimEnd } from 'lodash-es';
+import { memo, useMemo, useRef, useState } from 'react';
+import { DropTargetMonitor, useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
+import { useAccount } from 'wagmi';
+
+import AccessItem from './AccessItem';
 import { Fees } from './Fees';
+import { ListItem } from './ListItem';
+import { useUploadTab } from './useUploadTab';
+import { useChecksumApi } from '../checksum';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
+import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
-import AccessItem from './AccessItem';
+import { getValidTags } from '@/components/common/ManageTags';
+import { IconFont } from '@/components/IconFont';
+import { reverseVisibilityType } from '@/constants/legacy';
+import { broadcastTx, resolve } from '@/facade/common';
 import {
-  broadcastFault,
-  createTxFault,
   E_FILE_IS_EMPTY,
   E_FILE_TOO_LARGE,
   E_FOLDER_NAME_TOO_LONG,
@@ -32,75 +51,52 @@ import {
   E_OBJECT_NAME_NOT_UTF8,
   E_OBJECT_NAME_TOO_LONG,
   E_UNKNOWN,
-  simulateFault,
+  createTxFault,
 } from '@/facade/error';
+import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { MAX_FOLDER_LEVEL } from '@/modules/object/components/CreateObject';
+import { BUTTON_GOT_IT, FILE_TITLE_UPLOAD_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  SELECT_OBJECT_NUM_LIMIT,
-  setEditObjectTags,
-  setEditObjectTagsData,
-  setStatusDetail,
-  SINGLE_OBJECT_MAX_SIZE,
-  TEditUploadContent,
-  TStatusDetail,
-} from '@/store/slices/object';
-import {
+  UPLOADING_STATUSES,
+  WaitObject,
   addSignedTasksToUploadQueue,
   addTasksToUploadQueue,
   addToWaitQueue,
   resetWaitQueue,
+  setSignatureAction,
   setTaskManagement,
   setupWaitTaskErrorMsg,
-  updateWaitFileStatus,
-  UPLOADING_STATUSES,
-  WaitFile,
+  updateWaitObjectStatus,
 } from '@/store/slices/global';
-import { useAsyncEffect, useScroll, useUnmount } from 'ahooks';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { isEmpty, round, toPairs, trimEnd } from 'lodash-es';
-import { ListItem } from './ListItem';
-import { useUploadTab } from './useUploadTab';
-import { createTempAccount } from '@/facade/account';
-import { parseEther } from 'ethers/lib/utils.js';
-import { useAccount } from 'wagmi';
-import { useSettlementFee } from '@/hooks/useSettlementFee';
-import { SpItem } from '@/store/slices/sp';
-import { formatBytes } from '@/utils/formatter';
-import { isUTF8 } from '@/utils/coder';
-import { Animates } from '@/components/AnimatePng';
-import cn from 'classnames';
-import { useChecksumApi } from '../checksum';
-import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
-import { reverseVisibilityType } from '@/constants/legacy';
-import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+import {
+  SELECT_OBJECT_NUM_LIMIT,
+  SINGLE_OBJECT_MAX_SIZE,
+  TEditUploadContent,
+} from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
-import { broadcastTx, resolve } from '@/facade/common';
-import styled from '@emotion/styled';
-import { IconFont } from '@/components/IconFont';
-import { DropTargetMonitor, useDrop } from 'react-dnd';
-import { NativeTypes } from 'react-dnd-html5-backend';
+import { SpEntity } from '@/store/slices/sp';
+import { isUTF8 } from '@/utils/coder';
 import {
   DragItemProps,
   DragMonitorProps,
   TransferItemTree,
   traverseTransferItems,
 } from '@/utils/dom';
+import { formatBytes } from '@/utils/formatter';
 import { getTimestamp } from '@/utils/time';
-import { MAX_FOLDER_LEVEL } from '@/modules/object/components/NewObject';
-import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTag';
-import { setTempAccounts } from '@/store/slices/accounts';
-
-interface UploadObjectsOperationProps {
-  onClose?: () => void;
-  actionParams?: TEditUploadContent;
-  primarySp: SpItem;
-}
+import { setTempAccountRecords } from '@/store/slices/accounts';
+import { createTempAccount } from '@/facade/account';
 
 const defaultScroll = { top: 0 };
 const defaultActionParams = {} as TEditUploadContent;
 
-// add memo avoid parent state change rerender
+interface UploadObjectsOperationProps {
+  onClose?: () => void;
+  actionParams?: TEditUploadContent;
+  primarySp: SpEntity;
+}
+
 export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
   function UploadObjectsOperation({
     onClose = () => {},
@@ -108,28 +104,53 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     primarySp,
   }) {
     const dispatch = useAppDispatch();
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+    const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+    const objectCommonPrefix = useAppSelector((root) => root.object.objectCommonPrefix);
+    const objectListRecords = useAppSelector((root) => root.object.objectListRecords);
+    const pathSegments = useAppSelector((root) => root.object.pathSegments);
+    const objectEditTagsData = useAppSelector((root) => root.object.objectEditTagsData);
+    const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
+    const storeFeeParams = useAppSelector((root) => root.global.storeFeeParams);
+    const objectUploadQueue = useAppSelector((root) => root.global.objectUploadQueue);
+
     const checksumApi = useChecksumApi();
-    const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { bucketName, path, prefix, objects, folders, editTagsData } = useAppSelector(
-      (root) => root.object,
-    );
-    const { bucketInfo } = useAppSelector((root) => root.bucket);
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { waitQueue, storeFeeParams } = useAppSelector((root) => root.global);
     const [visibility, setVisibility] = useState<VisibilityType>(
       VisibilityType.VISIBILITY_TYPE_PRIVATE,
     );
     const { connector } = useAccount();
-    const selectedFiles = waitQueue;
-    const objectList = objects[path] || [];
-    const { uploadQueue } = useAppSelector((root) => root.global);
     const [creating, setCreating] = useState(false);
     const { tabOptions, activeKey, setActiveKey } = useUploadTab();
-    const bucket = bucketInfo[bucketName];
-    const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
     const ref = useRef(null);
     const scroll = useScroll(ref) || defaultScroll;
-    const validTags = getValidTags(editTagsData);
+    const bucket = bucketRecords[currentBucketName];
+    const { loading: loadingSettlementFee } = useSettlementFee(bucket.PaymentAddress);
+
+    const selectedFiles = objectWaitQueue;
+    const objectList = objectListRecords[completeCommonPrefix] || [];
+    const validTags = getValidTags(objectEditTagsData);
+    const loading = useMemo(() => {
+      return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
+    }, [storeFeeParams, selectedFiles]);
+    const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+    const objectListObjectNames = objectList.map(
+      (item) => currentBucketName + '/' + item.objectName,
+    );
+    const uploadingObjectNames = (objectUploadQueue?.[loginAccount] || [])
+      .filter((item) => UPLOADING_STATUSES.includes(item.status))
+      .map((item) => {
+        return [
+          item.bucketName,
+          ...item.prefixFolders,
+          item.waitObject.relativePath,
+          item.waitObject.name,
+        ]
+          .filter((item) => !!item)
+          .join('/');
+      });
 
     const getErrorMsg = (type: string) => {
       return OBJECT_ERROR_TYPES[type as ObjectErrorType]
@@ -139,25 +160,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
 
     const closeModal = () => {
       onClose();
-      dispatch(setStatusDetail({} as TStatusDetail));
+      dispatch(setSignatureAction({}));
     };
 
-    const objectListObjectNames = objectList.map((item) => bucketName + '/' + item.objectName);
-    const uploadingObjectNames = (uploadQueue?.[loginAccount] || [])
-      .filter((item) => UPLOADING_STATUSES.includes(item.status))
-      .map((item) => {
-        return [
-          item.bucketName,
-          ...item.prefixFolders,
-          item.waitFile.relativePath,
-          item.waitFile.name,
-        ]
-          .filter((item) => !!item)
-          .join('/');
-      });
-
-    const validateFolder = (waitFile: WaitFile) => {
-      const { file: folder, relativePath } = waitFile;
+    const validateFolder = (waitObject: WaitObject) => {
+      const { file: folder, relativePath } = waitObject;
       if (!folder.name) {
         return E_FILE_IS_EMPTY;
       }
@@ -168,11 +175,15 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       if (lastFolder && lastFolder.length > 70) {
         return E_FOLDER_NAME_TOO_LONG;
       }
-      const depth = trimEnd([prefix, relativePath, folder.name].join('/'), '/').split('/').length;
+      const depth = trimEnd([objectCommonPrefix, relativePath, folder.name].join('/'), '/').split(
+        '/',
+      ).length;
       if (depth > MAX_FOLDER_LEVEL) {
         return E_MAX_FOLDER_DEPTH;
       }
-      const fullObjectName = [path, relativePath, folder.name].filter((item) => !!item).join('/');
+      const fullObjectName = [completeCommonPrefix, relativePath, folder.name]
+        .filter((item) => !!item)
+        .join('/');
       const isExistObjectList = objectListObjectNames.includes(fullObjectName);
       const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
@@ -183,8 +194,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       return '';
     };
 
-    const validateFile = (waitFile: WaitFile) => {
-      const { relativePath, file } = waitFile;
+    const validateFile = (waitObject: WaitObject) => {
+      const { relativePath, file } = waitObject;
       if (!file) {
         return E_FILE_IS_EMPTY;
       }
@@ -200,7 +211,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       if (file.name.length > 256) {
         return E_OBJECT_NAME_TOO_LONG;
       }
-      const fullPathObject = prefix + '/' + relativePath + '/' + file.name;
+      const fullPathObject = objectCommonPrefix + '/' + relativePath + '/' + file.name;
       if (fullPathObject.length > 1024) {
         return E_FULL_OBJECT_NAME_TOO_LONG;
       }
@@ -211,7 +222,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         return E_OBJECT_NAME_CONTAINS_SLASH;
       }
       // Validation only works to data within the current path.
-      const fullObjectName = [path, relativePath, file.name].filter((item) => !!item).join('/');
+      const fullObjectName = [completeCommonPrefix, relativePath, file.name]
+        .filter((item) => !!item)
+        .join('/');
       const isExistObjectList = objectListObjectNames.includes(fullObjectName);
       const isExistUploadList = uploadingObjectNames.includes(fullObjectName);
 
@@ -224,7 +237,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const errorHandler = (error: string) => {
       setCreating(false);
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: FILE_TITLE_UPLOAD_FAILED,
           icon: 'status-failed',
           desc: "Sorry, there's something wrong when signing with the wallet.",
@@ -240,7 +253,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       const isOneFile = validFiles.length === 1;
       setCreating(true);
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           icon: Animates.upload,
           title: 'Uploading',
           desc: WALLET_CONFIRM,
@@ -248,25 +261,25 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       );
       if (isOneFile) {
         // 1. cal hash
-        const waitFile = validFiles[0];
+        const waitObject = validFiles[0];
         const a = performance.now();
-        const res = await checksumApi?.generateCheckSumV2(waitFile.file);
+        const res = await checksumApi?.generateCheckSumV2(waitObject.file);
         const expectCheckSums = res?.expectCheckSums || [];
         console.log('hashing time', performance.now() - a);
         // 2. getApproval & sign
         const { seedString } = await dispatch(
           getSpOffChainData(loginAccount, primarySp.operatorAddress),
         );
-        const finalName = [...folders, waitFile.relativePath, waitFile.name]
+        const finalName = [...pathSegments, waitObject.relativePath, waitObject.name]
           .filter((item) => !!item)
           .join('/');
         const createObjectPayload: CreateObjectApprovalRequest = {
-          bucketName: bucketName,
+          bucketName: currentBucketName,
           objectName: finalName,
           creator: loginAccount,
           visibility: reverseVisibilityType[visibility],
-          fileType: waitFile.type || 'application/octet-stream',
-          contentLength: waitFile.size,
+          fileType: waitObject.type || 'application/octet-stream',
+          contentLength: waitObject.size,
           expectCheckSums,
         };
         const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
@@ -278,7 +291,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
 
         if (!createObjectTx) {
           // TODO refactor
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _createError }));
+          dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: _createError }));
           closeModal();
           return;
         }
@@ -289,7 +302,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         //   tags: validTags
         // });
         // if (!tagsTx) {
-        //   dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: _tagsError }));
+        //   dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: _tagsError }));
         //   closeModal();
         //   return;
         // }
@@ -299,7 +312,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           connector: connector!,
         });
         if (!txRes || error) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitFile.id, errorMsg: error }));
+          dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: error ?? '' }));
           closeModal();
           return;
         }
@@ -308,7 +321,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           addSignedTasksToUploadQueue({
             spAddress: primarySp.operatorAddress,
             visibility,
-            waitFile,
+            waitObject: waitObject,
             checksums: expectCheckSums,
             createHash,
             tags: validTags,
@@ -322,14 +335,14 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
             : round(Number(totalFee) * 1.05, 6);
         const [tempAccount, error] = await createTempAccount({
           address: loginAccount,
-          bucketName,
+          bucketName: currentBucketName,
           amount: parseEther(String(safeAmount)).toNumber(),
           connector: connector!,
         });
         if (!tempAccount) {
           return errorHandler(error);
         }
-        dispatch(setTempAccounts(tempAccount));
+        dispatch(setTempAccountRecords(tempAccount));
         dispatch(
           addTasksToUploadQueue({
             spAddress: primarySp.operatorAddress,
@@ -345,41 +358,15 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       setCreating(false);
     };
 
-    useAsyncEffect(async () => {
-      if (isEmpty(selectedFiles)) return;
-      selectedFiles.forEach((item) => {
-        const { file, id } = item;
-        const task = waitQueue.find((item) => item.id === id);
-        if (!task) return;
-        const isFolder = file.name.endsWith('/');
-        const error = isFolder ? validateFolder(item) : validateFile(item);
-        if (!error) {
-          task.status === 'CHECK' && dispatch(updateWaitFileStatus({ id, status: 'WAIT' }));
-          return;
-        }
-        dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));
-      });
-    }, [actionParams, waitQueue.length]);
-
-    useUnmount(() => {
-      dispatch(resetWaitQueue());
-    });
-
-    const loading = useMemo(() => {
-      return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
-    }, [storeFeeParams, selectedFiles]);
-
-    const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
-
     const handleFolderTree = (tree: TransferItemTree) => {
-      const totalFiles = waitQueue.length + Object.keys(tree).length;
+      const totalFiles = objectWaitQueue.length + Object.keys(tree).length;
       if (totalFiles > SELECT_OBJECT_NUM_LIMIT) {
         return toast.error({
           description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
           isClosable: true,
         });
       }
-      if (totalFiles === waitQueue.length) {
+      if (totalFiles === objectWaitQueue.length) {
         return toast.error({
           description: 'You can only upload folders that contain objects.',
           isClosable: true,
@@ -405,11 +392,25 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       },
     });
 
-    // const onEditTags = () => {
-    //   dispatch(setEditObjectTags(['new', 'create']));
-    // };
+    useAsyncEffect(async () => {
+      if (isEmpty(selectedFiles)) return;
+      selectedFiles.forEach((item) => {
+        const { file, id } = item;
+        const task = objectWaitQueue.find((item) => item.id === id);
+        if (!task) return;
+        const isFolder = file.name.endsWith('/');
+        const error = isFolder ? validateFolder(item) : validateFile(item);
+        if (!error) {
+          task.status === 'CHECK' && dispatch(updateWaitObjectStatus({ id, status: 'WAIT' }));
+          return;
+        }
+        dispatch(setupWaitTaskErrorMsg({ id, errorMsg: getErrorMsg(error).title }));
+      });
+    }, [actionParams, objectWaitQueue.length]);
 
-    // useUnmount(() => dispatch(setEditObjectTagsData([DEFAULT_TAG])));
+    useUnmount(() => {
+      dispatch(resetWaitQueue());
+    });
 
     return (
       <>
@@ -449,7 +450,11 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               <TabPanels>
                 {tabOptions.map((item) => (
                   <TabPanel key={item.key} panelKey={item.key}>
-                    <ListItem handleFolderTree={handleFolderTree} path={path} type={item.key} />
+                    <ListItem
+                      handleFolderTree={handleFolderTree}
+                      path={completeCommonPrefix}
+                      type={item.key}
+                    />
                     {/* <EditTags
                       tagsData={editTagsData}
                       onClick={onEditTags}
@@ -460,7 +465,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               </TabPanels>
             </Tabs>
           </QDrawerBody>
-          {waitQueue?.length > 0 && (
+          {objectWaitQueue?.length > 0 && (
             <QDrawerFooter
               flexDirection={'column'}
               borderTop={'1px solid readable.border'}

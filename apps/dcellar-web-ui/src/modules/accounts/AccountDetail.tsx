@@ -1,13 +1,5 @@
-import Head from 'next/head';
-import { AccountBreadCrumb } from './components/BreadCrumb';
-import { Flex } from '@totejs/uikit';
-import { useRouter } from 'next/router';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupAccountInfo, setupPaymentAccounts } from '@/store/slices/accounts';
-import { useMount } from 'ahooks';
-import { isAddress } from 'ethers/lib/utils.js';
-import { MetaInfo } from './components/MetaInfo';
-import { AccountCostTrend } from './components/AccountCostTrend';
+import { setupAccountRecords, setupPaymentAccounts } from '@/store/slices/accounts';
 import {
   setAccountFilterRange,
   setAccountFilterTypes,
@@ -15,21 +7,31 @@ import {
   setupAccountBills,
   setupAccountCostTrend,
 } from '@/store/slices/billing';
-import AccountDetailNav from './components/AccountDetailNav';
-import { AccountBillingHistory } from './components/AccountBillingHistory';
+import { Flex } from '@node-real/uikit';
+import { useMount } from 'ahooks';
+import { isAddress } from 'ethers/lib/utils.js';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { AccountBillingHistory } from './components/AccountBillingHistory';
+import { AccountCostTrend } from './components/AccountCostTrend';
+import AccountDetailNav from './components/AccountDetailNav';
+import { AccountBreadCrumb } from './components/BreadCrumb';
+import { MetaInfo } from './components/MetaInfo';
 import { NonRefundableModal } from './components/NonRefundableModal';
 
 const emptyObject = {};
+
 export const AccountDetail = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+
   const { address, page, from, to, type } = router.query;
   const curAddress = address as string;
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const isOwnerAccount = address === loginAccount;
-  const { accountInfo } = useAppSelector((root) => root.accounts);
-  const accountDetail = accountInfo?.[curAddress] || emptyObject;
+  const accountDetail = accountRecords?.[curAddress] || emptyObject;
 
   useMount(async () => {
     if (!curAddress) return;
@@ -37,9 +39,10 @@ export const AccountDetail = () => {
       router.replace('/no-account?err=noAccount');
       return;
     }
-    isOwnerAccount ? dispatch(setupAccountInfo(curAddress)) : dispatch(setupPaymentAccounts());
+    isOwnerAccount ? dispatch(setupAccountRecords(curAddress)) : dispatch(setupPaymentAccounts());
     dispatch(setupAccountCostTrend(curAddress));
   });
+
   useEffect(() => {
     const filterRange: [string, string] =
       typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];

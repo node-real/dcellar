@@ -1,6 +1,4 @@
-import { Flex } from '@totejs/uikit';
-import React from 'react';
-import { Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 
 import { IconFont } from '@/components/IconFont';
 

@@ -1,7 +1,7 @@
-import { CheckboxProps, ConfigProvider, Checkbox } from 'antd';
-import { memo } from 'react';
-import styled from '@emotion/styled';
 import { antdTheme } from '@/base/theme/antd';
+import styled from '@emotion/styled';
+import { Checkbox, CheckboxProps, ConfigProvider } from 'antd';
+import { memo } from 'react';
 
 interface DCCheckboxProps extends CheckboxProps {}
 

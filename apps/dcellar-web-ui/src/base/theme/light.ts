@@ -1,4 +1,4 @@
-import { rgba } from '@totejs/uikit';
+import { rgba } from '@node-real/uikit';
 
 export const light = {
   colors: {
@@ -42,8 +42,6 @@ export const light = {
     },
     bg: {
       bottom: '#f5f5f5',
-      // todo uikit dash property
-      'bottom-secondary': '#fafafa',
       secondary: '#fafafa',
       middle: '#fff',
       top: {

@@ -1,5 +1,5 @@
-import { sha256 } from 'hash-wasm';
 import { decodeBase64 } from '@/utils/coder';
+import { sha256 } from 'hash-wasm';
 
 const isProd = process.env.NODE_ENV === 'production';
 globalThis.importScripts(`${isProd ? '/static/dcellar-web-ui' : ''}/wasm/wasm_exec.js`);

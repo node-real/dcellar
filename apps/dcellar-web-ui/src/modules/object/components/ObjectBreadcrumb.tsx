@@ -1,11 +1,11 @@
-import { Fragment, memo } from 'react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@totejs/uikit';
-import { GAClick } from '@/components/common/GATracker';
-import Link from 'next/link';
-import { encodeObjectName, trimLongStr } from '@/utils/string';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { IconFont } from '@/components/IconFont';
-import { setShareModePath } from '@/store/slices/object';
+import { GAClick } from '@/components/common/GATracker';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setObjectShareModePath } from '@/store/slices/object';
+import { encodeObjectName, trimLongStr } from '@/utils/string';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@node-real/uikit';
+import Link from 'next/link';
+import { Fragment, memo } from 'react';
 
 interface ObjectBreadcrumbProps {
   hideLeft?: number;
@@ -15,9 +15,11 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
   hideLeft,
 }) {
   const dispatch = useAppDispatch();
-  const { discontinue } = useAppSelector((root) => root.bucket);
-  const { bucketName, folders } = useAppSelector((root) => root.object);
-  const items = [bucketName, ...folders];
+  const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const pathSegments = useAppSelector((root) => root.object.pathSegments);
+
+  const items = [currentBucketName, ...pathSegments];
 
   const renderBreadcrumbItem = (link: string, text: string, last: boolean, first: boolean) => {
     return last ? (
@@ -31,7 +33,7 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
           flex={1}
           minW={0}
         >
-          {discontinue && first && <IconFont type="colored-error2" w={16} />}
+          {isBucketDiscontinue && first && <IconFont type="colored-error2" w={16} />}
           <Text fontWeight={500} as="span" overflow="hidden" textOverflow="ellipsis">
             {text}
           </Text>
@@ -41,7 +43,7 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
       <BreadcrumbItem key={link}>
         <BreadcrumbLink as="div" fontSize={12} fontWeight={500} color="readable.tertiary">
           <Flex alignItems={'center'} gap={4} as="span">
-            {discontinue && first && <IconFont type="colored-error2" w={16} />}
+            {isBucketDiscontinue && first && <IconFont type="colored-error2" w={16} />}
             <GAClick name="dc.file.list.breadcrumbs.click">
               <Link
                 href={link}
@@ -49,7 +51,7 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
                   if (hideLeft !== undefined) {
                     e.stopPropagation();
                     e.preventDefault();
-                    dispatch(setShareModePath(link));
+                    dispatch(setObjectShareModePath(link));
                   }
                 }}
               >

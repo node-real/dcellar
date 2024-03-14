@@ -1,5 +1,4 @@
 import { DCButton } from '@/components/common/DCButton';
-import React from 'react';
 
 type MaxButtonProps = {
   disabled?: boolean;

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
+import { reportEvent } from '@/utils/gtag';
 import styled from '@emotion/styled';
 import {
   Divider,
@@ -12,17 +14,16 @@ import {
   QAccordionPanel,
   QListItem,
   Switch,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
+import React, { useState } from 'react';
 import { SendIcon } from './SendIcon';
-import { reportEvent } from '@/utils/gtag';
-import { DCButton } from '@/components/common/DCButton';
-import { DCModal } from '@/components/common/DCModal';
 
 type Props = {
   open: boolean;
-  cancelFn: Function;
-  confirmFn: Function;
+  cancelFn: () => void;
+  confirmFn: (arg1: any, arg2: any) => void;
 };
+
 export const ConfirmModal: React.FC<Props> = ({ open, cancelFn, confirmFn }) => {
   const [gaAccept, setGaAccept] = useState(true);
   const [stAccept, setStAccept] = useState(true);
@@ -237,6 +238,7 @@ const StyledListItem = styled(QListItem)<any>`
   :hover {
     background-color: var(--ui-colors-bg-middle);
   }
+
   .title {
     margin-left: 16px;
     font-weight: 600;

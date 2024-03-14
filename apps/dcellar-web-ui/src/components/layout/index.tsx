@@ -1,31 +1,34 @@
-import { memo, PropsWithChildren, useEffect, useState } from 'react';
-import styled from '@emotion/styled';
-import { Flex, Grid } from '@totejs/uikit';
+import { IconFont } from '@/components/IconFont';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
-import { useDrop } from 'react-dnd';
-import { useRouter } from 'next/router';
-import { NativeTypes } from 'react-dnd-html5-backend';
-import { setObjectOperation } from '@/store/slices/object';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
-import { IconFont } from '@/components/IconFont';
+import { setObjectOperation } from '@/store/slices/object';
+import styled from '@emotion/styled';
+import { Flex, Grid } from '@node-real/uikit';
 import cn from 'classnames';
+import { useRouter } from 'next/router';
+import { PropsWithChildren, memo, useEffect, useState } from 'react';
+import { useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
 
 const GREY_BG = ['/wallet'];
 
 interface LayoutProps extends PropsWithChildren {}
 
 export const Layout = memo<LayoutProps>(function Layout({ children }) {
-  const { pathname } = useRouter();
   const dispatch = useAppDispatch();
-  const { discontinue, owner, bucketInfo } = useAppSelector((root) => root.bucket);
-  const { bucketName, prefix, path, objectsInfo } = useAppSelector((root) => root.object);
-  const { GLOBAL_NOTIFICATION, GLOBAL_NOTIFICATION_ETA } = useAppSelector((root) => root.apollo);
-  const bucket = bucketInfo[bucketName];
-  const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
-  const folderExist = !prefix ? true : !!objectsInfo[path + '/'];
+  const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
+  const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const objectCommonPrefix = useAppSelector((root) => root.object.objectCommonPrefix);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
+  const GLOBAL_NOTIFICATION = useAppSelector((root) => root.apollo.GLOBAL_NOTIFICATION);
+  const GLOBAL_NOTIFICATION_ETA = useAppSelector((root) => root.apollo.GLOBAL_NOTIFICATION_ETA);
 
+  const { pathname } = useRouter();
   const [showNotification, setShowNotification] = useState(() => {
     return (
       (!!GLOBAL_NOTIFICATION && !GLOBAL_NOTIFICATION_ETA) ||
@@ -33,6 +36,23 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
         GLOBAL_NOTIFICATION_ETA &&
         Number(GLOBAL_NOTIFICATION_ETA) > Date.now())
     );
+  });
+
+  const bucket = bucketRecords[currentBucketName];
+  const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const folderExist = !objectCommonPrefix ? true : !!objectRecords[completeCommonPrefix + '/'];
+
+  const [_, drop] = useDrop({
+    accept: [NativeTypes.FILE],
+    canDrop() {
+      return false;
+    },
+    hover() {
+      if (pathname !== '/buckets/[...path]') return;
+      if (isBucketDiscontinue || !isBucketOwner || accountDetail.clientFrozen || !folderExist)
+        return;
+      dispatch(setObjectOperation({ operation: ['', 'upload'] }));
+    },
   });
 
   useEffect(() => {
@@ -44,18 +64,6 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
     }
     setTimeout(() => setShowNotification(false), offset);
   }, [GLOBAL_NOTIFICATION_ETA]);
-
-  const [_, drop] = useDrop({
-    accept: [NativeTypes.FILE],
-    canDrop() {
-      return false;
-    },
-    hover() {
-      if (pathname !== '/buckets/[...path]') return;
-      if (discontinue || !owner || accountDetail.clientFrozen || !folderExist) return;
-      dispatch(setObjectOperation({ operation: ['', 'upload'] }));
-    },
-  });
 
   return (
     <LayoutContainer>

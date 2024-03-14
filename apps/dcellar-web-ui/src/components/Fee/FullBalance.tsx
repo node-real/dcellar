@@ -1,21 +1,24 @@
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { TAccount, selectAccount } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectAccount } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
 import { BN } from '@/utils/math';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
+import { memo } from 'react';
 
-type AccountBalanceProps = {
+interface FullBalanceProps {
   address: string;
-};
+}
 
-export const FullBalance = ({ address }: AccountBalanceProps) => {
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+export const FullBalance = memo<FullBalanceProps>(function FullBalance({ address }) {
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const accountDetail = useAppSelector(selectAccount(address));
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+
   const isOwnerAccount = address === loginAccount;
   const balance = isOwnerAccount
     ? BN(accountDetail.staticBalance)
@@ -35,4 +38,4 @@ export const FullBalance = ({ address }: AccountBalanceProps) => {
       </Text>
     </Flex>
   );
-};
+});

@@ -1,9 +1,7 @@
-import { ModalProps } from '@totejs/uikit';
-import React from 'react';
-import { Modal } from '@totejs/uikit';
-import { useLockBodyScroll } from 'react-use';
 import { GAShow } from '@/components/common/GATracker';
 import { reportEvent } from '@/utils/gtag';
+import { Modal, ModalProps } from '@node-real/uikit';
+import { useLockBodyScroll } from 'react-use';
 
 export interface DCModalProps extends ModalProps {
   gaShowName?: string;
@@ -13,6 +11,7 @@ export interface DCModalProps extends ModalProps {
 
 export const DCModal = (props: DCModalProps) => {
   const { children, gaShowName, gaShowData, gaClickCloseName, onClose, ...restProps } = props;
+
   useLockBodyScroll(props.isOpen);
 
   const onBeforeClose = () => {

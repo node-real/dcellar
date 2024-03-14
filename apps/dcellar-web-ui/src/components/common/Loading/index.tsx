@@ -1,5 +1,5 @@
-import { IconProps } from '@totejs/icons';
-import { CenterProps, Center, keyframes } from '@totejs/uikit';
+import { IconProps } from '@node-real/icons';
+import { Center, CenterProps, keyframes } from '@node-real/uikit';
 
 import { LoadingIcon } from '../SvgIcon/LoadingIcon';
 
@@ -10,7 +10,7 @@ export interface LoadingProps extends CenterProps {
 }
 
 export function Loading(props: LoadingProps) {
-  const { iconSize, stroke = '#00BA34', strokeWidth = 4, ...restProps} = props;
+  const { iconSize, stroke = '#00BA34', strokeWidth = 4, ...restProps } = props;
 
   return (
     <Center boxSize={'100%'} alignSelf="center" flex={1} {...restProps}>

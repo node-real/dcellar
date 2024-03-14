@@ -2,16 +2,16 @@
   "folders": [
     {
       "name": "✨ root",
-      "path": "."
+      "path": ".",
     },
     {
       "name": "🚀 dcellar-web-ui",
-      "path": "apps/dcellar-web-ui"
-    }
+      "path": "apps/dcellar-web-ui",
+    },
   ],
   "settings": {
     "files.associations": {
-      "*.json": "jsonc"
+      "*.json": "jsonc",
     },
     "files.exclude": {
       "**/.git": true,
@@ -21,31 +21,31 @@
       "**/.DS_Store": true,
       "**/node_modules": true,
       "**/.next": true,
-      "**/*.log": true
+      "**/*.log": true,
     },
     "[typescript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[typescriptreact]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[json]": {
       "editor.quickSuggestions": {
-        "strings": true
+        "strings": true,
       },
       "editor.suggest.insertMode": "replace",
       "gitlens.codeLens.scopes": ["document"],
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "[jsonc]": {
       "editor.quickSuggestions": {
-        "strings": true
+        "strings": true,
       },
       "editor.suggest.insertMode": "replace",
       "gitlens.codeLens.scopes": ["document"],
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
     },
     "editor.formatOnSave": true,
-    "cSpell.words": ["meganode", "timeseries"]
-  }
+    "cSpell.words": ["meganode", "timeseries"],
+  },
 }

@@ -1,4 +1,4 @@
-import { Text, TextProps, Tooltip } from '@totejs/uikit';
+import { Text, TextProps, Tooltip } from '@node-real/uikit';
 import React, { memo } from 'react';
 
 interface EllipsisTextProps extends TextProps {
@@ -7,6 +7,7 @@ interface EllipsisTextProps extends TextProps {
 
 export const EllipsisText = memo(function EllipsisText(props: EllipsisTextProps) {
   const [isOverflowing, setIsOverflowing] = React.useState(false);
+
   return (
     <Tooltip
       content={props.text || props.children}

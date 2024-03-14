@@ -1,23 +1,23 @@
+import { ModalBody, Text, toast, useDisclosure } from '@node-real/uikit';
 import { createContext, useCallback, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { ModalBody, Text, toast, useDisclosure } from '@totejs/uikit';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
-import { DCModal } from '@/components/common/DCModal';
-import { DCButton } from '@/components/common/DCButton';
-import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
-import { isEmpty } from 'lodash-es';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { SpItem } from '@/store/slices/sp';
-import { setupOffchain } from '@/store/slices/persist';
-import { setupBucketQuota } from '@/store/slices/bucket';
-import { useUpdateEffect } from 'ahooks';
-import { setAuthModalOpen } from '@/store/slices/global';
-import { getDomain } from '@/utils/bom';
-import { getClient } from '@/facade';
 import { IconFont } from '@/components/IconFont';
-import * as Sentry from '@sentry/nextjs';
+import { DCButton } from '@/components/common/DCButton';
+import { DCModal } from '@/components/common/DCModal';
+import { getClient } from '@/facade';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { setAuthModalOpen } from '@/store/slices/global';
+import { setupOffchain } from '@/store/slices/persist';
+import { SpEntity } from '@/store/slices/sp';
+import { getDomain } from '@/utils/bom';
 import { parseWCMessage } from '@/utils/common';
+import { IGenOffChainAuthKeyPairAndUpload } from '@bnb-chain/greenfield-js-sdk';
+import * as Sentry from '@sentry/nextjs';
+import { useUpdateEffect } from 'ahooks';
+import { isEmpty } from 'lodash-es';
 
 const EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000;
 export const OffChainAuthContext = createContext<any>({});
@@ -29,26 +29,22 @@ export type AuthPostAction = {
 
 export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
   const dispatch = useAppDispatch();
-  const { spInfo, allSps } = useAppSelector((root) => root.sp);
+  const spRecords = useAppSelector((root) => root.sp.spRecords);
+  const allSpList = useAppSelector((root) => root.sp.allSpList);
+  const address = useAppSelector((root) => root.persist.loginAccount);
+  const offchainAuthOpen = useAppSelector((root) => root.global.offchainAuthOpen);
+
   const [isAuthPending, setIsAuthPending] = useState(false);
-  const { loginAccount: address } = useAppSelector((root) => root.persist);
-  const authSps = useRef<SpItem[]>([]);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { connector } = useAccount();
   const [postAction, setPostAction] = useState({} as AuthPostAction);
-  const { authModalOpen } = useAppSelector((root) => root.global);
-
-  useUpdateEffect(() => {
-    if (!authModalOpen[0]) return;
-    setPostAction(authModalOpen[1]);
-    onOpen();
-  }, [authModalOpen]);
+  const authSps = useRef<SpEntity[]>([]);
 
   // For selected sps auth
   const setOpenAuthModal = (spAddress?: string[] | null, action?: AuthPostAction) => {
     setPostAction(action || ({} as AuthPostAction));
     if (spAddress) {
-      authSps.current = spAddress.map((a) => spInfo[a]);
+      authSps.current = spAddress.map((a) => spRecords[a]);
     }
     onOpen();
   };
@@ -61,11 +57,13 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         const domain = getDomain();
 
         // If no sps selected, use all sps for welcome auth
-        const pruneSps = (isEmpty(authSps.current) ? allSps : authSps.current).map((item: any) => ({
-          address: item.operatorAddress,
-          name: item.moniker,
-          endpoint: item.endpoint,
-        }));
+        const pruneSps = (isEmpty(authSps.current) ? allSpList : authSps.current).map(
+          (item: any) => ({
+            address: item.operatorAddress,
+            name: item.moniker,
+            endpoint: item.endpoint,
+          }),
+        );
 
         const configParam: IGenOffChainAuthKeyPairAndUpload = {
           address,
@@ -112,8 +110,14 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         dispatch(setAuthModalOpen([false, {} as AuthPostAction]));
       }
     },
-    [connector, allSps, dispatch, onClose, postAction],
+    [connector, allSpList, dispatch, onClose, postAction],
   );
+
+  useUpdateEffect(() => {
+    if (!offchainAuthOpen[0]) return;
+    setPostAction(offchainAuthOpen[1]);
+    onOpen();
+  }, [offchainAuthOpen]);
 
   return (
     <OffChainAuthContext.Provider

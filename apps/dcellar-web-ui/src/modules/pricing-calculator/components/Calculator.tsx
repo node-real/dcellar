@@ -1,25 +1,27 @@
-import { DCButton } from '@/components/common/DCButton';
-import { Tips } from '@/components/common/Tips';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
-import { TStoreFeeParams } from '@/store/slices/global';
-import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
-import { getUTC0Month } from '@/utils/time';
-import { Box, Divider, Flex, Loading, Text, useDisclosure, useMediaQuery } from '@totejs/uikit';
-import React, { useMemo, useState } from 'react';
-import { FeeItem } from './FeeItem';
-import { SizeMenu } from './SizeMenu';
-import { NumInput } from './NumInput';
-import { Sizes, TSize, TTime, TimeOptions, TimeUnits, Times } from '../utils';
-import { CustomTime } from './CustomTime';
+import { Box, Divider, Flex, Loading, Text, useDisclosure, useMediaQuery } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
+import { useMemo, useState } from 'react';
+
 import { PriceResponsiveContainer } from '..';
-import { smMedia } from '@/modules/responsive';
-import { currencyFormatter } from '@/utils/formatter';
-import { BN } from '@/utils/math';
+import { Sizes, TSize, TTime, TimeOptions, TimeUnits, Times } from '../utils';
 import { JumpLink } from './Common';
+import { CustomTime } from './CustomTime';
+import { FeeItem } from './FeeItem';
+import { NumInput } from './NumInput';
+import { SizeMenu } from './SizeMenu';
+
+import { getUTC0Month } from '@/utils/time';
+import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
+import { BN } from '@/utils/math';
+import { currencyFormatter } from '@/utils/formatter';
+import { StoreFeeParams } from '@/store/slices/global';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { smMedia } from '@/modules/responsive';
+import { Tips } from '@/components/common/Tips';
+import { DCButton } from '@/components/common/DCButton';
 
 type CalculatorProps = {
-  storeParams: TStoreFeeParams;
+  storeParams: StoreFeeParams;
   bnbPrice: string;
   onOpenKey: (key: number) => void;
   // gasFee: string;
@@ -31,6 +33,7 @@ const formatInput = (value: string) => {
   }
   return value;
 };
+
 export const displayUsd = (fee: string, bnbPrice: string) => {
   return currencyFormatter(
     BN(fee || 0)
@@ -38,6 +41,7 @@ export const displayUsd = (fee: string, bnbPrice: string) => {
       .toString(DECIMAL_NUMBER),
   );
 };
+
 export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps) => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
   const TOKEN_SYMBOL = 'BNB';
@@ -58,6 +62,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
   const [storageTime, setStorageTime] = useState(TimeOptions[0]);
   const [customStorageTime, setCustomStorageTime] = useState(TimeOptions[2]);
   const sizes = Object.keys(Sizes);
+
   const storeNetflowRate = useMemo(() => {
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getStoreNetflowRate(Sizes[storageSize.unit as TSize], storeParams))
@@ -65,6 +70,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize.unit, storeParams]);
+
   const storageFee = useMemo(() => {
     if (!storeParams.primarySpStorePrice) return;
     if (!+storageSize.size) return '0';
@@ -80,6 +86,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [storageSize, storeParams]);
+
   const quotaNetflowRate = useMemo(() => {
     if (isEmpty(storeParams)) return <Loading color="readable.normal" size={16} />;
     return BN(getQuotaNetflowRate(Sizes[quotaSize.unit as TSize], storeParams))
@@ -87,6 +94,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
   }, [quotaSize.unit, storeParams]);
+
   const quotaFee = useMemo(() => {
     if (!storeParams.primarySpStorePrice) return;
     if (!+quotaSize.size) return '0';
@@ -110,7 +118,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
   //     .toString();
   // }, [gasFee, gasTimes]);
   const costs = useMemo(() => {
-    let storeTime =
+    const storeTime =
       storageTime.id === 'custom'
         ? BN(formatInput(customStorageTime.value))
             .times(Times[customStorageTime.unit as TTime])
@@ -198,6 +206,7 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
     storageTime.unit,
     storageTime.value,
   ]);
+
   return (
     <PriceResponsiveContainer
       margin={['20px auto', '40px auto']}
@@ -354,7 +363,8 @@ export const Calculator = ({ storeParams, bnbPrice, onOpenKey }: CalculatorProps
                   Learn More about{' '}
                   <JumpLink id="#download_quota" openKey={4} onOpenKey={onOpenKey}>
                     Quota
-                  </JumpLink>.
+                  </JumpLink>
+                  .
                 </>
               }
             />

@@ -1,8 +1,8 @@
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { InternalRoutePaths } from '@/constants/paths';
 import { ssrLandingRoutes } from '@/pages/_app';
 import { useMount } from 'ahooks';
-import { InternalRoutePaths } from '@/constants/paths';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 export function useLoginGuard(inline: boolean) {
@@ -23,7 +23,7 @@ export function useLoginGuard(inline: boolean) {
       if (inline) {
         setPass(true);
       } else if (pathname.length > 0 && pathname !== '/') {
-        let finalQuery = {} as any;
+        const finalQuery = {} as any;
         finalQuery['originAsPath'] = encodeURIComponent(asPath);
         router.replace({ pathname: '/', query: finalQuery }, undefined, { shallow: true });
       } else {

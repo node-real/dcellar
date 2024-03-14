@@ -1,8 +1,10 @@
+import { Box, Flex, Image, Text } from '@node-real/uikit';
+
+import { LandingResponsiveContainer, lgMedia, mdMedia } from '..';
+
 import { assetPrefix } from '@/base/env';
-import { Box, Flex, Image, Text } from '@totejs/uikit';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { smMedia } from '@/modules/responsive';
-import { LandingResponsiveContainer, lgMedia, mdMedia } from '..';
 import { INTER_FONT } from '@/modules/wallet/constants';
 
 export const Banner = () => {

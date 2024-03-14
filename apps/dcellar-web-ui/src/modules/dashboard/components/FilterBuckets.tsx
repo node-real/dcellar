@@ -1,29 +1,34 @@
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { DCMenu } from '@/components/common/DCMenu';
-import { useEffect, useState } from 'react';
-import { xor } from 'lodash-es';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { InputItem } from '@/components/formitems/InputItem';
-import { InputLeftElement, MenuButton, Text, Tooltip } from '@totejs/uikit';
-import { SearchIcon } from '@totejs/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
-import { trimLongStr } from '@/utils/string';
-import cn from 'classnames';
-import { useRouter } from 'next/router';
 import { Badge, MenuFooter, MenuHeader } from '@/modules/accounts/components/Common';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBucketDailyStorage, selectFilterBuckets, setFilterBuckets } from '@/store/slices/dashboard';
+import {
+  selectBucketDailyStorage,
+  selectFilterBuckets,
+  setBucketFilter,
+} from '@/store/slices/dashboard';
+import { trimLongStr } from '@/utils/string';
+import { SearchIcon } from '@node-real/icons';
+import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
+import cn from 'classnames';
+import { xor } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 export const FilterBuckets = () => {
-  const router = useRouter();
   const dispatch = useAppDispatch();
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
+  const router = useRouter();
   const bucketDailyStorage = useAppSelector(selectBucketDailyStorage());
-  const { loginAccount } = useAppSelector((root) => root.persist);
   const filterBuckets = useAppSelector(selectFilterBuckets());
   const [nameFilter, setNameFilter] = useState('');
   const [selectedBucket, setSelectedBucket] = useState<Array<string>>([]);
+
   const nameToOptions = (name: string) => ({
     label: name,
     value: name,
@@ -33,18 +38,19 @@ export const FilterBuckets = () => {
   const names = bucketNames.filter((name) =>
     !nameFilter.trim() ? true : name.toLowerCase().includes(nameFilter.trim().toLowerCase()),
   );
-
   const typeOptions: MenuOption[] = names.map(nameToOptions);
   const selectedTypeOptions = filterBuckets.map(nameToOptions);
+
   const accountClose = () => {
-    dispatch(setFilterBuckets({ loginAccount, buckets: selectedBucket }));
+    dispatch(setBucketFilter({ loginAccount, buckets: selectedBucket }));
   };
+
   const accountOpen = () => {
     setSelectedBucket(filterBuckets);
   };
 
   useEffect(() => {
-    return setSelectedBucket(filterBuckets);
+    setSelectedBucket(filterBuckets);
   }, [router.asPath]);
 
   return (
@@ -122,7 +128,7 @@ export const FilterBuckets = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedBucket([]);
-                    dispatch(setFilterBuckets({ loginAccount, buckets: [] }));
+                    dispatch(setBucketFilter({ loginAccount, buckets: [] }));
                   }}
                   className={'icon-selected'}
                   w={24}

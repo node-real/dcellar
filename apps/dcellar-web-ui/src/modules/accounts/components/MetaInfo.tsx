@@ -1,38 +1,43 @@
-import { useAppDispatch, useAppSelector } from '@/store';
-import { Box, Divider, Flex, Link, Text } from '@totejs/uikit';
-import React, { memo, useMemo } from 'react';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { formatAddress, trimFloatZero } from '@/utils/string';
+import { IconFont } from '@/components/IconFont';
 import { CopyText } from '@/components/common/CopyText';
-import { selectBnbPrice } from '@/store/slices/global';
+import { DCButton } from '@/components/common/DCButton';
+import { Loading } from '@/components/common/Loading';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
-import { LoadingAdaptor } from './LoadingAdaptor';
-import { useRouter } from 'next/router';
-import { selectAccountDetail, setEditDisablePaymentAccount } from '@/store/slices/accounts';
-import { formatFullTime, getMillisecond } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { IconFont } from '@/components/IconFont';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { isEmpty } from 'lodash-es';
-import { Loading } from '@/components/common/Loading';
-import { DCButton } from '@/components/common/DCButton';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectAccountDetail, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
+import { formatAddress, trimFloatZero } from '@/utils/string';
+import { formatFullTime, getMillisecond } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Divider, Flex, Link, Text } from '@node-real/uikit';
+import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo } from 'react';
+import { LoadingAdaptor } from './LoadingAdaptor';
 
-type Props = {
-  address: string;
-};
+type Props = { address: string };
+
 export const MetaInfo = memo(function MetaInfo({ address }: Props) {
-  const router = useRouter();
   const dispatch = useAppDispatch();
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const isOwnerAccount = address === loginAccount;
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const accountDetail = useAppSelector(selectAccountDetail(address));
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+  const router = useRouter();
+
+  const isOwnerAccount = address === loginAccount;
   const loading = !address || isEmpty(accountDetail);
+  const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
+  const isRefundable = accountDetail.refundable;
+  const isFrozen = accountDetail.clientFrozen;
+
   const onAction = (e: string) => {
     if (e === 'withdraw') {
       return router.push(`/wallet?type=send&from=${address}`);
@@ -41,13 +46,11 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
       return router.push(`/wallet?type=send&from=${loginAccount}&to=${address}`);
     }
     if (e === 'setNonRefundable') {
-      return dispatch(setEditDisablePaymentAccount(address));
+      return dispatch(setEditingPaymentAccountRefundable(address));
     }
     return router.push(`/wallet?type=${e}`);
   };
-  const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
-  const isRefundable = accountDetail.refundable;
-  const isFrozen = accountDetail.clientFrozen;
+
   const detailItems = [
     {
       label: 'Account address',
@@ -130,6 +133,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
       </Box>
     );
   }
+
   return (
     <Box minW={570} p={16} border={'1px solid readable.border'} borderRadius={4} flex={1}>
       <Flex gap={12} flexDirection={'column'}>
@@ -159,7 +163,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
             ≈
             {currencyFormatter(
               BN(availableBalance || 0)
-                .times(BN(bnbPrice))
+                .times(BN(exchangeRate))
                 .toString(),
             )}
           </Text>

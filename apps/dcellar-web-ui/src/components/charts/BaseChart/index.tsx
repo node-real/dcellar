@@ -1,17 +1,19 @@
 import ReactEChartsCore from 'echarts-for-react/lib/core';
-import * as echarts from 'echarts/core';
-import { LineChart as EChartLineChart } from 'echarts/charts';
-import { PieChart as EChartPieChart } from 'echarts/charts';
-import { BarChart as EChartBarChart } from 'echarts/charts';
+import {
+  BarChart as EChartBarChart,
+  LineChart as EChartLineChart,
+  PieChart as EChartPieChart,
+} from 'echarts/charts';
 import {
   GridComponent,
-  TooltipComponent,
+  GridSimpleComponent,
   LegendComponent,
+  SingleAxisComponent,
   TitleComponent,
   ToolboxComponent,
-  GridSimpleComponent,
-  SingleAxisComponent,
+  TooltipComponent,
 } from 'echarts/components';
+import * as echarts from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 
 echarts.use([
@@ -34,6 +36,7 @@ export interface BaseChartProps {
 
 export function BaseChart(props: BaseChartProps) {
   const { options } = props;
+
   return (
     <ReactEChartsCore
       echarts={echarts}

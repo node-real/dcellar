@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { Box, Tooltip } from '@totejs/uikit';
+import { Box, Tooltip } from '@node-real/uikit';
+import { memo } from 'react';
+
 import { AccountType } from '@/store/slices/accounts';
 import { getAccountDisplay } from '@/utils/accounts';
 
@@ -9,6 +10,7 @@ interface AccountTipsProps {
 
 export const AccountTips = memo<AccountTipsProps>(function AccountTips({ type }) {
   const accountDisplay = getAccountDisplay(type);
+
   return (
     <>
       {accountDisplay && (

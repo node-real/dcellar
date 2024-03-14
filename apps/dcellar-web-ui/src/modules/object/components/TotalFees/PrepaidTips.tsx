@@ -1,9 +1,9 @@
 import { Tips } from '@/components/common/Tips';
 import { PREPAID_FEE_DOC } from '@/modules/object/constant';
-import { Box, Link } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { displayTime } from '@/utils/common';
+import { Box, Link } from '@node-real/uikit';
 import { memo } from 'react';
 
 interface PrePaidTipsProps {}

@@ -1,9 +1,18 @@
+import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ObjectInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import React, { memo, useState } from 'react';
+import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
 import styled from '@emotion/styled';
-import { Flex, Grid, Text } from '@totejs/uikit';
+import { Flex, Grid, Text } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { memo, useState } from 'react';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
-import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
+import { Loading } from '@/components/common/Loading';
+import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { quotaRemains } from '@/facade/bucket';
+import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
 import {
   downloadObject,
   getCanObjectAccess,
@@ -11,30 +20,22 @@ import {
   hasObjectPermission,
   previewObject,
 } from '@/facade/object';
-import { quotaRemains } from '@/facade/bucket';
-import { E_NO_QUOTA, E_OFF_CHAIN_AUTH, E_PERMISSION_DENIED, E_UNKNOWN } from '@/facade/error';
-import { Loading } from '@/components/common/Loading';
-import { useAppDispatch } from '@/store';
-import { getSpOffChainData } from '@/store/slices/persist';
-import { setupBucketQuota } from '@/store/slices/bucket';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { SpItem } from '@/store/slices/sp';
-import { IQuotaProps, PermissionTypes } from '@bnb-chain/greenfield-js-sdk';
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { setStatusDetail } from '@/store/slices/object';
 import { BUTTON_GOT_IT } from '@/modules/object/constant';
-import { reportEvent } from '@/utils/gtag';
+import { SHARE_ERROR_TYPES, ShareErrorType } from '@/modules/share/ShareError';
+import { useAppDispatch } from '@/store';
+import { setupBucketQuota } from '@/store/slices/bucket';
+import { getSpOffChainData } from '@/store/slices/persist';
+import { SpEntity } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
-import { IconFont } from '@/components/IconFont';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { useAsyncEffect } from 'ahooks';
+import { reportEvent } from '@/utils/gtag';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface SharedFileProps {
   fileName: string;
   objectInfo: ObjectInfo;
   quotaData: IQuotaProps;
   loginAccount: string;
-  primarySp: SpItem;
+  primarySp: SpEntity;
 }
 
 type ActionType = 'view' | 'download' | '';
@@ -53,7 +54,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
   const size = payloadSize.toString();
   const [createHash, setCreateHash] = useState('');
 
-  const onError = (type: string) => {
+  const errorHandler = (type: string) => {
     setAction('');
     if (type === E_OFF_CHAIN_AUTH) {
       return setOpenAuthModal();
@@ -62,7 +63,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
       ? SHARE_ERROR_TYPES[type as ShareErrorType]
       : SHARE_ERROR_TYPES[E_UNKNOWN];
     dispatch(
-      setStatusDetail({
+      setSignatureAction({
         ...errorData,
         buttonText: BUTTON_GOT_IT,
         extraParams: [bucketName],
@@ -78,8 +79,8 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           ? 'dc.shared_ui.preview.download.click'
           : 'dc.shared_ui.preview.view.click',
     });
-    let remainQuota = quotaRemains(quotaData, size);
-    if (!remainQuota) return onError(E_NO_QUOTA);
+    const remainQuota = quotaRemains(quotaData, size);
+    if (!remainQuota) return errorHandler(E_NO_QUOTA);
 
     setAction(e);
     const operator = primarySp.operatorAddress;
@@ -95,7 +96,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           seedString,
         );
         const errType = accessError as ShareErrorType;
-        if (errType) return onError(errType);
+        if (errType) return errorHandler(errType);
       } else {
         const res = await hasObjectPermission(
           bucketName,
@@ -104,7 +105,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
           loginAccount,
         );
         if (res.effect !== PermissionTypes.Effect.EFFECT_ALLOW) {
-          return onError(E_PERMISSION_DENIED);
+          return errorHandler(E_PERMISSION_DENIED);
         }
       }
     }
@@ -116,7 +117,7 @@ export const SharedFile = memo<SharedFileProps>(function SharedFile({
     const [success, opsError] = await (e === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
-    if (opsError) return onError(opsError as ShareErrorType);
+    if (opsError) return errorHandler(opsError as ShareErrorType);
     dispatch(setupBucketQuota(bucketName));
     setAction('');
     return success;

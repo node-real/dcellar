@@ -1,14 +1,16 @@
 import { PrePaidTips } from '@/modules/object/components/TotalFees/PrepaidTips';
 import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { renderFee } from '@/utils/common';
-import { Flex, Text } from '@totejs/uikit';
+import { Flex, Text } from '@node-real/uikit';
 
 export type PrepaidFeeProps = {
   amount: string;
 };
+
 export const PrepaidFee = ({ amount }: PrepaidFeeProps) => {
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">
       <Flex alignItems="center">

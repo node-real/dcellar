@@ -1,20 +1,21 @@
-import { useDisclosure } from '@totejs/uikit';
-import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
-import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
-import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
+import { BankBalance } from '@/components/Fee/BankBalance';
+import { FullBalance } from '@/components/Fee/FullBalance';
+import { GasFee } from '@/components/Fee/GasFee';
 import { PrepaidFee } from '@/components/Fee/PrepaidFee';
 import { SettlementFee } from '@/components/Fee/SettlementFee';
-import { GasFee } from '@/components/Fee/GasFee';
-import { FullBalance } from '@/components/Fee/FullBalance';
-import { BankBalance } from '@/components/Fee/BankBalance';
+import { TotalFeeBox } from '@/components/Fee/TotalFeeBox';
 import { LearnMoreTips } from '@/components/common/Tips';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
+import { useAppSelector } from '@/store';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { BN } from '@/utils/math';
+import { useDisclosure } from '@node-real/uikit';
 
 export type TSettlementFee = {
   address: string;
   amount: string;
 };
+
 export type ChangePaymentTotalFeeProps = {
   gasFee: string;
   from: TSettlementFee;
@@ -32,9 +33,11 @@ export const ChangePaymentTotalFee = ({
   to,
   storeFee,
 }: ChangePaymentTotalFeeProps) => {
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+
   const { isOpen, onToggle } = useDisclosure();
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { bankBalance } = useAppSelector((root) => root.accounts);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+
   const amount = BN(gasFee)
     .plus(from.amount)
     .plus(to.amount)
@@ -47,7 +50,7 @@ export const ChangePaymentTotalFee = ({
       amount={amount}
       onToggle={onToggle}
       expand={isOpen}
-      exchangeRate={bnbPrice}
+      exchangeRate={exchangeRate}
       canExpand={true}
       Tips={Tips}
     >

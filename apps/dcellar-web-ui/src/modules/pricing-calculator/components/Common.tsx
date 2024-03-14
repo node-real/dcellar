@@ -1,5 +1,5 @@
 import { smMedia } from '@/modules/responsive';
-import { TextProps, Text, Link, LinkProps } from '@totejs/uikit';
+import { Link, LinkProps, Text, TextProps } from '@node-real/uikit';
 
 export const H1 = ({ children, ...restProps }: TextProps) => (
   <Text
@@ -18,6 +18,7 @@ export const H1 = ({ children, ...restProps }: TextProps) => (
     {children}
   </Text>
 );
+
 export const SubTitle = ({ children, ...restProps }: TextProps) => (
   <Text
     as="h2"
@@ -71,14 +72,14 @@ type JumpLinkProps = LinkProps & {
   openKey: number;
   onOpenKey: (key: number) => void;
 };
+
 export const JumpLink = ({ id, children, openKey, onOpenKey, ...restProps }: JumpLinkProps) => {
   return (
     <Link
       display={'inline-block'}
       cursor={'pointer'}
       onClick={() => {
-        const anchor = id;
-        const rect = document.getElementById(anchor)?.getBoundingClientRect();
+        const rect = document.getElementById(id)?.getBoundingClientRect();
         onOpenKey(openKey);
         window.scrollTo({
           top: (rect?.top || 0) + document.documentElement.scrollTop - 65,

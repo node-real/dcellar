@@ -1,9 +1,9 @@
 import { assetPrefix } from '@/base/env';
-import { LandingH2, LandingResponsiveContainer } from '..';
-import { Box, Flex, Text, Image, useMediaQuery, Square } from '@totejs/uikit';
-import { smMedia } from '@/modules/responsive';
 import { GAClick } from '@/components/common/GATracker';
+import { smMedia } from '@/modules/responsive';
 import { INTER_FONT } from '@/modules/wallet/constants';
+import { Box, Flex, Image, Square, Text, useMediaQuery } from '@node-real/uikit';
+import { LandingH2, LandingResponsiveContainer } from '..';
 
 const datas = [
   {
@@ -28,8 +28,10 @@ const datas = [
     gaClickName: 'dc_lp.homepage.use_case.hosting.click',
   },
 ];
+
 export const HelpDevelopers = () => {
   const [isMobile] = useMediaQuery('(max-width: 767px)');
+
   return (
     <LandingResponsiveContainer>
       <Flex

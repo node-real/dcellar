@@ -1,17 +1,17 @@
+import { ExternalLinkIcon } from '@node-real/icons';
+import { Flex, Text } from '@node-real/uikit';
+import { isEmpty } from 'lodash-es';
+
+import { H2 } from './Common';
+import { PriceResponsiveContainer } from '../index';
+
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { Loading } from '@/components/common/Loading';
-import { ExternalLinkIcon } from '@totejs/icons';
-import { Flex, Text, Link } from '@totejs/uikit';
-import { isEmpty } from 'lodash-es';
-import React from 'react';
-import { PriceResponsiveContainer } from '../index';
 import { smMedia } from '@/modules/responsive';
-import { H2 } from './Common';
 import { formatBytes } from '@/utils/formatter';
 
-type SPFreeQuotaProps = {
-  sps: any[];
-};
+type SPFreeQuotaProps = { sps: any[] };
+
 export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
   <PriceResponsiveContainer
     display={'flex'}
@@ -32,16 +32,16 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => (
           key={index}
           border={'1px solid readable.border'}
           p={12}
-          as='a'
+          as="a"
           href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${item.operatorAddress}`}
           target="_blank"
           w={'50%'}
           justifyContent={'space-between'}
           borderLeftColor={index % 2 !== 0 ? 'transparent' : 'readable.border'}
           borderTopColor={index > 1 ? 'transparent' : 'readable.border'}
-          color='readable.normal'
+          color="readable.normal"
           _hover={{
-            color: 'brand.brand5'
+            color: 'brand.brand5',
           }}
           sx={{
             [smMedia]: {

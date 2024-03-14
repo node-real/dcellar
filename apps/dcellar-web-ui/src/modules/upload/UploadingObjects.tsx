@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef } from 'react';
+import styled from '@emotion/styled';
 import {
   Empty,
   Flex,
@@ -11,26 +11,28 @@ import {
   TabPanels,
   Tabs,
   Text,
-} from '@totejs/uikit';
-import { Loading } from '@/components/common/Loading';
-import { UploadFile } from '@/store/slices/global';
-import { useTaskManagementTab } from './useTaskManagementTab';
-import styled from '@emotion/styled';
+} from '@node-real/uikit';
+import { useScroll } from 'ahooks';
+import cn from 'classnames';
+import { memo, useCallback, useRef } from 'react';
+
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
 import { UploadProgress } from './UploadProgress';
+import { useTaskManagementTab } from './useTaskManagementTab';
+
+import { Loading } from '@/components/common/Loading';
 import { IconFont } from '@/components/IconFont';
-import cn from 'classnames';
-import { useScroll } from 'ahooks';
-import { EditTags } from '@/components/common/ManageTag';
+import { UploadObject } from '@/store/slices/global';
 
 interface UploadingObjectsProps {}
 
 export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingObjects() {
   const ref = useRef(null);
   const scroll = useScroll(ref) || { top: 0 };
-  const { queue, tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
-  const FileStatus = useCallback(({ task }: { task: UploadFile }) => {
+  const { tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
+
+  const FileStatus = useCallback(({ task }: { task: UploadObject }) => {
     switch (task.status) {
       case 'WAIT':
         return (
@@ -127,8 +129,8 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
                   >
                     <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
                       <NameItem
-                        name={task.waitFile.name}
-                        size={task.waitFile.size}
+                        name={task.waitObject.name}
+                        size={task.waitObject.size}
                         msg={task.msg}
                         status={task.status}
                         w={240}
@@ -161,6 +163,7 @@ const StyledTabList = styled(TabList)`
   &::-webkit-scrollbar {
     display: none;
   }
+
   scrollbar-width: none; /* firefox */
   -ms-overflow-style: none; /* IE 10+ */
   overflow-x: scroll;

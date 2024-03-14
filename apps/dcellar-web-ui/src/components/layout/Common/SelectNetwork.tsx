@@ -1,21 +1,23 @@
 import { runtimeEnv } from '@/base/env';
-import { capitalizeFLetter } from '@/utils/common';
-import { ButtonProps, MenuButton } from '@totejs/uikit';
-import { useRouter } from 'next/router';
-import { DCMenu } from '@/components/common/DCMenu';
-import { MenuOption } from '@/components/common/DCMenuList';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
 import { InternalRoutePaths } from '@/constants/paths';
+import { capitalizeFLetter } from '@/utils/common';
+import { ButtonProps, MenuButton } from '@node-real/uikit';
+import { useRouter } from 'next/router';
 
 interface TNetwork extends MenuOption {
   label: string;
   value: string;
   domain: string;
 }
+
 type SelectNetworkProps = {
   buttonStyles?: ButtonProps;
 };
+
 const networks: TNetwork[] = [
   {
     label: 'Mainnet',
@@ -28,15 +30,19 @@ const networks: TNetwork[] = [
     domain: 'https://testnet.dcellar.io',
   },
 ];
+
 export const GO_ROOT_PATHS: { [key: string]: string } = {
   '/buckets': InternalRoutePaths.buckets,
   '/buckets/[...path]': InternalRoutePaths.accounts,
   '/accounts': InternalRoutePaths.accounts,
   '/accounts/[address]': InternalRoutePaths.accounts,
 };
+
 export const SelectNetwork = ({ buttonStyles = {} }: SelectNetworkProps) => {
   const router = useRouter();
+
   const selected = ['mainnet', 'testnet'].includes(runtimeEnv) ? runtimeEnv : 'testnet';
+
   const onItemClick = (net: TNetwork) => {
     if (runtimeEnv === net.value) {
       return;

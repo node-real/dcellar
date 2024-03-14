@@ -1,6 +1,6 @@
+import { reportEvent } from '@/utils/gtag';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { reportEvent } from '@/utils/gtag';
 
 export function GAPageView() {
   const { isReady, pathname, asPath } = useRouter();

@@ -1,21 +1,36 @@
-import React, { memo } from 'react';
-import { Box, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
+import styled from '@emotion/styled';
+import { Box, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@node-real/uikit';
 import { useRouter } from 'next/router';
+import { memo } from 'react';
 
+import { Send } from './Send';
 import { TransferIn } from './TransferIn';
 import { TransferOut } from './TransferOut';
-import { Send } from './Send';
 import { EOperation } from './type';
-import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
+
 import { GAClick } from '@/components/common/GATracker';
+import { WalletBalanceProvider } from '@/context/GlobalContext/WalletBalanceContext';
 import { useAppSelector } from '@/store';
-import styled from '@emotion/styled';
+
+const tabConfig = [
+  {
+    name: 'Transfer In',
+    gaClickName: 'dc.wallet.tab.transferin.click',
+    key: EOperation.transfer_in,
+  },
+  {
+    name: 'Transfer Out',
+    gaClickName: 'dc.wallet.tab.transferout.click',
+    key: EOperation.transfer_out,
+  },
+  { name: 'Send', gaClickName: 'dc.wallet.tab.send.click', key: EOperation.send },
+];
 
 interface WalletProps {}
 
-// TODO: Refactor
 export const Wallet = memo<WalletProps>(function Wallet() {
-  const { transType } = useAppSelector((root) => root.wallet);
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
   const router = useRouter();
 
   const onChange = (key: string) => {
@@ -26,35 +41,29 @@ export const Wallet = memo<WalletProps>(function Wallet() {
   return (
     <WalletBalanceProvider>
       <Container>
-        <Box>
-          <Text as={'h1'} fontWeight="700" fontSize={'24px'} mb={16}>
-            Wallet
-          </Text>
-          <Tabs activeKey={transType} onChange={(key) => onChange(key.toString())}>
-            <TabList gap={'24px'} borderBottom="1px solid readable.border !important">
-              <GAClick name="dc.wallet.tab.transferin.click">
-                <Tab tabKey={EOperation.transfer_in}>Transfer In</Tab>
+        <Text as={'h1'} fontWeight="700" fontSize={'24px'} mb={16}>
+          Wallet
+        </Text>
+        <Tabs activeKey={transferType} onChange={(key) => onChange(key.toString())}>
+          <TabList gap={'24px'} borderBottom="1px solid readable.border !important">
+            {tabConfig.map((item) => (
+              <GAClick name={item.gaClickName} key={item.key}>
+                <Tab tabKey={item.key}>{item.name}</Tab>
               </GAClick>
-              <GAClick name="dc.wallet.tab.transferout.click">
-                <Tab tabKey={EOperation.transfer_out}>Transfer Out</Tab>
-              </GAClick>
-              <GAClick name="dc.wallet.tab.send.click">
-                <Tab tabKey={EOperation.send}>Send</Tab>
-              </GAClick>
-            </TabList>
-            <TabPanels>
-              <TabPanel panelKey={EOperation.transfer_in} p="16px 32px 0 32px">
-                <TransferIn />
-              </TabPanel>
-              <TabPanel panelKey={EOperation.transfer_out} p="16px 32px 0 32px">
-                <TransferOut />
-              </TabPanel>
-              <TabPanel panelKey={EOperation.send} p="16px 32px 0 32px">
-                <Send />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Box>
+            ))}
+          </TabList>
+          <TabPanels>
+            <TabPanel panelKey={EOperation.transfer_in} p="16px 32px 0 32px">
+              <TransferIn />
+            </TabPanel>
+            <TabPanel panelKey={EOperation.transfer_out} p="16px 32px 0 32px">
+              <TransferOut />
+            </TabPanel>
+            <TabPanel panelKey={EOperation.send} p="16px 32px 0 32px">
+              <Send />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </Container>
     </WalletBalanceProvider>
   );

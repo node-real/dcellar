@@ -1,7 +1,7 @@
-import { memo, PropsWithChildren } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
 import { IconFont } from '@/components/IconFont';
 import styled from '@emotion/styled';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { PropsWithChildren, memo } from 'react';
 
 interface ListEmptyProps extends PropsWithChildren {
   empty: boolean;

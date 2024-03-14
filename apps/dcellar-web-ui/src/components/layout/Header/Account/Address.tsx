@@ -1,7 +1,7 @@
 import { Avatar } from '@/components/Avatar';
 import { DCButton } from '@/components/common/DCButton';
 import { getShortenWalletAddress } from '@/utils/wallet';
-import { Text } from '@totejs/uikit';
+import { Text } from '@node-real/uikit';
 
 export type AddressProps = {
   address: string;
@@ -9,6 +9,7 @@ export type AddressProps = {
 
 export const Address = ({ address }: AddressProps) => {
   const shortAddress = getShortenWalletAddress(address);
+
   return (
     <DCButton
       variant="ghost"

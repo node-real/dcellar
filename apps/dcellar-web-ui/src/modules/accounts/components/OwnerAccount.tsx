@@ -1,21 +1,20 @@
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
-import { ColumnProps } from 'antd/es/table';
-import React from 'react';
-import { DCTable } from '@/components/common/DCTable';
-import { useAppSelector } from '@/store';
-import { TAccountInfo } from '@/store/slices/accounts';
-import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
-import { useRouter } from 'next/router';
-import styled from '@emotion/styled';
 import { MenuOption } from '@/components/common/DCMenuList';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { BN } from '@/utils/math';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
-import { currencyFormatter } from '@/utils/formatter';
-import { selectBnbPrice } from '@/store/slices/global';
-import { trimFloatZero } from '@/utils/string';
-import { isEmpty } from 'lodash-es';
+import { DCTable } from '@/components/common/DCTable';
+import { ActionMenu } from '@/components/common/DCTable/ActionMenu';
 import { Loading } from '@/components/common/Loading';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, DECIMAL_NUMBER } from '@/modules/wallet/constants';
+import { useAppSelector } from '@/store';
+import { AccountInfo } from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { currencyFormatter } from '@/utils/formatter';
+import { BN } from '@/utils/math';
+import { trimFloatZero } from '@/utils/string';
+import { displayTokenSymbol } from '@/utils/wallet';
+import styled from '@emotion/styled';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
+import { ColumnProps } from 'antd/es/table';
+import { isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
 import { ShortTxCopy } from './Common';
 
 const actions: MenuOption[] = [
@@ -26,34 +25,27 @@ const actions: MenuOption[] = [
 ];
 
 export const OwnerAccount = () => {
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { ownerAccount } = useAppSelector((root) => root.accounts);
-  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
-  const { accountInfo, bankBalance } = useAppSelector((root) => root.accounts);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
-  const data = ownerAccount?.address ? [accountInfo[ownerAccount.address] || {}] : [];
   const router = useRouter();
+  const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
 
+  const data = ownerAccount?.address ? [accountRecords[ownerAccount.address] || {}] : [];
   const spinning = isEmpty(ownerAccount);
+
   const loadingComponent = {
     spinning: spinning,
     indicator: <Loading />,
   };
-  const onMenuClick = (e: string, record: TAccountInfo) => {
-    switch (e) {
-      case 'detail':
-        // return dispatch(setAccountOperation([record.address, 'oaDetail']));
-        return router.push(`/accounts/${record.address}`);
-      default:
-        return router.push(`/wallet?type=${e}`);
-    }
-  };
 
-  const columns: ColumnProps<TAccountInfo>[] = [
+  const columns: ColumnProps<AccountInfo>[] = [
     {
       title: 'Name',
       key: 'name',
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return <Text>{record.name}</Text>;
       },
     },
@@ -61,12 +53,12 @@ export const OwnerAccount = () => {
       title: 'Account Address',
       key: 'address',
       width: isLessThan1100 ? 130 : 'auto',
-      render: (_: string, record: TAccountInfo) => (<ShortTxCopy address={record.address}/>),
+      render: (_: string, record: AccountInfo) => <ShortTxCopy address={record.address} />,
     },
     {
       title: 'Balance',
       key: 'bankBalance',
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return (
           <Flex flexWrap={'wrap'} alignItems={'center'}>
             <Text fontSize={14}>
@@ -75,7 +67,7 @@ export const OwnerAccount = () => {
             </Text>
             <Text color="readable.tertiary" fontSize={12}>
               &nbsp;(
-              {currencyFormatter(BN(bankBalance).times(BN(bnbPrice)).toString(DECIMAL_NUMBER))})
+              {currencyFormatter(BN(bankBalance).times(BN(exchangeRate)).toString(DECIMAL_NUMBER))})
             </Text>
           </Flex>
         );
@@ -84,7 +76,7 @@ export const OwnerAccount = () => {
     {
       title: 'Prepaid Fee',
       key: 'bufferBalance',
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         return (
           <Text fontSize={14} fontWeight={500}>
             {BN(record.bufferBalance || 0)
@@ -98,7 +90,7 @@ export const OwnerAccount = () => {
     {
       title: 'Flow Rate',
       key: 'netflowRate',
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         const value = BN(record?.netflowRate || 0)
           .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
           .toString();
@@ -115,7 +107,7 @@ export const OwnerAccount = () => {
       title: <Text textAlign={'center'}>Operation</Text>,
       key: 'Operation',
       width: 150,
-      render: (_: string, record: TAccountInfo) => {
+      render: (_: string, record: AccountInfo) => {
         const operations = ['transfer_in', 'transfer_out', 'send'];
         return (
           <ActionMenu
@@ -127,6 +119,16 @@ export const OwnerAccount = () => {
       },
     },
   ].map((col) => ({ ...col, dataIndex: col.key }));
+
+  const onMenuClick = (e: string, record: AccountInfo) => {
+    switch (e) {
+      case 'detail':
+        // return dispatch(setAccountOperation([record.address, 'oaDetail']));
+        return router.push(`/accounts/${record.address}`);
+      default:
+        return router.push(`/wallet?type=${e}`);
+    }
+  };
 
   return (
     <Container>
@@ -140,10 +142,10 @@ export const OwnerAccount = () => {
         pagination={false}
         loading={loadingComponent}
         renderEmpty={() => null}
-        onRow={(record: TAccountInfo) => ({
+        onRow={(record: AccountInfo) => ({
           onClick: () => onMenuClick('detail', record),
         })}
-      ></DCTable>
+      />
     </Container>
   );
 };

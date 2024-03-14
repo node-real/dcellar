@@ -1,11 +1,11 @@
-import { Input, InputProps } from '@totejs/uikit';
-import React from 'react';
+import { Input, InputProps } from '@node-real/uikit';
 
 type NumInputProps = InputProps & {
   value: string;
   type?: 'inter' | 'float';
   onChangeValue: (value: string) => void;
 };
+
 export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }: NumInputProps) => {
   return (
     <Input
@@ -38,11 +38,11 @@ export const NumInput = ({ value, type = 'float', onChangeValue, ...restProps }:
           onChangeValue(value);
         } else if (type === 'float') {
           if (value.includes('.')) {
-            return onChangeValue(value.replace(/^00+/, '0')+'');
+            return onChangeValue(value.replace(/^00+/, '0') + '');
           }
-          onChangeValue(Number(value.replace(/^00+/, '0'))+'');
+          onChangeValue(Number(value.replace(/^00+/, '0')) + '');
         } else {
-          onChangeValue(Number(value.replace(/\D/g, '0'))+'');
+          onChangeValue(Number(value.replace(/\D/g, '0')) + '');
         }
       }}
     />

@@ -1,21 +1,22 @@
-import React, { memo } from 'react';
-import { Box, Flex, Text } from '@totejs/uikit';
 import { useAppDispatch, useAppSelector } from '@/store';
-import styled from '@emotion/styled';
-import { setEditQuota } from '@/store/slices/bucket';
+import { setBucketEditQuota } from '@/store/slices/bucket';
 import { formatQuota } from '@/utils/string';
+import styled from '@emotion/styled';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { memo } from 'react';
 
 interface QuotaCardProps {}
 
 export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
   const dispatch = useAppDispatch();
-  const { quotas } = useAppSelector((root) => root.bucket);
-  const { bucketName } = useAppSelector((root) => root.object);
-  const quota = quotas[bucketName];
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+
+  const quota = bucketQuotaRecords[currentBucketName];
   const formattedQuota = formatQuota(quota);
 
-  const manageQuota = () => {
-    dispatch(setEditQuota([bucketName, '']));
+  const onManageQuota = () => {
+    dispatch(setBucketEditQuota([currentBucketName, '']));
   };
 
   return (
@@ -32,7 +33,7 @@ export const QuotaCard = memo<QuotaCardProps>(function QuotaCard() {
           color="#00BA34"
           _hover={{ color: '#2EC659' }}
           cursor="pointer"
-          onClick={manageQuota}
+          onClick={onManageQuota}
         >
           Increase Quota
         </Text>
@@ -54,6 +55,7 @@ const Container = styled(Flex)`
   border-radius: 4px;
   border: 1px solid #e6e8ea;
   background: #fff;
+
   :hover {
     background: var(--ui-colors-bg-bottom);
   }

@@ -1,9 +1,9 @@
-import { useRef } from 'react';
 import { reportEvent } from '@/utils/gtag';
+import { useRef } from 'react';
 
 // Ensure the reporting doesn't trigger when data changes, but only the specific events occur.
 export const useReportFuncRef = (name: string, data = {}) => {
-  const reportFuncRef = useRef<Function>();
+  const reportFuncRef = useRef<() => void>();
 
   reportFuncRef.current = () => {
     if (!name) return;

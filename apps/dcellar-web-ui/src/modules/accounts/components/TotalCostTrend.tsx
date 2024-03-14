@@ -1,39 +1,43 @@
-import { useMemo, useRef } from 'react';
-import { CardContainer } from './Common';
-import { Box } from '@totejs/uikit';
+import { BarChart } from '@/components/charts/BarChart';
+import { Loading } from '@/components/common/Loading';
 import { useAppSelector } from '@/store';
 import { MonthlyCost, selectAllCostTrend } from '@/store/slices/billing';
-import { getEveryMonth, getUtcDayjs } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { useTotalEstimateCost } from '../hooks';
-import { displayTokenSymbol } from '@/utils/wallet';
-import { getMoM, getStyles } from '@/utils/billing';
-import { Loading } from '@/components/common/Loading';
 import { formatObjectAddress } from '@/utils/accounts';
+import { getMoM, getStyles } from '@/utils/billing';
+import { BN } from '@/utils/math';
+import { getEveryMonth, getUtcDayjs } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
-import { BarChart } from '@/components/charts/BarChart';
+import { useMemo, useRef } from 'react';
+import { useTotalEstimateCost } from '../hooks';
+import { CardContainer } from './Common';
 
-const colors = ['#00BA34', '#C2EECE', '#1184EE'];
+const COLOR_PALETTE = ['#00BA34', '#C2EECE', '#1184EE'];
 
 type BarItem = MonthlyCost & {
   MoM: string;
   estimateCost: number;
   month: string;
 };
+
 type BarData = BarItem[];
 
 export const TotalCostTrend = () => {
-  const dayjs = getUtcDayjs();
-  const preDataRef = useRef<any>(null);
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const costTrendLoading = useAppSelector((root) => root.billing.costTrendLoading);
+  const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
+  const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+
   const totalCostTrend = useAppSelector(selectAllCostTrend(loginAccount));
-  const { loadingAllCostTrend } = useAppSelector((root) => root.billing);
-  const { isLoadingPaymentAccounts, isLoadingAccountInfo } = useAppSelector(
-    (root) => root.accounts,
-  );
+  const preDataRef = useRef<any>(null);
   const { curRemainingEstimateCost, nextEstimateCost } = useTotalEstimateCost(['cur', 'next']);
-  const { accountInfo } = useAppSelector((root) => root.accounts);
+
   const noData = totalCostTrend.totalCost === '0';
+  const dayjs = getUtcDayjs();
+  const loading = costTrendLoading || paymentAccountsLoading || accountInfoLoading === loginAccount;
+
   const barData: BarData = useMemo(() => {
     if (isEmpty(totalCostTrend)) return [];
     let finalData = {};
@@ -88,6 +92,7 @@ export const TotalCostTrend = () => {
     const monthlyCostData: number[] = [];
     const estimateCostData: number[] = [];
     const MoMData: number[] = [];
+
     barData.forEach((item: any) => {
       xAxisData.push(item.month);
       monthlyCostData.push(
@@ -98,8 +103,9 @@ export const TotalCostTrend = () => {
       estimateCostData.push(BN(item.estimateCost).abs().toNumber());
       MoMData.push(item.MoM);
     });
+
     return {
-      color: colors,
+      color: COLOR_PALETTE,
       title: {
         text: 'Cost Trend',
       },
@@ -116,7 +122,7 @@ export const TotalCostTrend = () => {
           const displayNum = Math.min(3, dataLen);
           for (let i = 0; i < displayNum; i++) {
             const bill = validDetailBills[i];
-            const lowerKeyAccountInfo = formatObjectAddress(accountInfo);
+            const lowerKeyAccountInfo = formatObjectAddress(accountRecords);
             const accountName = lowerKeyAccountInfo[bill.address.toLowerCase()]?.name;
             if (BN(bill.totalCost).isEqualTo(0)) {
               break;
@@ -138,8 +144,8 @@ export const TotalCostTrend = () => {
           return `
             <div style="${styles.box}">
               <div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${
-            curData.totalCost || 0
-          } ${TokenSymbol}</div>
+                curData.totalCost || 0
+              } ${TokenSymbol}</div>
               </div>
               ${DetailFragment}
               ${EstimateFragment}
@@ -183,9 +189,8 @@ export const TotalCostTrend = () => {
         // },
       ],
     };
-  }, [barData, accountInfo]);
-  const loading =
-    loadingAllCostTrend || isLoadingPaymentAccounts || isLoadingAccountInfo === loginAccount;
+  }, [barData, accountRecords]);
+
   return (
     <CardContainer flex={1} minW={478} minH={283}>
       {loading && <Loading />}

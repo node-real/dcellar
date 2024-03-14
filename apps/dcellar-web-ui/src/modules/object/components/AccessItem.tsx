@@ -1,14 +1,15 @@
-import { memo, useState } from 'react';
-import styled from '@emotion/styled';
-import { Button, Flex, MenuButton, Text } from '@totejs/uikit';
-import { find } from 'lodash-es';
-import { GAClick } from '@/components/common/GATracker';
 import { IconFont } from '@/components/IconFont';
 import { DCMenu } from '@/components/common/DCMenu';
-import { ConfirmModal } from '@/components/common/DCModal/ConfirmModal';
-import * as React from 'react';
+import { TxConfirmModal } from '@/components/common/DCModal/TxConfirmModal';
+import { GAClick } from '@/components/common/GATracker';
 import { useAppSelector } from '@/store';
 import { MsgUpdateObjectInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
+import styled from '@emotion/styled';
+import { Button, Flex, MenuButton, Text } from '@node-real/uikit';
+import { find } from 'lodash-es';
+import { memo, useState } from 'react';
+import { GAContextProvider } from '@/context/GAContext';
+import { selectGnfdGasFeesConfig } from '@/store/slices/global';
 
 interface AccessItemProps {
   value: number;
@@ -45,35 +46,31 @@ export const AccessItem = memo<AccessItemProps>(function AccessItem({
   onChange = () => {},
   folder = false,
 }) {
+  const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+
   const [_value, setValue] = useState<number>(1);
-  const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
-  const { gasObjects = {} } = useAppSelector((root) => root.global.gasHub);
   const [confirmModal, setConfirmModal] = useState(false);
-  const fee = gasObjects?.[MsgUpdateObjectInfoTypeUrl]?.gasFee || 0;
+
+  const fee = gnfdGasFeesConfig?.[MsgUpdateObjectInfoTypeUrl]?.gasFee || 0;
+  const valueOption = find(options, (o) => String(o.value) === String(value)) || options[0];
 
   return (
     <>
-      <ConfirmModal
-        confirmText="Confirm"
-        isOpen={confirmModal}
-        ga={{
-          gaClickCloseName: 'dc.object.update_object_info_confirm.modal.show',
-          gaShowName: 'dc.object.update_object_info_confirm.close.click',
-          balanceClickName: 'dc.object.update_object_info_confirm.depost.show',
-          balanceShowName: 'dc.object.update_object_info_confirm.transferin.click',
-          cancelButton: 'dc.object.update_object_info_confirm.cancel.click',
-          confirmButton: 'dc.object.update_object_info_confirm.delete.click',
-        }}
-        title="Access Update"
-        fee={fee}
-        onConfirm={() => onChange(_value)}
-        onClose={() => {
-          setConfirmModal(false);
-        }}
-        description={`Are you sure to change the object to "${
-          _value === 1 ? 'Public' : 'Private'
-        }"?`}
-      />
+      <GAContextProvider prefix={'update_object_info_confirm'}>
+        <TxConfirmModal
+          confirmText="Confirm"
+          isOpen={confirmModal}
+          title="Access Update"
+          fee={fee}
+          onConfirm={() => onChange(_value)}
+          onClose={() => {
+            setConfirmModal(false);
+          }}
+          description={`Are you sure to change the object to "${
+            _value === 1 ? 'Public' : 'Private'
+          }"?`}
+        />
+      </GAContextProvider>
       <FormItem>
         <FormLabel>General Access</FormLabel>
         <Flex alignItems="center" py={8}>

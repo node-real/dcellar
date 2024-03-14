@@ -1,17 +1,17 @@
-import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@totejs/uikit';
-import React, { memo, useEffect, useState } from 'react';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
-import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
-import { setStatusDetail } from '@/store/slices/object';
-import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
-import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { setReadQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { SpItem } from '@/store/slices/sp';
+import { E_OFF_CHAIN_AUTH, E_UNKNOWN } from '@/facade/error';
+import { downloadObject, getCanObjectAccess, previewObject } from '@/facade/object';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
+import { getSpOffChainData, setAccountConfig } from '@/store/slices/persist';
+import { SpEntity } from '@/store/slices/sp';
 import { formatBytes } from '@/utils/formatter';
+import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node-real/uikit';
+import { memo, useEffect, useState } from 'react';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import { setSignatureAction } from '@/store/slices/global';
 
 const renderProp = (key: string, value: string) => {
   return (
@@ -23,7 +23,7 @@ const renderProp = (key: string, value: string) => {
 };
 
 interface DownloadObjectOperationProps {
-  primarySp: SpItem;
+  primarySp: SpEntity;
   onClose?: () => void;
   actionParams?: Record<string, any>;
   objectName: string;
@@ -40,20 +40,22 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
   payloadSize,
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount, accounts } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountRecords = useAppSelector((root) => root.persist.accountRecords);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+  const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+
   const [currentAllowDirectDownload, setCurrentAllowDirectDownload] = useState<boolean | null>(
     null,
   );
-  const { bucketName: _bucketName } = useAppSelector((root) => root.object);
-  const bucketName = actionParams?.bucketName || _bucketName;
-  const quotas = useAppSelector((root) => root.bucket.quotas);
-  const directDownload = accounts[loginAccount].directDownload;
-  const { setOpenAuthModal } = useOffChainAuth();
   const [loading, setLoading] = useState(false);
+  const { setOpenAuthModal } = useOffChainAuth();
 
-  const quotaData = quotas[bucketName];
+  const bucketName = actionParams?.bucketName || currentBucketName;
+  const directDownload = accountRecords[loginAccount].directDownload;
+  const quotaData = bucketQuotaRecords[bucketName];
 
-  const onError = (type: string) => {
+  const errorHandler = (type: string) => {
     setLoading(false);
     onClose();
     if (type === E_OFF_CHAIN_AUTH) {
@@ -63,7 +65,7 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
       ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
       : OBJECT_ERROR_TYPES[E_UNKNOWN];
 
-    dispatch(setStatusDetail(errorData));
+    dispatch(setSignatureAction(errorData));
   };
 
   const remainingQuota = +quotaData?.readQuota + +quotaData?.freeQuota - +quotaData?.consumedQuota;
@@ -84,9 +86,9 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
       seedString,
     );
     if (quota) {
-      dispatch(setReadQuota({ bucketName, quota }));
+      dispatch(setBucketQuota({ bucketName, quota }));
     }
-    if (accessError) return onError(accessError);
+    if (accessError) return errorHandler(accessError);
     const params = {
       primarySp,
       objectInfo: objectInfo!,
@@ -96,7 +98,7 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
     const [success, opsError] = await (actionParams.action === 'download'
       ? downloadObject(params, seedString)
       : previewObject(params, seedString));
-    if (opsError) return onError(opsError);
+    if (opsError) return errorHandler(opsError);
     setLoading(false);
     onClose();
     return success;

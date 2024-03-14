@@ -1,11 +1,13 @@
 import { runtimeEnv } from '@/base/env';
 import { IconFont } from '@/components/IconFont';
-import { Box, Flex, Text } from '@totejs/uikit';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { memo } from 'react';
 
-export const Faucet = () => {
+export const Faucet = memo(function Faucet() {
   if (runtimeEnv !== 'testnet') {
     return null;
   }
+
   return (
     <Flex
       margin="16px auto 0"
@@ -36,4 +38,4 @@ export const Faucet = () => {
       <IconFont type="share-b38fk167" width={16} />
     </Flex>
   );
-};
+});

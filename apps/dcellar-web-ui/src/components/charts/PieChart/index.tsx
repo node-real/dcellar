@@ -1,5 +1,5 @@
-import { BaseChart, BaseChartProps } from '../BaseChart';
 import { usePieChartOptions } from '@/components/charts/PieChart/usePieChartOptions';
+import { BaseChart, BaseChartProps } from '../BaseChart';
 
 export interface PieChartProps extends BaseChartProps {}
 

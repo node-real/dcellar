@@ -1,8 +1,8 @@
+import { encodeBase64 } from '@/utils/coder';
 import { Buffer } from 'buffer';
 import * as Comlink from 'comlink';
 import { sha256 } from 'hash-wasm';
 import { values } from 'lodash-es';
-import { encodeBase64 } from '@/utils/coder';
 
 export interface WorkerApi {
   generateCheckSumV2: typeof generateCheckSumV2;

@@ -1,18 +1,18 @@
-import React, { memo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setEditGroupTags, setEditGroupTagsData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { useAsyncEffect, useUnmount } from 'ahooks';
-import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@totejs/uikit';
-import styled from '@emotion/styled';
-import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { CopyText } from '@/components/common/CopyText';
-import { ethers } from 'ethers';
 import { Avatar } from '@/components/Avatar';
 import { IconFont } from '@/components/IconFont';
+import { CopyText } from '@/components/common/CopyText';
 import { DCButton } from '@/components/common/DCButton';
-import { DEFAULT_TAG } from '@/components/common/ManageTag';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setGroupTagsEditData, setGroupOperation, setupGroupMembers } from '@/store/slices/group';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import styled from '@emotion/styled';
+import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
+import { useAsyncEffect, useUnmount } from 'ahooks';
+import { ethers } from 'ethers';
+import { memo } from 'react';
 
 interface DetailGroupOperationProps {
   selectGroup: GroupInfo;
@@ -22,15 +22,12 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
   selectGroup,
 }) {
   const dispatch = useAppDispatch();
-  const { groupMembers } = useAppSelector((root) => root.group);
-  const { spInfo, oneSp } = useAppSelector((root) => root.sp);
+  const groupMemberListRecords = useAppSelector((root) => root.group.groupMemberListRecords);
+  const spRecords = useAppSelector((root) => root.sp.spRecords);
+  const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
 
-  useAsyncEffect(async () => {
-    dispatch(setupGroupMembers(selectGroup.id, spInfo[oneSp].endpoint));
-  }, [dispatch, selectGroup]);
-
-  const loading = !(selectGroup.id in groupMembers);
-  const members = groupMembers[selectGroup.id] || [];
+  const loading = !(selectGroup.id in groupMemberListRecords);
+  const members = groupMemberListRecords[selectGroup.id] || [];
   const total = members.length;
   const empty = !loading && !total;
   const moreText = total <= 5 ? '' : total === 1000 ? '>1000' : `+${total - 5}`;
@@ -38,12 +35,17 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
     ethers.BigNumber.from(selectGroup.id || 0).toHexString(),
     32,
   );
-  const onEditTag = () => {
-    dispatch(setEditGroupTagsData(selectGroup?.tags?.tags ?? [DEFAULT_TAG]));
-    dispatch(setEditGroupTags([selectGroup.id, 'detail']))
-  }
 
-  useUnmount(() => dispatch(setEditGroupTagsData([DEFAULT_TAG])));
+  const onEditTag = () => {
+    dispatch(setGroupTagsEditData(selectGroup?.tags?.tags ?? [DEFAULT_TAG]));
+    dispatch(setGroupOperation({ level: 1, operation: [selectGroup.id, 'update_tags'] }));
+  };
+
+  useAsyncEffect(async () => {
+    dispatch(setupGroupMembers(selectGroup.id, spRecords[specifiedSp].endpoint));
+  }, [dispatch, selectGroup]);
+
+  useUnmount(() => dispatch(setGroupTagsEditData([DEFAULT_TAG])));
 
   return (
     <>
@@ -114,7 +116,13 @@ export const DetailGroupOperation = memo<DetailGroupOperationProps>(function Gro
             alignItems={'center'}
           >
             <Text color={'#76808F'}>Tags</Text>
-            <Flex alignItems={'center'} gap={4} color={'brand.brand6'} cursor={'pointer'} onClick={onEditTag}>
+            <Flex
+              alignItems={'center'}
+              gap={4}
+              color={'brand.brand6'}
+              cursor={'pointer'}
+              onClick={onEditTag}
+            >
               <IconFont type="pen" />
               {selectGroup?.tags?.tags?.length || 0} tags
             </Flex>

@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { Box, Flex, Text, useMediaQuery } from '@totejs/uikit';
-import { ConfirmModal } from './component/ConfirmModal';
-import { DCButton } from '../common/DCButton';
 import { reportEvent } from '@/utils/gtag';
+import { Box, Flex, Text, useMediaQuery } from '@node-real/uikit';
+import { useState } from 'react';
+import { DCButton } from '../common/DCButton';
+import { ConfirmModal } from './component/ConfirmModal';
 
 export type TCookieType = 'ga' | 'st' | 'ga_st';
 export type TCookieOperate = 'deny_all' | 'accept_all' | 'optional' | 'close';
+
 type Props = {
   onClose: (type: TCookieType, operate: TCookieOperate) => void;
 };
+
 export const CookiePolicy = ({ onClose }: Props) => {
   const [open, setOpen] = useState(false);
   const [isMobile] = useMediaQuery('(max-width: 767px)');
+
   const onConfirmClick = (type: TCookieType, operate: TCookieOperate) => {
     onClose(type, operate);
     setOpen(false);
   };
+
   return (
     <Flex
       sx={{

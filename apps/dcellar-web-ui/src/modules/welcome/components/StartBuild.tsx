@@ -1,7 +1,7 @@
-import { StartBuildContent } from '@/modules/pricing-calculator/components/StartBuild';
-import { LandingResponsiveContainer, smMedia } from '..';
 import { assetPrefix } from '@/base/env';
-import { Flex } from '@totejs/uikit';
+import { StartBuildContent } from '@/modules/pricing-calculator/components/StartBuild';
+import { Flex } from '@node-real/uikit';
+import { LandingResponsiveContainer, smMedia } from '..';
 
 export const StartBuild = () => (
   <LandingResponsiveContainer>
@@ -19,11 +19,11 @@ export const StartBuild = () => (
           padding: '16px',
           mt: 20,
           mb: 40,
-          bg: `url(${assetPrefix}/images/price/start-bg-lt-2.png) no-repeat left/auto 100%`
+          bg: `url(${assetPrefix}/images/price/start-bg-lt-2.png) no-repeat left/auto 100%`,
         },
       }}
     >
-      <StartBuildContent gaClickName='dc_lp.homepage.start.get_started.click' />
+      <StartBuildContent gaClickName="dc_lp.homepage.start.get_started.click" />
     </Flex>
   </LandingResponsiveContainer>
 );

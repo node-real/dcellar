@@ -1,6 +1,6 @@
-import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { Flex, Text } from '@totejs/uikit';
+import styled from '@emotion/styled';
+import { Flex, Text } from '@node-real/uikit';
 
 export const ObjectContainer = styled.div``;
 

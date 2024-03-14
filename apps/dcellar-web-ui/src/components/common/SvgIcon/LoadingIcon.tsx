@@ -1,4 +1,4 @@
-import { Icon, IconProps } from '@totejs/icons';
+import { Icon, IconProps } from '@node-real/icons';
 
 export const LoadingIcon = ({
   strokeWidth = 4,

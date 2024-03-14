@@ -1,4 +1,6 @@
+import { defaultApolloConfig } from '@/base/env';
 import { createSlice } from '@reduxjs/toolkit';
+import { isEmpty } from 'lodash-es';
 
 interface ApolloState {
   TOKEN_HUB_CONTRACT_ADDRESS: string;
@@ -25,7 +27,9 @@ const initialState: ApolloState = {
 export const apolloSlice = createSlice({
   name: 'apollo',
   initialState: () => {
-    const config = ((global as any).__GLOBAL_CONFIG || {}) as ApolloState;
+    const globalConfig = (global as any).__GLOBAL_CONFIG;
+    const config = isEmpty(globalConfig) ? defaultApolloConfig : globalConfig;
+
     return { ...initialState, ...config };
   },
   reducers: {},

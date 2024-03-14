@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import styled from '@emotion/styled';
 import { assetPrefix } from '@/base/env';
+import styled from '@emotion/styled';
+import { memo } from 'react';
 
 export interface AnimatePngProps {
   type: 'access' | 'group' | 'upload' | 'delete' | 'object';

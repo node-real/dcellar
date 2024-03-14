@@ -13,9 +13,9 @@ export const noDataOptions = {
     top: 'center',
   },
   xAxis: {
-    show: false
+    show: false,
   },
   yAxis: {
     show: false,
-  }
-}
+  },
+};

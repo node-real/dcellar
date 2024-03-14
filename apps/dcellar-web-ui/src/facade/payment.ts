@@ -1,12 +1,12 @@
-import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
-import BigNumber from 'bignumber.js';
-import { AuthType, Long } from '@bnb-chain/greenfield-js-sdk';
-import { getTimestampInSeconds } from '@/utils/time';
 import { getClient } from '@/facade/index';
+import { getTimestampInSeconds } from '@/utils/time';
+import { QueryGetStreamRecordResponse } from '@bnb-chain/greenfield-cosmos-types/greenfield/payment/query';
+import { AuthType, Long } from '@bnb-chain/greenfield-js-sdk';
+import { SpConfig } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/config';
 import { ListUserPaymentAccountsResquest } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/ListUserPaymentAccounts';
+import BigNumber from 'bignumber.js';
 import { resolve } from './common';
 import { commonFault } from './error';
-import { SpConfig } from '@bnb-chain/greenfield-js-sdk/dist/esm/api/config';
 
 const nToString = (num: BigNumber) => {
   return num.dividedBy(10 ** 18).toString();
@@ -52,7 +52,7 @@ export const getStreamRecord = async (address: string) => {
   };
 };
 
-export const getStoreFeeParams = async (props: { time?: number, network?: 'mainnet' }) => {
+export const getStoreFeeParams = async (props: { time?: number; network?: 'mainnet' }) => {
   const { time = undefined, network } = props || {};
   const client = await getClient(network);
   const now = getTimestampInSeconds();
@@ -70,7 +70,8 @@ export const getStoreFeeParams = async (props: { time?: number, network?: 'mainn
   } = (storageParams && storageParams.versionedParams) || {};
 
   const { reserveTime, validatorTaxRate } = paymentParams?.versionedParams || {};
-  const storeFeeParamsPayload = {
+
+  return {
     primarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.primaryStorePrice || '',
     readPrice: globalSpStoragePrice?.globalSpStorePrice.readPrice || '',
     secondarySpStorePrice: globalSpStoragePrice?.globalSpStorePrice.secondaryStorePrice || '',
@@ -80,11 +81,15 @@ export const getStoreFeeParams = async (props: { time?: number, network?: 'mainn
     redundantParityChunkNum,
     reserveTime: reserveTime?.toString() || '',
   };
-
-  return storeFeeParamsPayload;
 };
 
-export const listUserPaymentAccounts = async (params: ListUserPaymentAccountsResquest, authType: AuthType, spConfig?: SpConfig) => {
-  const client = await getClient()
-  return await client.payment.listUserPaymentAccounts(params, authType, spConfig).then(resolve, commonFault);
-}
+export const listUserPaymentAccounts = async (
+  params: ListUserPaymentAccountsResquest,
+  authType: AuthType,
+  spConfig?: SpConfig,
+) => {
+  const client = await getClient();
+  return await client.payment
+    .listUserPaymentAccounts(params, authType, spConfig)
+    .then(resolve, commonFault);
+};

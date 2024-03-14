@@ -1,16 +1,16 @@
-import { memo, useMemo, useRef } from 'react';
-import { CardContainer } from './Common';
-import { Box } from '@totejs/uikit';
+import { BarChart } from '@/components/charts/BarChart';
+import { Loading } from '@/components/common/Loading';
 import { useAppSelector } from '@/store';
 import { AccountCostMonth, selectAccountCostTrend } from '@/store/slices/billing';
-import { getEveryMonth, getUtcDayjs } from '@/utils/time';
-import { BN } from '@/utils/math';
-import { useAccountEstimateCost } from '../hooks';
-import { displayTokenSymbol } from '@/utils/wallet';
 import { getMoM, getStyles } from '@/utils/billing';
+import { BN } from '@/utils/math';
+import { getEveryMonth, getUtcDayjs } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
-import { Loading } from '@/components/common/Loading';
-import { BarChart } from '@/components/charts/BarChart';
+import { memo, useMemo, useRef } from 'react';
+import { useAccountEstimateCost } from '../hooks';
+import { CardContainer } from './Common';
 
 const colors = ['#00BA34', '#C2EECE', '#1184EE'];
 
@@ -20,10 +20,9 @@ type BarItem = AccountCostMonth & {
   month: string;
 };
 type BarData = BarItem[];
-type Props = {
-  address: string;
-};
-export const AccountCostTrend = memo(function AccountCostTrend({ address }: Props){
+type Props = { address: string };
+
+export const AccountCostTrend = memo(function AccountCostTrend({ address }: Props) {
   const preDataRef = useRef<any>(null);
   const dayjs = getUtcDayjs();
   const accountCostTrend = useAppSelector(selectAccountCostTrend(address));
@@ -118,7 +117,9 @@ export const AccountCostTrend = memo(function AccountCostTrend({ address }: Prop
           const curData = barData[params[0].dataIndex];
           const styles = getStyles();
           const TokenSymbol = displayTokenSymbol();
-          const TotalFragment = `<div style="${styles.total}">Total Cost: <div style="${styles.bnb}">${curData.totalCost || 0} ${TokenSymbol}</div>
+          const TotalFragment = `<div style="${styles.total}">Total Cost: <div style="${
+            styles.bnb
+          }">${curData.totalCost || 0} ${TokenSymbol}</div>
           </div>`;
           const EstimateFragment =
             curData.estimateCost === null
@@ -189,6 +190,7 @@ export const AccountCostTrend = memo(function AccountCostTrend({ address }: Prop
     };
   }, [barData]);
   const loading = isEmpty(barData);
+
   return (
     <CardContainer flex={1} width={'50%'} minW={478} minH={283}>
       {loading && <Loading />}

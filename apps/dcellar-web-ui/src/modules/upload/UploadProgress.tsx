@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { CircularProgress, CircularProgressLabel, Text } from '@totejs/uikit';
+import { CircularProgress, CircularProgressLabel, Text } from '@node-real/uikit';
+import { memo } from 'react';
 
 interface UploadProgressProps {
   value: number;

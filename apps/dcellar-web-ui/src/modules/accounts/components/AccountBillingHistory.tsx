@@ -1,28 +1,28 @@
 import { DCTable } from '@/components/common/DCTable';
 import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { Loading } from '@/components/common/Loading';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { ColumnProps } from 'antd/es/table';
-import React, { useCallback } from 'react';
 import {
   AccountBill,
   selectAccountBills,
   selectAccountBillsCount,
   setupAccountBills,
 } from '@/store/slices/billing';
-import { useAsyncEffect } from 'ahooks';
-import { formatTime } from '@/utils/time';
-import { displayTokenSymbol } from '@/utils/wallet';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { formatTxType } from '@/utils/billing';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { Loading } from '@/components/common/Loading';
-import { AccountBillingHistoryFilter } from './AccountBillingHistoryFilter';
-import { ShortTxCopy } from './Common';
-import { formatTxType } from '@/utils/billing';
+import { formatTime } from '@/utils/time';
+import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { ColumnProps } from 'antd/es/table';
 import { merge } from 'lodash-es';
 import { useRouter } from 'next/router';
 import { stringify } from 'querystring';
+import { useCallback } from 'react';
+import { AccountBillingHistoryFilter } from './AccountBillingHistoryFilter';
+import { ShortTxCopy } from './Common';
 
 type Props = {
   address: string;
@@ -30,16 +30,15 @@ type Props = {
 export const AccountBillingHistory = ({ address }: Props) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const query = router.query;
-  const bnbPrice = useAppSelector(selectBnbPrice);
+  const accountBillListPage = useAppSelector((root) => root.billing.accountBillListPage);
+  const accountBillListLoading = useAppSelector((root) => root.billing.accountBillListLoading);
+  const accountBillPageSize = useAppSelector((root) => root.persist.accountBillPageSize);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const accountBills = useAppSelector(selectAccountBills(address));
   const accountBillsCount = useAppSelector(selectAccountBillsCount(address));
-  const { curAccountBillsPage, loadingAccountBills } = useAppSelector((root) => root.billing);
-  const { accountBillsPageSize } = useAppSelector((root) => root.persist);
+
+  const query = router.query;
   const pageData = accountBills;
-  useAsyncEffect(async () => {
-    await dispatch(setupAccountBills(address));
-  }, []);
 
   const columns: ColumnProps<any>[] = [
     {
@@ -73,7 +72,7 @@ export const AccountBillingHistory = ({ address }: Props) => {
             (
             {currencyFormatter(
               BN(record.totalCost || 0)
-                .times(BN(bnbPrice))
+                .times(BN(exchangeRate))
                 .toString(),
             )}
             )
@@ -95,6 +94,11 @@ export const AccountBillingHistory = ({ address }: Props) => {
     ),
     [empty],
   );
+  const loadingComponent = {
+    spinning: accountBillListLoading,
+    indicator: <Loading />,
+  };
+
   const onPageChange = (page: number) => {
     const addQuery = { page };
     const newQuery = merge(query, addQuery);
@@ -103,11 +107,10 @@ export const AccountBillingHistory = ({ address }: Props) => {
       scroll: false,
     });
   };
-  const spinning = loadingAccountBills;
-  const loadingComponent = {
-    spinning: spinning,
-    indicator: <Loading />,
-  };
+
+  useAsyncEffect(async () => {
+    await dispatch(setupAccountBills(address));
+  }, []);
 
   return (
     <>
@@ -116,9 +119,9 @@ export const AccountBillingHistory = ({ address }: Props) => {
         loading={loadingComponent}
         columns={columns}
         dataSource={pageData}
-        current={curAccountBillsPage}
+        current={accountBillListPage}
         total={accountBillsCount}
-        pageSize={accountBillsPageSize}
+        pageSize={accountBillPageSize}
         showQuickJumper={true}
         pageChange={onPageChange}
         renderEmpty={renderEmpty}

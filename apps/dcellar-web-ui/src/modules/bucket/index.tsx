@@ -1,42 +1,45 @@
-import { NewBucket } from '@/modules/bucket/components/NewBucket';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { setupBuckets } from '@/store/slices/bucket';
-import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { BucketList } from '@/modules/bucket/components/BucketList';
-import Head from 'next/head';
-import React from 'react';
-import { Box, Flex } from '@totejs/uikit';
-import { runtimeEnv } from '@/base/env';
-import { networkTag } from '@/utils/common';
+import { CreateBucket } from '@/modules/bucket/components/CreateBucket';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectHasDiscontinue, setupBucketList } from '@/store/slices/bucket';
+import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
+import { PageTitle } from '@/components/layout/PageTitle';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
+import { GAContextProvider } from '@/context/GAContext';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
+
   const documentVisibility = useDocumentVisibility();
 
   useUpdateEffect(() => {
     if (documentVisibility !== 'visible') return;
     if (!loginAccount) return;
-    dispatch(setupBuckets(loginAccount));
+    dispatch(setupBucketList(loginAccount));
   }, [documentVisibility]);
 
   useAsyncEffect(async () => {
     if (!loginAccount) return;
-    dispatch(setupBuckets(loginAccount));
+    dispatch(setupBucketList(loginAccount));
   }, [loginAccount, dispatch]);
 
   return (
-    <>
-      <Head>
-        <title>Buckets - DCellar{networkTag(runtimeEnv)}</title>
-      </Head>
-      <Flex mb={16} alignItems="center" justifyContent="space-between">
-        <Box as="h1" fontSize={24} fontWeight={700}>
-          Buckets
-        </Box>
-        <NewBucket />
-      </Flex>
+    <GAContextProvider prefix={'dc.bucket'}>
+      <BucketOperations />
+      <PageTitle title={'Buckets'} metaTitle={'Buckets'}>
+        <CreateBucket />
+      </PageTitle>
+      {discontinue && (
+        <DiscontinueBanner
+          content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
+          height={44}
+          marginBottom={16}
+        />
+      )}
       <BucketList />
-    </>
+    </GAContextProvider>
   );
 };

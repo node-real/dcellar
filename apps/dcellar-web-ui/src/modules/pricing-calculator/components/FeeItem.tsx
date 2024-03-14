@@ -1,8 +1,6 @@
-import { Flex, Text, Box } from '@totejs/uikit';
-import React from 'react';
-import { displayUsd } from './Calculator';
 import { smMedia } from '@/modules/responsive';
-import { displayTokenSymbol } from '@/utils/wallet';
+import { Box, Flex, Text } from '@node-real/uikit';
+import { displayUsd } from './Calculator';
 
 type FeeItemProps = {
   title: string;
@@ -12,6 +10,7 @@ type FeeItemProps = {
   fee: string;
   bnbPrice: string;
 };
+
 export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItemProps) => (
   <Flex alignItems={'center'} justifyContent={'space-between'}>
     <Flex
@@ -87,7 +86,7 @@ export const FeeItem = ({ title, size, unit, fee, storeTime, bnbPrice }: FeeItem
         sx={{
           [smMedia]: {
             fontSize: '12px',
-            color: 'readable.tertiary'
+            color: 'readable.tertiary',
           },
         }}
       >

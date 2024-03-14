@@ -1,11 +1,11 @@
-import React from 'react';
-import { Flex, Link, Text } from '@totejs/uikit';
-import { CopyText } from '@/components/common/CopyText';
-import { formatAddress, trimAddress } from '@/utils/string';
-import { GAClick } from '@/components/common/GATracker';
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
 import { IconFont } from '@/components/IconFont';
+import { CopyText } from '@/components/common/CopyText';
+import { GAClick } from '@/components/common/GATracker';
+import { LoadingAdaptor } from '@/modules/accounts/components/LoadingAdaptor';
+import { trimAddress } from '@/utils/string';
+import { Flex, Link, Text } from '@node-real/uikit';
+import React from 'react';
 
 export const renderPropRow = (key: string, value: React.ReactNode) => {
   return (
@@ -55,7 +55,7 @@ export const renderAddressLink = (
   );
 };
 
-export const renderTags = ({ onClick, tagsCount}: { onClick: () => void; tagsCount: number}) => {
+export const renderTags = ({ onClick, tagsCount }: { onClick: () => void; tagsCount: number }) => {
   return (
     <Flex
       justifyContent={'space-between'}

@@ -1,18 +1,18 @@
-import React, { memo } from 'react';
-import { Table, ConfigProvider, TableProps } from 'antd';
-import { ConfigProviderProps } from 'antd/es/config-provider';
-import styled from '@emotion/styled';
+import { antdTheme } from '@/base/theme/antd';
+import { IconFont } from '@/components/IconFont';
 import {
   SimplePagination,
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
-import { Badge, Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@totejs/uikit';
 import { useAppSelector } from '@/store';
-import { selectUploadQueue, UploadFile } from '@/store/slices/global';
-import { find } from 'lodash-es';
-import { antdTheme } from '@/base/theme/antd';
-import { IconFont } from '@/components/IconFont';
+import { UploadObject, selectUploadQueue } from '@/store/slices/global';
 import { formatBytes } from '@/utils/formatter';
+import styled from '@emotion/styled';
+import { Badge, Box, Flex, Pagination, PaginationProps, Text, keyframes } from '@node-real/uikit';
+import { ConfigProvider, Table, TableProps } from 'antd';
+import { ConfigProviderProps } from 'antd/es/config-provider';
+import { find } from 'lodash-es';
+import { memo } from 'react';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -164,15 +164,15 @@ export const UploadProgress = (props: { progress: number }) => {
 };
 
 export const UploadStatus = ({ object, size }: { object: string; size: number }) => {
-  const { loginAccount } = useAppSelector((root) => root.persist);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const queue = useAppSelector(selectUploadQueue(loginAccount));
 
-  const file = find<UploadFile>(queue, (q) => {
+  const file = find<UploadObject>(queue, (q) => {
     const objectInList = [
       q.bucketName,
       ...q.prefixFolders,
-      q.waitFile.relativePath || '',
-      q.waitFile.name,
+      q.waitObject.relativePath || '',
+      q.waitObject.name,
     ]
       .filter((item) => !!item)
       .join('/');

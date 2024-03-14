@@ -1,7 +1,7 @@
 import { IconFont } from '@/components/IconFont';
 import { DCButton, DCButtonProps } from '@/components/common/DCButton';
 import { InternalRoutePaths } from '@/constants/paths';
-import { Box, CircleProps, Flex } from '@totejs/uikit';
+import { Box, CircleProps, Flex } from '@node-real/uikit';
 import Link, { LinkProps } from 'next/link';
 
 export const TransferIcon = ({ children, ...props }: CircleProps) => {
@@ -63,6 +63,7 @@ export const TransferEntry = () => {
       link: InternalRoutePaths.send,
     },
   ];
+
   return (
     <Flex alignItems="center" mt="16px" width="100%" mb="12px" justifyContent="space-between">
       {options.map((item, index) => (

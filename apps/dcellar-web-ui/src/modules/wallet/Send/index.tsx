@@ -1,7 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAccount } from 'wagmi';
-import { useForm } from 'react-hook-form';
-import { debounce, isEmpty } from 'lodash-es';
+import styled from '@emotion/styled';
 import {
   Box,
   Divider,
@@ -13,46 +10,50 @@ import {
   Loading,
   toast,
   useDisclosure,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
+import { useMount, useTimeout } from 'ahooks';
+import { isAddress } from 'ethers/lib/utils.js';
+import { debounce, isEmpty } from 'lodash-es';
+import { useRouter } from 'next/router';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAccount } from 'wagmi';
 
 import Amount from '../components/Amount';
-import { Head } from '../components/Head';
 import Container from '../components/Container';
-import { WalletButton } from '../components/WalletButton';
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { StatusModal } from '../components/StatusModal';
-import { useSendFee } from '../hooks';
 import { Fee } from '../components/Fee';
-import { TWalletFromValues } from '../type';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { FromAccountSelector } from '../components/FromAccountSelector';
-import {
-  TAccount,
-  selectPaymentAccounts,
-  setAccountType,
-  setupAccountInfo,
-  setupAccountType,
-  setupOwnerAccount,
-  setupPaymentAccounts,
-} from '@/store/slices/accounts';
+import { Head } from '../components/Head';
+import { StatusModal } from '../components/StatusModal';
 import { ToAccountSelector } from '../components/ToAccountSelector';
+import { WalletButton } from '../components/WalletButton';
+import { useSendFee } from '../hooks';
+import { TWalletFromValues } from '../type';
+
+import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
+import { Loading as PageLoading } from '@/components/common/Loading';
+import { Tips } from '@/components/common/Tips';
+import { InternalRoutePaths } from '@/constants/paths';
 import {
   depositToPaymentAccount,
   sendToOwnerAccount,
   withdrawFromPaymentAccount,
 } from '@/facade/account';
-import { isAddress } from 'ethers/lib/utils.js';
-import { Tips } from '@/components/common/Tips';
-import { setFromAccount, setToAccount } from '@/store/slices/wallet';
-import { renderFee } from '@/utils/common';
-import { selectBnbPrice } from '@/store/slices/global';
-import { useRouter } from 'next/router';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  AccountEntity,
+  selectPaymentAccounts,
+  setAccountType,
+  setupAccountRecords,
+  setupAccountType,
+  setupOwnerAccount,
+  setupPaymentAccounts,
+} from '@/store/slices/accounts';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { setTransferFromAccount, setTransferToAccount } from '@/store/slices/wallet';
+import { renderFee } from '@/utils/common';
 import { removeTrailingSlash } from '@/utils/string';
-import { InternalRoutePaths } from '@/constants/paths';
-import styled from '@emotion/styled';
-import { Loading as PageLoading } from '@/components/common/Loading';
-import { useMount, useTimeout } from 'ahooks';
 
 export type TxType =
   | 'withdraw_from_payment_account'
@@ -63,24 +64,27 @@ interface SendProps {}
 
 export const Send = memo<SendProps>(function Send() {
   const dispatch = useAppDispatch();
-  const initFormRef = useRef(false);
-  const exchangeRate = useAppSelector(selectBnbPrice);
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const [timeout, setTimeout] = useState(false);
-  const {
-    isLoadingAccountInfo,
-    bankBalance,
-    accountTypes,
-    accountInfo,
-    ownerAccount,
-    isLoadingPaymentAccounts,
-    paymentAccounts: _paymentAccounts,
-  } = useAppSelector((root) => root.accounts);
-  const router = useRouter();
-  const paymentAccountsInitialize = loginAccount in _paymentAccounts;
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
+  const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+  const accountTypeRecords = useAppSelector((root) => root.accounts.accountTypeRecords);
+  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
+  const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
+  const paymentAccountListRecords = useAppSelector(
+    (root) => root.accounts.paymentAccountListRecords,
+  );
+  const transferFromAccount = useAppSelector((root) => root.wallet.transferFromAccount);
+  const transferToAccount = useAppSelector((root) => root.wallet.transferToAccount);
+  const transferFromAddress = useAppSelector((root) => root.wallet.transferFromAddress);
+  const transferToAddress = useAppSelector((root) => root.wallet.transferToAddress);
+
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
-  const { fromAccount, toAccount, from, to } = useAppSelector((root) => root.wallet);
+  const initFormRef = useRef(false);
+  const router = useRouter();
   const { connector } = useAccount();
+  const [timeout, setTimeout] = useState(false);
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [status, setStatus] = useState<any>('success');
   const [errorMsg, setErrorMsg] = useState<any>('Oops, something went wrong');
@@ -88,21 +92,30 @@ export const Send = memo<SendProps>(function Send() {
   const [loadingToAccount, setLoadingToAccount] = useState(false);
   const { feeData, isLoading } = useSendFee();
   const [toJsErrors, setToJsErrors] = useState<string[]>([]);
-  const { loading: isLoadingSettlementFee, settlementFee } = useSettlementFee(fromAccount.address);
+  const { loading: isLoadingSettlementFee, settlementFee } = useSettlementFee(
+    transferFromAccount.address,
+  );
+
+  const paymentAccountsInitialize = loginAccount in paymentAccountListRecords;
+  const isDisableToAccount =
+    !isEmpty(transferFromAccount) && transferFromAccount.address !== loginAccount;
+
   const balance = useMemo(() => {
-    if (isEmpty(fromAccount)) return '';
-    if (fromAccount.name.toLowerCase().includes('owner account')) {
+    if (isEmpty(transferFromAccount)) return '';
+    if (transferFromAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountInfo[fromAccount?.address]?.staticBalance || '';
-  }, [accountInfo, bankBalance, fromAccount]);
+    return accountRecords[transferFromAccount?.address]?.staticBalance || '';
+  }, [accountRecords, bankBalance, transferFromAccount]);
+
   const toBalance = useMemo(() => {
-    if (isEmpty(toAccount)) return '';
-    if (toAccount.name.toLowerCase().includes('owner account')) {
+    if (isEmpty(transferToAccount)) return '';
+    if (transferToAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountInfo[toAccount?.address]?.staticBalance || '';
-  }, [accountInfo, bankBalance, toAccount]);
+    return accountRecords[transferToAccount?.address]?.staticBalance || '';
+  }, [accountRecords, bankBalance, transferToAccount]);
+
   const {
     handleSubmit,
     register,
@@ -114,61 +127,39 @@ export const Send = memo<SendProps>(function Send() {
   } = useForm<TWalletFromValues>({
     mode: 'all',
   });
-  useMount(async () => {
-    dispatch(setupOwnerAccount());
-    await dispatch(setupPaymentAccounts());
-  });
 
-  useEffect(() => {
-    if (isLoadingPaymentAccounts || isEmpty(ownerAccount) || initFormRef.current) return;
-    if (!paymentAccountsInitialize) return;
-    if (isEmpty(paymentAccounts)) {
-      initFormRef.current = true;
-      return;
-    }
-    const allList = [...(paymentAccounts || []), ownerAccount];
-    const initialFromAccount = from && allList.find((item) => item.address === from);
-    initialFromAccount && dispatch(setFromAccount(initialFromAccount));
-    const initialToAccount = to && allList.find((item) => item.address === to);
-    dispatch(setToAccount(initialToAccount || paymentAccounts[0]));
-    initFormRef.current = true;
-  }, [paymentAccounts, paymentAccountsInitialize, dispatch, from, ownerAccount, to, isLoadingPaymentAccounts]);
+  const inputAmount = getValues('amount');
 
-  const isDisableToAccount = !isEmpty(fromAccount) && fromAccount.address !== loginAccount;
-  useEffect(() => {
-    if (!isDisableToAccount || isEmpty(ownerAccount) || !initFormRef.current) return;
-    isDisableToAccount && dispatch(setToAccount(ownerAccount));
-  }, [dispatch, isDisableToAccount, ownerAccount]);
+  const isShowFee = useCallback(() => {
+    return isEmpty(errors) && !isEmpty(inputAmount);
+  }, [errors, inputAmount]);
 
   const onModalClose = () => {
     reset();
     onClose();
   };
-  const inputAmount = getValues('amount');
-  const isShowFee = useCallback(() => {
-    return isEmpty(errors) && !isEmpty(inputAmount);
-  }, [errors, inputAmount]);
 
   const txType = useMemo(() => {
-    if (isEmpty(toAccount) || isEmpty(fromAccount)) return;
+    if (isEmpty(transferToAccount) || isEmpty(transferFromAccount)) return;
     if (
-      fromAccount.name.toLowerCase() === 'owner account' &&
+      transferFromAccount.name.toLowerCase() === 'owner account' &&
       ['payment_account', 'non_refundable_payment_account'].includes(
-        accountTypes[toAccount.address],
+        accountTypeRecords[transferToAccount.address],
       )
     ) {
       return 'send_to_payment_account';
     }
-    if (fromAccount.name.toLowerCase().includes('payment account')) {
+    if (transferFromAccount.name.toLowerCase().includes('payment account')) {
       return 'withdraw_from_payment_account';
     }
     if (
-      fromAccount.name.toLowerCase() === 'owner account' &&
-      ['gnfd_account', 'unknown_account'].includes(accountTypes[toAccount.address])
+      transferFromAccount.name.toLowerCase() === 'owner account' &&
+      ['gnfd_account', 'unknown_account'].includes(accountTypeRecords[transferToAccount.address])
     ) {
       return 'send_to_owner_account';
     }
-  }, [accountTypes, fromAccount, toAccount]);
+  }, [accountTypeRecords, transferFromAccount, transferToAccount]);
+
   const txCallback = ({
     res,
     error,
@@ -190,7 +181,7 @@ export const Send = memo<SendProps>(function Send() {
     setViewTxUrl(txUrl);
     if (!isEmpty(freshAddress)) {
       freshAddress.forEach((address) => {
-        dispatch(setupAccountInfo(address));
+        dispatch(setupAccountRecords(address));
       });
     }
     setStatus('success');
@@ -201,89 +192,99 @@ export const Send = memo<SendProps>(function Send() {
   const onSubmit = async (data: any) => {
     setStatus('pending');
     // Another validate before submit.
-    if (txType !== 'withdraw_from_payment_account' && (isEmpty(toAccount) || !toAccount.address)) {
+    if (
+      txType !== 'withdraw_from_payment_account' &&
+      (isEmpty(transferToAccount) || !transferToAccount.address)
+    ) {
       return setToJsErrors(['Address is required.']);
     }
     if (!connector) return;
-    if (txType !== 'withdraw_from_payment_account' && fromAccount.address === toAccount.address) {
+    if (
+      txType !== 'withdraw_from_payment_account' &&
+      transferFromAccount.address === transferToAccount.address
+    ) {
       return toast.error({
         description: 'Sender and recipient cannot be the same.',
         isClosable: true,
       });
     }
     switch (txType) {
-      case 'send_to_payment_account':
+      case 'send_to_payment_account': {
         onOpen();
         const [pRes, pError] = await depositToPaymentAccount(
           {
-            fromAddress: fromAccount.address,
-            toAddress: toAccount.address,
+            fromAddress: transferFromAccount.address,
+            toAddress: transferToAccount.address,
             amount: data.amount,
           },
           connector,
         );
-        txCallback({ res: pRes, error: pError, freshAddress: [toAccount.address] });
+        txCallback({ res: pRes, error: pError, freshAddress: [transferToAccount.address] });
         break;
-      case 'withdraw_from_payment_account':
+      }
+      case 'withdraw_from_payment_account': {
         onOpen();
         const [wRes, wError] = await withdrawFromPaymentAccount(
           {
             creator: loginAccount,
-            fromAddress: fromAccount.address,
+            fromAddress: transferFromAccount.address,
             amount: data.amount,
           },
           connector,
         );
-        txCallback({ res: wRes, error: wError, freshAddress: [fromAccount.address] });
+        txCallback({ res: wRes, error: wError, freshAddress: [transferFromAccount.address] });
         break;
-      case 'send_to_owner_account':
+      }
+      case 'send_to_owner_account': {
         onOpen();
         const [sRes, sError] = await sendToOwnerAccount(
           {
-            fromAddress: fromAccount.address,
-            toAddress: toAccount.address,
+            fromAddress: transferFromAccount.address,
+            toAddress: transferToAccount.address,
             amount: data.amount,
           },
           connector,
         );
         txCallback({ res: sRes, error: sError });
+        break;
+      }
       default:
         break;
     }
   };
 
-  const onChangeFromAccount = async (account: TAccount) => {
+  const onChangeFromAccount = async (account: AccountEntity) => {
     if (!isAddress(account.address)) return;
-    const accountType = accountTypes[account.address];
-    const accountDetail = accountInfo[account.address];
+    const accountType = accountTypeRecords[account.address];
+    const accountDetail = accountRecords[account.address];
     // optimize performance
     if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
       // Avoid from owner account to owner account
-      if (account.address === loginAccount && toAccount.address === loginAccount) {
-        dispatch(setToAccount(paymentAccounts[0]));
+      if (account.address === loginAccount && transferToAccount.address === loginAccount) {
+        dispatch(setTransferToAccount(paymentAccounts[0]));
       }
-      return dispatch(setFromAccount(account));
+      return dispatch(setTransferFromAccount(account));
     }
 
-    dispatch(setFromAccount(account));
-    await dispatch(setupAccountInfo(account.address));
+    dispatch(setTransferFromAccount(account));
+    await dispatch(setupAccountRecords(account.address));
   };
 
   const onChangeToAccount = useCallback(
-    debounce(async (account: TAccount) => {
+    debounce(async (account: AccountEntity) => {
       setToJsErrors([]);
       if (!!account.address && !isAddress(account.address)) {
         dispatch(setAccountType({ addr: account.address, type: 'error_account' }));
         return setToJsErrors(['Invalid address']);
       }
-      const accountType = accountTypes[account.address];
-      const accountDetail = accountInfo[account.address];
+      const accountType = accountTypeRecords[account.address];
+      const accountDetail = accountRecords[account.address];
       if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
-        return dispatch(setToAccount(account));
+        return dispatch(setTransferToAccount(account));
       }
       setLoadingToAccount(true);
-      dispatch(setToAccount(account));
-      await dispatch(setupAccountInfo(account.address));
+      dispatch(setTransferToAccount(account));
+      await dispatch(setupAccountRecords(account.address));
       await dispatch(setupAccountType(account.address));
       setLoadingToAccount(false);
     }, 500),
@@ -292,8 +293,8 @@ export const Send = memo<SendProps>(function Send() {
 
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
-    if (isLoadingAccountInfo || isEmpty(fromAccount)) return errors;
-    const fromAccountDetail = accountInfo[fromAccount?.address];
+    if (accountInfoLoading || isEmpty(transferFromAccount)) return errors;
+    const fromAccountDetail = accountRecords[transferFromAccount?.address];
     if (isEmpty(fromAccountDetail)) return errors;
     const isPaymentAccount = fromAccountDetail.name.toLocaleLowerCase().includes('payment account');
     if (!isPaymentAccount) {
@@ -306,14 +307,49 @@ export const Send = memo<SendProps>(function Send() {
       errors.push('This account is non-refundable.');
     }
     return errors;
-  }, [accountInfo, fromAccount, isLoadingAccountInfo]);
+  }, [accountRecords, transferFromAccount, accountInfoLoading]);
 
   const toErrors = useMemo(() => {
     const errors: string[] = toJsErrors;
-    if (isLoadingAccountInfo || isEmpty(toAccount)) return errors;
+    if (accountInfoLoading || isEmpty(transferToAccount)) return errors;
 
     return errors;
-  }, [isLoadingAccountInfo, toAccount, toJsErrors]);
+  }, [accountInfoLoading, transferToAccount, toJsErrors]);
+
+  useMount(async () => {
+    dispatch(setupOwnerAccount());
+    await dispatch(setupPaymentAccounts());
+  });
+
+  useEffect(() => {
+    if (paymentAccountsLoading || isEmpty(ownerAccount) || initFormRef.current) return;
+    if (!paymentAccountsInitialize) return;
+    if (isEmpty(paymentAccounts)) {
+      initFormRef.current = true;
+      return;
+    }
+    const allList = [...(paymentAccounts || []), ownerAccount];
+    const initialFromAccount =
+      transferFromAddress && allList.find((item) => item.address === transferFromAddress);
+    initialFromAccount && dispatch(setTransferFromAccount(initialFromAccount));
+    const initialToAccount =
+      transferToAddress && allList.find((item) => item.address === transferToAddress);
+    dispatch(setTransferToAccount(initialToAccount || paymentAccounts[0]));
+    initFormRef.current = true;
+  }, [
+    paymentAccounts,
+    paymentAccountsInitialize,
+    dispatch,
+    transferFromAddress,
+    ownerAccount,
+    transferToAddress,
+    paymentAccountsLoading,
+  ]);
+
+  useEffect(() => {
+    if (!isDisableToAccount || isEmpty(ownerAccount) || !initFormRef.current) return;
+    isDisableToAccount && dispatch(setTransferToAccount(ownerAccount));
+  }, [dispatch, isDisableToAccount, ownerAccount]);
 
   // force remove loading
   useTimeout(() => {
@@ -342,7 +378,10 @@ export const Send = memo<SendProps>(function Send() {
             >
               From
             </FormLabel>
-            <FromAccountSelector from={from} onChange={(e) => onChangeFromAccount(e)} />
+            <FromAccountSelector
+              from={transferFromAddress}
+              onChange={(e) => onChangeFromAccount(e)}
+            />
             <FormErrorMessage textAlign={'left'}>
               {fromErrors && fromErrors.map((error, index) => <Box key={index}>{error}</Box>)}
             </FormErrorMessage>
@@ -355,7 +394,7 @@ export const Send = memo<SendProps>(function Send() {
               color="#76808F"
             >
               Balance on Greenfield:{' '}
-              {isLoadingAccountInfo === fromAccount.address ? (
+              {accountInfoLoading === transferFromAccount.address ? (
                 <Loading size={12} marginX={4} color="readable.normal" />
               ) : (
                 renderFee(balance, exchangeRate + '')
@@ -378,14 +417,14 @@ export const Send = memo<SendProps>(function Send() {
               />
             </FormLabel>
             <ToAccountSelector
-              value={to}
+              value={transferToAddress}
               isError={!isEmpty(toJsErrors)}
               disabled={isDisableToAccount}
               loading={loadingToAccount}
               onChange={(e) => onChangeToAccount(e)}
             />
             {!['gnfd_account', 'unknown_account', 'error_account'].includes(
-              accountTypes[toAccount.address],
+              accountTypeRecords[transferToAccount.address],
             ) && (
               <FormHelperText
                 display={'flex'}
@@ -444,7 +483,7 @@ export const Send = memo<SendProps>(function Send() {
               (txType !== 'withdraw_from_payment_account' && !isEmpty(toErrors)) ||
               isSubmitting ||
               isLoading ||
-              (!!isLoadingAccountInfo && router.pathname !== InternalRoutePaths.wallet)
+              (!!accountInfoLoading && router.pathname !== InternalRoutePaths.wallet)
             }
             isSubmitting={isSubmitting}
             gaClickSwitchName="dc.wallet.send.switch_network.click"

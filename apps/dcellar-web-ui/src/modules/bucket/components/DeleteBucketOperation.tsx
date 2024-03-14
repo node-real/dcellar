@@ -1,28 +1,32 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@totejs/uikit';
-import { useAccount, useNetwork } from 'wagmi';
-import { isEmpty } from 'lodash-es';
+import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { selectStoreFeeParams, setupStoreFeeParams } from '@/store/slices/global';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { deleteBucket, pollingDeleteBucket, preExecDeleteBucket } from '@/facade/bucket';
+import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
+import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
+import { TotalFees } from '@/modules/object/components/TotalFees';
+import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
+import { PaymentInsufficientBalance } from '@/modules/object/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
-import { useAsyncEffect } from 'ahooks';
+import { TBucket, setupBucketList } from '@/store/slices/bucket';
+import {
+  selectGnfdGasFeesConfig,
+  selectStoreFeeParams,
+  setSignatureAction,
+  setupStoreFeeParams,
+} from '@/store/slices/global';
+import { selectBucketSp } from '@/store/slices/sp';
+import { reportEvent } from '@/utils/gtag';
+import { BN } from '@/utils/math';
 import { getQuotaNetflowRate } from '@/utils/payment';
 import { MsgDeleteBucketTypeUrl } from '@bnb-chain/greenfield-js-sdk';
-import { E_OFF_CHAIN_AUTH } from '@/facade/error';
-import { setStatusDetail, TStatusDetail } from '@/store/slices/object';
-import { BUTTON_GOT_IT, FILE_TITLE_DELETE_FAILED, WALLET_CONFIRM } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { TBucket, setupBuckets } from '@/store/slices/bucket';
-import { selectBucketSp } from '@/store/slices/sp';
-import { OBJECT_ERROR_TYPES } from '@/modules/object/ObjectError';
-import { BN } from '@/utils/math';
-import { reportEvent } from '@/utils/gtag';
-import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { Animates } from '@/components/AnimatePng';
-import { TotalFees } from '@/modules/object/components/TotalFees';
+import { Box, Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
+import { useAsyncEffect } from 'ahooks';
+import { isEmpty } from 'lodash-es';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useAccount, useNetwork } from 'wagmi';
 
 interface DeleteBucketOperationProps {
   selectedBucketInfo: TBucket;
@@ -32,29 +36,27 @@ interface DeleteBucketOperationProps {
 export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
   function DeleteBucketOperation({ selectedBucketInfo: bucket, onClose = () => {} }) {
     const dispatch = useAppDispatch();
+    const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+    const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
+    const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
+
+    const PaymentAddress = bucket.PaymentAddress;
+    const accountDetail = useAppSelector(selectAccount(PaymentAddress));
+    const storeFeeParams = useAppSelector(selectStoreFeeParams);
+    const primarySp = useAppSelector(selectBucketSp(bucket))!;
+
     const [isGasLoading, setIsGasLoading] = useState(false);
     // pending, fetching, failed, notEmpty
     const { connector } = useAccount();
-    const { loginAccount } = useAppSelector((root) => root.persist);
-    const { bankBalance } = useAppSelector((root) => root.accounts);
-    const { chain } = useNetwork();
-    const { gasObjects } = useAppSelector((root) => root.global.gasHub);
-    const PaymentAddress = bucket.PaymentAddress;
-    const { settlementFee } = useSettlementFee(PaymentAddress);
-    const accountDetail = useAppSelector(selectAccount(PaymentAddress));
-    const [balanceEnough, setBalanceEnough] = useState(true);
-    const storeFeeParams = useAppSelector(selectStoreFeeParams);
-    const chargeQuota = bucket.ChargedReadQuota;
-    const { gasFee } = gasObjects?.[MsgDeleteBucketTypeUrl] || {};
-    const [loading, setLoading] = useState(false);
     const { setOpenAuthModal } = useOffChainAuth();
-    const bucketName = bucket.BucketName;
-    const primarySp = useAppSelector(selectBucketSp(bucket))!;
+    const { chain } = useNetwork();
+    const { settlementFee } = useSettlementFee(PaymentAddress);
+    const [loading, setLoading] = useState(false);
+    const [balanceEnough, setBalanceEnough] = useState(true);
 
-    useAsyncEffect(async () => {
-      if (!isEmpty(storeFeeParams)) return;
-      dispatch(setupStoreFeeParams());
-    }, [dispatch]);
+    const chargeQuota = bucket.ChargedReadQuota;
+    const { gasFee } = gnfdGasFeesConfig?.[MsgDeleteBucketTypeUrl] || {};
+    const bucketName = bucket.BucketName;
 
     const errorHandler = (error: string) => {
       setLoading(false);
@@ -64,7 +66,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
           return;
         default:
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               title: FILE_TITLE_DELETE_FAILED,
               icon: 'status-failed',
               buttonText: BUTTON_GOT_IT,
@@ -77,9 +79,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
     const quotaFee = useMemo(() => {
       if (isEmpty(storeFeeParams)) return '-1';
       const netflowRate = getQuotaNetflowRate(chargeQuota, storeFeeParams);
-      return BN(netflowRate)
-        .times(storeFeeParams.reserveTime)
-        .toString();
+      return BN(netflowRate).times(storeFeeParams.reserveTime).toString();
     }, [storeFeeParams, chargeQuota]);
 
     const requestGetBucketFee = useCallback(async () => {
@@ -89,7 +89,7 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         if (error.toLowerCase().includes('not empty')) {
           onClose();
           dispatch(
-            setStatusDetail({
+            setSignatureAction({
               ...OBJECT_ERROR_TYPES['BUCKET_NOT_EMPTY'],
               buttonText: BUTTON_GOT_IT,
             }),
@@ -97,16 +97,11 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         }
       }
       setIsGasLoading(false);
-    }, [loginAccount, bucketName, gasObjects]);
-
-    useEffect(() => {
-      if (isEmpty(chain)) return;
-      requestGetBucketFee();
-    }, [chain, requestGetBucketFee]);
+    }, [loginAccount, bucketName, gnfdGasFeesConfig]);
 
     const onDeleteClick = async () => {
       dispatch(
-        setStatusDetail({
+        setSignatureAction({
           title: 'Deleting Bucket',
           icon: Animates.delete,
           desc: WALLET_CONFIRM,
@@ -129,8 +124,8 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
         endpoint: primarySp.endpoint,
       });
       setLoading(false);
-      dispatch(setStatusDetail({} as TStatusDetail));
-      dispatch(setupBuckets(loginAccount));
+      dispatch(setSignatureAction({}));
+      dispatch(setupBucketList(loginAccount));
       toast.success({
         description: `Bucket deleted successfully!`,
       });
@@ -139,13 +134,21 @@ export const DeleteBucketOperation = memo<DeleteBucketOperationProps>(
       });
     };
 
+    useAsyncEffect(async () => {
+      if (!isEmpty(storeFeeParams)) return;
+      dispatch(setupStoreFeeParams());
+    }, [dispatch]);
+
+    useEffect(() => {
+      if (isEmpty(chain)) return;
+      requestGetBucketFee();
+    }, [chain, requestGetBucketFee]);
+
     return (
       <>
         <ModalHeader lineHeight={'36px'}>Confirm Delete</ModalHeader>
         <ModalBody marginTop={'8px'}>
-          <Box className="ui-modal-desc">
-            {`Are you sure to delete this bucket "${bucketName}"?`}
-          </Box>
+          <Box className="ui-modal-desc">{`Are you sure to delete this bucket "${bucketName}"?`}</Box>
           <TotalFees
             expandable={false}
             refund={true}

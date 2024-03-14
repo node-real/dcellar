@@ -1,33 +1,33 @@
-import { Box, Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@totejs/uikit';
-import { OwnerAccount } from './components/OwnerAccount';
-import { PaymentAccounts } from './components/PaymentAccounts';
-import { NonRefundableModal } from './components/NonRefundableModal';
-import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
-import { useAppDispatch } from '@/store';
-import { useMount } from 'ahooks';
-import { AccountOperations } from '@/modules/accounts/components/AccountOperations';
-import Head from 'next/head';
-import { networkTag } from '@/utils/common';
 import { runtimeEnv } from '@/base/env';
-import { CurForecastCost } from './components/CurForecastCost';
-import { CurMonthCost } from './components/CurMonthCost';
+import { AccountOperations } from '@/modules/accounts/components/AccountOperations';
+import { useAppDispatch } from '@/store';
+import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import {
-  setupTotalCost,
-  setupAllCostTrend,
-  setupAllBills,
-  setCurrentAllBillsPage,
   setAllFilterAccounts,
   setAllFilterRange,
   setAllFilterTypes,
+  setCurrentAllBillsPage,
+  setupAllBills,
+  setupAllCostTrend,
+  setupTotalCost,
 } from '@/store/slices/billing';
+import { networkTag } from '@/utils/common';
+import { Box, Flex, Tab, TabList, TabPanel, TabPanels, Tabs, Text } from '@node-real/uikit';
+import { useMount } from 'ahooks';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import { stringify } from 'querystring';
+import { useEffect } from 'react';
+import { AllBillingHistory } from './components/AllBillingHistory';
+import { SectionHeader } from './components/Common';
+import { CurForecastCost } from './components/CurForecastCost';
+import { CurMonthCost } from './components/CurMonthCost';
+import { CreatePaymentAccount } from './components/CreatePaymentAccount';
+import { NonRefundableModal } from './components/NonRefundableModal';
+import { OwnerAccount } from './components/OwnerAccount';
+import { PaymentAccountList } from './components/PaymentAccountList';
 import { TotalCost } from './components/TotalCost';
 import { TotalCostTrend } from './components/TotalCostTrend';
-import { NewPA } from './components/NewPA';
-import { SectionHeader } from './components/Common';
-import { AllBillingHistory } from './components/AllBillingHistory';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { stringify } from 'querystring';
 
 export type BillingHistoryQuery = {
   tab: 'a' | 'b';
@@ -36,17 +36,28 @@ export type BillingHistoryQuery = {
   to?: string;
   address?: string[];
   type?: string[];
-}
+};
+
 const formatTabKey = (t: string | string[] | undefined) => {
   return typeof t === 'string' && ['a', 'b'].includes(t) ? t : 'a';
 };
+
 export const Accounts = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const query = router.query;
   const { tab, page, from, to, address, type } = query;
-
   const activeKey = formatTabKey(tab);
+
+  const onChangeKey = (tabKey: string) => {
+    query.tab = tabKey;
+    // router.push(`/accounts?${stringify(query)}`, undefined, { shallow: false, scroll: false });
+    router.push(`/accounts?${stringify({ tab: tabKey })}`, undefined, {
+      shallow: false,
+      scroll: false,
+    });
+  };
+
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
@@ -67,12 +78,6 @@ export const Accounts = () => {
     dispatch(setCurrentAllBillsPage(curPage));
     dispatch(setupAllBills());
   }, [page, from, to, dispatch, address, type, tab]);
-
-  const onChangeKey = (tabKey: string) => {
-    query.tab = tabKey;
-    // router.push(`/accounts?${stringify(query)}`, undefined, { shallow: false, scroll: false });
-    router.push(`/accounts?${stringify({tab: tabKey})}`, undefined, { shallow: false, scroll: false });
-  };
 
   return (
     <>
@@ -98,7 +103,7 @@ export const Accounts = () => {
             <TotalCostTrend />
           </Flex>
         </Flex>
-        <Box mt={24} id='tab_container'>
+        <Box mt={24} id="tab_container">
           <Tabs isLazy={true} activeKey={activeKey}>
             <TabList>
               <Tab
@@ -127,10 +132,10 @@ export const Accounts = () => {
                 <Flex flexDirection={'column'} gap={16}>
                   <Flex justifyContent={'space-between'} alignItems={'center'} marginTop={16}>
                     <SectionHeader>Account List</SectionHeader>
-                    <NewPA />
+                    <CreatePaymentAccount />
                   </Flex>
                   <OwnerAccount />
-                  <PaymentAccounts />
+                  <PaymentAccountList />
                 </Flex>
               </TabPanel>
               <TabPanel panelKey={'b'}>

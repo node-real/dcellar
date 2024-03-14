@@ -1,9 +1,9 @@
-import React, { ReactElement } from 'react';
-import { BaseHeader } from '../LandingHeader/BaseHeader';
-import { Footer } from '../Footer';
-import { Box, Flex } from '@totejs/uikit';
-import { MobileHeader } from '../LandingHeader/MobileHeader';
 import { CookiePolicyContainer } from '@/components/CookiePolicyContainer';
+import { Box, Flex } from '@node-real/uikit';
+import { ReactElement } from 'react';
+import { Footer } from '../Footer';
+import { BaseHeader } from '../LandingHeader/BaseHeader';
+import { MobileHeader } from '../LandingHeader/MobileHeader';
 
 export interface LandingPageProps {
   page: ReactElement;

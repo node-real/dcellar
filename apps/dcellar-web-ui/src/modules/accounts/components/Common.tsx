@@ -3,7 +3,7 @@ import { CopyText } from '@/components/common/CopyText';
 import { DCLink } from '@/components/common/DCLink';
 import { getShortenWalletAddress } from '@/utils/wallet';
 import styled from '@emotion/styled';
-import { BoxProps, TextProps, Text, Box, Flex } from '@totejs/uikit';
+import { Box, BoxProps, Flex, Text, TextProps } from '@node-real/uikit';
 import { TimeRangePickerProps } from 'antd';
 import dayjs from 'dayjs';
 
@@ -14,6 +14,7 @@ export const CardContainer = ({ children, ...props }: BoxProps) => {
     </Box>
   );
 };
+
 export const CardTitle = ({ children, ...props }: TextProps) => {
   return (
     <Text fontSize={16} fontWeight={700} {...props}>
@@ -68,6 +69,7 @@ export const FilterContainer = styled(Flex)`
 
   .menu-list-empty-icon {
     display: none;
+
     + p {
       color: var(--ui-colors-readable-tertiary);
       font-size: 12px;
@@ -111,9 +113,11 @@ export const FilterContainer = styled(Flex)`
 
     .icon-selected {
       color: var(--ui-colors-readable-normal);
+
       &:hover {
         color: var(--ui-colors-brand-brand6);
       }
+
       display: inline;
     }
   }
@@ -175,7 +179,7 @@ export const MenuHeader = styled(Flex)`
 
 export const MenuFooter = styled(Flex)`
   font-weight: 500;
-  justify-content: ${(props) => props.justifyContent || 'flex-end'};;
+  justify-content: ${(props) => props.justifyContent || 'flex-end'};
   height: 31px;
   align-items: center;
   padding: 8px 10px;

@@ -1,17 +1,16 @@
 import { SettlementTips } from '@/modules/object/components/TotalFees/SettlementTips';
 import { renderFeeValue } from '@/modules/object/utils';
 import { useAppSelector } from '@/store';
-import { TAccount } from '@/store/slices/accounts';
-import { selectBnbPrice } from '@/store/slices/global';
-import { Box, Flex, Text } from '@totejs/uikit';
-import { BoxProps } from '@totejs/uikit';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
+import { Flex, Text } from '@node-real/uikit';
 
-export type SettlementFeeProps =  {
+export type SettlementFeeProps = {
   amount: string;
 };
 
 export const SettlementFee = ({ amount }: SettlementFeeProps) => {
-  const exchangeRate = useAppSelector(selectBnbPrice);
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
+
   return (
     <Flex w="100%" alignItems="center" justifyContent="space-between">
       <Flex alignItems="center">

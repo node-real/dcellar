@@ -1,14 +1,14 @@
 import { usePreloadPages } from '@/modules/welcome/hooks/usePreloadPages';
-import { Box, BoxProps, Flex, Heading, HeadingProps } from '@totejs/uikit';
+import { Box, BoxProps, Flex, Heading, HeadingProps } from '@node-real/uikit';
 import React from 'react';
-import { Banner } from './components/Banner';
-import { StartBuild } from './components/StartBuild';
-import { KeyFeatures } from './components/KeyFeatures';
-import { HelpDevelopers } from './components/HelpDevelopers';
-import { Building } from './components/Building';
-import { PricingCalculator } from './components/PricingCalculator';
-import { DeveloperTools } from './components/DeveloperTools';
 import { INTER_FONT } from '../wallet/constants';
+import { Banner } from './components/Banner';
+import { Building } from './components/Building';
+import { DeveloperTools } from './components/DeveloperTools';
+import { HelpDevelopers } from './components/HelpDevelopers';
+import { KeyFeatures } from './components/KeyFeatures';
+import { PricingCalculator } from './components/PricingCalculator';
+import { StartBuild } from './components/StartBuild';
 
 export const xlMedia = `@media (min-width: 1440px)`;
 export const lgMedia = `@media (min-width: 954px) and (max-width: 1439px)`;
@@ -16,11 +16,8 @@ export const mdMedia = `@media (min-width: 768px) and (max-width: 977px)`;
 export const smMedia = `@media (max-width: 767px)`;
 
 type LandingResponsiveProps = BoxProps & React.PropsWithChildren;
-export const LandingResponsiveContainer = ({
-  children,
-  sx,
-  ...restProps
-}: LandingResponsiveProps) => {
+
+export const LandingResponsiveContainer = ({ children, ...restProps }: LandingResponsiveProps) => {
   return (
     <Box
       margin={'auto auto'}

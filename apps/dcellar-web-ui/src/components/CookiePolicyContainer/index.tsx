@@ -1,9 +1,9 @@
-import { CookiePolicy, TCookieOperate, TCookieType } from '../CookiePolicy';
-import { useRouter } from 'next/router';
-import React, { useCallback, useEffect, useState } from 'react';
 import { GA_ID } from '@/base/env';
-import { forbidGaReport, forbidStReport, startGaReport, startStReport } from './utils';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
+import { CookiePolicy, TCookieOperate, TCookieType } from '../CookiePolicy';
 import { GAShow } from '../common/GATracker';
+import { forbidGaReport, forbidStReport, startGaReport, startStReport } from './utils';
 
 const EXCLUDE_ROUTE_PATH_LIST = ['/terms'];
 const GA_STORAGE_KEY = 'gaTrackingAccept';
@@ -12,48 +12,15 @@ const ST_STORAGE_KEY = 'stTrackingAccept';
 export const CookiePolicyContainer = () => {
   const [show, setShow] = useState(false);
   const { pathname } = useRouter();
+
   const noShow = EXCLUDE_ROUTE_PATH_LIST.includes(pathname);
 
   const getCookieAccepted = (key: string) => {
     if (typeof window === 'undefined') return 'pending';
 
     const value = window.localStorage.getItem(key);
-    const status = value === null ? 'pending' : value === 'true' ? true : false;
-
-    return status;
+    return value === null ? 'pending' : value === 'true';
   };
-
-  useEffect(() => {
-    const gaAccepted = getCookieAccepted(GA_STORAGE_KEY);
-    const stAccepted = getCookieAccepted(ST_STORAGE_KEY);
-    setShow(false);
-    if (gaAccepted === 'pending' || stAccepted === 'pending') {
-      setShow(true);
-      forbidStReport();
-      forbidGaReport(GA_ID);
-      return;
-    }
-    if (gaAccepted && stAccepted) {
-      startStReport();
-      startGaReport(GA_ID);
-      return;
-    }
-    if (gaAccepted && !stAccepted) {
-      forbidStReport();
-      startGaReport(GA_ID);
-      return;
-    }
-    if (!gaAccepted && stAccepted) {
-      startStReport();
-      forbidGaReport(GA_ID);
-      return;
-    }
-    if (!gaAccepted && !stAccepted) {
-      forbidStReport();
-      forbidGaReport(GA_ID);
-      return;
-    }
-  }, []);
 
   const onClose = useCallback((type: TCookieType, operate: TCookieOperate) => {
     if (operate === 'close') {
@@ -90,6 +57,40 @@ export const CookiePolicyContainer = () => {
       startStReport();
       forbidGaReport(GA_ID);
       setShow(false);
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    const gaAccepted = getCookieAccepted(GA_STORAGE_KEY);
+    const stAccepted = getCookieAccepted(ST_STORAGE_KEY);
+
+    setShow(false);
+
+    if (gaAccepted === 'pending' || stAccepted === 'pending') {
+      setShow(true);
+      forbidStReport();
+      forbidGaReport(GA_ID);
+      return;
+    }
+    if (gaAccepted && stAccepted) {
+      startStReport();
+      startGaReport(GA_ID);
+      return;
+    }
+    if (gaAccepted && !stAccepted) {
+      forbidStReport();
+      startGaReport(GA_ID);
+      return;
+    }
+    if (!gaAccepted && stAccepted) {
+      startStReport();
+      forbidGaReport(GA_ID);
+      return;
+    }
+    if (!gaAccepted && !stAccepted) {
+      forbidStReport();
+      forbidGaReport(GA_ID);
       return;
     }
   }, []);

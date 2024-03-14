@@ -9,13 +9,14 @@ import {
   InputRightElement,
   Link,
   Text,
-} from '@totejs/uikit';
-import { useCallback, useMemo } from 'react';
-import { useAccount, useNetwork } from 'wagmi';
-import { isEmpty } from 'lodash-es';
+} from '@node-real/uikit';
 import BigNumber from 'bignumber.js';
+import { isEmpty } from 'lodash-es';
+import { useCallback, useMemo } from 'react';
 import { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useAccount, useNetwork } from 'wagmi';
 
+import { MaxButton } from './MaxButton';
 import {
   CRYPTOCURRENCY_DISPLAY_PRECISION,
   DECIMAL_NUMBER,
@@ -23,20 +24,20 @@ import {
   MIN_AMOUNT,
   WalletOperationInfos,
 } from '../constants';
-import { EOperation, TFeeData, TWalletFromValues } from '../type';
-import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
-import { useAppSelector } from '@/store';
-import { selectBnbPrice } from '@/store/slices/global';
 import { TxType } from '../Send';
-import { trimFloatZero } from '@/utils/string';
+import { EOperation, TFeeData, TWalletFromValues } from '../type';
+import { setMaxAmount } from '../utils/common';
+import { isRightChain } from '../utils/isRightChain';
+
+import { IconFont } from '@/components/IconFont';
+import { useChainsBalance } from '@/context/GlobalContext/WalletBalanceContext';
+import { ErrorResponse } from '@/facade/error';
+import { useAppSelector } from '@/store';
+import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
-import { IconFont } from '@/components/IconFont';
+import { trimFloatZero } from '@/utils/string';
 import { displayTokenSymbol } from '@/utils/wallet';
-import { isRightChain } from '../utils/isRightChain';
-import { MaxButton } from './MaxButton';
-import { ErrorResponse } from '@/facade/error';
-import { setMaxAmount } from '../utils/common';
 
 type AmountProps = {
   disabled: boolean;
@@ -54,7 +55,8 @@ type AmountProps = {
 };
 
 const AmountErrors = {
-  validateWithdrawStaticBalance: "The payment account doesn't have enough balance to pay settlement fee.",
+  validateWithdrawStaticBalance:
+    "The payment account doesn't have enough balance to pay settlement fee.",
   validateWithdrawBankBalance: "The owner account doesn't have enough balance to pay gas fee.",
   validateBalance: 'Insufficient balance.',
   validateFormat: 'Invalid amount.',
@@ -96,18 +98,21 @@ export const Amount = ({
   watch,
   setValue,
 }: AmountProps) => {
-  const bnbPrice = useAppSelector(selectBnbPrice);
-  const { transType } = useAppSelector((root) => root.wallet);
-  const defaultFee = DefaultFee[transType];
-  const curInfo = WalletOperationInfos[transType];
-  const { gasFee, relayerFee } = feeData;
+  const transferType = useAppSelector((root) => root.wallet.transferType);
+
+  const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const { isLoading } = useChainsBalance();
   const { chain } = useNetwork();
   const { connector } = useAccount();
+
+  const defaultFee = DefaultFee[transferType];
+  const curInfo = WalletOperationInfos[transferType];
+  const { gasFee, relayerFee } = feeData;
+  const isSendPage = transferType === 'send';
+
   const isShowMaxButton = useMemo(() => {
     return isRightChain(chain?.id, curInfo?.chainId);
   }, [chain?.id, curInfo?.chainId]);
-  const isSendPage = transType === 'send';
 
   const Balance = useCallback(() => {
     if (isLoading) return null;
@@ -117,7 +122,7 @@ export const Amount = ({
         .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
         .toString(DECIMAL_NUMBER),
     );
-    const usdPrice = BigNumber(balance || 0).times(BigNumber(bnbPrice));
+    const usdPrice = BigNumber(balance || 0).times(BigNumber(exchangeRate));
 
     const unifyUsdPrice = currencyFormatter(usdPrice.toString(DECIMAL_NUMBER));
     return (
@@ -125,12 +130,15 @@ export const Amount = ({
         Balance on {curInfo?.chainName}: {val} {displayTokenSymbol()} ({unifyUsdPrice})
       </>
     );
-  }, [balance, bnbPrice, curInfo?.chainName, isLoading]);
+  }, [balance, exchangeRate, curInfo?.chainName, isLoading]);
 
   const onMaxClick = async () => {
     if (!balance || !feeData) return setValue('amount', '0', { shouldValidate: true });
     if (txType === 'withdraw_from_payment_account') {
-      const cal = BN(balance).minus(settlementFee || '0').dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1).toString();
+      const cal = BN(balance)
+        .minus(settlementFee || '0')
+        .dp(CRYPTOCURRENCY_DISPLAY_PRECISION, 1)
+        .toString();
       const maxAmount = BN(cal).lt(0) ? '0' : cal;
 
       return setValue('amount', maxAmount, {
@@ -138,7 +146,7 @@ export const Amount = ({
       });
     }
 
-    if (transType === 'transfer_in' && refreshFee) {
+    if (transferType === 'transfer_in' && refreshFee) {
       const [realTimeFee, error] = await refreshFee(
         BN(balance).minus(DefaultTransferFee.transfer_in.total).toString(),
       );
@@ -157,7 +165,7 @@ export const Amount = ({
 
     let totalAmount = BigNumber(0);
     const balanceVal = BigNumber(balance || 0);
-    if (transType === EOperation.send) {
+    if (transferType === EOperation.send) {
       totalAmount =
         gasFee.toString() === '0'
           ? BigNumber(val).plus(BigNumber(defaultFee))
@@ -176,18 +184,22 @@ export const Amount = ({
     const precisionStr = val.split('.')[1];
     return !precisionStr || precisionStr.length <= CRYPTOCURRENCY_DISPLAY_PRECISION;
   };
+
   const validateWithdrawBankBalance = () => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(bankBalance as string).isGreaterThanOrEqualTo(gasFee);
   };
+
   const validateWithdrawMaxAmountError = (val: string) => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(val).lt(100);
   };
+
   const validateWithdrawStaticBalance = (val: string) => {
     if (txType !== 'withdraw_from_payment_account') return true;
     return BN(balance).isGreaterThanOrEqualTo(BN(settlementFee || '0').plus(val));
-  }
+  };
+
   const onPaste = (e: any) => {
     e.stopPropagation();
     e.preventDefault();
@@ -201,6 +213,7 @@ export const Amount = ({
   };
 
   watch('amount');
+
   return (
     <>
       <Flex justifyContent={'space-between'}>
@@ -259,7 +272,7 @@ export const Amount = ({
           </InputRightElement>
         </InputGroup>
         <FormErrorMessage textAlign={'right'}>
-          {/* @ts-ignore */}
+          {/* @ts-expect-error TODO */}
           {AmountErrors[errors?.amount?.type]}
         </FormErrorMessage>
         {!isSendPage && (

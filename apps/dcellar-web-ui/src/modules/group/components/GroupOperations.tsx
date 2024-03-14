@@ -1,17 +1,19 @@
-import { memo, useEffect, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store';
 import { DCDrawer } from '@/components/common/DCDrawer';
 import { DCModal } from '@/components/common/DCModal';
 import { useModalValues } from '@/hooks/useModalValues';
-import { GroupOperationsType, selectGroupList, setGroupOperation } from '@/store/slices/group';
-import { find } from 'lodash-es';
-import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { DetailGroupOperation } from '@/modules/group/components/DetailGroupOperation';
 import { CreateGroupOperation } from '@/modules/group/components/CreateGroupOperation';
+import { DetailGroupOperation } from '@/modules/group/components/DetailGroupOperation';
 import { EditGroupOperation } from '@/modules/group/components/EditGroupOperation';
-import { useUnmount } from 'ahooks';
-import { ModalCloseButton } from '@totejs/uikit';
 import { GroupMemberOperation } from '@/modules/group/components/GroupMemberOperation';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { GroupOperationsType, selectGroupList, setGroupOperation } from '@/store/slices/group';
+import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
+import { ModalCloseButton } from '@node-real/uikit';
+import { useUnmount } from 'ahooks';
+import { find } from 'lodash-es';
+import { memo, useCallback, useEffect, useMemo } from 'react';
+import { EditGroupTagsOperation } from './EditGroupTagsOperation';
+import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';
 
 interface GroupOperationsProps {
   level?: 0 | 1;
@@ -19,21 +21,43 @@ interface GroupOperationsProps {
 
 export const GroupOperations = memo<GroupOperationsProps>(function GroupOperations({ level = 0 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { groupOperation } = useAppSelector((root) => root.group);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const groupOperation = useAppSelector((root) => root.group.groupOperation);
+  const groupList = useAppSelector(selectGroupList(loginAccount));
+
   const [id, operation] = groupOperation[level];
   const _operation = useModalValues<GroupOperationsType>(operation);
-  const isDrawer = ['detail', 'create', 'edit', 'add'].includes(operation);
+  const isDrawer = ['detail', 'create', 'edit', 'add', 'edit_tags', 'update_tags'].includes(
+    operation,
+  );
   const isModal = ['delete'].includes(operation);
-  const groupList = useAppSelector(selectGroupList(loginAccount));
   const groupInfo = useMemo(() => {
     return find<GroupInfo>(groupList, (g) => g.id === id);
   }, [groupList, id]);
   const _groupInfo = useModalValues<GroupInfo>(groupInfo!);
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     dispatch(setGroupOperation({ level, operation: ['', ''] }));
-  };
+  }, [level, dispatch]);
+
+  const modalContent = useMemo(() => {
+    switch (_operation) {
+      case 'detail':
+        return <DetailGroupOperation selectGroup={_groupInfo} />;
+      case 'create':
+        return <CreateGroupOperation onClose={onClose} />;
+      case 'edit':
+        return <EditGroupOperation selectGroup={_groupInfo} onClose={onClose} />;
+      case 'add':
+        return <GroupMemberOperation selectGroup={_groupInfo} onClose={onClose} />;
+      case 'edit_tags':
+        return <EditGroupTagsOperation onClose={onClose} />;
+      case 'update_tags':
+        return <UpdateGroupTagsOperation group={groupInfo} onClose={onClose} />;
+      default:
+        return null;
+    }
+  }, [_operation, _groupInfo, onClose, groupInfo]);
 
   useEffect(() => {
     const className = 'overflow-hidden';
@@ -47,21 +71,6 @@ export const GroupOperations = memo<GroupOperationsProps>(function GroupOperatio
   }, [groupOperation]);
 
   useUnmount(onClose);
-
-  const modalContent = useMemo(() => {
-    switch (_operation) {
-      case 'detail':
-        return <DetailGroupOperation selectGroup={_groupInfo} />;
-      case 'create':
-        return <CreateGroupOperation onClose={onClose} />;
-      case 'edit':
-        return <EditGroupOperation selectGroup={_groupInfo} onClose={onClose} />;
-      case 'add':
-        return <GroupMemberOperation selectGroup={_groupInfo} onClose={onClose} />;
-      default:
-        return null;
-    }
-  }, [_operation, _groupInfo]);
 
   return (
     <>

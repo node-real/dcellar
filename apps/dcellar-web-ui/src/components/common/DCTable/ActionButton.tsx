@@ -1,4 +1,4 @@
-import { CenterProps, Circle, Tooltip } from '@totejs/uikit';
+import { CenterProps, Circle, Tooltip } from '@node-real/uikit';
 import { GAClick } from '../GATracker';
 
 interface ActionButtonProps extends CenterProps {

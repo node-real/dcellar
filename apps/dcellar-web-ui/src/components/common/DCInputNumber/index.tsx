@@ -1,6 +1,6 @@
+import { antdTheme } from '@/base/theme/antd';
 import { ConfigProvider, InputNumber, InputNumberProps } from 'antd';
 import { memo } from 'react';
-import { antdTheme } from '@/base/theme/antd';
 
 interface DCInputNumberProps extends InputNumberProps<number> {}
 

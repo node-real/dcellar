@@ -1,10 +1,10 @@
-import { Connector } from 'wagmi';
 import { signTypedDataV4 } from '@/utils/coder';
-import { ethers } from 'ethers';
-import { ErrorResponse, commonFault } from './error';
-import { resolve } from './common';
 import { BN } from '@/utils/math';
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
+import { Connector } from 'wagmi';
+import { resolve } from './common';
+import { ErrorResponse, commonFault } from './error';
 
 export const signTypedDataCallback = (connector: Connector) => {
   return async (addr: string, message: string) => {
@@ -15,16 +15,16 @@ export const signTypedDataCallback = (connector: Connector) => {
 
 export const calTransferInFee = async (
   params: {
-    amount: string,
+    amount: string;
     crossChainContractAddress: string;
-    tokenHubContract: string
+    tokenHubContract: string;
     crossChainAbi: any;
     tokenHubAbi: any;
     address: string;
   },
   signer: ethers.providers.JsonRpcSigner,
   provider: ethers.providers.JsonRpcProvider | ethers.providers.FallbackProvider,
-): Promise<ErrorResponse | [{ relayerFee: BigNumber, gasFee: BigNumber }, null]> => {
+): Promise<ErrorResponse | [{ relayerFee: BigNumber; gasFee: BigNumber }, null]> => {
   const crossChainContract = new ethers.Contract(
     params.crossChainContractAddress,
     params.crossChainAbi,
@@ -46,13 +46,11 @@ export const calTransferInFee = async (
     signer!,
   );
 
-  const [estimateGas, error2] = await tokenHubContract.estimateGas.transferOut(
-    params.address,
-    transferInAmount,
-    {
+  const [estimateGas, error2] = await tokenHubContract.estimateGas
+    .transferOut(params.address, transferInAmount, {
       value: totalAmount,
-    },
-  ).then(resolve, commonFault);
+    })
+    .then(resolve, commonFault);
   if (!estimateGas || error2) return [null, error2];
 
   const gasFee = fData.gasPrice && estimateGas.mul(fData.gasPrice);
@@ -63,4 +61,4 @@ export const calTransferInFee = async (
   };
 
   return [finalData, null];
-}
+};

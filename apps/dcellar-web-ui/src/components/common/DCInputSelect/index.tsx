@@ -1,4 +1,7 @@
-import { SearchIcon } from '@totejs/icons';
+import { DCMenu } from '@/components/common/DCMenu';
+import { MenuOption } from '@/components/common/DCMenuList';
+import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
+import { SearchIcon } from '@node-real/icons';
 import {
   Box,
   BoxProps,
@@ -11,11 +14,8 @@ import {
   MenuListProps,
   MenuProps,
   useDisclosure,
-} from '@totejs/uikit';
+} from '@node-real/uikit';
 import React, { ReactElement, ReactNode, useEffect, useState } from 'react';
-import { useSaveFuncRef } from '@/hooks/useSaveFuncRef';
-import { MenuOption } from '@/components/common/DCMenuList';
-import { DCMenu } from '@/components/common/DCMenu';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
@@ -62,18 +62,11 @@ export function DCInputSelect(props: DCSelectProps) {
     emptyText,
     ...restProps
   } = props;
-
-  const Right = RightIcon ? RightIcon : () => <SearchIcon />;
   const { isOpen, onClose, onOpen } = useDisclosure();
   const [resultOptions, setResultOptions] = useState<Array<MenuOption>>();
-
   const saveOnSearchRef = useSaveFuncRef(onSearch);
-  useEffect(() => {
-    if (isOpen) {
-      setResultOptions(options);
-      saveOnSearchRef.current?.(options);
-    }
-  }, [isOpen, options, saveOnSearchRef]);
+
+  const Right = RightIcon ? RightIcon : () => <SearchIcon />;
 
   const onEnter = () => {
     if (resultOptions?.length) {
@@ -99,6 +92,14 @@ export function DCInputSelect(props: DCSelectProps) {
     setResultOptions(result);
     onSearch?.(result);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setResultOptions(options);
+      saveOnSearchRef.current?.(options);
+    }
+  }, [isOpen, options, saveOnSearchRef]);
+
   return (
     <DCMenu
       value={value}

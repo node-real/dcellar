@@ -1,19 +1,18 @@
+import { DCButton } from '@/components/common/DCButton';
+import { smMedia } from '@/modules/responsive';
 import {
   Popover,
   PopoverBody,
-  PopoverCloseButton,
   PopoverContent,
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
   useOutsideClick,
-} from '@totejs/uikit';
-import React, { useCallback, useEffect, useRef } from 'react';
+} from '@node-real/uikit';
+import { useCallback, useEffect, useRef } from 'react';
+import { TTimeOption, TimeUnits, swapObj } from '../utils';
 import { NumInput } from './NumInput';
 import { SizeMenu } from './SizeMenu';
-import { DCButton } from '@/components/common/DCButton';
-import { swapObj, TimeUnits, TTimeOption } from '../utils';
-import { smMedia } from '@/modules/responsive';
 
 type Props = {
   selected: boolean;
@@ -30,6 +29,7 @@ type Props = {
   onChangeButton: () => void;
   onChangeInput: (option: TTimeOption) => void;
 };
+
 export const CustomTime = ({
   isOpen,
   selected,
@@ -48,6 +48,7 @@ export const CustomTime = ({
     },
     [isOpen, onClose],
   );
+
   useEffect(() => {
     window.addEventListener('scroll', handleNavigation);
 
@@ -55,13 +56,14 @@ export const CustomTime = ({
       window.removeEventListener('scroll', handleNavigation);
     };
   }, [handleNavigation]);
+
   useOutsideClick({
     ref,
     handler: () => isOpen && onClose(),
   });
 
   return (
-    <Popover isOpen={isOpen} placement="bottom" >
+    <Popover isOpen={isOpen} placement="bottom">
       <PopoverTrigger>
         <DCButton
           variant="ghost"
@@ -90,7 +92,7 @@ export const CustomTime = ({
         p={16}
         borderRadius={4}
         bgColor={'#fff'}
-        border='1px solid readable.border'
+        border="1px solid readable.border"
         boxShadow={'0px 4px 20px 0px rgba(0, 0, 0, 0.04)'}
       >
         {/* <PopoverCloseButton onClick={onClose} color={'readable.tertiary'} /> */}
@@ -101,7 +103,7 @@ export const CustomTime = ({
           <NumInput
             w={120}
             h={32}
-            type='inter'
+            type="inter"
             borderRadius={4}
             value={customStorageTime.value}
             onChangeValue={(item) => {

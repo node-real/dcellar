@@ -2,7 +2,6 @@ import BigNumber from 'bignumber.js';
 
 export type TOperation = 'send' | 'transfer_in' | 'transfer_out';
 
-
 export enum EOperation {
   'send' = 'send',
   'transfer_in' = 'transfer_in',

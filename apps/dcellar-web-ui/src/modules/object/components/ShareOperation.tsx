@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store';
 import {
   Box,
   QDrawerBody,
@@ -7,35 +7,31 @@ import {
   Text,
   toast,
   useClipboard,
-} from '@totejs/uikit';
-import { useAppDispatch, useAppSelector } from '@/store';
+} from '@node-real/uikit';
+import { memo, useEffect } from 'react';
 // import Avatar0 from '@/components/common/SvgIcon/avatars/Avatar0.svg';
-import { AccessItem } from '@/modules/object/components/AccessItem';
-import {
-  setObjectList,
-  setStatusDetail,
-  TStatusDetail,
-  updateObjectVisibility,
-} from '@/store/slices/object';
-import { getListObjects, updateObjectInfo } from '@/facade/object';
-import { useAccount } from 'wagmi';
-import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
-import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { ViewerList } from '@/modules/object/components/ViewerList';
-import { getShareLink } from '@/utils/string';
-import { DCButton } from '@/components/common/DCButton';
-import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { isEmpty, last, trimEnd } from 'lodash-es';
 import { Animates } from '@/components/AnimatePng';
-import { IconFont } from '@/components/IconFont';
-import { useMount } from 'ahooks';
-import { SpItem } from '@/store/slices/sp';
+import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
+import { IconFont } from '@/components/IconFont';
+import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
+import { E_OFF_CHAIN_AUTH, ErrorMsg } from '@/facade/error';
+import { getListObjects, updateObjectInfo } from '@/facade/object';
+import { AccessItem } from '@/modules/object/components/AccessItem';
+import { ViewerList } from '@/modules/object/components/ViewerList';
+import { AUTH_EXPIRED, BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
+import { setObjectList, setObjectVisibility } from '@/store/slices/object';
+import { SpEntity } from '@/store/slices/sp';
+import { getShareLink } from '@/utils/string';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { useMount } from 'ahooks';
+import { isEmpty, last, trimEnd } from 'lodash-es';
+import { useAccount } from 'wagmi';
+import { setSignatureAction } from '@/store/slices/global';
 
 interface ShareOperationProps {
   selectObjectInfo: ObjectMeta;
-  primarySp: SpItem;
+  primarySp: SpEntity;
   objectName: string;
 }
 
@@ -46,14 +42,61 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
   objectName,
 }) {
   const dispatch = useAppDispatch();
-  const { loginAccount } = useAppSelector((root) => root.persist);
-  const { bucketName: _bucketName, path } = useAppSelector((root) => root.object);
+  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+  const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
+  const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
+
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
   const { hasCopied, onCopy, setValue } = useClipboard('');
+
   const objectInfo = selectObjectInfo.ObjectInfo || {};
   // share bucket
-  const bucketName = selectObjectInfo.ObjectInfo.BucketName || _bucketName;
+  const bucketName = selectObjectInfo.ObjectInfo.BucketName || currentBucketName;
+
+  const handleError = (msg: ErrorMsg) => {
+    switch (msg) {
+      case AUTH_EXPIRED:
+      case E_OFF_CHAIN_AUTH:
+        setOpenAuthModal();
+        return;
+      default:
+        dispatch(
+          setSignatureAction({
+            title: 'Updating Access',
+            icon: 'status-failed',
+            buttonText: BUTTON_GOT_IT,
+            buttonOnClick: () => dispatch(setSignatureAction({})),
+            errorText: 'Error message: ' + msg,
+          }),
+        );
+        return;
+    }
+  };
+
+  const onAccessChange = async (visibility: number) => {
+    const payload = {
+      operator: loginAccount,
+      bucketName,
+      objectName: objectInfo.ObjectName,
+      visibility,
+    };
+
+    dispatch(
+      setSignatureAction({
+        icon: Animates.access,
+        title: 'Updating Access',
+        desc: WALLET_CONFIRM,
+      }),
+    );
+
+    const [_, error] = await updateObjectInfo(payload, connector!);
+
+    if (error) return handleError(error);
+    dispatch(setSignatureAction({}));
+    toast.success({ description: 'Access updated!' });
+    dispatch(setObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
+  };
 
   useMount(async () => {
     if (!objectName.endsWith('/') || objectName === '') return;
@@ -77,57 +120,17 @@ export const ShareOperation = memo<ShareOperationProps>(function ShareOperation(
     const { GfSpListObjectsByBucketNameResponse } = res.body!;
     // 更新文件夹objectInfo
     dispatch(
-      setObjectList({ path, list: GfSpListObjectsByBucketNameResponse || [], infoOnly: true }),
+      setObjectList({
+        path: completeCommonPrefix,
+        list: GfSpListObjectsByBucketNameResponse || [],
+        infoOnly: true,
+      }),
     );
   });
 
   useEffect(() => {
     setValue(getShareLink(bucketName, objectInfo.ObjectName));
   }, [setValue, bucketName, objectInfo.ObjectName]);
-
-  const handleError = (msg: ErrorMsg) => {
-    switch (msg) {
-      case AUTH_EXPIRED:
-      case E_OFF_CHAIN_AUTH:
-        setOpenAuthModal();
-        return;
-      default:
-        dispatch(
-          setStatusDetail({
-            title: 'Updating Access',
-            icon: 'status-failed',
-            buttonText: BUTTON_GOT_IT,
-            buttonOnClick: () => dispatch(setStatusDetail({} as TStatusDetail)),
-            errorText: 'Error message: ' + msg,
-          }),
-        );
-        return;
-    }
-  };
-
-  const onAccessChange = async (visibility: number) => {
-    const payload = {
-      operator: loginAccount,
-      bucketName,
-      objectName: objectInfo.ObjectName,
-      visibility,
-    };
-
-    dispatch(
-      setStatusDetail({
-        icon: Animates.access,
-        title: 'Updating Access',
-        desc: WALLET_CONFIRM,
-      }),
-    );
-
-    const [_, error] = await updateObjectInfo(payload, connector!);
-
-    if (error) return handleError(error);
-    dispatch(setStatusDetail({} as TStatusDetail));
-    toast.success({ description: 'Access updated!' });
-    dispatch(updateObjectVisibility({ objectName: objectInfo.ObjectName, visibility }));
-  };
 
   // handle folder object info
   if (isEmpty(selectObjectInfo) || objectName !== objectInfo?.ObjectName) return <Loading />;

@@ -1,11 +1,12 @@
-import styled from '@emotion/styled';
-import { Text } from '@totejs/uikit';
-import { assetPrefix } from '@/base/env';
 import { css } from '@emotion/react';
+import styled from '@emotion/styled';
+import { Text } from '@node-real/uikit';
 import { useMount } from 'ahooks';
+
+import { assetPrefix } from '@/base/env';
 import { ConnectWallet } from '@/components/ConnectWallet';
-import { reportEvent } from '@/utils/gtag';
 import { IconFont } from '@/components/IconFont';
+import { reportEvent } from '@/utils/gtag';
 
 export const ShareLogin = () => {
   useMount(() => {

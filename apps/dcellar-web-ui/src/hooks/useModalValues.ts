@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { isEmpty } from 'lodash-es';
+import { useEffect, useState } from 'react';
 
 export function useModalValues<T>(_values: T) {
   const [values, setValues] = useState(_values);

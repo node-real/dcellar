@@ -1,34 +1,31 @@
+import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { DCCheckbox } from '@/components/common/DCCheckbox';
 import { DCMenu } from '@/components/common/DCMenu';
-import React, { useEffect, useState } from 'react';
-import { useAccountList } from '../hooks';
-import { keyBy, xor } from 'lodash-es';
 import { MenuOption } from '@/components/common/DCMenuList';
+import { InputItem } from '@/components/formitems/InputItem';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setAllFilterAccounts } from '@/store/slices/billing';
-import { Badge, MenuFooter, MenuHeader } from './Common';
-import { InputItem } from '@/components/formitems/InputItem';
-import { InputLeftElement, MenuButton, Text, Tooltip } from '@totejs/uikit';
-import { SearchIcon } from '@totejs/icons';
-import { DCCheckbox } from '@/components/common/DCCheckbox';
-import { DCButton } from '@/components/common/DCButton';
-import { IconFont } from '@/components/IconFont';
 import { trimLongStr } from '@/utils/string';
+import { SearchIcon } from '@node-real/icons';
+import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
 import cn from 'classnames';
+import { keyBy, xor } from 'lodash-es';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useAccountList } from '../hooks';
+import { Badge, MenuFooter, MenuHeader } from './Common';
 
 export const FilterAccounts = () => {
-  const router = useRouter();
   const dispatch = useAppDispatch();
+  const billAccountFilter = useAppSelector((root) => root.billing.billAccountFilter);
+
+  const router = useRouter();
   const [accountFilter, setAccountFilter] = useState('');
   const [selectedAccount, setSelectedAccount] = useState<Array<string>>([]);
-  const allFilterAccounts = useAppSelector((root) => root.billing.allFilterAccounts);
   const accountList = useAccountList();
   const keyAccountList = keyBy(accountList, 'id');
-  const idToOptions = (id: string) => ({
-    label: keyAccountList[id]?.name,
-    value: id,
-    address: keyAccountList[id]?.address,
-  });
+
   const accountIds = accountList
     .filter((account) =>
       !accountFilter.trim()
@@ -37,17 +34,27 @@ export const FilterAccounts = () => {
           account.address.toLowerCase().includes(accountFilter.trim().toLowerCase()),
     )
     .map((item) => item.id);
+
+  const idToOptions = (id: string) => ({
+    label: keyAccountList[id]?.name,
+    value: id,
+    address: keyAccountList[id]?.address,
+  });
+
   const accountOptions: MenuOption[] = accountIds.map(idToOptions);
-  const selectedAccountOptions = allFilterAccounts.map(idToOptions);
+  const selectedAccountOptions = billAccountFilter.map(idToOptions);
+
   const accountClose = () => {
     dispatch(setAllFilterAccounts(selectedAccount));
   };
+
   const accountOpen = () => {
-    setSelectedAccount(allFilterAccounts);
+    setSelectedAccount(billAccountFilter);
   };
+
   useEffect(() => {
-    setSelectedAccount(allFilterAccounts);
-  }, [router.asPath])
+    setSelectedAccount(billAccountFilter);
+  }, [router.asPath]);
 
   return (
     <DCMenu
@@ -107,7 +114,7 @@ export const FilterAccounts = () => {
         >
           <MenuButton
             className={cn(
-              { 'menu-open': isOpen, 'button-filtered': !!allFilterAccounts.length && !isOpen },
+              { 'menu-open': isOpen, 'button-filtered': !!billAccountFilter.length && !isOpen },
               'type-button',
             )}
             as={DCButton}
@@ -138,7 +145,7 @@ export const FilterAccounts = () => {
             ) : (
               <>
                 {trimLongStr(selectedAccountOptions[0].label, 6, 6, 0)}{' '}
-                <Badge>{allFilterAccounts.length}</Badge>
+                <Badge>{billAccountFilter.length}</Badge>
               </>
             )}
           </MenuButton>

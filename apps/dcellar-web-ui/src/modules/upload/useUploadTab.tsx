@@ -1,20 +1,23 @@
-import { useAppSelector } from '@/store';
 import { useMemo, useState } from 'react';
+
+import { useAppSelector } from '@/store';
 
 export type TTabKey = 'ALL' | 'WAIT' | 'ERROR';
 
 export const useUploadTab = () => {
-  const { waitQueue } = useAppSelector((root) => root.global);
+  const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
+
   const { allLen, waitLen, errorLen } = useMemo(() => {
-    const allLen = waitQueue.length;
-    const waitLen = waitQueue.filter((item) => item.status === 'WAIT').length;
-    const errorLen = waitQueue.filter((item) => item.status === 'ERROR').length;
+    const allLen = objectWaitQueue.length;
+    const waitLen = objectWaitQueue.filter((item) => item.status === 'WAIT').length;
+    const errorLen = objectWaitQueue.filter((item) => item.status === 'ERROR').length;
     return {
       allLen,
       waitLen,
-      errorLen
-    }
-  }, [waitQueue])
+      errorLen,
+    };
+  }, [objectWaitQueue]);
+
   const tabOptions: {
     title: string;
     key: TTabKey;
@@ -44,5 +47,5 @@ export const useUploadTab = () => {
     tabOptions,
     activeKey,
     setActiveKey,
-  }
+  };
 };
