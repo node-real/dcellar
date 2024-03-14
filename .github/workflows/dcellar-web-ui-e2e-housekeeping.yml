@@ -7,7 +7,7 @@ on:
 
 jobs:
   remove-e2e-deployment:
-    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-e2e-housekeeping.yml@feat/opt-fe/devin
+    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-e2e-housekeeping.yaml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui

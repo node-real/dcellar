@@ -60,7 +60,7 @@ jobs:
   CICD:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
-    uses: node-real/github-workflows/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@feat/opt-fe/devin
+    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
