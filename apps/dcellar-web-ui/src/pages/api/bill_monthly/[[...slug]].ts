@@ -3,8 +3,7 @@ import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 import qs from 'query-string';
 
-// eslint-disable-next-line
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { slug, ...query } = req.query;
   const slugs = slug as string[];
   const url = `${BILLING_API_URL}/greenfield/bill_monthly/${slugs.join('/')}?${qs.stringify(query)}`;
@@ -16,3 +15,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.json({});
   }
 };
+
+export default handler;

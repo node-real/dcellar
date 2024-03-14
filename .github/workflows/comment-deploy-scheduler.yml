@@ -60,14 +60,6 @@ jobs:
     with:
       app_name: dcellar-web-ui
       env: mainnet
-  dcellar-web-ui-new-e2e-deploy-with-qa:
-    needs: [pre-check]
-    if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/new-e2e-deploy-qa:dcellar-web-ui'))
-    uses: node-real/dcellar/.github/workflows/dcellar-web-ui-new-e2e-cicd.yml@main
-    secrets: inherit
-    with:
-      app_name: dcellar-web-ui
-      env: qa
   dcellar-web-ui-qa-deploy:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login) && (github.event.comment.body == '/qa-deploy:dcellar-web-ui'))

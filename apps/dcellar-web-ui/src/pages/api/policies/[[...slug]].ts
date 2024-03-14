@@ -2,8 +2,7 @@ import { EXPLORER_API_URL } from '@/base/env';
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-// eslint-disable-next-line
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   const { slug } = req.query;
   const slugs = slug as string[];
   const url = `${EXPLORER_API_URL}/greenfield/permission/policy/list/by_resource/${slugs.join(
@@ -17,3 +16,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.json({});
   }
 };
+
+export default handler;
