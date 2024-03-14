@@ -147,7 +147,7 @@ export const setupStorageProviders = () => async (dispatch: AppDispatch, getStat
   const sps = await getStorageProviders();
   const recommend = (RECOMMEND_SPS || '')
     .split(',')
-    .map((i) => i.trim())
+    .map((i: string) => i.trim())
     .filter(Boolean);
   dispatch(setStorageProviders({ sps, unAvailableSps: unAvailableSps, recommend }));
 };
