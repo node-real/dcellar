@@ -1,0 +1,88 @@
+name: prod-deploy-scheduler
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Release the project manually."
+        required: true
+        default: "dcellar-web-ui"
+        type: string
+      env:
+        description: "Choose the environment for deployment."
+        required: true
+        default: "testnet"
+        type: string
+      ref:
+        description: "Specify the branch or a tag to deploy"
+        required: true
+        default: "main"
+        type: string
+jobs:
+  pre-check:
+    runs-on: ubuntu-latest
+    if: ((github.event.inputs.project == 'dcellar-web-ui') && ((github.event.inputs.env == 'testnet') || (github.event.inputs.env == 'mainnet')))
+    outputs:
+      codeowners: ${{ steps.codeowners.outputs.content }}
+      is_valid_ref: ${{ steps.check_ref.outputs.is_valid_ref }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Read codeowners
+      id: codeowners
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: .github/CODEOWNERS
+    - name: Verify if ref is the main branch or a valid tag on main
+      id: check_ref
+      run: |
+        REF="${{ github.event.inputs.ref }}"
+        MAIN_BRANCH="main"
+        IS_VALID_REF="invalid" # Default to invalid
+        ERROR_MESSAGE=""
+
+        # Check if REF is exactly the main branch
+        if [ "$REF" == "$MAIN_BRANCH" ]; then
+          IS_VALID_REF="valid"
+        else
+          # Check if REF is a tag and if it exists
+          if git rev-parse "refs/tags/$REF" >/dev/null 2>&1; then
+            # Verify if the tag is on the main branch
+            TAG_SHA=$(git rev-parse "$REF")
+            MAIN_SHA=$(git merge-base "$TAG_SHA" "$MAIN_BRANCH")
+            if [ "$TAG_SHA" == "$MAIN_SHA" ]; then
+              IS_VALID_REF="valid"
+            else
+              ERROR_MESSAGE="Tag $REF is not on the $MAIN_BRANCH branch."
+            fi
+          else
+            ERROR_MESSAGE="Ref $REF is neither $MAIN_BRANCH nor a valid tag."
+          fi
+        fi
+        echo "$ERROR_MESSAGE"
+        echo "IS_VALID_REF=$IS_VALID_REF"
+        echo "is_valid_ref=$IS_VALID_REF" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dcellar-web-ui-prod-deploy-with-testnet:
+    needs: [pre-check]
+    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.env == 'testnet'))
+    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
+    secrets: inherit
+    with:
+      app_name: ${{ inputs.project }}
+      env: ${{ inputs.env }}
+      ref: ${{ inputs.ref }}
+
+  dcellar-web-ui-prod-deploy-with-mainnet:
+    needs: [pre-check]
+    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.env == 'mainnet'))
+    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-mainnet-cicd.yml@main
+    secrets: inherit
+    with:
+      app_name: ${{ inputs.project }}
+      env: ${{ inputs.env }}
+      ref: ${{ inputs.ref }}

@@ -1,5 +1,5 @@
 {
-  "name": "dcellar-web-ui",
+  "name": "@node-real/dcellar-web-ui",
   "version": "0.1.0",
   "private": false,
   "scripts": {

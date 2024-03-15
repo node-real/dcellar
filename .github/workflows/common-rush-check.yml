@@ -9,7 +9,7 @@ jobs:
     name: Check mis-matching dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 20
@@ -19,7 +19,7 @@ jobs:
     name: Check pnpm-lock.yml is consistent
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: 20

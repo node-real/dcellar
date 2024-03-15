@@ -20,7 +20,7 @@
   "variants": [],
   "projects": [
     {
-      "packageName": "dcellar-web-ui",
+      "packageName": "@node-real/dcellar-web-ui",
       "projectFolder": "apps/dcellar-web-ui",
       // For generate changelog
       // https://github.com/microsoft/rushstack/issues/3934

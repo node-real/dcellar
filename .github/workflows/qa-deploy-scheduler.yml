@@ -1,4 +1,4 @@
-name: comment deploy scheduler
+name: qa-deploy-scheduler
 
 on:
   issue_comment:
@@ -12,7 +12,7 @@ jobs:
       codeowners: ${{ steps.codeowners.outputs.content }}
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Read codeowners
       id: codeowners
       uses: juliangruber/read-file-action@v1
@@ -24,7 +24,7 @@ jobs:
     if: (!contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Create Version Comment
       uses: peter-evans/create-or-update-comment@v2
       with:
@@ -32,7 +32,7 @@ jobs:
         comment-id: ${{ github.event.comment.id }}
         body: |
           ++++++
-          Please contact codeowners to deploy!
+          Deployment request denied. Please ensure you have the necessary permissions by contacting the project code owners.
         reactions: rocket
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
