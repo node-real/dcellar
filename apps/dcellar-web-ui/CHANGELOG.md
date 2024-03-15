@@ -1,6 +1,13 @@
-# Change Log - @node-real/dcellar-web-ui
+# Change Log - dcellar-web-ui
 
-This log was last generated on Fri, 15 Mar 2024 09:20:32 GMT and should not be manually modified.
+This log was last generated on Fri, 15 Mar 2024 09:48:45 GMT and should not be manually modified.
+
+## 0.3.0
+Fri, 15 Mar 2024 09:48:45 GMT
+
+### Minor changes
+
+- Unify the package name of dcellar-web-ui
 
 ## 0.2.0
 Fri, 15 Mar 2024 09:20:32 GMT

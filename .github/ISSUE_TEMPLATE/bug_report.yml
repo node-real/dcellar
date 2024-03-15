@@ -12,7 +12,7 @@ body:
     attributes:
       label: Package Name & Version
       description: What package are you using?
-      placeholder: '@node-real/dcellar-web-ui'
+      placeholder: 'dcellar-web-ui'
     validations:
       required: true
 
