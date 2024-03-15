@@ -1,6 +1,18 @@
 {
-  "name": "dcellar-web-ui",
+  "name": "@node-real/dcellar-web-ui",
   "entries": [
+    {
+      "version": "0.2.0",
+      "tag": "@node-real/dcellar-web-ui_v0.2.0",
+      "date": "Fri, 15 Mar 2024 09:20:32 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Support deploy by tag"
+          }
+        ]
+      }
+    },
     {
       "version": "0.1.0",
       "tag": "dcellar-web-ui_v0.1.0",
