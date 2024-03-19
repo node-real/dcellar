@@ -5,8 +5,8 @@ import { SpEntity, setSpLatency, setupSpLatency } from '@/store/slices/sp';
 import { trimLongStr } from '@/utils/string';
 
 import { useMount } from 'ahooks';
-import { find, sortBy } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { sort } from 'radash';
 
 import { memo } from 'react';
 import { TH } from './style';
@@ -31,7 +31,7 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
   saveOnChangeRef.current = onChange;
 
   const renderOption = ({ value, disabled }: MenuOption) => {
-    const sp = find<SpEntity>(allSpList, (sp) => sp.operatorAddress === value)!;
+    const sp = allSpList.find((sp) => sp.operatorAddress === value)!;
     return (
       <OptionItem
         address={sp.operatorAddress}
@@ -61,14 +61,17 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
   // Sort SPs with unavailable HTTP services or unavailable statuses last, and the rest by ascending latency.
   const options: MenuOption[] = useMemo(
     () =>
-      sortBy(allSpList, [
-        (i) => (unAvailableSps.includes(i.operatorAddress) ? 1 : 0),
-        (i) => (i.status !== 0 ? 1 : 0),
-        (sp) => {
-          const meta = spMetaRecords[sp.endpoint];
-          return meta ? meta.Latency : Infinity;
-        },
-      ]).map((item) => {
+      sort(allSpList, (sp) => {
+        const meta = spMetaRecords[sp.endpoint];
+        if (!meta) {
+          return Number.MAX_SAFE_INTEGER;
+        }
+        if (unAvailableSps.includes(sp.operatorAddress) || sp.status !== 0) {
+          return Infinity;
+        }
+
+        return meta.Latency;
+      }).map((item) => {
         const { operatorAddress, moniker, status } = item;
         const spServiceAvailable = !unAvailableSps.includes(operatorAddress);
         const spStatusAvailable = status === 0;
