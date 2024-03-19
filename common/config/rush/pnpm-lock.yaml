@@ -55,6 +55,7 @@ importers:
       next-transpile-modules: ~10.0.1
       prettier: ^2.8.4
       query-string: ^8.1.0
+      radash: ~12.1.0
       react: ~18.2.0
       react-dnd: 16.0.1
       react-dnd-html5-backend: 16.0.1
@@ -101,6 +102,7 @@ importers:
       next-redux-wrapper: 8.1.0_sqwlmqhdtfirfp7b3jp6tjdu3a
       next-transpile-modules: 10.0.1
       query-string: 8.2.0
+      radash: 12.1.0
       react: 18.2.0
       react-dnd: 16.0.1_7acmz257hs6yohiyquldbuobdm
       react-dnd-html5-backend: 16.0.1
@@ -2822,6 +2824,7 @@ packages:
     dependencies:
       is-glob: 4.0.3
       micromatch: 4.0.5
+      napi-wasm: 1.1.0
     dev: false
     bundledDependencies:
       - napi-wasm
@@ -7918,6 +7921,10 @@ packages:
     hasBin: true
     dev: false
 
+  /napi-wasm/1.1.0:
+    resolution: {integrity: sha512-lHwIAJbmLSjF9VDRm9GoVOy9AGp3aIvkjv+Kvz9h16QR3uSVYH78PNQUnT2U4X53mhlnV2M7wrhibQ3GHicDmg==}
+    dev: false
+
   /natural-compare/1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
@@ -8468,6 +8475,11 @@ packages:
     resolution: {integrity: sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==}
     engines: {node: '>=8'}
     dev: true
+
+  /radash/12.1.0:
+    resolution: {integrity: sha512-b0Zcf09AhqKS83btmUeYBS8tFK7XL2e3RvLmZcm0sTdF1/UUlHSsjXdCcWNxe7yfmAlPve5ym0DmKGtTzP6kVQ==}
+    engines: {node: '>=14.18.0'}
+    dev: false
 
   /radix3/1.1.0:
     resolution: {integrity: sha512-pNsHDxbGORSvuSScqNJ+3Km6QAVqk8CfsCBIEoDgpqLrkD2f3QM4I7d1ozJJ172OmIcoUcerZaNWqtLkRXTV3A==}

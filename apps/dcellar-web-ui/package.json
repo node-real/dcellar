@@ -56,7 +56,8 @@
     "react-dnd-html5-backend": "16.0.1",
     "viem": "~1.19.11",
     "@wagmi/core": "~1.4.10",
-    "set-interval-async": "~3.0.3"
+    "set-interval-async": "~3.0.3",
+    "radash": "~12.1.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.3",

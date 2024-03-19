@@ -1,28 +1,22 @@
-import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
-import { IconFont } from '@/components/IconFont';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { DCSelect } from '@/components/common/DCSelect';
-import { DCTooltip } from '@/components/common/DCTooltip';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { SpEntity, setSpLatency, setupSpLatency } from '@/store/slices/sp';
-import { transientOptions } from '@/utils/css';
-import { formatBytes } from '@/utils/formatter';
 import { trimLongStr } from '@/utils/string';
-import { css } from '@emotion/react';
-import styled from '@emotion/styled';
-import { ExternalLinkIcon } from '@node-real/icons';
-import { Box, Flex, Text } from '@node-real/uikit';
+
 import { useMount } from 'ahooks';
 import { find, sortBy } from 'lodash-es';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { memo } from 'react';
+import { TH } from './style';
+import { OptionItem } from './OptionItem';
 
 interface SPSelectorProps {
   onChange: (value: SpEntity) => void;
 }
 
-export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
+export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }) {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const unAvailableSps = useAppSelector((root) => root.persist.unAvailableSps);
@@ -30,12 +24,9 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
   const specifiedSp = useAppSelector((root) => root.sp.specifiedSp);
   const allSpList = useAppSelector((root) => root.sp.allSpList);
   const spMetaRecords = useAppSelector((root) => root.sp.spMetaRecords);
-
   const [sp, setSP] = useState({} as SpEntity);
   const [total, setTotal] = useState(0);
-
   const len = allSpList.length;
-  const { onChange } = props;
   const saveOnChangeRef = useRef(onChange);
   saveOnChangeRef.current = onChange;
 
@@ -46,6 +37,7 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
         address={sp.operatorAddress}
         name={sp.moniker}
         endpoint={sp.endpoint}
+        status={sp.status}
         access={!disabled}
       />
     );
@@ -66,17 +58,22 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
+  // Sort SPs with unavailable HTTP services or unavailable statuses last, and the rest by ascending latency.
   const options: MenuOption[] = useMemo(
     () =>
       sortBy(allSpList, [
         (i) => (unAvailableSps.includes(i.operatorAddress) ? 1 : 0),
+        (i) => (i.status !== 0 ? 1 : 0),
         (sp) => {
           const meta = spMetaRecords[sp.endpoint];
           return meta ? meta.Latency : Infinity;
         },
       ]).map((item) => {
-        const { operatorAddress, moniker } = item;
-        const access = !unAvailableSps.includes(operatorAddress);
+        const { operatorAddress, moniker, status } = item;
+        const spServiceAvailable = !unAvailableSps.includes(operatorAddress);
+        const spStatusAvailable = status === 0;
+        const access = spServiceAvailable && spStatusAvailable;
+
         return {
           label: moniker,
           value: operatorAddress,
@@ -161,153 +158,3 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector(props) {
 const renderItem = (moniker: string, address: string) => {
   return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
 };
-
-function OptionItem(props: any) {
-  const spMetaRecords = useAppSelector((root) => root.sp.spMetaRecords);
-  const spLatencyRecords = useAppSelector((root) => root.sp.spLatencyRecords);
-
-  const { address, name, endpoint, access } = props;
-  const meta = spMetaRecords[endpoint];
-
-  const link = !access ? (
-    <DCTooltip title="Check reasons in documentations" placement="bottomLeft">
-      <Text
-        as="a"
-        target="_blank"
-        href="https://docs.nodereal.io/docs/dcellar-faq#storage-provider-related"
-        w={64}
-        h={18}
-        whiteSpace="nowrap"
-        ml={4}
-        bgColor="#FDEBE7"
-        borderRadius={'360px'}
-        color="#F15D3C"
-        fontWeight={400}
-        lineHeight="18px"
-        cursor="pointer"
-        _hover={{
-          color: '#EE3911',
-        }}
-      >
-        <Box as="span" transform="scale(.8)" display="inline-flex" alignItems="center">
-          SP Error <ExternalLinkIcon boxSize={12} ml={2} />
-        </Box>
-      </Text>
-    </DCTooltip>
-  ) : (
-    <A
-      href={`${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`}
-      target="_blank"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <IconFont type="external" w={12} />
-    </A>
-  );
-
-  const spLatency = spLatencyRecords[endpoint.toLowerCase()] || 0;
-
-  return (
-    <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
-      <TD
-        w={251}
-        key={address}
-        display="flex"
-        flexDir="column"
-        alignItems="flex-start"
-        whiteSpace="normal"
-        color={access ? '#474D57' : '#AEB4BC'}
-      >
-        <Flex alignItems="center" w="100%">
-          <Text
-            maxW="max-content"
-            minW={0}
-            flex={1}
-            lineHeight="17px"
-            fontSize={14}
-            fontWeight={400}
-            w="100%"
-            color={access ? '#474D57' : '#AEB4BC'}
-            noOfLines={1}
-          >
-            {name}
-          </Text>
-          {link}
-        </Flex>
-
-        <DCTooltip title={endpoint} placement="bottomLeft">
-          <Text
-            lineHeight="14px"
-            wordBreak="break-all"
-            fontSize={12}
-            transformOrigin="0 50%"
-            transform={'scale(0.85)'}
-            fontWeight={400}
-            color={access ? '#76808F' : '#AEB4BC'}
-            noOfLines={1}
-          >
-            {endpoint}
-          </Text>
-        </DCTooltip>
-      </TD>
-      <TD w={120} color={access ? '#474D57' : '#AEB4BC'}>
-        {meta ? formatBytes(meta.FreeReadQuota) : '--'}
-      </TD>
-      <TD $dot={access ? spLatency : 0} color={access ? '#474D57' : '#AEB4BC'}>
-        {spLatency && access ? spLatency + 'ms' : '--'}
-      </TD>
-    </Flex>
-  );
-}
-
-const A = styled.a`
-  :hover {
-    color: #00ba34;
-  }
-
-  margin-left: 4px;
-`;
-
-const TH = styled(Box)`
-  padding: 8px;
-
-  &:first-of-type {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  svg {
-    color: #aeb4bc;
-
-    :hover {
-      color: #76808f;
-    }
-  }
-`;
-
-const TD = styled(Box, transientOptions)<{ $dot?: number }>`
-  height: 31px;
-  position: relative;
-  font-size: 14px;
-  font-weight: 400;
-
-  ${(props) =>
-    props.$dot &&
-    css`
-      :before {
-        position: relative;
-        top: -1px;
-        margin-right: 4px;
-        display: inline-flex;
-        content: '';
-        width: 8px;
-        height: 8px;
-        border-radius: 100%;
-
-        background-color: ${props.$dot < 100
-          ? '#00BA34'
-          : props.$dot < 200
-            ? '#EEBE11'
-            : '#EE3911'};
-      }
-    `}
-`;
