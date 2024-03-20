@@ -58,16 +58,16 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
     return tmpValue.includes(tmpKeyword) || tmpName.includes(tmpKeyword);
   };
 
-  // Sort SPs with unavailable HTTP services or unavailable statuses last, and the rest by ascending latency.
+  // Sort: Based on the recommended system's sp data, ascending order of latency values for sps -> No sp data from the recommended system -> Unavailable sps
   const options: MenuOption[] = useMemo(
     () =>
       sort(allSpList, (sp) => {
         const meta = spMetaRecords[sp.endpoint];
-        if (!meta) {
-          return Number.MAX_SAFE_INTEGER;
-        }
         if (unAvailableSps.includes(sp.operatorAddress) || sp.status !== 0) {
           return Infinity;
+        }
+        if (!meta) {
+          return Number.MAX_SAFE_INTEGER;
         }
 
         return meta.Latency;

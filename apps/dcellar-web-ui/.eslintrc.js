@@ -20,7 +20,7 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['react', '@typescript-eslint'],
-  ignorePatterns: ['next.config.js', 'public/wasm/**.js'],
+  ignorePatterns: ['next.config.js', 'public/wasm/**.js', 'scripts/**.js'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
