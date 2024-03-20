@@ -17,11 +17,13 @@ import {
   QueryHeadBucketResponse,
   QueryQuoteUpdateTimeResponse,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
-import { MsgUpdateBucketInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import {
+  MsgCreateBucket,
+  MsgUpdateBucketInfo,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   AuthType,
-  CreateBucketApprovalRequest,
   GRNToString,
   GetBucketMetaResponse,
   GetUserBucketsResponse,
@@ -263,12 +265,11 @@ export const getBucketQuotaUpdateTime = async (bucketName: string) => {
 };
 
 export const getCreateBucketTx = async (
-  params: CreateBucketApprovalRequest,
-  authType: AuthType,
+  msgCreateBucket: MsgCreateBucket,
 ): Promise<[TxResponse, null] | ErrorResponse> => {
   const client = await getClient();
   const [createBucketTx, error1] = await client.bucket
-    .createBucket(params, authType)
+    .createBucket(msgCreateBucket)
     .then(resolve, createTxFault);
 
   if (!createBucketTx) return [null, error1];
@@ -277,12 +278,11 @@ export const getCreateBucketTx = async (
 };
 
 export const simulateCreateBucket = async (
-  params: CreateBucketApprovalRequest,
-  authType: AuthType,
+  params: MsgCreateBucket,
 ): Promise<[ISimulateGasFee, null, TxResponse] | ErrorResponse> => {
   const client = await getClient();
   const [createBucketTx, error1] = await client.bucket
-    .createBucket(params, authType)
+    .createBucket(params)
     .then(resolve, createTxFault);
 
   if (!createBucketTx) return [null, error1];
@@ -299,11 +299,11 @@ export const simulateCreateBucket = async (
 };
 
 export const createBucket = async (
-  params: CreateBucketApprovalRequest,
+  params: MsgCreateBucket,
   authType: AuthType,
   connector: Connector,
 ): BroadcastResponse => {
-  const [simulateInfo, error, createBucketTx] = await simulateCreateBucket(params, authType);
+  const [simulateInfo, error, createBucketTx] = await simulateCreateBucket(params);
   if (!simulateInfo) return [null, error];
 
   const payload = {

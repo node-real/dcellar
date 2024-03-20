@@ -187,7 +187,7 @@ export const setupSpLatency = (endpoints: string[], address: string) => async ()
       group.map(async (endpoint) => {
         await Promise.race([
           window
-            .fetch(`${endpoint}/auth/request_nonce`, {
+            .fetch(`${endpoint}/status`, {
               headers: new Headers({
                 'X-Gnfd-User-Address': address,
                 'X-Gnfd-App-Domain': getDomain(),

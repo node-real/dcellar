@@ -3,8 +3,8 @@ import {
   METHOD_PUT,
   PutObjectRequest,
   SpMetaInfo,
-  isValidBucketName,
-  isValidObjectName,
+  verifyBucketName,
+  verifyObjectName,
 } from '@bnb-chain/greenfield-js-sdk';
 
 import { getClient } from '@/facade';
@@ -18,12 +18,9 @@ export const makePutObjectHeaders = async (
 ) => {
   const client = await getClient();
   const { bucketName, objectName, txnHash, body, endpoint } = configParam;
-  if (!isValidBucketName(bucketName)) {
-    throw new Error('Error bucket name');
-  }
-  if (!isValidObjectName(objectName)) {
-    throw new Error('Error object name');
-  }
+  verifyBucketName(bucketName);
+  verifyObjectName(objectName);
+
   if (!txnHash) {
     throw new Error('Transaction hash is empty, please check.');
   }

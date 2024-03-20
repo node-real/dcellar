@@ -56,7 +56,6 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
       try {
         const domain = getDomain();
 
-        // If no sps selected, use all sps for welcome auth
         const pruneSps = (isEmpty(authSps.current) ? allSpList : authSps.current).map(
           (item: any) => ({
             address: item.operatorAddress,

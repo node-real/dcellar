@@ -7,8 +7,8 @@ importers:
 
   ../../apps/dcellar-web-ui:
     specifiers:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
-      '@bnb-chain/greenfield-js-sdk': 1.2.0
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.31
+      '@bnb-chain/greenfield-js-sdk': 1.3.0-alpha.2
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
       '@emotion/react': ^11.10.5
@@ -72,8 +72,8 @@ importers:
       viem: ~1.19.11
       wagmi: ~1.4.10
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
-      '@bnb-chain/greenfield-js-sdk': 1.2.0
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.31
+      '@bnb-chain/greenfield-js-sdk': 1.3.0-alpha.2
       '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
       '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
       '@next/bundle-analyzer': 13.5.6
@@ -1486,18 +1486,17 @@ packages:
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
 
-  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.30:
-    resolution: {integrity: sha512-nYThWPZHfq/bDMEu+Sw9cMMqgTk4NEg+PH9GkvN2OMgpo8QuCDy3Eh4C1g6lJy0BFv+ilethoPmKjSeEwa1m8g==}
+  /@bnb-chain/greenfield-cosmos-types/0.4.0-alpha.31:
+    resolution: {integrity: sha512-EPKQyQC/oe4/2p1Pn0FCECl7RyIvsXKs8bOmQHaylZweS6rZkXj5yov9oD1dVoHglV/tbQ/6EjdPg3wXUR+rww==}
     dependencies:
       long: 4.0.0
       protobufjs: 6.11.4
     dev: false
 
-  /@bnb-chain/greenfield-js-sdk/1.2.0:
-    resolution: {integrity: sha512-xYYK+4WXGiqX7MBNqRij2zo/3HI3mMwtuUOQS3qOoWkHG6oWUAKeBPxUNKz6RuPigZYAckAH0XcrJT0kjJIB+g==}
+  /@bnb-chain/greenfield-js-sdk/1.3.0-alpha.2:
+    resolution: {integrity: sha512-MC3H4WENC8lsxeyoqklocWWyYlUcWel54tt5FeAT5WpF05EHn6Rt4HKRWat6JnybtZdsvR9TNHAs/qAMZaLA/g==}
     dependencies:
-      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.30
-      '@bnb-chain/greenfield-zk-crypto': 1.0.0
+      '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.31
       '@cosmjs/proto-signing': 0.32.2
       '@cosmjs/stargate': 0.32.2
       '@cosmjs/tendermint-rpc': 0.32.2
@@ -1507,7 +1506,8 @@ packages:
       '@ethersproject/strings': 5.7.0
       '@ethersproject/units': 5.7.0
       '@metamask/eth-sig-util': 5.1.0
-      cross-fetch: 3.1.8
+      '@noble/curves': 1.3.0
+      cross-fetch: 4.0.0
       dayjs: 1.11.10
       ethereum-cryptography: 2.1.3
       fast-xml-parser: 4.2.7
@@ -1524,10 +1524,6 @@ packages:
       - debug
       - encoding
       - utf-8-validate
-    dev: false
-
-  /@bnb-chain/greenfield-zk-crypto/1.0.0:
-    resolution: {integrity: sha512-QlHNIleujENh02oPidtLFVNMArVpSQDdV9omOUTLjKA1j2/rrd4OKfMLh1gpeVKl53vw50ReGkbm2VlBXTZRbQ==}
     dev: false
 
   /@coinbase/wallet-sdk/3.7.2:
@@ -5490,6 +5486,14 @@ packages:
 
   /cross-fetch/3.1.8:
     resolution: {integrity: sha512-cvA+JwZoU0Xq+h6WkMvAUqPEYy92Obet6UdKLfW60qn99ftItKjB5T+BkyWOFWe2pUyfQ+IJHmpOTznqk1M6Kg==}
+    dependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /cross-fetch/4.0.0:
+    resolution: {integrity: sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==}
     dependencies:
       node-fetch: 2.7.0
     transitivePeerDependencies:

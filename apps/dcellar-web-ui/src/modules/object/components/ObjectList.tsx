@@ -450,8 +450,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         address: loginAccount,
       };
 
-      // const operator = primarySpInfo.operatorAddress;
-      // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return errorHandler(opsError);
       dispatch(setupBucketQuota(currentBucketName));

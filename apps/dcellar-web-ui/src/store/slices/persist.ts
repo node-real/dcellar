@@ -10,7 +10,6 @@ type OffChain = IReturnOffChainAuthKeyPairAndUpload;
 export type SorterType = [string, 'descend' | 'ascend'];
 
 export const getDefaultAccountConfig = (): PersistedAccountConfig => ({
-  seedString: '',
   directDownload: false,
   directView: false,
   offchain: [] as Array<OffChain>,
@@ -20,7 +19,6 @@ export const getDefaultAccountConfig = (): PersistedAccountConfig => ({
 export const defaultAccountConfig = getDefaultAccountConfig();
 
 export type PersistedAccountConfig = {
-  seedString: string;
   directDownload: boolean;
   directView: boolean;
   offchain: OffChain[];
@@ -165,6 +163,7 @@ export const setupOffchain =
         spAddresses: o.spAddresses.filter((s) => !sps.includes(s)),
       }))
       .filter((o) => o.spAddresses.length && o.expirationTime > curTime);
+
     // filter livable sps
     if (needUpdate) {
       const unAvailableSps = allSpList
@@ -196,11 +195,6 @@ export const checkOffChainDataAvailable =
     if (!offchain.length) return false;
     const curTime = getTimestamp();
     return offchain.some((o) => o.expirationTime > curTime);
-  };
-
-export const checkSpOffChainDataAvailable =
-  (address: string, sp: string) => async (dispatch: AppDispatch) => {
-    return !!(await dispatch(getSpOffChainData(address, sp))).seedString;
   };
 
 export const checkSpOffChainMayExpired =

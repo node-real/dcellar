@@ -39,7 +39,6 @@ import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { TotalFees } from '@/modules/object/components/TotalFees';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
-import { ChainVisibilityEnum } from '@/modules/object/type';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -56,19 +55,20 @@ import {
   setSignatureAction,
   setupStoreFeeParams,
 } from '@/store/slices/global';
-import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { reportEvent } from '@/utils/gtag';
 import { BN } from '@/utils/math';
 import { getQuotaNetflowRate } from '@/utils/payment';
 import {
-  CreateBucketApprovalRequest,
   MsgCreateBucketTypeUrl,
   MsgSetTagTypeUrl,
   TxResponse,
+  VisibilityType,
+  Long,
 } from '@bnb-chain/greenfield-js-sdk';
 import { useAsyncEffect, useUnmount } from 'ahooks';
 import { SPSelector } from './SPSelector';
+import { MsgCreateBucket } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 
 type ValidateNameAndGas = {
   isValidating: boolean;
@@ -231,23 +231,18 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     const bucketName = value;
     setValidateNameAndGas({ ...validateNameAndGas, isValidating: true });
     const sp = selectedSpRef.current;
-    const { seedString } = await dispatch(getSpOffChainData(loginAccount, sp.operatorAddress));
-    const createBucketPayload: CreateBucketApprovalRequest = {
-      bucketName,
+    const msgCreateBucket: MsgCreateBucket = {
       creator: loginAccount,
-      visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-      chargedReadQuota: String(chargeQuota * G_BYTES),
-      spInfo: {
-        primarySpAddress: sp.operatorAddress,
-      },
+      bucketName,
+      // done TODO visibility check done
+      visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
       paymentAddress: loginAccount,
+      primarySpAddress: sp.operatorAddress,
+
+      //done TODO chargedReadQuota check
+      chargedReadQuota: Long.fromNumber(chargeQuota * G_BYTES),
     };
-    const [simulateInfo, error] = await simulateCreateBucket(createBucketPayload, {
-      type: 'EDDSA',
-      domain: window.location.origin,
-      seed: seedString,
-      address: loginAccount,
-    });
+    const [simulateInfo, error] = await simulateCreateBucket(msgCreateBucket);
 
     if (!simulateInfo) {
       if (curNonce !== nonceRef.current) return;
@@ -315,29 +310,19 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     dispatch(
       setSignatureAction({ icon: Animates.object, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
     );
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, selectedSpRef.current.operatorAddress),
-    );
     const bucketName = data.bucketName;
     const selectedPaAddress = selectedPaRef.current.address;
-    const createBucketPayload: CreateBucketApprovalRequest = {
-      bucketName,
+    const msgCreateBucket: MsgCreateBucket = {
       creator: loginAccount,
+      bucketName,
       paymentAddress: selectedPaAddress,
-      visibility: ChainVisibilityEnum.VISIBILITY_TYPE_PUBLIC_READ,
-      chargedReadQuota: String(chargeQuota * G_BYTES),
-      spInfo: {
-        primarySpAddress: selectedSpRef.current.operatorAddress,
-      },
+      visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+      chargedReadQuota: Long.fromNumber(chargeQuota * G_BYTES),
+      primarySpAddress: selectedSpRef.current.operatorAddress,
     };
 
     const txs: TxResponse[] = [];
-    const [bucketTx, error1] = await getCreateBucketTx(createBucketPayload, {
-      type: 'EDDSA',
-      domain: window.location.origin,
-      seed: seedString,
-      address: loginAccount,
-    });
+    const [bucketTx, error1] = await getCreateBucketTx(msgCreateBucket);
     if (!bucketTx) return errorHandler(error1);
 
     txs.push(bucketTx);
@@ -361,9 +346,9 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     if (txRes?.code !== 0) return errorHandler((txRes as any).message || txRes?.rawLog);
 
     await pollingGetBucket({
-      address: createBucketPayload.creator,
+      address: msgCreateBucket.creator,
       endpoint: globalSP.endpoint,
-      bucketName: createBucketPayload.bucketName,
+      bucketName: msgCreateBucket.bucketName,
     });
 
     dispatch(setSignatureAction({}));

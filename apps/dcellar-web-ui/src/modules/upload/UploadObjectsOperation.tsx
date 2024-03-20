@@ -1,5 +1,7 @@
-import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
-import { CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import {
+  RedundancyType,
+  VisibilityType,
+} from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import styled from '@emotion/styled';
 import {
   Box,
@@ -30,7 +32,7 @@ import { ListItem } from './ListItem';
 import { useUploadTab } from './useUploadTab';
 import { useChecksumApi } from '../checksum';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../object/ObjectError';
-import { genCreateObjectTx } from '../object/utils/genCreateObjectTx';
+import { getCreateObjectTx } from '../object/utils/getCreateObjectTx';
 
 import { Animates } from '@/components/AnimatePng';
 import { DCButton } from '@/components/common/DCButton';
@@ -74,7 +76,6 @@ import {
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
 } from '@/store/slices/object';
-import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { isUTF8 } from '@/utils/coder';
 import {
@@ -87,6 +88,8 @@ import { formatBytes } from '@/utils/formatter';
 import { getTimestamp } from '@/utils/time';
 import { setTempAccountRecords } from '@/store/slices/accounts';
 import { createTempAccount } from '@/facade/account';
+import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { Long, bytesFromBase64 } from '@bnb-chain/greenfield-js-sdk';
 
 const defaultScroll = { top: 0 };
 const defaultActionParams = {} as TEditUploadContent;
@@ -267,27 +270,31 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const expectCheckSums = res?.expectCheckSums || [];
         console.log('hashing time', performance.now() - a);
         // 2. getApproval & sign
-        const { seedString } = await dispatch(
-          getSpOffChainData(loginAccount, primarySp.operatorAddress),
-        );
         const finalName = [...pathSegments, waitObject.relativePath, waitObject.name]
           .filter((item) => !!item)
           .join('/');
-        const createObjectPayload: CreateObjectApprovalRequest = {
+        console.log(
+          'reverseVisibilityType[visibility]',
+          reverseVisibilityType[visibility],
+          VisibilityType[visibility],
+          visibility,
+        );
+        const test1 = VisibilityType[visibility];
+        console.log('a', test1);
+        const msgCreateObject: MsgCreateObject = {
+          creator: loginAccount,
           bucketName: currentBucketName,
           objectName: finalName,
-          creator: loginAccount,
-          visibility: reverseVisibilityType[visibility],
-          fileType: waitObject.type || 'application/octet-stream',
-          contentLength: waitObject.size,
-          expectCheckSums,
+          payloadSize: Long.fromInt(waitObject.size),
+          visibility,
+          contentType: waitObject.type || 'application/octet-stream',
+          expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
+          redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
         };
-        const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
-          type: 'EDDSA',
-          seed: seedString,
-          domain: window.location.origin,
-          address: loginAccount,
-        }).then(resolve, createTxFault);
+        const [createObjectTx, _createError] = await getCreateObjectTx(msgCreateObject).then(
+          resolve,
+          createTxFault,
+        );
 
         if (!createObjectTx) {
           // TODO refactor

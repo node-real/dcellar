@@ -23,7 +23,7 @@ import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
 import { getObjectMeta } from '@/facade/object';
-import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import { getCreateObjectTx } from '@/modules/object/utils/getCreateObjectTx';
 import {
   TMakePutObjectHeaders,
   makePutObjectHeaders,
@@ -31,9 +31,10 @@ import {
 import { setupAccountRecords } from '@/store/slices/accounts';
 import { setupSpMeta } from '@/store/slices/sp';
 import { parseErrorXml, sleep } from '@/utils/common';
-import { AuthType, CreateObjectApprovalRequest } from '@bnb-chain/greenfield-js-sdk';
+import { AuthType, Long, RedundancyType, bytesFromBase64 } from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { isEmpty } from 'lodash-es';
+import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 
 interface GlobalTasksProps {}
 
@@ -122,7 +123,6 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
               if (authModal) return;
               dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
             },
-
             headers: {
               Authorization: headers.get('Authorization'),
               'content-type': headers.get('content-type'),
@@ -132,6 +132,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
               'x-gnfd-expiry-timestamp': headers.get('x-gnfd-expiry-timestamp'),
               'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
               'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
+              'X-Gnfd-App-Reg-Public-Key': headers.get('X-Gnfd-App-Reg-Public-Key'),
             },
           })
           .then(async () => {
@@ -206,20 +207,20 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
       const finalName = [...task.prefixFolders, task.waitObject.relativePath, task.waitObject.name]
         .filter((item) => !!item)
         .join('/');
-      const createObjectPayload: CreateObjectApprovalRequest = {
+      const msgCreateObject: MsgCreateObject = {
+        creator: tempAccount.address,
         bucketName: task.bucketName,
         objectName: finalName,
-        creator: tempAccount.address,
         visibility: reverseVisibilityType[task.visibility],
-        fileType: task.waitObject.type || 'application/octet-stream',
-        contentLength: task.waitObject.size,
-        expectCheckSums: task.checksum,
-        duration: 5000,
+        contentType: task.waitObject.type || 'application/octet-stream',
+        payloadSize: Long.fromInt(task.waitObject.size),
+        expectChecksums: task.checksum.map((x) => bytesFromBase64(x)),
+        redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
       };
-      const [createObjectTx, _createError] = await genCreateObjectTx(createObjectPayload, {
-        type: 'ECDSA',
-        privateKey: tempAccount.privateKey,
-      }).then(resolve, createTxFault);
+      const [createObjectTx, _createError] = await getCreateObjectTx(msgCreateObject).then(
+        resolve,
+        createTxFault,
+      );
       if (_createError) {
         console.error('createError', _createError);
         return dispatch(

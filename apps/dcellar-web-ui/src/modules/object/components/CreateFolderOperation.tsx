@@ -28,7 +28,7 @@ import {
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import { getCreateObjectTx } from '@/modules/object/utils/getCreateObjectTx';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { AccountInfo, setupAccountRecords } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
@@ -39,16 +39,18 @@ import {
   setupStoreFeeParams,
 } from '@/store/slices/global';
 import { setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
-import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { removeTrailingSlash } from '@/utils/string';
 import {
-  CreateObjectApprovalRequest,
   MsgCreateObjectTypeUrl,
   MsgSetTagTypeUrl,
   TxResponse,
+  Long,
+  RedundancyType,
+  bytesFromBase64,
+  VisibilityType,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
@@ -68,6 +70,7 @@ import { isEmpty } from 'lodash-es';
 import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
+import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -298,29 +301,27 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
   const simulateCreateFolderTx = async (
     fullFolderName: string,
-    visibility: any = 'VISIBILITY_TYPE_INHERIT',
+    visibility: VisibilityType = VisibilityType.VISIBILITY_TYPE_INHERIT,
   ): Promise<ErrorResponse | [TxResponse, null]> => {
     // const fullPath = getPath(folderName, folders);
     const file = new File([], fullFolderName, { type: 'text/plain' });
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const createObjectPayload: CreateObjectApprovalRequest = {
+    const expectCheckSums = hashResult?.expectCheckSums || [];
+    const msgCreateObject: MsgCreateObject = {
+      creator: loginAccount,
       bucketName: currentBucketName,
       objectName: fullFolderName,
-      creator: loginAccount,
       visibility,
-      fileType: file.type,
-      contentLength: file.size,
-      expectCheckSums: hashResult?.expectCheckSums || [],
+      contentType: file.type,
+      payloadSize: Long.fromInt(file.size),
+      expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
+      redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
     };
-    const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload, {
-      type: 'EDDSA',
-      domain: window.location.origin,
-      seed: seedString,
-      address: loginAccount,
-    }).then(resolve, createTxFault);
+
+    const [createObjectTx, createError] = await getCreateObjectTx(msgCreateObject).then(
+      resolve,
+      createTxFault,
+    );
 
     if (!createObjectTx) {
       return [null, createError];
