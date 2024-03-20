@@ -18,7 +18,6 @@ class Extractor {
     this.localeFilePath = path.join(getCwd(), localeDir, `${devLang}.json`);
   }
 
-  // TODO Semantics
   _getNewLabelKey() {
     while (true) {
       const randomId = getRandomId();

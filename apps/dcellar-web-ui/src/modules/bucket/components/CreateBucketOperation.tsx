@@ -234,12 +234,10 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     const msgCreateBucket: MsgCreateBucket = {
       creator: loginAccount,
       bucketName,
-      // done TODO visibility check done
       visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
       paymentAddress: loginAccount,
       primarySpAddress: sp.operatorAddress,
 
-      //done TODO chargedReadQuota check
       chargedReadQuota: Long.fromNumber(chargeQuota * G_BYTES),
     };
     const [simulateInfo, error] = await simulateCreateBucket(msgCreateBucket);
