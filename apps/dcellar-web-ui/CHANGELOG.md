@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Fri, 15 Mar 2024 09:48:45 GMT and should not be manually modified.
+This log was last generated on Wed, 20 Mar 2024 07:14:31 GMT and should not be manually modified.
+
+## 0.3.1
+Wed, 20 Mar 2024 07:14:31 GMT
+
+### Patches
+
+- disable selection of SPs with invalid status in SPSelector
 
 ## 0.3.0
 Fri, 15 Mar 2024 09:48:45 GMT
