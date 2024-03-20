@@ -1,31 +1,40 @@
-name: prod-deploy-scheduler
+name: Production Deployment Scheduler
 
 on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Release the project manually."
+        description: "Select a project."
         required: true
         default: "dcellar-web-ui"
-        type: string
-      env:
-        description: "Choose the environment for deployment."
+        options: ["dcellar-web-ui"]
+        type: choice
+      environment:
+        description: "Select a environment."
         required: true
         default: "testnet"
-        type: string
+        options: ["testnet", "mainnet"]
+        type: choice
       ref:
-        description: "Specify the branch or a tag to deploy"
+        description: "Input a tag or main to deploy."
         required: true
-        default: "main"
+        default: ""
         type: string
+
 jobs:
   pre-check:
     runs-on: ubuntu-latest
-    if: ((github.event.inputs.project == 'dcellar-web-ui') && ((github.event.inputs.env == 'testnet') || (github.event.inputs.env == 'mainnet')))
+    if: ((github.event.inputs.project == 'dcellar-web-ui') && ((github.event.inputs.environment == 'testnet') || (github.event.inputs.environment == 'mainnet')))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
       is_valid_ref: ${{ steps.check_ref.outputs.is_valid_ref }}
+      ref: ${{ steps.trim_ref.outputs.ref }}
     steps:
+    - name: Trim ref value
+      id: trim_ref
+      run: |
+        REF=$(echo "${{ github.event.inputs.ref }}" | xargs)
+        echo "ref=$REF" >> $GITHUB_OUTPUT
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -69,20 +78,20 @@ jobs:
 
   dcellar-web-ui-prod-deploy-with-testnet:
     needs: [pre-check]
-    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.env == 'testnet'))
-    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
+    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.environment == 'testnet'))
+    uses: node-real/public-github-workflows/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
     secrets: inherit
     with:
       app_name: ${{ inputs.project }}
-      env: ${{ inputs.env }}
-      ref: ${{ inputs.ref }}
+      env: ${{ inputs.environment }}
+      ref: ${{ needs.pre-check.outputs.ref }}
 
   dcellar-web-ui-prod-deploy-with-mainnet:
     needs: [pre-check]
-    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.env == 'mainnet'))
-    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-mainnet-cicd.yml@main
+    if: ((needs.pre-check.outputs.is_valid_ref == 'valid') && (inputs.project == 'dcellar-web-ui') && (inputs.environment == 'mainnet'))
+    uses: node-real/public-github-workflows/.github/workflows/dcellar-web-ui-prod-mainnet-cicd.yml@main
     secrets: inherit
     with:
       app_name: ${{ inputs.project }}
-      env: ${{ inputs.env }}
-      ref: ${{ inputs.ref }}
+      env: ${{ inputs.environment }}
+      ref: ${{ needs.pre-check.outputs.ref }}

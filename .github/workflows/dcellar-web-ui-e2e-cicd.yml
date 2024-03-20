@@ -16,7 +16,7 @@ on:
 
 jobs:
   CICD:
-    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
+    uses: node-real/public-github-workflows/.github/workflows/dcellar-web-ui-e2e-cicd.yml@main
     secrets: inherit
     with:
       app_name: ${{ inputs.app_name }}

@@ -1,4 +1,4 @@
-name: Deprecated dcellar-web-ui prod mainnet CICD
+name: Dcellar-web-ui prod mainnet CICD
 
 on:
   # pull_request:
@@ -9,28 +9,37 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Release the project manually."
+        description: "Select a project to deploy."
         required: true
         default: "dcellar-web-ui"
-        type: string
-      env:
+        options: ["dcellar-web-ui"]
+        type: choice
+      environment:
         description: "Choose the environment for deployment."
         required: true
         default: "mainnet"
-        type: string
-      branch:
+        options: ["testnet"]
+        type: choice
+      ref:
         description: "Choose the branch for deployment"
         required: true
         default: "mainnet-main"
-        type: string
+        options: ["mainnet-main"]
+        type: choice
 
 jobs:
   pre-check:
     runs-on: ubuntu-latest
-    if: ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'mainnet'))
+    if: ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.environment == 'mainnet'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
+      ref: ${{ steps.trim_ref.outputs.ref }}
     steps:
+    - name: Trim ref value
+      id: trim_ref
+      run: |
+        REF=$(echo "${{ github.event.inputs.branch }}" | xargs)
+        echo "ref=$REF" >> $GITHUB_OUTPUT
     - name: Checkout repository
       uses: actions/checkout@v4
     - name: Read codeowners
@@ -59,7 +68,7 @@ jobs:
   CICD:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
-    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-mainnet-cicd.yml@main
+    uses: node-real/public-github-workflows/.github/workflows/dcellar-web-ui-prod-mainnet-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui

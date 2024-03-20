@@ -1,4 +1,4 @@
-name: qa-deploy-scheduler
+name: QA Deployment Scheduler
 
 on:
   issue_comment:
