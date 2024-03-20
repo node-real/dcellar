@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "0.3.1",
+      "tag": "dcellar-web-ui_v0.3.1",
+      "date": "Wed, 20 Mar 2024 07:14:31 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "disable selection of SPs with invalid status in SPSelector"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.3.0",
       "tag": "dcellar-web-ui_v0.3.0",
       "date": "Fri, 15 Mar 2024 09:48:45 GMT",
