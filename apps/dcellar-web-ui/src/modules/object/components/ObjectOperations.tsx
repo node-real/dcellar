@@ -46,7 +46,8 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   const [id, operation, params] = objectOperation[level];
   const bucketName = params?.bucketName || currentBucketName;
   const _operation = useModalValues<ObjectOperationsType>(operation);
-  const selectObjectInfo = objectRecords[id] || {};
+  // params?.selectObjectInfo for offchain folder mock data
+  const selectObjectInfo = objectRecords[id] || params?.selectObjectInfo || {};
   const _selectObjectInfo = useModalValues<ObjectMeta>(selectObjectInfo);
   const { BucketName } = _selectObjectInfo.ObjectInfo || {};
   const selectBucket = useModalValues(bucketRecords[BucketName || bucketName] || {});
@@ -130,6 +131,7 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
       case 'create_folder':
         return (
           <CreateFolderOperation
+            chainFolder={params?.objectName}
             selectBucket={selectBucket}
             bucketAccountDetail={bucketAccountDetail}
             primarySp={primarySp}

@@ -98,7 +98,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
       </>
     );
 
-  const folderExist = !objectCommonPrefix ? true : !!objectRecords[completeCommonPrefix + '/'];
+  const folderExist = !objectCommonPrefix || !!objectRecords[completeCommonPrefix + '/'];
 
   const invalidPath =
     pathSegments.some((name) => new Blob([name]).size > MAX_FOLDER_NAME_LEN) || !folderExist;

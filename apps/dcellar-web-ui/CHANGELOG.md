@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Wed, 20 Mar 2024 07:14:31 GMT and should not be manually modified.
+This log was last generated on Mon, 25 Mar 2024 04:02:13 GMT and should not be manually modified.
+
+## 0.4.0
+Mon, 25 Mar 2024 04:02:13 GMT
+
+### Minor changes
+
+- Support create on chain folder & share virtual path
 
 ## 0.3.1
 Wed, 20 Mar 2024 07:14:31 GMT
