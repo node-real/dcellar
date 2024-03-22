@@ -39,7 +39,6 @@ import { DCButton } from '@/components/common/DCButton';
 import { DotLoading } from '@/components/common/DotLoading';
 import { getValidTags } from '@/components/common/ManageTags';
 import { IconFont } from '@/components/IconFont';
-import { reverseVisibilityType } from '@/constants/legacy';
 import { broadcastTx, resolve } from '@/facade/common';
 import {
   E_FILE_IS_EMPTY,
@@ -273,14 +272,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const finalName = [...pathSegments, waitObject.relativePath, waitObject.name]
           .filter((item) => !!item)
           .join('/');
-        console.log(
-          'reverseVisibilityType[visibility]',
-          reverseVisibilityType[visibility],
-          VisibilityType[visibility],
-          visibility,
-        );
         const test1 = VisibilityType[visibility];
-        console.log('a', test1);
         const msgCreateObject: MsgCreateObject = {
           creator: loginAccount,
           bucketName: currentBucketName,
@@ -291,6 +283,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
           redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
         };
+        console.log('msgCreateObject-single', msgCreateObject);
         const [createObjectTx, _createError] = await getCreateObjectTx(msgCreateObject).then(
           resolve,
           createTxFault,
@@ -319,7 +312,12 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           connector: connector!,
         });
         if (!txRes || error) {
-          dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: error ?? '' }));
+          dispatch(
+            setupWaitTaskErrorMsg({
+              id: waitObject.id,
+              errorMsg: error ?? 'Something went wrong.',
+            }),
+          );
           closeModal();
           return;
         }

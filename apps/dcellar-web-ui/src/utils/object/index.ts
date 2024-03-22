@@ -9,17 +9,6 @@ export type TReverseVisibilityType = {
 
 const StringIsNumber = (value: string) => !isNaN(Number(value));
 
-export const convertVisibility = () => {
-  const reverseVisibilityType: any = {} as TReverseVisibilityType;
-  Object.keys(VisibilityType)
-    .filter(StringIsNumber)
-    .forEach((item: any) => {
-      reverseVisibilityType[item] = VisibilityType[item];
-    });
-
-  return reverseVisibilityType;
-};
-
 export const formatLockFee = (lockFee: string | undefined) => {
   return String(Number(lockFee || '') / Math.pow(10, 18));
 };

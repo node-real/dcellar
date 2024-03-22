@@ -18,7 +18,6 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { useAsyncEffect } from 'ahooks';
 import { memo, useEffect, useMemo, useState } from 'react';
 
-import { reverseVisibilityType } from '@/constants/legacy';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { resolve } from '@/facade/common';
 import { broadcastFault, commonFault, createTxFault, simulateFault } from '@/facade/error';
@@ -31,7 +30,13 @@ import {
 import { setupAccountRecords } from '@/store/slices/accounts';
 import { setupSpMeta } from '@/store/slices/sp';
 import { parseErrorXml, sleep } from '@/utils/common';
-import { AuthType, Long, RedundancyType, bytesFromBase64 } from '@bnb-chain/greenfield-js-sdk';
+import {
+  AuthType,
+  Long,
+  RedundancyType,
+  VisibilityType,
+  bytesFromBase64,
+} from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { isEmpty } from 'lodash-es';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
@@ -211,7 +216,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         creator: tempAccount.address,
         bucketName: task.bucketName,
         objectName: finalName,
-        visibility: reverseVisibilityType[task.visibility],
+        visibility: task.visibility,
         contentType: task.waitObject.type || 'application/octet-stream',
         payloadSize: Long.fromInt(task.waitObject.size),
         expectChecksums: task.checksum.map((x) => bytesFromBase64(x)),
