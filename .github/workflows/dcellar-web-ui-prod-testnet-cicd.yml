@@ -1,4 +1,4 @@
-name: Deprecated dcellar-web-ui prod testnet CICD
+name: Dcellar-web-ui prod testnet CICD
 
 on:
   # temp remove pr trigger
@@ -10,28 +10,37 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Release the project manually."
+        description: "Select a project to deploy."
         required: true
         default: "dcellar-web-ui"
-        type: string
-      env:
+        options: ["dcellar-web-ui"]
+        type: choice
+      environment:
         description: "Choose the environment for deployment."
         required: true
-        default: "testnet"
-        type: string
+        default: "mainnet"
+        options: ["mainnet"]
+        type: choice
       ref:
         description: "Specify the branch, tag or SHA to deploy"
         required: true
         default: "main"
-        type: string
+        options: ["main"]
+        type: choice
 
 jobs:
   pre-check:
     runs-on: ubuntu-latest
-    if: (github.event.issue.pull_request.merged && (contains(github.event.issue.pull_request.labels.*.name, 'dcellar-web-ui'))) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.env == 'testnet'))
+    if: (github.event.pull_request.merged && (contains(github.event.pull_request.labels.*.name, 'dcellar-web-ui'))) || ((github.event.inputs.project == 'dcellar-web-ui') && (github.event.inputs.environment == 'testnet'))
     outputs:
       codeowners: ${{ steps.codeowners.outputs.content }}
+      ref: ${{ steps.trim_ref.outputs.branch }}
     steps:
+      - name: Trim ref value
+        id: trim_ref
+        run: |
+          REF=$(echo "${{ github.event.inputs.ref }}" | xargs)
+          echo "ref=$REF" >> $GITHUB_OUTPUT
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Read codeowners
@@ -60,7 +69,7 @@ jobs:
   CICD:
     needs: [pre-check]
     if: (contains(needs.pre-check.outputs.codeowners, github.event.comment.user.login))
-    uses: node-real/public-github-workflow/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
+    uses: node-real/public-github-workflows/.github/workflows/dcellar-web-ui-prod-testnet-cicd.yml@main
     secrets: inherit
     with:
       app_name: dcellar-web-ui
