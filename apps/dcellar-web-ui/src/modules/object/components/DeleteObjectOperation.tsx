@@ -117,7 +117,8 @@ export const DeleteObjectOperation = memo<DeleteObjectOperationProps>(
       );
       return (
         GfSpListObjectsByBucketNameResponse.KeyCount === '1' &&
-        GfSpListObjectsByBucketNameResponse.Objects[0].ObjectInfo.ObjectName === objectName
+        // virtual path
+        GfSpListObjectsByBucketNameResponse.Objects[0]?.ObjectInfo.ObjectName === objectName
       );
     };
 

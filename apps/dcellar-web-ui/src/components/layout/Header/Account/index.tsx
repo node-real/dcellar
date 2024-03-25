@@ -5,6 +5,7 @@ import {
   PopoverContent,
   PopoverContentProps,
   PopoverTrigger,
+  Portal,
 } from '@node-real/uikit';
 import { TransferEntry } from './TransferEntry';
 import { Address } from './Address';
@@ -21,11 +22,13 @@ export const Account = () => {
           <Address address={loginAccount} />
         </Box>
       </PopoverTrigger>
-      <PopContent>
-        <Balance address={loginAccount} />
-        <TransferEntry />
-        <OperationEntry />
-      </PopContent>
+      <Portal>
+        <PopContent>
+          <Balance address={loginAccount} />
+          <TransferEntry />
+          <OperationEntry />
+        </PopContent>
+      </Portal>
     </Popover>
   );
 };

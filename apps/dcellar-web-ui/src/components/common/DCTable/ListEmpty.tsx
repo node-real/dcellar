@@ -1,12 +1,12 @@
 import { IconFont } from '@/components/IconFont';
 import styled from '@emotion/styled';
 import { Box, Flex, Text } from '@node-real/uikit';
-import { PropsWithChildren, memo } from 'react';
+import { PropsWithChildren, memo, ReactNode } from 'react';
 
 interface ListEmptyProps extends PropsWithChildren {
   empty: boolean;
   title: string;
-  desc: string;
+  desc: ReactNode;
   type: string;
   h?: number;
 }
