@@ -60,6 +60,7 @@ export const trimAddress = (
   return trimLongStr(formatAddress(address), maxLength, headLen, footLen);
 };
 
+// todo emoji characters encoding
 // encodeURIComponent() uses the same encoding algorithm as described in encodeURI(). It escapes all characters except:
 // A–Z a–z 0–9 - _ . ! ~ * ' ( )
 export const encodeObjectName = (pathName: string) => {
@@ -98,7 +99,11 @@ export const encodeObjectName = (pathName: string) => {
           encodedPathName += '%' + hexStr.toUpperCase();
         } else {
           // others characters
-          encodedPathName += encodeURI(s);
+          try {
+            encodedPathName += encodeURI(s);
+          } catch (e) {
+            encodedPathName += s;
+          }
         }
     }
   }

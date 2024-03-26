@@ -108,7 +108,11 @@ const SharePage: NextPage<PageProps> = (props) => {
     };
 
     if (!loginAccount) {
-      const objectInfo = await headObject(bucketName, objectName);
+      let objectInfo = await headObject(bucketName, objectName);
+      // for virtual path
+      if (objectName.endsWith('/') && !objectInfo) {
+        objectInfo = { bucketName, objectName } as ObjectInfo;
+      }
       setObjectInfo(objectInfo);
       setQuotaData({} as IQuotaProps);
       return;
@@ -120,7 +124,12 @@ const SharePage: NextPage<PageProps> = (props) => {
     ) {
       logout(true);
     }
-    setObjectInfo(objectInfo);
+    let _objectInfo = objectInfo;
+    // for virtual path
+    if (objectName.endsWith('/') && !objectInfo) {
+      _objectInfo = { bucketName, objectName } as ObjectInfo;
+    }
+    setObjectInfo(_objectInfo);
     setQuotaData(quotaData || ({} as IQuotaProps));
   }, [specifiedSp, walletConnected]);
 

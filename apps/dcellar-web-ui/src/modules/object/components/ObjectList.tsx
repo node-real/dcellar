@@ -50,13 +50,14 @@ import { formatBytes } from '@/utils/formatter';
 import { pickAction, removeAction } from '@/utils/object';
 import { apolloUrlTemplate } from '@/utils/string';
 import { formatTime, getMillisecond } from '@/utils/time';
-import { Flex } from '@node-real/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { ColumnProps } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { find, uniq, without, xor } from 'lodash-es';
 import { memo, useCallback } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
+import Link from 'next/link';
 // import { ManageObjectTagsDrawer } from './ManageObjectTagsDrawer';
 
 export type ObjectActionValueType =
@@ -127,6 +128,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
   const bucket = bucketRecords[currentBucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
 
+  const currentPathExist = !objectCommonPrefix || !!objectRecords[completeCommonPrefix + '/'];
   const filtered =
     !!objectNameFilter.trim() ||
     objectTypeFilter.length ||
@@ -197,33 +199,45 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
 
   const empty = !loading && !sortedList.length;
   const loadingComponent = { spinning: loading, indicator: <Loading /> };
-  const renderEmpty = useCallback(
-    () => (
-      <ListEmpty
-        type={isBucketDiscontinue && !filtered ? 'discontinue' : 'empty-object'}
-        title={
-          filtered || shareMode
-            ? 'No Results'
-            : isBucketDiscontinue
-              ? 'Discontinue Notice'
-              : 'Upload Objects and Start Your Work Now'
-        }
-        desc={
-          filtered || shareMode
-            ? 'No results found. Please try different conditions.'
-            : isBucketDiscontinue
-              ? 'This bucket were marked as discontinued and will be deleted by SP soon. '
-              : `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
-                  SINGLE_OBJECT_MAX_SIZE,
-                )}.`
-        }
-        empty={empty}
-      >
-        {!filtered && !shareMode && <CreateObject showRefresh={false} />}
+  const renderEmpty = useCallback(() => {
+    const type = isBucketDiscontinue && !filtered ? 'discontinue' : 'empty-object';
+    const title = (() => {
+      if (filtered || shareMode) return 'No Results';
+      if (isBucketDiscontinue) return 'Discontinue Notice';
+      if (!currentPathExist && isBucketOwner) return 'No Objects Under This Path';
+      return 'Upload Objects and Start Your Work Now';
+    })();
+
+    const desc = (() => {
+      if (filtered || shareMode) return 'No results found. Please try different conditions.';
+      if (isBucketDiscontinue)
+        return 'This bucket were marked as discontinued and will be deleted by SP soon. ';
+      if (!currentPathExist && isBucketOwner)
+        return (
+          <Box sx={{ a: { color: 'brand.normal' } }}>
+            The path no longer exists on DCellar. You can{' '}
+            <Link href={`/buckets/${currentBucketName}`}>return to the bucket list</Link> and
+            continue your work.
+          </Box>
+        );
+      return `To avoid data loss during testnet phase, the file size should not exceed ${formatBytes(
+        SINGLE_OBJECT_MAX_SIZE,
+      )}.`;
+    })();
+    return (
+      <ListEmpty type={type} title={title} desc={desc} empty={empty}>
+        {!filtered && !shareMode && currentPathExist && <CreateObject showRefresh={false} />}
       </ListEmpty>
-    ),
-    [isBucketDiscontinue, empty, filtered, shareMode],
-  );
+    );
+  }, [
+    isBucketDiscontinue,
+    isBucketOwner,
+    empty,
+    filtered,
+    shareMode,
+    currentPathExist,
+    currentBucketName,
+  ]);
 
   const columns: ColumnProps<ObjectEntity>[] = [
     {
@@ -479,6 +493,15 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
       openLink(link);
       return;
     }
+
+    const forVirtualPath = {
+      ObjectInfo: {
+        BucketName: record.bucketName,
+        ObjectName: record.objectName,
+        Visibility: record.visibility,
+      },
+    };
+
     switch (menu) {
       case 'detail':
       case 'delete':
@@ -501,7 +524,11 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         return dispatch(
           setObjectOperation({
             level: 1,
-            operation: [`${record.bucketName}/${record.objectName}`, menu],
+            operation: [
+              `${record.bucketName}/${record.objectName}`,
+              menu,
+              record.objectName.endsWith('/') ? { selectObjectInfo: forVirtualPath } : {},
+            ],
           }),
         );
     }

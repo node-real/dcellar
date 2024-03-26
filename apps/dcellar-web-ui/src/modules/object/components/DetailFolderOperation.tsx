@@ -16,10 +16,15 @@ import { convertObjectKey } from '@/utils/common';
 import { formatId } from '@/utils/string';
 import { formatFullTime } from '@/utils/time';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
-import { Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
+import { Box, Divider, Flex, QDrawerBody, QDrawerHeader, Text } from '@node-real/uikit';
 import { useMount, useUnmount } from 'ahooks';
 import { last } from 'lodash-es';
-import { memo } from 'react';
+import { memo, useMemo, useState } from 'react';
+import { MOCK_EMPTY_FOLDER_OBJECT } from '@/modules/object/constant';
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+import { DCLink } from '@/components/common/DCLink';
+import { Tips } from '@/components/common/Tips';
+import { DCButton } from '@/components/common/DCButton';
 
 interface DetailFolderOperationProps {
   objectName: string;
@@ -32,13 +37,28 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
     const dispatch = useAppDispatch();
     const completeCommonPrefix = useAppSelector((root) => root.object.completeCommonPrefix);
     const objectRecords = useAppSelector((root) => root.object.objectRecords);
+    // const objectOperation = useAppSelector((root) => root.object.objectOperation);
+    // const [id, operation, params] = objectOperation[1];
+    // const preOperation = usePrevious(operation);
+    // const preObjectName = usePrevious(params?.objectName);
 
-    const selectObjectInfo = useModalValues(
-      objectRecords[[selectBucket.BucketName, objectName].join('/')] || {},
+    const cacheKey = [selectBucket.BucketName, objectName].join('/');
+    const mockMeta: ObjectMeta = useMemo(
+      () => ({
+        ...MOCK_EMPTY_FOLDER_OBJECT,
+        ObjectInfo: {
+          ...MOCK_EMPTY_FOLDER_OBJECT.ObjectInfo,
+          ObjectName: objectName,
+          BucketName: selectBucket.BucketName,
+        },
+      }),
+      [objectName, selectBucket.BucketName],
     );
+    const selectObjectInfo = useModalValues(objectRecords[cacheKey] || mockMeta);
     const objectInfo = useModalValues(selectObjectInfo.ObjectInfo);
+    const [folderExist, setFolderExist] = useState(true);
     const folderName = last(objectName.replace(/\/$/, '').split('/'));
-    const loading = !objectInfo;
+    const loading = !(cacheKey in objectRecords) && folderExist;
 
     const onEditTags = () => {
       const lowerKeyTags = selectObjectInfo.ObjectInfo?.Tags?.Tags.map((item) =>
@@ -53,7 +73,7 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
       );
     };
 
-    useMount(async () => {
+    const getFolderObjectList = async () => {
       const _query = new URLSearchParams();
       _query.append('delimiter', '/');
       _query.append('maxKeys', '2');
@@ -70,16 +90,24 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
 
       const [res, error] = await getListObjects(params);
       // should never happen
-      if (error || !res || res.code !== 0) return false;
+      if (error || !res || res.code !== 0) return;
       const { GfSpListObjectsByBucketNameResponse } = res.body!;
+      const list = GfSpListObjectsByBucketNameResponse!;
       // 更新文件夹objectInfo
-      dispatch(
-        setObjectList({
-          path: completeCommonPrefix,
-          list: GfSpListObjectsByBucketNameResponse || [],
-          infoOnly: true,
-        }),
-      );
+      dispatch(setObjectList({ path: completeCommonPrefix, list, infoOnly: true }));
+      return list;
+    };
+
+    // useAsyncEffect(async () => {
+    //   if (preObjectName !== objectInfo.ObjectName || preOperation !== 'create_folder') return;
+    //   await getFolderObjectList();
+    // }, [preOperation, preObjectName, objectInfo.ObjectName]);
+
+    useMount(async () => {
+      const list = await getFolderObjectList();
+      if (!list) return;
+      // virtual path
+      setFolderExist(list.Objects[0]?.ObjectInfo.ObjectName.endsWith('/') || false);
     });
 
     useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
@@ -101,13 +129,64 @@ export const DetailFolderOperation = memo<DetailFolderOperationProps>(
               >
                 {folderName}
               </Text>
-              <Text fontSize={14} fontWeight={500} color={'readable.tertiary'}>
-                --
+              <Text as={'div'} fontSize={14} fontWeight={500} color={'readable.tertiary'}>
+                {folderExist ? (
+                  '--'
+                ) : (
+                  <Flex alignItems={'center'}>
+                    This is a folder simulated by a path.{' '}
+                    <Tips
+                      placement={'bottom'}
+                      containerWidth={'220px'}
+                      tips={
+                        <Box fontSize={'12px'} lineHeight="14px" w={'200px'}>
+                          <Box>
+                            {
+                              "This path doesn't exist as an entity on the blockchain and lacks chain information."
+                            }
+                          </Box>
+                          <DCLink
+                            href="https://docs.nodereal.io/docs/dcellar-faq#question-what-is--folder-simulated-by-a-path-"
+                            target="_blank"
+                          >
+                            Learn more
+                          </DCLink>
+                        </Box>
+                      }
+                    />
+                  </Flex>
+                )}
               </Text>
             </Flex>
           </Flex>
           <Divider />
-          <Flex my={8} gap={8} flexDirection={'column'}>
+          <Flex position={'relative'} my={8} gap={8} flexDirection={'column'}>
+            {!folderExist && (
+              <Box
+                position={'absolute'}
+                w={310}
+                h={'100%'}
+                right={0}
+                top={0}
+                bg={'rgba(255, 255, 255, 0.70)'}
+                backdropFilter={'blur(2px)'}
+              >
+                <DCButton
+                  onClick={() =>
+                    dispatch(
+                      setObjectOperation({
+                        operation: ['', 'create_folder', { objectName: objectInfo.ObjectName }],
+                      }),
+                    )
+                  }
+                  position={'absolute'}
+                  right={24}
+                  top={70}
+                >
+                  Create on chain folder
+                </DCButton>
+              </Box>
+            )}
             {renderPropRow(
               'Date created',
               loading ? '' : formatFullTime(+objectInfo.CreateAt * 1000),

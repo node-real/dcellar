@@ -66,7 +66,7 @@ import {
 } from '@node-real/uikit';
 import { useAsyncEffect, useUnmount } from 'ahooks';
 import BigNumber from 'bignumber.js';
-import { isEmpty } from 'lodash-es';
+import { isEmpty, last, trimEnd } from 'lodash-es';
 import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
@@ -76,6 +76,7 @@ interface CreateFolderOperationProps {
   selectBucket: TBucket;
   bucketAccountDetail: AccountInfo;
   primarySp: SpEntity;
+  chainFolder?: string;
   refetch?: (name?: string) => void;
   onClose?: () => void;
 }
@@ -83,6 +84,7 @@ interface CreateFolderOperationProps {
 export const CreateFolderOperation = memo<CreateFolderOperationProps>(function CreateFolderDrawer({
   refetch = () => {},
   onClose = () => {},
+  chainFolder: chainFolderName,
   selectBucket: bucket,
   bucketAccountDetail: accountDetail,
   primarySp,
@@ -105,7 +107,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const { settlementFee } = useSettlementFee(PaymentAddress);
   const [balanceEnough, setBalanceEnough] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [inputFolderName, setInputFolderName] = useState('');
+  const initFolderName = last(trimEnd(chainFolderName || '', '/').split('/'));
+  const [inputFolderName, setInputFolderName] = useState(initFolderName || '');
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [usedNames, setUsedNames] = useState<string[]>([]);
 
@@ -291,7 +294,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       errors.push('Cannot consist of slash(/).');
     }
     const folderNames = folderList.map((folder) => folder.name);
-    if (folderNames.includes(value)) {
+    if (folderNames.includes(value) && !chainFolderName) {
       errors.push('Folder name already exists.');
     }
     setFormErrors(errors);
@@ -383,10 +386,16 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   return (
     <>
       <QDrawerHeader flexDirection={'column'}>
-        <Box>Create a Folder</Box>
+        <Box>{chainFolderName ? 'Create on chain folder' : 'Create a Folder'}</Box>
         <Text className="ui-drawer-sub">
-          Use folders to group objects in your bucket. Folder names can&apos;t contain
-          &quot;/&quot;.
+          {chainFolderName ? (
+            'Convert your existing path to an on chain folder to view detailed data on the chain and obtain additional features.'
+          ) : (
+            <>
+              Use folders to group objects in your bucket. Folder names can&apos;t contain
+              &quot;/&quot;.
+            </>
+          )}
         </Text>
       </QDrawerHeader>
       <QDrawerBody>
@@ -397,6 +406,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
                 Name
               </Text>
               <InputItem
+                disabled={!!chainFolderName}
                 onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
                 value={inputFolderName}
                 onChange={onFolderNameChange}

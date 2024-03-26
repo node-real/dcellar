@@ -1,3 +1,5 @@
+import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
+
 export const GAS_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
 export const PREPAID_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
 export const SETTLEMENT_FEE_DOC = 'https://docs.nodereal.io/docs/dcellar-faq#fee-related';
@@ -44,6 +46,46 @@ const AUTH_EXPIRED = 'Authentication Expired';
 const WALLET_CONFIRM = 'Please confirm the transaction in your wallet.';
 
 export const EMPTY_TX_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+export const MOCK_EMPTY_FOLDER_OBJECT: ObjectMeta = {
+  ObjectInfo: {
+    Owner: '0xDB8040c64d24840BD1D6BcAC7112D2A143CC2EEa',
+    Creator: '0xDB8040c64d24840BD1D6BcAC7112D2A143CC2EEa',
+    BucketName: '',
+    ObjectName: '',
+    Id: 0,
+    LocalVirtualGroupId: 0,
+    PayloadSize: 0,
+    Visibility: 3,
+    ContentType: 'text/plain',
+    CreateAt: 1711002963,
+    ObjectStatus: 1,
+    RedundancyType: 0,
+    SourceType: 0,
+    Checksums: [
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+      'Xfbg4nYTWdMKgnUFjimfzAOBU0VF9Vz0PkGYP11MlFY=',
+    ],
+    Tags: {
+      Tags: [],
+    },
+  },
+  LockedBalance: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  Removed: false,
+  UpdateAt: 3075455,
+  DeleteAt: 0,
+  DeleteReason: '',
+  Operator: '0x0000000000000000000000000000000000000000',
+  CreateTxHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  UpdateTxHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  SealTxHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+};
+
 export {
   AUTH_EXPIRED,
   BUTTON_GOT_IT,

@@ -111,7 +111,11 @@ export const SharePermission = memo<SharePermissionProps>(function SharePermissi
                   dispatch(
                     setObjectOperation({
                       level: 1,
-                      operation: [`${bucketName}/${objectInfo.ObjectName}`, 'share'],
+                      operation: [
+                        `${bucketName}/${objectInfo.ObjectName}`,
+                        'share',
+                        { selectObjectInfo },
+                      ],
                     }),
                   );
                 }}
