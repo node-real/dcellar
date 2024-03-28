@@ -1,18 +1,16 @@
 import styled from '@emotion/styled';
-import { Flex, Menu, QListItem } from '@node-real/uikit';
+import { Flex, Menu } from '@node-real/uikit';
 import cn from 'classnames';
 import { isEmpty } from 'lodash-es';
 import { ChangeEvent, useMemo } from 'react';
 
-import { NameItem } from './NameItem';
-import { PathItem } from './PathItem';
-
 import { IconFont } from '@/components/IconFont';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { addToWaitQueue, removeFromWaitQueue } from '@/store/slices/global';
+import { addToWaitQueue } from '@/store/slices/global';
 import { TransferItemTree } from '@/utils/dom';
 import { getTimestamp } from '@/utils/time';
+import { UploadObjectsList } from './UploadObjectsList';
 
 type ListItemProps = {
   path: string;
@@ -36,10 +34,6 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
         return objectWaitQueue;
     }
   }, [objectWaitQueue, type]);
-
-  const onRemove = (id: number) => {
-    dispatch(removeFromWaitQueue({ id }));
-  };
 
   const onFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -112,45 +106,7 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
         </Flex>
       </DropContainer>
       <Flex width="100%" flexDirection={'column'} alignItems={'center'} display={'flex'}>
-        {list?.map((selectedFile) => (
-          <QListItem
-            key={selectedFile.id}
-            cursor={'default'}
-            maxW={'520px'}
-            h={42}
-            px={0}
-            _hover={{
-              bg: 'opacity1',
-            }}
-            right={
-              <IconFont
-                onClick={() => onRemove(selectedFile.id)}
-                w={16}
-                type="close"
-                cursor="pointer"
-                color={'readable.secondary'}
-                _hover={{
-                  color: 'readable.normal',
-                }}
-              />
-            }
-          >
-            <Flex fontSize={'12px'} alignItems={'center'} justifyContent={'space-between'}>
-              <NameItem
-                w={240}
-                mr={12}
-                name={selectedFile.name}
-                msg={selectedFile.msg}
-                size={selectedFile.size}
-              />
-              <PathItem
-                lineHeight="normal"
-                path={`${path}/${selectedFile.relativePath ? selectedFile.relativePath + '/' : ''}`}
-                textAlign="left"
-              />
-            </Flex>
-          </QListItem>
-        ))}
+        {list && list.length > 0 && <UploadObjectsList data={list} path={path} />}
       </Flex>
     </>
   );

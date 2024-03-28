@@ -162,8 +162,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         : OBJECT_ERROR_TYPES[E_UNKNOWN];
     };
 
-    const closeModal = () => {
+    const cleanup = () => {
       onClose();
+      dispatch(resetWaitQueue());
       dispatch(setSignatureAction({}));
     };
 
@@ -264,7 +265,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
             visibility,
           }),
         );
-        closeModal();
+        cleanup();
         // TODO for lock the scroll of main content
         setTimeout(() => {
           dispatch(setTaskManagement(true));
@@ -307,9 +308,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         );
 
         if (!createObjectTx) {
-          // TODO refactor
           dispatch(setupWaitTaskErrorMsg({ id: waitObject.id, errorMsg: _createError }));
-          closeModal();
+          cleanup();
           return;
         }
         // const [tagsTx, _tagsError] = await getUpdateObjectTagsTx({
@@ -335,7 +335,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
               errorMsg: error ?? 'Something went wrong.',
             }),
           );
-          closeModal();
+          cleanup();
           return;
         }
         const createHash = txRes.transactionHash;
@@ -375,7 +375,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         );
       }
 
-      closeModal();
+      cleanup();
       setTimeout(() => {
         dispatch(setTaskManagement(true));
       }, 400);
@@ -406,6 +406,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const [{ isOver }, drop] = useDrop<DragItemProps, any, DragMonitorProps>({
       accept: [NativeTypes.FILE],
       async drop({ items }) {
+        console.log('items', items.length);
         const tree = await traverseTransferItems(items);
         handleFolderTree(tree);
       },

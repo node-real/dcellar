@@ -168,9 +168,10 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     toast.success({
       description: (
         <>
-          Folder created successfully! View in{' '}
+          Folder created successfully!{' '}
           {tx && (
             <>
+              View in{' '}
               <Link
                 color="#3C9AF1"
                 _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}

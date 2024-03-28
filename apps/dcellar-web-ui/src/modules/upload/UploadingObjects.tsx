@@ -1,10 +1,8 @@
 import styled from '@emotion/styled';
 import {
   Empty,
-  Flex,
   QDrawerBody,
   QDrawerHeader,
-  QListItem,
   Tab,
   TabList,
   TabPanel,
@@ -14,16 +12,12 @@ import {
 } from '@node-real/uikit';
 import { useScroll } from 'ahooks';
 import cn from 'classnames';
-import { memo, useCallback, useRef } from 'react';
+import { memo, useRef } from 'react';
 
-import { NameItem } from './NameItem';
-import { PathItem } from './PathItem';
-import { UploadProgress } from './UploadProgress';
 import { useTaskManagementTab } from './useTaskManagementTab';
 
-import { Loading } from '@/components/common/Loading';
 import { IconFont } from '@/components/IconFont';
-import { UploadObject } from '@/store/slices/global';
+import { UploadingObjectsList } from './UploadingObjectsList';
 
 interface UploadingObjectsProps {}
 
@@ -31,55 +25,6 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
   const ref = useRef(null);
   const scroll = useScroll(ref) || { top: 0 };
   const { tabOptions, activeKey, setActiveKey } = useTaskManagementTab();
-
-  const FileStatus = useCallback(({ task }: { task: UploadObject }) => {
-    switch (task.status) {
-      case 'WAIT':
-        return (
-          <>
-            <Loading iconSize={12} justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'} fontWeight={400}>
-              Waiting
-            </Text>
-          </>
-        );
-      case 'HASH':
-        return (
-          <>
-            <Loading iconSize={12} justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'} fontWeight={400}>
-              Hashing
-            </Text>
-          </>
-        );
-      case 'HASHED':
-        return <UploadProgress value={0} />;
-      case 'SIGN':
-        return <UploadProgress value={0} />;
-      case 'SIGNED':
-        return <UploadProgress value={0} />;
-      case 'UPLOAD':
-        return <UploadProgress value={task.progress || 0} />;
-      case 'SEAL':
-      case 'SEALING':
-        return (
-          <>
-            <Loading iconSize={12} justifyContent={'flex-end'} />
-            <Text marginLeft={'4px'} fontWeight={400}>
-              Sealing
-            </Text>
-          </>
-        );
-      case 'FINISH':
-        return <IconFont type="colored-success" w={16} mr={8} />;
-      case 'ERROR':
-        return <IconFont type="colored-error2" w={20} mr={6} />;
-      case 'CANCEL':
-        return <IconFont type="colored-error2" w={20} mr={6} />;
-      default:
-        return null;
-    }
-  }, []);
 
   return (
     <>
@@ -104,7 +49,7 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
               </Tab>
             ))}
           </StyledTabList>
-          <TabPanels>
+          <TabPanels mt={12}>
             {tabOptions.map((item) => (
               <TabPanel key={item.key} panelKey={item.key}>
                 {item.data.length === 0 && (
@@ -115,7 +60,8 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
                     </Text>
                   </Empty>
                 )}
-                {item.data?.map((task) => (
+                {item.data.length > 0 && <UploadingObjectsList data={item.data} />}
+                {/* {item.data?.map((task) => (
                   <QListItem
                     cursor={'default'}
                     _hover={{
@@ -150,7 +96,7 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
                       </Flex>
                     </Flex>
                   </QListItem>
-                ))}
+                ))} */}
               </TabPanel>
             ))}
           </TabPanels>

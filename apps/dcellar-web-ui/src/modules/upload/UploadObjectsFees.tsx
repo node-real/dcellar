@@ -20,9 +20,10 @@ import { getStoreNetflowRate } from '@/utils/payment';
 
 interface FeesProps {
   delegateUpload: boolean;
+  expand?: boolean;
 }
 
-export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload }) {
+export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload, expand = false }) {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
@@ -148,6 +149,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload 
         prepaidFee={storeFee}
         settlementFee={settlementFee}
         gasFee={gasFee}
+        expand={expand}
       />
       <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
         {!isChecking &&

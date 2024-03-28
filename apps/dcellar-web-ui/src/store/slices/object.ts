@@ -28,10 +28,13 @@ import { convertObjectKey } from '@/utils/common';
 import { getMillisecond } from '@/utils/time';
 
 export const DELEGATE_UPLOAD = true;
+
 export const SELF_UPLOAD_MAX_SIZE = 256 * 1024 * 1024;
 export const DELEGATE_UPLOAD_MAX_SIZE = 5 * 1024 * 1024 * 1024;
+
 export const SELF_UPLOAD_MAX_COUNT = 100;
-export const DELEGATE_UPLOAD_MAX_COUNT = 1000;
+export const DELEGATE_UPLOAD_MAX_COUNT = 10_000;
+
 export const MAXIMUM_LIST_ITEMS = 10_000;
 
 export const SINGLE_OBJECT_MAX_SIZE = DELEGATE_UPLOAD

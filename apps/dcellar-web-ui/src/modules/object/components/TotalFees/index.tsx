@@ -22,9 +22,9 @@ interface TotalFeesProps {
   payStoreFeeAddress: string;
   refund?: boolean;
   expandable?: boolean;
+  expand?: boolean;
 }
 
-// TODO refactor
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
   const {
     gasFee,
@@ -33,11 +33,12 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
     payStoreFeeAddress = '',
     refund = false,
     expandable = true,
+    expand = true,
   } = props;
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
   const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
-  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
+  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: expand });
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));

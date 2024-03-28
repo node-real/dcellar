@@ -4,6 +4,7 @@
   "private": false,
   "scripts": {
     "dev": "node ./scripts/dev.js -p 3200",
+    "dev1": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

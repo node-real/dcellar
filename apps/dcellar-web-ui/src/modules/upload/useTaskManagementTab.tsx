@@ -47,7 +47,6 @@ export const useTaskManagementTab = () => {
     {
       title: 'Failed',
       key: 'ERROR-CANCEL',
-      // icon: <ColoredAlertIcon width={'16px'} height={'16px'} marginRight={'4px'} />,
       data: errorQueue,
     },
   ];
