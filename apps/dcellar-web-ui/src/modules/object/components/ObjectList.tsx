@@ -354,7 +354,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           // if is uploading, can not cancel;
           if (file && ['SIGN', 'SIGNED', 'UPLOAD'].includes(file.status)) {
             pruneActions = pickAction(pruneActions, ['detail']);
-          } else if (file && ['SEAL'].includes(file.status)) {
+          } else if (file && ['SEAL', 'SEALING'].includes(file.status)) {
             pruneActions = removeAction(pruneActions, ['cancel', 'share']);
           } else {
             // if not sealed, only support 'cancel' 'detail'

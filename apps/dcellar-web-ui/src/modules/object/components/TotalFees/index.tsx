@@ -24,6 +24,7 @@ interface TotalFeesProps {
   expandable?: boolean;
 }
 
+// TODO refactor
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
   const {
     gasFee,
@@ -125,15 +126,17 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
             </Flex>
           )}
 
-          <Flex w="100%" alignItems="center" justifyContent="space-between">
-            <Flex alignItems="center">
-              <Text color="readable.tertiary" as="p">
-                Gas fee
-              </Text>
-              <GasFeeTips />
+          {+gasFee !== 0 && (
+            <Flex w="100%" alignItems="center" justifyContent="space-between">
+              <Flex alignItems="center">
+                <Text color="readable.tertiary" as="p">
+                  Gas fee
+                </Text>
+                <GasFeeTips />
+              </Flex>
+              <Text color="readable.tertiary">{renderFeeValue(String(gasFee), exchangeRate)}</Text>
             </Flex>
-            <Text color="readable.tertiary">{renderFeeValue(String(gasFee), exchangeRate)}</Text>
-          </Flex>
+          )}
           <Text fontSize={12} lineHeight="16px" color="readable.disabled" alignSelf="flex-end">
             Owner Account balance: {renderBalanceNumber(bankBalance || '0')} (
             {renderUsd(bankBalance || '0', exchangeRate)})

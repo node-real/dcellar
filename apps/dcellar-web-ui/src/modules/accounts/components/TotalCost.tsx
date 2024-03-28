@@ -22,7 +22,7 @@ export const TotalCost = memo(function TotalCost() {
   const router = useRouter();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const costTrendLoading = useAppSelector((root) => root.billing.costTrendLoading);
   const costLoading = useAppSelector((root) => root.billing.costLoading);
   const totalCost = useAppSelector(selectAllCost(loginAccount));
@@ -30,7 +30,7 @@ export const TotalCost = memo(function TotalCost() {
   const pieData = useMemo(() => {
     // TODO use date to judge loading
     if (costLoading || costTrendLoading || paymentAccountsLoading) return;
-    const lowerKeyAccountInfo: Record<string, AccountInfo> = formatObjectAddress(accountRecords);
+    const lowerKeyAccountInfo: Record<string, AccountInfo> = formatObjectAddress(accountInfos);
     const temp = [...(totalCost.detailCosts || [])].sort((a, b) => {
       return BN(b.cost).comparedTo(a.cost);
     });
@@ -57,13 +57,7 @@ export const TotalCost = memo(function TotalCost() {
     }
     others.addresses.length > 0 && newData.push(others);
     return newData;
-  }, [
-    accountRecords,
-    paymentAccountsLoading,
-    costLoading,
-    costTrendLoading,
-    totalCost.detailCosts,
-  ]);
+  }, [accountInfos, paymentAccountsLoading, costLoading, costTrendLoading, totalCost.detailCosts]);
 
   const chartOptions = useMemo(() => {
     const legendNames = (pieData || []).map((item) => ({

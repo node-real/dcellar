@@ -26,12 +26,12 @@ export const AccountDetail = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
 
   const { address, page, from, to, type } = router.query;
   const curAddress = address as string;
   const isOwnerAccount = address === loginAccount;
-  const accountDetail = accountRecords?.[curAddress] || emptyObject;
+  const accountDetail = accountInfos?.[curAddress] || emptyObject;
 
   useMount(async () => {
     if (!curAddress) return;

@@ -68,7 +68,7 @@ export const Send = memo<SendProps>(function Send() {
   const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
   const accountTypeRecords = useAppSelector((root) => root.accounts.accountTypeRecords);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
   const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
   const paymentAccountListRecords = useAppSelector(
@@ -105,16 +105,16 @@ export const Send = memo<SendProps>(function Send() {
     if (transferFromAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountRecords[transferFromAccount?.address]?.staticBalance || '';
-  }, [accountRecords, bankBalance, transferFromAccount]);
+    return accountInfos[transferFromAccount?.address]?.staticBalance || '';
+  }, [accountInfos, bankBalance, transferFromAccount]);
 
   const toBalance = useMemo(() => {
     if (isEmpty(transferToAccount)) return '';
     if (transferToAccount.name.toLowerCase().includes('owner account')) {
       return bankBalance;
     }
-    return accountRecords[transferToAccount?.address]?.staticBalance || '';
-  }, [accountRecords, bankBalance, transferToAccount]);
+    return accountInfos[transferToAccount?.address]?.staticBalance || '';
+  }, [accountInfos, bankBalance, transferToAccount]);
 
   const {
     handleSubmit,
@@ -256,7 +256,7 @@ export const Send = memo<SendProps>(function Send() {
   const onChangeFromAccount = async (account: AccountEntity) => {
     if (!isAddress(account.address)) return;
     const accountType = accountTypeRecords[account.address];
-    const accountDetail = accountRecords[account.address];
+    const accountDetail = accountInfos[account.address];
     // optimize performance
     if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
       // Avoid from owner account to owner account
@@ -278,7 +278,7 @@ export const Send = memo<SendProps>(function Send() {
         return setToJsErrors(['Invalid address']);
       }
       const accountType = accountTypeRecords[account.address];
-      const accountDetail = accountRecords[account.address];
+      const accountDetail = accountInfos[account.address];
       if (accountType && accountDetail && accountDetail.netflowRate !== undefined) {
         return dispatch(setTransferToAccount(account));
       }
@@ -294,7 +294,7 @@ export const Send = memo<SendProps>(function Send() {
   const fromErrors = useMemo(() => {
     const errors: string[] = [];
     if (accountInfoLoading || isEmpty(transferFromAccount)) return errors;
-    const fromAccountDetail = accountRecords[transferFromAccount?.address];
+    const fromAccountDetail = accountInfos[transferFromAccount?.address];
     if (isEmpty(fromAccountDetail)) return errors;
     const isPaymentAccount = fromAccountDetail.name.toLocaleLowerCase().includes('payment account');
     if (!isPaymentAccount) {
@@ -307,7 +307,7 @@ export const Send = memo<SendProps>(function Send() {
       errors.push('This account is non-refundable.');
     }
     return errors;
-  }, [accountRecords, transferFromAccount, accountInfoLoading]);
+  }, [accountInfos, transferFromAccount, accountInfoLoading]);
 
   const toErrors = useMemo(() => {
     const errors: string[] = toJsErrors;

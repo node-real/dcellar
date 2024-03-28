@@ -38,7 +38,7 @@ type TotalBalanceProps = CardProps;
 export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const paymentAccountListRecords = useAppSelector(
     (root) => root.accounts.paymentAccountListRecords,
   );
@@ -48,10 +48,10 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
   const paymentList = useAppSelector(selectPaymentAccounts(loginAccount));
 
   const isLoading =
-    bankBalance === '' || isEmpty(accountRecords) || isEmpty(paymentAccountListRecords);
+    bankBalance === '' || isEmpty(accountInfos) || isEmpty(paymentAccountListRecords);
 
   const res = useMemo(() => {
-    const ownerInfo = accountRecords[loginAccount] || {};
+    const ownerInfo = accountInfos[loginAccount] || {};
     const ownerTotalBalance = BN(ownerInfo.staticBalance).plus(bankBalance);
     const ownerNetflowRate = BN(ownerInfo.netflowRate);
     const ownerPrepaidFee = BN(ownerInfo.bufferBalance);
@@ -59,7 +59,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
     let paymentTotalBalance = BN(0);
     let paymentTotalPrepaidFee = BN(0);
     paymentList.forEach((item: AccountEntity) => {
-      const paymentDetail = accountRecords[item.address];
+      const paymentDetail = accountInfos[item.address];
       paymentTotalNetflow = paymentTotalNetflow.plus(paymentDetail.netflowRate);
 
       paymentTotalBalance = paymentTotalBalance.plus(paymentDetail.staticBalance);
@@ -75,7 +75,7 @@ export const TotalBalance = ({ children, ...restProps }: TotalBalanceProps) => {
       totalNetflowRate: totalNetflowRate.dp(18).toString(),
       totalPrepaidFee: totalPrepaidFee.dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString(),
     };
-  }, [accountRecords, bankBalance, loginAccount, paymentList]);
+  }, [accountInfos, bankBalance, loginAccount, paymentList]);
 
   const onNavigate = (target: string) => () => {
     router.push(target);

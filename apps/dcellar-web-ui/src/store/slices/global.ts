@@ -15,7 +15,16 @@ import { getSpOffChainData } from '@/store/slices/persist';
 
 export const GAS_PRICE = '0.000000005';
 export const BNB_USDT_EXCHANGE_RATE = '350';
-export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'HASHED', 'SIGN', 'SIGNED', 'UPLOAD', 'SEAL'];
+export const UPLOADING_STATUSES = [
+  'WAIT',
+  'HASH',
+  'HASHED',
+  'SIGN',
+  'SIGNED',
+  'UPLOAD',
+  'SEAL',
+  'SEALING',
+];
 
 export type SignatureAction = {
   icon: string;
@@ -57,6 +66,7 @@ export type UploadObjectStatus =
   | 'SIGNED'
   | 'UPLOAD'
   | 'SEAL'
+  | 'SEALING'
   | 'FINISH'
   | 'ERROR'
   | 'CANCEL';
@@ -88,6 +98,7 @@ export type UploadObject = {
   createHash: string;
   msg: string;
   progress: number;
+  delegateUpload?: boolean;
 };
 
 export interface GlobalState {
@@ -376,46 +387,46 @@ export const globalSlice = createSlice({
           return task;
         });
     },
-    cancelUploadFolder(state, { payload }: PayloadAction<{ account: string; folderName: string }>) {
-      const { account } = payload;
-      if (!account) return;
-      let uploadQueue = state.objectUploadQueue?.[account];
-      if (!uploadQueue) return;
-      uploadQueue = uploadQueue.map((task) => {
-        const isFolder = task.waitObject.name.endsWith('/');
-        // Only cancel subfolders and subfiles
-        if (isFolder && payload.folderName === task.waitObject.name) {
-          return task;
-        }
-        const commonPath = isFolder ? task.waitObject.name : task.waitObject.relativePath + '/';
-        const isSubTask = commonPath.startsWith(payload.folderName);
-        if (isSubTask) {
-          task.status = 'CANCEL';
-          task.msg = "The object's parent path failed to be created, please check.";
-        }
-        return task;
-      });
-    },
-    cancelWaitUploadFolder(state, { payload }: PayloadAction<{ folderName: string }>) {
-      const { folderName } = payload;
-      if (!folderName) return;
-      let objectWaitQueue = state.objectWaitQueue;
-      if (!objectWaitQueue) return;
-      objectWaitQueue = objectWaitQueue.map((task) => {
-        const isFolder = task.name.endsWith('/');
-        // Only cancel subfolders and subfiles
-        if (isFolder && folderName === task.name) {
-          return task;
-        }
-        const commonPath = isFolder ? task.name : task.relativePath + '/';
-        const isSubTask = commonPath.startsWith(folderName);
-        if (isSubTask) {
-          task.status = 'ERROR';
-          task.msg = "The object's parent path failed to be created, please check.";
-        }
-        return task;
-      });
-    },
+    // cancelUploadFolder(state, { payload }: PayloadAction<{ account: string; folderName: string }>) {
+    //   const { account } = payload;
+    //   if (!account) return;
+    //   let uploadQueue = state.objectUploadQueue?.[account];
+    //   if (!uploadQueue) return;
+    //   uploadQueue = uploadQueue.map((task) => {
+    //     const isFolder = task.waitObject.name.endsWith('/');
+    //     // Only cancel subfolders and subfiles
+    //     if (isFolder && payload.folderName === task.waitObject.name) {
+    //       return task;
+    //     }
+    //     const commonPath = isFolder ? task.waitObject.name : task.waitObject.relativePath + '/';
+    //     const isSubTask = commonPath.startsWith(payload.folderName);
+    //     if (isSubTask) {
+    //       task.status = 'CANCEL';
+    //       task.msg = "The object's parent path failed to be created, please check.";
+    //     }
+    //     return task;
+    //   });
+    // },
+    // cancelWaitUploadFolder(state, { payload }: PayloadAction<{ folderName: string }>) {
+    //   const { folderName } = payload;
+    //   if (!folderName) return;
+    //   let objectWaitQueue = state.objectWaitQueue;
+    //   if (!objectWaitQueue) return;
+    //   objectWaitQueue = objectWaitQueue.map((task) => {
+    //     const isFolder = task.name.endsWith('/');
+    //     // Only cancel subfolders and subfiles
+    //     if (isFolder && folderName === task.name) {
+    //       return task;
+    //     }
+    //     const commonPath = isFolder ? task.name : task.relativePath + '/';
+    //     const isSubTask = commonPath.startsWith(folderName);
+    //     if (isSubTask) {
+    //       task.status = 'ERROR';
+    //       task.msg = "The object's parent path failed to be created, please check.";
+    //     }
+    //     return task;
+    //   });
+    // },
     setIsFetchingStoreFeeParams(state, { payload }: PayloadAction<boolean>) {
       state.isFetchingStoreFeeParams = payload;
     },
@@ -445,8 +456,8 @@ export const {
   removeFromWaitQueue,
   resetWaitQueue,
   resetUploadQueue,
-  cancelUploadFolder,
-  cancelWaitUploadFolder,
+  // cancelUploadFolder,
+  // cancelWaitUploadFolder,
   setIsFetchingStoreFeeParams,
   setAuthModalOpen,
   setDisconnectWallet,
@@ -462,8 +473,8 @@ export const selectUploadQueue = (address: string) => (root: AppState) => {
 
 export const selectHashTask = (address: string) => (root: AppState) => {
   const uploadQueue = root.global.objectUploadQueue[address] || _emptyUploadQueue;
-  const hashQueue = uploadQueue.filter((task) => task.status === 'HASH');
-  const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT');
+  const hashQueue = uploadQueue.filter((task) => task.status === 'HASH' && !task.delegateUpload);
+  const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT' && !task.delegateUpload);
 
   return hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
 };
@@ -471,9 +482,13 @@ export const selectHashTask = (address: string) => (root: AppState) => {
 export const selectSignTask = (address: string) => (root: AppState) => {
   const uploadQueue = root.global.objectUploadQueue[address] || _emptyUploadQueue;
 
-  const signQueue = uploadQueue.filter((task) => task.status === 'SIGN');
-  const hashedQueue = uploadQueue.filter((task) => task.status === 'HASHED');
-  const uploadingQueue = uploadQueue.filter((task) => task.status === 'UPLOAD');
+  const signQueue = uploadQueue.filter((task) => task.status === 'SIGN' && !task.delegateUpload);
+  const hashedQueue = uploadQueue.filter(
+    (task) => task.status === 'HASHED' && !task.delegateUpload,
+  );
+  const uploadingQueue = uploadQueue.filter(
+    (task) => task.status === 'UPLOAD' && !task.delegateUpload,
+  );
 
   if (uploadingQueue.length || !!signQueue.length) {
     return null;
@@ -664,10 +679,40 @@ export const addSignedTasksToUploadQueue =
     dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
   };
 
+export const addDelegatedTasksToUploadQueue =
+  ({ spAddress, visibility }: { spAddress: string; visibility: VisibilityType }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { objectWaitQueue } = getState().global;
+    const { currentBucketName, pathSegments } = getState().object;
+    const { loginAccount } = getState().persist;
+    const wQueue = objectWaitQueue.filter((t) => t.status === 'WAIT');
+    if (!wQueue || wQueue.length === 0) return;
+    const newUploadQueue = wQueue.map((task) => {
+      const uploadTask: UploadObject = {
+        bucketName: currentBucketName,
+        prefixFolders: pathSegments,
+        spAddress,
+        id: task.id,
+        waitObject: task,
+        msg: '',
+        status: 'WAIT',
+        progress: 0,
+        checksum: [],
+        visibility,
+        createHash: '',
+        tags: [],
+        tempAccountAddress: '',
+        delegateUpload: true,
+      };
+      return uploadTask;
+    });
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
+  };
+
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadObject; errorMsg: string }) =>
   async (dispatch: AppDispatch) => {
-    const isFolder = task.waitObject.name.endsWith('/');
+    // const isFolder = task.waitObject.name.endsWith('/');
     dispatch(
       updateUploadTaskMsg({
         account,
@@ -675,7 +720,7 @@ export const setupUploadTaskErrorMsg =
         msg: errorMsg || 'The object failed to be created.',
       }),
     );
-    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
+    // isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
   };
 
 export const setupWaitTaskErrorMsg =
@@ -684,9 +729,9 @@ export const setupWaitTaskErrorMsg =
     const { objectWaitQueue } = getState().global;
     const task = objectWaitQueue.find((t) => t.id === id);
     if (!task) return;
-    const isFolder = task.name.endsWith('/');
+    // const isFolder = task.name.endsWith('/');
     dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+    // isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
   };
 
 export default globalSlice.reducer;

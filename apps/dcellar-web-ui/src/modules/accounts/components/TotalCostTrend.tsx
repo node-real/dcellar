@@ -28,7 +28,7 @@ export const TotalCostTrend = () => {
   const costTrendLoading = useAppSelector((root) => root.billing.costTrendLoading);
   const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
   const accountInfoLoading = useAppSelector((root) => root.accounts.accountInfoLoading);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
 
   const totalCostTrend = useAppSelector(selectAllCostTrend(loginAccount));
   const preDataRef = useRef<any>(null);
@@ -122,7 +122,7 @@ export const TotalCostTrend = () => {
           const displayNum = Math.min(3, dataLen);
           for (let i = 0; i < displayNum; i++) {
             const bill = validDetailBills[i];
-            const lowerKeyAccountInfo = formatObjectAddress(accountRecords);
+            const lowerKeyAccountInfo = formatObjectAddress(accountInfos);
             const accountName = lowerKeyAccountInfo[bill.address.toLowerCase()]?.name;
             if (BN(bill.totalCost).isEqualTo(0)) {
               break;
@@ -189,7 +189,7 @@ export const TotalCostTrend = () => {
         // },
       ],
     };
-  }, [barData, accountRecords]);
+  }, [barData, accountInfos]);
 
   return (
     <CardContainer flex={1} minW={478} minH={283}>

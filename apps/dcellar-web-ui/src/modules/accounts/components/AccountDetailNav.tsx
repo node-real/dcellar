@@ -13,12 +13,12 @@ import { useMemo } from 'react';
 export const AccountDetailNav = ({ address }: { address: string }) => {
   const router = useRouter();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
 
   const curAddress = address as string;
   const isOwnerAccount = address === loginAccount;
-  const accountDetail = accountRecords?.[curAddress] || {};
+  const accountDetail = accountInfos?.[curAddress] || {};
   const isFrozen = accountDetail.clientFrozen;
   const loading = !address || isEmpty(accountDetail);
 

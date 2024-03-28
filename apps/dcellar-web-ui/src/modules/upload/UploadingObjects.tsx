@@ -61,6 +61,7 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
       case 'UPLOAD':
         return <UploadProgress value={task.progress || 0} />;
       case 'SEAL':
+      case 'SEALING':
         return (
           <>
             <Loading iconSize={12} justifyContent={'flex-end'} />

@@ -183,7 +183,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
 
   if (file.status === 'UPLOAD') return <UploadProgress progress={file.progress} />;
 
-  if (file.status === 'SEAL') return <SealLoading />;
+  if (['SEAL', 'SEALING'].includes(file.status)) return <SealLoading />;
 
   if (file.msg) return <Badge colorScheme="danger">Upload Failed</Badge>;
 

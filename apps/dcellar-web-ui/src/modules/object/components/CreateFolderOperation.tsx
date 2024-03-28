@@ -6,11 +6,12 @@ import { DotLoading } from '@/components/common/DotLoading';
 import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 import { InputItem } from '@/components/formitems/InputItem';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { broadcastMulTxs, resolve } from '@/facade/common';
+import { broadcastMulTxs, broadcastTx, resolve } from '@/facade/common';
 import {
   E_OFF_CHAIN_AUTH,
   E_USER_REJECT_STATUS_NUM,
   ErrorResponse,
+  commonFault,
   createTxFault,
   simulateFault,
 } from '@/facade/error';
@@ -38,7 +39,7 @@ import {
   setSignatureAction,
   setupStoreFeeParams,
 } from '@/store/slices/global';
-import { setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
+import { DELEGATE_UPLOAD, setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
 import { SpEntity } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
@@ -51,6 +52,8 @@ import {
   RedundancyType,
   bytesFromBase64,
   VisibilityType,
+  AuthType,
+  DelegatedPubObjectRequest,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
@@ -71,6 +74,10 @@ import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 're
 import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { makeDelegatePutObjectHeaders } from '../utils/getPutObjectHeaders';
+import { getSpOffChainData } from '@/store/slices/persist';
+import axios, { AxiosHeaders } from 'axios';
+import { getMockFile } from '@/utils/object';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -122,6 +129,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
 
   const gasFee = useMemo(() => {
+    if (DELEGATE_UPLOAD) return 0;
+
     if (validTags.length === 0) {
       return createBucketGasFee || 0;
     }
@@ -160,15 +169,19 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       description: (
         <>
           Folder created successfully! View in{' '}
-          <Link
-            color="#3C9AF1"
-            _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
-            href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${tx}`}
-            isExternal
-          >
-            GreenfieldScan
-          </Link>
-          .
+          {tx && (
+            <>
+              <Link
+                color="#3C9AF1"
+                _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
+                href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${tx}`}
+                isExternal
+              >
+                GreenfieldScan
+              </Link>
+              .
+            </>
+          )}
         </>
       ),
       duration: 3000,
@@ -278,6 +291,151 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     dispatch(setSignatureAction({}));
     onClose();
     refetch(inputFolderName);
+  };
+
+  // TODO refactor
+  const onDelegateCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+    setLoading(true);
+
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
+    const fullObjectName = getPath(inputFolderName, pathSegments);
+    const mockFile = getMockFile(fullObjectName, 1);
+
+    const payload: DelegatedPubObjectRequest = {
+      bucketName: currentBucketName,
+      objectName: fullObjectName,
+      body: mockFile,
+      endpoint: primarySp.endpoint,
+      delegatedOpts: {
+        visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+      },
+    };
+
+    const authType = {
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address: loginAccount,
+    } as AuthType;
+
+    const [uploadOptions, error1] = await makeDelegatePutObjectHeaders(
+      payload,
+      authType,
+      primarySp.endpoint,
+    ).then(resolve, commonFault);
+
+    if (!uploadOptions) return setFormErrors([error1 || UNKNOWN_ERROR]);
+
+    dispatch(
+      setSignatureAction({
+        icon: Animates.object,
+        title: 'Creating Folder',
+        desc: WALLET_CONFIRM,
+      }),
+    );
+
+    const { url, headers } = uploadOptions;
+    const putHeader = {
+      Authorization: headers.get('Authorization'),
+      'content-type': headers.get('content-type'),
+      'x-gnfd-app-domain': headers.get('x-gnfd-app-domain'),
+      'x-gnfd-content-sha256': headers.get('x-gnfd-content-sha256'),
+      'x-gnfd-date': headers.get('x-gnfd-date'),
+      'x-gnfd-expiry-timestamp': headers.get('x-gnfd-expiry-timestamp'),
+      'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
+      'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
+      'X-Gnfd-App-Reg-Public-Key': headers.get('X-Gnfd-App-Reg-Public-Key'),
+    } as unknown as AxiosHeaders;
+
+    const [res, error2] = await axios
+      .put(url, mockFile, { headers: putHeader })
+      .then(resolve, commonFault);
+
+    if (!isSetTags) {
+      if (error2) {
+        setLoading(false);
+        return setFormErrors([error2 || UNKNOWN_ERROR]);
+      } else {
+        onClose();
+        setLoading(false);
+        refetch(inputFolderName);
+        dispatch(setSignatureAction({}));
+        showSuccessToast('');
+      }
+    }
+
+    if (isSetTags) {
+      const [tagsTx, error3] = await getUpdateObjectTagsTx({
+        address: loginAccount,
+        bucketName: currentBucketName,
+        objectName: fullObjectName,
+        tags: validTags,
+      });
+
+      if (!tagsTx) {
+        return dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: error3 ? `Error Message: ${error3}` : '',
+          }),
+        );
+      }
+
+      const [txRes, error4] = await broadcastTx({
+        tx: tagsTx,
+        address: loginAccount,
+        connector: connector!,
+      });
+
+      if (error4) {
+        setLoading(false);
+        if (error4 === E_USER_REJECT_STATUS_NUM) {
+          // onStatusModalClose();
+          return;
+        }
+        dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: error4 ? `Error Message: ${error4}` : '',
+          }),
+        );
+        return;
+      }
+
+      await dispatch(setupAccountRecords(PaymentAddress));
+
+      if (txRes?.code !== 0) {
+        dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
+            buttonOnClick: onCloseStatusModal,
+          }),
+        );
+        return;
+      }
+
+      const { transactionHash } = txRes;
+      const fullPath = getPath(inputFolderName, pathSegments);
+      await legacyGetObjectMeta(currentBucketName, fullPath, primarySp.endpoint);
+      setLoading(false);
+      showSuccessToast(transactionHash);
+      dispatch(setSignatureAction({}));
+      onClose();
+      refetch(inputFolderName);
+    }
   };
 
   const validateFolderName = (value: string) => {
@@ -450,7 +608,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
           <DCButton
             size="lg"
             w="100%"
-            onClick={onCreateFolder}
+            onClick={onDelegateCreateFolder}
             isDisabled={loading || !!formErrors.length || !balanceEnough}
             justifyContent="center"
             gaClickName="dc.file.create_folder_m.create.click"

@@ -49,7 +49,7 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
   const paymentAccountsLoading = useAppSelector((root) => root.accounts.paymentAccountsLoading);
   const paymentAccountListPage = useAppSelector((root) => root.accounts.paymentAccountListPage);
   const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const paymentAccountListRecords = useAppSelector(
     (root) => root.accounts.paymentAccountListRecords,
   );
@@ -62,10 +62,10 @@ export const PaymentAccountList = memo<PaymentAccountListProps>(function Payment
     if (!loginAccount) return [];
     return (
       (paymentAccountListRecords[loginAccount] || []).map((item) => ({
-        ...accountRecords[item.address],
+        ...accountInfos[item.address],
       })) || []
     );
-  }, [accountRecords, loginAccount, paymentAccountListRecords]);
+  }, [accountInfos, loginAccount, paymentAccountListRecords]);
   const ascend = sortBy(detailList, sortName);
   const sortedList = dir === 'ascend' ? ascend : reverse(ascend);
   const chunks = useMemo(

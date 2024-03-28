@@ -13,8 +13,6 @@ import { BN } from '@/utils/math';
 import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
-  // loading status
-  // todo add error status maybe?
   if (!bnbValue || Number(bnbValue) < 0 || isNaN(Number(bnbValue))) {
     return '--';
   }

@@ -18,7 +18,7 @@ import {
 import { getClient } from '@/facade/index';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { batchDownload, directlyDownload } from '@/modules/object/utils';
-import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
+import { getObjectPreviewUrl } from '@/modules/object/utils/getObjectPreviewUrl';
 import { SpEntity } from '@/store/slices/sp';
 import { encodeObjectName } from '@/utils/string';
 import {
@@ -166,7 +166,7 @@ export const getAuthorizedLink = async (
 ): Promise<[null, ErrorMsg] | [string]> => {
   const { address, objectInfo, primarySp } = params;
   const { bucketName, objectName } = objectInfo;
-  const [url, error] = await generateGetObjectOptions({
+  const [url, error] = await getObjectPreviewUrl({
     bucketName,
     objectName,
     address,

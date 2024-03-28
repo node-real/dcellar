@@ -67,7 +67,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
 }) {
   const dispatch = useAppDispatch();
   const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
   const bucketQuota = bucketQuotaRecords[selectedBucketInfo.BucketName];
@@ -107,7 +107,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
     const spName = primarySp.moniker;
-    const payAccountName = accountRecords[selectedBucketInfo.PaymentAddress]?.name;
+    const payAccountName = accountInfos[selectedBucketInfo.PaymentAddress]?.name;
     const infos = [
       {
         canCopy: false,

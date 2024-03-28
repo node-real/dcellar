@@ -27,7 +27,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { useAccount } from 'wagmi';
 
 import AccessItem from './AccessItem';
-import { Fees } from './Fees';
+import { UploadObjectsFees } from './UploadObjectsFees';
 import { ListItem } from './ListItem';
 import { useUploadTab } from './useUploadTab';
 import { useChecksumApi } from '../checksum';
@@ -61,6 +61,7 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import {
   UPLOADING_STATUSES,
   WaitObject,
+  addDelegatedTasksToUploadQueue,
   addSignedTasksToUploadQueue,
   addTasksToUploadQueue,
   addToWaitQueue,
@@ -71,6 +72,7 @@ import {
   updateWaitObjectStatus,
 } from '@/store/slices/global';
 import {
+  DELEGATE_UPLOAD,
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
   TEditUploadContent,
@@ -249,10 +251,26 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       );
     };
 
-    // todo recheck files
     const onUploadClick = async () => {
       const validFiles = selectedFiles.filter((item) => item.status === 'WAIT');
       const isOneFile = validFiles.length === 1;
+      if (isEmpty(validFiles)) {
+        return errorHandler('No valid files to upload.');
+      }
+      if (DELEGATE_UPLOAD) {
+        dispatch(
+          addDelegatedTasksToUploadQueue({
+            spAddress: primarySp.operatorAddress,
+            visibility,
+          }),
+        );
+        closeModal();
+        // TODO for lock the scroll of main content
+        setTimeout(() => {
+          dispatch(setTaskManagement(true));
+        }, 400);
+        return;
+      }
       setCreating(true);
       dispatch(
         setSignatureAction({
@@ -283,7 +301,6 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
           expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
           redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
         };
-        console.log('msgCreateObject-single', msgCreateObject);
         const [createObjectTx, _createError] = await getCreateObjectTx(msgCreateObject).then(
           resolve,
           createTxFault,
@@ -359,7 +376,9 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
       }
 
       closeModal();
-      dispatch(setTaskManagement(true));
+      setTimeout(() => {
+        dispatch(setTaskManagement(true));
+      }, 400);
       setCreating(false);
     };
 
@@ -490,7 +509,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
                   / <strong>{checkedQueue.length} Objects</strong>
                 </Box>
               </Flex>
-              <Fees />
+              <UploadObjectsFees delegateUpload={DELEGATE_UPLOAD} />
               <Flex width={'100%'} flexDirection={'column'}>
                 <DCButton
                   size={'lg'}

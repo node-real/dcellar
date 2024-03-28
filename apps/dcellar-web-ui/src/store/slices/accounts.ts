@@ -72,7 +72,7 @@ interface AccountsState {
   ownerAccount: AccountEntity;
   paymentAccountListRecords: Record<string, AccountEntity[]>;
   paymentAccountListPage: number;
-  accountRecords: Record<string, AccountInfo>;
+  accountInfos: Record<string, AccountInfo>;
   accountTypeRecords: Record<string, AccountType>;
   editingPaymentAccountRefundable: string;
   bankOrWalletBalance: string; // aka. bankBalance
@@ -88,7 +88,7 @@ const initialState: AccountsState = {
   paymentAccountListPage: 0,
   ownerAccount: {} as AccountInfo,
   paymentAccountListRecords: {},
-  accountRecords: {},
+  accountInfos: {},
   accountTypeRecords: {},
   editingPaymentAccountRefundable: '',
   bankOrWalletBalance: '',
@@ -118,7 +118,7 @@ export const paymentAccountSlice = createSlice({
         },
       );
     },
-    setAccountRecords: (
+    setAccountInfos: (
       state,
       {
         payload,
@@ -132,7 +132,7 @@ export const paymentAccountSlice = createSlice({
         }[]
       >,
     ) => {
-      const data = state.accountRecords;
+      const data = state.accountInfos;
       payload.forEach((item) => {
         const { address, name, streamRecord, bufferTime } = item;
         if (!address) return;
@@ -183,7 +183,7 @@ export const paymentAccountSlice = createSlice({
           };
         }
       });
-      state.accountRecords = data;
+      state.accountInfos = data;
     },
     setEditingPaymentAccountRefundable: (state, { payload }: PayloadAction<string>) => {
       state.editingPaymentAccountRefundable = payload;
@@ -223,7 +223,7 @@ export const {
   setOwnerAccount,
   setPaymentAccountList,
   setBankOrWalletBalance,
-  setAccountRecords,
+  setAccountInfos,
   setEditingPaymentAccountRefundable,
   setPaymentAccountListPage,
   setAccountType,
@@ -232,14 +232,9 @@ export const {
   setTempAccountRecords,
 } = paymentAccountSlice.actions;
 
-const defaultAccountInfoAccount = {} as AccountInfo;
-export const selectAccountDetail = (address: string) => (root: AppState) => {
-  return root.accounts.accountRecords[address] || defaultAccountInfoAccount;
-};
-
 const defaultPaAccount = {} as AccountInfo;
 export const selectAccount = (address: string) => (state: AppState) =>
-  state.accounts.accountRecords[address] || defaultPaAccount;
+  state.accounts.accountInfos[address] || defaultPaAccount;
 
 export const defaultPAList = Array<AccountEntity>();
 export const selectPaymentAccounts = (address: string) => (state: AppState) => {
@@ -253,7 +248,7 @@ export const selectTempAccountRecords = (address: string) => (state: AppState) =
 
 export const selectAvailableBalance = (address: string) => (state: AppState) => {
   const isOwnerAccount = address === state.persist.loginAccount;
-  const accountDetail = state.accounts.accountRecords[address] as AccountInfo;
+  const accountDetail = state.accounts.accountInfos[address] as AccountInfo;
   if (isOwnerAccount) {
     // Use static balance on next version
     // return BN(state.accounts.bankBalance).plus(accountDetail.staticBalance).toString();
@@ -332,7 +327,7 @@ export const setupPaymentAccounts =
     );
     dispatch(setPaymentAccountsLoading(false));
     dispatch(setPaymentAccountList({ loginAccount, paymentAccounts: data.paymentAccounts }));
-    dispatch(setAccountRecords(newPaymentAccounts));
+    dispatch(setAccountInfos(newPaymentAccounts));
   };
 
 export const setupAccountRecords =
@@ -363,7 +358,7 @@ export const setupAccountRecords =
       bufferTime: CLIENT_FROZEN_ACCOUNT_BUFFER_TIME,
     };
 
-    dispatch(setAccountRecords([accountDetail]));
+    dispatch(setAccountInfos([accountDetail]));
   };
 
 export const setupOwnerAccount = () => async (dispatch: AppDispatch, getState: GetState) => {

@@ -27,13 +27,13 @@ const actions: MenuOption[] = [
 export const OwnerAccount = () => {
   const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
   const router = useRouter();
   const [isLessThan1100] = useMediaQuery('(max-width: 1100px)');
 
-  const data = ownerAccount?.address ? [accountRecords[ownerAccount.address] || {}] : [];
+  const data = ownerAccount?.address ? [accountInfos[ownerAccount.address] || {}] : [];
   const spinning = isEmpty(ownerAccount);
 
   const loadingComponent = {

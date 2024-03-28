@@ -24,7 +24,7 @@ export const AllBillingHistory = () => {
   const billListPage = useAppSelector((root) => root.billing.billListPage);
   const billListLoading = useAppSelector((root) => root.billing.billListLoading);
   const billPageSize = useAppSelector((root) => root.persist.billPageSize);
-  const accountRecords = useAppSelector((root) => root.accounts.accountRecords);
+  const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
 
   const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const allBills = useAppSelector(selectAllBills());
@@ -36,11 +36,11 @@ export const AllBillingHistory = () => {
 
   const lowerKeyAccountInfo = useMemo(() => {
     const newInfo: Record<string, AccountInfo> = {};
-    Object.entries(accountRecords).forEach(([key, value]) => {
+    Object.entries(accountInfos).forEach(([key, value]) => {
       newInfo[key.toLowerCase()] = value;
     });
     return newInfo;
-  }, [accountRecords]);
+  }, [accountInfos]);
 
   const columns: ColumnProps<any>[] = [
     {
