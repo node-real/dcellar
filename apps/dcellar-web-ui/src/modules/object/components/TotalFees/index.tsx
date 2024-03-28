@@ -25,7 +25,6 @@ interface TotalFeesProps {
   expand?: boolean;
 }
 
-// TODO refactor
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
   const {
     gasFee,
