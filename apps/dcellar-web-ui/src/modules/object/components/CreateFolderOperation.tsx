@@ -11,6 +11,7 @@ import {
   E_OFF_CHAIN_AUTH,
   E_USER_REJECT_STATUS_NUM,
   ErrorResponse,
+  commonFault,
   createTxFault,
   simulateFault,
 } from '@/facade/error';
