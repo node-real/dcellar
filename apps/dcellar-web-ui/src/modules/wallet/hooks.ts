@@ -13,10 +13,10 @@ import {
 } from './constants';
 import { EOperation, TFeeData } from './type';
 import { publicClientToProvider, walletClientToSigner } from './utils/ethers';
-import { genSendTx } from './utils/genSendTx';
-import { genTransferOutTx } from './utils/genTransferOutTx';
+import { getSendTx } from './utils/getSendTx';
+import { getTransferOutTx } from './utils/getTransferOutTx';
 import { isRightChain } from './utils/isRightChain';
-import { getRelayFeeBySimulate } from './utils/simulate';
+import { getRelayFeeBySimulate } from './utils/getRelayFeeBySimulate';
 
 import { BSC_CHAIN_ID } from '@/base/env';
 import { getClient } from '@/facade';
@@ -56,7 +56,7 @@ export const useTransferOutFee = () => {
   const getFee = useCallback(async () => {
     setIsLoading(true);
     try {
-      const transferOutTx = await genTransferOutTx({
+      const transferOutTx = await getTransferOutTx({
         from: address,
         to: address,
         amount: {
@@ -116,7 +116,7 @@ export const useSendFee = () => {
       setTimeout(() => {
         setIsLoading(false);
       }, 3000);
-      const sendTx = await genSendTx({
+      const sendTx = await getSendTx({
         fromAddress: address,
         toAddress: address,
         amount: [

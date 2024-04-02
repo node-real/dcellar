@@ -1,6 +1,6 @@
 import { getClient } from '@/facade';
 
-export const genSendTx = async (configParam: {
+export const getSendTx = async (configParam: {
   fromAddress: string;
   toAddress: string;
   amount: [
