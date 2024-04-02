@@ -14,6 +14,7 @@ import {
 } from '@node-real/uikit';
 import { memo, useState } from 'react';
 import { DCButton } from '../DCButton';
+import { countBytes } from '@/utils/coder';
 
 export const DEFAULT_TAG = { key: '', value: '' };
 
@@ -26,12 +27,15 @@ interface ManageTagsProps {
 export const ManageTags = memo<ManageTagsProps>(function ManageTags({ onSave, onCancel, tags }) {
   const [internalTags, setInternalTags] = useState(tags);
 
-  const isInvalid = (type: string, value: string) => {
-    if (type === 'key' && value.length > 32) {
-      return 'Should not exceed 32 characters.';
-    }
-    if (type === 'value' && value.length > 64) {
-      return 'Should not exceed 64 characters.';
+  const isInvalid = (type: 'key' | 'value', value: string): string | false => {
+    const bytesLength = countBytes(value);
+    const limits: { [key: string]: number } = {
+      key: 32,
+      value: 64,
+    };
+
+    if (bytesLength > limits[type]) {
+      return `Should not exceed ${limits[type]} bytes.`;
     }
 
     return false;

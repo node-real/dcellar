@@ -134,3 +134,9 @@ export function decodeBase64(data: string): Uint8Array {
 
   return bytes;
 }
+
+export function countBytes(str: string) {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  return bytes.length;
+}
