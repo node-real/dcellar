@@ -2,6 +2,7 @@ import { GA_ID, assetPrefix } from '@/base/env';
 import { Ga4 } from '@/components/common/Ga4';
 import { EthereumScript } from '@node-real/walletkit';
 import { Head, Html, Main, NextScript } from 'next/document';
+import * as flatted from 'flatted';
 
 export default function Document() {
   return (
@@ -22,7 +23,7 @@ export default function Document() {
         <Ga4 id={GA_ID} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.__ASSET_PREFIX = ${JSON.stringify(assetPrefix)}`,
+            __html: `window.__ASSET_PREFIX = ${flatted.stringify(assetPrefix)}`,
           }}
         ></script>
         <script defer src={`${assetPrefix}/js/iconfont_v0.7.min.js`}></script>

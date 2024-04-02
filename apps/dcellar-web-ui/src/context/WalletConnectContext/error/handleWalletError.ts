@@ -4,6 +4,7 @@ import { toast } from '@node-real/uikit';
 import * as Sentry from '@sentry/nextjs';
 import { disconnect } from '@wagmi/core';
 import { ConnectorNotFoundError } from 'wagmi';
+import * as flatted from 'flatted';
 
 export function handleWalletError(err: any, args: any, context: unknown) {
   let text = '';
@@ -26,13 +27,15 @@ export function handleWalletError(err: any, args: any, context: unknown) {
 
   Sentry.withScope((scope) => {
     scope.setTag('Component', 'handleWalletError');
-    Sentry.captureMessage(JSON.stringify(err));
+    Sentry.captureMessage(flatted.stringify(err));
   });
 
   // Compatible the walletConnect cannot switch network
   if (
-    JSON.stringify(err).includes("Cannot set properties of undefined (setting 'defaultChain')") ||
-    JSON.stringify(err).includes('undefined has no properties')
+    flatted
+      .stringify(err)
+      .includes("Cannot set properties of undefined (setting 'defaultChain')") ||
+    flatted.stringify(err).includes('undefined has no properties')
   ) {
     toast.error({
       description:

@@ -39,6 +39,7 @@ export const AllBillingHistory = () => {
     Object.entries(accountInfos).forEach(([key, value]) => {
       newInfo[key.toLowerCase()] = value;
     });
+
     return newInfo;
   }, [accountInfos]);
 

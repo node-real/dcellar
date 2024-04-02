@@ -1,6 +1,7 @@
 import { ModalBody, Text, toast, useDisclosure } from '@node-real/uikit';
 import { createContext, useCallback, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
+import * as flatted from 'flatted';
 
 import { GREENFIELD_CHAIN_ID } from '@/base/env';
 import { IconFont } from '@/components/IconFont';
@@ -98,7 +99,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
         console.error(provider);
         Sentry.withScope((scope) => {
           scope.setTag('Component', 'OffChainAuthContext');
-          Sentry.captureMessage(JSON.stringify(e));
+          Sentry.captureMessage(flatted.stringify(e));
         });
         message && toast.error({ description: `${message}`, duration: 3000 });
         setIsAuthPending(false);

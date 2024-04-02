@@ -11,6 +11,7 @@ import * as Sentry from '@sentry/nextjs';
 import * as process from 'process';
 import { ReactNode } from 'react';
 import { WagmiConfig, createConfig } from 'wagmi';
+import * as flatted from 'flatted';
 
 const config = createConfig(
   getDefaultConfig({
@@ -47,7 +48,7 @@ const options: WalletKitOptions = {
     Sentry.withScope((scope) => {
       scope.setTag('Component', 'WalletConnectProvider');
       Sentry.captureMessage(
-        JSON.stringify({
+        flatted.stringify({
           error,
           description,
         }),

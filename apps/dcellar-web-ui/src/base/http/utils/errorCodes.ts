@@ -14,11 +14,6 @@ const statusCodes = {
   505: 'HTTP version not supported.',
 };
 
-const businessCodes: { [key: number]: string } = {
-  // 40010: "You've reached the maximum number of API Keys.",
-  // 40001: 'The API Key already exists, please choose another name.',
-};
-
-export const errorCodes = { ...statusCodes, ...businessCodes };
+export const errorCodes = { ...statusCodes };
 
 export type TErrorCodeKey = keyof typeof errorCodes;

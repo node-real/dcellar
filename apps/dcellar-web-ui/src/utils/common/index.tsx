@@ -1,4 +1,5 @@
 import BigNumber from 'bignumber.js';
+import * as flatted from 'flatted';
 
 import { displayTokenSymbol } from '../wallet';
 
@@ -82,7 +83,7 @@ export function scrollToId(id: string, top?: number) {
 // The walletConnect Error is: `{code: xx, message: 'xxx'}
 export function parseWCMessage(jsonStr: string) {
   try {
-    return JSON.parse(jsonStr)?.message ?? jsonStr;
+    return flatted.parse(jsonStr)?.message ?? jsonStr;
   } catch (e) {
     return jsonStr;
   }

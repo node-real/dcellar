@@ -1,3 +1,5 @@
+import * as flatted from 'flatted';
+
 export const signTypedDataV4 = async (provider: any, addr: string, message: string) => {
   return await provider?.request({
     method: 'eth_signTypedData_v4',
@@ -41,7 +43,7 @@ export const hexToBytes = (hex = '') => {
 export function uint8ArrayToJson(uint8Array: Uint8Array) {
   const decoder = new TextDecoder('utf-8');
   const jsonString = decoder.decode(uint8Array);
-  return JSON.parse(jsonString);
+  return flatted.parse(jsonString);
 }
 
 export const decodeFromHexString = (hex = '') => {

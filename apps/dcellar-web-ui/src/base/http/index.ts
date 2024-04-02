@@ -2,10 +2,11 @@ import { toast } from '@node-real/uikit';
 import axios, { AxiosRequestConfig } from 'axios';
 import axiosRetry from 'axios-retry';
 import qs from 'query-string';
+import * as flatted from 'flatted';
 
 import CancelManager from './cancel/cancelManager';
 import { errorCodes, TErrorCodeKey } from './utils/errorCodes';
-import { genRequestId } from './utils/genRequestId';
+import { getRequestId } from './utils/getRequestId';
 
 type TCustomOptions = {
   needNotify?: boolean;
@@ -51,7 +52,7 @@ const request = ({ url, options, customOptions }: RequestOptions) => {
     customOptions && typeof customOptions.needNotify === 'boolean'
       ? customOptions.needNotify
       : true;
-  const requestId = customOptions?.requestId || genRequestId({ ...options, url });
+  const requestId = customOptions?.requestId || getRequestId({ ...options, url });
   const controller = new AbortController();
 
   instance.interceptors.request.use((config: any) => {
@@ -90,18 +91,15 @@ const request = ({ url, options, customOptions }: RequestOptions) => {
       return Promise.reject(response.data);
     })
     .catch((e) => {
-      if (e.response?.status === 401) {
-        cancelAllRequest('Auto cancel all request!');
-      }
       const code = e.code || (e.response && e.response.code) || e.response?.status;
       const message =
         errorCodes[code as TErrorCodeKey] ||
         e.response?.msg ||
         e?.msg ||
         'Internal error. Please try again later.';
-      if (needNotify && e?.code !== 'ECONNABORTED' && e.response?.status !== 401) {
+
+      if (needNotify && e?.code !== 'ECONNABORTED' && e.response && e.response.status !== 401) {
         toast.error({ description: `Operation failed. Error message: ${message}.` });
-        // eslint-disable-next-line no-console
         console.error(`Operation failed. Error message: ${message}.`);
       }
 
@@ -131,7 +129,7 @@ const post = ({ url, data, options, customOptions }: CustomRequestOptions) =>
     options: {
       ...options,
       method: 'POST',
-      data: data ? JSON.stringify(data) : null,
+      data: data ? flatted.stringify(data) : null,
     },
     customOptions,
   });
@@ -142,7 +140,7 @@ const put = ({ url, data, options, customOptions }: CustomRequestOptions) =>
     options: {
       ...options,
       method: 'PUT',
-      data: data ? JSON.stringify(data) : null,
+      data: data ? flatted.stringify(data) : null,
     },
     customOptions,
   });
@@ -153,7 +151,7 @@ const del = ({ url, data, options, customOptions }: CustomRequestOptions) =>
     options: {
       ...options,
       method: 'DELETE',
-      data: data ? JSON.stringify(data) : null,
+      data: data ? flatted.stringify(data) : null,
     },
     customOptions,
   });
