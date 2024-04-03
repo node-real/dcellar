@@ -11,11 +11,10 @@ import {
   E_OFF_CHAIN_AUTH,
   E_USER_REJECT_STATUS_NUM,
   ErrorResponse,
-  commonFault,
   createTxFault,
   simulateFault,
 } from '@/facade/error';
-import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
+import { delegateCreateFolder, getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { useChecksumApi } from '@/modules/checksum';
 import {
@@ -50,10 +49,10 @@ import {
   TxResponse,
   Long,
   RedundancyType,
-  bytesFromBase64,
   VisibilityType,
   AuthType,
-  DelegatedPubObjectRequest,
+  DelegatedCreateFolderRequest,
+  bytesFromBase64,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
@@ -74,10 +73,7 @@ import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 're
 import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { makeDelegatePutObjectHeaders } from '../utils/getPutObjectHeaders';
 import { getSpOffChainData } from '@/store/slices/persist';
-import axios, { AxiosHeaders } from 'axios';
-import { getMockFile } from '@/utils/object';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -189,6 +185,9 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     });
   };
 
+  /**
+   * Create folder by user wallet.
+   */
   const onCreateFolder = async () => {
     if (!validateFolderName(inputFolderName)) return;
     setLoading(true);
@@ -294,7 +293,9 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     refetch(inputFolderName);
   };
 
-  // TODO refactor
+  /**
+   * Create folder by Primary SP.
+   */
   const onDelegateCreateFolder = async () => {
     if (!validateFolderName(inputFolderName)) return;
     setLoading(true);
@@ -303,33 +304,6 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       getSpOffChainData(loginAccount, primarySp.operatorAddress),
     );
     const fullObjectName = getPath(inputFolderName, pathSegments);
-    const mockFile = getMockFile(fullObjectName, 1);
-
-    const payload: DelegatedPubObjectRequest = {
-      bucketName: currentBucketName,
-      objectName: fullObjectName,
-      body: mockFile,
-      endpoint: primarySp.endpoint,
-      delegatedOpts: {
-        visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
-      },
-    };
-
-    const authType = {
-      type: 'EDDSA',
-      seed: seedString,
-      domain: window.location.origin,
-      address: loginAccount,
-    } as AuthType;
-
-    const [uploadOptions, error1] = await makeDelegatePutObjectHeaders(
-      payload,
-      authType,
-      primarySp.endpoint,
-    ).then(resolve, commonFault);
-
-    if (!uploadOptions) return setFormErrors([error1 || UNKNOWN_ERROR]);
-
     dispatch(
       setSignatureAction({
         icon: Animates.object,
@@ -337,28 +311,26 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
         desc: WALLET_CONFIRM,
       }),
     );
-
-    const { url, headers } = uploadOptions;
-    const putHeader = {
-      Authorization: headers.get('Authorization'),
-      'content-type': headers.get('content-type'),
-      'x-gnfd-app-domain': headers.get('x-gnfd-app-domain'),
-      'x-gnfd-content-sha256': headers.get('x-gnfd-content-sha256'),
-      'x-gnfd-date': headers.get('x-gnfd-date'),
-      'x-gnfd-expiry-timestamp': headers.get('x-gnfd-expiry-timestamp'),
-      'x-gnfd-txn-hash': headers.get('x-gnfd-txn-hash'),
-      'x-gnfd-user-address': headers.get('x-gnfd-user-address'),
-      'X-Gnfd-App-Reg-Public-Key': headers.get('X-Gnfd-App-Reg-Public-Key'),
-    } as unknown as AxiosHeaders;
-
-    const [res, error2] = await axios
-      .put(url, mockFile, { headers: putHeader })
-      .then(resolve, commonFault);
-
+    const payload: DelegatedCreateFolderRequest = {
+      bucketName: currentBucketName,
+      objectName: fullObjectName,
+      endpoint: primarySp.endpoint,
+      delegatedOpts: {
+        visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+      },
+    };
+    const authType: AuthType = {
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address: loginAccount,
+    };
+    const [res1, error1] = await delegateCreateFolder(payload, authType);
     if (!isSetTags) {
-      if (error2) {
+      if (error1) {
         setLoading(false);
-        return setFormErrors([error2 || UNKNOWN_ERROR]);
+        dispatch(setSignatureAction({}));
+        return setFormErrors([error1 || UNKNOWN_ERROR]);
       } else {
         onClose();
         setLoading(false);
@@ -368,6 +340,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       }
     }
 
+    // update tags by send a transaction
     if (isSetTags) {
       const [tagsTx, error3] = await getUpdateObjectTagsTx({
         address: loginAccount,
@@ -465,7 +438,6 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     fullFolderName: string,
     visibility: VisibilityType = VisibilityType.VISIBILITY_TYPE_INHERIT,
   ): Promise<ErrorResponse | [TxResponse, null]> => {
-    // const fullPath = getPath(folderName, folders);
     const file = new File([], fullFolderName, { type: 'text/plain' });
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
     const expectCheckSums = hashResult?.expectCheckSums || [];
@@ -566,7 +538,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
               </Text>
               <InputItem
                 disabled={!!chainFolderName}
-                onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
+                onKeyDown={(e) => e.key === 'Enter' && onDelegateCreateFolder()}
                 value={inputFolderName}
                 onChange={onFolderNameChange}
                 tips={{

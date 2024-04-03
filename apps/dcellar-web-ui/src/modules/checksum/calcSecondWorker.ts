@@ -1,6 +1,5 @@
 import { decodeBase64 } from '@/utils/coder';
 import { sha256 } from 'hash-wasm';
-import * as flatted from 'flatted';
 
 const isProd = process.env.NODE_ENV === 'production';
 globalThis.importScripts(`${isProd ? '/static/dcellar-web-ui' : ''}/wasm/wasm_exec.js`);
@@ -44,7 +43,8 @@ const encodeRawSegment = async (
     await init();
   }
   const result = greenfieldSdk.encodeRawSegment(bytes, dataBlocks, parityBlocks);
-  const shards = flatted.parse(result.result);
+  console.log('result', result);
+  const shards = JSON.parse(result.result);
 
   // Empty chunks should also return digest arrays of the corresponding length.
   await Promise.all(

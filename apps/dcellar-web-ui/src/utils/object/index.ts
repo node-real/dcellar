@@ -48,7 +48,7 @@ export const getPutObjectRequestConfig = async (
   loginAccount: string,
   seedString: string,
   endpoint: string,
-  mockFile: File,
+  file: File,
 ) => {
   const fullObjectName = [...task.prefixFolders, task.waitObject.relativePath, task.waitObject.name]
     .filter((item) => !!item)
@@ -74,7 +74,7 @@ export const getPutObjectRequestConfig = async (
   const payload: DelegatedPubObjectRequest = {
     bucketName: task.bucketName,
     objectName: fullObjectName,
-    body: mockFile,
+    body: file,
     delegatedOpts: {
       visibility: task.visibility,
     },

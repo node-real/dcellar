@@ -40,6 +40,8 @@ import {
   ResourceTags_Tag,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
+  AuthType,
+  DelegatedCreateFolderRequest,
   GRNToString,
   IQuotaProps,
   ISimulateGasFee,
@@ -682,4 +684,13 @@ export const updateObjectTags = async (params: UpdateObjectTagsParams, connector
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const delegateCreateFolder = async (
+  request: DelegatedCreateFolderRequest,
+  auth: AuthType,
+) => {
+  const client = await getClient();
+
+  return client.object.delegateCreateFolder(request, auth).then(resolve, commonFault);
 };

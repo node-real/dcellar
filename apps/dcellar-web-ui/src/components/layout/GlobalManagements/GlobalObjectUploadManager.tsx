@@ -21,16 +21,22 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { resolve } from '@/facade/common';
 import { broadcastFault, createTxFault, simulateFault } from '@/facade/error';
-import { getObjectMeta } from '@/facade/object';
+import { delegateCreateFolder, getObjectMeta } from '@/facade/object';
 import { getCreateObjectTx } from '@/modules/object/utils/getCreateObjectTx';
 import { setupAccountRecords } from '@/store/slices/accounts';
 import { setupSpMeta } from '@/store/slices/sp';
 import { parseErrorXml, sleep } from '@/utils/common';
-import { Long, RedundancyType, bytesFromBase64 } from '@bnb-chain/greenfield-js-sdk';
+import {
+  AuthType,
+  DelegatedCreateFolderRequest,
+  Long,
+  RedundancyType,
+  bytesFromBase64,
+} from '@bnb-chain/greenfield-js-sdk';
 import axios from 'axios';
 import { isEmpty } from 'lodash-es';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
-import { getMockFile, getPutObjectRequestConfig } from '@/utils/object';
+import { getPutObjectRequestConfig } from '@/utils/object';
 
 const MAX_PARALLEL_UPLOADS = 10;
 const SEALING_TIMEOUT = 2 * 60 * 1000;
@@ -41,7 +47,7 @@ interface GlobalTasksProps {}
  * Global Object Upload Manager
  *
  * This component includes two upload methods:
- * 1. Local signature calculation upload(需要UI激活):
+ * 1. Local signature calculation upload:
  *    State transition sequence: WAIT -> HASH -> HASHED -> SIGN -> SIGNED -> UPLOAD -> SEAL -> ...
  * 2. Delegate Primary SP upload(default):
  *    State transition sequence: WAIT -> UPLOAD -> SEAL -> ...
@@ -87,14 +93,12 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
       const isFolder = task.waitObject.name.endsWith('/');
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
       const endpoint = spRecords[task.spAddress].endpoint;
-      // TODO remove mockFile When delegateUpload support folder.
-      const mockFile = isFolder ? getMockFile(task.waitObject.name, 1) : task.waitObject.file;
       const [uploadOptions, error1] = await getPutObjectRequestConfig(
         task,
         loginAccount,
         seedString,
         endpoint,
-        mockFile,
+        task.waitObject.file,
       );
       if (!uploadOptions || error1) {
         return dispatch(
@@ -106,7 +110,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         );
       }
       const { url, headers } = uploadOptions;
-      // TODO delegateUpload will support folder.
+      // create folder by user wallet.
       if (isFolder && !task.delegateUpload) {
         dispatch(
           updateUploadStatus({
@@ -115,9 +119,54 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
             status: 'SEAL',
           }),
         );
+        // create folder by primary sp.
+      } else if (isFolder && task.delegateUpload) {
+        const fullObjectName = [
+          ...task.prefixFolders,
+          task.waitObject.relativePath,
+          task.waitObject.name,
+        ]
+          .filter((item) => !!item)
+          .join('/');
+        const delegateRequest: DelegatedCreateFolderRequest = {
+          bucketName: task.bucketName,
+          objectName: fullObjectName,
+          endpoint: endpoint,
+          delegatedOpts: {
+            visibility: task.visibility,
+          },
+        };
+        const authType: AuthType = {
+          type: 'EDDSA',
+          seed: seedString,
+          domain: window.location.origin,
+          address: loginAccount,
+        };
+        const [res2, error2] = await delegateCreateFolder(delegateRequest, authType);
+        if (error2) {
+          const authExpired = [
+            'bad signature',
+            'invalid signature',
+            'user public key is expired',
+          ].includes(error2 || '');
+          return dispatch(
+            setupUploadTaskErrorMsg({
+              account: loginAccount,
+              task,
+              errorMsg: authExpired ? 'Authentication expired.' : error1 || 'upload error',
+            }),
+          );
+        }
+        return dispatch(
+          updateUploadStatus({
+            account: loginAccount,
+            ids: [task.id],
+            status: 'FINISH',
+          }),
+        );
       } else {
         axios
-          .put(url, mockFile, {
+          .put(url, task.waitObject.file, {
             async onUploadProgress(progressEvent) {
               const progress = Math.floor(
                 (progressEvent.loaded / (progressEvent.total as number)) * 100,
