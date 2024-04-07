@@ -232,99 +232,60 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = status;
     },
-    addToWaitQueue(
-      state,
-      { payload }: PayloadAction<{ id: number; file: File; time: number; relativePath?: string }>,
-    ) {
-      // transfer item need _relativePath
-      const { id, file, time, relativePath: _relativePath } = payload;
-      // webkitRelativePath: 'xxx/xxx.png'
-      const parts = (_relativePath ? _relativePath : file.webkitRelativePath)?.split('/');
-      const relativePath = parts && parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-      const task: WaitObject = {
-        file,
-        status: 'CHECK',
-        id,
-        time,
-        msg: '',
-        type: file.type,
-        size: file.size,
-        name: file.name,
-        relativePath: file.name.endsWith('/') ? '' : relativePath,
-        lockFee: '',
-      };
-      // rewrite exist object
-      state.objectWaitQueue = state.objectWaitQueue.filter(
-        (file) => file.name !== task.name || file.relativePath !== task.relativePath,
-      );
-      state.objectWaitQueue.push(task);
+    setWaitQueue(state, { payload }: PayloadAction<WaitObject[]>) {
+      state.objectWaitQueue = payload;
     },
     resetWaitQueue(state) {
       state.objectWaitQueue = [];
     },
-    removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
-      // 1. When deleting a file, check if the parent folder is empty. If it is, delete it and recursively delete empty parent folders; otherwise, no action is required.
-      // 2. When deleting a folder, delete all subfolders and subfiles; And like delete a file to recursively delete empty parent folders.
-      const { objectWaitQueue } = state;
-      // group by common path
-      const waitQueueInfos: { [key: string]: WaitObject[] } = {};
-      // quick get folder info
-      const folderQueueInfos: { [key: string]: WaitObject } = {};
-      objectWaitQueue.forEach((t) => {
-        const isFolder = t.name.endsWith('/');
-        // add it to waitQueueInfos
-        const commonPath = isFolder ? t.name : t.relativePath + '/';
-        if (!waitQueueInfos[commonPath]) {
-          waitQueueInfos[commonPath] = [];
-        }
-        if (!isFolder) {
-          waitQueueInfos[commonPath].push(t);
-        }
 
-        // add it to folderQueueInfos
-        if (isFolder) {
-          folderQueueInfos[t.name] = t;
-        }
-      });
+    removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
+      // 1. When deleting a file, check if the parent folder is empty, delete it and recursively delete empty parent folders
+      // 2. When deleting a folder, delete all subfolders and subfiles first; And like delete a file to recursively delete empty parent folders.
+      const { objectWaitQueue } = state;
 
       const ids = [payload.id];
       const deleteObject = objectWaitQueue.find((task) => task.id === payload.id);
       if (!deleteObject) return;
+
       const isFolder = deleteObject?.name.endsWith('/');
       if (isFolder) {
-        const commonPath = deleteObject.name;
+        const prefix = deleteObject.name;
         const childIds = objectWaitQueue
           .filter((t) => {
             if (t.name.endsWith('/')) {
-              return t.name.startsWith(commonPath);
+              return t.name.startsWith(prefix);
             }
-            return (t.relativePath + '/').startsWith(commonPath);
+            return (t.relativePath + '/').startsWith(prefix);
           })
           .map((t) => t.id);
         ids.push(...childIds);
       }
-      const deleteParent = (queue: WaitObject[], deleteObject?: WaitObject) => {
+
+      const deleteParent = (deleteObject: WaitObject) => {
         if (!deleteObject) return;
-        const isFolder = deleteObject.name.endsWith('/');
-        const deletePath = isFolder ? deleteObject.name : deleteObject.relativePath + '/';
-        // If there are other files in the parent folder, do not delete.
-        if (waitQueueInfos[deletePath] || waitQueueInfos[deletePath].length > 2) {
-          return;
-        }
-        ids.push(folderQueueInfos[deletePath].id);
-        // file/folder => parentFolder is 1:1
-        const newParentObject = queue.find((t: WaitObject) => {
-          const isFolder = t.name.endsWith('/');
+        ids.push(deleteObject.id);
+
+        const parentPath = deleteObject.name.endsWith('/')
+          ? deleteObject.name.split('/').slice(0, -2).join('/') + '/'
+          : deleteObject.relativePath + '/';
+        if (parentPath === '/') return;
+
+        const parentFolderHasMultiObjects = objectWaitQueue.filter((item) => {
           return (
-            isFolder &&
-            deletePath.startsWith(t.name) &&
-            deletePath.replace(new RegExp(t.name + '$'), '').split('/').length === 2
+            item.id !== deleteObject.id &&
+            ((item.name.endsWith('/') && item.name === parentPath) ||
+              item.relativePath + '/' === parentPath)
           );
         });
-        deleteParent(queue, newParentObject);
+
+        if (parentFolderHasMultiObjects.length > 1) return;
+
+        deleteParent(parentFolderHasMultiObjects[0]);
       };
-      deleteParent(objectWaitQueue, deleteObject);
-      state.objectWaitQueue = state.objectWaitQueue.filter((task) => !ids.includes(task.id));
+
+      deleteParent(deleteObject);
+      state.objectWaitQueue = state.objectWaitQueue.filter((task) => !new Set(ids).has(task.id));
     },
     addToUploadQueue(
       state,
@@ -445,7 +406,6 @@ export const globalSlice = createSlice({
 export const {
   setBnbUsdtExchangeRate,
   updateWaitObjectStatus,
-  addToWaitQueue,
   updateWaitTaskMsg,
   updateUploadTaskMsg,
   updateUploadChecksum,
@@ -463,6 +423,7 @@ export const {
   setDisconnectWallet,
   updateUploadCreateHash,
   setSignatureAction,
+  setWaitQueue,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadObject>();
