@@ -19,7 +19,12 @@ import {
   setupAccountRecords,
 } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
-import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
+import {
+  selectGnfdGasFeesConfig,
+  selectUploadQueue,
+  setSignatureAction,
+  UploadObject,
+} from '@/store/slices/global';
 import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
@@ -34,7 +39,7 @@ import { ColoredWaitingIcon } from '@node-real/icons';
 import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
 import { useAsyncEffect } from 'ahooks';
 import { parseEther } from 'ethers/lib/utils.js';
-import { round } from 'lodash-es';
+import { find, round } from 'lodash-es';
 import { memo, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
@@ -60,6 +65,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
     const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
+    const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
     const [loading, setLoading] = useState(false);
@@ -126,10 +132,12 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           desc: WALLET_CONFIRM,
         }),
       );
+
       const [tempAccount, err] = await createTempAccount({
         address: loginAccount,
         bucketName: currentBucketName,
-        amount: parseEther(round(Number(availableBalance), 6).toString()).toNumber(),
+        // fix toNumber overflow fault
+        amount: parseEther(round(Number(availableBalance), 6).toString()),
         connector: connector!,
         actionType: 'delete',
       });
@@ -149,7 +157,20 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             connector: connector!,
             privateKey,
           };
-          const [txRes, error] = await (ObjectStatus === 1
+
+          const file = find<UploadObject>(uploadQueue, (q) => {
+            const objectInList = [
+              ...q.prefixFolders,
+              q.waitObject.relativePath || '',
+              q.waitObject.name,
+            ]
+              .filter((item) => !!item)
+              .join('/');
+
+            return objectInList === objectName && q.status !== 'ERROR';
+          });
+
+          const [txRes, error] = await (ObjectStatus === 1 || (ObjectStatus !== 1 && !file)
             ? deleteObject(payload)
             : cancelCreateObject(payload));
           if (error && error !== E_OBJECT_NOT_EXISTS) {
