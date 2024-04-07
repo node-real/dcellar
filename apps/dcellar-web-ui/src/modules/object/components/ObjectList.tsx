@@ -59,7 +59,6 @@ import { memo, useCallback } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import Link from 'next/link';
 
-
 export type ObjectActionValueType =
   | 'marketplace'
   | 'detail'
@@ -348,17 +347,18 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           const file = find<UploadObject>(
             uploadQueue,
             (q) =>
-              [...q.prefixFolders, q.waitObject.name].join('/') === record.objectName &&
-              q.status !== 'ERROR',
+              [...q.prefixFolders, q.waitObject.relativePath || '', q.waitObject.name]
+                .filter((item) => !!item)
+                .join('/') === record.objectName && q.status !== 'ERROR',
           );
           // if is uploading, can not cancel;
           if (file && ['SIGN', 'SIGNED', 'UPLOAD'].includes(file.status)) {
             pruneActions = pickAction(pruneActions, ['detail']);
           } else if (file && ['SEAL', 'SEALING'].includes(file.status)) {
-            pruneActions = removeAction(pruneActions, ['cancel', 'share']);
+            pruneActions = removeAction(pruneActions, ['cancel', 'share', 'delete']);
           } else {
             // if not sealed, only support 'cancel' 'detail'
-            pruneActions = pickAction(pruneActions, ['cancel', 'detail']);
+            pruneActions = pickAction(pruneActions, ['detail', 'delete']);
           }
         }
 
@@ -402,10 +402,25 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     selectedRowKeys: objectSelectedKeys,
     onSelect: onSelectChange,
     onSelectAll: onSelectAllChange,
-    getCheckboxProps: (record: ObjectEntity) => ({
-      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
-      name: record.name,
-    }),
+    getCheckboxProps: (record: ObjectEntity) => {
+      const file = find<UploadObject>(uploadQueue, (q) => {
+        const objectInList = [
+          ...q.prefixFolders,
+          q.waitObject.relativePath || '',
+          q.waitObject.name,
+        ]
+          .filter((item) => !!item)
+          .join('/');
+
+        return objectInList === record.objectName && q.status !== 'ERROR';
+      });
+
+      return {
+        // folder or upload failed
+        disabled: record.folder || (record.objectStatus !== 1 && !!file), // Column configuration not to be checked
+        name: record.name,
+      };
+    },
   };
 
   const errorHandler = (type: string) => {

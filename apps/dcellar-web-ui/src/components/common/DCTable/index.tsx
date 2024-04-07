@@ -176,7 +176,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
     ]
       .filter((item) => !!item)
       .join('/');
-    return objectInList === object;
+    return objectInList === object && q.status !== 'ERROR';
   });
 
   if (!file) return <Badge colorScheme="warning">Created on Chain</Badge>;
