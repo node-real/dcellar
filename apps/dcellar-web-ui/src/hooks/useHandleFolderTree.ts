@@ -174,10 +174,11 @@ export const useHandleFolderTree = () => {
       return waitObject;
     });
 
-    const list = Object.values(
-      keyBy([...objectWaitQueue, ...newWaitQueue], (item) => item.id + '_' + item.name),
+    const finalWaitQueue = Object.values(
+      keyBy([...objectWaitQueue, ...newWaitQueue], (item) => item.relativePath + '/' + item.name),
     );
-    dispatch(setWaitQueue(list));
+
+    dispatch(setWaitQueue(finalWaitQueue));
   };
 
   return {
