@@ -245,10 +245,25 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
           <Label>Primary storage provider</Label>
           <Value>{moniker}</Value>
         </Field>
-        <Field>
-          <Label>Free quota (one-time)</Label>
-          <Value>{formattedQuota.totalFreeText}</Value>
-        </Field>
+        {!!formattedQuota.monthlyFreeQuota && (
+          <Field>
+            <Label>Free monthly quota</Label>
+            <Value>
+              {formattedQuota.monthlyFreeQuotaText}/mo
+              <Text as={'span'}>({formattedQuota.monthlyQuotaRemainText} remains)</Text>
+            </Value>
+          </Field>
+        )}
+        {!!formattedQuota.oneTimeFree && (
+          <Field>
+            <Label>Free quota (one-time)</Label>
+            <Value>
+              {formattedQuota.oneTimeFreeText}
+              <Text as={'span'}>({formattedQuota.oneTimeFreeRemainText} remains)</Text>
+            </Value>
+          </Field>
+        )}
+
         <Divider mt={8} mb={-8} />
         <form
           onSubmit={(e) => {
@@ -342,4 +357,9 @@ const Value = styled(Flex)`
   text-overflow: ellipsis;
   white-space: nowrap;
   align-items: center;
+
+  span {
+    margin-left: 4px;
+    color: var(--ui-colors-readable-tertiary);
+  }
 `;

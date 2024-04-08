@@ -22,9 +22,10 @@ import {
   setupMainnetStoreFeeParams,
 } from '@/store/slices/global';
 
-type TQuotaSP = {
+export type TQuotaSP = {
   name: string;
   freeQuota: string;
+  freeMonthlyQuota: string;
   operatorAddress: string;
 };
 const DEFAULT_GAS_FEE = '0.000006';
@@ -85,6 +86,7 @@ export const PriceCalculator = () => {
         operatorAddress: item.operatorAddress,
         name: item?.description?.moniker,
         freeQuota: String(keySpMeta[item.operatorAddress]?.FreeReadQuota || ''),
+        freeMonthlyQuota: String(keySpMeta[item.operatorAddress]?.FreeMonthlyQuota || ''),
       };
     });
     setSps(fullSps);

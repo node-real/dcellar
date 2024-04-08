@@ -2,7 +2,6 @@ import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { CopyText } from '@/components/common/CopyText';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
-import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { IconFont } from '@/components/IconFont';
 import { SharePermission } from '@/modules/object/components/SharePermission';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -22,6 +21,7 @@ import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Commo
 import {
   Box,
   Divider,
+  Fade,
   Flex,
   Link,
   QDrawerBody,
@@ -30,12 +30,13 @@ import {
   Text,
   Tooltip,
 } from '@node-real/uikit';
-import { useUnmount } from 'ahooks';
 import dayjs from 'dayjs';
-import { memo, PropsWithChildren, useEffect } from 'react';
+import { memo, PropsWithChildren, useEffect, useState } from 'react';
+import { useUnmount } from 'ahooks';
+import { DEFAULT_TAG } from '@/components/common/ManageTags';
 
 export const Label = ({ children }: PropsWithChildren) => (
-  <Text fontSize={'14px'} fontWeight={500} color="readable.tertiary">
+  <Text as={'div'} fontSize={'14px'} fontWeight={500} color="readable.tertiary">
     {children}
   </Text>
 );
@@ -70,9 +71,11 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
+  const [quotaDetailVisible, setQuotaDetailVisible] = useState(false);
   const bucketQuota = bucketQuotaRecords[selectedBucketInfo.BucketName];
   const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
   const formattedQuota = formatQuota(bucketQuota);
+
   const nullObjectMeta: ObjectMeta = {
     ...defaultNullObject,
     ObjectInfo: {
@@ -80,6 +83,35 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       BucketName: selectedBucketInfo.BucketName,
     },
   };
+
+  const quotaDetail = [
+    {
+      key: 'Monthly quota',
+      quota: formattedQuota.totalReadText,
+      expired: endDate,
+      remain: formattedQuota.remainReadText,
+    },
+    ...(formattedQuota.monthlyFreeQuota
+      ? [
+          {
+            key: 'Free monthly quota',
+            quota: formattedQuota.monthlyFreeQuotaText,
+            expired: endDate,
+            remain: formattedQuota.monthlyQuotaRemainText,
+          },
+        ]
+      : []),
+    ...(formattedQuota.oneTimeFree
+      ? [
+          {
+            key: 'Free quota (one-time)',
+            quota: formattedQuota.oneTimeFreeText,
+            expired: '',
+            remain: formattedQuota.oneTimeFreeRemainText,
+          },
+        ]
+      : []),
+  ];
 
   const onEditTags = () => {
     const tags = selectedBucketInfo.Tags.Tags.map((item) =>
@@ -268,39 +300,65 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
             mb: 8,
           }}
         >
-          <Label>Free quota (one-time)</Label>
+          <Label>
+            <Flex
+              as={'span'}
+              cursor={'pointer'}
+              alignItems={'center'}
+              onClick={() => setQuotaDetailVisible((v) => !v)}
+            >
+              Total quota{' '}
+              <IconFont type={quotaDetailVisible ? 'menu-open' : 'menu-close'} w={16} ml={4} />
+            </Flex>
+          </Label>
           <Flex>
             <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
-              {formattedQuota.totalFreeText}{' '}
+              {formattedQuota.totalText}{' '}
               <Text as="span" color="#76808F">
-                ({formattedQuota.remainFreeText} remaining)
+                ({formattedQuota.remainText} remains)
               </Text>
             </Text>
           </Flex>
         </Flex>
-        <Flex
-          justifyContent={'space-between'}
-          color="readable.tertiary"
-          alignItems="flex-start"
-          h={42}
-          pt={4}
-          _notLast={{
-            mb: 8,
-          }}
-        >
-          <Label>Monthly quota</Label>
-          <Flex flexDirection={'column'} alignItems="flex-end">
-            <Text fontSize={'14px'} fontWeight={500} color="readable.normal">
-              {formattedQuota.totalReadText}/mo{' '}
-              <Text as="span" color="#76808F">
-                ({formattedQuota.remainReadText} remaining)
-              </Text>
-            </Text>
-            <Text fontSize={12} color="readable.disable">
-              Expire date: {endDate}
-            </Text>
+        <Fade in={quotaDetailVisible} unmountOnExit>
+          <Flex
+            flexDirection={'column'}
+            my={12}
+            borderRadius={4}
+            border={'1px solid readable.border'}
+          >
+            {quotaDetail.map((detail, index) => (
+              <Flex
+                key={index}
+                borderBottom={'1px solid readable.border'}
+                h={42}
+                sx={{
+                  '&:last-of-type': { borderBottom: 'none' },
+                }}
+                alignItems={'center'}
+              >
+                <Text w={200} px={12} fontWeight={500} color={'readable.tertiary'}>
+                  {detail.key}
+                </Text>
+                <Text as={'div'} w={200}>
+                  {detail.expired ? (
+                    <Box>
+                      <Text fontWeight={500}>{detail.quota}/mo</Text>
+                      <Text mt={2} fontSize={12} color={'readable.disable'}>
+                        Expire date: {detail.expired}
+                      </Text>
+                    </Box>
+                  ) : (
+                    <Text fontWeight={500}>{detail.quota}</Text>
+                  )}
+                </Text>
+                <Text w={120} color={'readable.tertiary'}>
+                  {detail.remain} remains
+                </Text>
+              </Flex>
+            ))}
           </Flex>
-        </Flex>
+        </Fade>
       </>
     );
   };
