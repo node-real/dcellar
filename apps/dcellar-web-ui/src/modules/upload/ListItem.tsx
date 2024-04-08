@@ -1,15 +1,13 @@
 import styled from '@emotion/styled';
 import { Flex, Menu } from '@node-real/uikit';
 import cn from 'classnames';
-import { isEmpty } from 'lodash-es';
+import { isEmpty, keyBy } from 'lodash-es';
 import { ChangeEvent, useMemo } from 'react';
 
 import { IconFont } from '@/components/IconFont';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { addToWaitQueue } from '@/store/slices/global';
+import { useAppSelector } from '@/store';
 import { TransferItemTree } from '@/utils/dom';
-import { getTimestamp } from '@/utils/time';
 import { UploadObjectsList } from './UploadObjectsList';
 
 type ListItemProps = {
@@ -19,9 +17,7 @@ type ListItemProps = {
 };
 
 export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
-  const dispatch = useAppDispatch();
   const objectWaitQueue = useAppSelector((root) => root.global.objectWaitQueue);
-
   const list = useMemo(() => {
     switch (type) {
       case 'ALL':
@@ -38,13 +34,7 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
   const onFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || !files.length) return;
-    const tree: TransferItemTree = {};
-    Object.values(files).forEach((file: File) => {
-      const time = getTimestamp();
-      const id = parseInt(String(time * Math.random()));
-      dispatch(addToWaitQueue({ id, file, time }));
-      tree[file.name] = file;
-    });
+    const tree: TransferItemTree = keyBy(files, 'name');
     handleFolderTree(tree);
     e.target.value = '';
   };

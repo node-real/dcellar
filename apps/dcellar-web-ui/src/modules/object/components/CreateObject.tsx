@@ -1,17 +1,15 @@
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { GAClick } from '@/components/common/GATracker';
+import { useHandleFolderTree } from '@/hooks/useHandleFolderTree';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
 import { setupBucketQuota } from '@/store/slices/bucket';
-import { addToWaitQueue } from '@/store/slices/global';
 import {
-  ObjectEntity,
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
-  selectObjectList,
   setObjectListRefreshing,
   setObjectOperation,
   setObjectListPageRestored,
@@ -19,10 +17,10 @@ import {
   setupListObjects,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { TransferItemTree } from '@/utils/dom';
 import { formatBytes } from '@/utils/formatter';
-import { getTimestamp } from '@/utils/time';
 import { Flex, Menu, Tooltip, toast } from '@node-real/uikit';
-import { debounce } from 'lodash-es';
+import { debounce, keyBy, toPairs } from 'lodash-es';
 import { ChangeEvent, memo, useCallback } from 'react';
 
 export const MAX_FOLDER_LEVEL = 10;
@@ -42,6 +40,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
   shareMode = false,
 }) {
   const dispatch = useAppDispatch();
+  const { handleFolderTree } = useHandleFolderTree();
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
   const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
   const pathSegments = useAppSelector((root) => root.object.pathSegments);
@@ -55,9 +54,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
   const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
   const bucket = bucketRecords[currentBucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
-  const objectList = useAppSelector(selectObjectList);
   const primarySp = primarySpRecords[currentBucketName];
-
   const onOpenCreateFolder = () => {
     if (disabled) return;
     dispatch(setObjectOperation({ operation: ['', 'create_folder'] }));
@@ -113,99 +110,35 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
     loading ||
     accountDetail.clientFrozen;
 
-  const handleFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || !files.length) return;
-    if (files.length > SELECT_OBJECT_NUM_LIMIT) {
-      return toast.error({
-        description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
-        isClosable: true,
-      });
-    }
-    Object.values(files).forEach((file: File) => {
-      const time = getTimestamp();
-      const id = parseInt(String(time * Math.random()));
-      dispatch(addToWaitQueue({ id, file, time }));
-    });
+    const tree: TransferItemTree = keyBy(files, 'name');
+    handleFolderTree(tree);
     dispatch(setObjectOperation({ operation: ['', 'upload'] }));
     e.target.value = '';
   };
 
-  /**
-   * 1. Validate if it is an empty folder.
-   * 2. Validate if the root folder exists in the current directory.
-   * 3. Validate the maximum folder depth less than 10.
-   */
-  const handlerFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFolderChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !files.length) {
-      return toast.error({
-        description: 'You can only upload folders that contain objects.',
-        isClosable: true,
-      });
-    }
-    if (files.length > SELECT_OBJECT_NUM_LIMIT) {
-      e.target.value = '';
-      return toast.error({
-        description: `You can only upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`,
-        isClosable: true,
-      });
-    }
-    const relativeRootFolder = files[0].webkitRelativePath.split('/')[0];
-    const isRootFolderNameToLong = relativeRootFolder.length > MAX_FOLDER_NAME_LEN;
-    if (isRootFolderNameToLong) {
-      return toast.error({
-        description: `Folder name must not exceed ${MAX_FOLDER_NAME_LEN} characters.`,
-        isClosable: true,
-      });
-    }
-    const uploadFolderPath = [...pathSegments, relativeRootFolder].join('/') + '/';
-    const isFolderExist = objectList.some(
-      (object: ObjectEntity) => object.objectName === uploadFolderPath,
-    );
-    if (isFolderExist) {
-      e.target.value = '';
-      return toast.error({
-        description: 'Folder already exists in the current path.',
-        isClosable: true,
-      });
-    }
-    // validate folder depth
-    for (let i = 0; i < files.length; i++) {
-      const webkitRelativePath = files[i].webkitRelativePath;
-      const parts = webkitRelativePath.split('/');
-      const folders = parts.slice(0, parts.length - 1);
-      const depth =
-        folders.length + objectCommonPrefix.split('/').filter((item) => !!item).length || 0;
-      if (depth > 10) {
-        e.target.value = '';
-        return toast.error({
-          description: `You have reached the maximum supported folder depth (${MAX_FOLDER_LEVEL}).`,
-          isClosable: true,
-        });
-      }
-    }
+    if (!files || !files.length) return;
 
-    const infos: { [key: string]: File } = {};
+    const tree: TransferItemTree = {};
     Object.values(files).forEach((file: File) => {
       const folders = file.webkitRelativePath.split('/').slice(0, -1);
       let relativePath = '';
       folders.forEach((folder) => {
         relativePath += folder + '/';
-        if (!infos[relativePath] && relativePath) {
-          // folder object
-          infos[relativePath] = new File([], relativePath, { type: 'text/plain' });
+        if (!tree[relativePath] && relativePath) {
+          // folder
+          tree[relativePath] = new File([], relativePath, { type: 'text/plain' });
         }
       });
-      // file object
-      infos[file.webkitRelativePath] = file;
+
+      tree[file.webkitRelativePath] = file;
     });
 
-    Object.values(infos).forEach((file: File) => {
-      const time = getTimestamp();
-      const id = parseInt(String(time * Math.random()));
-      dispatch(addToWaitQueue({ id, file, time }));
-    });
+    handleFolderTree(tree);
     dispatch(setObjectOperation({ operation: ['', 'upload'] }));
     e.target.value = '';
   };
@@ -265,8 +198,8 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
                 <UploadMenuList
                   gaUploadClickName={gaUploadClickName}
                   disabled={uploadDisabled}
-                  handleFilesChange={handleFilesChange}
-                  handlerFolderChange={handlerFolderChange}
+                  handleFilesChange={onFilesChange}
+                  handlerFolderChange={onFolderChange}
                 >
                   <IconFont type="upload" w={24} />
                   Upload

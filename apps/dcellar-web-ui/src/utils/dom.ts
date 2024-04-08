@@ -12,6 +12,33 @@ export type TransferItemTree = {
   [key: string]: File;
 };
 
+export const readEntriesAsync = (reader: FileSystemDirectoryReader): Promise<FileSystemEntry[]> => {
+  return new Promise((resolve, reject) => {
+    reader.readEntries(
+      (entries) => {
+        resolve(entries);
+      },
+      (error) => reject(error),
+    );
+  });
+};
+
+export const readDirectoryEntries = async (directoryEntry: FileSystemDirectoryEntry) => {
+  const reader = directoryEntry.createReader();
+  let resultEntries: FileSystemEntry[] = [];
+
+  const read = async function () {
+    const entries = await readEntriesAsync(reader);
+    if (entries.length > 0) {
+      resultEntries = resultEntries.concat(entries);
+      await read();
+    }
+  };
+  await read();
+
+  return resultEntries;
+};
+
 export const isFileEntry = (entry: FileSystemEntry): entry is FileSystemFileEntry => {
   return entry.isFile;
 };
@@ -40,14 +67,12 @@ export const traverseEntry = async (
   if (isDirectoryEntry(entry)) {
     const newPath = path + '/';
     tree[newPath] = new File([], newPath, { type: 'text/plain' });
-    const reader = entry.createReader();
-    return new Promise((resolve) => {
-      reader.readEntries(async (entries) => {
-        const entryTree = await Promise.all(entries.map((entry) => traverseEntry(entry, tree)));
-        resolve(entryTree.reduce((r, c) => ({ ...r, ...c }), {}));
-      });
-    });
+    const entries = await readDirectoryEntries(entry);
+    await Promise.all(entries.map((entry) => traverseEntry(entry, tree)));
+
+    return tree;
   }
+
   return tree;
 };
 
