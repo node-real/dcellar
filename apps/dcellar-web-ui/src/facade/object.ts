@@ -1,6 +1,6 @@
 import { GROUP_ID } from '@/constants/legacy';
 import { quotaRemains } from '@/facade/bucket';
-import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
+import { getObjectInfoAndBucketQuota, resolve, resolveSpRequest } from '@/facade/common';
 import {
   E_NOT_FOUND,
   E_NO_QUOTA,
@@ -692,5 +692,5 @@ export const delegateCreateFolder = async (
 ) => {
   const client = await getClient();
 
-  return client.object.delegateCreateFolder(request, auth).then(resolve, commonFault);
+  return client.object.delegateCreateFolder(request, auth).then(resolveSpRequest, commonFault);
 };

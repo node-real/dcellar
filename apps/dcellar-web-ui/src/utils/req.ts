@@ -1,11 +1,15 @@
-const localhostDomains = ['localhost', '127.0.0.1', '::1'];
+const validLocalhostDomains: readonly string[] = ['localhost', '127.0.0.1', '::1'];
 
-export function validateReferer(referrer: string, allowedDomains: string) {
-  if (!referrer) {
+export function isRefererAllowed(referrerURL: string, allowedDomainList: string): boolean {
+  if (!referrerURL) {
     return false;
   }
-  const domain = new URL(referrer).hostname;
-  const domains = allowedDomains.split(',').concat(localhostDomains);
 
-  return domains.includes(domain);
+  const domain = new URL(referrerURL).hostname;
+  const domains = allowedDomainList
+    .split(',')
+    .map((domain) => domain.trim())
+    .concat(validLocalhostDomains);
+
+  return domains.some((allowedDomain) => domain.endsWith(allowedDomain));
 }

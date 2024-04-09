@@ -1,11 +1,11 @@
 import { ALLOWED_DOMAINS, BILLING_API_URL } from '@/base/env';
-import { validateReferer } from '@/utils/req';
+import { isRefererAllowed } from '@/utils/req';
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 import qs from 'query-string';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (!validateReferer(req.headers.referer || '', ALLOWED_DOMAINS)) {
+  if (!isRefererAllowed(req.headers.referer || '', ALLOWED_DOMAINS)) {
     res.status(403).json({ message: 'Forbidden' });
   }
   const { slug, ...query } = req.query;

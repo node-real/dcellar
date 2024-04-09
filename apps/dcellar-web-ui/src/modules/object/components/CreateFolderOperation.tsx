@@ -330,7 +330,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       if (error1) {
         setLoading(false);
         dispatch(setSignatureAction({}));
-        return setFormErrors([error1 || UNKNOWN_ERROR]);
+        return setFormErrors([error1]);
       } else {
         onClose();
         setLoading(false);
