@@ -166,21 +166,7 @@ export const UploadStatus = ({ object, size }: { object: string; size: number })
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const { processUploadObjects, processUploadObjectRecord } = useUploadProcessObjects(loginAccount);
 
-<<<<<<< HEAD
   const processing = processUploadObjects.includes(object);
-=======
-  const file = find<UploadObject>(queue, (q) => {
-    const objectInList = [
-      q.bucketName,
-      ...q.prefixFolders,
-      q.waitObject.relativePath || '',
-      q.waitObject.name,
-    ]
-      .filter((item) => !!item)
-      .join('/');
-    return objectInList === object && q.status !== 'ERROR';
-  });
->>>>>>> 5ecd925 (feat(dcellar-web-ui): created on chain status deletable)
 
   if (!processing) return <Badge colorScheme="warning">Created on Chain</Badge>;
 

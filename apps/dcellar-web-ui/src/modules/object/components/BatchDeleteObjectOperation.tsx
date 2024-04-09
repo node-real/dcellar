@@ -23,10 +23,7 @@ import {
   selectGnfdGasFeesConfig,
   selectUploadQueue,
   setSignatureAction,
-<<<<<<< HEAD
-=======
   UploadObject,
->>>>>>> 5ecd925 (feat(dcellar-web-ui): created on chain status deletable)
 } from '@/store/slices/global';
 import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { BN } from '@/utils/math';
@@ -42,7 +39,7 @@ import { ColoredWaitingIcon } from '@node-real/icons';
 import { Flex, ModalBody, ModalFooter, ModalHeader, Text, toast } from '@node-real/uikit';
 import { useAsyncEffect } from 'ahooks';
 import { parseEther } from 'ethers/lib/utils.js';
-import { find, round } from 'lodash-es';
+import { round } from 'lodash-es';
 import { memo, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useUploadProcessObjects } from '@/hooks/useUploadProcessObjects';
@@ -69,7 +66,6 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
     const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
-    const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
     const { crudTimestamp } = useAppSelector(selectAccount(bucket?.PaymentAddress));
     const availableBalance = useAppSelector(selectAvailableBalance(bucket?.PaymentAddress));
     const [loading, setLoading] = useState(false);
@@ -163,25 +159,8 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             privateKey,
           };
 
-<<<<<<< HEAD
           const processing = processUploadObjects.includes(`${currentBucketName}/${objectName}`);
-
           const [txRes, error] = await (ObjectStatus === 1 || (ObjectStatus !== 1 && !processing)
-=======
-          const file = find<UploadObject>(uploadQueue, (q) => {
-            const objectInList = [
-              ...q.prefixFolders,
-              q.waitObject.relativePath || '',
-              q.waitObject.name,
-            ]
-              .filter((item) => !!item)
-              .join('/');
-
-            return objectInList === objectName && q.status !== 'ERROR';
-          });
-
-          const [txRes, error] = await (ObjectStatus === 1 || (ObjectStatus !== 1 && !file)
->>>>>>> 5ecd925 (feat(dcellar-web-ui): created on chain status deletable)
             ? deleteObject(payload)
             : cancelCreateObject(payload));
           if (error && error !== E_OBJECT_NOT_EXISTS) {
