@@ -5,6 +5,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import qs from 'query-string';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  console.error('req.headers.referer', req.headers.referer);
+  console.error('ALLOWED_DOMAINS', ALLOWED_DOMAINS);
   if (!isRefererAllowed(req.headers.referer || '', ALLOWED_DOMAINS)) {
     res.status(403).json({ message: 'Forbidden' });
   }
