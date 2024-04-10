@@ -14,7 +14,7 @@ interface ILogo extends BoxProps {
 export const Logo: React.FC<ILogo> = (props) => {
   const { href, target = '', title = '', ...restProps } = props;
   const { basePath } = useRouter();
-  const logo = <IconFont w={132} h={26} type={'logo'} />;
+  const logo = <IconFont w={184} h={32} type={'logo-new'} />;
 
   return (
     <Box {...restProps}>
