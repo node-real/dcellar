@@ -478,7 +478,7 @@ export const setupDummyFolder =
   };
 
 export const setupListObjects =
-  (params: Partial<ListObjectsParams>, _path?: string) =>
+  (params: Partial<ListObjectsParams>, _completeCommonPrefix?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const { objectCommonPrefix, currentBucketName, completeCommonPrefix, objectListPageRestored } =
       getState().object;
@@ -486,8 +486,10 @@ export const setupListObjects =
     const _query = new URLSearchParams(params.query?.toString() || '');
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
-    const prefix = _path ? _path.split('/').slice(1).join('/') : objectCommonPrefix;
-    if (prefix) _query.append('prefix', prefix);
+    const commonPrefix = _completeCommonPrefix
+      ? _completeCommonPrefix.split('/').slice(1).join('/')
+      : objectCommonPrefix;
+    if (commonPrefix) _query.append('prefix', commonPrefix);
     // support any path list objects, bucketName & _path
     const payload = {
       bucketName: currentBucketName,
@@ -502,8 +504,10 @@ export const setupListObjects =
       toast.error({ description: error });
       return;
     }
-    dispatch(setObjectListTruncated({ path: _path || completeCommonPrefix, truncate }));
-    dispatch(setObjectList({ path: _path || completeCommonPrefix, list: res! }));
+    dispatch(
+      setObjectListTruncated({ path: _completeCommonPrefix || completeCommonPrefix, truncate }),
+    );
+    dispatch(setObjectList({ path: _completeCommonPrefix || completeCommonPrefix, list: res! }));
     dispatch(setObjectListPageRestored(true));
     if (!objectListPageRestored) {
       dispatch(setObjectListPage({ path: completeCommonPrefix, current: 0 }));
