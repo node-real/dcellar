@@ -486,7 +486,8 @@ export const setupListObjects =
     const _query = new URLSearchParams(params.query?.toString() || '');
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
-    if (objectCommonPrefix) _query.append('prefix', objectCommonPrefix);
+    const prefix = _path ? _path.split('/').slice(1).join('/') : objectCommonPrefix;
+    if (prefix) _query.append('prefix', prefix);
     // support any path list objects, bucketName & _path
     const payload = {
       bucketName: currentBucketName,

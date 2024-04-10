@@ -1,15 +1,12 @@
 import { DCTable } from '@/components/common/DCTable';
-import { useAppDispatch, useAppSelector } from '@/store';
+import { useAppDispatch } from '@/store';
 import { UploadObject, WaitObject, removeFromWaitQueue } from '@/store/slices/global';
 import { ColumnProps } from 'antd/es/table';
-import React, { use, useState } from 'react';
+import React, { useState } from 'react';
 import { NameItem } from './NameItem';
 import { PathItem } from './PathItem';
-import { ObjectUploadStatus } from './ObjectUploadStatus';
-import { useTableNav } from '@/components/common/DCTable/useTableNav';
 import { useCreation } from 'ahooks';
 import { chunk } from 'lodash-es';
-import { Flex } from '@node-real/uikit';
 import { IconFont } from '@/components/IconFont';
 
 const uploadingPageSize = 10;
@@ -29,7 +26,14 @@ export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObje
       title: 'Name',
       render: (record) => {
         return (
-          <NameItem name={record.name} size={record.size} msg={record.msg} w={240} task={record} />
+          <NameItem
+            key={record.name}
+            name={record.name}
+            size={record.size}
+            msg={record.msg}
+            w={240}
+            task={record}
+          />
         );
       },
     },

@@ -39,7 +39,9 @@ import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/s
 import { getPutObjectRequestConfig } from '@/utils/object';
 
 const MAX_PARALLEL_UPLOADS = 10;
-const SEALING_TIMEOUT = 2 * 60 * 1000;
+const SEALING_INTERVAL = 3_000;
+const SLEEP_INTERVAL = 6_000;
+const SEALING_TIMEOUT = 180_000;
 
 interface GlobalTasksProps {}
 
@@ -251,7 +253,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
               handleSealingTimeout();
               return;
             }
-            await sleep(4000);
+            await sleep(SLEEP_INTERVAL);
             continue;
           } else {
             dispatch(
@@ -276,7 +278,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
           return;
         }
 
-        await sleep(2000);
+        await sleep(SEALING_INTERVAL);
       }
     };
 
