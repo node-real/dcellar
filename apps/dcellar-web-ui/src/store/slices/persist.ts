@@ -41,6 +41,7 @@ export interface PersistState {
   billPageSize: number;
   accountBillPageSize: number;
   paymentAccountSortBy: SorterType;
+  isShowTutorialCard: boolean;
 }
 
 const initialState: PersistState = {
@@ -57,6 +58,7 @@ const initialState: PersistState = {
   paymentAccountPageSize: 20,
   billPageSize: 20,
   accountBillPageSize: 20,
+  isShowTutorialCard: true,
 };
 
 export const persistSlice = createSlice({
@@ -128,6 +130,9 @@ export const persistSlice = createSlice({
     setUnAvailableSps(state, { payload }: PayloadAction<string[]>) {
       state.unAvailableSps = payload;
     },
+    setIsShowTutorialCard(state, { payload }: PayloadAction<boolean>) {
+      state.isShowTutorialCard = payload;
+    },
   },
 });
 
@@ -146,6 +151,7 @@ export const {
   setObjectListPageSize,
   setGroupSorter,
   setGroupListPageSize,
+  setIsShowTutorialCard,
 } = persistSlice.actions;
 
 export const selectAccountConfig = (address: string) => (state: AppState) =>
