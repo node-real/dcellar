@@ -170,10 +170,10 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         axios
           .put(url, task.waitObject.file, {
             async onUploadProgress(progressEvent) {
-              const progress = Math.floor(
-                (progressEvent.loaded / (progressEvent.total as number)) * 100,
-              );
-              await dispatch(progressFetchList(task));
+              const progress = progressEvent.total
+                ? Math.floor((progressEvent.loaded / progressEvent.total) * 100)
+                : 0;
+              progress > 30 && (await dispatch(progressFetchList(task)));
               if (authModal) return;
               dispatch(updateUploadProgress({ account: loginAccount, id: task.id, progress }));
             },
