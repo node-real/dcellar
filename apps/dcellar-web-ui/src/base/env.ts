@@ -25,11 +25,7 @@ const {
   NEXT_PUBLIC_APOLLO_GLOBAL_NOTIFICATION_ETA,
 } = publicRuntimeConfig || {};
 
-const {
-  NEXT_PRIVATE_BILLING_API_URL,
-  NEXT_PRIVATE_EXPLORER_API_URL,
-  NEXT_PRIVATE_ALLOWED_DOMAINS,
-} = serverRuntimeConfig || {};
+const { NEXT_PRIVATE_BILLING_API_URL, NEXT_PRIVATE_EXPLORER_API_URL } = serverRuntimeConfig || {};
 
 export type TRuntimeEnv = 'development' | 'qa' | 'testnet' | 'mainnet';
 
@@ -52,7 +48,6 @@ export const GREENFIELD_MAINNET_RPC_URL = NEXT_PUBLIC_GREENFIELD_CHAIN_MAINNET_R
 
 export const BILLING_API_URL = NEXT_PRIVATE_BILLING_API_URL;
 export const EXPLORER_API_URL = NEXT_PRIVATE_EXPLORER_API_URL;
-export const ALLOWED_DOMAINS = NEXT_PRIVATE_ALLOWED_DOMAINS;
 
 export const mainnetSpMetaEndpoint = NEXT_PUBLIC_APOLLO_MAINNET_SP_RECOMMEND_META;
 

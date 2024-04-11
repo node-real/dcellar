@@ -1,12 +1,8 @@
-import { ALLOWED_DOMAINS, BILLING_API_URL } from '@/base/env';
-import { isRefererAllowed } from '@/utils/req';
+import { BILLING_API_URL } from '@/base/env';
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (!isRefererAllowed(req.headers.referer || '', ALLOWED_DOMAINS)) {
-    res.status(403).json({ message: 'Forbidden' });
-  }
   const { slug } = req.query;
   const slugs = slug as string[];
   const url = `${BILLING_API_URL}/greenfield/total_cost/${slugs.join('/')}`;
