@@ -168,7 +168,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         );
       } else {
         axios
-          .put(url, mockFile, {
+          .put(url, task.waitObject.file, {
             async onUploadProgress(progressEvent) {
               const progress = Math.floor(
                 (progressEvent.loaded / (progressEvent.total as number)) * 100,
