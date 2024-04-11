@@ -25,7 +25,7 @@ import {
 export type TQuotaSP = {
   name: string;
   freeQuota: string;
-  freeMonthlyQuota: string;
+  monthlyFreeQuota: string;
   operatorAddress: string;
 };
 const DEFAULT_GAS_FEE = '0.000006';
@@ -86,7 +86,7 @@ export const PriceCalculator = () => {
         operatorAddress: item.operatorAddress,
         name: item?.description?.moniker,
         freeQuota: String(keySpMeta[item.operatorAddress]?.FreeReadQuota || ''),
-        freeMonthlyQuota: String(keySpMeta[item.operatorAddress]?.FreeMonthlyQuota || ''),
+        monthlyFreeQuota: String(keySpMeta[item.operatorAddress]?.MonthlyFreeQuota || ''),
       };
     });
     setSps(fullSps);

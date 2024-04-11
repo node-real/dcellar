@@ -26,8 +26,7 @@ export type SpRecommendMeta = {
   Description: string;
   Endpoint: string;
   FreeReadQuota: number;
-  // todo add monthly quota
-  FreeMonthlyQuota: number;
+  MonthlyFreeQuota: number;
   Latency: number;
   ReadPrice: string;
   SPAddress: string;

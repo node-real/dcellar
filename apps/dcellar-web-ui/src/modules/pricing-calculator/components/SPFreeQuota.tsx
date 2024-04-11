@@ -72,7 +72,7 @@ export const SPFreeQuota = ({ sps }: SPFreeQuotaProps) => {
               <IconFont type={'out'} w={[12, 16]} ml={[2, 8]} />
             </Flex>
             <Text color="readable.normal" flex={[88, 277]} px={[8, 16]} py={[8, 12]}>
-              {!item.freeMonthlyQuota ? '--' : formatBytes(item.freeMonthlyQuota)}
+              {!item.monthlyFreeQuota ? '--' : formatBytes(item.monthlyFreeQuota)}
             </Text>
             <Text color="readable.normal" flex={[88, 277]} px={[8, 16]} py={[8, 12]}>
               {!item.freeQuota ? '--' : formatBytes(item.freeQuota)}

@@ -75,7 +75,7 @@ export const OptionItem = memo(function OptionItem({
         {meta && meta.FreeReadQuota ? formatBytes(meta.FreeReadQuota) : '--'}
       </TD>
       <TD w={144} color={textColor}>
-        {meta && meta.FreeMonthlyQuota ? formatBytes(meta.FreeMonthlyQuota) : '--'}
+        {meta && meta.MonthlyFreeQuota ? formatBytes(meta.MonthlyFreeQuota) : '--'}
       </TD>
       <TD $dot={access ? spLatency : 0} color={textColor}>
         {access && spLatency ? `${spLatency}ms` : '--'}
