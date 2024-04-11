@@ -5,14 +5,13 @@ import {
   SimplePaginationProps,
 } from '@/components/common/DCTable/SimplePagination';
 import { useAppSelector } from '@/store';
-import { UploadObject, selectUploadQueue } from '@/store/slices/global';
 import { formatBytes } from '@/utils/formatter';
 import styled from '@emotion/styled';
-import { Badge, Box, Flex, Pagination, PaginationProps, Text, keyframes } from '@node-real/uikit';
+import { Badge, Box, Flex, keyframes, Pagination, PaginationProps, Text } from '@node-real/uikit';
 import { ConfigProvider, Table, TableProps } from 'antd';
 import { ConfigProviderProps } from 'antd/es/config-provider';
-import { find } from 'lodash-es';
 import { memo } from 'react';
+import { useUploadProcessObjects } from '@/hooks/useUploadProcessObjects';
 
 export type AlignType = 'left' | 'right' | 'center';
 
@@ -165,21 +164,13 @@ export const UploadProgress = (props: { progress: number }) => {
 
 export const UploadStatus = ({ object, size }: { object: string; size: number }) => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const queue = useAppSelector(selectUploadQueue(loginAccount));
+  const { processUploadObjects, processUploadObjectRecord } = useUploadProcessObjects(loginAccount);
 
-  const file = find<UploadObject>(queue, (q) => {
-    const objectInList = [
-      q.bucketName,
-      ...q.prefixFolders,
-      q.waitObject.relativePath || '',
-      q.waitObject.name,
-    ]
-      .filter((item) => !!item)
-      .join('/');
-    return objectInList === object;
-  });
+  const processing = processUploadObjects.includes(object);
 
-  if (!file) return <Badge colorScheme="warning">Created on Chain</Badge>;
+  if (!processing) return <Badge colorScheme="warning">Created on Chain</Badge>;
+
+  const file = processUploadObjectRecord[object];
 
   if (file.status === 'UPLOAD') return <UploadProgress progress={file.progress} />;
 

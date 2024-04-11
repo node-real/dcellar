@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 25 Mar 2024 04:02:13 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Apr 2024 02:29:47 GMT and should not be manually modified.
+
+## 0.5.0
+Thu, 11 Apr 2024 02:29:47 GMT
+
+### Minor changes
+
+- make created on chain status object deletable
 
 ## 0.4.0
 Mon, 25 Mar 2024 04:02:13 GMT

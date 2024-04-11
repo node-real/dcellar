@@ -41,7 +41,7 @@ export const getAccountBalance = async ({
 export type CreateTmpAccountParams = {
   address: string;
   bucketName: string;
-  amount: number;
+  amount: ReturnType<typeof parseEther>;
   connector: Connector<any, any>;
   actionType?: 'delete' | 'create';
 };
@@ -74,7 +74,7 @@ export const createTempAccount = async ({
       granter: address,
       grantee: wallet.address,
       allowedMessages: grantAllowedMessage,
-      amount: parseEther(amount <= 0 ? '0.1' : String(amount)).toString(),
+      amount: parseEther(amount.lte(0) ? '0.1' : String(amount)).toString(),
       denom: 'BNB',
       expirationTime: toTimestamp(expirationDate),
     })

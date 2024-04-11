@@ -336,7 +336,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
         const [tempAccount, error] = await createTempAccount({
           address: loginAccount,
           bucketName: currentBucketName,
-          amount: parseEther(String(safeAmount)).toNumber(),
+          amount: parseEther(String(safeAmount)),
           connector: connector!,
         });
         if (!tempAccount) {

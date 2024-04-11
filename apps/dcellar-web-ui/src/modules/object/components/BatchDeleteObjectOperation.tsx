@@ -19,7 +19,11 @@ import {
   setupAccountRecords,
 } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
-import { selectGnfdGasFeesConfig, setSignatureAction } from '@/store/slices/global';
+import {
+  selectGnfdGasFeesConfig,
+  selectUploadQueue,
+  setSignatureAction,
+} from '@/store/slices/global';
 import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
@@ -37,6 +41,7 @@ import { parseEther } from 'ethers/lib/utils.js';
 import { round } from 'lodash-es';
 import { memo, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useUploadProcessObjects } from '@/hooks/useUploadProcessObjects';
 
 interface BatchDeleteObjectOperationProps {
   selectBucket: TBucket;
@@ -70,6 +75,7 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
     const { loading: loadingSettlementFee, settlementFee } = useSettlementFee(
       bucket?.PaymentAddress,
     );
+    const { processUploadObjects } = useUploadProcessObjects(loginAccount);
 
     const deleteObjects = objectSelectedKeys.map((key) => {
       return objectRecords[currentBucketName + '/' + key];
@@ -126,10 +132,12 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           desc: WALLET_CONFIRM,
         }),
       );
+
       const [tempAccount, err] = await createTempAccount({
         address: loginAccount,
         bucketName: currentBucketName,
-        amount: parseEther(round(Number(availableBalance), 6).toString()).toNumber(),
+        // fix toNumber overflow fault
+        amount: parseEther(round(Number(availableBalance), 6).toString()),
         connector: connector!,
         actionType: 'delete',
       });
@@ -149,7 +157,10 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
             connector: connector!,
             privateKey,
           };
-          const [txRes, error] = await (ObjectStatus === 1
+
+          const processing = processUploadObjects.includes(`${currentBucketName}/${objectName}`);
+
+          const [txRes, error] = await (ObjectStatus === 1 || (ObjectStatus !== 1 && !processing)
             ? deleteObject(payload)
             : cancelCreateObject(payload));
           if (error && error !== E_OBJECT_NOT_EXISTS) {

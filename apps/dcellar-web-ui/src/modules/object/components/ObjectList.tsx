@@ -54,11 +54,11 @@ import { Box, Flex } from '@node-real/uikit';
 import { useAsyncEffect, useUpdateEffect } from 'ahooks';
 import { ColumnProps } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { find, uniq, without, xor } from 'lodash-es';
+import { uniq, without, xor } from 'lodash-es';
 import { memo, useCallback } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import Link from 'next/link';
-// import { ManageObjectTagsDrawer } from './ManageObjectTagsDrawer';
+import { useUploadProcessObjects } from '@/hooks/useUploadProcessObjects';
 
 export type ObjectActionValueType =
   | 'marketplace'
@@ -123,6 +123,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
   const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
+  const { processUploadObjects, processUploadObjectRecord } = useUploadProcessObjects(loginAccount);
 
   const { setOpenAuthModal } = useOffChainAuth();
   const bucket = bucketRecords[currentBucketName];
@@ -345,20 +346,17 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           pruneActions = removeAction(pruneActions, ['cancel']);
         } else {
           //  It is not allowed to cancel when the chain is sealed, but the SP is not synchronized.
-          const file = find<UploadObject>(
-            uploadQueue,
-            (q) =>
-              [...q.prefixFolders, q.waitObject.name].join('/') === record.objectName &&
-              q.status !== 'ERROR',
-          );
+          const object = `${record.bucketName}/${record.objectName}`;
+          const processing = processUploadObjects.includes(object);
+          const file = processUploadObjectRecord[object];
           // if is uploading, can not cancel;
-          if (file && ['SIGN', 'SIGNED', 'UPLOAD'].includes(file.status)) {
+          if (processing && ['SIGN', 'SIGNED', 'UPLOAD'].includes(file.status)) {
             pruneActions = pickAction(pruneActions, ['detail']);
-          } else if (file && ['SEAL'].includes(file.status)) {
-            pruneActions = removeAction(pruneActions, ['cancel', 'share']);
+          } else if (processing && ['SEAL', 'SEALING'].includes(file.status)) {
+            pruneActions = removeAction(pruneActions, ['cancel', 'share', 'delete']);
           } else {
             // if not sealed, only support 'cancel' 'detail'
-            pruneActions = pickAction(pruneActions, ['cancel', 'detail']);
+            pruneActions = pickAction(pruneActions, ['detail', 'delete']);
           }
         }
 
@@ -402,10 +400,16 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     selectedRowKeys: objectSelectedKeys,
     onSelect: onSelectChange,
     onSelectAll: onSelectAllChange,
-    getCheckboxProps: (record: ObjectEntity) => ({
-      disabled: record.folder || record.objectStatus !== 1, // Column configuration not to be checked
-      name: record.name,
-    }),
+    getCheckboxProps: (record: ObjectEntity) => {
+      const object = `${record.bucketName}/${record.objectName}`;
+      const processing = processUploadObjects.includes(object);
+
+      return {
+        // folder or processing
+        disabled: record.folder || (record.objectStatus !== 1 && processing), // Column configuration not to be checked
+        name: record.name,
+      };
+    },
   };
 
   const errorHandler = (type: string) => {
@@ -464,8 +468,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         address: loginAccount,
       };
 
-      // const operator = primarySpInfo.operatorAddress;
-      // const { seedString } = await dispatch(getSpOffChainData(loginAccount, operator));
       const [success, opsError] = await downloadObject(params, seedString);
       if (opsError) return errorHandler(opsError);
       dispatch(setupBucketQuota(currentBucketName));
