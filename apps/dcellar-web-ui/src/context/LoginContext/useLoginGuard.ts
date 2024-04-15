@@ -36,7 +36,7 @@ export function useLoginGuard(inline: boolean) {
       if (router?.query?.originAsPath && router?.query.originAsPath.length > 0) {
         const originPathname = decodeURIComponent(router.query.originAsPath as string);
         router.replace(originPathname, undefined, { shallow: true });
-      } else if (pathname && pathname === '/') {
+      } else if (pathname && (pathname === '/' || pathname === '/connect-wallet')) {
         router.replace(InternalRoutePaths.dashboard, undefined, { shallow: true });
       } else {
         setPass(true);
