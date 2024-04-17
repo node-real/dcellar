@@ -19,7 +19,7 @@ export const ShareLogin = () => {
       <Cube2 />
       <Cube3 />
       <Cube4 />
-      <IconFont type={'logo'} w={242} h={45} />
+      <IconFont type={'logo-new'} w={242} h={45} />
       <Text mt={48} mb={4} fontSize={24} fontWeight={600}>
         Connect wallet to view objects in DCellar.
       </Text>

@@ -3,7 +3,7 @@ import { customTheme } from '@/base/theme/wallet';
 import { DCLink } from '@/components/common/DCLink';
 import { bscChain, greenFieldChain } from '@/context/WalletConnectContext/chains';
 import { reportEvent } from '@/utils/gtag';
-import { Text } from '@node-real/uikit';
+import { Text, useMediaQuery } from '@node-real/uikit';
 import { WalletKitOptions, WalletKitProvider, getDefaultConfig } from '@node-real/walletkit';
 import '@node-real/walletkit/styles.css';
 import { metaMask, trustWallet, walletConnect } from '@node-real/walletkit/wallets';
@@ -11,6 +11,7 @@ import * as Sentry from '@sentry/nextjs';
 import * as process from 'process';
 import { ReactNode } from 'react';
 import { WagmiConfig, createConfig } from 'wagmi';
+import { useRouter } from 'next/router';
 
 const config = createConfig(
   getDefaultConfig({
@@ -62,11 +63,14 @@ export interface WalletConnectProviderProps {
 
 export function WalletConnectProvider(props: WalletConnectProviderProps) {
   const { children } = props;
+  const router = useRouter();
+  const [isMobile] = useMediaQuery('(max-width: 767px)');
+  const isInnerModal = router.pathname === '/connect-wallet' && !isMobile;
 
   return (
     <WagmiConfig config={config}>
       <WalletKitProvider
-        options={options}
+        options={{ ...options, hideInnerModal: isInnerModal }}
         mode={'light'}
         customTheme={customTheme}
         debugMode={process.env.NODE_ENV === 'development'}

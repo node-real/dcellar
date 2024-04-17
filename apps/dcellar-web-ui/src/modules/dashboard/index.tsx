@@ -13,21 +13,18 @@ import { setupBucketList } from '@/store/slices/bucket';
 import { setupBucketDailyStorage } from '@/store/slices/dashboard';
 import { getCurMonthDetailUrl } from '@/utils/accounts';
 import { useRouter } from 'next/router';
+import { TutorialCard } from './components/TutorialCard';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-
+  const isShowTutorialCard = useAppSelector((root) => root.persist.isShowTutorialCard);
   const [isLessThan1200] = useMediaQuery('(max-width: 1200px)');
-
   const curMonthDetailUrl = getCurMonthDetailUrl();
-
   const router = useRouter();
-
   const onNavigate = (path: string) => {
     router.push(path);
   };
-
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
@@ -42,6 +39,7 @@ export const Dashboard = () => {
       <Text as="h1" fontSize={24} fontWeight={700} mb={16}>
         Dashboard
       </Text>
+      {isShowTutorialCard && <TutorialCard />}
       <Flex gap={16}>
         <Flex flexDirection={'column'} gap={16} flex={1} minW={0}>
           <Flex gap={16}>

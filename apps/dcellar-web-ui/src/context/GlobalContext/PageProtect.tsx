@@ -9,7 +9,7 @@ import { isRightChain } from '@/modules/wallet/utils/isRightChain';
 
 // protect: GNFD chain, GNFD & BSC chain and no protect.
 const protectGNFDPaths = ['/buckets', '/buckets/[...path]', '/groups', '/accounts'];
-const noProtectPaths = ['/', '/terms', '/pricing-calculator', '/tool-box'];
+const noProtectPaths = ['/', '/terms', '/pricing-calculator', '/connect-wallet'];
 
 // TODO unify the wallet page protect
 export const PageProtect: React.FC<any> = ({ children }) => {
