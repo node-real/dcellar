@@ -65,7 +65,7 @@ export const ConnectWallet = () => {
             </Flex>
           </Box>
           {!isMobile && (
-            <Flex width="fit-content" paddingX={60} alignItems="center" justifyContent="center">
+            <Flex width="40%" minW={552} paddingX={60} alignItems="center" justifyContent="center">
               <ConnectWalletButton displayType="embeddedModal" />
             </Flex>
           )}
