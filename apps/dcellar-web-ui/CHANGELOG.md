@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 11 Apr 2024 02:29:47 GMT and should not be manually modified.
+This log was last generated on Wed, 17 Apr 2024 03:19:45 GMT and should not be manually modified.
+
+## 0.6.0
+Wed, 17 Apr 2024 03:19:45 GMT
+
+### Minor changes
+
+- Add connect-wallet page & tutorial card
 
 ## 0.5.0
 Thu, 11 Apr 2024 02:29:47 GMT
