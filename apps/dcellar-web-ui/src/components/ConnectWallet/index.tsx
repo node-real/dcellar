@@ -6,7 +6,7 @@ import { ssrLandingRoutes } from '@/pages/_app';
 import { useAppDispatch } from '@/store';
 import { checkOffChainDataAvailable, setLoginAccount } from '@/store/slices/persist';
 import { Text } from '@node-real/uikit';
-import { useModal } from '@node-real/walletkit';
+import { WalletKitEmbeddedModal, useModal } from '@node-real/walletkit';
 import { useAsyncEffect } from 'ahooks';
 import { useRouter } from 'next/router';
 import { ReactElement, memo, useState } from 'react';
@@ -15,13 +15,14 @@ import { useAccount, useDisconnect } from 'wagmi';
 interface ConnectWalletProps extends DCButtonProps {
   icon?: ReactElement;
   text?: string;
+  displayType?: 'button' | 'embeddedModal';
 }
 
 // for multi connect button in one page
 let eventTriggerTime = Date.now();
 
 export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectButton(props) {
-  const { icon, text, ...restProps } = props;
+  const { icon, text, displayType = 'button', ...restProps } = props;
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { onOpen, onClose } = useModal();
@@ -39,7 +40,6 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   };
 
   // connector may be undefined when wallet throw '(index):7 Error in event handler: Error: write after end';
-
   const openModal = () => {
     eventTriggerTime = Date.now();
     setTrustEvent(eventTriggerTime);
@@ -56,7 +56,14 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   };
 
   useAsyncEffect(async () => {
-    if (trustEvent !== eventTriggerTime || isAuthPending || !address || !isConnected) return;
+    if (
+      (displayType === 'button' && trustEvent !== eventTriggerTime) ||
+      isAuthPending ||
+      !address ||
+      !isConnected
+    ) {
+      return;
+    }
 
     const isAvailable = await dispatch(checkOffChainDataAvailable(address));
 
@@ -83,26 +90,32 @@ export const ConnectWallet = memo<Partial<ConnectWalletProps>>(function ConnectB
   }, [address, trustEvent, isAuthPending, router]);
 
   return (
-    <DCButton
-      px={48}
-      h={54}
-      fontSize={18}
-      lineHeight="22px"
-      fontWeight={600}
-      {...restProps}
-      onClick={onGetStart}
-      borderRadius={4}
-      sx={{
-        [smMedia]: {
-          h: 33,
-          fontWeight: 500,
-          fontSize: 14,
-          paddingX: 16,
-        },
-      }}
-    >
-      {icon ? icon : ''}
-      <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>
-    </DCButton>
+    <>
+      {displayType === 'embeddedModal' ? (
+        <WalletKitEmbeddedModal />
+      ) : (
+        <DCButton
+          px={48}
+          h={54}
+          fontSize={18}
+          lineHeight="22px"
+          fontWeight={600}
+          {...restProps}
+          onClick={onGetStart}
+          borderRadius={4}
+          sx={{
+            [smMedia]: {
+              h: 33,
+              fontWeight: 500,
+              fontSize: 14,
+              paddingX: 16,
+            },
+          }}
+        >
+          {icon ? icon : ''}
+          <Text marginLeft={icon ? '4px' : ''}>{text ? text : 'Connect Wallet'}</Text>
+        </DCButton>
+      )}
+    </>
   );
 });

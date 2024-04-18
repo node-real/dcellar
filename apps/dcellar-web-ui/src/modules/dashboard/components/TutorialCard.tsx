@@ -58,7 +58,7 @@ export const TutorialCard = () => {
   ];
 
   return (
-    <Card mb={16}>
+    <Card mb={16} border="1px solid brand.brand6">
       <Flex justifyContent={'space-between'} paddingY={8} mb={8}>
         <Text fontSize={18} fontWeight={700}>
           Get Started with BNB Greenfield
