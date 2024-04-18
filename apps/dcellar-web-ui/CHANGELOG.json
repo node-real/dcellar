@@ -2,6 +2,33 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.0.0",
+      "tag": "dcellar-web-ui_v1.0.0",
+      "date": "Thu, 18 Apr 2024 06:02:22 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Increased upload limit to 500 files/session, each restricted to 1GB"
+          },
+          {
+            "comment": "Added support for delegateUpload and delegateCreateFolder features"
+          },
+          {
+            "comment": "Integrated new off-chain authentication flow"
+          },
+          {
+            "comment": "Utilized tables for efficient management of pending and uploading lists"
+          },
+          {
+            "comment": "Supported monthly quota feature"
+          },
+          {
+            "comment": "Updated tags module to calculate string length in bytes"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.6.0",
       "tag": "dcellar-web-ui_v0.6.0",
       "date": "Wed, 17 Apr 2024 03:19:45 GMT",
