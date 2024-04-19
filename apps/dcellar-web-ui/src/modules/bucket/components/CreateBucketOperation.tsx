@@ -108,8 +108,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const [validateNameAndGas, setValidateNameAndGas] =
     useState<ValidateNameAndGas>(initValidateNameAndGas);
   const [balanceEnough, setBalanceEnough] = useState(true);
-  const [spUpdate, setSpUpdate] = useState(false);
-  const [paUpdate, setPaUpdate] = useState(false);
 
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
@@ -152,30 +150,33 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const bucketName = getValues('bucketName');
 
-  const validateNameRules = (value: string) => {
-    const types: { [key: string]: string } = {};
-    if (balance.comparedTo(BigNumber(MIN_AMOUNT)) < 0) {
-      types['validateBalance'] = '';
-    }
+  const validateNameRules = useCallback(
+    (value: string) => {
+      const types: { [key: string]: string } = {};
+      if (balance.comparedTo(BigNumber(MIN_AMOUNT)) < 0) {
+        types['validateBalance'] = '';
+      }
 
-    if (value === '') {
-      types['required'] = 'Bucket Name is required';
-    }
-    if (value !== '' && !/^.{3,63}$/.test(value)) {
-      types['validateLen'] = 'Must be between 3 to 63 characters long.';
-    }
-    // if (value !== '' && !/^[a-z0-9.-]+$/.test(value)) {
-    if (value !== '' && !/^[a-z0-9-]+$/.test(value)) {
-      types['validateChar'] = 'Consist only of lowercase letters, numbers, and hyphens (-).';
-    }
-    if (value !== '' && !/^[a-zA-Z0-9].*[a-zA-Z0-9]$/.test(value)) {
-      types['validateStartEnd'] = 'Begin and end with a letter or number.';
-    }
-    if (bucketList.some((bucket) => bucket.BucketName === value)) {
-      types['validateName'] = 'This name is already taken, try another one.';
-    }
-    return types;
-  };
+      if (value === '') {
+        types['required'] = 'Bucket Name is required';
+      }
+      if (value !== '' && !/^.{3,63}$/.test(value)) {
+        types['validateLen'] = 'Must be between 3 to 63 characters long.';
+      }
+      // if (value !== '' && !/^[a-z0-9.-]+$/.test(value)) {
+      if (value !== '' && !/^[a-z0-9-]+$/.test(value)) {
+        types['validateChar'] = 'Consist only of lowercase letters, numbers, and hyphens (-).';
+      }
+      if (value !== '' && !/^[a-zA-Z0-9].*[a-zA-Z0-9]$/.test(value)) {
+        types['validateStartEnd'] = 'Begin and end with a letter or number.';
+      }
+      if (bucketList.some((bucket) => bucket.BucketName === value)) {
+        types['validateName'] = 'This name is already taken, try another one.';
+      }
+      return types;
+    },
+    [balance, bucketList],
+  );
 
   const errorHandler = (type: string) => {
     if (type === E_OFF_CHAIN_AUTH) {
@@ -277,18 +278,21 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     [debounceValidate],
   );
 
-  const validateName = (value: string) => {
-    // 1. validate name rules
-    const types = validateNameRules(value);
-    if (Object.values(types).length > 0) {
-      setError('bucketName', { types });
-      setValidateNameAndGas(initValidateNameAndGas);
-      return false;
-    } else {
-      clearErrors();
-    }
-    return true;
-  };
+  const validateName = useCallback(
+    (value: string) => {
+      // 1. validate name rules
+      const types = validateNameRules(value);
+      if (Object.values(types).length > 0) {
+        setError('bucketName', { types });
+        setValidateNameAndGas(initValidateNameAndGas);
+        return false;
+      } else {
+        clearErrors();
+      }
+      return true;
+    },
+    [validateNameRules, setError, setValidateNameAndGas, clearErrors],
+  );
 
   const onInputChange = useCallback(
     (event: any) => {
@@ -301,7 +305,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
       // 2. Async validate balance is afford gas fee and relayer fee and bucket name is available
       checkGasFee(value);
     },
-    [checkGasFee, clearErrors, setError, setValue, validateNameRules],
+    [checkGasFee, setValue, validateName],
   );
 
   const onSubmit = async (data: any) => {
@@ -384,41 +388,16 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     );
   }, [balance, validateNameAndGas.gas.value]);
 
-  const onSpChange = useCallback(
-    (sp: SpEntity) => {
-      selectedSpRef.current = sp;
-      const { value, available } = validateNameAndGas.name;
-      if (spUpdate) {
-        // for reset gas simulator error
-        const valid = validateName(bucketName || '');
-        if (!valid) return;
-      } else {
-        setSpUpdate(true);
-      }
-      if (available && value) {
-        checkGasFee(value);
-      }
-    },
-    [checkGasFee, validateNameAndGas.name, bucketName],
-  );
-
   const onPaymentAccountChange = useCallback(
     async (pa: AccountEntity) => {
       selectedPaRef.current = pa;
       await dispatch(setupAccountRecords(pa.address));
       const { value, available } = validateNameAndGas.name;
-      if (paUpdate) {
-        // for reset gas simulator error
-        const valid = validateName(bucketName || '');
-        if (!valid) return;
-      } else {
-        setPaUpdate(true);
-      }
       if (available && value) {
         checkGasFee(value);
       }
     },
-    [checkGasFee, dispatch, validateNameAndGas.name, bucketName],
+    [dispatch, validateNameAndGas.name, checkGasFee],
   );
 
   const onEditTags = () => {
@@ -513,7 +492,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
                 <FormLabel fontSize={14} fontWeight={500} mb={8}>
                   Primary Storage Provider
                 </FormLabel>
-                <SPSelector onChange={onSpChange} />
+                <SPSelector onChange={() => {}} />
               </FormControl>
               <FormControl>
                 <FormLabel fontSize={14} fontWeight={500} mb={8}>
