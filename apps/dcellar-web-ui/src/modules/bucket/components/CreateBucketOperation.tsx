@@ -388,6 +388,10 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     );
   }, [balance, validateNameAndGas.gas.value]);
 
+  const onSpChange = useCallback((sp: SpEntity) => {
+    selectedSpRef.current = sp;
+  }, []);
+
   const onPaymentAccountChange = useCallback(
     async (pa: AccountEntity) => {
       selectedPaRef.current = pa;
@@ -492,7 +496,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
                 <FormLabel fontSize={14} fontWeight={500} mb={8}>
                   Primary Storage Provider
                 </FormLabel>
-                <SPSelector onChange={() => {}} />
+                <SPSelector onChange={onSpChange} />
               </FormControl>
               <FormControl>
                 <FormLabel fontSize={14} fontWeight={500} mb={8}>
