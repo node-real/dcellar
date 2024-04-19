@@ -2,7 +2,7 @@ import { StreamRecord as ChainStreamRecord } from '@bnb-chain/greenfield-cosmos-
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
-import { keyBy } from 'lodash-es';
+import { isEmpty, keyBy } from 'lodash-es';
 import { getSpOffChainData } from './persist';
 import { AppDispatch, AppState, GetState } from '..';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
@@ -137,7 +137,7 @@ export const paymentAccountSlice = createSlice({
         const { address, name, streamRecord, bufferTime } = item;
         if (!address) return;
 
-        if (!streamRecord) {
+        if (isEmpty(streamRecord)) {
           data[address] = {
             ...getDefaultBalance(),
             name,
