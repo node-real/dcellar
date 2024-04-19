@@ -64,7 +64,6 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
     'update_tags',
   ].includes(operation);
   const isModal = ['delete', 'cancel', 'download', 'batch_delete'].includes(operation);
-
   const onClose = useCallback(() => {
     dispatch(setObjectOperation({ level, operation: ['', ''] }));
   }, [level, dispatch]);

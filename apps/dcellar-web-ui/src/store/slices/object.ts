@@ -27,9 +27,22 @@ import { AppDispatch, AppState, GetState } from '@/store';
 import { convertObjectKey } from '@/utils/common';
 import { getMillisecond } from '@/utils/time';
 
-export const SINGLE_OBJECT_MAX_SIZE = 256 * 1024 * 1024;
-export const SELECT_OBJECT_NUM_LIMIT = 100;
+export const DELEGATE_UPLOAD = true;
+
+export const SELF_UPLOAD_MAX_SIZE = 256 * 1024 * 1024;
+export const DELEGATE_UPLOAD_MAX_SIZE = 1 * 1024 * 1024 * 1024;
+
+export const SELF_UPLOAD_MAX_COUNT = 100;
+export const DELEGATE_UPLOAD_MAX_COUNT = 500;
+
 export const MAXIMUM_LIST_ITEMS = 10_000;
+
+export const SINGLE_OBJECT_MAX_SIZE = DELEGATE_UPLOAD
+  ? DELEGATE_UPLOAD_MAX_SIZE
+  : SELF_UPLOAD_MAX_SIZE;
+export const SELECT_OBJECT_NUM_LIMIT = DELEGATE_UPLOAD
+  ? DELEGATE_UPLOAD_MAX_COUNT
+  : SELF_UPLOAD_MAX_COUNT;
 
 export type ObjectResource = {
   Resources: string[];
@@ -465,7 +478,7 @@ export const setupDummyFolder =
   };
 
 export const setupListObjects =
-  (params: Partial<ListObjectsParams>, _path?: string) =>
+  (params: Partial<ListObjectsParams>, _completeCommonPrefix?: string) =>
   async (dispatch: AppDispatch, getState: GetState) => {
     const { objectCommonPrefix, currentBucketName, completeCommonPrefix, objectListPageRestored } =
       getState().object;
@@ -473,7 +486,11 @@ export const setupListObjects =
     const _query = new URLSearchParams(params.query?.toString() || '');
     _query.append('max-keys', '1000');
     _query.append('delimiter', '/');
-    if (objectCommonPrefix) _query.append('prefix', objectCommonPrefix);
+
+    const commonPrefix = _completeCommonPrefix
+      ? _completeCommonPrefix.split('/').slice(1).join('/') + '/'
+      : objectCommonPrefix;
+    if (commonPrefix) _query.append('prefix', commonPrefix);
     // support any path list objects, bucketName & _path
     const payload = {
       bucketName: currentBucketName,
@@ -488,8 +505,10 @@ export const setupListObjects =
       toast.error({ description: error });
       return;
     }
-    dispatch(setObjectListTruncated({ path: _path || completeCommonPrefix, truncate }));
-    dispatch(setObjectList({ path: _path || completeCommonPrefix, list: res! }));
+    dispatch(
+      setObjectListTruncated({ path: _completeCommonPrefix || completeCommonPrefix, truncate }),
+    );
+    dispatch(setObjectList({ path: _completeCommonPrefix || completeCommonPrefix, list: res! }));
     dispatch(setObjectListPageRestored(true));
     if (!objectListPageRestored) {
       dispatch(setObjectListPage({ path: completeCommonPrefix, current: 0 }));

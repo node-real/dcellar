@@ -1,13 +1,10 @@
 import { assetPrefix } from '@/base/env';
-import { convertVisibility } from '@/utils/object';
 
 export const getLoginLocalStorageKey = (prefix = '') => `${prefix}_GREENFIELD_LOGIN_STORAGE`;
 
 export const USER_REJECT_STATUS_NUM = 4001;
 
 export const REQUEST_PENDING_NUM = -32002;
-
-export const reverseVisibilityType = convertVisibility();
 
 export const GNFD_TESTNET = 5600;
 

@@ -18,9 +18,12 @@ import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 
-interface FeesProps {}
+interface FeesProps {
+  delegateUpload: boolean;
+  expand?: boolean;
+}
 
-export const Fees = memo<FeesProps>(function Fees() {
+export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload, expand = false }) {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
@@ -67,7 +70,10 @@ export const Fees = memo<FeesProps>(function Fees() {
       .toString();
   }, [objectWaitQueue, isChecking, storeFeeParams]);
 
+  // delegateUpload：the gas fee will be paid by primarySp
   const gasFee = useMemo(() => {
+    if (delegateUpload) return '0';
+
     if (isChecking) return -1;
     const waitUploadCount = objectWaitQueue.filter(
       (item: WaitObject) => item.status !== 'ERROR',
@@ -80,7 +86,7 @@ export const Fees = memo<FeesProps>(function Fees() {
       .times(singleTxGasFee)
       .plus(BN(createTmpAccountGasFee).toString(DECIMAL_NUMBER))
       .toString(DECIMAL_NUMBER);
-  }, [createTmpAccountGasFee, isChecking, singleTxGasFee, objectWaitQueue]);
+  }, [delegateUpload, isChecking, objectWaitQueue, singleTxGasFee, createTmpAccountGasFee]);
 
   const isBalanceAvailable = useMemo(() => {
     if (isOwnerAccount) {
@@ -143,6 +149,7 @@ export const Fees = memo<FeesProps>(function Fees() {
         prepaidFee={storeFee}
         settlementFee={settlementFee}
         gasFee={gasFee}
+        expand={expand}
       />
       <Text fontSize={'12px'} lineHeight={'16px'} color={'scene.danger.normal'}>
         {!isChecking &&

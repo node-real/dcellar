@@ -8,7 +8,7 @@ import {
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccountDetail, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
+import { selectAccount, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
 import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -28,7 +28,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
-  const accountDetail = useAppSelector(selectAccountDetail(address));
+  const accountDetail = useAppSelector(selectAccount(address));
   const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
   const router = useRouter();
 

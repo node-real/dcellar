@@ -23,6 +23,7 @@ import {
   selectGnfdGasFeesConfig,
   selectUploadQueue,
   setSignatureAction,
+  UploadObject,
 } from '@/store/slices/global';
 import { setDeletedObject, setObjectSelectedKeys } from '@/store/slices/object';
 import { BN } from '@/utils/math';
@@ -159,7 +160,6 @@ export const BatchDeleteObjectOperation = memo<BatchDeleteObjectOperationProps>(
           };
 
           const processing = processUploadObjects.includes(`${currentBucketName}/${objectName}`);
-
           const [txRes, error] = await (ObjectStatus === 1 || (ObjectStatus !== 1 && !processing)
             ? deleteObject(payload)
             : cancelCreateObject(payload));

@@ -6,15 +6,16 @@ import { DotLoading } from '@/components/common/DotLoading';
 import { DEFAULT_TAG, EditTags, getValidTags } from '@/components/common/ManageTags';
 import { InputItem } from '@/components/formitems/InputItem';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { broadcastMulTxs, resolve } from '@/facade/common';
+import { broadcastMulTxs, broadcastTx, resolve } from '@/facade/common';
 import {
   E_OFF_CHAIN_AUTH,
   E_USER_REJECT_STATUS_NUM,
   ErrorResponse,
+  commonFault,
   createTxFault,
   simulateFault,
 } from '@/facade/error';
-import { getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
+import { delegateCreateFolder, getUpdateObjectTagsTx, legacyGetObjectMeta } from '@/facade/object';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { useChecksumApi } from '@/modules/checksum';
 import {
@@ -28,7 +29,7 @@ import {
   WALLET_CONFIRM,
 } from '@/modules/object/constant';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
-import { genCreateObjectTx } from '@/modules/object/utils/genCreateObjectTx';
+import { getCreateObjectTx } from '@/modules/object/utils/getCreateObjectTx';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { AccountInfo, setupAccountRecords } from '@/store/slices/accounts';
 import { TBucket } from '@/store/slices/bucket';
@@ -38,17 +39,21 @@ import {
   setSignatureAction,
   setupStoreFeeParams,
 } from '@/store/slices/global';
-import { setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
-import { getSpOffChainData } from '@/store/slices/persist';
+import { DELEGATE_UPLOAD, setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
 import { SpEntity } from '@/store/slices/sp';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { removeTrailingSlash } from '@/utils/string';
 import {
-  CreateObjectApprovalRequest,
   MsgCreateObjectTypeUrl,
   MsgSetTagTypeUrl,
   TxResponse,
+  Long,
+  RedundancyType,
+  VisibilityType,
+  AuthType,
+  DelegatedCreateFolderRequest,
+  bytesFromBase64,
 } from '@bnb-chain/greenfield-js-sdk';
 import {
   Box,
@@ -68,6 +73,8 @@ import { isEmpty, last, trimEnd } from 'lodash-es';
 import { ChangeEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
+import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
+import { getSpOffChainData } from '@/store/slices/persist';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -119,6 +126,8 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const lackGasFee = formErrors.includes(GET_GAS_FEE_LACK_BALANCE_ERROR);
 
   const gasFee = useMemo(() => {
+    if (DELEGATE_UPLOAD) return 0;
+
     if (validTags.length === 0) {
       return createBucketGasFee || 0;
     }
@@ -156,22 +165,30 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     toast.success({
       description: (
         <>
-          Folder created successfully! View in{' '}
-          <Link
-            color="#3C9AF1"
-            _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
-            href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${tx}`}
-            isExternal
-          >
-            GreenfieldScan
-          </Link>
-          .
+          Folder created successfully!{' '}
+          {tx && (
+            <>
+              View in{' '}
+              <Link
+                color="#3C9AF1"
+                _hover={{ color: '#3C9AF1', textDecoration: 'underline' }}
+                href={`${removeTrailingSlash(GREENFIELD_CHAIN_EXPLORER_URL)}/tx/0x${tx}`}
+                isExternal
+              >
+                GreenfieldScan
+              </Link>
+              .
+            </>
+          )}
         </>
       ),
       duration: 3000,
     });
   };
 
+  /**
+   * Create folder by user wallet.
+   */
   const onCreateFolder = async () => {
     if (!validateFolderName(inputFolderName)) return;
     setLoading(true);
@@ -277,6 +294,125 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
     refetch(inputFolderName);
   };
 
+  /**
+   * Create folder by Primary SP.
+   */
+  const onDelegateCreateFolder = async () => {
+    if (!validateFolderName(inputFolderName)) return;
+    setLoading(true);
+
+    const { seedString } = await dispatch(
+      getSpOffChainData(loginAccount, primarySp.operatorAddress),
+    );
+    const fullObjectName = getPath(inputFolderName, pathSegments);
+    dispatch(
+      setSignatureAction({
+        icon: Animates.object,
+        title: 'Creating Folder',
+        desc: WALLET_CONFIRM,
+      }),
+    );
+    const payload: DelegatedCreateFolderRequest = {
+      bucketName: currentBucketName,
+      objectName: fullObjectName,
+      endpoint: primarySp.endpoint,
+      delegatedOpts: {
+        visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+      },
+    };
+    const authType: AuthType = {
+      type: 'EDDSA',
+      seed: seedString,
+      domain: window.location.origin,
+      address: loginAccount,
+    };
+    const [res1, error1] = await delegateCreateFolder(payload, authType);
+    if (!isSetTags) {
+      if (error1) {
+        setLoading(false);
+        dispatch(setSignatureAction({}));
+        return setFormErrors([error1]);
+      } else {
+        onClose();
+        setLoading(false);
+        refetch(inputFolderName);
+        dispatch(setSignatureAction({}));
+        showSuccessToast('');
+      }
+    }
+
+    // update tags by send a transaction
+    if (isSetTags) {
+      const [tagsTx, error3] = await getUpdateObjectTagsTx({
+        address: loginAccount,
+        bucketName: currentBucketName,
+        objectName: fullObjectName,
+        tags: validTags,
+      });
+
+      if (!tagsTx) {
+        return dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: error3 ? `Error Message: ${error3}` : '',
+          }),
+        );
+      }
+
+      const [txRes, error4] = await broadcastTx({
+        tx: tagsTx,
+        address: loginAccount,
+        connector: connector!,
+      });
+
+      if (error4) {
+        setLoading(false);
+        if (error4 === E_USER_REJECT_STATUS_NUM) {
+          // onStatusModalClose();
+          return;
+        }
+        dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: error4 ? `Error Message: ${error4}` : '',
+          }),
+        );
+        return;
+      }
+
+      await dispatch(setupAccountRecords(PaymentAddress));
+
+      if (txRes?.code !== 0) {
+        dispatch(
+          setSignatureAction({
+            icon: 'status-failed',
+            title: FOLDER_CREATE_FAILED,
+            desc: FOLDER_DESCRIPTION_CREATE_ERROR,
+            buttonText: BUTTON_GOT_IT,
+            errorText: txRes?.rawLog ? `Error Message: ${txRes?.rawLog}` : '',
+            buttonOnClick: onCloseStatusModal,
+          }),
+        );
+        return;
+      }
+
+      const { transactionHash } = txRes;
+      const fullPath = getPath(inputFolderName, pathSegments);
+      await legacyGetObjectMeta(currentBucketName, fullPath, primarySp.endpoint);
+      setLoading(false);
+      showSuccessToast(transactionHash);
+      dispatch(setSignatureAction({}));
+      onClose();
+      refetch(inputFolderName);
+    }
+  };
+
   const validateFolderName = (value: string) => {
     const errors = Array<string>();
     if (value === '') {
@@ -301,29 +437,26 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
 
   const simulateCreateFolderTx = async (
     fullFolderName: string,
-    visibility: any = 'VISIBILITY_TYPE_INHERIT',
+    visibility: VisibilityType = VisibilityType.VISIBILITY_TYPE_INHERIT,
   ): Promise<ErrorResponse | [TxResponse, null]> => {
-    // const fullPath = getPath(folderName, folders);
     const file = new File([], fullFolderName, { type: 'text/plain' });
-    const { seedString } = await dispatch(
-      getSpOffChainData(loginAccount, primarySp.operatorAddress),
-    );
     const hashResult = await checksumWorkerApi?.generateCheckSumV2(file);
-    const createObjectPayload: CreateObjectApprovalRequest = {
+    const expectCheckSums = hashResult?.expectCheckSums || [];
+    const msgCreateObject: MsgCreateObject = {
+      creator: loginAccount,
       bucketName: currentBucketName,
       objectName: fullFolderName,
-      creator: loginAccount,
       visibility,
-      fileType: file.type,
-      contentLength: file.size,
-      expectCheckSums: hashResult?.expectCheckSums || [],
+      contentType: file.type,
+      payloadSize: Long.fromInt(file.size),
+      expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
+      redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
     };
-    const [createObjectTx, createError] = await genCreateObjectTx(createObjectPayload, {
-      type: 'EDDSA',
-      domain: window.location.origin,
-      seed: seedString,
-      address: loginAccount,
-    }).then(resolve, createTxFault);
+
+    const [createObjectTx, createError] = await getCreateObjectTx(msgCreateObject).then(
+      resolve,
+      createTxFault,
+    );
 
     if (!createObjectTx) {
       return [null, createError];
@@ -406,7 +539,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
               </Text>
               <InputItem
                 disabled={!!chainFolderName}
-                onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
+                onKeyDown={(e) => e.key === 'Enter' && onDelegateCreateFolder()}
                 value={inputFolderName}
                 onChange={onFolderNameChange}
                 tips={{
@@ -449,7 +582,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
           <DCButton
             size="lg"
             w="100%"
-            onClick={onCreateFolder}
+            onClick={onDelegateCreateFolder}
             isDisabled={loading || !!formErrors.length || !balanceEnough}
             justifyContent="center"
             gaClickName="dc.file.create_folder_m.create.click"

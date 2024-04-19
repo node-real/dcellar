@@ -22,6 +22,7 @@ interface TotalFeesProps {
   payStoreFeeAddress: string;
   refund?: boolean;
   expandable?: boolean;
+  expand?: boolean;
 }
 
 export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
@@ -32,11 +33,12 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
     payStoreFeeAddress = '',
     refund = false,
     expandable = true,
+    expand = true,
   } = props;
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
 
   const exchangeRate = useAppSelector(selectBnbUsdtExchangeRate);
-  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: true });
+  const { isOpen: isOpenFees, onToggle: onToggleFees } = useDisclosure({ defaultIsOpen: expand });
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
@@ -125,15 +127,17 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
             </Flex>
           )}
 
-          <Flex w="100%" alignItems="center" justifyContent="space-between">
-            <Flex alignItems="center">
-              <Text color="readable.tertiary" as="p">
-                Gas fee
-              </Text>
-              <GasFeeTips />
+          {+gasFee !== 0 && (
+            <Flex w="100%" alignItems="center" justifyContent="space-between">
+              <Flex alignItems="center">
+                <Text color="readable.tertiary" as="p">
+                  Gas fee
+                </Text>
+                <GasFeeTips />
+              </Flex>
+              <Text color="readable.tertiary">{renderFeeValue(String(gasFee), exchangeRate)}</Text>
             </Flex>
-            <Text color="readable.tertiary">{renderFeeValue(String(gasFee), exchangeRate)}</Text>
-          </Flex>
+          )}
           <Text fontSize={12} lineHeight="16px" color="readable.disabled" alignSelf="flex-end">
             Owner Account balance: {renderBalanceNumber(bankBalance || '0')} (
             {renderUsd(bankBalance || '0', exchangeRate)})

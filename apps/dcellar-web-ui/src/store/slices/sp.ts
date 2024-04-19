@@ -26,6 +26,7 @@ export type SpRecommendMeta = {
   Description: string;
   Endpoint: string;
   FreeReadQuota: number;
+  MonthlyFreeQuota: number;
   Latency: number;
   ReadPrice: string;
   SPAddress: string;
@@ -187,7 +188,7 @@ export const setupSpLatency = (endpoints: string[], address: string) => async ()
       group.map(async (endpoint) => {
         await Promise.race([
           window
-            .fetch(`${endpoint}/auth/request_nonce`, {
+            .fetch(`${endpoint}/status`, {
               headers: new Headers({
                 'X-Gnfd-User-Address': address,
                 'X-Gnfd-App-Domain': getDomain(),

@@ -2,6 +2,7 @@ import { Box, Flex, Text } from '@node-real/uikit';
 
 import { TellUsCard } from '../components/TellUsCard';
 import { UploadKitCard } from '../components/UploadkitCard';
+import { OpenSourceCard } from '../components/OpenSourceCard';
 
 export const ToolBoxPage = () => {
   return (
@@ -11,6 +12,7 @@ export const ToolBoxPage = () => {
       </Text>
       <Flex gap={16} flexWrap={'wrap'}>
         <UploadKitCard />
+        <OpenSourceCard />
         <TellUsCard />
       </Flex>
     </Box>

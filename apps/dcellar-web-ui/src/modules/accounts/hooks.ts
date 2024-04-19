@@ -1,5 +1,5 @@
 import { useAppSelector } from '@/store';
-import { selectAccount, selectAccountDetail, selectPaymentAccounts } from '@/store/slices/accounts';
+import { selectAccount, selectPaymentAccounts } from '@/store/slices/accounts';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { getUtcDayjs } from '@/utils/time';
@@ -27,7 +27,7 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
     (root) => root.accounts.paymentAccountNetflowRateRecords,
   );
 
-  const ownerAccountDetail = useAppSelector(selectAccountDetail(loginAccount));
+  const ownerAccountDetail = useAppSelector(selectAccount(loginAccount));
 
   const utcDayjs = getUtcDayjs();
   const othersNetflowRate = paymentAccountNetflowRateRecords[loginAccount] || 0;
@@ -90,7 +90,7 @@ export const useTotalEstimateCost = (types: EstimateCostType[]) => {
 export const useAccountEstimateCost = (address: string, types: EstimateCostType[]) => {
   const accountCostTrendRecords = useAppSelector((root) => root.billing.accountCostTrendRecords);
 
-  const { netflowRate } = useAppSelector(selectAccountDetail(address));
+  const { netflowRate } = useAppSelector(selectAccount(address));
 
   const dayjs = getUtcDayjs();
   const curTime = +new Date();

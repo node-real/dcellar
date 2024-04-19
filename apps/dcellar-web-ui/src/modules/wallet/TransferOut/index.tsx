@@ -65,6 +65,7 @@ export const TransferOut = memo<TransferOutProps>(function TransferOut() {
 
   const onSubmit = async (data: any) => {
     setStatus('pending');
+    setErrorMsg('');
     try {
       onOpen();
       const client = await getClient();

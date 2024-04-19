@@ -18,6 +18,13 @@ import { TempAccountEntity } from '@/store/slices/accounts';
 
 export const resolve = <R>(r: R): [R, null] => [r, null];
 
+export const resolveSpRequest = <R>(r: SpResponse<R>) => {
+  if (r.code !== 0) {
+    return [null, r.message || UNKNOWN_ERROR];
+  }
+  return [r.body, null];
+};
+
 export type DeliverTxResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
 export const getObjectInfoAndBucketQuota = async ({

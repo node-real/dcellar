@@ -1,6 +1,6 @@
 import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { selectAccountDetail } from '@/store/slices/accounts';
+import { selectAccount } from '@/store/slices/accounts';
 import { selectGnfdGasFeesConfig, selectStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
@@ -60,8 +60,8 @@ export const useValidateChangePaymentFee = ({
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
-  const fromAccountDetail = useAppSelector(selectAccountDetail(from));
-  const toAccountDetail = useAppSelector(selectAccountDetail(to));
+  const fromAccountDetail = useAppSelector(selectAccount(from));
+  const toAccountDetail = useAppSelector(selectAccount(to));
 
   const validFrom = useMemo(() => {
     const isOwnerAccount = loginAccount === from;

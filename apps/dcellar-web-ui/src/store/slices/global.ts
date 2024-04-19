@@ -15,7 +15,16 @@ import { getSpOffChainData } from '@/store/slices/persist';
 
 export const GAS_PRICE = '0.000000005';
 export const BNB_USDT_EXCHANGE_RATE = '350';
-export const UPLOADING_STATUSES = ['WAIT', 'HASH', 'HASHED', 'SIGN', 'SIGNED', 'UPLOAD', 'SEAL'];
+export const UPLOADING_STATUSES = [
+  'WAIT',
+  'HASH',
+  'HASHED',
+  'SIGN',
+  'SIGNED',
+  'UPLOAD',
+  'SEAL',
+  'SEALING',
+];
 
 export type SignatureAction = {
   icon: string;
@@ -57,6 +66,7 @@ export type UploadObjectStatus =
   | 'SIGNED'
   | 'UPLOAD'
   | 'SEAL'
+  | 'SEALING'
   | 'FINISH'
   | 'ERROR'
   | 'CANCEL';
@@ -88,6 +98,7 @@ export type UploadObject = {
   createHash: string;
   msg: string;
   progress: number;
+  delegateUpload?: boolean;
 };
 
 export interface GlobalState {
@@ -221,99 +232,60 @@ export const globalSlice = createSlice({
       if (!task) return;
       task.status = status;
     },
-    addToWaitQueue(
-      state,
-      { payload }: PayloadAction<{ id: number; file: File; time: number; relativePath?: string }>,
-    ) {
-      // transfer item need _relativePath
-      const { id, file, time, relativePath: _relativePath } = payload;
-      // webkitRelativePath: 'xxx/xxx.png'
-      const parts = (_relativePath ? _relativePath : file.webkitRelativePath)?.split('/');
-      const relativePath = parts && parts.length > 1 ? parts.slice(0, -1).join('/') : '';
-      const task: WaitObject = {
-        file,
-        status: 'CHECK',
-        id,
-        time,
-        msg: '',
-        type: file.type,
-        size: file.size,
-        name: file.name,
-        relativePath: file.name.endsWith('/') ? '' : relativePath,
-        lockFee: '',
-      };
-      // rewrite exist object
-      state.objectWaitQueue = state.objectWaitQueue.filter(
-        (file) => file.name !== task.name || file.relativePath !== task.relativePath,
-      );
-      state.objectWaitQueue.push(task);
+    setWaitQueue(state, { payload }: PayloadAction<WaitObject[]>) {
+      state.objectWaitQueue = payload;
     },
     resetWaitQueue(state) {
       state.objectWaitQueue = [];
     },
-    removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
-      // 1. When deleting a file, check if the parent folder is empty. If it is, delete it and recursively delete empty parent folders; otherwise, no action is required.
-      // 2. When deleting a folder, delete all subfolders and subfiles; And like delete a file to recursively delete empty parent folders.
-      const { objectWaitQueue } = state;
-      // group by common path
-      const waitQueueInfos: { [key: string]: WaitObject[] } = {};
-      // quick get folder info
-      const folderQueueInfos: { [key: string]: WaitObject } = {};
-      objectWaitQueue.forEach((t) => {
-        const isFolder = t.name.endsWith('/');
-        // add it to waitQueueInfos
-        const commonPath = isFolder ? t.name : t.relativePath + '/';
-        if (!waitQueueInfos[commonPath]) {
-          waitQueueInfos[commonPath] = [];
-        }
-        if (!isFolder) {
-          waitQueueInfos[commonPath].push(t);
-        }
 
-        // add it to folderQueueInfos
-        if (isFolder) {
-          folderQueueInfos[t.name] = t;
-        }
-      });
+    removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
+      // 1. When deleting a file, check if the parent folder is empty, delete it and recursively delete empty parent folders
+      // 2. When deleting a folder, delete all subfolders and subfiles first; And like delete a file to recursively delete empty parent folders.
+      const { objectWaitQueue } = state;
 
       const ids = [payload.id];
       const deleteObject = objectWaitQueue.find((task) => task.id === payload.id);
       if (!deleteObject) return;
+
       const isFolder = deleteObject?.name.endsWith('/');
       if (isFolder) {
-        const commonPath = deleteObject.name;
+        const prefix = deleteObject.name;
         const childIds = objectWaitQueue
           .filter((t) => {
             if (t.name.endsWith('/')) {
-              return t.name.startsWith(commonPath);
+              return t.name.startsWith(prefix);
             }
-            return (t.relativePath + '/').startsWith(commonPath);
+            return (t.relativePath + '/').startsWith(prefix);
           })
           .map((t) => t.id);
         ids.push(...childIds);
       }
-      const deleteParent = (queue: WaitObject[], deleteObject?: WaitObject) => {
+
+      const deleteParent = (deleteObject: WaitObject) => {
         if (!deleteObject) return;
-        const isFolder = deleteObject.name.endsWith('/');
-        const deletePath = isFolder ? deleteObject.name : deleteObject.relativePath + '/';
-        // If there are other files in the parent folder, do not delete.
-        if (waitQueueInfos[deletePath] || waitQueueInfos[deletePath].length > 2) {
-          return;
-        }
-        ids.push(folderQueueInfos[deletePath].id);
-        // file/folder => parentFolder is 1:1
-        const newParentObject = queue.find((t: WaitObject) => {
-          const isFolder = t.name.endsWith('/');
+        ids.push(deleteObject.id);
+
+        const parentPath = deleteObject.name.endsWith('/')
+          ? deleteObject.name.split('/').slice(0, -2).join('/') + '/'
+          : deleteObject.relativePath + '/';
+        if (parentPath === '/') return;
+
+        const parentFolderHasMultiObjects = objectWaitQueue.filter((item) => {
           return (
-            isFolder &&
-            deletePath.startsWith(t.name) &&
-            deletePath.replace(new RegExp(t.name + '$'), '').split('/').length === 2
+            item.id !== deleteObject.id &&
+            ((item.name.endsWith('/') && item.name === parentPath) ||
+              item.relativePath + '/' === parentPath)
           );
         });
-        deleteParent(queue, newParentObject);
+
+        if (parentFolderHasMultiObjects.length > 1) return;
+
+        deleteParent(parentFolderHasMultiObjects[0]);
       };
-      deleteParent(objectWaitQueue, deleteObject);
-      state.objectWaitQueue = state.objectWaitQueue.filter((task) => !ids.includes(task.id));
+
+      deleteParent(deleteObject);
+      state.objectWaitQueue = state.objectWaitQueue.filter((task) => !new Set(ids).has(task.id));
     },
     addToUploadQueue(
       state,
@@ -376,46 +348,46 @@ export const globalSlice = createSlice({
           return task;
         });
     },
-    cancelUploadFolder(state, { payload }: PayloadAction<{ account: string; folderName: string }>) {
-      const { account } = payload;
-      if (!account) return;
-      let uploadQueue = state.objectUploadQueue?.[account];
-      if (!uploadQueue) return;
-      uploadQueue = uploadQueue.map((task) => {
-        const isFolder = task.waitObject.name.endsWith('/');
-        // Only cancel subfolders and subfiles
-        if (isFolder && payload.folderName === task.waitObject.name) {
-          return task;
-        }
-        const commonPath = isFolder ? task.waitObject.name : task.waitObject.relativePath + '/';
-        const isSubTask = commonPath.startsWith(payload.folderName);
-        if (isSubTask) {
-          task.status = 'CANCEL';
-          task.msg = "The object's parent path failed to be created, please check.";
-        }
-        return task;
-      });
-    },
-    cancelWaitUploadFolder(state, { payload }: PayloadAction<{ folderName: string }>) {
-      const { folderName } = payload;
-      if (!folderName) return;
-      let objectWaitQueue = state.objectWaitQueue;
-      if (!objectWaitQueue) return;
-      objectWaitQueue = objectWaitQueue.map((task) => {
-        const isFolder = task.name.endsWith('/');
-        // Only cancel subfolders and subfiles
-        if (isFolder && folderName === task.name) {
-          return task;
-        }
-        const commonPath = isFolder ? task.name : task.relativePath + '/';
-        const isSubTask = commonPath.startsWith(folderName);
-        if (isSubTask) {
-          task.status = 'ERROR';
-          task.msg = "The object's parent path failed to be created, please check.";
-        }
-        return task;
-      });
-    },
+    // cancelUploadFolder(state, { payload }: PayloadAction<{ account: string; folderName: string }>) {
+    //   const { account } = payload;
+    //   if (!account) return;
+    //   let uploadQueue = state.objectUploadQueue?.[account];
+    //   if (!uploadQueue) return;
+    //   uploadQueue = uploadQueue.map((task) => {
+    //     const isFolder = task.waitObject.name.endsWith('/');
+    //     // Only cancel subfolders and subfiles
+    //     if (isFolder && payload.folderName === task.waitObject.name) {
+    //       return task;
+    //     }
+    //     const commonPath = isFolder ? task.waitObject.name : task.waitObject.relativePath + '/';
+    //     const isSubTask = commonPath.startsWith(payload.folderName);
+    //     if (isSubTask) {
+    //       task.status = 'CANCEL';
+    //       task.msg = "The object's parent path failed to be created, please check.";
+    //     }
+    //     return task;
+    //   });
+    // },
+    // cancelWaitUploadFolder(state, { payload }: PayloadAction<{ folderName: string }>) {
+    //   const { folderName } = payload;
+    //   if (!folderName) return;
+    //   let objectWaitQueue = state.objectWaitQueue;
+    //   if (!objectWaitQueue) return;
+    //   objectWaitQueue = objectWaitQueue.map((task) => {
+    //     const isFolder = task.name.endsWith('/');
+    //     // Only cancel subfolders and subfiles
+    //     if (isFolder && folderName === task.name) {
+    //       return task;
+    //     }
+    //     const commonPath = isFolder ? task.name : task.relativePath + '/';
+    //     const isSubTask = commonPath.startsWith(folderName);
+    //     if (isSubTask) {
+    //       task.status = 'ERROR';
+    //       task.msg = "The object's parent path failed to be created, please check.";
+    //     }
+    //     return task;
+    //   });
+    // },
     setIsFetchingStoreFeeParams(state, { payload }: PayloadAction<boolean>) {
       state.isFetchingStoreFeeParams = payload;
     },
@@ -434,7 +406,6 @@ export const globalSlice = createSlice({
 export const {
   setBnbUsdtExchangeRate,
   updateWaitObjectStatus,
-  addToWaitQueue,
   updateWaitTaskMsg,
   updateUploadTaskMsg,
   updateUploadChecksum,
@@ -445,13 +416,14 @@ export const {
   removeFromWaitQueue,
   resetWaitQueue,
   resetUploadQueue,
-  cancelUploadFolder,
-  cancelWaitUploadFolder,
+  // cancelUploadFolder,
+  // cancelWaitUploadFolder,
   setIsFetchingStoreFeeParams,
   setAuthModalOpen,
   setDisconnectWallet,
   updateUploadCreateHash,
   setSignatureAction,
+  setWaitQueue,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadObject>();
@@ -462,8 +434,8 @@ export const selectUploadQueue = (address: string) => (root: AppState) => {
 
 export const selectHashTask = (address: string) => (root: AppState) => {
   const uploadQueue = root.global.objectUploadQueue[address] || _emptyUploadQueue;
-  const hashQueue = uploadQueue.filter((task) => task.status === 'HASH');
-  const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT');
+  const hashQueue = uploadQueue.filter((task) => task.status === 'HASH' && !task.delegateUpload);
+  const waitQueue = uploadQueue.filter((task) => task.status === 'WAIT' && !task.delegateUpload);
 
   return hashQueue.length ? null : waitQueue[0] ? waitQueue[0] : null;
 };
@@ -471,9 +443,13 @@ export const selectHashTask = (address: string) => (root: AppState) => {
 export const selectSignTask = (address: string) => (root: AppState) => {
   const uploadQueue = root.global.objectUploadQueue[address] || _emptyUploadQueue;
 
-  const signQueue = uploadQueue.filter((task) => task.status === 'SIGN');
-  const hashedQueue = uploadQueue.filter((task) => task.status === 'HASHED');
-  const uploadingQueue = uploadQueue.filter((task) => task.status === 'UPLOAD');
+  const signQueue = uploadQueue.filter((task) => task.status === 'SIGN' && !task.delegateUpload);
+  const hashedQueue = uploadQueue.filter(
+    (task) => task.status === 'HASHED' && !task.delegateUpload,
+  );
+  const uploadingQueue = uploadQueue.filter(
+    (task) => task.status === 'UPLOAD' && !task.delegateUpload,
+  );
 
   if (uploadingQueue.length || !!signQueue.length) {
     return null;
@@ -664,10 +640,40 @@ export const addSignedTasksToUploadQueue =
     dispatch(addToUploadQueue({ account: loginAccount, tasks: [newUploadQueue] }));
   };
 
+export const addDelegatedTasksToUploadQueue =
+  ({ spAddress, visibility }: { spAddress: string; visibility: VisibilityType }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { objectWaitQueue } = getState().global;
+    const { currentBucketName, pathSegments } = getState().object;
+    const { loginAccount } = getState().persist;
+    const wQueue = objectWaitQueue.filter((t) => t.status === 'WAIT');
+    if (!wQueue || wQueue.length === 0) return;
+    const newUploadQueue = wQueue.map((task) => {
+      const uploadTask: UploadObject = {
+        bucketName: currentBucketName,
+        prefixFolders: pathSegments,
+        spAddress,
+        id: task.id,
+        waitObject: task,
+        msg: '',
+        status: 'WAIT',
+        progress: 0,
+        checksum: [],
+        visibility,
+        createHash: '',
+        tags: [],
+        tempAccountAddress: '',
+        delegateUpload: true,
+      };
+      return uploadTask;
+    });
+    dispatch(addToUploadQueue({ account: loginAccount, tasks: newUploadQueue }));
+  };
+
 export const setupUploadTaskErrorMsg =
   ({ account, task, errorMsg }: { account: string; task: UploadObject; errorMsg: string }) =>
   async (dispatch: AppDispatch) => {
-    const isFolder = task.waitObject.name.endsWith('/');
+    // const isFolder = task.waitObject.name.endsWith('/');
     dispatch(
       updateUploadTaskMsg({
         account,
@@ -675,7 +681,7 @@ export const setupUploadTaskErrorMsg =
         msg: errorMsg || 'The object failed to be created.',
       }),
     );
-    isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
+    // isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
   };
 
 export const setupWaitTaskErrorMsg =
@@ -684,9 +690,9 @@ export const setupWaitTaskErrorMsg =
     const { objectWaitQueue } = getState().global;
     const task = objectWaitQueue.find((t) => t.id === id);
     if (!task) return;
-    const isFolder = task.name.endsWith('/');
+    // const isFolder = task.name.endsWith('/');
     dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
-    isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+    // isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
   };
 
 export default globalSlice.reducer;

@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 
 import { getClient } from '@/facade';
 
-export interface getObjectPropsType {
+export interface GetObjectPreviewUrlProps {
   bucketName: string;
   objectName: string;
   duration?: number;
@@ -13,8 +13,13 @@ export interface getObjectPropsType {
   view?: '0' | '1';
 }
 
-export const generateGetObjectOptions = async (
-  configParam: getObjectPropsType,
+/**
+ * Generate url for getting an object.
+ * @param configParam Configuration parameters.
+ * @returns Object URL.
+ */
+export const getObjectPreviewUrl = async (
+  configParam: GetObjectPreviewUrlProps,
 ): Promise<string> => {
   const {
     bucketName,
@@ -38,5 +43,6 @@ export const generateGetObjectOptions = async (
     'X-Gnfd-App-Domain': window.location.origin,
     'X-Gnfd-Expiry-Timestamp': dayjs().add(duration, 'second').toISOString(),
   };
+
   return client.object.getObjectPreviewUrl({ bucketName, objectName, queryMap, endpoint }, auth);
 };

@@ -153,15 +153,28 @@ export const formatByGB = (num: number) => {
 };
 
 export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
-  const { freeQuota = 0, readQuota = 0, consumedQuota = 0, freeConsumedSize = 0 } = quota || {};
+  const {
+    freeQuota = 0,
+    readQuota = 0,
+    consumedQuota = 0,
+    freeConsumedSize = 0,
+    monthlyFreeQuota,
+    monthlyQuotaConsumedSize,
+  } = quota || {};
 
   const value = {
-    totalFree: freeQuota + freeConsumedSize,
+    totalFree: freeQuota + freeConsumedSize + monthlyFreeQuota,
     totalRead: readQuota,
-    remainFree: freeQuota,
+    remainFree: freeQuota + monthlyFreeQuota - monthlyQuotaConsumedSize,
     remainRead: readQuota - consumedQuota,
-    total: readQuota + freeQuota + freeConsumedSize,
-    remain: freeQuota + readQuota - consumedQuota,
+    total: readQuota + freeQuota + freeConsumedSize + monthlyFreeQuota,
+    remain: freeQuota + readQuota - consumedQuota + monthlyFreeQuota - monthlyQuotaConsumedSize,
+    monthlyFreeQuota,
+    monthlyQuotaConsumedSize,
+    monthlyQuotaRemain: monthlyFreeQuota - monthlyQuotaConsumedSize,
+    oneTimeFree: freeQuota + freeConsumedSize,
+    oneTimeFreeConsumedSize: freeConsumedSize,
+    oneTimeFreeRemain: freeQuota,
   };
 
   const f = (v: number, _removeSpace = removeSpace) => {
@@ -172,12 +185,18 @@ export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
   };
 
   const text = {
-    totalFreeText: f(freeQuota + freeConsumedSize),
+    totalFreeText: f(value.totalFree),
     totalReadText: f(readQuota),
-    remainFreeText: f(freeQuota),
+    remainFreeText: f(value.remainFree),
     remainReadText: f(readQuota - consumedQuota),
-    totalText: f(readQuota + freeQuota + freeConsumedSize),
-    remainText: f(freeQuota + readQuota - consumedQuota),
+    totalText: f(value.total),
+    remainText: f(value.remain),
+    monthlyFreeQuotaText: f(monthlyFreeQuota),
+    monthlyQuotaConsumedSizeText: f(monthlyQuotaConsumedSize),
+    monthlyQuotaRemainText: f(value.monthlyQuotaRemain),
+    oneTimeFreeText: f(value.oneTimeFree),
+    oneTimeFreeConsumedSizeText: f(value.oneTimeFreeConsumedSize),
+    oneTimeFreeRemainText: f(value.oneTimeFreeRemain),
   };
 
   return {

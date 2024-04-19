@@ -1,6 +1,6 @@
 import { GROUP_ID } from '@/constants/legacy';
 import { quotaRemains } from '@/facade/bucket';
-import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
+import { getObjectInfoAndBucketQuota, resolve, resolveSpRequest } from '@/facade/common';
 import {
   E_NOT_FOUND,
   E_NO_QUOTA,
@@ -18,7 +18,7 @@ import {
 import { getClient } from '@/facade/index';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { batchDownload, directlyDownload } from '@/modules/object/utils';
-import { generateGetObjectOptions } from '@/modules/object/utils/generateGetObjectOptions';
+import { getObjectPreviewUrl } from '@/modules/object/utils/getObjectPreviewUrl';
 import { SpEntity } from '@/store/slices/sp';
 import { encodeObjectName } from '@/utils/string';
 import {
@@ -40,6 +40,8 @@ import {
   ResourceTags_Tag,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
+  AuthType,
+  DelegatedCreateFolderRequest,
   GRNToString,
   IQuotaProps,
   ISimulateGasFee,
@@ -166,7 +168,7 @@ export const getAuthorizedLink = async (
 ): Promise<[null, ErrorMsg] | [string]> => {
   const { address, objectInfo, primarySp } = params;
   const { bucketName, objectName } = objectInfo;
-  const [url, error] = await generateGetObjectOptions({
+  const [url, error] = await getObjectPreviewUrl({
     bucketName,
     objectName,
     address,
@@ -682,4 +684,13 @@ export const updateObjectTags = async (params: UpdateObjectTagsParams, connector
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const delegateCreateFolder = async (
+  request: DelegatedCreateFolderRequest,
+  auth: AuthType,
+) => {
+  const client = await getClient();
+
+  return client.object.delegateCreateFolder(request, auth).then(resolveSpRequest, commonFault);
 };

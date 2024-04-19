@@ -25,7 +25,7 @@ import { contentTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
 import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
-import { selectUploadQueue, setSignatureAction, UploadObject } from '@/store/slices/global';
+import { setSignatureAction } from '@/store/slices/global';
 import {
   ObjectEntity,
   ObjectOperationsType,
@@ -122,7 +122,6 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
   const currentPage = useAppSelector(selectPathCurrent);
   const loading = useAppSelector(selectPathLoading);
   const objectList = useAppSelector(selectObjectList);
-  const uploadQueue = useAppSelector(selectUploadQueue(loginAccount));
   const { processUploadObjects, processUploadObjectRecord } = useUploadProcessObjects(loginAccount);
 
   const { setOpenAuthModal } = useOffChainAuth();

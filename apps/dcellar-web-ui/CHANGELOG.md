@@ -1,6 +1,25 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Wed, 17 Apr 2024 03:19:45 GMT and should not be manually modified.
+This log was last generated on Fri, 19 Apr 2024 01:57:15 GMT and should not be manually modified.
+
+## 1.0.1
+Fri, 19 Apr 2024 01:57:15 GMT
+
+### Patches
+
+- Fix object sealing issue
+
+## 1.0.0
+Thu, 18 Apr 2024 06:02:22 GMT
+
+### Breaking changes
+
+- Increased upload limit to 500 files/session, each restricted to 1GB
+- Added support for delegateUpload and delegateCreateFolder features
+- Integrated new off-chain authentication flow
+- Utilized tables for efficient management of pending and uploading lists
+- Supported monthly quota feature
+- Updated tags module to calculate string length in bytes
 
 ## 0.6.0
 Wed, 17 Apr 2024 03:19:45 GMT

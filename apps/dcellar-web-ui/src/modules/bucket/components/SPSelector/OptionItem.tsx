@@ -31,7 +31,7 @@ export const OptionItem = memo(function OptionItem({
   return (
     <Flex key={address} alignItems="center" cursor={access ? 'pointer' : 'not-allowed'}>
       <TD
-        w={251}
+        w={190}
         key={address}
         display="flex"
         flexDir="column"
@@ -71,8 +71,11 @@ export const OptionItem = memo(function OptionItem({
           </Text>
         </DCTooltip>
       </TD>
-      <TD w={120} color={textColor}>
-        {meta ? formatBytes(meta.FreeReadQuota) : '--'}
+      <TD w={80} color={textColor}>
+        {meta && meta.FreeReadQuota ? formatBytes(meta.FreeReadQuota) : '--'}
+      </TD>
+      <TD w={144} color={textColor}>
+        {meta && meta.MonthlyFreeQuota ? formatBytes(meta.MonthlyFreeQuota) : '--'}
       </TD>
       <TD $dot={access ? spLatency : 0} color={textColor}>
         {access && spLatency ? `${spLatency}ms` : '--'}

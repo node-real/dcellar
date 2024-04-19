@@ -1,9 +1,10 @@
 {
   "name": "dcellar-web-ui",
-  "version": "0.6.0",
+  "version": "1.0.1",
   "private": false,
   "scripts": {
     "dev": "node ./scripts/dev.js -p 3200",
+    "dev1": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -18,8 +19,8 @@
     "antd": "5.11.0",
     "ahooks": "3.7.7",
     "hash-wasm": "4.10.0",
-    "@bnb-chain/greenfield-js-sdk": "1.2.0",
-    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.30",
+    "@bnb-chain/greenfield-js-sdk": "2.0.0-alpha.7",
+    "@bnb-chain/greenfield-cosmos-types": "0.4.0-alpha.32",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@next/bundle-analyzer": "^13.1.6",
@@ -57,7 +58,9 @@
     "viem": "~1.19.11",
     "@wagmi/core": "~1.4.10",
     "set-interval-async": "~3.0.3",
-    "radash": "~12.1.0"
+    "radash": "~12.1.0",
+    "flatted": "~3.3.1",
+    "async-mutex": "~0.5.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.3",

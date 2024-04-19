@@ -25,6 +25,7 @@ import { FULL_DISPLAY_PRECISION } from '@/modules/wallet/constants';
 import { BN } from '@/utils/math';
 import { getUtcDayjs } from '@/utils/time';
 import { getPosDecimalValue } from '@/utils/wallet';
+import { toast } from '@node-real/uikit';
 
 type AccountCost = { address: string; cost: string };
 
@@ -595,7 +596,7 @@ export const setupAllBills = () => async (dispatch: AppDispatch, getState: GetSt
   const [bills, bError] = await getRealTimeBillListByOwner(getListParams);
   if (count === null || cError || bills === null || bError) {
     dispatch(setLoadingAllBills(false));
-    return cError || bError;
+    return toast.error({ description: cError || bError || 'Failed to get billing list.' });
   }
   dispatch(setAllBillsCount({ loginAccount: getCountParams.owner, count }));
   dispatch(setAllBills({ loginAccount: getCountParams.owner, bills }));
