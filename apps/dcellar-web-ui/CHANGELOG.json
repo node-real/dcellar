@@ -2,11 +2,23 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.0.1",
+      "tag": "dcellar-web-ui_v1.0.1",
+      "date": "Fri, 19 Apr 2024 01:57:15 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix object sealing issue"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.0",
       "tag": "dcellar-web-ui_v1.0.0",
       "date": "Thu, 18 Apr 2024 06:02:22 GMT",
       "comments": {
-        "none": [
+        "major": [
           {
             "comment": "Increased upload limit to 500 files/session, each restricted to 1GB"
           },
