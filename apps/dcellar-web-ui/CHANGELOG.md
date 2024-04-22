@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Fri, 19 Apr 2024 01:57:15 GMT and should not be manually modified.
+This log was last generated on Mon, 22 Apr 2024 02:11:28 GMT and should not be manually modified.
+
+## 1.0.2
+Mon, 22 Apr 2024 02:11:28 GMT
+
+### Patches
+
+- Fix the lost input error status when changing SP or payment account
 
 ## 1.0.1
 Fri, 19 Apr 2024 01:57:15 GMT

@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.0.2",
+      "tag": "dcellar-web-ui_v1.0.2",
+      "date": "Mon, 22 Apr 2024 02:11:28 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix the lost input error status when changing SP or payment account"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.1",
       "tag": "dcellar-web-ui_v1.0.1",
       "date": "Fri, 19 Apr 2024 01:57:15 GMT",
