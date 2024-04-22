@@ -112,7 +112,7 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
     const observer = new PerformanceObserver((list) => {
       const latency: Record<string, number> = {};
       list.getEntries().forEach((entry) => {
-        if (entry.name.endsWith('/auth/request_nonce')) {
+        if (entry.name.endsWith('/status')) {
           const { origin, port } = new URL(entry.name);
           latency[origin] = parseInt(String(entry.duration));
           latency[`${origin}:${port || 443}`] = parseInt(String(entry.duration));

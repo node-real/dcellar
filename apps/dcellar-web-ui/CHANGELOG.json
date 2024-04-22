@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.0.3",
+      "tag": "dcellar-web-ui_v1.0.3",
+      "date": "Mon, 22 Apr 2024 03:46:28 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix the lost latency issue when creating bucket"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.2",
       "tag": "dcellar-web-ui_v1.0.2",
       "date": "Mon, 22 Apr 2024 02:11:28 GMT",
