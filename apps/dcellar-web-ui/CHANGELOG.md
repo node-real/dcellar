@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 22 Apr 2024 02:11:28 GMT and should not be manually modified.
+This log was last generated on Mon, 22 Apr 2024 03:46:28 GMT and should not be manually modified.
+
+## 1.0.3
+Mon, 22 Apr 2024 03:46:28 GMT
+
+### Patches
+
+- Fix the lost latency issue when creating bucket
 
 ## 1.0.2
 Mon, 22 Apr 2024 02:11:28 GMT
