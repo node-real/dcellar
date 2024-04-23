@@ -136,7 +136,7 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
         <>
           <TH w={216}>SP list ({total})</TH>
           <TH w={80}>Free Quota</TH>
-          <TH w={144}>Free Monthly Quota</TH>
+          <TH w={136}>Free Monthly Quota</TH>
           <TH w={80}>Latency</TH>
         </>
       )}
