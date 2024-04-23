@@ -60,6 +60,7 @@ import { createTempAccount } from '@/facade/account';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { Long, bytesFromBase64 } from '@bnb-chain/greenfield-js-sdk';
 import { useHandleFolderTree } from '@/hooks/useHandleFolderTree';
+import { waitUploadFilterFn } from '@/utils/object';
 
 const defaultScroll = { top: 0 };
 const defaultActionParams = {} as TEditUploadContent;
@@ -105,7 +106,8 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const loading = useMemo(() => {
       return selectedFiles.some((item) => item.status === 'CHECK') || isEmpty(storeFeeParams);
     }, [storeFeeParams, selectedFiles]);
-    const checkedQueue = selectedFiles.filter((item) => item.status === 'WAIT');
+
+    const checkedQueue = selectedFiles.filter(waitUploadFilterFn);
 
     const cleanup = () => {
       onClose();
@@ -127,7 +129,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     };
 
     const onUploadClick = async () => {
-      const validFiles = selectedFiles.filter((item) => item.status === 'WAIT');
+      const validFiles = selectedFiles.filter(waitUploadFilterFn);
       const isOneFile = validFiles.length === 1;
       if (isEmpty(validFiles)) {
         return errorHandler('No valid files to upload.');
@@ -339,7 +341,7 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
                   <strong>
                     {formatBytes(
                       checkedQueue
-                        .filter((item) => item.status === 'WAIT')
+                        .filter(waitUploadFilterFn)
                         .reduce((accumulator, currentValue) => accumulator + currentValue.size, 0),
                     )}
                   </strong>{' '}

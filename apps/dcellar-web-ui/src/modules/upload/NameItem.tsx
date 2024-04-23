@@ -9,11 +9,12 @@ import { UploadObject, setTaskManagement } from '@/store/slices/global';
 import { setObjectOperation } from '@/store/slices/object';
 import { formatBytes } from '@/utils/formatter';
 import { encodeObjectName } from '@/utils/string';
+import { ReactNode } from 'react';
 
 type Props = {
   name: string;
   size: number;
-  msg?: string;
+  msg?: ReactNode;
   status?: string;
   task?: UploadObject;
   [key: string]: any;
@@ -65,12 +66,11 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
   return (
     <Flex alignItems="center" {...styleProps}>
       <IconFont mr={8} w={20} type={`${fileType}-file`} />
-      <Box w="calc(100% - 39px)" lineHeight="normal">
+      <Box lineHeight="normal" flex={1} minW={0}>
         <EllipsisText
           borderBottom={'1px solid transparent'}
           _hover={hoverStyles}
           text={name}
-          marginRight={'12px'}
           mb={4}
           onClick={onClick}
           w={'max-content'}

@@ -9,6 +9,7 @@ import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 import { useAppSelector } from '@/store';
 import { TransferItemTree } from '@/utils/dom';
 import { UploadObjectsList } from './UploadObjectsList';
+import { errorUploadFilterFn, waitUploadFilterFn } from '@/utils/object';
 
 type ListItemProps = {
   path: string;
@@ -23,9 +24,9 @@ export const ListItem = ({ path, type, handleFolderTree }: ListItemProps) => {
       case 'ALL':
         return objectWaitQueue;
       case 'WAIT':
-        return objectWaitQueue.filter((file) => file.status === 'WAIT');
+        return objectWaitQueue.filter(waitUploadFilterFn);
       case 'ERROR':
-        return objectWaitQueue.filter((file) => file.status === 'ERROR');
+        return objectWaitQueue.filter(errorUploadFilterFn);
       default:
         return objectWaitQueue;
     }

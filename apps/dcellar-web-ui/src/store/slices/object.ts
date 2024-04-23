@@ -22,7 +22,7 @@ import { numberToHex } from 'viem';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
 import { ErrorResponse } from '@/facade/error';
-import { ListObjectsParams, getListObjects } from '@/facade/object';
+import { ListObjectsParams, getListObjects, getObjectVersions } from '@/facade/object';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { convertObjectKey } from '@/utils/common';
 import { getMillisecond } from '@/utils/time';
@@ -30,7 +30,7 @@ import { getMillisecond } from '@/utils/time';
 export const DELEGATE_UPLOAD = true;
 
 export const SELF_UPLOAD_MAX_SIZE = 256 * 1024 * 1024;
-export const DELEGATE_UPLOAD_MAX_SIZE = 1 * 1024 * 1024 * 1024;
+export const DELEGATE_UPLOAD_MAX_SIZE = 1024 * 1024 * 1024;
 
 export const SELF_UPLOAD_MAX_COUNT = 100;
 export const DELEGATE_UPLOAD_MAX_COUNT = 500;
@@ -88,6 +88,14 @@ export type ObjectEntity = {
   removed: boolean;
 };
 
+export type ObjectVersion = {
+  ContentUpdatedAt: number;
+  Height: number;
+  ObjectID: string;
+  TxHash: string;
+  Version: number;
+};
+
 export interface ObjectState {
   currentBucketName: string;
   pathSegments: string[];
@@ -96,6 +104,7 @@ export interface ObjectState {
   objectListRecords: Record<string, ObjectEntity[]>;
   objectListTruncated: Record<string, boolean>;
   objectRecords: Record<string, ObjectMeta>;
+  objectVersionRecords: Record<string, ObjectVersion[]>;
   objectListPageRecords: Record<string, number>;
   objectListPageRestored: boolean;
   objectSelectedKeys: Key[];
@@ -123,6 +132,7 @@ const initialState: ObjectState = {
   completeCommonPrefix: '',
   objectListRecords: {},
   objectRecords: {},
+  objectVersionRecords: {},
   objectListPageRecords: {},
   objectListPageRestored: true,
   objectSelectedKeys: [],
@@ -373,6 +383,14 @@ export const objectSlice = createSlice({
         }
       >['Tags'];
     },
+    setObjectVersion(
+      state,
+      { payload }: PayloadAction<{ versions: ObjectVersion[]; objectName: string }>,
+    ) {
+      const { objectName, versions } = payload;
+      const key = [state.currentBucketName, objectName].join('/');
+      state.objectVersionRecords[key] = versions;
+    },
   },
 });
 
@@ -403,6 +421,7 @@ export const {
   setObjectShareModePath,
   setObjectTags,
   setObjectEditTagsData,
+  setObjectVersion,
 } = objectSlice.actions;
 
 export const selectPathLoading = (root: AppState) => {
@@ -567,6 +586,12 @@ export const setupObjectPolicies =
     const path = [bucketName, objectName].join('/');
     dispatch(setObjectPolicyList({ path, policies }));
     return policies;
+  };
+
+export const setupObjectVersion =
+  (objectName: string, id: number) => async (dispatch: AppDispatch) => {
+    const versions = await getObjectVersions(numberToHex(Number(id), { size: 32 }));
+    dispatch(setObjectVersion({ objectName, versions }));
   };
 
 export default objectSlice.reducer;

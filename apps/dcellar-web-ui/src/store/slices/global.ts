@@ -12,6 +12,7 @@ import { getStoreFeeParams } from '@/facade/payment';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { setObjectStatus, setupListObjects } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { waitUploadFilterFn } from '@/utils/object';
 
 export const GAS_PRICE = '0.000000005';
 export const BNB_USDT_EXCHANGE_RATE = '350';
@@ -82,6 +83,7 @@ export type WaitObject = {
   name: string;
   lockFee?: string;
   relativePath: string;
+  isUpdate?: boolean;
 };
 
 export type UploadObject = {
@@ -117,6 +119,7 @@ export interface GlobalState {
   walletConnected: boolean;
   signatureAction: SignatureAction | object;
 }
+
 const defaultStoreFeeParams: StoreFeeParams = {
   readPrice: '0',
   primarySpStorePrice: '0',
@@ -238,7 +241,6 @@ export const globalSlice = createSlice({
     resetWaitQueue(state) {
       state.objectWaitQueue = [];
     },
-
     removeFromWaitQueue(state, { payload }: PayloadAction<{ id: number }>) {
       // 1. When deleting a file, check if the parent folder is empty, delete it and recursively delete empty parent folders
       // 2. When deleting a folder, delete all subfolders and subfiles first; And like delete a file to recursively delete empty parent folders.
@@ -286,6 +288,12 @@ export const globalSlice = createSlice({
 
       deleteParent(deleteObject);
       state.objectWaitQueue = state.objectWaitQueue.filter((task) => !new Set(ids).has(task.id));
+    },
+    toggleObjectReplaceState(state, { payload }: PayloadAction<{ id: number }>) {
+      const { id } = payload;
+      const task = find<WaitObject>(state.objectWaitQueue, (t) => t.id === id);
+      if (!task) return;
+      task.isUpdate = !task.isUpdate;
     },
     addToUploadQueue(
       state,
@@ -414,6 +422,7 @@ export const {
   updateUploadProgress,
   setTaskManagement,
   removeFromWaitQueue,
+  toggleObjectReplaceState,
   resetWaitQueue,
   resetUploadQueue,
   // cancelUploadFolder,
@@ -646,7 +655,7 @@ export const addDelegatedTasksToUploadQueue =
     const { objectWaitQueue } = getState().global;
     const { currentBucketName, pathSegments } = getState().object;
     const { loginAccount } = getState().persist;
-    const wQueue = objectWaitQueue.filter((t) => t.status === 'WAIT');
+    const wQueue = objectWaitQueue.filter(waitUploadFilterFn);
     if (!wQueue || wQueue.length === 0) return;
     const newUploadQueue = wQueue.map((task) => {
       const uploadTask: UploadObject = {
