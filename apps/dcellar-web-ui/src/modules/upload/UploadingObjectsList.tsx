@@ -17,11 +17,8 @@ import { UploadActionButton } from './UploadActionButton';
 
 const uploadingPageSize = 10;
 
-export type UploadingObjectsListProps = {
-  data: UploadObject[];
-};
-export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
-  const [pageSize, setPageSize] = useState(10);
+export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
+  const [pageSize] = useState(10);
   const [curPage, setCurPage] = useState(1);
   const chunks = useCreation(() => chunk(data, pageSize), [data, pageSize]);
   const page = chunks[curPage - 1] || [];
@@ -30,7 +27,7 @@ export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
     {
       key: 'name',
       title: 'Name',
-      render: (record) => {
+      render: (_, record) => {
         return (
           <NameItem
             name={record.waitObject.name}
@@ -46,7 +43,7 @@ export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
       key: 'path',
       title: 'Path',
       width: 170,
-      render: (record) => {
+      render: (_, record) => {
         return (
           <PathItem
             status={record.status}
@@ -61,7 +58,7 @@ export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
       key: 'status',
       title: 'Status',
       width: 100,
-      render: (record) => {
+      render: (_, record) => {
         return (
           <Flex gap={4} fontWeight={400} alignItems={'center'}>
             <ObjectUploadStatus task={record} />
@@ -102,6 +99,7 @@ export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
 
   return (
     <DCTable
+      rowKey={'id'}
       columns={columns}
       dataSource={page}
       current={curPage}

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { useAppSelector } from '@/store';
+import { errorUploadFilterFn, waitUploadFilterFn } from '@/utils/object';
 
 export type TTabKey = 'ALL' | 'WAIT' | 'ERROR';
 
@@ -9,8 +10,8 @@ export const useUploadTab = () => {
 
   const { allLen, waitLen, errorLen } = useMemo(() => {
     const allLen = objectWaitQueue.length;
-    const waitLen = objectWaitQueue.filter((item) => item.status === 'WAIT').length;
-    const errorLen = objectWaitQueue.filter((item) => item.status === 'ERROR').length;
+    const waitLen = objectWaitQueue.filter(waitUploadFilterFn).length;
+    const errorLen = objectWaitQueue.filter(errorUploadFilterFn).length;
     return {
       allLen,
       waitLen,
