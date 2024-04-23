@@ -33,6 +33,7 @@ export const TD = styled(Box, transientOptions)<{ $dot?: number }>`
   position: relative;
   font-size: 14px;
   font-weight: 400;
+  flex-shrink: 0;
 
   ${(props) =>
     props.$dot &&
