@@ -55,7 +55,7 @@ export const TaskManagement = () => {
   return (
     <>
       {renderButton()}
-      <DCDrawer isOpen={globalTaskManagementOpen} onClose={() => setClose()}>
+      <DCDrawer w={685} isOpen={globalTaskManagementOpen} onClose={() => setClose()}>
         <UploadingObjects />
       </DCDrawer>
     </>

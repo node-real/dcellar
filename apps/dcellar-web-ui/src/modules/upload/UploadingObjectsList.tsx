@@ -1,5 +1,10 @@
 import { DCTable } from '@/components/common/DCTable';
-import { UploadObject } from '@/store/slices/global';
+import {
+  UPLOADING_STATUSES,
+  UPLOAD_FAILED_STATUSES,
+  UPLOAD_SUCCESS_STATUS,
+  UploadObject,
+} from '@/store/slices/global';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
 import { NameItem } from './NameItem';
@@ -7,11 +12,15 @@ import { PathItem } from './PathItem';
 import { ObjectUploadStatus } from './ObjectUploadStatus';
 import { useCreation } from 'ahooks';
 import { chunk } from 'lodash-es';
-import { Flex } from '@node-real/uikit';
+import { Flex, Text } from '@node-real/uikit';
+import { UploadActionButton } from './UploadActionButton';
 
 const uploadingPageSize = 10;
 
-export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
+export type UploadingObjectsListProps = {
+  data: UploadObject[];
+};
+export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
   const [pageSize, setPageSize] = useState(10);
   const [curPage, setCurPage] = useState(1);
   const chunks = useCreation(() => chunk(data, pageSize), [data, pageSize]);
@@ -55,10 +64,35 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
       width: 100,
       render: (record) => {
         return (
-          <Flex>
+          <Flex gap={4} fontWeight={400} alignItems={'center'}>
             <ObjectUploadStatus task={record} />
           </Flex>
         );
+      },
+    },
+    {
+      key: 'action',
+      title: 'Action',
+      width: 146,
+      render: (record) => {
+        if (UPLOADING_STATUSES.includes(record.status)) {
+          return (
+            <Text color="readable.disable" fontSize={12}>
+              --
+            </Text>
+          );
+        }
+
+        if (UPLOAD_SUCCESS_STATUS === record.status) {
+          return <UploadActionButton type="clear" text="Clear Record" ids={[record.id]} />;
+        } else if (UPLOAD_FAILED_STATUSES.includes(record.status)) {
+          return (
+            <Flex gap={6}>
+              <UploadActionButton type="retry" ids={[record.id]} />
+              <UploadActionButton type="clear" ids={[record.id]} />
+            </Flex>
+          );
+        }
       },
     },
   ];

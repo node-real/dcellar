@@ -1,5 +1,5 @@
 import { UploadObject } from '@/store/slices/global';
-import { Flex, Text } from '@node-real/uikit';
+import { Text } from '@node-real/uikit';
 import { Loading } from '@/components/common/Loading';
 import { UploadProgress } from './UploadProgress';
 import { IconFont } from '@/components/IconFont';
@@ -10,18 +10,14 @@ export const ObjectUploadStatus = ({ task }: { task: UploadObject }) => {
       return (
         <>
           <Loading iconSize={12} justifyContent={'flex-end'} />
-          <Text marginLeft={'4px'} fontWeight={400}>
-            Waiting
-          </Text>
+          Waiting
         </>
       );
     case 'HASH':
       return (
         <>
           <Loading iconSize={12} justifyContent={'flex-end'} />
-          <Text marginLeft={'4px'} fontWeight={400}>
-            Hashing
-          </Text>
+          Hashing
         </>
       );
     case 'HASHED':
@@ -37,17 +33,30 @@ export const ObjectUploadStatus = ({ task }: { task: UploadObject }) => {
       return (
         <>
           <Loading iconSize={12} justifyContent={'flex-end'} />
-          <Text marginLeft={'4px'} fontWeight={400}>
-            Sealing
-          </Text>
+          Sealing
         </>
       );
     case 'FINISH':
-      return <IconFont type="colored-success" w={16} mr={8} />;
+      return (
+        <>
+          <IconFont type="colored-success" w={16} />
+          Complete
+        </>
+      );
     case 'ERROR':
-      return <IconFont type="colored-error2" w={20} mr={6} />;
+      return (
+        <>
+          <IconFont type="colored-error2" w={20} />
+          Failed
+        </>
+      );
     case 'CANCEL':
-      return <IconFont type="colored-error2" w={20} mr={6} />;
+      return (
+        <>
+          <IconFont type="colored-error2" w={20} />
+          Cancelled
+        </>
+      );
     default:
       return null;
   }

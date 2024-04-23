@@ -258,7 +258,6 @@ export const UploadObjectsOperation = memo<UploadObjectsOperationProps>(
     const [{ isOver }, drop] = useDrop<DragItemProps, any, DragMonitorProps>({
       accept: [NativeTypes.FILE],
       async drop({ items }) {
-        console.log('items', items.length);
         const tree = await traverseTransferItems(items);
         handleFolderTree(tree);
       },

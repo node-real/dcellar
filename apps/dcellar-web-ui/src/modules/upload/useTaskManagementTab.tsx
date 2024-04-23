@@ -4,6 +4,13 @@ import { UploadObject } from '@/store/slices/global';
 import { sortBy } from 'lodash-es';
 import { useMemo, useState } from 'react';
 
+export enum UploadingPanelKey {
+  ALL = 'ALL',
+  UPLOADING = 'HASH-UPLOAD-SEAL',
+  COMPLETE = 'FINISH',
+  FAILED = 'ERROR-CANCEL',
+}
+
 export const useTaskManagementTab = () => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const objectUploadQueue = useAppSelector((root) => root.global.objectUploadQueue);
@@ -25,28 +32,28 @@ export const useTaskManagementTab = () => {
 
   const tabOptions: {
     title: string;
-    key: 'ALL' | 'HASH-UPLOAD-SEAL' | 'FINISH' | 'ERROR-CANCEL';
+    key: UploadingPanelKey;
     icon?: React.ReactNode;
     data: UploadObject[];
   }[] = [
     {
       title: 'All Objects',
-      key: 'ALL',
+      key: UploadingPanelKey.ALL,
       data: queue,
     },
     {
       title: 'Uploading',
-      key: 'HASH-UPLOAD-SEAL',
+      key: UploadingPanelKey.UPLOADING,
       data: uploadingQueue,
     },
     {
       title: 'Complete',
-      key: 'FINISH',
+      key: UploadingPanelKey.COMPLETE,
       data: completeQueue,
     },
     {
       title: 'Failed',
-      key: 'ERROR-CANCEL',
+      key: UploadingPanelKey.FAILED,
       data: errorQueue,
     },
   ];
