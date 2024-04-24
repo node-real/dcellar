@@ -67,11 +67,16 @@ export const Accounts = () => {
 
   useEffect(() => {
     if (tab === 'a') return;
+
     const filterAccounts = typeof address === 'string' ? [address] : ((address || []) as string[]);
+
     const filterRange: [string, string] =
       typeof from === 'string' && typeof to === 'string' ? [from, to] : ['', ''];
+
     const filterTypes = typeof type === 'string' ? [type] : ((type || []) as string[]);
+
     const curPage = isNaN(+(page as string)) ? 1 : +(page as string);
+
     dispatch(setAllFilterRange(filterRange));
     dispatch(setAllFilterAccounts(filterAccounts));
     dispatch(setAllFilterTypes(filterTypes));
@@ -140,7 +145,6 @@ export const Accounts = () => {
               </TabPanel>
               <TabPanel panelKey={'b'}>
                 <Flex flexDirection={'column'} gap={16}>
-                  {/* <ComingBillingHistory /> */}
                   <AllBillingHistory />
                 </Flex>
               </TabPanel>

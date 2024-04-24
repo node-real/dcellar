@@ -25,6 +25,7 @@ export const Dashboard = () => {
   const onNavigate = (path: string) => {
     router.push(path);
   };
+
   useMount(async () => {
     dispatch(setupOwnerAccount());
     dispatch(setupTotalCost());
