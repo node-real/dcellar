@@ -559,6 +559,8 @@ export const uploadQueueAndRefresh =
           folders: task.prefixFolders,
           name: task.waitObject.name,
           objectStatus: 1,
+          contentType: task.waitObject.type,
+          payloadSize: task.waitObject.size,
         }),
       );
     });

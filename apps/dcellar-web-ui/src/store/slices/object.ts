@@ -267,19 +267,25 @@ export const objectSlice = createSlice({
         folders: string[];
         name: string;
         objectStatus: number;
+        contentType: string;
+        payloadSize: number;
       }>,
     ) {
-      const { name, folders, objectStatus, bucketName } = payload;
+      const { name, folders, objectStatus, bucketName, contentType, payloadSize } = payload;
       const path = [bucketName, ...folders].join('/');
       const items = state.objectListRecords[path] || [];
       const objectName = [...folders, name].join('/');
       const object = find<ObjectEntity>(items, (i) => i.objectName === objectName);
       if (object) {
         object.objectStatus = objectStatus;
+        object.contentType = contentType;
+        object.payloadSize = payloadSize;
       }
       const info = state.objectRecords[[path, objectName].join('/')];
       if (!info) return;
       info.ObjectInfo.ObjectStatus = objectStatus as any; // number
+      info.ObjectInfo.ContentType = contentType;
+      info.ObjectInfo.PayloadSize = payloadSize;
     },
     setObjectListPageRestored(state, { payload }: PayloadAction<boolean>) {
       state.objectListPageRestored = payload;
