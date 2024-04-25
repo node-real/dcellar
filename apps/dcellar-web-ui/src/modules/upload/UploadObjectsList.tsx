@@ -1,5 +1,5 @@
 import { DCTable } from '@/components/common/DCTable';
-import { useAppDispatch } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store';
 import { WaitObject, removeFromWaitQueue, toggleObjectReplaceState } from '@/store/slices/global';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
@@ -13,11 +13,13 @@ import { Text } from '@node-real/uikit';
 import { E_OBJECT_NAME_EXISTS } from '@/facade/error';
 import { getObjectErrorMsg } from '@/utils/object';
 import { DELEGATE_UPLOAD } from '@/store/slices/object';
+import { DCTooltip } from '@/components/common/DCTooltip';
 
 const uploadingPageSize = 10;
 
 export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObject[] }) => {
   const dispatch = useAppDispatch();
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
   const [pageSize] = useState(10);
   const [curPage, setCurPage] = useState(1);
   const chunks = useCreation(() => chunk(data, pageSize), [data, pageSize]);
@@ -82,16 +84,33 @@ export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObje
                 record.msg === getObjectErrorMsg(E_OBJECT_NAME_EXISTS).title;
 
               if (!replaceable) return null;
+
+              const prefix = `${path}/${record.relativePath ? record.relativePath + '/' : ''}`;
+              const createOnChainObject = objectRecords[`${prefix}${record.name}`];
+              const objectChanged =
+                createOnChainObject &&
+                createOnChainObject.ObjectInfo.ObjectStatus !== 1 &&
+                createOnChainObject.ObjectInfo.PayloadSize !== record.size;
+
               return (
-                <DCButton
-                  variant={'link'}
-                  size={'sm'}
-                  fontSize={'12'}
-                  fontWeight={400}
-                  onClick={() => updateObjectReplaceState(record.id)}
+                <DCTooltip
+                  title={
+                    objectChanged
+                      ? "Please upload the original object as this objects' info already created on chain."
+                      : ''
+                  }
                 >
-                  {record.isUpdate ? 'Undo' : 'Replace'}
-                </DCButton>
+                  <DCButton
+                    disabled={objectChanged}
+                    variant={'link'}
+                    size={'sm'}
+                    fontSize={'12'}
+                    fontWeight={400}
+                    onClick={() => updateObjectReplaceState(record.id)}
+                  >
+                    {record.isUpdate ? 'Undo' : 'Replace'}
+                  </DCButton>
+                </DCTooltip>
               );
             },
           },
