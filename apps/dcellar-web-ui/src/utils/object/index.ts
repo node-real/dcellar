@@ -52,10 +52,8 @@ export const getPutObjectRequestConfig = async (
   endpoint: string,
   file: File,
   sealed: boolean,
+  fullObjectName: string,
 ) => {
-  const fullObjectName = [...task.prefixFolders, task.waitObject.relativePath, task.waitObject.name]
-    .filter((item) => !!item)
-    .join('/');
   const authType = {
     type: 'EDDSA',
     seed: seedString,

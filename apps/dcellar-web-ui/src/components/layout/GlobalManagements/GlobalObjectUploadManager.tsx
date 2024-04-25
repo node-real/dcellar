@@ -97,9 +97,14 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
       const isFolder = name.endsWith('/');
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
       const endpoint = spRecords[task.spAddress].endpoint;
-      const key = [task.bucketName, ...task.prefixFolders, task.waitObject.relativePath, name].join(
-        '/',
-      );
+      const fullObjectName = [
+        ...task.prefixFolders,
+        task.waitObject.relativePath,
+        task.waitObject.name,
+      ]
+        .filter(Boolean)
+        .join('/');
+      const key = `${task.bucketName}/${fullObjectName}`;
       const sealed = objectRecords[key]?.ObjectInfo.ObjectStatus === 1;
       const [uploadOptions, error1] = await getPutObjectRequestConfig(
         task,
@@ -108,6 +113,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         endpoint,
         task.waitObject.file,
         sealed,
+        fullObjectName,
       );
       if (!uploadOptions || error1) {
         return dispatch(
