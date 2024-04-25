@@ -34,6 +34,7 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
             size={record.waitObject.size}
             msg={record.msg}
             status={record.status}
+            w={234}
             task={record}
           />
         );
