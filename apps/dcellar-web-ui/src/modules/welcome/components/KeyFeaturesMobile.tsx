@@ -28,7 +28,7 @@ export const KeyFeaturesMobile = () => {
             }}
           >
             <IconFont
-              type="go-back"
+              type="back"
               w={24}
               color={activeIndex === 0 ? 'readable.disable' : 'readable.normal'}
             />
@@ -46,7 +46,7 @@ export const KeyFeaturesMobile = () => {
             }}
           >
             <IconFont
-              type="go-amipe20f"
+              type="go"
               w={24}
               color={
                 activeIndex === keyFeatureList.length - 1 ? 'readable.disable' : 'readable.normal'
