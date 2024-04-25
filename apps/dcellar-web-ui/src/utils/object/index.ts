@@ -51,6 +51,7 @@ export const getPutObjectRequestConfig = async (
   seedString: string,
   endpoint: string,
   file: File,
+  sealed: boolean,
 ) => {
   const fullObjectName = [...task.prefixFolders, task.waitObject.relativePath, task.waitObject.name]
     .filter((item) => !!item)
@@ -78,7 +79,7 @@ export const getPutObjectRequestConfig = async (
     objectName: fullObjectName,
     body: file,
     delegatedOpts: {
-      isUpdate: task.waitObject.isUpdate,
+      isUpdate: task.waitObject.isUpdate && sealed,
       visibility: task.visibility,
     },
   };
