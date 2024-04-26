@@ -37,7 +37,6 @@ export const UploadingObjectsList = ({ data }: UploadingObjectsListProps) => {
             size={record.waitObject.size}
             msg={record.msg}
             status={record.status}
-            w={240}
             task={record}
           />
         );

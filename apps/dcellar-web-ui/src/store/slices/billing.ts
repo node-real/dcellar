@@ -449,7 +449,6 @@ export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: G
     return;
   }
   dispatch(setLoadingAllCostTrend(true));
-  console.log('billing state', getState().billing);
   const dayjs = getUtcDayjs();
   const curTime = +new Date();
   const [end_year, end_month] = dayjs(curTime).add(1, 'month').format('YYYY-M').split('-');

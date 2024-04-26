@@ -61,6 +61,8 @@ export type StoreFeeParams = {
 export type WaitObjectStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
 export type UploadObjectStatus =
+  | 'RETRY_CHECK'
+  | 'RETRY_CHECKING'
   | 'WAIT'
   | 'HASH'
   | 'HASHED'
@@ -173,10 +175,12 @@ export const globalSlice = createSlice({
       }: PayloadAction<{ account: string; ids: number[]; status: UploadObject['status'] }>,
     ) {
       const { account, ids, status } = payload;
+      const isErrorStatus = UPLOAD_FAILED_STATUSES.includes(status);
       const queue = state.objectUploadQueue[account] || [];
       state.objectUploadQueue[account] = queue.map((q) =>
-        ids.includes(q.id) ? { ...q, status } : q,
+        ids.includes(q.id) ? { ...q, status, msg: isErrorStatus ? q.msg : '' } : q,
       );
+
       if (status === 'SEAL') {
         ids.forEach((id) => {
           state.objectSealingTimestamp[id] = Date.now();
@@ -717,7 +721,9 @@ export const retryUploadTasks =
       if (!['ERROR', 'CANCEL'].includes(task.status) || task.waitObject.file.length === 0) {
         return; // Exit the current iteration of the loop.
       }
-      dispatch(updateUploadStatus({ account: loginAccount, ids: [task.id], status: 'WAIT' }));
+      dispatch(
+        updateUploadStatus({ account: loginAccount, ids: [task.id], status: 'RETRY_CHECK' }),
+      );
     });
   };
 

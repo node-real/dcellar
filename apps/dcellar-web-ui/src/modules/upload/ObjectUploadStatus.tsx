@@ -6,6 +6,14 @@ import { IconFont } from '@/components/IconFont';
 
 export const ObjectUploadStatus = ({ task }: { task: UploadObject }) => {
   switch (task.status) {
+    case 'RETRY_CHECK':
+    case 'RETRY_CHECKING':
+      return (
+        <>
+          <Loading iconSize={12} justifyContent={'flex-end'} />
+          Checking
+        </>
+      );
     case 'WAIT':
       return (
         <>

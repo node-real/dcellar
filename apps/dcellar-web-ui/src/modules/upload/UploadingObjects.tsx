@@ -45,10 +45,10 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
           <UploadActionButton type="clear-all" ids={data.map((item) => item.id)} />
         )}
         {panelKey === UploadingPanelKey.FAILED && (
-          <>
+          <Flex gap={6}>
             <UploadActionButton type="retry-all" ids={data.map((item) => item.id)} />
             <UploadActionButton type="clear-all" ids={data.map((item) => item.id)} />
-          </>
+          </Flex>
         )}
       </Flex>
     );
