@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 22 Apr 2024 03:46:28 GMT and should not be manually modified.
+This log was last generated on Mon, 29 Apr 2024 06:35:57 GMT and should not be manually modified.
+
+## 1.1.0
+Mon, 29 Apr 2024 06:35:57 GMT
+
+### Minor changes
+
+- Support object versions & replace object
 
 ## 1.0.3
 Mon, 22 Apr 2024 03:46:28 GMT
