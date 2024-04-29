@@ -1,7 +1,7 @@
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 
 import { ObjectActionValueType } from '@/modules/object/components/ObjectList';
-import { UploadObject } from '@/store/slices/global';
+import { UploadObject, WaitObject } from '@/store/slices/global';
 import {
   AuthType,
   DelegatedPubObjectRequest,
@@ -12,7 +12,9 @@ import {
   makePutObjectHeaders,
 } from '@/modules/object/utils/getPutObjectHeaders';
 import { resolve } from '@/facade/common';
-import { commonFault } from '@/facade/error';
+import { commonFault, E_OBJECT_NAME_EXISTS, E_UNKNOWN } from '@/facade/error';
+import { OBJECT_ERROR_TYPES, ObjectErrorType } from '@/modules/object/ObjectError';
+import { DELEGATE_UPLOAD } from '@/store/slices/object';
 
 export type TKey = keyof typeof VisibilityType;
 export type TReverseVisibilityType = {
@@ -49,10 +51,9 @@ export const getPutObjectRequestConfig = async (
   seedString: string,
   endpoint: string,
   file: File,
+  sealed: boolean,
+  fullObjectName: string,
 ) => {
-  const fullObjectName = [...task.prefixFolders, task.waitObject.relativePath, task.waitObject.name]
-    .filter((item) => !!item)
-    .join('/');
   const authType = {
     type: 'EDDSA',
     seed: seedString,
@@ -76,9 +77,30 @@ export const getPutObjectRequestConfig = async (
     objectName: fullObjectName,
     body: file,
     delegatedOpts: {
+      isUpdate: task.waitObject.isUpdate && sealed,
       visibility: task.visibility,
     },
   };
 
   return makeDelegatePutObjectHeaders(payload, authType, endpoint).then(resolve, commonFault);
+};
+
+export const getObjectErrorMsg = (type: string) => {
+  return OBJECT_ERROR_TYPES[type as ObjectErrorType]
+    ? OBJECT_ERROR_TYPES[type as ObjectErrorType]
+    : OBJECT_ERROR_TYPES[E_UNKNOWN];
+};
+
+export const isUploadObjectUpdate = (item: WaitObject) => {
+  return (
+    item.msg === getObjectErrorMsg(E_OBJECT_NAME_EXISTS).title && DELEGATE_UPLOAD && item.isUpdate
+  );
+};
+
+export const waitUploadFilterFn = (item: WaitObject) => {
+  return item.status === 'WAIT' || isUploadObjectUpdate(item);
+};
+
+export const errorUploadFilterFn = (item: WaitObject) => {
+  return item.status === 'ERROR' && !isUploadObjectUpdate(item);
 };

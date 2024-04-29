@@ -15,7 +15,12 @@ import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { AccountInfo } from '@/store/slices/accounts';
 import { TBucket, setBucketQuota } from '@/store/slices/bucket';
-import { ObjectActionType, setObjectEditTagsData, setObjectOperation } from '@/store/slices/object';
+import {
+  ObjectActionType,
+  setObjectEditTagsData,
+  setObjectOperation,
+  setupObjectVersion,
+} from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { SpEntity } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
@@ -25,12 +30,30 @@ import { formatFullTime } from '@/utils/time';
 import { VisibilityType } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/common';
 import { ResourceTags_Tag } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
-import { Divider, Flex, QDrawerBody, QDrawerFooter, QDrawerHeader, Text } from '@node-real/uikit';
-import { useUnmount } from 'ahooks';
+import {
+  Divider,
+  Flex,
+  Loading,
+  QDrawerBody,
+  QDrawerFooter,
+  QDrawerHeader,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
+} from '@node-real/uikit';
+import { useMount, useUnmount } from 'ahooks';
 import { last } from 'lodash-es';
 import { memo, useState } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { setSignatureAction } from '@/store/slices/global';
+import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
+import { TD, TH } from '@/modules/bucket/components/SPSelector/style';
+import { VersionTable } from '@/modules/object/components/VersionTable';
+
+const VERSION_TABS = ['General Info', 'Versions'];
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -43,6 +66,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
   function DetailOperation(props) {
     const { selectObjectInfo, selectBucket, bucketAccountDetail, primarySp } = props;
     const dispatch = useAppDispatch();
+    const objectVersionRecords = useAppSelector((root) => root.object.objectVersionRecords);
     const accountRecords = useAppSelector((root) => root.persist.accountRecords);
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
@@ -54,6 +78,9 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
     const { directDownload: allowDirectDownload } = accountRecords?.[loginAccount] || {};
     const objectInfo = selectObjectInfo.ObjectInfo;
     const name = last(objectInfo.ObjectName.split('/'));
+    const versionKey = [currentBucketName, objectInfo.ObjectName].join('/');
+    const loading = !(versionKey in objectVersionRecords);
+    const objectVersions = objectVersionRecords[versionKey];
 
     const errorHandler = (type: string) => {
       setAction('');
@@ -121,6 +148,10 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
       );
     };
 
+    useMount(() => {
+      dispatch(setupObjectVersion(objectInfo.ObjectName, objectInfo.Id));
+    });
+
     useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
 
     return (
@@ -154,63 +185,78 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
               </Text>
             </Flex>
           </Flex>
-          <Divider />
-          <Flex my={8} gap={8} flexDirection={'column'}>
-            {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
-            {renderAddressLink(
-              'Object ID',
-              formatId(Number(objectInfo.Id)),
-              'dc.file.f_detail_pop.id.click',
-              'dc.file.f_detail_pop.copy_id.click',
-              'object',
-            )}
-            {renderAddressLink(
-              'Primary SP address',
-              primarySp.operatorAddress,
-              'dc.file.f_detail_pop.spadd.click',
-              'dc.file.f_detail_pop.copy_spadd.click',
-            )}
-            {renderAddressLink(
-              'Payment address',
-              selectBucket.PaymentAddress,
-              'dc.file.f_detail_pop.seal.click',
-              'dc.file.f_detail_pop.copy_seal.click',
-            )}
-            {renderAddressLink(
-              'Create transaction hash',
-              selectObjectInfo.CreateTxHash,
-              'dc.object.f_detail_pop.CreateTxHash.click',
-              'dc.object.f_detail_pop.copy_create_tx_hash.click',
-              'tx',
-            )}
-            {selectObjectInfo.SealTxHash !== EMPTY_TX_HASH &&
-              renderAddressLink(
-                'Seal transaction hash',
-                selectObjectInfo.SealTxHash,
-                'dc.object.f_detail_pop.SealTxHash.click',
-                'dc.object.f_detail_pop.copy_seal_tx_hash.click',
-                'tx',
-              )}
-            {objectInfo.Visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
-              renderPropRow(
-                'Universal link',
-                renderUrlWithLink(
-                  `${primarySp.endpoint}/view/${currentBucketName}/${encodeObjectName(
-                    objectInfo.ObjectName,
-                  )}`,
-                  true,
-                  32,
-                  'dc.file.f_detail_pop.universal.click',
-                  'dc.file.f_detail_pop.copy_universal.click',
-                ),
-              )}
-            {renderTags({
-              onClick: onEditTags,
-              tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0,
-            })}
-          </Flex>
-          <Divider />
-          <SharePermission selectObjectInfo={selectObjectInfo} />
+          <Tabs>
+            <TabList mb={24}>
+              {VERSION_TABS.map((tab) => (
+                <Tab h={24} key={tab} fontSize={14} fontWeight={500} pb={8}>
+                  {tab}
+                </Tab>
+              ))}
+            </TabList>
+            <TabPanels>
+              <TabPanel>
+                <Flex my={8} gap={8} flexDirection={'column'}>
+                  {renderPropRow('Date created', formatFullTime(+objectInfo.CreateAt * 1000))}
+                  {renderAddressLink(
+                    'Object ID',
+                    formatId(Number(objectInfo.Id)),
+                    'dc.file.f_detail_pop.id.click',
+                    'dc.file.f_detail_pop.copy_id.click',
+                    'object',
+                  )}
+                  {renderAddressLink(
+                    'Primary SP address',
+                    primarySp.operatorAddress,
+                    'dc.file.f_detail_pop.spadd.click',
+                    'dc.file.f_detail_pop.copy_spadd.click',
+                  )}
+                  {renderAddressLink(
+                    'Payment address',
+                    selectBucket.PaymentAddress,
+                    'dc.file.f_detail_pop.seal.click',
+                    'dc.file.f_detail_pop.copy_seal.click',
+                  )}
+                  {renderAddressLink(
+                    'Create transaction hash',
+                    selectObjectInfo.CreateTxHash,
+                    'dc.object.f_detail_pop.CreateTxHash.click',
+                    'dc.object.f_detail_pop.copy_create_tx_hash.click',
+                    'tx',
+                  )}
+                  {selectObjectInfo.SealTxHash !== EMPTY_TX_HASH &&
+                    renderAddressLink(
+                      'Seal transaction hash',
+                      selectObjectInfo.SealTxHash,
+                      'dc.object.f_detail_pop.SealTxHash.click',
+                      'dc.object.f_detail_pop.copy_seal_tx_hash.click',
+                      'tx',
+                    )}
+                  {objectInfo.Visibility === VisibilityType.VISIBILITY_TYPE_PUBLIC_READ &&
+                    renderPropRow(
+                      'Universal link',
+                      renderUrlWithLink(
+                        `${primarySp.endpoint}/view/${currentBucketName}/${encodeObjectName(
+                          objectInfo.ObjectName,
+                        )}`,
+                        true,
+                        32,
+                        'dc.file.f_detail_pop.universal.click',
+                        'dc.file.f_detail_pop.copy_universal.click',
+                      ),
+                    )}
+                  {renderTags({
+                    onClick: onEditTags,
+                    tagsCount: selectObjectInfo.ObjectInfo?.Tags.Tags.length || 0,
+                  })}
+                </Flex>
+                <Divider />
+                <SharePermission selectObjectInfo={selectObjectInfo} />
+              </TabPanel>
+              <TabPanel>
+                <VersionTable loading={loading} versions={objectVersions} />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </QDrawerBody>
         {objectInfo.ObjectStatus === 1 && isBucketOwner && (
           <QDrawerFooter flexDirection={'column'}>

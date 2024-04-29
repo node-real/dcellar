@@ -17,6 +17,7 @@ import { selectGnfdGasFeesConfig, setupStoreFeeParams, WaitObject } from '@/stor
 import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
+import { isUploadObjectUpdate } from '@/utils/object';
 
 interface FeesProps {
   delegateUpload: boolean;
@@ -57,7 +58,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
       return '-1';
     }
     return objectWaitQueue
-      .filter((item) => item.status !== 'ERROR')
+      .filter((item) => item.status !== 'ERROR' || isUploadObjectUpdate(item))
       .reduce(
         (sum, obj) =>
           sum.plus(

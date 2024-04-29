@@ -23,7 +23,13 @@ export const ListEmpty = memo<ListEmptyProps>(function ListEmpty({
     <Container h={h}>
       <Content>
         {empty && (
-          <Flex flex={1} flexDirection={'column'} alignItems={'center'} justifyContent="center">
+          <Flex
+            textAlign={'center'}
+            flex={1}
+            flexDirection={'column'}
+            alignItems={'center'}
+            justifyContent="center"
+          >
             <IconFont type={type} w={120} />
             <Flex my={title && desc ? 16 : 0} flexDirection="column">
               <Text

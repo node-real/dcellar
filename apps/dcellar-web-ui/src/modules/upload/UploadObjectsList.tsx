@@ -1,6 +1,6 @@
 import { DCTable } from '@/components/common/DCTable';
-import { useAppDispatch } from '@/store';
-import { UploadObject, WaitObject, removeFromWaitQueue } from '@/store/slices/global';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { WaitObject, removeFromWaitQueue, toggleObjectReplaceState } from '@/store/slices/global';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
 import { NameItem } from './NameItem';
@@ -8,31 +8,51 @@ import { PathItem } from './PathItem';
 import { useCreation } from 'ahooks';
 import { chunk } from 'lodash-es';
 import { IconFont } from '@/components/IconFont';
+import { DCButton } from '@/components/common/DCButton';
+import { Text } from '@node-real/uikit';
+import { E_OBJECT_NAME_EXISTS } from '@/facade/error';
+import { getObjectErrorMsg } from '@/utils/object';
+import { DELEGATE_UPLOAD } from '@/store/slices/object';
+import { DCTooltip } from '@/components/common/DCTooltip';
 
 const uploadingPageSize = 10;
 
 export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObject[] }) => {
   const dispatch = useAppDispatch();
-  const [pageSize, setPageSize] = useState(10);
+  const objectRecords = useAppSelector((root) => root.object.objectRecords);
+  const [pageSize] = useState(10);
   const [curPage, setCurPage] = useState(1);
   const chunks = useCreation(() => chunk(data, pageSize), [data, pageSize]);
   const page = chunks[curPage - 1] || [];
+
   const onRemove = (id: number) => {
     dispatch(removeFromWaitQueue({ id }));
   };
-  const columns: ColumnProps<UploadObject>[] = [
+
+  const updateObjectReplaceState = (id: number) => {
+    dispatch(toggleObjectReplaceState({ id }));
+  };
+
+  const columns: ColumnProps<WaitObject>[] = [
     {
       key: 'name',
       title: 'Name',
-      render: (record) => {
+      render: (_, record) => {
         return (
           <NameItem
             key={record.name}
             name={record.name}
             size={record.size}
-            msg={record.msg}
-            w={240}
-            task={record}
+            msg={
+              record.isUpdate && DELEGATE_UPLOAD ? (
+                <Text as={'span'} color={'readable.tertiary'}>
+                  Replace the existing object
+                </Text>
+              ) : (
+                record.msg
+              )
+            }
+            w={222}
           />
         );
       },
@@ -44,6 +64,7 @@ export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObje
       render: (record) => {
         return (
           <PathItem
+            mr={0}
             lineHeight="normal"
             path={`${path}/${record.relativePath ? record.relativePath + '/' : ''}`}
             textAlign="left"
@@ -51,10 +72,54 @@ export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObje
         );
       },
     },
+    ...(DELEGATE_UPLOAD
+      ? [
+          {
+            key: 'replace',
+            title: <></>,
+            width: 64,
+            render: (_: WaitObject, record: WaitObject) => {
+              const replaceable =
+                !record.name.endsWith('/') &&
+                record.msg === getObjectErrorMsg(E_OBJECT_NAME_EXISTS).title;
+
+              if (!replaceable) return null;
+
+              const prefix = `${path}/${record.relativePath ? record.relativePath + '/' : ''}`;
+              const createOnChainObject = objectRecords[`${prefix}${record.name}`];
+              const objectChanged =
+                createOnChainObject &&
+                createOnChainObject.ObjectInfo.ObjectStatus !== 1 &&
+                createOnChainObject.ObjectInfo.PayloadSize !== record.size;
+
+              return (
+                <DCTooltip
+                  title={
+                    objectChanged
+                      ? "Please upload the original object as this objects' info already created on chain."
+                      : ''
+                  }
+                >
+                  <DCButton
+                    disabled={objectChanged}
+                    variant={'link'}
+                    size={'sm'}
+                    fontSize={'12'}
+                    fontWeight={400}
+                    onClick={() => updateObjectReplaceState(record.id)}
+                  >
+                    {record.isUpdate ? 'Undo' : 'Replace'}
+                  </DCButton>
+                </DCTooltip>
+              );
+            },
+          },
+        ]
+      : []),
     {
       key: 'status',
-      title: 'Status',
-      width: 70,
+      title: <></>,
+      width: 50,
       render: (record) => {
         return (
           <IconFont
@@ -78,6 +143,7 @@ export const UploadObjectsList = ({ path, data }: { path: string; data: WaitObje
 
   return (
     <DCTable
+      rowKey={'id'}
       columns={columns}
       dataSource={page}
       current={curPage}

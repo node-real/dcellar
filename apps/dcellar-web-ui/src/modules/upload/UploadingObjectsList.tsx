@@ -12,7 +12,7 @@ import { Flex } from '@node-real/uikit';
 const uploadingPageSize = 10;
 
 export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [curPage, setCurPage] = useState(1);
   const chunks = useCreation(() => chunk(data, pageSize), [data, pageSize]);
   const page = chunks[curPage - 1] || [];
@@ -21,14 +21,14 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
     {
       key: 'name',
       title: 'Name',
-      render: (record) => {
+      render: (_, record) => {
         return (
           <NameItem
             name={record.waitObject.name}
             size={record.waitObject.size}
             msg={record.msg}
             status={record.status}
-            w={240}
+            w={234}
             task={record}
           />
         );
@@ -38,7 +38,7 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
       key: 'path',
       title: 'Path',
       width: 170,
-      render: (record) => {
+      render: (_, record) => {
         return (
           <PathItem
             status={record.status}
@@ -53,7 +53,7 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
       key: 'status',
       title: 'Status',
       width: 100,
-      render: (record) => {
+      render: (_, record) => {
         return (
           <Flex>
             <ObjectUploadStatus task={record} />
@@ -69,6 +69,7 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
 
   return (
     <DCTable
+      rowKey={'id'}
       columns={columns}
       dataSource={page}
       current={curPage}

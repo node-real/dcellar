@@ -63,6 +63,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
     const objectSealingTimestamp = useAppSelector((root) => root.global.objectSealingTimestamp);
     const tempAccountRecords = useAppSelector((root) => root.accounts.tempAccountRecords);
     const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
+    const objectRecords = useAppSelector((root) => root.object.objectRecords);
     const hashTask = useAppSelector(selectHashTask(loginAccount));
     const signTask = useAppSelector(selectSignTask(loginAccount));
     const queue = useAppSelector(selectUploadQueue(loginAccount));
@@ -92,15 +93,27 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
 
     const runUploadTask = async (task: UploadObject) => {
       if (authModal) return;
-      const isFolder = task.waitObject.name.endsWith('/');
+      const name = task.waitObject.name;
+      const isFolder = name.endsWith('/');
       const { seedString } = await dispatch(getSpOffChainData(loginAccount, task.spAddress));
       const endpoint = spRecords[task.spAddress].endpoint;
+      const fullObjectName = [
+        ...task.prefixFolders,
+        task.waitObject.relativePath,
+        task.waitObject.name,
+      ]
+        .filter(Boolean)
+        .join('/');
+      const key = `${task.bucketName}/${fullObjectName}`;
+      const sealed = objectRecords[key]?.ObjectInfo.ObjectStatus === 1;
       const [uploadOptions, error1] = await getPutObjectRequestConfig(
         task,
         loginAccount,
         seedString,
         endpoint,
         task.waitObject.file,
+        sealed,
+        fullObjectName,
       );
       if (!uploadOptions || error1) {
         return dispatch(

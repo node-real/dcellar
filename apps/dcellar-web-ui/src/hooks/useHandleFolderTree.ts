@@ -169,6 +169,7 @@ export const useHandleFolderTree = () => {
         size: file.size,
         relativePath: relativePath,
         lockFee: '',
+        isUpdate: false,
       };
 
       return waitObject;
