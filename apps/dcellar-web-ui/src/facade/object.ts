@@ -1,6 +1,6 @@
 import { GROUP_ID } from '@/constants/legacy';
 import { quotaRemains } from '@/facade/bucket';
-import { getObjectInfoAndBucketQuota, resolve, resolveSpRequest } from '@/facade/common';
+import { getObjectInfoAndBucketQuota, resolve } from '@/facade/common';
 import {
   E_NOT_FOUND,
   E_NO_QUOTA,
@@ -41,6 +41,7 @@ import {
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import {
   AuthType,
+  DelegateCreateFolderRepsonse,
   DelegatedCreateFolderRequest,
   GRNToString,
   IQuotaProps,
@@ -713,8 +714,14 @@ export const updateObjectTags = async (params: UpdateObjectTagsParams, connector
 export const delegateCreateFolder = async (
   request: DelegatedCreateFolderRequest,
   auth: AuthType,
-) => {
+): Promise<ErrorResponse | [DelegateCreateFolderRepsonse, null]> => {
   const client = await getClient();
+  const [result, error] = await client.object
+    .delegateCreateFolder(request, auth)
+    .then(resolve, commonFault);
 
-  return client.object.delegateCreateFolder(request, auth).then(resolveSpRequest, commonFault);
+  if (!result || error) return [null, error];
+  if (result.code !== 0 || !result.body) return [null, result.message ?? ''];
+
+  return [result.body, null];
 };
