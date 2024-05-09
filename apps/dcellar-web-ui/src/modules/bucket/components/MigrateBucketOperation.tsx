@@ -3,11 +3,11 @@ import { InsufficientBalances } from '@/components/Fee/InsufficientBalances';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { migrateBucket } from '@/facade/bucket';
+import { TBucket, setBucketEditQuota, setupBucketList } from '@/store/slices/bucket';
+import { migrateBucket, pollingGetBucket } from '@/facade/bucket';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TBucket, setBucketEditQuota, setupBucketList } from '@/store/slices/bucket';
 import { formatQuota } from '@/utils/string';
 import {
   Divider,

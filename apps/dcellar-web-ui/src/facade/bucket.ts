@@ -66,7 +66,7 @@ export const headBucket = async (bucketName: string) => {
   const client = await getClient();
   const { bucketInfo } = await client.bucket
     .headBucket(bucketName)
-    .catch(() => ({}) as QueryHeadBucketResponse);
+    .catch(() => ({} as QueryHeadBucketResponse));
   return bucketInfo || null;
 };
 
@@ -262,7 +262,7 @@ export const getBucketQuotaUpdateTime = async (bucketName: string) => {
   const defaultValue = new Long(getTimestampInSeconds());
   const res = await storageClient
     .QueryQuotaUpdateTime({ bucketName })
-    .catch((e) => ({ updateAt: defaultValue }) as QueryQuoteUpdateTimeResponse);
+    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
   return Number(res?.updateAt || defaultValue);
 };
 
