@@ -58,7 +58,7 @@ export const formatTime = (utcZeroTimestamp = 0) => {
 };
 
 export const formatFullTime = (
-  utcZeroTimestamp = 0,
+  utcZeroTimestamp: number | string | Date | Dayjs | undefined,
   format?: 'MMM D, YYYY HH:mm A' | 'YYYY-MM-DD HH:mm:ss',
 ) => {
   if (!utcZeroTimestamp) {

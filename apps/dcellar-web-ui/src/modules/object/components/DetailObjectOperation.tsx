@@ -19,6 +19,7 @@ import {
   ObjectActionType,
   setObjectEditTagsData,
   setObjectOperation,
+  setupObjectActivity,
   setupObjectVersion,
 } from '@/store/slices/object';
 import { getSpOffChainData } from '@/store/slices/persist';
@@ -49,11 +50,10 @@ import { last } from 'lodash-es';
 import { memo, useState } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { setSignatureAction } from '@/store/slices/global';
-import { ListEmpty } from '@/components/common/DCTable/ListEmpty';
-import { TD, TH } from '@/modules/bucket/components/SPSelector/style';
 import { VersionTable } from '@/modules/object/components/VersionTable';
+import { Activities } from '@/components/Activities';
 
-const VERSION_TABS = ['General Info', 'Versions'];
+const VERSION_TABS = ['General Info', 'Activities', 'Versions'];
 
 interface DetailObjectOperationProps {
   selectObjectInfo: ObjectMeta;
@@ -67,6 +67,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
     const { selectObjectInfo, selectBucket, bucketAccountDetail, primarySp } = props;
     const dispatch = useAppDispatch();
     const objectVersionRecords = useAppSelector((root) => root.object.objectVersionRecords);
+    const objectActivityRecords = useAppSelector((root) => root.object.objectActivityRecords);
     const accountRecords = useAppSelector((root) => root.persist.accountRecords);
     const loginAccount = useAppSelector((root) => root.persist.loginAccount);
     const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
@@ -81,6 +82,9 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
     const versionKey = [currentBucketName, objectInfo.ObjectName].join('/');
     const loading = !(versionKey in objectVersionRecords);
     const objectVersions = objectVersionRecords[versionKey];
+
+    const loadingActivity = !(versionKey in objectActivityRecords);
+    const objectActivities = objectActivityRecords[versionKey];
 
     const errorHandler = (type: string) => {
       setAction('');
@@ -150,6 +154,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
 
     useMount(() => {
       dispatch(setupObjectVersion(objectInfo.ObjectName, objectInfo.Id));
+      dispatch(setupObjectActivity(objectInfo.ObjectName, objectInfo.Id));
     });
 
     useUnmount(() => dispatch(setObjectEditTagsData([DEFAULT_TAG])));
@@ -251,6 +256,9 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
                 </Flex>
                 <Divider />
                 <SharePermission selectObjectInfo={selectObjectInfo} />
+              </TabPanel>
+              <TabPanel>
+                <Activities loading={loadingActivity} activities={objectActivities} />
               </TabPanel>
               <TabPanel>
                 <VersionTable loading={loading} versions={objectVersions} />

@@ -104,3 +104,14 @@ export const waitUploadFilterFn = (item: WaitObject) => {
 export const errorUploadFilterFn = (item: WaitObject) => {
   return item.status === 'ERROR' && !isUploadObjectUpdate(item);
 };
+
+export const formatMsgType = (type: string) => {
+  const msgText = (type.split('.').pop() || '')
+    .replace(/^Msg/, '')
+    .match(/[A-Z0-9][a-z0-9]*/g)
+    ?.filter((item) => item !== 'V2')
+    .join(' ');
+  console.log(msgText);
+
+  return msgText;
+};

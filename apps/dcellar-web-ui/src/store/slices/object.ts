@@ -22,7 +22,12 @@ import { numberToHex } from 'viem';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { getFolderPolicies, getObjectPolicies } from '@/facade/bucket';
 import { ErrorResponse } from '@/facade/error';
-import { ListObjectsParams, getListObjects, getObjectVersions } from '@/facade/object';
+import {
+  ListObjectsParams,
+  getListObjects,
+  getObjectActivities,
+  getObjectVersions,
+} from '@/facade/object';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { convertObjectKey } from '@/utils/common';
 import { getMillisecond } from '@/utils/time';
@@ -96,6 +101,31 @@ export type ObjectVersion = {
   Version: number;
 };
 
+export type Activity = {
+  hash: string;
+  height: number;
+  index: number;
+  code: number;
+  proof: {
+    data: any;
+    proof: any;
+    tx: any;
+  };
+  tx_result: {
+    code: number;
+    gas_used: number;
+    gas_wanted: number;
+    fee: string;
+    log: string;
+    messages: string;
+    type: string;
+    module: string;
+  };
+  time: string;
+  log: string;
+  messages: string;
+};
+
 export interface ObjectState {
   currentBucketName: string;
   pathSegments: string[];
@@ -105,6 +135,7 @@ export interface ObjectState {
   objectListTruncated: Record<string, boolean>;
   objectRecords: Record<string, ObjectMeta>;
   objectVersionRecords: Record<string, ObjectVersion[]>;
+  objectActivityRecords: Record<string, Activity[]>;
   objectListPageRecords: Record<string, number>;
   objectListPageRestored: boolean;
   objectSelectedKeys: Key[];
@@ -133,6 +164,7 @@ const initialState: ObjectState = {
   objectListRecords: {},
   objectRecords: {},
   objectVersionRecords: {},
+  objectActivityRecords: {},
   objectListPageRecords: {},
   objectListPageRestored: true,
   objectSelectedKeys: [],
@@ -397,6 +429,14 @@ export const objectSlice = createSlice({
       const key = [state.currentBucketName, objectName].join('/');
       state.objectVersionRecords[key] = versions;
     },
+    setObjectActivity(
+      state,
+      { payload }: PayloadAction<{ activities: Activity[]; objectName: string }>,
+    ) {
+      const { objectName, activities } = payload;
+      const key = [state.currentBucketName, objectName].join('/');
+      state.objectActivityRecords[key] = activities;
+    },
   },
 });
 
@@ -428,6 +468,7 @@ export const {
   setObjectTags,
   setObjectEditTagsData,
   setObjectVersion,
+  setObjectActivity,
 } = objectSlice.actions;
 
 export const selectPathLoading = (root: AppState) => {
@@ -598,6 +639,12 @@ export const setupObjectVersion =
   (objectName: string, id: number) => async (dispatch: AppDispatch) => {
     const versions = await getObjectVersions(numberToHex(Number(id), { size: 32 }));
     dispatch(setObjectVersion({ objectName, versions }));
+  };
+
+export const setupObjectActivity =
+  (objectName: string, id: number) => async (dispatch: AppDispatch) => {
+    const activities = await getObjectActivities(numberToHex(Number(id), { size: 32 }));
+    dispatch(setObjectActivity({ objectName, activities }));
   };
 
 export default objectSlice.reducer;

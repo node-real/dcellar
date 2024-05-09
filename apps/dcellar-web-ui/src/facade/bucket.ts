@@ -10,7 +10,7 @@ import {
 import { getClient } from '@/facade/index';
 import { BroadcastResponse } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
-import { ObjectResource } from '@/store/slices/object';
+import { Activity, ObjectResource } from '@/store/slices/object';
 import { parseError } from '@/utils/string';
 import { getTimestampInSeconds } from '@/utils/time';
 import {
@@ -446,4 +446,13 @@ export const updateBucketTags = async (params: UpdateBucketTagsParams, connector
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const getBucketActivities = async (id: string): Promise<Activity[]> => {
+  const url = `/api/tx/list/by_bucket/${id}`;
+
+  const [result] = await axios.get<{ result: Activity[] }>(url).then(resolve, commonFault);
+  if (!result) return [];
+
+  return result.data.result || [];
 };

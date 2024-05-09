@@ -58,7 +58,7 @@ import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Commo
 import axios from 'axios';
 import { XMLParser } from 'fast-xml-parser';
 import { Connector } from 'wagmi';
-import { ObjectVersion } from '@/store/slices/object';
+import { Activity, ObjectVersion } from '@/store/slices/object';
 
 export type DeliverResponse = Awaited<ReturnType<TxResponse['broadcast']>>;
 
@@ -644,6 +644,15 @@ export const getObjectVersions = async (id: string): Promise<ObjectVersion[]> =>
     .get<{ result: ObjectVersion[] }>(`/api/versions/${id}`)
     .then(resolve, commonFault);
   if (!result) return [];
+  return result.data.result || [];
+};
+
+export const getObjectActivities = async (id: string): Promise<Activity[]> => {
+  const url = `/api/tx/list/by_object/${id}`;
+
+  const [result] = await axios.get<{ result: Activity[] }>(url).then(resolve, commonFault);
+  if (!result) return [];
+
   return result.data.result || [];
 };
 

@@ -10,6 +10,7 @@ import { getClient } from '@/facade/index';
 import { BroadcastResponse, DeliverResponse, xmlParser } from '@/facade/object';
 import { signTypedDataCallback } from '@/facade/wallet';
 import { GroupMember } from '@/store/slices/group';
+import { Activity } from '@/store/slices/object';
 import {
   MsgCreateGroup,
   MsgDeleteGroup,
@@ -251,4 +252,13 @@ export const updateGroupTags = async (
   };
 
   return tx.broadcast(payload).then(resolve, broadcastFault);
+};
+
+export const getGroupActivities = async (id: string): Promise<Activity[]> => {
+  const url = `/api/tx/list/by_group/${id}`;
+
+  const [result] = await axios.get<{ result: Activity[] }>(url).then(resolve, commonFault);
+  if (!result) return [];
+
+  return result.data.result || [];
 };
