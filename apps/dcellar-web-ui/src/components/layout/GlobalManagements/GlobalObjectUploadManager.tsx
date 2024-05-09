@@ -73,7 +73,6 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
     const [authModal, setAuthModal] = useState(false);
 
     const uploadQueue = queue.filter((t) => t.status === 'UPLOAD');
-
     const waitUploadQueue = queue.filter(
       (t) => t.status === 'SIGNED' || (t.status === 'WAIT' && t.delegateUpload),
     );
@@ -90,6 +89,47 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
       if (sealOffset <= 0) return [];
       return sealQueue.slice(0, sealOffset).map((p) => p.id);
     }, [sealOffset, sealQueue]);
+
+    const retryCheckQueue = queue.filter((t) => t.status === 'RETRY_CHECK');
+    const retryCheckingQueue = queue.filter((t) => t.status === 'RETRY_CHECKING');
+    const retryOffset = MAX_PARALLEL_UPLOADS - retryCheckingQueue.length;
+    const retryTasks = useMemo(() => {
+      if (retryOffset <= 0) return [];
+      return retryCheckQueue.slice(0, retryOffset).map((p) => p.id);
+    }, [retryCheckQueue, retryOffset]);
+
+    const runRetryCheckTask = async (task: UploadObject) => {
+      if (authModal) return;
+      const { bucketName, prefixFolders, waitObject } = task;
+      const objectName = [...prefixFolders, waitObject.relativePath, waitObject.name]
+        .filter(Boolean)
+        .join('/');
+      const endpoint = spRecords[task.spAddress].endpoint;
+      const [objectMeta, error] = await getObjectMeta(bucketName, objectName, endpoint);
+      if (error && error.code !== 404) {
+        return dispatch(
+          setupUploadTaskErrorMsg({
+            account: loginAccount,
+            task,
+            errorMsg: error.message || 'Something went wrong.',
+          }),
+        );
+      }
+      const objectStatus = objectMeta?.ObjectInfo?.ObjectStatus;
+      if (objectStatus === 1) {
+        dispatch(uploadQueueAndRefresh(task));
+        dispatch(setupAccountRecords(bucketRecords[task.bucketName].PaymentAddress));
+        return;
+      }
+
+      dispatch(
+        updateUploadStatus({
+          account: loginAccount,
+          ids: [task.id],
+          status: 'WAIT',
+        }),
+      );
+    };
 
     const runUploadTask = async (task: UploadObject) => {
       if (authModal) return;
@@ -294,6 +334,16 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
         await sleep(SEALING_INTERVAL);
       }
     };
+
+    // retry checking
+    useAsyncEffect(async () => {
+      if (!retryTasks.length) return;
+      dispatch(
+        updateUploadStatus({ ids: retryTasks, status: 'RETRY_CHECKING', account: loginAccount }),
+      );
+      const tasks = queue.filter((t) => retryTasks.includes(t.id));
+      tasks.forEach(runRetryCheckTask);
+    }, [retryTasks.join('')]);
 
     // 1. hash
     useAsyncEffect(async () => {

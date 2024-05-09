@@ -1,6 +1,6 @@
 import { InternalRoutePaths } from '@/constants/paths';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setAllFilterRange, setAllFilterTypes } from '@/store/slices/billing';
+import { setAllFilterRange, setAllFilterTypes, setupAllBills } from '@/store/slices/billing';
 import { Flex, Text } from '@node-real/uikit';
 import { useUpdateEffect } from 'ahooks';
 import dayjs from 'dayjs';
@@ -10,6 +10,8 @@ import { FilterContainer } from './Common';
 import { FilterAccounts } from './FilterAccounts';
 import { FilterDateRange } from './FilterDateRange';
 import { FilterTypes } from './FilterTypes';
+import { DCButton } from '@/components/common/DCButton';
+import { IconFont } from '@/components/IconFont';
 
 export const AllBillingHistoryFilter = () => {
   const dispatch = useAppDispatch();
@@ -57,11 +59,22 @@ export const AllBillingHistoryFilter = () => {
     });
   }, [billTypeFilter?.join('')]);
 
+  const onRefresh = () => {
+    dispatch(setupAllBills());
+  };
+
   return (
-    <Flex justifyContent={'space-between'} mt={16} alignItems={'center'}>
-      <Text fontSize={16} fontWeight={600}>
+    <Flex justifyContent={'space-between'} mt={16} alignItems={'center'} gap={12}>
+      <Text fontSize={16} fontWeight={600} flex={1}>
         Billing History
       </Text>
+      <DCButton
+        variant="ghost"
+        alignItems={'center'}
+        onClick={onRefresh}
+        paddingLeft={6}
+        leftIcon={<IconFont type="refresh" w={24} />}
+      />
       <FilterContainer>
         <FilterDateRange
           filterDateRange={billRangeFilter}

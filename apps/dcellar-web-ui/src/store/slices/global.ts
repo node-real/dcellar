@@ -26,6 +26,8 @@ export const UPLOADING_STATUSES = [
   'SEAL',
   'SEALING',
 ];
+export const UPLOAD_FAILED_STATUSES = ['ERROR', 'CANCEL'];
+export const UPLOAD_SUCCESS_STATUS = 'FINISH';
 
 export type SignatureAction = {
   icon: string;
@@ -60,6 +62,8 @@ export type StoreFeeParams = {
 export type WaitObjectStatus = 'CHECK' | 'WAIT' | 'ERROR';
 
 export type UploadObjectStatus =
+  | 'RETRY_CHECK'
+  | 'RETRY_CHECKING'
   | 'WAIT'
   | 'HASH'
   | 'HASHED'
@@ -174,10 +178,12 @@ export const globalSlice = createSlice({
       }: PayloadAction<{ account: string; ids: number[]; status: UploadObject['status'] }>,
     ) {
       const { account, ids, status } = payload;
+      const isErrorStatus = UPLOAD_FAILED_STATUSES.includes(status);
       const queue = state.objectUploadQueue[account] || [];
       state.objectUploadQueue[account] = queue.map((q) =>
-        ids.includes(q.id) ? { ...q, status } : q,
+        ids.includes(q.id) ? { ...q, status, msg: isErrorStatus ? q.msg : '' } : q,
       );
+
       if (status === 'SEAL') {
         ids.forEach((id) => {
           state.objectSealingTimestamp[id] = Date.now();
@@ -408,6 +414,14 @@ export const globalSlice = createSlice({
     setSignatureAction(state, { payload }: PayloadAction<SignatureAction | object>) {
       state.signatureAction = payload;
     },
+    // clear a upload record, a batch of upload records
+    clearUploadRecords(state, { payload }: PayloadAction<{ ids: number[]; loginAccount: string }>) {
+      const { ids, loginAccount } = payload;
+      const uploadQueue = state.objectUploadQueue[loginAccount] || _emptyUploadQueue;
+      state.objectUploadQueue[loginAccount] = uploadQueue.filter(
+        (task: UploadObject) => !ids.includes(task.id),
+      );
+    },
   },
 });
 
@@ -433,6 +447,7 @@ export const {
   updateUploadCreateHash,
   setSignatureAction,
   setWaitQueue,
+  clearUploadRecords,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadObject>();
@@ -704,6 +719,23 @@ export const setupWaitTaskErrorMsg =
     // const isFolder = task.name.endsWith('/');
     dispatch(updateWaitTaskMsg({ id: id, msg: errorMsg || 'The object failed to be created.' }));
     // isFolder && dispatch(cancelWaitUploadFolder({ folderName: task.name }));
+  };
+
+// retry a task, or a batch of tasks
+export const retryUploadTasks =
+  ({ ids }: { ids: number[] }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const uploadQueue = getState().global.objectUploadQueue[loginAccount] || _emptyUploadQueue;
+    const tasks = uploadQueue.filter((task) => ids.includes(task.id));
+    tasks.forEach((task) => {
+      if (!['ERROR', 'CANCEL'].includes(task.status) || task.waitObject.file.length === 0) {
+        return; // Exit the current iteration of the loop.
+      }
+      dispatch(
+        updateUploadStatus({ account: loginAccount, ids: [task.id], status: 'RETRY_CHECK' }),
+      );
+    });
   };
 
 export default globalSlice.reducer;

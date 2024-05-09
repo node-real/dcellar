@@ -114,7 +114,7 @@ export const AccountBillingHistory = ({ address }: Props) => {
 
   return (
     <>
-      <AccountBillingHistoryFilter />
+      <AccountBillingHistoryFilter address={address} />
       <DCTable
         loading={loadingComponent}
         columns={columns}

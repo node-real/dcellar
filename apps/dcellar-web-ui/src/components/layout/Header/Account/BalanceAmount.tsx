@@ -40,7 +40,7 @@ export const BalanceAmount = memo<BalanceAmountProps>(function BalanceAmount() {
           alignItems={'center'}
         >
           <Circle backgroundColor={'#F0B90B'} size="24px" marginRight={10}>
-            <IconFont color={'#fff'} type="bsc" />
+            <IconFont color={'#fff'} type="line-bsc" />
           </Circle>{' '}
           {renderBalanceNumber()}
         </Flex>

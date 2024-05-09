@@ -37,7 +37,7 @@ export const ChainBox = memo<ChainBoxProps>(function ChainBox({ chainId, type }:
         px={10}
         border={'1px solid readable.border'}
       >
-        <IconFont type={'bsc'} w={24} color={'#F0B90B'} />
+        <IconFont type={'line-bsc'} w={24} color={'#F0B90B'} />
         <Text ml={'2px'} fontSize={'14px'} fontWeight="500">
           {chain?.name}
         </Text>

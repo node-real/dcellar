@@ -1,6 +1,14 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 29 Apr 2024 06:35:57 GMT and should not be manually modified.
+This log was last generated on Thu, 09 May 2024 06:16:58 GMT and should not be manually modified.
+
+## 1.2.0
+Thu, 09 May 2024 06:16:58 GMT
+
+### Minor changes
+
+- Introduce retry upload functionality
+- Add toolbox page
 
 ## 1.1.0
 Mon, 29 Apr 2024 06:35:57 GMT

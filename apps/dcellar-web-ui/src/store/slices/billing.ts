@@ -422,6 +422,11 @@ export const selectAllBillsCount = () => (root: AppState) => {
 
 export const setupTotalCost = () => async (dispatch: AppDispatch, getState: GetState) => {
   const { loginAccount } = getState().persist;
+  // Because billing data refresh time is six hours, so we don't need to refresh it every time.
+  const { costRecords } = getState().billing;
+  const existedCost = costRecords[loginAccount];
+  if (existedCost) return;
+
   dispatch(setLoadingAllCost(true));
   const [data, error] = await getTotalCostByOwner(loginAccount);
   if (!data || error) {
@@ -437,8 +442,13 @@ export const setupTotalCost = () => async (dispatch: AppDispatch, getState: GetS
 };
 
 export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: GetState) => {
-  dispatch(setLoadingAllCostTrend(true));
   const { loginAccount } = getState().persist;
+  const { costTrendRecords } = getState().billing;
+  const existedTrend = costTrendRecords[loginAccount];
+  if (existedTrend) {
+    return;
+  }
+  dispatch(setLoadingAllCostTrend(true));
   const dayjs = getUtcDayjs();
   const curTime = +new Date();
   const [end_year, end_month] = dayjs(curTime).add(1, 'month').format('YYYY-M').split('-');
@@ -486,37 +496,44 @@ export const setupAllCostTrend = () => async (dispatch: AppDispatch, getState: G
   );
 };
 
-export const setupAccountCostTrend = (address: string) => async (dispatch: AppDispatch) => {
-  const utcDayjs = getUtcDayjs();
-  const curTime = +new Date();
-  const [end_year, end_month] = utcDayjs(curTime).add(1, 'month').format('YYYY-M').split('-');
-  const [start_year, start_month] = utcDayjs(curTime)
-    .subtract(10, 'month')
-    .format('YYYY-M')
-    .split('-');
-  const params: GetMonthlyBillByAddressParams = {
-    address,
-    start_month,
-    start_year,
-    end_month,
-    end_year,
-  };
-  dispatch(setLoadingAccountCostTrend(true));
-  const [data, error] = await getMonthlyBillByAddress(params);
-  if (!data || error) {
-    dispatch(setLoadingAccountCostTrend(false));
-    return error;
-  }
-  dispatch(
-    setAccountCostTrend({
+export const setupAccountCostTrend =
+  (address: string) => async (dispatch: AppDispatch, getState: GetState) => {
+    const { accountCostTrendRecords } = getState().billing;
+    const existedTrend = accountCostTrendRecords[address];
+    if (existedTrend) {
+      return;
+    }
+
+    const utcDayjs = getUtcDayjs();
+    const curTime = +new Date();
+    const [end_year, end_month] = utcDayjs(curTime).add(1, 'month').format('YYYY-M').split('-');
+    const [start_year, start_month] = utcDayjs(curTime)
+      .subtract(10, 'month')
+      .format('YYYY-M')
+      .split('-');
+    const params: GetMonthlyBillByAddressParams = {
       address,
-      startTime: `${start_year}-${start_month}`,
-      endTime: `${end_year}-${end_month}`,
-      monthlyBills: data,
-    }),
-  );
-  dispatch(setLoadingAccountCostTrend(false));
-};
+      start_month,
+      start_year,
+      end_month,
+      end_year,
+    };
+    dispatch(setLoadingAccountCostTrend(true));
+    const [data, error] = await getMonthlyBillByAddress(params);
+    if (!data || error) {
+      dispatch(setLoadingAccountCostTrend(false));
+      return error;
+    }
+    dispatch(
+      setAccountCostTrend({
+        address,
+        startTime: `${start_year}-${start_month}`,
+        endTime: `${end_year}-${end_month}`,
+        monthlyBills: data,
+      }),
+    );
+    dispatch(setLoadingAccountCostTrend(false));
+  };
 
 export const setupAccountBills =
   (address: string) => async (dispatch: AppDispatch, getState: GetState) => {

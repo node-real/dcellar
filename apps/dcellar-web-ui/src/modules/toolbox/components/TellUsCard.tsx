@@ -1,7 +1,5 @@
-import { Box, Text, Tooltip } from '@node-real/uikit';
-
+import { Box, Text } from '@node-real/uikit';
 import { Card } from './Common';
-
 import { assetPrefix } from '@/base/env';
 import { DCButton } from '@/components/common/DCButton';
 
@@ -21,24 +19,22 @@ export const TellUsCard = () => {
       justifyContent={'center'}
     >
       <Text fontSize={18} fontWeight={600} color={'readable.normal'} textAlign={'center'}>
-        Start Building with DCellar Now
+        Tell us what other tools you want.
       </Text>
       <Box textAlign={'center'}>
         <Text color={'readable.secondary'}>
-          DCellar offers a full set of open source toolkits for developers to start build on
-          Greenfield at ease.
+          Want some off-the-shelf tools, API, or SDK to aid in development? Feel free to give us a
+          message.
         </Text>
       </Box>
-      <Tooltip content="Upcoming">
-        <DCButton
-          margin={'16px auto 0'}
-          variant="brand"
-          w={'fit-content'}
-          onClick={() => onNavigateExternal('#')}
-        >
-          Explore
-        </DCButton>
-      </Tooltip>
+      <DCButton
+        margin={'16px auto 0'}
+        variant="brand"
+        w={'fit-content'}
+        onClick={() => onNavigateExternal('https://discord.com/invite/bnbchain/')}
+      >
+        Contact Us
+      </DCButton>
     </Card>
   );
 };

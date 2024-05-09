@@ -150,7 +150,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
               w={24}
               h={24}
             >
-              <IconFont type={'bsc'} w={20} color={'#fff'} />
+              <IconFont type={'line-bsc'} w={20} color={'#fff'} />
             </Flex>
             <Text fontSize={24} fontWeight={600}>
               {BN(availableBalance).dp(CRYPTOCURRENCY_DISPLAY_PRECISION).toString()}

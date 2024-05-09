@@ -76,9 +76,7 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
           w={'max-content'}
           maxW={'100%'}
         >
-          <Text as={'span'} onClick={onClick}>
-            {name}
-          </Text>
+          {name}
         </EllipsisText>
         {(status && ['CANCEL', 'ERROR'].includes(status)) || msg ? (
           <EllipsisText fontWeight={400} color={'scene.danger.normal'}>

@@ -178,12 +178,6 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
         paymentAddress: newPaymentAccount.address,
       }),
     );
-    dispatch(
-      setBucketPaymentAccount({
-        bucketName: bucket.BucketName,
-        paymentAddress: newPaymentAccount.address,
-      }),
-    );
   };
 
   return (

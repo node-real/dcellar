@@ -2,6 +2,21 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.2.0",
+      "tag": "dcellar-web-ui_v1.2.0",
+      "date": "Thu, 09 May 2024 06:16:58 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Introduce retry upload functionality"
+          },
+          {
+            "comment": "Add toolbox page"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.1.0",
       "tag": "dcellar-web-ui_v1.1.0",
       "date": "Mon, 29 Apr 2024 06:35:57 GMT",

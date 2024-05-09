@@ -10,7 +10,7 @@ const datas = [
   {
     icon: (
       <IconFont
-        type="w-list"
+        type="ul-list"
         w={32}
         sx={{
           [smMedia]: {
@@ -25,7 +25,8 @@ const datas = [
   {
     icon: (
       <IconFont
-        type="w-eco"
+        type="filled-brain"
+        color={'#fff'}
         w={32}
         sx={{
           [smMedia]: {
@@ -40,7 +41,7 @@ const datas = [
   {
     icon: (
       <IconFont
-        type="w-user"
+        type="happy-face"
         w={32}
         sx={{
           [smMedia]: {
