@@ -1,4 +1,4 @@
-import { resolve } from '@/facade/common';
+import { DeliverTxResponse, broadcastTx, resolve } from '@/facade/common';
 import {
   ErrorResponse,
   broadcastFault,
@@ -18,6 +18,7 @@ import {
   QueryQuoteUpdateTimeResponse,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/query';
 import {
+  MsgCancelMigrateBucket,
   MsgCreateBucket,
   MsgUpdateBucketInfo,
 } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
@@ -30,6 +31,7 @@ import {
   IQuotaProps,
   ISimulateGasFee,
   Long,
+  MigrateBucketApprovalRequest,
   ReadQuotaRequest,
   SpResponse,
   TxResponse,
@@ -455,4 +457,29 @@ export const getBucketActivities = async (id: string): Promise<Activity[]> => {
   if (!result) return [];
 
   return result.data.result || [];
+}
+
+export const migrateBucket = async (
+  params: MigrateBucketApprovalRequest,
+  authType: AuthType,
+  connector: Connector,
+): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
+  const client = await getClient();
+  const [tx, error1] = await client.bucket
+    .migrateBucket(params, authType)
+    .then(resolve, createTxFault);
+  if (!tx) return [null, error1];
+
+  return broadcastTx({ tx: tx, address: params.operator, connector });
+};
+
+export const cancelMigrateBucket = async (
+  params: MsgCancelMigrateBucket,
+  connector: Connector,
+): Promise<ErrorResponse | [DeliverTxResponse, null]> => {
+  const client = await getClient();
+  const [tx, error1] = await client.bucket.cancelMigrateBucket(params).then(resolve, createTxFault);
+  if (!tx) return [null, error1];
+
+  return broadcastTx({ tx: tx, address: params.operator, connector });
 };

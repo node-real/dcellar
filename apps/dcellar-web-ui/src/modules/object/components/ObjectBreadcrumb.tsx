@@ -16,6 +16,7 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
 }) {
   const dispatch = useAppDispatch();
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
   const pathSegments = useAppSelector((root) => root.object.pathSegments);
 
@@ -33,7 +34,12 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
           flex={1}
           minW={0}
         >
-          {isBucketDiscontinue && first && <IconFont type="colored-error2" w={16} />}
+          {first &&
+            (isBucketDiscontinue ? (
+              <IconFont type="colored-error2" w={16} />
+            ) : isBucketMigrating ? (
+              <IconFont type="migrate" w={16} />
+            ) : null)}
           <Text fontWeight={500} as="span" overflow="hidden" textOverflow="ellipsis">
             {text}
           </Text>
@@ -43,7 +49,12 @@ export const ObjectBreadcrumb = memo<ObjectBreadcrumbProps>(function ObjectBread
       <BreadcrumbItem key={link}>
         <BreadcrumbLink as="div" fontSize={12} fontWeight={500} color="readable.tertiary">
           <Flex alignItems={'center'} gap={4} as="span">
-            {isBucketDiscontinue && first && <IconFont type="colored-error2" w={16} />}
+            {first &&
+              (isBucketDiscontinue ? (
+                <IconFont type="colored-error2" w={16} />
+              ) : isBucketMigrating ? (
+                <IconFont type="migrate" w={16} />
+              ) : null)}
             <GAClick name="dc.file.list.breadcrumbs.click">
               <Link
                 href={link}

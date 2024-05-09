@@ -18,6 +18,7 @@ import { EditBucketTagsOperation } from './EditBucketTagsOperation';
 import { PaymentAccountOperation } from './PaymentAccountOperation';
 import { UpdateBucketTagsOperation } from './UpdateBucketTagsOperation';
 import { useRouter } from 'next/router';
+import { MigrateBucketOperation } from './MigrateBucketOperation';
 
 interface BucketOperationsProps {
   level?: 0 | 1;
@@ -41,6 +42,7 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
     'tags',
     'edit_tags',
     'update_tags',
+    'migrate',
   ].includes(operation);
   const isModal = ['delete'].includes(operation);
   const _operation = useModalValues<BucketOperationsType>(operation);
@@ -78,6 +80,8 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
         return <EditBucketTagsOperation onClose={onClose} />;
       case 'update_tags':
         return <UpdateBucketTagsOperation bucket={_selectBucketInfo} onClose={onClose} />;
+      case 'migrate':
+        return <MigrateBucketOperation bucket={_selectBucketInfo} onClose={onClose} />;
       default:
         return null;
     }

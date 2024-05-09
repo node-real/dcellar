@@ -15,9 +15,10 @@ import { isEmpty } from 'lodash-es';
 
 interface SPSelectorProps {
   onChange: (value: SpEntity) => void;
+  selectedSp?: string;
 }
 
-export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }) {
+export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange, selectedSp }) {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const unAvailableSps = useAppSelector((root) => root.persist.unAvailableSps);
@@ -90,7 +91,7 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
   useMount(() => {
     if (!len) return;
     setTotal(allSpList.length);
-    setSP(spRecords[specifiedSp]);
+    setSP(spRecords[selectedSp || specifiedSp]);
   });
 
   useEffect(() => {

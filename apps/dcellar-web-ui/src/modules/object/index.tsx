@@ -8,7 +8,6 @@ import { useEffect } from 'react';
 import { InsufficientBalance } from './components/InsufficientBalance';
 
 import { IconFont } from '@/components/IconFont';
-import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { CreateObject } from '@/modules/object/components/CreateObject';
 import { ObjectBreadcrumb } from '@/modules/object/components/ObjectBreadcrumb';
 import { ObjectFilterItems } from '@/modules/object/components/ObjectFilterItems';
@@ -30,6 +29,9 @@ import { setPathSegments } from '@/store/slices/object';
 import { setPrimarySpInfo, SpEntity } from '@/store/slices/sp';
 import { GAContextProvider } from '@/context/GAContext';
 import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
+import { BucketStatus as BucketStatusEnum } from '@bnb-chain/greenfield-js-sdk';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
+import { MigratingBucketNoticeBanner } from './components/MigratingBucketNoticeBanner';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -39,6 +41,7 @@ export const ObjectsPage = () => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const allSpList = useAppSelector((root) => root.sp.allSpList);
 
   const { path } = router.query;
@@ -74,8 +77,9 @@ export const ObjectsPage = () => {
     if (bucket) {
       const Owner = bucket.Owner;
       const payload = {
-        discontinue: bucket.BucketStatus === 1,
-        owner: Owner === loginAccount,
+        isBucketDiscontinue: bucket.BucketStatus === BucketStatusEnum.BUCKET_STATUS_DISCONTINUED,
+        isBucketMigrating: bucket.BucketStatus === BucketStatusEnum.BUCKET_STATUS_MIGRATING,
+        isBucketOwner: Owner === loginAccount,
       };
       dispatch(setBucketStatus(payload));
       return;
@@ -142,7 +146,11 @@ export const ObjectsPage = () => {
         {isBucketDiscontinue && isBucketOwner && (
           <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />
         )}
+        {isBucketMigrating && isBucketOwner && (
+          <MigratingBucketNoticeBanner bucketName={bucket.BucketName} />
+        )}
         <ObjectOperations />
+
         <ObjectList />
       </ObjectContainer>
     </GAContextProvider>

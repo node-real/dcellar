@@ -1,7 +1,7 @@
 import { BucketList } from '@/modules/bucket/components/BucketList';
 import { CreateBucket } from '@/modules/bucket/components/CreateBucket';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectHasDiscontinue, setupBucketList } from '@/store/slices/bucket';
+import { selectHasDiscontinueBucket, setupBucketList } from '@/store/slices/bucket';
 import { useAsyncEffect, useDocumentVisibility, useUpdateEffect } from 'ahooks';
 import { PageTitle } from '@/components/layout/PageTitle';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
@@ -11,7 +11,7 @@ import { GAContextProvider } from '@/context/GAContext';
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const discontinue = useAppSelector(selectHasDiscontinue(loginAccount));
+  const hasDiscontinueBucket = useAppSelector(selectHasDiscontinueBucket(loginAccount));
 
   const documentVisibility = useDocumentVisibility();
 
@@ -32,7 +32,7 @@ export const BucketPage = () => {
       <PageTitle title={'Buckets'} metaTitle={'Buckets'}>
         <CreateBucket />
       </PageTitle>
-      {discontinue && (
+      {hasDiscontinueBucket && (
         <DiscontinueBanner
           content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "
           height={44}

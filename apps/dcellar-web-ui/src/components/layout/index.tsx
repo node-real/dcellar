@@ -19,6 +19,7 @@ interface LayoutProps extends PropsWithChildren {}
 export const Layout = memo<LayoutProps>(function Layout({ children }) {
   const dispatch = useAppDispatch();
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
   const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
   const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
@@ -49,7 +50,13 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
     },
     hover() {
       if (pathname !== '/buckets/[...path]') return;
-      if (isBucketDiscontinue || !isBucketOwner || accountDetail.clientFrozen || !folderExist)
+      if (
+        isBucketDiscontinue ||
+        isBucketMigrating ||
+        !isBucketOwner ||
+        accountDetail.clientFrozen ||
+        !folderExist
+      )
         return;
       dispatch(setObjectOperation({ operation: ['', 'upload'] }));
     },

@@ -12,6 +12,7 @@ import {
   setupBucketQuota,
   TBucket,
   setupBucketActivity,
+  BucketOperationsType,
 } from '@/store/slices/bucket';
 import { selectBucketSp } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
@@ -35,12 +36,14 @@ import {
   Tabs,
   Text,
   Tooltip,
+  toast,
 } from '@node-real/uikit';
 import dayjs from 'dayjs';
 import { memo, PropsWithChildren, useEffect, useState } from 'react';
 import { useMount, useUnmount } from 'ahooks';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { Activities } from '@/components/Activities';
+import { BucketStatus } from '@bnb-chain/greenfield-js-sdk';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text as={'div'} fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -141,15 +144,6 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     dispatch(setBucketEditQuota([selectedBucketInfo.BucketName, 'drawer']));
   };
 
-  const onManagePaymentAccount = () => {
-    dispatch(
-      setBucketOperation({
-        level: 1,
-        operation: [selectedBucketInfo.BucketName, 'payment_account'],
-      }),
-    );
-  };
-
   const getContent = () => {
     const CreateAt = getMillisecond(selectedBucketInfo.CreateAt);
     const spName = primarySp.moniker;
@@ -157,7 +151,6 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     const infos = [
       {
         canCopy: false,
-        edit: false,
         label: 'Date created',
         value: formatFullTime(CreateAt),
         display: formatFullTime(CreateAt),
@@ -166,7 +159,9 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       {
         canCopy: true,
         label: 'Primary SP address',
+        edit: 'migrate',
         name: spName,
+        operation: 'payment_account',
         value: primarySp.operatorAddress || '--',
         display: primarySp.operatorAddress ? trimAddress(primarySp.operatorAddress) : '--',
         copyGaClickName: 'dc.bucket.b_detail_pop.copy_spadd.click',
@@ -175,7 +170,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
-        edit: true,
+        edit: 'payment_account',
         label: 'Payment address',
         name: payAccountName,
         value: selectedBucketInfo.PaymentAddress,
@@ -186,7 +181,6 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
-        edit: false,
         label: 'Bucket ID',
         value: formatId(Number(selectedBucketInfo.Id)),
         display: formatAddress(formatId(Number(selectedBucketInfo.Id))),
@@ -196,7 +190,6 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       },
       {
         canCopy: true,
-        edit: false,
         label: 'Create transaction hash',
         value: selectedBucketInfo.CreateTxHash,
         display: formatAddress(selectedBucketInfo.CreateTxHash),
@@ -235,7 +228,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                         gap={4}
                         color={'brand.brand6'}
                         cursor={'pointer'}
-                        onClick={onManagePaymentAccount}
+                        onClick={() => onEditClick(item.edit as BucketOperationsType)}
                         w={16}
                         h={16}
                       >
@@ -377,6 +370,30 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     );
   };
 
+  const onEditClick = (operation?: BucketOperationsType) => {
+    switch (operation) {
+      case 'payment_account':
+        dispatch(
+          setBucketOperation({
+            level: 1,
+            operation: [selectedBucketInfo.BucketName, 'payment_account'],
+          }),
+        );
+        break;
+      case 'migrate':
+        if (selectedBucketInfo.BucketStatus === BucketStatus.BUCKET_STATUS_MIGRATING) {
+          toast.error({ description: 'The bucket is migrating, please wait.' });
+        } else {
+          dispatch(
+            setBucketOperation({
+              level: 1,
+              operation: [selectedBucketInfo.BucketName, 'migrate'],
+            }),
+          );
+        }
+        break;
+    }
+  };
   useEffect(() => {
     dispatch(setupBucketQuota(selectedBucketInfo.BucketName));
   }, [selectedBucketInfo.BucketName, dispatch]);
