@@ -4,9 +4,11 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { setSignatureAction } from '@/store/slices/global';
 import { Flex, Text, toast } from '@node-real/uikit';
 import { BUTTON_GOT_IT, WALLET_CONFIRM } from '../constant';
-import { cancelMigrateBucket } from '@/facade/bucket';
+import { cancelMigrateBucket, headBucket } from '@/facade/bucket';
 import { MsgCancelMigrateBucket } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { useAccount } from 'wagmi';
+import { BucketStatus } from '@bnb-chain/greenfield-js-sdk';
+import { setupBucket } from '@/store/slices/bucket';
 
 export const MigratingBucketNoticeBanner = ({ bucketName }: { bucketName: string }) => {
   const dispatch = useAppDispatch();
@@ -24,6 +26,14 @@ export const MigratingBucketNoticeBanner = ({ bucketName }: { bucketName: string
       operator: loginAccount,
       bucketName,
     };
+    const bucketInfo = await headBucket(bucketName);
+    if (bucketInfo?.bucketStatus === BucketStatus.BUCKET_STATUS_CREATED) {
+      await dispatch(setupBucket(bucketName));
+      dispatch(setSignatureAction({}));
+      toast.success({ description: 'This bucket has been migrated!' });
+      return;
+    }
+
     const [txRes, error] = await cancelMigrateBucket(params, connector!);
 
     if (!txRes || txRes.code !== 0) {
@@ -37,6 +47,7 @@ export const MigratingBucketNoticeBanner = ({ bucketName }: { bucketName: string
         }),
       );
     }
+    await dispatch(setupBucket(bucketName));
     dispatch(setSignatureAction({}));
     toast.success({ description: 'Cancel Migrate Bucket successfully!' });
   };

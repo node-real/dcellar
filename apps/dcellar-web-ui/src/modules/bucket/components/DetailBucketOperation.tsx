@@ -160,6 +160,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
         canCopy: true,
         label: 'Primary SP address',
         edit: 'migrate',
+        editDisabled: [
+          BucketStatus.BUCKET_STATUS_MIGRATING,
+          BucketStatus.BUCKET_STATUS_DISCONTINUED,
+        ].includes(selectedBucketInfo.BucketStatus),
         name: spName,
         operation: 'payment_account',
         value: primarySp.operatorAddress || '--',
@@ -171,6 +175,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       {
         canCopy: true,
         edit: 'payment_account',
+        editDisabled: [
+          BucketStatus.BUCKET_STATUS_MIGRATING,
+          BucketStatus.BUCKET_STATUS_DISCONTINUED,
+        ].includes(selectedBucketInfo.BucketStatus),
         label: 'Payment address',
         name: payAccountName,
         value: selectedBucketInfo.PaymentAddress,
@@ -226,9 +234,11 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
                       <Flex
                         alignItems={'center'}
                         gap={4}
-                        color={'brand.brand6'}
-                        cursor={'pointer'}
-                        onClick={() => onEditClick(item.edit as BucketOperationsType)}
+                        color={item.editDisabled ? 'readable.disable' : 'brand.brand6'}
+                        cursor={item.editDisabled ? 'not-allowed' : 'pointer'}
+                        onClick={() =>
+                          !item.editDisabled && onEditClick(item.edit as BucketOperationsType)
+                        }
                         w={16}
                         h={16}
                       >

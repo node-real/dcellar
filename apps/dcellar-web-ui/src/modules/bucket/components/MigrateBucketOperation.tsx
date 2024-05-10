@@ -3,11 +3,11 @@ import { InsufficientBalances } from '@/components/Fee/InsufficientBalances';
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
-import { migrateBucket, pollingGetBucket } from '@/facade/bucket';
+import { migrateBucket } from '@/facade/bucket';
 import { E_OFF_CHAIN_AUTH } from '@/facade/error';
 import { BUTTON_GOT_IT, UNKNOWN_ERROR, WALLET_CONFIRM } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { TBucket, setBucketEditQuota } from '@/store/slices/bucket';
+import { TBucket, setBucketEditQuota, setupBucketList } from '@/store/slices/bucket';
 import { formatQuota } from '@/utils/string';
 import {
   Divider,
@@ -29,6 +29,7 @@ import { SpEntity } from '@/store/slices/sp';
 import { selectBucketSp } from '@/store/slices/sp';
 import {
   AuthType,
+  BucketStatus,
   MigrateBucketApprovalRequest,
   MsgMigrateBucketTypeUrl,
 } from '@bnb-chain/greenfield-js-sdk';
@@ -137,19 +138,17 @@ export const MigrateBucketOperation = memo(function MigrateBucketOperation({
     dispatch(setSignatureAction({}));
     toast.success({ description: 'Primary Storage Provider updated!' });
     onClose();
-    await pollingGetBucket({
-      address: loginAccount,
-      endpoint: primarySp.endpoint,
-      bucketName: bucket.BucketName,
-    });
+    dispatch(setupBucketList(loginAccount));
   };
 
   const onSpChange = useCallback((sp: SpEntity) => {
     selectedSpRef.current = sp;
   }, []);
+
   const onManageQuota = () => {
     dispatch(setBucketEditQuota([bucket.BucketName, 'drawer']));
   };
+
   return (
     <>
       <QDrawerHeader flexDir={'column'}>
@@ -178,9 +177,12 @@ export const MigrateBucketOperation = memo(function MigrateBucketOperation({
         </Field>
 
         <Field>
-          <Label w={'fit-content'}>Total Quota</Label>
+          <Label w={'fit-content'}>Total quota</Label>
           <Value>
-            {formattedQuota.totalText} ({formattedQuota.remainText} remains)
+            {formattedQuota.totalText}&nbsp;
+            <Text as="span" color="#76808F">
+              ({formattedQuota.remainText} remains)
+            </Text>
           </Value>
         </Field>
         {!isPayQuota && (
