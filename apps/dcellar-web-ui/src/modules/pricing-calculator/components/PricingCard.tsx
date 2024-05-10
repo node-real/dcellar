@@ -51,10 +51,14 @@ export const PricingCard = ({ storeParams }: PricingCardProps) => {
       .times(storeTime)
       .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
       .toString();
-    return {
+
+    const fee = {
       storageFee,
       quotaFee,
+      storeParams,
     };
+
+    return ((global as any).__MAINNET_CHAIN_FEE = fee);
   }, [storeParams, unit.size, unit.time]);
 
   return (
