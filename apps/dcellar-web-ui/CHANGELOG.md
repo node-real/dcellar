@@ -1,6 +1,21 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 09 May 2024 06:16:58 GMT and should not be manually modified.
+This log was last generated on Sat, 11 May 2024 03:15:50 GMT and should not be manually modified.
+
+## 1.3.1
+Sat, 11 May 2024 03:15:50 GMT
+
+### Patches
+
+- Upgrade nextjs to aviod attacks via CVE-2024-34351 vulnerability
+- Fix the issue with browser cache getObjectMeta API
+
+## 1.3.0
+Fri, 10 May 2024 08:02:26 GMT
+
+### Minor changes
+
+- Cache pricing data for other landing page
 
 ## 1.2.0
 Thu, 09 May 2024 06:16:58 GMT

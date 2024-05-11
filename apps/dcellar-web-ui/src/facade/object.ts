@@ -621,22 +621,30 @@ export const getObjectMeta = async (
     objectName,
   )}?object-meta`;
 
-  return axios.get(url).then(
-    (e) => {
-      const data = xmlParser.parse(e.data)?.GfSpGetObjectMetaResponse.Object as ObjectMeta;
-      return [data, null];
-    },
-    (e) => {
-      const { response } = e;
-      if (!response) return [null, { code: 500, message: 'Oops, something went wrong' }];
+  return axios
+    .get(url, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    })
+    .then(
+      (e) => {
+        const data = xmlParser.parse(e.data)?.GfSpGetObjectMetaResponse.Object as ObjectMeta;
+        return [data, null];
+      },
+      (e) => {
+        const { response } = e;
+        if (!response) return [null, { code: 500, message: 'Oops, something went wrong' }];
 
-      const error =
-        response?.status === 429
-          ? { code: response.status, message: 'SP not available. Try later.' }
-          : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
-      return [null, error];
-    },
-  );
+        const error =
+          response?.status === 429
+            ? { code: response.status, message: 'SP not available. Try later.' }
+            : { message: xmlParser.parse(response.data)?.Error?.Message, code: response.status };
+        return [null, error];
+      },
+    );
 };
 
 export const getObjectVersions = async (id: string): Promise<ObjectVersion[]> => {
