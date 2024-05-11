@@ -624,9 +624,7 @@ export const getObjectMeta = async (
   return axios
     .get(url, {
       headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-        Expires: '0',
+        'Cache-Control': 'no-store',
       },
     })
     .then(

@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Sat, 11 May 2024 03:15:50 GMT and should not be manually modified.
+This log was last generated on Sat, 11 May 2024 05:44:13 GMT and should not be manually modified.
+
+## 1.3.2
+Sat, 11 May 2024 05:44:13 GMT
+
+### Patches
+
+- Update getObjectMeta request cache header and policy
 
 ## 1.3.1
 Sat, 11 May 2024 03:15:50 GMT
