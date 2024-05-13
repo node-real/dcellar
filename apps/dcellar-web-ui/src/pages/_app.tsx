@@ -67,6 +67,7 @@ function DcellarApp({ Component, ...rest }: AppProps) {
 DcellarApp.getInitialProps = wrapper.getInitialAppProps((store) => async (appCtx) => {
   // todo refactor every page fetch policy
   // only empty cache, then do fetch
+  console.log('DcellarApp.getInitialProps');
   await store.dispatch(setupStorageProviders());
   const nest = await App.getInitialProps(appCtx);
 

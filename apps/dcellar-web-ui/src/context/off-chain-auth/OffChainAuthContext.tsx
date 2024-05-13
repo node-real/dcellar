@@ -65,6 +65,7 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           }),
         );
 
+        console.log('onOffChainAuth-pruneSps: ', pruneSps, authSps.current);
         const configParam: IGenOffChainAuthKeyPairAndUpload = {
           address,
           chainId: GREENFIELD_CHAIN_ID,
@@ -72,7 +73,10 @@ export const OffChainAuthProvider: React.FC<any> = ({ children }) => {
           domain,
           expirationMs: EXPIRATION_MS,
         };
+        console.log('onOffChainAuth-configParam: ', configParam);
         const client = await getClient();
+        console.log('onOffChainAuth-client: ', client);
+        console.log('onOffchainAuth-provider:', provider);
         const res = await client.offchainauth.genOffChainAuthKeyPairAndUpload(
           configParam,
           provider,

@@ -145,7 +145,12 @@ export const setupStorageProviders = () => async (dispatch: AppDispatch, getStat
   const { RECOMMEND_SPS } = getState().apollo;
   if (_sps.length) return;
 
+  console.log('setupStorageProviders-_sps', _sps);
+  console.log('setupStorageProviders-unAvailableSps', unAvailableSps);
+  console.log('setupStorageProviders-RECOMMEND_SPS', RECOMMEND_SPS);
+
   const sps = await getStorageProviders();
+  console.log('setupStorageProviders-sps', sps);
   const recommend = (RECOMMEND_SPS || '')
     .split(',')
     .map((i: string) => i.trim())
