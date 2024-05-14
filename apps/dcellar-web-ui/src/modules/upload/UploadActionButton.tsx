@@ -8,8 +8,11 @@ import {
   updateUploadStatus,
 } from '@/store/slices/global';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import React, { useCallback } from 'react';
 =======
+=======
+>>>>>>> f143b09b (feat(dcellar-web-ui): introduce the stop upload feature)
 import React from 'react';
 >>>>>>> 2ee2f675 (feat(dcellar-web-ui): introduce the stop upload feature)
 
