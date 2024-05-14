@@ -1,20 +1,30 @@
 import { IconFont } from '@/components/IconFont';
 import { DCButton } from '@/components/common/DCButton';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { clearUploadRecords, retryUploadTasks } from '@/store/slices/global';
+import {
+  cancelUploadingRequests,
+  clearUploadRecords,
+  retryUploadTasks,
+  updateUploadStatus,
+} from '@/store/slices/global';
 import React from 'react';
 
 export type ActionButtonProps = {
-  type: 'clear' | 'retry' | 'clear-all' | 'retry-all';
+  type: 'clear' | 'retry' | 'clear-all' | 'retry-all' | 'cancel' | 'cancel-all';
   ids: number[];
   text?: string;
 };
 
 const actionItems = [
   {
-    type: 'clear',
-    text: 'Clear',
-    icon: 'delete',
+    type: 'cancel',
+    text: 'Cancel',
+    icon: 'stop',
+  },
+  {
+    type: 'cancel-all',
+    text: 'Stop Uploading',
+    icon: 'stop',
   },
   {
     type: 'retry',
@@ -22,14 +32,19 @@ const actionItems = [
     icon: 'retry',
   },
   {
-    type: 'clear-all',
-    text: 'Clear All Records',
-    icon: 'delete',
-  },
-  {
     type: 'retry-all',
     text: 'Retry All',
     icon: 'retry',
+  },
+  {
+    type: 'clear',
+    text: 'Clear',
+    icon: 'delete',
+  },
+  {
+    type: 'clear-all',
+    text: 'Clear All Records',
+    icon: 'delete',
   },
 ];
 
@@ -42,6 +57,16 @@ export const UploadActionButton = React.memo(function UploadActionButton({
   const dispatch = useAppDispatch();
   const actionItem = actionItems.find((item) => item.type === type);
 
+  const onCancel = (ids: number[]) => {
+    dispatch(
+      updateUploadStatus({
+        account: loginAccount,
+        ids,
+        status: 'CANCEL',
+      }),
+    );
+    dispatch(cancelUploadingRequests({ ids }));
+  };
   const onClear = (ids: number[]) => {
     dispatch(clearUploadRecords({ ids, loginAccount }));
   };
@@ -50,13 +75,17 @@ export const UploadActionButton = React.memo(function UploadActionButton({
   };
   const onClick = () => {
     switch (type) {
-      case 'clear':
-      case 'clear-all':
-        onClear(ids);
+      case 'cancel':
+      case 'cancel-all':
+        onCancel(ids);
         break;
       case 'retry':
       case 'retry-all':
         onRetry(ids);
+        break;
+      case 'clear':
+      case 'clear-all':
+        onClear(ids);
         break;
       default:
         break;

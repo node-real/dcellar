@@ -19,7 +19,7 @@ import { UploadingPanelKey, useTaskManagementTab } from './useTaskManagementTab'
 
 import { IconFont } from '@/components/IconFont';
 import { UploadingObjectsList } from './UploadingObjectsList';
-import { UploadObject } from '@/store/slices/global';
+import { UPLOADING_STATUSES, UPLOAD_FAILED_STATUSES, UploadObject } from '@/store/slices/global';
 import { UploadActionButton } from './UploadActionButton';
 
 interface UploadingObjectsProps {}
@@ -36,15 +36,20 @@ export const UploadingObjects = memo<UploadingObjectsProps>(function UploadingOb
     panelKey: UploadingPanelKey;
     data: UploadObject[];
   }) => {
-    if ([UploadingPanelKey.ALL, UploadingPanelKey.UPLOADING].includes(panelKey)) {
-      return null;
-    }
     return (
       <Flex mb={12}>
         {panelKey === UploadingPanelKey.COMPLETE && (
           <UploadActionButton type="clear-all" ids={data.map((item) => item.id)} />
         )}
-        {panelKey === UploadingPanelKey.FAILED && (
+        {(panelKey === UploadingPanelKey.UPLOADING || panelKey === UploadingPanelKey.ALL) && (
+          <UploadActionButton
+            type="cancel-all"
+            ids={data
+              .filter((item) => UPLOADING_STATUSES.includes(item.status))
+              .map((item) => item.id)}
+          />
+        )}
+        {(panelKey === UploadingPanelKey.FAILED || panelKey === UploadingPanelKey.STOPPED) && (
           <Flex gap={6}>
             <UploadActionButton type="retry-all" ids={data.map((item) => item.id)} />
             <UploadActionButton type="clear-all" ids={data.map((item) => item.id)} />

@@ -1,10 +1,5 @@
 import { DCTable } from '@/components/common/DCTable';
-import {
-  UPLOADING_STATUSES,
-  UPLOAD_FAILED_STATUSES,
-  UPLOAD_SUCCESS_STATUS,
-  UploadObject,
-} from '@/store/slices/global';
+import { UploadObject } from '@/store/slices/global';
 import { ColumnProps } from 'antd/es/table';
 import React, { useState } from 'react';
 import { NameItem } from './NameItem';
@@ -72,7 +67,8 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
       title: 'Action',
       width: 146,
       render: (record) => {
-        if (UPLOADING_STATUSES.includes(record.status)) {
+        const { status, id } = record;
+        if (['SEAL', 'SEALING'].includes(status)) {
           return (
             <Text color="readable.disable" fontSize={12}>
               --
@@ -80,15 +76,29 @@ export const UploadingObjectsList = ({ data }: { data: UploadObject[] }) => {
           );
         }
 
-        if (UPLOAD_SUCCESS_STATUS === record.status) {
-          return <UploadActionButton type="clear" text="Clear Record" ids={[record.id]} />;
-        } else if (UPLOAD_FAILED_STATUSES.includes(record.status)) {
-          return (
-            <Flex gap={6}>
-              <UploadActionButton type="retry" ids={[record.id]} />
-              <UploadActionButton type="clear" ids={[record.id]} />
-            </Flex>
-          );
+        switch (status) {
+          case 'FINISH':
+            return <UploadActionButton type="clear" text="Clear Record" ids={[id]} />;
+
+          case 'CANCEL':
+          case 'ERROR':
+            return (
+              <Flex gap={6}>
+                <UploadActionButton type="retry" ids={[id]} />
+                <UploadActionButton type="clear" ids={[id]} />
+              </Flex>
+            );
+
+          case 'WAIT':
+          case 'HASH':
+          case 'HASHED':
+          case 'SIGN':
+          case 'SIGNED':
+          case 'UPLOAD':
+            return <UploadActionButton type="cancel" text="Cancel" ids={[id]} />;
+
+          default:
+            return null;
         }
       },
     },
