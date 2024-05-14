@@ -7,7 +7,11 @@ import {
   retryUploadTasks,
   updateUploadStatus,
 } from '@/store/slices/global';
+<<<<<<< HEAD
 import React, { useCallback } from 'react';
+=======
+import React from 'react';
+>>>>>>> 2ee2f675 (feat(dcellar-web-ui): introduce the stop upload feature)
 
 export type ActionButtonProps = {
   type: 'clear' | 'retry' | 'clear-all' | 'retry-all' | 'cancel' | 'cancel-all';
