@@ -32,6 +32,10 @@ export const E_MAX_FOLDER_DEPTH = 'MAX_FOLDER_DEPTH';
 export const E_ACCOUNT_BALANCE_NOT_ENOUGH = 'ACCOUNT_BALANCE_NOT_ENOUGH';
 export const E_NO_PERMISSION = 'NO_PERMISSION';
 export const E_SP_STORAGE_PRICE_FAILED = 'SP_STORAGE_PRICE_FAILED';
+export const E_BUCKET_FLOW_RATE_NOT_SET =
+  'The payment account does not specify a flow rate for this bucket, hence it cannot be created. Please contact the payment account owner first to set the flow rate for your bucket.';
+export const E_BUCKET_FLOW_RATE_LOW =
+  "The flow rate exceeds the maximum value. Please remove some objects or contact the payment account's owner to increase the flow rate.";
 
 export declare class BroadcastTxError extends Error {
   readonly code: number;
@@ -54,6 +58,15 @@ export const simulateFault = (e: any): ErrorResponse => {
   if (e?.message.includes('No such object')) {
     return [null, E_OBJECT_NOT_EXISTS];
   }
+  if (e?.message.includes('the flow rate limit is not set for the bucket')) {
+    return [null, E_BUCKET_FLOW_RATE_NOT_SET];
+  }
+  if (
+    e?.message.includes('is greater than the flow rate limit') ||
+    e?.message.includes('payment account is not changed but the bucket is limited')
+  ) {
+    return [null, E_BUCKET_FLOW_RATE_LOW];
+  }
   return [null, e?.message || E_UNKNOWN_ERROR];
 };
 
@@ -61,6 +74,15 @@ export const broadcastFault = (e: BroadcastTxError): ErrorResponse => {
   const { code = '' } = e;
   if (String(code) === E_USER_REJECT_STATUS_NUM) {
     return [null, ErrorMsgMap[E_USER_REJECT_STATUS_NUM]];
+  }
+  if (e?.message.includes('the flow rate limit is not set for the bucket')) {
+    return [null, 'E_BUCKET_FLOW_RATE_NOT_SET'];
+  }
+  if (
+    e?.message.includes('is greater than the flow rate limit') ||
+    e?.message.includes('payment account is not changed but the bucket is limited')
+  ) {
+    return [null, 'Flow rate exceeds limit'];
   }
   return [null, parseWCMessage(e?.message) || E_UNKNOWN_ERROR];
 };
@@ -102,6 +124,15 @@ export const offChainAuthFault = (e: any): ErrorResponse => {
 };
 
 export const commonFault = (e: any): ErrorResponse => {
+  if (e?.message.includes('the flow rate limit is not set for the bucket')) {
+    return [null, E_BUCKET_FLOW_RATE_NOT_SET];
+  }
+  if (
+    e?.message.includes('is greater than the flow rate limit') ||
+    e?.message.includes('payment account is not changed but the bucket is limited')
+  ) {
+    return [null, E_BUCKET_FLOW_RATE_LOW];
+  }
   if (e?.message) {
     return [null, e?.message];
   }

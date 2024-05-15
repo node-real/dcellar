@@ -21,6 +21,9 @@ export type ChangePaymentTotalFeeProps = {
   from: TSettlementFee;
   to: TSettlementFee;
   storeFee: string;
+  quotaFee: string;
+  fromSponsor: boolean;
+  toSponsor: boolean;
 };
 
 const TipsLink =
@@ -32,6 +35,9 @@ export const ChangePaymentTotalFee = ({
   from,
   to,
   storeFee,
+  quotaFee,
+  fromSponsor,
+  toSponsor,
 }: ChangePaymentTotalFeeProps) => {
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
 
@@ -42,6 +48,7 @@ export const ChangePaymentTotalFee = ({
     .plus(from.amount)
     .plus(to.amount)
     .plus(storeFee)
+    .plus(quotaFee)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
 
@@ -54,11 +61,21 @@ export const ChangePaymentTotalFee = ({
       canExpand={true}
       Tips={Tips}
     >
-      <SettlementFee amount={from.amount} />
-      <FullBalance address={from.address} />
-      <PrepaidFee amount={storeFee} />
-      <SettlementFee amount={to.amount} />
-      <FullBalance address={to.address} />
+      {!fromSponsor && (
+        <>
+          <SettlementFee amount={from.amount} />
+          <FullBalance address={from.address} />
+        </>
+      )}
+
+      {!toSponsor && (
+        <>
+          <PrepaidFee amount={storeFee + quotaFee} />
+          <SettlementFee amount={to.amount} />
+          <FullBalance address={to.address} />
+        </>
+      )}
+
       <GasFee amount={gasFee} />
       <BankBalance amount={bankBalance} />
     </TotalFeeBox>

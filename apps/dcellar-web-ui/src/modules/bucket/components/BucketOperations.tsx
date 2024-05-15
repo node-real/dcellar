@@ -12,11 +12,12 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { BucketOperationsType, TBucket, setBucketOperation } from '@/store/slices/bucket';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { ModalCloseButton } from '@node-real/uikit';
-import { useUnmount } from 'ahooks';
-import { memo, useCallback, useMemo } from 'react';
+import { useUnmount, useUpdateEffect } from 'ahooks';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { EditBucketTagsOperation } from './EditBucketTagsOperation';
 import { PaymentAccountOperation } from './PaymentAccountOperation';
 import { UpdateBucketTagsOperation } from './UpdateBucketTagsOperation';
+import { useRouter } from 'next/router';
 
 interface BucketOperationsProps {
   level?: 0 | 1;
@@ -26,6 +27,7 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   level = 0,
 }) {
   const dispatch = useAppDispatch();
+  const { pathname } = useRouter();
   const bucketOperation = useAppSelector((root) => root.bucket.bucketOperation);
   const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
   const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
@@ -82,6 +84,10 @@ export const BucketOperations = memo<BucketOperationsProps>(function BucketOpera
   }, [_operation, _selectBucketInfo, onClose, primarySp]);
 
   useUnmount(onClose);
+
+  useUpdateEffect(() => {
+    onClose();
+  }, [pathname]);
 
   return (
     <>

@@ -11,7 +11,6 @@ import {
   E_OFF_CHAIN_AUTH,
   E_USER_REJECT_STATUS_NUM,
   ErrorResponse,
-  commonFault,
   createTxFault,
   simulateFault,
 } from '@/facade/error';
@@ -75,6 +74,7 @@ import { useAccount } from 'wagmi';
 import { TotalFees } from './TotalFees';
 import { MsgCreateObject } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/tx';
 import { getSpOffChainData } from '@/store/slices/persist';
+import { useAccountType } from '@/hooks/useAccountType';
 
 interface CreateFolderOperationProps {
   selectBucket: TBucket;
@@ -119,6 +119,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   const folderList =
     objectListRecords[completeCommonPrefix]?.filter((item) => item.objectName.endsWith('/')) || [];
   const isOwnerAccount = accountDetail.address === loginAccount;
+  const { isSponsor } = useAccountType(accountDetail.address);
   const validTags = getValidTags(objectEditTagsData);
   const isSetTags = validTags.length > 0;
   const { gasFee: createBucketGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
@@ -487,7 +488,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
   }, []);
 
   useEffect(() => {
-    if (isEmpty(storeFeeParams)) {
+    if (isEmpty(storeFeeParams) || isSponsor) {
       return;
     }
     const nGasFee = BigNumber(gasFee);
@@ -504,6 +505,7 @@ export const CreateFolderOperation = memo<CreateFolderOperationProps>(function C
       }
     }
   }, [
+    isSponsor,
     gasFee,
     bankBalance,
     storeFee,

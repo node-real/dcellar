@@ -5,6 +5,8 @@ import {
   broadcastFault,
   commonFault,
   simulateFault,
+  E_BUCKET_FLOW_RATE_NOT_SET,
+  E_BUCKET_FLOW_RATE_LOW,
 } from '@/facade/error';
 import { getClient } from '@/facade/index';
 import { UNKNOWN_ERROR } from '@/modules/object/constant';
@@ -20,6 +22,15 @@ export const resolve = <R>(r: R): [R, null] => [r, null];
 
 export const resolveSpRequest = <R>(r: SpResponse<R>) => {
   if (r.code !== 0) {
+    if (r.message?.includes('the flow rate limit is not set for the bucket')) {
+      return [null, E_BUCKET_FLOW_RATE_NOT_SET];
+    }
+    if (
+      r.message?.includes('is greater than the flow rate limit') ||
+      r.message?.includes('payment account is not changed but the bucket is limited')
+    ) {
+      return [null, E_BUCKET_FLOW_RATE_LOW];
+    }
     return [null, r.message || UNKNOWN_ERROR];
   }
   return [r.body, null];

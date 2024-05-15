@@ -18,6 +18,7 @@ import { selectLocateBucket, setObjectOperation } from '@/store/slices/object';
 import { BN } from '@/utils/math';
 import { getStoreNetflowRate } from '@/utils/payment';
 import { isUploadObjectUpdate } from '@/utils/object';
+import { useAccountType } from '@/hooks/useAccountType';
 
 interface FeesProps {
   delegateUpload: boolean;
@@ -37,6 +38,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
   const payStoreFeeAccount = useAppSelector(selectAccount(bucket.PaymentAddress));
   const availableBalance = useAppSelector(selectAvailableBalance(payStoreFeeAccount.address));
   const { settlementFee } = useSettlementFee(bucket.PaymentAddress);
+  const { isSponsor } = useAccountType(payStoreFeeAccount.address);
 
   const { gasFee: singleTxGasFee } = gnfdGasFeesConfig?.[MsgCreateObjectTypeUrl] || {};
   const isOwnerAccount = payStoreFeeAccount.address === loginAccount;
@@ -90,7 +92,8 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
   }, [delegateUpload, isChecking, objectWaitQueue, singleTxGasFee, createTmpAccountGasFee]);
 
   const isBalanceAvailable = useMemo(() => {
-    if (isOwnerAccount) {
+    if (isOwnerAccount || isSponsor) {
+      if (isSponsor) return BN(bankBalance).minus(BN(gasFee)).isPositive();
       return (
         BN(bankBalance).minus(BN(gasFee)).isPositive() &&
         BN(bankBalance)
@@ -107,7 +110,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
           .isPositive()
       );
     }
-  }, [bankBalance, gasFee, isOwnerAccount, storeFee, payStoreFeeAccount?.staticBalance]);
+  }, [isSponsor, bankBalance, gasFee, isOwnerAccount, storeFee, payStoreFeeAccount?.staticBalance]);
 
   useAsyncEffect(async () => {
     if (isEmpty(storeFeeParams)) {
@@ -125,8 +128,11 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
             'upload',
             {
               gasFee: BN(gasFee).toString(DECIMAL_NUMBER),
-              preLockFee: BN(storeFee).toString(DECIMAL_NUMBER),
-              totalFee: BN(gasFee).plus(BN(storeFee)).plus(settlementFee).toString(DECIMAL_NUMBER),
+              preLockFee: isSponsor ? '0' : BN(storeFee).toString(DECIMAL_NUMBER),
+              totalFee: (isSponsor
+                ? BN(gasFee)
+                : BN(gasFee).plus(BN(storeFee)).plus(settlementFee)
+              ).toString(DECIMAL_NUMBER),
               isBalanceAvailable: isBalanceAvailable,
             },
           ],
@@ -134,6 +140,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
       );
     }
   }, [
+    isSponsor,
     availableBalance,
     dispatch,
     gasFee,
@@ -163,6 +170,7 @@ export const UploadObjectsFees = memo<FeesProps>(function Fees({ delegateUpload,
             payStoreFeeBalance: payStoreFeeAccount.staticBalance,
             payAccount: payStoreFeeAccount.address,
             ownerAccount: loginAccount,
+            isSponsor,
           })}
       </Text>
     </>

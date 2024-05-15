@@ -20,7 +20,12 @@ import { memo, useEffect, useMemo, useState } from 'react';
 
 import { useOffChainAuth } from '@/context/off-chain-auth/useOffChainAuth';
 import { resolve } from '@/facade/common';
-import { broadcastFault, createTxFault, simulateFault } from '@/facade/error';
+import {
+  broadcastFault,
+  createTxFault,
+  E_BUCKET_FLOW_RATE_NOT_SET,
+  simulateFault,
+} from '@/facade/error';
 import { delegateCreateFolder, getObjectMeta } from '@/facade/object';
 import { getCreateObjectTx } from '@/modules/object/utils/getCreateObjectTx';
 import { setupAccountRecords } from '@/store/slices/accounts';
@@ -249,7 +254,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
           })
           .catch(async (e: Response | any) => {
             console.error('upload error', e);
-            const { message } = await parseErrorXml(e);
+            let { message } = await parseErrorXml(e);
             const authExpired = [
               'bad signature',
               'invalid signature',
@@ -260,6 +265,21 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
               setAuthModal(true);
               dispatch(refreshTaskFolder(task));
             }
+
+            // todo refactor
+            const rateLimitNotSet = message?.includes(
+              'the flow rate limit is not set for the bucket',
+            );
+            const rateLimitLow =
+              message?.includes('is greater than the flow rate limit') ||
+              message?.includes('payment account is not changed but the bucket is limited');
+            if (rateLimitNotSet) {
+              message = E_BUCKET_FLOW_RATE_NOT_SET;
+            }
+            if (rateLimitLow) {
+              message = 'Flow rate exceeds limit.';
+            }
+
             setTimeout(() => {
               dispatch(
                 setupUploadTaskErrorMsg({

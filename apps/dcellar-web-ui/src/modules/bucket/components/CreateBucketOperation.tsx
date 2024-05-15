@@ -38,7 +38,12 @@ import { E_GET_GAS_FEE_LACK_BALANCE_ERROR, E_OFF_CHAIN_AUTH } from '@/facade/err
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { PaymentAccountSelector } from '@/modules/bucket/components/PaymentAccountSelector';
 import { TotalFees } from '@/modules/object/components/TotalFees';
-import { BUTTON_GOT_IT, WALLET_CONFIRM } from '@/modules/object/constant';
+import {
+  BUTTON_GOT_IT,
+  CONTINUE_STEP,
+  PAYMASTER_CONTINUE_DESC,
+  WALLET_CONFIRM,
+} from '@/modules/object/constant';
 import { PaymentInsufficientBalance } from '@/modules/object/utils';
 import { MIN_AMOUNT } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -111,8 +116,10 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
 
   const { connector } = useAccount();
   const { setOpenAuthModal } = useOffChainAuth();
+  const isSponsorAddress = selectedPaRef.current?.name === '';
   const PaymentAddress = selectedPaRef.current.address;
-  const { settlementFee } = useSettlementFee(PaymentAddress);
+  // no need to query sponsor account settlement fee
+  const { settlementFee } = useSettlementFee(isSponsorAddress ? '' : PaymentAddress);
   const accountDetail = useAppSelector(selectAccount(PaymentAddress));
 
   const validTags = getValidTags(bucketEditTagsData);
@@ -308,7 +315,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     [checkGasFee, setValue, validateName],
   );
 
-  const onSubmit = async (data: any) => {
+  const doSubmit = async (data: any) => {
     dispatch(
       setSignatureAction({ icon: Animates.object, title: 'Creating Bucket', desc: WALLET_CONFIRM }),
     );
@@ -326,7 +333,6 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     const txs: TxResponse[] = [];
     const [bucketTx, error1] = await getCreateBucketTx(msgCreateBucket);
     if (!bucketTx) return errorHandler(error1);
-
     txs.push(bucketTx);
 
     if (validTags.length > 0) {
@@ -366,6 +372,23 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
     });
   };
 
+  const onSubmit = async (data: any) => {
+    if (selectedPaRef.current?.name) {
+      return doSubmit(data);
+    }
+    dispatch(
+      setSignatureAction({
+        icon: 'error-auth',
+        title: 'Confirm Payment Account',
+        desc: PAYMASTER_CONTINUE_DESC,
+        buttonText: CONTINUE_STEP,
+        buttonOnClick() {
+          setTimeout(doSubmit, 300, data);
+        },
+      }),
+    );
+  };
+
   const disableCreateButton = () => {
     return (
       isSubmitting ||
@@ -395,7 +418,10 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
   const onPaymentAccountChange = useCallback(
     async (pa: AccountEntity) => {
       selectedPaRef.current = pa;
-      await dispatch(setupAccountRecords(pa.address));
+      if (pa.name !== '') {
+        // no need to query sponsor account record.
+        await dispatch(setupAccountRecords(pa.address));
+      }
       const { value, available } = validateNameAndGas.name;
       if (available && value) {
         checkGasFee(value);
@@ -521,7 +547,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
         <TotalFees
           gasFee={gasFee}
           prepaidFee={quotaFee}
-          settlementFee={!chargeQuota ? '0' : settlementFee}
+          settlementFee={!chargeQuota || isSponsorAddress ? '0' : settlementFee}
           payStoreFeeAddress={selectedPaRef.current.address}
         />
 
@@ -529,7 +555,7 @@ export const CreateBucketOperation = memo<CreateBucketOperationProps>(function C
           gasFee={gasFee}
           storeFee={quotaFee}
           refundFee="0"
-          settlementFee={!chargeQuota ? '0' : settlementFee}
+          settlementFee={!chargeQuota || isSponsorAddress ? '0' : settlementFee}
           payGasFeeBalance={bankBalance}
           payStoreFeeBalance={accountDetail.staticBalance}
           ownerAccount={loginAccount}

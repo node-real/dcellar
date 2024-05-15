@@ -21,7 +21,11 @@ export const getSettlementFee = async (address: string) => {
   return [amount, null];
 };
 
-export const getStoreNetflowRate = (size: number, storeFeeParams: StoreFeeParams) => {
+export const getStoreNetflowRate = (
+  size: number,
+  storeFeeParams: StoreFeeParams,
+  isChargeSize = false,
+) => {
   const {
     primarySpStorePrice,
     secondarySpStorePrice,
@@ -30,7 +34,7 @@ export const getStoreNetflowRate = (size: number, storeFeeParams: StoreFeeParams
     minChargeSize,
     validatorTaxRate,
   } = storeFeeParams;
-  const chargeSize = size >= minChargeSize ? size : minChargeSize;
+  const chargeSize = isChargeSize ? size : size >= minChargeSize ? size : minChargeSize;
   const primarySpRate = BN(primarySpStorePrice).times(BN(chargeSize));
   const secondarySpNum = redundantDataChunkNum + redundantParityChunkNum;
   let secondarySpRate = BN(secondarySpStorePrice).times(BN(chargeSize));

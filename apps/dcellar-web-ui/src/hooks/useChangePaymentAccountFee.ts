@@ -3,16 +3,18 @@ import { useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
 import { selectGnfdGasFeesConfig, selectStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
-import { getStoreNetflowRate } from '@/utils/payment';
+import { getQuotaNetflowRate, getStoreNetflowRate } from '@/utils/payment';
 import { MsgUpdateBucketInfoTypeUrl } from '@bnb-chain/greenfield-js-sdk';
 import { useMemo } from 'react';
 import { useSettlementFee } from './useSettlementFee';
+import { isEmpty } from 'lodash-es';
 
 type ChangePaymentAccountFee = {
   loading: boolean;
   fromSettlementFee: string;
   toSettlementFee: string;
   storeFee: string;
+  quotaFee: string;
   gasFee: string;
 };
 
@@ -20,10 +22,12 @@ export const useChangePaymentAccountFee = ({
   from,
   to,
   storageSize,
+  readQuota,
 }: {
   from: string;
   to: string;
   storageSize: number;
+  readQuota: number;
 }): ChangePaymentAccountFee => {
   const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
 
@@ -32,7 +36,12 @@ export const useChangePaymentAccountFee = ({
   const { settlementFee: toSettlementFee, loading: loading2 } = useSettlementFee(to);
 
   const { gasFee } = gnfdGasFeesConfig?.[MsgUpdateBucketInfoTypeUrl] ?? {};
-  const storeFee = BN(getStoreNetflowRate(storageSize, storeFeeParams))
+  const storeFee = BN(getStoreNetflowRate(storageSize, storeFeeParams, true))
+    .times(storeFeeParams.reserveTime)
+    .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
+    .toString();
+
+  const quotaFee = BN(getQuotaNetflowRate(readQuota, storeFeeParams))
     .times(storeFeeParams.reserveTime)
     .dp(CRYPTOCURRENCY_DISPLAY_PRECISION)
     .toString();
@@ -42,6 +51,7 @@ export const useChangePaymentAccountFee = ({
     fromSettlementFee,
     toSettlementFee,
     storeFee,
+    quotaFee,
     gasFee: String(gasFee),
   };
 };
@@ -52,10 +62,15 @@ export const useValidateChangePaymentFee = ({
   fromSettlementFee,
   toSettlementFee,
   storeFee,
+  quotaFee,
   gasFee,
+  toSponsor,
+  fromSponsor,
 }: Omit<ChangePaymentAccountFee, 'loading'> & {
   from: string;
   to: string;
+  toSponsor: boolean;
+  fromSponsor: boolean;
 }) => {
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
@@ -76,12 +91,20 @@ export const useValidateChangePaymentFee = ({
       return gasFeeEnough && storeFeeEnough;
     }
 
-    const storeFeeEnough = BN(fromAccountDetail.staticBalance)
-      .minus(fromSettlementFee)
-      .isGreaterThanOrEqualTo(0);
+    const storeFeeEnough =
+      fromSponsor ||
+      BN(fromAccountDetail.staticBalance).minus(fromSettlementFee).isGreaterThanOrEqualTo(0);
 
     return gasFeeEnough && storeFeeEnough;
-  }, [bankBalance, from, fromAccountDetail.staticBalance, fromSettlementFee, gasFee, loginAccount]);
+  }, [
+    bankBalance,
+    from,
+    fromSponsor,
+    fromAccountDetail.staticBalance,
+    fromSettlementFee,
+    gasFee,
+    loginAccount,
+  ]);
 
   const validTo = useMemo(() => {
     const isOwnerAccount = loginAccount === to;
@@ -96,17 +119,22 @@ export const useValidateChangePaymentFee = ({
       return gasFeeEnough && storeFeeEnough;
     }
 
-    const storeFeeEnough = BN(toAccountDetail.staticBalance)
-      .minus(toSettlementFee)
-      .minus(storeFee)
-      .isGreaterThanOrEqualTo(0);
+    const storeFeeEnough =
+      toSponsor ||
+      BN(toAccountDetail.staticBalance)
+        .minus(toSettlementFee)
+        .minus(storeFee)
+        .minus(quotaFee)
+        .isGreaterThanOrEqualTo(0);
 
     return gasFeeEnough && storeFeeEnough;
   }, [
+    toSponsor,
     bankBalance,
     gasFee,
     loginAccount,
     storeFee,
+    quotaFee,
     to,
     toAccountDetail.staticBalance,
     toSettlementFee,

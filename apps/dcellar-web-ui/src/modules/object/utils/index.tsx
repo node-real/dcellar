@@ -11,6 +11,7 @@ import {
 } from '@/modules/wallet/constants';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol, getNumInDigits } from '@/utils/wallet';
+import { useAccountType } from '@/hooks/useAccountType';
 
 const renderFeeValue = (bnbValue: string, exchangeRate: number | string) => {
   if (!bnbValue || Number(bnbValue) < 0 || isNaN(Number(bnbValue))) {
@@ -223,6 +224,7 @@ export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
     } = props;
     const [items, setItems] = useState<Array<{ link: string; text: string }>>([]);
     const isOwnerAccount = ownerAccount === payAccount;
+    const { isSponsor } = useAccountType(payAccount);
 
     useMount(() => {
       onValidate(true);
@@ -238,13 +240,14 @@ export const PaymentInsufficientBalance = memo<PaymentInsufficientBalanceProps>(
         return;
       }
       const items = [];
-      if (isOwnerAccount) {
+      if (isOwnerAccount || isSponsor) {
         // If is owner account, bankBalance can pay store fee.
         if (
           BN(payGasFeeBalance).lt(BN(gasFee)) ||
-          BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
-            BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
-          )
+          (isOwnerAccount &&
+            BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
+              BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
+            ))
         ) {
           items.push({
             link: InternalRoutePaths.transfer_in,
@@ -309,6 +312,7 @@ const renderPaymentInsufficientBalance = ({
   ownerAccount,
   payAccount,
   gaOptions,
+  isSponsor = false,
 }: {
   gasFee: string | number;
   storeFee: string;
@@ -318,18 +322,20 @@ const renderPaymentInsufficientBalance = ({
   payStoreFeeBalance: string;
   ownerAccount: string;
   payAccount: string;
+  isSponsor?: boolean;
   gaOptions?: { gaClickName: string; gaShowName: string };
 }) => {
   if (!gasFee || Number(gasFee) < 0) return <></>;
   const items = [];
   const isOwnerAccount = ownerAccount === payAccount;
-  if (isOwnerAccount) {
+  if (isOwnerAccount || isSponsor) {
     // If is owner account, bankBalance can pay store fee.
     if (
       BN(payGasFeeBalance).lt(BN(gasFee)) ||
-      BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
-        BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
-      )
+      (isOwnerAccount &&
+        BN(BN(payGasFeeBalance).plus(payStoreFeeBalance)).lt(
+          BN(gasFee).plus(storeFee).plus(settlementFee).minus(refundFee),
+        ))
     ) {
       items.push({
         link: InternalRoutePaths.transfer_in,

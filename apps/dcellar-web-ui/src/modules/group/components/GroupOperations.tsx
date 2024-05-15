@@ -9,11 +9,12 @@ import { useAppDispatch, useAppSelector } from '@/store';
 import { GroupOperationsType, selectGroupList, setGroupOperation } from '@/store/slices/group';
 import { GroupInfo } from '@bnb-chain/greenfield-cosmos-types/greenfield/storage/types';
 import { ModalCloseButton } from '@node-real/uikit';
-import { useUnmount } from 'ahooks';
+import { useUnmount, useUpdateEffect } from 'ahooks';
 import { find } from 'lodash-es';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { EditGroupTagsOperation } from './EditGroupTagsOperation';
 import { UpdateGroupTagsOperation } from './UpdateGroupTagsOperation';
+import { useRouter } from 'next/router';
 
 interface GroupOperationsProps {
   level?: 0 | 1;
@@ -21,6 +22,7 @@ interface GroupOperationsProps {
 
 export const GroupOperations = memo<GroupOperationsProps>(function GroupOperations({ level = 0 }) {
   const dispatch = useAppDispatch();
+  const { pathname } = useRouter();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const groupOperation = useAppSelector((root) => root.group.groupOperation);
   const groupList = useAppSelector(selectGroupList(loginAccount));
@@ -71,6 +73,10 @@ export const GroupOperations = memo<GroupOperationsProps>(function GroupOperatio
   }, [groupOperation]);
 
   useUnmount(onClose);
+
+  useUpdateEffect(() => {
+    onClose();
+  }, [pathname]);
 
   return (
     <>

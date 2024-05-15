@@ -23,11 +23,12 @@ import {
 import { getSpOffChainData } from '@/store/slices/persist';
 import { ObjectMeta } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { ModalCloseButton } from '@node-real/uikit';
-import { useUnmount } from 'ahooks';
+import { useUnmount, useUpdateEffect } from 'ahooks';
 import { get, isEmpty } from 'lodash-es';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { EditObjectTagsOperation } from './EditObjectTagsOperation';
 import { UpdateObjectTagsOperation } from './UpdateObjectTagsOperation';
+import { useRouter } from 'next/router';
 
 interface ObjectOperationsProps {
   level?: 0 | 1;
@@ -37,6 +38,7 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   level = 0,
 }) {
   const dispatch = useAppDispatch();
+  const { pathname } = useRouter();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const objectOperation = useAppSelector((root) => root.object.objectOperation);
   const objectRecords = useAppSelector((root) => root.object.objectRecords);
@@ -221,6 +223,10 @@ export const ObjectOperations = memo<ObjectOperationsProps>(function ObjectOpera
   }, [objectOperation]);
 
   useUnmount(onClose);
+
+  useUpdateEffect(() => {
+    onClose();
+  }, [pathname]);
 
   return (
     <>

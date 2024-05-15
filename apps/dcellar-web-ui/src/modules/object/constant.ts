@@ -44,6 +44,9 @@ const DUPLICATE_OBJECT_NAME = 'This name is already taken, try another one.';
 const UNKNOWN_ERROR = `Unknown error. Please try again later.`;
 const AUTH_EXPIRED = 'Authentication Expired';
 const WALLET_CONFIRM = 'Please confirm the transaction in your wallet.';
+export const PAYMASTER_CONTINUE_DESC =
+  'This payment account does not belong to you. Please ensure that the account owner has set the flow rate for you; otherwise, you will be unable to upload anything to this bucket.';
+export const CONTINUE_STEP = 'Continue';
 
 export const EMPTY_TX_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
 

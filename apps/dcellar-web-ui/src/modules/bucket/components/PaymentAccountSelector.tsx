@@ -70,7 +70,8 @@ export const PaymentAccountSelector = memo<PaymentAccountSelectorProps>(
     }, [router]);
 
     const onPaymentAccountChange = (value: string) => {
-      setPaymentAccount(keyAccountList[value]);
+      const account = keyAccountList[value];
+      setPaymentAccount(account ?? { name: '', id: '', address: value });
     };
 
     const onSearch = (result: MenuOption[]) => {
@@ -97,6 +98,7 @@ export const PaymentAccountSelector = memo<PaymentAccountSelectorProps>(
 
     return (
       <DCSelect
+        allowInput
         value={paymentAccount.address}
         text={renderItem(paymentAccount.name, paymentAccount.address)}
         options={options}
@@ -115,7 +117,7 @@ export const PaymentAccountSelector = memo<PaymentAccountSelectorProps>(
 );
 
 const renderItem = (moniker: string, address: string) => {
-  return [moniker, trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
+  return [moniker, !moniker ? address : trimLongStr(address, 10, 6, 4)].filter(Boolean).join(' | ');
 };
 
 function OptionItem(props: MenuOption) {

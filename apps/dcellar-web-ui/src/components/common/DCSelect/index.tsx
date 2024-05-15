@@ -16,13 +16,22 @@ import {
   MenuProps,
   useDisclosure,
 } from '@node-real/uikit';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, {
+  FocusEventHandler,
+  FocusEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { isAddress } from 'ethers/lib/utils.js';
 
 interface ListItemProps extends MenuItemProps {
   gaClickName?: string;
 }
 
 export interface DCSelectProps extends MenuProps {
+  allowInput?: boolean;
   header?: () => ReactNode;
   footer?: () => ReactNode;
   value?: string;
@@ -52,6 +61,7 @@ export function DCSelect(props: DCSelectProps) {
     onSearch,
     children,
     renderOption,
+    allowInput = false,
     ...restProps
   } = props;
 
@@ -64,6 +74,14 @@ export function DCSelect(props: DCSelectProps) {
       onSelectItem(resultOptions[0]);
       onClose();
     }
+  };
+
+  const onBlur = (e: FocusEvent<HTMLInputElement>) => {
+    const value = e.target.value?.trim();
+    if (isAddress(value) && allowInput) {
+      onSelectItem({ value, label: value });
+    }
+    onClose();
   };
 
   const onSelectItem = (item: MenuOption) => {
@@ -130,7 +148,7 @@ export function DCSelect(props: DCSelectProps) {
         placeholder={text}
         onChangeKeyword={onChangeKeyword}
         onEnter={onEnter}
-        onBlur={onClose}
+        onBlur={onBlur as any}
       />
     </DCMenu>
   );
