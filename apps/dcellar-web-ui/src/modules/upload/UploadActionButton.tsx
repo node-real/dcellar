@@ -7,7 +7,7 @@ import {
   retryUploadTasks,
   updateUploadStatus,
 } from '@/store/slices/global';
-import React from 'react';
+import React, { useCallback } from 'react';
 
 export type ActionButtonProps = {
   type: 'clear' | 'retry' | 'clear-all' | 'retry-all' | 'cancel' | 'cancel-all';
@@ -57,16 +57,19 @@ export const UploadActionButton = React.memo(function UploadActionButton({
   const dispatch = useAppDispatch();
   const actionItem = actionItems.find((item) => item.type === type);
 
-  const onCancel = (ids: number[]) => {
-    dispatch(
-      updateUploadStatus({
-        account: loginAccount,
-        ids,
-        status: 'CANCEL',
-      }),
-    );
-    dispatch(cancelUploadingRequests({ ids }));
-  };
+  const onCancel = useCallback(
+    (ids: number[]) => {
+      dispatch(
+        updateUploadStatus({
+          account: loginAccount,
+          ids,
+          status: 'CANCEL',
+        }),
+      );
+      dispatch(cancelUploadingRequests({ ids }));
+    },
+    [dispatch, loginAccount],
+  );
   const onClear = (ids: number[]) => {
     dispatch(clearUploadRecords({ ids, loginAccount }));
   };

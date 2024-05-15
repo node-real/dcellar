@@ -65,7 +65,7 @@ export const ObjectUploadStatus = memo(function ObjectUploadStatus({
     case 'CANCEL':
       return (
         <>
-          <IconFont type="colored-error2" w={20} />
+          <IconFont type="stop" w={20} />
           Stopped
         </>
       );

@@ -250,8 +250,9 @@ export const globalSlice = createSlice({
       const { id, msg, status } = payload;
       const task = find<UploadObject>(state.objectUploadQueue[payload.account], (t) => t.id === id);
       if (!task) return;
-      task.status = status ?? 'ERROR';
-      task.msg = msg;
+      console.log('tasl.status', task.status);
+      task.status = task.status !== 'CANCEL' ? status ?? 'ERROR' : 'CANCEL';
+      task.msg = task.status !== 'CANCEL' ? msg : '';
     },
     updateWaitObjectStatus(
       state,
