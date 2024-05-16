@@ -1,14 +1,15 @@
 import { useAppSelector } from '@/store';
-import { UploadObject } from '@/store/slices/global';
+import { UPLOADING_STATUSES, UploadObject } from '@/store/slices/global';
 
 import { sortBy } from 'lodash-es';
 import { useMemo, useState } from 'react';
 
 export enum UploadingPanelKey {
   ALL = 'ALL',
-  UPLOADING = 'HASH-UPLOAD-SEAL',
+  UPLOADING = 'RETRY-WAIT-HASH-UPLOAD-SIGN-SEAL',
+  STOPPED = 'CANCEL',
   COMPLETE = 'FINISH',
-  FAILED = 'ERROR-CANCEL',
+  FAILED = 'ERROR',
 }
 
 export const useTaskManagementTab = () => {
@@ -17,14 +18,14 @@ export const useTaskManagementTab = () => {
 
   const queue = sortBy(objectUploadQueue[loginAccount] || [], (o) => o.waitObject.time);
 
-  const { uploadingQueue, completeQueue, errorQueue } = useMemo(() => {
-    const uploadingQueue = queue?.filter((i) =>
-      ['HASH', 'UPLOAD', 'SEAL', 'SEALING'].includes(i.status),
-    );
+  const { uploadingQueue, stoppedQueue, completeQueue, errorQueue } = useMemo(() => {
+    const uploadingQueue = queue?.filter((i) => UPLOADING_STATUSES.includes(i.status));
     const completeQueue = queue?.filter((i) => i.status === 'FINISH');
-    const errorQueue = queue?.filter((i) => ['ERROR', 'CANCEL'].includes(i.status));
+    const stoppedQueue = queue?.filter((i) => i.status === 'CANCEL');
+    const errorQueue = queue?.filter((i) => ['ERROR'].includes(i.status));
     return {
       uploadingQueue,
+      stoppedQueue,
       completeQueue,
       errorQueue,
     };
@@ -45,6 +46,11 @@ export const useTaskManagementTab = () => {
       title: 'Uploading',
       key: UploadingPanelKey.UPLOADING,
       data: uploadingQueue,
+    },
+    {
+      title: 'Stopped',
+      key: UploadingPanelKey.STOPPED,
+      data: stoppedQueue,
     },
     {
       title: 'Complete',
