@@ -14,12 +14,11 @@ export const DiscontinueNotice = ({
   discontinue?: boolean;
 }) => {
   const account = discontinue && flowRateLimit ? 2 : 0;
-  // todo
   const discontinueReasons = [
     {
       title: 'Flow rate exceeds limit',
-      desc: "This bucket's flow rate has surpassed the payment account's...",
-      link: 'https://docs.nodereal.io/docs/dcellar-faq#question-what-is-flow-rate',
+      desc: "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it.",
+      link: 'https://docs.nodereal.io/docs/dcellar-faq#question-why-is-my-bucket-flow-rate-limited',
       show: flowRateLimit,
     },
     { title: 'Discontinue Notice', desc: content, link: learnMore, show: discontinue },
