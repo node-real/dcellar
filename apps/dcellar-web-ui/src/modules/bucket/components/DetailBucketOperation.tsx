@@ -13,6 +13,7 @@ import {
   TBucket,
   setupBucketActivity,
   BucketOperationsType,
+  setupBucketActivity,
 } from '@/store/slices/bucket';
 import { selectBucketSp } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
@@ -44,6 +45,7 @@ import { useMount, useUnmount } from 'ahooks';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { Activities } from '@/components/Activities';
 import { BucketStatus } from '@bnb-chain/greenfield-js-sdk';
+import { Activities } from '@/components/Activities';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text as={'div'} fontSize={'14px'} fontWeight={500} color="readable.tertiary">
