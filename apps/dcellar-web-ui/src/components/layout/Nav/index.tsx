@@ -1,7 +1,7 @@
 import { IconFont } from '@/components/IconFont';
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
-import { Box, Text } from '@node-real/uikit';
+import { Box, Flex, Text, Tooltip } from '@node-real/uikit';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { memo } from 'react';
@@ -43,8 +43,20 @@ const ASIDE = [
   {
     link: 'https://docs.bnbchain.org/greenfield-docs/',
     trackId: 'dc.main.nav.doc.click',
-    icon: 'doc',
+    icon: 'book',
     text: 'BNB Greenfield Docs',
+  },
+  {
+    link: 'https://docs.bnbchain.org/greenfield-docs/docs/release-notes/releaseNotes/',
+    trackId: 'dc.main.nav.release_note.click',
+    icon: 'doc',
+    text: 'Release Notes',
+  },
+  {
+    link: 'https://discord.com/invite/bnbchain',
+    trackId: 'dc.main.nav.discord.click',
+    icon: 'discord',
+    text: 'Discord',
   },
   {
     link: 'https://docs.nodereal.io/docs/dcellar-get-started',
@@ -78,18 +90,38 @@ export const Nav = memo<NavProps>(function Nav() {
           );
         })}
       </MenuList>
-      <MenuList>
+      <Flex
+        justifyContent={'space-around'}
+        padding={'12px 30px'}
+        borderTop={'1px solid readable.border'}
+      >
         {ASIDE.map((menu) => (
-          <MenuItem key={menu.text}>
-            <Link href={menu.link} data-track-id={menu.trackId} target="_blank">
-              <MenuIcon as="span">
-                <IconFont type={menu.icon} />
-              </MenuIcon>
-              <MenuText as="span">{menu.text}</MenuText>
-            </Link>
-          </MenuItem>
+          <Tooltip key={menu.text} content={menu.text}>
+            <Flex
+              key={menu.text}
+              width={32}
+              height={32}
+              borderRadius={16}
+              justifyContent={'center'}
+              alignItems={'center'}
+              border={'1px solid readable.border'}
+              _hover={{
+                borderColor: 'brand.brand6',
+                color: 'brand.brand6',
+                svg: {
+                  color: 'brand.brand6',
+                },
+              }}
+            >
+              <Link href={menu.link} data-track-id={menu.trackId} target="_blank">
+                <MenuIcon as="span">
+                  <IconFont type={menu.icon} />
+                </MenuIcon>
+              </Link>
+            </Flex>
+          </Tooltip>
         ))}
-      </MenuList>
+      </Flex>
     </NavContainer>
   );
 });
@@ -114,6 +146,7 @@ const MenuItem = styled.li<{ $active?: boolean }>`
   position: relative;
   font-weight: 500;
   transition: all 0.15s;
+  list-style-type: none;
   a {
     display: grid;
     gap: 12px;
