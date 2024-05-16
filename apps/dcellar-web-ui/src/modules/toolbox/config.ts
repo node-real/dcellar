@@ -72,7 +72,7 @@ export const toolList = [
         url: 'https://github.com/bnb-chain/greenfield-go-sdk',
       },
     ],
-    desc: 'Go sdk for Greenfield',
+    desc: 'Go SDK for Greenfield',
   },
   {
     icon: 'cosmos',
@@ -86,7 +86,7 @@ export const toolList = [
         url: 'https://github.com/bnb-chain/greenfield-cosmos-sdk',
       },
     ],
-    desc: 'A cosmos-sdk fork for greenfield',
+    desc: 'A cosmos-SDK fork for Greenfield',
   },
   {
     icon: 'javascript',
@@ -142,7 +142,7 @@ export const toolList = [
         url: 'https://github.com/bnb-chain/greenfield-python-sdk',
       },
     ],
-    desc: 'Python sdk for Greenfield',
+    desc: 'Python SDK for Greenfield',
   },
   {
     icon: 'terminal',
