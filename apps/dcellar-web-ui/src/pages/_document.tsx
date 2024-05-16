@@ -26,7 +26,7 @@ export default function Document() {
             __html: `window.__ASSET_PREFIX = ${flatted.stringify(assetPrefix)}`,
           }}
         ></script>
-        <script defer src={`${assetPrefix}/js/iconfont_v0.1.1.min.js`}></script>
+        <script defer src={`${assetPrefix}/js/iconfont_v0.1.12.min.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_wasm_exec_v1.js`}></script>
         <script defer src={`${assetPrefix}/wasm/tinygo_init_v1.js`}></script>
         <EthereumScript />

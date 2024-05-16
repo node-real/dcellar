@@ -1,10 +1,21 @@
-import { Center, CircleProps, Flex, FlexProps, LinkProps, Tooltip } from '@node-real/uikit';
+import {
+  Center,
+  CircleProps,
+  Flex,
+  FlexProps,
+  LinkProps,
+  Tooltip,
+  useMediaQuery,
+} from '@node-real/uikit';
 
 export const Card = ({ children, ...props }: FlexProps) => {
+  const [isNormal] = useMediaQuery('(max-width: 1440px)');
   return (
     <Flex
       p={'24px 20px'}
-      maxW={375}
+      minW={isNormal ? '48%' : '32%'}
+      flex={isNormal ? '0 0 48%' : '0 0 32%'}
+      w={'100%'}
       gap={16}
       border={'1px solid readable.border'}
       borderRadius={4}

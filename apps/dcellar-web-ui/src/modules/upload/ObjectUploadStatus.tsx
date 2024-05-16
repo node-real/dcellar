@@ -1,10 +1,14 @@
 import { UploadObject } from '@/store/slices/global';
-import { Text } from '@node-real/uikit';
 import { Loading } from '@/components/common/Loading';
 import { UploadProgress } from './UploadProgress';
 import { IconFont } from '@/components/IconFont';
+import { memo } from 'react';
 
-export const ObjectUploadStatus = ({ task }: { task: UploadObject }) => {
+export const ObjectUploadStatus = memo(function ObjectUploadStatus({
+  task,
+}: {
+  task: UploadObject;
+}) {
   switch (task.status) {
     case 'RETRY_CHECK':
     case 'RETRY_CHECKING':
@@ -61,11 +65,11 @@ export const ObjectUploadStatus = ({ task }: { task: UploadObject }) => {
     case 'CANCEL':
       return (
         <>
-          <IconFont type="colored-error2" w={20} />
-          Cancelled
+          <IconFont type="stop" w={20} />
+          Stopped
         </>
       );
     default:
       return null;
   }
-};
+});

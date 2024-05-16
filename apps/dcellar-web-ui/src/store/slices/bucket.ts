@@ -6,11 +6,18 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { find, isEmpty, omit } from 'lodash-es';
 import { SpEntity, setupPrimarySpInfo, setPrimarySpInfos } from './sp';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
-import { getBucketReadQuota, getUserBucketMeta, getUserBuckets } from '@/facade/bucket';
+import {
+  getBucketActivities,
+  getBucketReadQuota,
+  getUserBucketMeta,
+  getUserBuckets,
+} from '@/facade/bucket';
 import { AppDispatch, AppState, GetState } from '@/store';
 import { setAuthModalOpen } from '@/store/slices/global';
 import { getSpOffChainData } from '@/store/slices/persist';
 import { convertObjectKey } from '@/utils/common';
+import { Activity } from './object';
+import { numberToHex } from 'viem';
 
 export type BucketOperationsType =
   | 'detail'
@@ -45,6 +52,7 @@ export interface BucketState {
   bucketEditQuota: string[];
   bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
   bucketEditTagsData: ResourceTags_Tag[];
+  bucketActivityRecords: Record<string, Activity[]>;
 }
 
 const initialState: BucketState = {
@@ -59,6 +67,7 @@ const initialState: BucketState = {
   bucketEditQuota: ['', ''],
   bucketOperation: { 0: ['', ''], 1: ['', ''] },
   bucketEditTagsData: [DEFAULT_TAG],
+  bucketActivityRecords: {},
 };
 
 export const bucketSlice = createSlice({
@@ -139,6 +148,13 @@ export const bucketSlice = createSlice({
       const { bucketName, paymentAddress } = payload;
       state.bucketRecords[bucketName]['PaymentAddress'] = paymentAddress;
     },
+    setBucketActivity(
+      state,
+      { payload }: PayloadAction<{ activities: Activity[]; bucketName: string }>,
+    ) {
+      const { bucketName, activities } = payload;
+      state.bucketActivityRecords[bucketName] = activities;
+    },
   },
 });
 
@@ -155,6 +171,7 @@ export const {
   setBucketTags,
   setBucketTagsEditData,
   setBucketPaymentAccount,
+  setBucketActivity,
 } = bucketSlice.actions;
 
 const defaultBucketList = Array<BucketEntity>();
@@ -256,6 +273,12 @@ export const setupBucketQuota =
       return;
     }
     dispatch(setBucketQuota({ bucketName, quota }));
+  };
+
+export const setupBucketActivity =
+  (bucketName: string, id: string) => async (dispatch: AppDispatch) => {
+    const activities = await getBucketActivities(numberToHex(Number(id), { size: 32 }));
+    dispatch(setBucketActivity({ bucketName, activities }));
   };
 
 export default bucketSlice.reducer;

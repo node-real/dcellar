@@ -105,6 +105,7 @@ export type UploadObject = {
   msg: string;
   progress: number;
   delegateUpload?: boolean;
+  abortController?: AbortController;
 };
 
 export interface GlobalState {
@@ -175,14 +176,32 @@ export const globalSlice = createSlice({
       state,
       {
         payload,
-      }: PayloadAction<{ account: string; ids: number[]; status: UploadObject['status'] }>,
+      }: PayloadAction<{
+        account: string;
+        ids: number[];
+        status: UploadObject['status'];
+        extraFields?: Record<string, Partial<UploadObject>>;
+      }>,
     ) {
-      const { account, ids, status } = payload;
+      const { account, ids, status, extraFields } = payload;
       const isErrorStatus = UPLOAD_FAILED_STATUSES.includes(status);
       const queue = state.objectUploadQueue[account] || [];
-      state.objectUploadQueue[account] = queue.map((q) =>
-        ids.includes(q.id) ? { ...q, status, msg: isErrorStatus ? q.msg : '' } : q,
-      );
+      state.objectUploadQueue[account] = queue.map((item) => {
+        if (ids.includes(item.id)) {
+          const updatedItem = { ...item, ...extraFields?.[item.id], status };
+
+          if (status === 'RETRY_CHECK') {
+            return { ...updatedItem, msg: '', progress: 0 };
+          }
+          if (isErrorStatus) {
+            return { ...updatedItem, msg: item.msg };
+          }
+
+          return updatedItem;
+        }
+
+        return item;
+      });
 
       if (status === 'SEAL') {
         ids.forEach((id) => {
@@ -222,15 +241,17 @@ export const globalSlice = createSlice({
       task.status = 'ERROR';
       task.msg = msg;
     },
-    updateUploadTaskMsg(
+    updateUploadTaskErrorMsg(
       state,
-      { payload }: PayloadAction<{ account: string; id: number; msg: string }>,
+      {
+        payload,
+      }: PayloadAction<{ account: string; id: number; msg: string; status?: UploadObjectStatus }>,
     ) {
-      const { id, msg } = payload;
+      const { id, msg, status } = payload;
       const task = find<UploadObject>(state.objectUploadQueue[payload.account], (t) => t.id === id);
       if (!task) return;
-      task.status = 'ERROR';
-      task.msg = msg;
+      task.status = task.status !== 'CANCEL' ? status ?? 'ERROR' : 'CANCEL';
+      task.msg = task.status !== 'CANCEL' ? msg : '';
     },
     updateWaitObjectStatus(
       state,
@@ -429,7 +450,7 @@ export const {
   setBnbUsdtExchangeRate,
   updateWaitObjectStatus,
   updateWaitTaskMsg,
-  updateUploadTaskMsg,
+  updateUploadTaskErrorMsg,
   updateUploadChecksum,
   addToUploadQueue,
   updateUploadStatus,
@@ -697,14 +718,25 @@ export const addDelegatedTasksToUploadQueue =
   };
 
 export const setupUploadTaskErrorMsg =
-  ({ account, task, errorMsg }: { account: string; task: UploadObject; errorMsg: string }) =>
+  ({
+    account,
+    task,
+    errorMsg,
+    status,
+  }: {
+    account: string;
+    task: UploadObject;
+    errorMsg: string;
+    status?: UploadObjectStatus;
+  }) =>
   async (dispatch: AppDispatch) => {
     // const isFolder = task.waitObject.name.endsWith('/');
     dispatch(
-      updateUploadTaskMsg({
+      updateUploadTaskErrorMsg({
         account,
         id: task.id,
         msg: errorMsg || 'The object failed to be created.',
+        status,
       }),
     );
     // isFolder && dispatch(cancelUploadFolder({ account, folderName: task.waitObject.name }));
@@ -735,6 +767,17 @@ export const retryUploadTasks =
       dispatch(
         updateUploadStatus({ account: loginAccount, ids: [task.id], status: 'RETRY_CHECK' }),
       );
+    });
+  };
+
+export const cancelUploadingRequests =
+  ({ ids }: { ids: number[] }) =>
+  async (dispatch: AppDispatch, getState: GetState) => {
+    const { loginAccount } = getState().persist;
+    const uploadQueue = getState().global.objectUploadQueue[loginAccount] || _emptyUploadQueue;
+    const tasks = uploadQueue.filter((task) => ids.includes(task.id));
+    tasks.forEach(async (task) => {
+      task.abortController && task.abortController.abort();
     });
   };
 
