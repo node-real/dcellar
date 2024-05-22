@@ -66,7 +66,7 @@ export const headBucket = async (bucketName: string) => {
   const client = await getClient();
   const { bucketInfo } = await client.bucket
     .headBucket(bucketName)
-    .catch(() => ({} as QueryHeadBucketResponse));
+    .catch(() => ({}) as QueryHeadBucketResponse);
   return bucketInfo || null;
 };
 
@@ -262,7 +262,7 @@ export const getBucketQuotaUpdateTime = async (bucketName: string) => {
   const defaultValue = new Long(getTimestampInSeconds());
   const res = await storageClient
     .QueryQuotaUpdateTime({ bucketName })
-    .catch((e) => ({ updateAt: defaultValue } as QueryQuoteUpdateTimeResponse));
+    .catch((e) => ({ updateAt: defaultValue }) as QueryQuoteUpdateTimeResponse);
   return Number(res?.updateAt || defaultValue);
 };
 
@@ -457,7 +457,7 @@ export const getBucketActivities = async (id: string): Promise<Activity[]> => {
   if (!result) return [];
 
   return result.data.result || [];
-}
+};
 
 export const migrateBucket = async (
   params: MigrateBucketApprovalRequest,
@@ -482,13 +482,4 @@ export const cancelMigrateBucket = async (
   if (!tx) return [null, error1];
 
   return broadcastTx({ tx: tx, address: params.operator, connector });
-}
-
-export const getBucketActivities = async (id: string): Promise<Activity[]> => {
-  const url = `/api/tx/list/by_bucket/${id}`;
-
-  const [result] = await axios.get<{ result: Activity[] }>(url).then(resolve, commonFault);
-  if (!result) return [];
-
-  return result.data.result || [];
 };

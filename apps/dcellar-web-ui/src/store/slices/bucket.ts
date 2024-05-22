@@ -19,8 +19,6 @@ import { convertObjectKey } from '@/utils/common';
 import { Activity } from './object';
 import { numberToHex } from 'viem';
 import { BucketStatus as BucketStatusEnum } from '@bnb-chain/greenfield-js-sdk';
-import { Activity } from './object';
-import { numberToHex } from 'viem';
 
 export type BucketOperationsType =
   | 'detail'
