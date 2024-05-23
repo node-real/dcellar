@@ -14,6 +14,7 @@ import { find } from 'lodash-es';
 import { memo } from 'react';
 import { PrePaidTips } from './PrepaidTips';
 import { SettlementTips } from './SettlementTips';
+import { useAccountType } from '@/hooks/useAccountType';
 
 interface TotalFeesProps {
   gasFee: string | number;
@@ -42,6 +43,7 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
   const bankBalance = useAppSelector(selectAvailableBalance(loginAccount));
   const staticBalance = useAppSelector(selectAvailableBalance(payStoreFeeAddress));
   const paymentAccounts = useAppSelector(selectPaymentAccounts(loginAccount));
+  const { isSponsor } = useAccountType(payStoreFeeAddress);
 
   const paymentAccount = find<AccountEntity>(
     paymentAccounts,
@@ -75,10 +77,12 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
           justifySelf={'flex-end'}
           fontWeight={'400'}
         >
-          {renderFeeValue(
-            BigNumber(gasFee).plus(BigNumber(prepaidFee)).plus(settlementFee).toString(),
-            exchangeRate,
-          )}
+          {isSponsor
+            ? renderFeeValue(BigNumber(gasFee).toString(), exchangeRate)
+            : renderFeeValue(
+                BigNumber(gasFee).plus(BigNumber(prepaidFee)).plus(settlementFee).toString(),
+                exchangeRate,
+              )}
           {expandable && (
             <IconFont
               color={'readable.normal'}
@@ -91,40 +95,44 @@ export const TotalFees = memo<TotalFeesProps>(function TotalFeesItem(props) {
       {isOpenFees && <Divider borderColor={'readable.disable'} />}
       {isOpenFees && (
         <>
-          <Flex w="100%" alignItems="center" justifyContent="space-between">
-            <Flex alignItems="center">
-              <Text color="readable.tertiary" as="p">
-                {refund ? 'Prepaid fee refund' : 'Prepaid fee'}
-              </Text>
-              <PrePaidTips />
-            </Flex>
-            <Text color="readable.tertiary">
-              {refund && (
-                <Text as="span" color={'#EEBE11'} mr={4}>
-                  Refund
+          {!isSponsor && (
+            <>
+              <Flex w="100%" alignItems="center" justifyContent="space-between">
+                <Flex alignItems="center">
+                  <Text color="readable.tertiary" as="p">
+                    {refund ? 'Prepaid fee refund' : 'Prepaid fee'}
+                  </Text>
+                  <PrePaidTips />
+                </Flex>
+                <Text color="readable.tertiary">
+                  {refund && (
+                    <Text as="span" color={'#EEBE11'} mr={4}>
+                      Refund
+                    </Text>
+                  )}
+                  {renderFeeValue(prepaidFee, exchangeRate)}
                 </Text>
-              )}
-              {renderFeeValue(prepaidFee, exchangeRate)}
-            </Text>
-          </Flex>
+              </Flex>
 
-          <Flex w="100%" alignItems="center" justifyContent="space-between">
-            <Flex alignItems="center">
-              <Text color="readable.tertiary" as="p">
-                Settlement fee
-              </Text>
-              <SettlementTips />
-            </Flex>
-            <Text color="readable.tertiary">{renderFeeValue(settlementFee, exchangeRate)}</Text>
-          </Flex>
-          {paymentAccount && (
-            <Flex w="100%" alignItems="center" justifyContent="space-between">
-              <Flex alignItems="center" />
-              <Text fontSize={12} color="readable.disable">
-                {paymentLabel} {renderBalanceNumber(staticBalance || '0')} (
-                {renderUsd(staticBalance || '0', exchangeRate)})
-              </Text>
-            </Flex>
+              <Flex w="100%" alignItems="center" justifyContent="space-between">
+                <Flex alignItems="center">
+                  <Text color="readable.tertiary" as="p">
+                    Settlement fee
+                  </Text>
+                  <SettlementTips />
+                </Flex>
+                <Text color="readable.tertiary">{renderFeeValue(settlementFee, exchangeRate)}</Text>
+              </Flex>
+              {paymentAccount && (
+                <Flex w="100%" alignItems="center" justifyContent="space-between">
+                  <Flex alignItems="center" />
+                  <Text fontSize={12} color="readable.disable">
+                    {paymentLabel} {renderBalanceNumber(staticBalance || '0')} (
+                    {renderUsd(staticBalance || '0', exchangeRate)})
+                  </Text>
+                </Flex>
+              )}
+            </>
           )}
 
           {+gasFee !== 0 && (

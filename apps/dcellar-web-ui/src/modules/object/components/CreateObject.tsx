@@ -6,7 +6,7 @@ import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectAccount } from '@/store/slices/accounts';
-import { setupBucketQuota } from '@/store/slices/bucket';
+import { setupBucket, setupBucketQuota } from '@/store/slices/bucket';
 import {
   SELECT_OBJECT_NUM_LIMIT,
   SINGLE_OBJECT_MAX_SIZE,
@@ -54,6 +54,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
   const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
   const bucket = bucketRecords[currentBucketName];
   const accountDetail = useAppSelector(selectAccount(bucket?.PaymentAddress));
+  const isFlowRateLimit = ['1', '3'].includes(bucket?.OffChainStatus);
   const primarySp = primarySpRecords[currentBucketName];
   const onOpenCreateFolder = () => {
     if (disabled) return;
@@ -76,6 +77,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
       dispatch(setupBucketQuota(currentBucketName));
       dispatch(setObjectListRefreshing(true));
       dispatch(setObjectListPageRestored(false));
+      dispatch(setupBucket(currentBucketName));
       await dispatch(setupListObjects(params));
       dispatch(setObjectListRefreshing(false));
     }, 150),
@@ -102,9 +104,15 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
   const maxFolderDepth = invalidPath || pathSegments.length >= MAX_FOLDER_LEVEL;
 
   const loading = !objectListRecords[completeCommonPrefix];
-  const disabled = maxFolderDepth || isBucketDiscontinue || loading || accountDetail.clientFrozen;
+  const disabled =
+    maxFolderDepth ||
+    isBucketDiscontinue ||
+    isFlowRateLimit ||
+    loading ||
+    accountDetail.clientFrozen;
   const uploadDisabled =
     isBucketDiscontinue ||
+    isFlowRateLimit ||
     invalidPath ||
     pathSegments.length > MAX_FOLDER_LEVEL ||
     loading ||
@@ -185,13 +193,15 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
               content={
                 isBucketDiscontinue
                   ? 'Bucket in the discontinue status cannot upload objects.'
-                  : accountDetail?.clientFrozen
-                    ? 'The payment account in the frozen status cannot upload objects.'
-                    : uploadDisabled
-                      ? 'Path invalid'
-                      : `Please limit object size to ${formatBytes(
-                          SINGLE_OBJECT_MAX_SIZE,
-                        )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
+                  : isFlowRateLimit
+                    ? "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it."
+                    : accountDetail?.clientFrozen
+                      ? 'The payment account in the frozen status cannot upload objects.'
+                      : uploadDisabled
+                        ? 'Path invalid'
+                        : `Please limit object size to ${formatBytes(
+                            SINGLE_OBJECT_MAX_SIZE,
+                          )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
               }
             >
               <div>

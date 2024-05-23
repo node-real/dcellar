@@ -11,6 +11,7 @@ import { sort } from 'radash';
 import { memo } from 'react';
 import { TH } from './style';
 import { OptionItem } from './OptionItem';
+import { isEmpty } from 'lodash-es';
 
 interface SPSelectorProps {
   onChange: (value: SpEntity) => void;
@@ -118,7 +119,9 @@ export const SPSelector = memo<SPSelectorProps>(function SPSelector({ onChange }
           latency[`${origin}:${port || 443}`] = parseInt(String(entry.duration));
         }
       });
-      dispatch(setSpLatency(latency));
+      if (!isEmpty(latency)) {
+        dispatch(setSpLatency(latency));
+      }
     });
     // reuse offchain auth request nonce call data
     observer.observe({ type: 'resource', buffered: true });

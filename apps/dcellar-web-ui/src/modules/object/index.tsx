@@ -46,6 +46,7 @@ export const ObjectsPage = () => {
   const title = last(items)!;
   const [bucketName, ...folders] = items;
   const bucket = bucketRecords[bucketName];
+  const isFlowRateLimit = ['1', '3'].includes(bucket?.OffChainStatus);
 
   const selected = objectSelectedKeys.length;
 
@@ -134,6 +135,9 @@ export const ObjectsPage = () => {
             icon={<IconFont w={16} type={'colored-info'} color={'#EEBE11'} />}
             content="You are browsing a bucket created by someone else. Certain functions may be restricted."
           />
+        )}
+        {isFlowRateLimit && isBucketOwner && (
+          <DiscontinueBanner content="The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it." />
         )}
         {isBucketDiscontinue && isBucketOwner && (
           <DiscontinueBanner content="All the items in this bucket were marked as discontinued and will be deleted by SP soon. Please backup your data in time. " />

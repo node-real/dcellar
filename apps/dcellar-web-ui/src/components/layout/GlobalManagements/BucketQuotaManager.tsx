@@ -45,11 +45,13 @@ import {
   Text,
   toast,
 } from '@node-real/uikit';
-import { useAsyncEffect, useUnmount } from 'ahooks';
+import { useAsyncEffect, useUnmount, useUpdateEffect } from 'ahooks';
 import BigNumber from 'bignumber.js';
 import { find, isEmpty } from 'lodash-es';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useRouter } from 'next/router';
+import { useAccountType } from '@/hooks/useAccountType';
 
 const EMPTY_BUCKET = {} as TBucket;
 
@@ -62,12 +64,9 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const bucketEditQuota = useAppSelector((root) => root.bucket.bucketEditQuota);
   const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
   const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
-  const ownerAccount = useAppSelector((root) => root.accounts.ownerAccount);
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const bankBalance = useAppSelector((root) => root.accounts.bankOrWalletBalance);
   const gnfdGasFeesConfig = useAppSelector(selectGnfdGasFeesConfig);
-
-  const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
 
   const [loading, setLoading] = useState(false);
@@ -85,6 +84,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const [bucketName] = bucketEditQuota;
   const bucket = bucketRecords[bucketName] || EMPTY_BUCKET;
   const PaymentAddress = bucket.PaymentAddress;
+  const { pa, oa, isSponsor } = useAccountType(PaymentAddress);
   const { settlementFee } = useSettlementFee(PaymentAddress);
   const accountDetail = useAppSelector(selectAccount(PaymentAddress));
   const quota = bucketQuotaRecords[bucketName];
@@ -93,11 +93,11 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const valid = balanceEnough && !loading && newChargedQuota * G_BYTES > (currentQuota || 0);
 
   const totalFee = useMemo(() => {
-    if (isEmpty(storeFeeParams) || isEmpty(preStoreFeeParams)) return '-1';
+    if (isEmpty(storeFeeParams) || isEmpty(preStoreFeeParams) || isSponsor) return '-1';
     const quotaRate = getQuotaNetflowRate(newChargedQuota * G_BYTES, storeFeeParams);
-    const storeRate = getStoreNetflowRate(chargeSize, storeFeeParams);
+    const storeRate = getStoreNetflowRate(chargeSize, storeFeeParams, true);
     const preQuotaRate = getQuotaNetflowRate(currentQuota, storeFeeParams);
-    const preStoreRate = getStoreNetflowRate(chargeSize, preStoreFeeParams);
+    const preStoreRate = getStoreNetflowRate(chargeSize, preStoreFeeParams, true);
     const fund = BN(quotaRate)
       .plus(storeRate)
       .minus(preQuotaRate)
@@ -105,21 +105,20 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
       .times(storeFeeParams.reserveTime);
     setRefund(fund.isNegative());
     return fund.abs().toString();
-  }, [storeFeeParams, newChargedQuota, chargeSize, currentQuota]);
+  }, [storeFeeParams, newChargedQuota, chargeSize, currentQuota, isSponsor]);
 
   const paymentAccount = useMemo(() => {
     if (!bucket) return '--';
     const address = bucket.PaymentAddress;
-    const pa = find(paymentAccountList, (a) => a.address === address);
-    const oa = ownerAccount.address === address;
-
-    if (!pa && !oa) return '--';
-
     const link = `${GREENFIELD_CHAIN_EXPLORER_URL}/account/${address}`;
     return (
       <>
-        {oa ? OWNER_ACCOUNT_NAME : pa!.name}
-        <Text mx={2}>|</Text>
+        {!isSponsor && (
+          <>
+            {oa ? OWNER_ACCOUNT_NAME : pa!.name}
+            <Text mx={2}>|</Text>
+          </>
+        )}
         <Link
           target="_blank"
           color="#1184EE"
@@ -137,7 +136,7 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
         <CopyText value={link} />
       </>
     );
-  }, [ownerAccount, paymentAccountList, bucket]);
+  }, [pa, oa, isSponsor, bucket]);
 
   const errorHandler = (error: string) => {
     switch (error) {
@@ -317,6 +316,7 @@ interface BucketQuotaDrawerProps {}
 
 export const BucketQuotaDrawer = memo<BucketQuotaDrawerProps>(function BucketQuotaDrawer() {
   const dispatch = useAppDispatch();
+  const { pathname } = useRouter();
   const bucketEditQuota = useAppSelector((root) => root.bucket.bucketEditQuota);
   const [bucketName] = bucketEditQuota;
 
@@ -325,6 +325,10 @@ export const BucketQuotaDrawer = memo<BucketQuotaDrawerProps>(function BucketQuo
   };
 
   useUnmount(onClose);
+
+  useUpdateEffect(() => {
+    onClose();
+  }, [pathname]);
 
   return (
     <DCDrawer isOpen={!!bucketName} onClose={onClose}>
