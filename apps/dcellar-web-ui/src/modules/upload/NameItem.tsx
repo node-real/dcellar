@@ -1,4 +1,4 @@
-import { Box, Flex, Text } from '@node-real/uikit';
+import { Box, Flex } from '@node-real/uikit';
 import { useRouter } from 'next/router';
 
 import { EllipsisText } from '@/components/common/EllipsisText';

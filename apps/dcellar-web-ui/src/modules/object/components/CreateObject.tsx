@@ -42,6 +42,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
   const dispatch = useAppDispatch();
   const { handleFolderTree } = useHandleFolderTree();
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
   const pathSegments = useAppSelector((root) => root.object.pathSegments);
   const objectCommonPrefix = useAppSelector((root) => root.object.objectCommonPrefix);
@@ -108,11 +109,13 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
     maxFolderDepth ||
     isBucketDiscontinue ||
     isFlowRateLimit ||
+    isBucketMigrating ||
     loading ||
     accountDetail.clientFrozen;
   const uploadDisabled =
     isBucketDiscontinue ||
     isFlowRateLimit ||
+    isBucketMigrating ||
     invalidPath ||
     pathSegments.length > MAX_FOLDER_LEVEL ||
     loading ||
@@ -194,14 +197,16 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
                 isBucketDiscontinue
                   ? 'Bucket in the discontinue status cannot upload objects.'
                   : isFlowRateLimit
-                    ? "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it."
-                    : accountDetail?.clientFrozen
-                      ? 'The payment account in the frozen status cannot upload objects.'
-                      : uploadDisabled
-                        ? 'Path invalid'
-                        : `Please limit object size to ${formatBytes(
-                            SINGLE_OBJECT_MAX_SIZE,
-                          )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
+                  ? "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it."
+                  : isBucketMigrating
+                  ? 'Bucket in the migrating status cannot upload objects.'
+                  : accountDetail?.clientFrozen
+                  ? 'The payment account in the frozen status cannot upload objects.'
+                  : uploadDisabled
+                  ? 'Path invalid'
+                  : `Please limit object size to ${formatBytes(
+                      SINGLE_OBJECT_MAX_SIZE,
+                    )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
               }
             >
               <div>

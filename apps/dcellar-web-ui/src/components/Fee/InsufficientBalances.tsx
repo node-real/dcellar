@@ -3,24 +3,24 @@ import { Flex, Text } from '@node-real/uikit';
 import NextLink from 'next/link';
 import { useEffect, useState } from 'react';
 
-export type InsufficientBalanceProps = {
+export type InsufficientBalancesProps = {
   loginAccount: string;
-  accounts: { address: string }[];
+  accounts: string[];
 };
 
-export const InsufficientBalance = ({ loginAccount, accounts }: InsufficientBalanceProps) => {
+export const InsufficientBalances = ({ loginAccount, accounts }: InsufficientBalancesProps) => {
   const [activeWays, setActiveWays] = useState<{ link: string; text: string }[]>([]);
 
   useEffect(() => {
     const ways = accounts.map((account) => {
-      const isOwnerAccount = account.address === loginAccount;
+      const isOwnerAccount = account === loginAccount;
       return isOwnerAccount
         ? {
             link: InternalRoutePaths.transfer_in,
             text: 'Transfer in',
           }
         : {
-            link: `${InternalRoutePaths.send}&from=${loginAccount}&to=${account.address}`,
+            link: `${InternalRoutePaths.send}&from=${loginAccount}&to=${account}`,
             text: 'Send',
           };
     });

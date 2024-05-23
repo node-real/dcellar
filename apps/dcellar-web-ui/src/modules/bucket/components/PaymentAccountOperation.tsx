@@ -1,7 +1,7 @@
 import { GREENFIELD_CHAIN_EXPLORER_URL } from '@/base/env';
 import { Animates } from '@/components/AnimatePng';
 import { BalanceOn } from '@/components/Fee/BalanceOn';
-import { InsufficientBalance } from '@/components/Fee/InsufficientBalance';
+import { InsufficientBalances } from '@/components/Fee/InsufficientBalances';
 import { IconFont } from '@/components/IconFont';
 import { CopyText } from '@/components/common/CopyText';
 import { DCButton } from '@/components/common/DCButton';
@@ -42,6 +42,7 @@ import { PaymentAccountSelector } from '../components/PaymentAccountSelector';
 import { ChangePaymentTotalFee } from './ChangePaymentTotalFees';
 import { setSignatureAction } from '@/store/slices/global';
 import { useAccountType } from '@/hooks/useAccountType';
+import { Field, Label, Value } from './style';
 
 export const PaymentAccountOperation = memo(function PaymentAccountOperation({
   bucket,
@@ -90,9 +91,9 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     fromSponsor,
   });
 
-  const InsufficientAccounts = [];
-  !loadingFee && !validFrom && InsufficientAccounts.push({ address: bucket.PaymentAddress });
-  !loadingFee && !validTo && InsufficientAccounts.push({ address: newPaymentAccount.address });
+  const insufficientBalanceAccounts = [];
+  !loadingFee && !validFrom && insufficientBalanceAccounts.push(bucket.PaymentAddress);
+  !loadingFee && !validTo && insufficientBalanceAccounts.push(newPaymentAccount.address);
   const valid =
     !loading &&
     !loadingFee &&
@@ -250,7 +251,7 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
           from={{ address: bucket.PaymentAddress, amount: fromSettlementFee }}
           to={{ address: newPaymentAccount.address, amount: toSettlementFee }}
         />
-        <InsufficientBalance loginAccount={loginAccount} accounts={InsufficientAccounts} />
+        <InsufficientBalances loginAccount={loginAccount} accounts={insufficientBalanceAccounts} />
         <DCButton size={'lg'} variant="brand" disabled={!valid} onClick={onChangeConfirm}>
           Confirm
         </DCButton>
@@ -258,28 +259,3 @@ export const PaymentAccountOperation = memo(function PaymentAccountOperation({
     </>
   );
 });
-
-const Field = styled(Flex)`
-  align-items: center;
-  justify-content: space-between;
-  margin: 8px 0;
-  padding: 2px 0;
-`;
-
-const Label = styled.div`
-  font-weight: 500;
-  line-height: normal;
-  color: #76808f;
-  flex-shrink: 0;
-  width: 178px;
-`;
-
-const Value = styled(Flex)`
-  font-weight: 500;
-  line-height: normal;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  align-items: center;
-`;

@@ -18,6 +18,7 @@ import { getSpOffChainData } from '@/store/slices/persist';
 import { convertObjectKey } from '@/utils/common';
 import { Activity } from './object';
 import { numberToHex } from 'viem';
+import { BucketStatus as BucketStatusEnum } from '@bnb-chain/greenfield-js-sdk';
 
 export type BucketOperationsType =
   | 'detail'
@@ -28,6 +29,7 @@ export type BucketOperationsType =
   | 'payment_account'
   | 'edit_tags'
   | 'update_tags'
+  | 'migrate'
   | '';
 
 export type BucketProps = BucketMetaWithVGF;
@@ -49,6 +51,7 @@ export interface BucketState {
   // current visit bucket;
   isBucketDiscontinue: boolean;
   isBucketOwner: boolean;
+  isBucketMigrating: boolean;
   bucketEditQuota: string[];
   bucketOperation: Record<0 | 1, [string, BucketOperationsType]>;
   bucketEditTagsData: ResourceTags_Tag[];
@@ -64,6 +67,7 @@ const initialState: BucketState = {
   bucketListPage: 0,
   isBucketDiscontinue: false,
   isBucketOwner: true,
+  isBucketMigrating: false,
   bucketEditQuota: ['', ''],
   bucketOperation: { 0: ['', ''], 1: ['', ''] },
   bucketEditTagsData: [DEFAULT_TAG],
@@ -87,10 +91,20 @@ export const bucketSlice = createSlice({
     setBucketEditQuota(state, { payload }: PayloadAction<string[]>) {
       state.bucketEditQuota = payload;
     },
-    setBucketStatus(state, { payload }: PayloadAction<{ discontinue: boolean; owner: boolean }>) {
-      const { discontinue, owner } = payload;
-      state.isBucketDiscontinue = discontinue;
-      state.isBucketOwner = owner;
+    setBucketStatus(
+      state,
+      {
+        payload,
+      }: PayloadAction<{
+        isBucketDiscontinue: boolean;
+        isBucketOwner: boolean;
+        isBucketMigrating: boolean;
+      }>,
+    ) {
+      const { isBucketDiscontinue, isBucketOwner, isBucketMigrating } = payload;
+      state.isBucketDiscontinue = isBucketDiscontinue;
+      state.isBucketOwner = isBucketOwner;
+      state.isBucketMigrating = isBucketMigrating;
     },
     setBucketListPage(state, { payload }: PayloadAction<number>) {
       state.bucketListPage = payload;
@@ -109,7 +123,9 @@ export const bucketSlice = createSlice({
       const newInfo = { ...info, ...bucket };
       state.bucketRecords[bucketName] = newInfo;
       state.isBucketOwner = address === newInfo.Owner;
-      state.isBucketDiscontinue = newInfo.BucketStatus === 1;
+      state.isBucketDiscontinue =
+        newInfo.BucketStatus === BucketStatusEnum.BUCKET_STATUS_DISCONTINUED;
+      state.isBucketMigrating = newInfo.BucketStatus === BucketStatusEnum.BUCKET_STATUS_MIGRATING;
     },
     setBucketList(state, { payload }: PayloadAction<{ address: string; buckets: BucketProps[] }>) {
       const { address, buckets } = payload;
@@ -184,8 +200,10 @@ export const selectBucketListSpinning = (address: string) => (root: AppState) =>
   return !(address in bucketListRecords) || bucketListLoading;
 };
 
-export const selectHasDiscontinue = (address: string) => (root: AppState) =>
-  (root.bucket.bucketListRecords[address] || defaultBucketList).some((i) => i.BucketStatus === 1);
+export const selectHasDiscontinueBucket = (address: string) => (root: AppState) =>
+  (root.bucket.bucketListRecords[address] || defaultBucketList).some(
+    (i) => i.BucketStatus === BucketStatusEnum.BUCKET_STATUS_DISCONTINUED,
+  );
 
 export const setupBucket =
   (bucketName: string, address?: string) => async (dispatch: AppDispatch, getState: GetState) => {

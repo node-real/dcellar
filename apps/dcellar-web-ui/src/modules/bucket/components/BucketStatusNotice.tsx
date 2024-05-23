@@ -2,26 +2,36 @@ import { IconFont } from '@/components/IconFont';
 import { DCLink } from '@/components/common/DCLink';
 import { Box, Divider, Flex, Menu, MenuButton, MenuList, Text } from '@node-real/uikit';
 
-export const DiscontinueNotice = ({
-  content,
-  learnMore,
+type InvalidStatusReason = {
+  title: string;
+  desc: string;
+  link?: string;
+  icon: string;
+  show: boolean;
+};
+export const BucketStatusNotice = ({
   flowRateLimit = false,
-  discontinue = true,
+  bucketStatusReason,
 }: {
-  content: string;
-  learnMore: string;
   flowRateLimit?: boolean;
-  discontinue?: boolean;
+  bucketStatusReason: {
+    title: string;
+    desc: string;
+    link?: string;
+    icon: string;
+    show: boolean;
+  } | null;
 }) => {
-  const account = discontinue && flowRateLimit ? 2 : 0;
-  const discontinueReasons = [
+  const account = bucketStatusReason && flowRateLimit ? 2 : 0;
+  const discontinueReasons: InvalidStatusReason[] = [
     {
+      icon: 'colored-error2',
       title: 'Flow rate exceeds limit',
       desc: "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it.",
       link: 'https://docs.nodereal.io/docs/dcellar-faq#question-why-is-my-bucket-flow-rate-limited',
       show: flowRateLimit,
     },
-    { title: 'Discontinue Notice', desc: content, link: learnMore, show: discontinue },
+    bucketStatusReason || { title: '', desc: '', icon: '', show: false },
   ].filter((i) => i.show);
 
   return (
@@ -35,7 +45,14 @@ export const DiscontinueNotice = ({
           alignItems={'center'}
           fontWeight={600}
         >
-          <IconFont type="colored-error2" w={16} />
+          <IconFont
+            type={
+              flowRateLimit
+                ? 'colored-error2'
+                : (bucketStatusReason && bucketStatusReason.icon) || 'colored-error2'
+            }
+            w={16}
+          />
           {!!account && <>{account}</>}
         </MenuButton>
         <MenuList>
@@ -48,9 +65,11 @@ export const DiscontinueNotice = ({
                 </Text>
                 <Text color={'readable.secondary'}>{desc}</Text>
                 <Flex justifyContent={'right'}>
-                  <DCLink href={link} target="_blank" onClick={(e) => e.stopPropagation()}>
-                    Learn More
-                  </DCLink>
+                  {link && (
+                    <DCLink href={link} target="_blank" onClick={(e) => e.stopPropagation()}>
+                      Learn More
+                    </DCLink>
+                  )}
                 </Flex>
                 {index !== discontinueReasons.length - 1 && <Divider my={12} />}
               </Box>

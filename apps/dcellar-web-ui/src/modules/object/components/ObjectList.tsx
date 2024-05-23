@@ -115,6 +115,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
   const objectTypeFilter = useAppSelector((root) => root.object.objectTypeFilter);
   const objectListTruncated = useAppSelector((root) => root.object.objectListTruncated);
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
+  const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const isBucketOwner = useAppSelector((root) => root.bucket.isBucketOwner);
   const bucketRecords = useAppSelector((root) => root.bucket.bucketRecords);
   const primarySpRecords = useAppSelector((root) => root.sp.primarySpRecords);
@@ -204,6 +205,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     const title = (() => {
       if (filtered || shareMode) return 'No Results';
       if (isBucketDiscontinue) return 'Discontinue Notice';
+      if (isBucketMigrating) return 'Migrating Notice';
       if (!currentPathExist && isBucketOwner) return 'No Objects Under This Path';
       return 'Upload Objects and Start Your Work Now';
     })();
@@ -212,6 +214,8 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
       if (filtered || shareMode) return 'No results found. Please try different conditions.';
       if (isBucketDiscontinue)
         return 'This bucket were marked as discontinued and will be deleted by SP soon. ';
+      if (isBucketMigrating)
+        return 'This bucket were marked as migrating and will be migrated by SP soon.';
       if (!currentPathExist && isBucketOwner)
         return (
           <Box sx={{ a: { color: 'brand.normal' } }}>
@@ -231,6 +235,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
     );
   }, [
     isBucketDiscontinue,
+    isBucketMigrating,
     isBucketOwner,
     empty,
     filtered,
