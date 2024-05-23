@@ -2,6 +2,21 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.4.0",
+      "tag": "dcellar-web-ui_v1.4.0",
+      "date": "Thu, 16 May 2024 09:14:19 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Introduce the activities feature for bucket, object and group"
+          },
+          {
+            "comment": "Introduce the stop upload feature"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.3.2",
       "tag": "dcellar-web-ui_v1.3.2",
       "date": "Sat, 11 May 2024 05:44:13 GMT",

@@ -9,7 +9,15 @@ export const ToolCards = ({ data }: { data: ToolItem[] }) => {
   return (
     <>
       {data.map((item, index) => (
-        <Card key={index} w={'100%'}>
+        <Card
+          key={index}
+          w={'100%'}
+          as={'a'}
+          // @ts-expect-error href is a valid prop when using as={'a'}
+          href={item.links.find((t) => t.name === 'Link')?.url || ''}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <IconFont type={item.icon || 'link'} w={48} />
           <Flex justifyContent={'space-between'} gap={8}>
             <Text fontSize={16} fontWeight={600} flex={1}>

@@ -227,6 +227,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
       } else {
         axios
           .put(url, task.waitObject.file, {
+            signal: task.abortController?.signal,
             async onUploadProgress(progressEvent) {
               const progress = progressEvent.total
                 ? Math.floor((progressEvent.loaded / progressEvent.total) * 100)
@@ -285,6 +286,7 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
                 setupUploadTaskErrorMsg({
                   account: loginAccount,
                   task,
+                  status: e?.code === 'ERR_CANCELED' ? 'CANCEL' : 'ERROR',
                   errorMsg: authExpired
                     ? 'Authentication expired.'
                     : message || e?.message || 'upload error',
@@ -481,8 +483,28 @@ export const GlobalObjectUploadManager = memo<GlobalTasksProps>(
     // 3. upload
     useAsyncEffect(async () => {
       if (!uploadTasks.length) return;
-      dispatch(updateUploadStatus({ ids: uploadTasks, status: 'UPLOAD', account: loginAccount }));
-      const tasks = queue.filter((t) => uploadTasks.includes(t.id));
+      // Add abortController to each task
+      const extraFields: Record<string, Partial<UploadObject>> = uploadTasks.reduce(
+        (acc, id) => {
+          acc[id] = {
+            abortController: new AbortController(),
+          };
+          return acc;
+        },
+        {} as Record<string, Partial<UploadObject>>,
+      );
+      dispatch(
+        updateUploadStatus({
+          ids: uploadTasks,
+          status: 'UPLOAD',
+          account: loginAccount,
+          extraFields,
+        }),
+      );
+
+      const tasks = queue
+        .filter((t) => uploadTasks.includes(t.id))
+        .map((t) => ({ ...t, ...extraFields[t.id] }));
       tasks.forEach(runUploadTask);
     }, [uploadTasks.join('')]);
 

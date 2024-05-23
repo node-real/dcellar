@@ -6,8 +6,10 @@ import {
 import { toast } from '@node-real/uikit';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { getGroupMembers, getGroups } from '@/facade/group';
+import { getGroupActivities, getGroupMembers, getGroups } from '@/facade/group';
 import { AppDispatch, AppState, GetState } from '@/store';
+import { Activity } from './object';
+import { numberToHex } from 'viem';
 
 export type GroupMember = {
   AccountId: string;
@@ -41,6 +43,7 @@ interface GroupInitialState {
   groupSelectedMembers: string[];
   editTags: [string, string];
   groupEditTagsData: ResourceTags_Tag[];
+  groupActivityRecords: Record<string, Activity[]>;
 }
 const defaultGroupInfo: GroupInfo = {
   owner: '',
@@ -61,6 +64,7 @@ const initialState: GroupInitialState = {
   groupSelectedMembers: [],
   editTags: ['', ''],
   groupEditTagsData: [DEFAULT_TAG],
+  groupActivityRecords: {},
 };
 
 export const groupSlice = createSlice({
@@ -116,6 +120,13 @@ export const groupSlice = createSlice({
     setGroupTagsEditData(state, { payload }: PayloadAction<ResourceTags_Tag[]>) {
       state.groupEditTagsData = payload;
     },
+    setGroupActivity(
+      state,
+      { payload }: PayloadAction<{ activities: Activity[]; groupName: string }>,
+    ) {
+      const { groupName, activities } = payload;
+      state.groupActivityRecords[groupName] = activities;
+    },
   },
 });
 
@@ -130,6 +141,7 @@ export const {
   setGroupSelectedMembers,
   setGroupTagsEditData,
   setGroupTags,
+  setGroupActivity,
 } = groupSlice.actions;
 
 const defaultGroupList = Array<BucketInfo>();
@@ -182,6 +194,13 @@ export const setupGroupMembers =
     }
     dispatch(setGroupMemberList({ id, members }));
     return members;
+  };
+
+export const setupGroupActivity =
+  (groupName: string, id: string) => async (dispatch: AppDispatch) => {
+    const activities = await getGroupActivities(numberToHex(Number(id), { size: 32 }));
+
+    dispatch(setGroupActivity({ groupName, activities }));
   };
 
 export default groupSlice.reducer;

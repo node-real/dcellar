@@ -11,6 +11,7 @@ import {
   setBucketEditQuota,
   setupBucketQuota,
   TBucket,
+  setupBucketActivity,
 } from '@/store/slices/bucket';
 import { selectBucketSp } from '@/store/slices/sp';
 import { convertObjectKey } from '@/utils/common';
@@ -27,19 +28,27 @@ import {
   QDrawerBody,
   QDrawerFooter,
   QDrawerHeader,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Text,
   Tooltip,
 } from '@node-real/uikit';
 import dayjs from 'dayjs';
 import { memo, PropsWithChildren, useEffect, useState } from 'react';
-import { useUnmount } from 'ahooks';
+import { useMount, useUnmount } from 'ahooks';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
+import { Activities } from '@/components/Activities';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text as={'div'} fontSize={'14px'} fontWeight={500} color="readable.tertiary">
     {children}
   </Text>
 );
+
+const VERSION_TABS = ['General Info', 'Activities'];
 
 interface DetailBucketOperationProps {
   selectedBucketInfo: TBucket;
@@ -68,6 +77,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
 }) {
   const dispatch = useAppDispatch();
   const bucketQuotaRecords = useAppSelector((root) => root.bucket.bucketQuotaRecords);
+  const bucketActivityRecords = useAppSelector((root) => root.bucket.bucketActivityRecords);
   const accountInfos = useAppSelector((root) => root.accounts.accountInfos);
   const primarySp = useAppSelector(selectBucketSp(selectedBucketInfo))!;
 
@@ -75,6 +85,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
   const bucketQuota = bucketQuotaRecords[selectedBucketInfo.BucketName];
   const endDate = dayjs().utc?.().endOf('month').format('D MMM, YYYY');
   const formattedQuota = formatQuota(bucketQuota);
+
+  const activityKey = selectedBucketInfo.BucketName;
+  const loading = !(activityKey in bucketActivityRecords);
+  const bucketActivities = bucketActivityRecords[activityKey];
 
   const nullObjectMeta: ObjectMeta = {
     ...defaultNullObject,
@@ -367,6 +381,10 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     dispatch(setupBucketQuota(selectedBucketInfo.BucketName));
   }, [selectedBucketInfo.BucketName, dispatch]);
 
+  useMount(() => {
+    dispatch(setupBucketActivity(selectedBucketInfo.BucketName, selectedBucketInfo.Id));
+  });
+
   useUnmount(() => dispatch(setBucketTagsEditData([DEFAULT_TAG])));
 
   return (
@@ -432,10 +450,25 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
             </Text>
           </Box>
         </Flex>
-        <Divider mb={24} />
-        {getContent()}
-        <Divider mb={24} mt={8} />
-        <SharePermission selectObjectInfo={nullObjectMeta} />
+        <Tabs>
+          <TabList mb={24}>
+            {VERSION_TABS.map((tab) => (
+              <Tab h={24} key={tab} fontSize={14} fontWeight={500} pb={8}>
+                {tab}
+              </Tab>
+            ))}
+          </TabList>
+          <TabPanels>
+            <TabPanel>
+              {getContent()}
+              <Divider mb={24} mt={8} />
+              <SharePermission selectObjectInfo={nullObjectMeta} />
+            </TabPanel>
+            <TabPanel>
+              <Activities loading={loading} activities={bucketActivities} />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </QDrawerBody>
       <QDrawerFooter>
         <DCButton size="lg" w={'100%'} onClick={onManageQuota}>

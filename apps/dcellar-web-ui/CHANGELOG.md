@@ -1,6 +1,14 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Sat, 11 May 2024 05:44:13 GMT and should not be manually modified.
+This log was last generated on Thu, 16 May 2024 09:14:19 GMT and should not be manually modified.
+
+## 1.4.0
+Thu, 16 May 2024 09:14:19 GMT
+
+### Minor changes
+
+- Introduce the activities feature for bucket, object and group
+- Introduce the stop upload feature
 
 ## 1.3.2
 Sat, 11 May 2024 05:44:13 GMT

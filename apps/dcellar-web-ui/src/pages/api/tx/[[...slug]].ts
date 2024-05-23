@@ -1,0 +1,18 @@
+import { BILLING_API_URL, EXPLORER_API_URL } from '@/base/env';
+import axios from 'axios';
+import { NextApiRequest, NextApiResponse } from 'next';
+
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { slug } = req.query;
+  const slugs = slug as string[];
+  const url = `${EXPLORER_API_URL}/greenfield/tx/${slugs.join('/')}?page=1&per_page=100`;
+  try {
+    const { data } = await axios.get(url, { data: {} });
+    res.json(data);
+  } catch (e) {
+    console.error('tx', e);
+    res.json({});
+  }
+};
+
+export default handler;
