@@ -1,6 +1,14 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 16 May 2024 09:14:19 GMT and should not be manually modified.
+This log was last generated on Thu, 23 May 2024 03:42:29 GMT and should not be manually modified.
+
+## 1.5.0
+Thu, 23 May 2024 03:42:29 GMT
+
+### Minor changes
+
+- Support sponsor payment account
+- Introduce the migrate bucket feature
 
 ## 1.4.0
 Thu, 16 May 2024 09:14:19 GMT
