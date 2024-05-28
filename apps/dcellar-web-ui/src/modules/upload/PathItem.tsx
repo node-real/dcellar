@@ -6,6 +6,7 @@ import { EllipsisText } from '@/components/common/EllipsisText';
 import { useAppDispatch } from '@/store';
 import { setTaskManagement } from '@/store/slices/global';
 import { encodeObjectName } from '@/utils/string';
+import { encodePath } from '@bnb-chain/greenfield-js-sdk';
 
 interface PathItemProps {
   path: string;
@@ -37,7 +38,7 @@ export const PathItem = memo<PathItemProps>(function PathItem({ path, status, ..
       text={path}
       {...styleProps}
     >
-      <Link href={`/buckets/${encodeObjectName(path)}`} legacyBehavior passHref>
+      <Link href={`/buckets/${encodePath(path)}`} legacyBehavior passHref>
         <Text
           borderBottom={finished ? '1px solid' : ''}
           as={'a'}

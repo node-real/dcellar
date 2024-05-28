@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { memo } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { setSignatureAction } from '@/store/slices/global';
+import { encodePath } from '@bnb-chain/greenfield-js-sdk';
 
 interface ObjectNameColumnProps {
   item: ObjectEntity;
@@ -124,7 +125,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
   return (
     <Container>
       <Link
-        href={`/buckets/${currentBucketName}/${encodeObjectName(objectName)}`}
+        href={`/buckets/${currentBucketName}/${encodePath(objectName)}`}
         onClick={(e) => {
           if (disabled) {
             e.stopPropagation();
@@ -138,9 +139,7 @@ export const ObjectNameColumn = memo<ObjectNameColumnProps>(function NameItem({
             if (shareMode) {
               e.stopPropagation();
               e.preventDefault();
-              dispatch(
-                setObjectShareModePath(`${currentBucketName}/${encodeObjectName(objectName)}`),
-              );
+              dispatch(setObjectShareModePath(`${currentBucketName}/${encodePath(objectName)}`));
             }
             return;
           }

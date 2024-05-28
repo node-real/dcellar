@@ -1,4 +1,4 @@
-import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
+import { IQuotaProps, encodePath } from '@bnb-chain/greenfield-js-sdk';
 import BigNumber from 'bignumber.js';
 import { hexlify, toUtf8Bytes } from 'ethers/lib/utils';
 
@@ -148,7 +148,7 @@ export const copy = (text: string) => {
 };
 
 const getObjectPath = (bucketName = '', objectName = '') => {
-  return [bucketName, encodeObjectName(objectName)].join('/');
+  return [bucketName, encodePath(objectName)].join('/');
 };
 
 export const getShareLink = (bucketName: string, objectName: string) => {

@@ -10,6 +10,7 @@ import { setObjectOperation } from '@/store/slices/object';
 import { formatBytes } from '@/utils/formatter';
 import { encodeObjectName } from '@/utils/string';
 import { ReactNode } from 'react';
+import { encodePath } from '@bnb-chain/greenfield-js-sdk';
 
 type Props = {
   name: string;
@@ -43,7 +44,7 @@ export const NameItem = ({ name, size, msg, status, task, ...styleProps }: Props
 
     if (name.endsWith('/')) {
       dispatch(setTaskManagement(false));
-      return router.push(`/buckets/${task.bucketName}/${encodeObjectName(objectName)}`);
+      return router.push(`/buckets/${task.bucketName}/${encodePath(objectName)}`);
     }
 
     dispatch(

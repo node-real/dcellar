@@ -52,6 +52,7 @@ import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { setSignatureAction } from '@/store/slices/global';
 import { VersionTable } from '@/modules/object/components/VersionTable';
 import { Activities } from '@/components/Activities';
+import { encodePath } from '@bnb-chain/greenfield-js-sdk';
 
 const VERSION_TABS = ['General Info', 'Activities', 'Versions'];
 
@@ -240,7 +241,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
                     renderPropRow(
                       'Universal link',
                       renderUrlWithLink(
-                        `${primarySp.endpoint}/view/${currentBucketName}/${encodeObjectName(
+                        `${primarySp.endpoint}/view/${currentBucketName}/${encodePath(
                           objectInfo.ObjectName,
                         )}`,
                         true,

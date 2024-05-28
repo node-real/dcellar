@@ -51,6 +51,7 @@ import {
   PermissionTypes,
   SpResponse,
   TxResponse,
+  encodePath,
   generateUrlByBucketName,
   newBucketGRN,
   newObjectGRN,
@@ -192,7 +193,7 @@ export const downloadObject = async (
   const { visibility, bucketName, objectName } = objectInfo;
 
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-  const link = `${endpoint}/download/${bucketName}/${encodeObjectName(objectName)}`;
+  const link = `${endpoint}/download/${bucketName}/${encodePath(objectName)}`;
 
   if (!isPrivate) {
     if (batch) batchDownload(link);
@@ -217,7 +218,7 @@ export const previewObject = async (
   const { visibility, bucketName, objectName } = objectInfo;
 
   const isPrivate = visibility === VisibilityType.VISIBILITY_TYPE_PRIVATE;
-  const link = `${endpoint}/view/${bucketName}/${encodeObjectName(objectName)}`;
+  const link = `${endpoint}/view/${bucketName}/${encodePath(objectName)}`;
   if (!isPrivate) {
     directlyDownload(link, '_blank');
     return [true];
@@ -588,7 +589,7 @@ export const legacyGetObjectMeta = async (
   objectName: string,
   endpoint: string,
 ) => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodePath(
     objectName,
   )}?object-meta`;
 
@@ -618,7 +619,7 @@ export const getObjectMeta = async (
   objectName: string,
   endpoint: string,
 ): Promise<[ObjectMeta, null] | [null, { code: number; message: string }]> => {
-  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodeObjectName(
+  const url = `${generateUrlByBucketName(endpoint, bucketName)}/${encodePath(
     objectName,
   )}?object-meta`;
 
