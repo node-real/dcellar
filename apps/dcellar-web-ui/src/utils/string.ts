@@ -1,5 +1,6 @@
 import { IQuotaProps } from '@bnb-chain/greenfield-js-sdk';
 import BigNumber from 'bignumber.js';
+import { hexlify, toUtf8Bytes } from 'ethers/lib/utils';
 
 export const trimFloatZero = (str: string) => {
   const [intStr, floatStr] = str.split('.');
@@ -89,22 +90,30 @@ export const encodeObjectName = (pathName: string) => {
         encodedPathName += s;
         continue;
 
+      // default:
+      //   // . ! @ # $ % ^ & * ) ( - + = { } [ ] / " , ' < > ~ \ .` ? : ; | \\
+      //   // eslint-disable-next-line no-useless-escape
+      //   if (/[.!@#$%^&*)(\-+={}\[\]\/",'<>~·`?:;|\\]+$/.test(s)) {
+      //     // english characters
+      //     const hexStr = s.charCodeAt(0).toString(16);
+      //     encodedPathName += '%' + hexStr.toUpperCase();
+      //   } else {
+      //     // others characters
+      //     try {
+      //       encodedPathName += encodeURI(s);
+      //     } catch (e) {
+      //       encodedPathName += s;
+      //     }
+      //   }
       // others characters need to be encoded
-      default:
-        // . ! @ # $ % ^ & * ) ( - + = { } [ ] / " , ' < > ~ \ .` ? : ; | \\
-        // eslint-disable-next-line no-useless-escape
-        if (/[.!@#$%^&*)(\-+={}\[\]\/",'<>~·`?:;|\\]+$/.test(s)) {
-          // english characters
-          const hexStr = s.charCodeAt(0).toString(16);
-          encodedPathName += '%' + hexStr.toUpperCase();
-        } else {
-          // others characters
-          try {
-            encodedPathName += encodeURI(s);
-          } catch (e) {
-            encodedPathName += s;
-          }
+      default: {
+        const u = toUtf8Bytes(s);
+
+        for (let i = 0; i < u.length; i++) {
+          const hexStr = hexlify(u[i]);
+          encodedPathName += '%' + hexStr.slice(2).toUpperCase();
         }
+      }
     }
   }
   return encodedPathName;
