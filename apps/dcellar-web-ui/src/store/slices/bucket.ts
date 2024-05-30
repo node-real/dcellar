@@ -243,7 +243,10 @@ export const setupBucketList =
     }
 
     const bucketList =
-      res.body?.map((bucket) => ({ ...bucket, BucketInfo: { ...bucket.BucketInfo } })) || [];
+      res.body?.map((bucket) => ({
+        ...bucket,
+        BucketInfo: { ...bucket.BucketInfo, BucketStatus: 1 },
+      })) || [];
 
     const bucketSpInfo = bucketList.map((b) => ({
       bucketName: b.BucketInfo.BucketName,
