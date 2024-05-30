@@ -92,8 +92,5 @@
       "prettier --write"
     ],
     "*.ts?(x)": "tsc-files --noEmit"
-  },
-  "browser": {
-    "crypto": false
   }
 }
