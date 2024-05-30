@@ -2,6 +2,24 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.6.0",
+      "tag": "dcellar-web-ui_v1.6.0",
+      "date": "Thu, 30 May 2024 09:05:12 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Unified encoding method same as go-sdk"
+          },
+          {
+            "comment": "Replace the related links of bnb greenfield doc"
+          },
+          {
+            "comment": "Add bucket status tip to the bucket detail drawer"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.5.0",
       "tag": "dcellar-web-ui_v1.5.0",
       "date": "Thu, 23 May 2024 03:42:29 GMT",

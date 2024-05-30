@@ -34,7 +34,7 @@ const datas = [
     icon: <ResponsiveIcon type="filled-docs" color={'readable.white'} />,
     iconBg: '#F5A861',
     name: 'BNB Greenfield Docs',
-    link: 'https://docs.bnbchain.org/greenfield-docs/docs/guide/home',
+    link: 'https://docs.bnbchain.org/bnb-greenfield/',
     gaClickName: 'dc_lp.homepage.tool.docs.click',
   },
   {

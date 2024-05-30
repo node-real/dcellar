@@ -44,6 +44,7 @@ import { useMount, useUnmount } from 'ahooks';
 import { DEFAULT_TAG } from '@/components/common/ManageTags';
 import { Activities } from '@/components/Activities';
 import { BucketStatus } from '@bnb-chain/greenfield-js-sdk';
+import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 
 export const Label = ({ children }: PropsWithChildren) => (
   <Text as={'div'} fontSize={'14px'} fontWeight={500} color="readable.tertiary">
@@ -100,6 +101,12 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
       BucketName: selectedBucketInfo.BucketName,
     },
   };
+
+  const isFlowRateLimit = ['1', '3'].includes(selectedBucketInfo?.OffChainStatus);
+  const isBucketDiscontinue =
+    selectedBucketInfo.BucketStatus === BucketStatus.BUCKET_STATUS_DISCONTINUED;
+  const isBucketMigrating =
+    selectedBucketInfo.BucketStatus === BucketStatus.BUCKET_STATUS_MIGRATING;
 
   const quotaDetail = [
     {
@@ -418,7 +425,7 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
     <>
       <QDrawerHeader>Bucket Detail</QDrawerHeader>
       <QDrawerBody>
-        <Flex mb={24}>
+        <Flex mb={16}>
           <IconFont type="detail-bucket" w={120} />
           <Box marginLeft={'24px'} flex={1}>
             <Text color="readable.tertiary" fontSize={'12px'} marginBottom="4px">
@@ -477,6 +484,27 @@ export const DetailBucketOperation = memo<DetailBucketOperationProps>(function D
             </Text>
           </Box>
         </Flex>
+        {isFlowRateLimit && (
+          <DiscontinueBanner
+            marginBottom={16}
+            content="The bucket's flow rate exceeds the payment account limit."
+          />
+        )}
+        {isBucketDiscontinue && (
+          <DiscontinueBanner
+            marginBottom={16}
+            content="All discontinued items in this bucket will be deleted by SP soon."
+          />
+        )}
+        {isBucketMigrating && (
+          <DiscontinueBanner
+            icon={<IconFont w={16} type={'migrate'} color={'#1184EE'} />}
+            color={'#1184EE'}
+            bg="opacity7"
+            marginBottom={16}
+            content="This bucket is in the process of data migration to another provider."
+          />
+        )}
         <Tabs>
           <TabList mb={24}>
             {VERSION_TABS.map((tab) => (

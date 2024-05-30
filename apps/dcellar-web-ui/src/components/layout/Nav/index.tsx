@@ -41,13 +41,13 @@ const MENU_ITEMS = [
 
 const ASIDE = [
   {
-    link: 'https://docs.bnbchain.org/greenfield-docs/',
+    link: 'https://docs.bnbchain.org/bnb-greenfield/',
     trackId: 'dc.main.nav.doc.click',
     icon: 'book',
     text: 'BNB Greenfield Docs',
   },
   {
-    link: 'https://docs.bnbchain.org/greenfield-docs/docs/release-notes/releaseNotes/',
+    link: 'https://docs.bnbchain.org/bnb-greenfield/for-developers/network-endpoint/endpoints/?h=rpc',
     trackId: 'dc.main.nav.release_note.click',
     icon: 'doc',
     text: 'Release Notes',
