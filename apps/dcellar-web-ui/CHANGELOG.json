@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.6.1",
+      "tag": "dcellar-web-ui_v1.6.1",
+      "date": "Thu, 30 May 2024 10:00:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Correct the bucket status"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.0",
       "tag": "dcellar-web-ui_v1.6.0",
       "date": "Thu, 30 May 2024 09:05:12 GMT",
