@@ -138,12 +138,12 @@ If you use editor other than vscode, just make your app's directory as your work
 
 ## Documentation Links
 - [Greenfield Whitepaper](https://github.com/bnb-chain/greenfield-whitepaper)
-- [Guide to BNB Greenfield](https://docs.bnbchain.org/greenfield-docs/docs/guide/home)
+- [Guide to BNB Greenfield](https://docs.bnbchain.org/bnb-greenfield/)
 - [Guide to DCellar](https://docs.nodereal.io/docs/dcellar-get-started)
 - [Guide to Rush](https://rushjs.io/pages/intro/welcome/)
 - [Guide to Apollo](https://github.com/apolloconfig/apollo)
-- [BNB Greenfield Release Notes](https://docs.bnbchain.org/greenfield-docs/docs/release-notes/releaseNotes/#greenfield-v023---testnet-maintenance-upgrade-reset)
-- [BNB Greenfield RPC Endpoints](https://docs.bnbchain.org/greenfield-docs/docs/api/endpoints/)
+- [BNB Greenfield Release Notes](https://docs.bnbchain.org/bnb-greenfield/release-notes/releaseNotes/)
+- [BNB Greenfield RPC Endpoints](https://docs.bnbchain.org/bnb-greenfield/for-developers/network-endpoint/endpoints/?h=rpc)
 - [@bnb-chain/greenfield-js-sdk](https://docs.bnbchain.org/greenfield-js-sdk/)
 - [@node-real/uikit](https://node-real.github.io/uikit/#/guides)
 - [@node-real/wallketkit](https://node-real.github.io/walletkit/)

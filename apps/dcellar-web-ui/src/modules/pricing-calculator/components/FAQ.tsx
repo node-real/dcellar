@@ -150,9 +150,9 @@ export const FAQ = ({ openKeys, toggleOpenKeys }: FAQProps) => {
           more about it, please refer to{' '}
           <UnderlineLink
             target="_blank"
-            href="https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment"
+            href="https://github.com/bnb-chain/greenfield/blob/master/docs/modules/billing-and-payment.md#storage-fee-price-and-adjustment"
           >
-            https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/billing-and-payment#storage-fee-price-and-adjustment
+            https://github.com/bnb-chain/greenfield/blob/master/docs/modules/billing-and-payment.md#storage-fee-price-and-adjustment
           </UnderlineLink>
           .
         </Text>
