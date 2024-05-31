@@ -1,6 +1,22 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 23 May 2024 03:42:29 GMT and should not be manually modified.
+This log was last generated on Thu, 30 May 2024 10:00:54 GMT and should not be manually modified.
+
+## 1.6.1
+Thu, 30 May 2024 10:00:54 GMT
+
+### Patches
+
+- Correct the bucket status
+
+## 1.6.0
+Thu, 30 May 2024 09:05:12 GMT
+
+### Minor changes
+
+- Unified encoding method same as go-sdk
+- Replace the related links of bnb greenfield doc
+- Add bucket status tip to the bucket detail drawer
 
 ## 1.5.0
 Thu, 23 May 2024 03:42:29 GMT

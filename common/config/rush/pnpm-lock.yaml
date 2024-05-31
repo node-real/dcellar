@@ -8,7 +8,7 @@ importers:
   ../../apps/dcellar-web-ui:
     specifiers:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.32
-      '@bnb-chain/greenfield-js-sdk': 2.1.0-alpha.0
+      '@bnb-chain/greenfield-js-sdk': 2.1.0-alpha.2
       '@commitlint/cli': ^17.4.3
       '@commitlint/config-conventional': ^17.4.3
       '@emotion/react': ^11.10.5
@@ -75,7 +75,7 @@ importers:
       wagmi: ~1.4.10
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.32
-      '@bnb-chain/greenfield-js-sdk': 2.1.0-alpha.0
+      '@bnb-chain/greenfield-js-sdk': 2.1.0-alpha.2
       '@emotion/react': 11.11.3_mj3jo2baq3jslihcop7oivercy
       '@emotion/styled': 11.11.0_44o7ug6fvmx5wru7ifqtcwoy2i
       '@next/bundle-analyzer': 13.5.6
@@ -1497,8 +1497,8 @@ packages:
       protobufjs: 6.11.4
     dev: false
 
-  /@bnb-chain/greenfield-js-sdk/2.1.0-alpha.0:
-    resolution: {integrity: sha512-QEXoofh2VAo6oCCSiyirCf41txbHc9TuuA5ETQMImqdlQQTWTSBfQQEmiVLScKYoNMd7boTDQTTIq0z0yK9RPQ==}
+  /@bnb-chain/greenfield-js-sdk/2.1.0-alpha.2:
+    resolution: {integrity: sha512-frYyzOPLGqTC1NPDhSaYrCdLvNxVwB+C1aJFdl00sqShIMA1FfXrChbDcD1Iw2XWRrFwblVzDdzATWSAYxZ2aA==}
     dependencies:
       '@bnb-chain/greenfield-cosmos-types': 0.4.0-alpha.32
       '@cosmjs/proto-signing': 0.32.2
