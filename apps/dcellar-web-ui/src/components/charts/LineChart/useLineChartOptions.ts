@@ -47,9 +47,27 @@ export function useLineChartOptions(options: any, noData: boolean) {
           `;
         },
       },
+      grid: {
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: 0,
+        containLabel: true,
+      },
+      legend: {
+        icon: 'circle',
+        itemHeight: 8,
+        itemWidth: 8,
+        itemGap: 16,
+        right: 0,
+        textStyle: {
+          fontWeight: 400,
+        },
+      },
       xAxis: {
         type: 'category',
         boundaryGap: false,
+        contianerLabel: true,
         axisLabel: {
           marginTop: 4,
           fontWeight: 500,
@@ -81,11 +99,6 @@ export function useLineChartOptions(options: any, noData: boolean) {
         show: true,
         type: 'value',
         scale: true,
-        spiltLine: {
-          lineStyle: {
-            color: 'red',
-          },
-        },
         axisTick: {
           show: true,
           alignWithLabel: true,
@@ -110,13 +123,6 @@ export function useLineChartOptions(options: any, noData: boolean) {
           fontSize: 12,
           fontFamily: 'Inter',
         },
-      },
-      grid: {
-        left: 4,
-        right: 20,
-        top: 6,
-        bottom: 0,
-        containLabel: true,
       },
       series: [
         {
