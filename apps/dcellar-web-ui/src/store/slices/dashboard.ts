@@ -85,18 +85,6 @@ export const selectFilterQuotaUsageBuckets = () => (root: AppState) => {
   );
 };
 
-const defaultBucketDailyStorage = [] as BucketDailyStorageUsage[];
-export const selectBucketDailyStorage = () => (root: AppState) => {
-  const loginAccount = root.persist.loginAccount;
-  return root.dashboard.bucketDailyStorageUsageRecords[loginAccount] || defaultBucketDailyStorage;
-};
-
-const defaultBucketDailyQuota = [] as BucketDailyQuotaUsage[];
-export const selectBucketDailyQuotaUsage = () => (root: AppState) => {
-  const loginAccount = root.persist.loginAccount;
-  return root.dashboard.bucketDailyQuotaUsageRecords[loginAccount] || defaultBucketDailyQuota;
-};
-
 export const setupBucketDailyStorageUsage =
   () => async (dispatch: AppDispatch, getState: GetState) => {
     const { loginAccount } = getState().persist;

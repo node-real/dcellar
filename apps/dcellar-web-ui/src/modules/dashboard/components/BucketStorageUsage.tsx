@@ -2,11 +2,7 @@ import { LineChart } from '@/components/charts/LineChart';
 import { Loading } from '@/components/common/Loading';
 import { FilterContainer } from '@/modules/accounts/components/Common';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  selectBucketDailyStorage,
-  selectFilterBuckets,
-  setBucketFilter,
-} from '@/store/slices/dashboard';
+import { selectFilterBuckets, setBucketFilter } from '@/store/slices/dashboard';
 import { formatChartTime, mergeArr } from '@/utils/dashboard';
 import { formatBytes } from '@/utils/formatter';
 import { getUtcDayjs } from '@/utils/time';
@@ -20,9 +16,12 @@ export const BucketStorageUsage = () => {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const filterBuckets = useAppSelector(selectFilterBuckets());
-  const bucketDailyStorage = useAppSelector(selectBucketDailyStorage());
-  const bucketNames = bucketDailyStorage.map((item) => item.BucketName);
+  const bucketDailyStorageRecords = useAppSelector(
+    (root) => root.dashboard.bucketDailyStorageUsageRecords,
+  );
+  const bucketDailyStorage = bucketDailyStorageRecords[loginAccount];
   const isLoading = bucketDailyStorage === undefined;
+  const bucketNames = !isLoading ? bucketDailyStorage.map((item) => item.BucketName) : [''];
   const dayjs = getUtcDayjs();
   const noData = !isLoading && isEmpty(bucketDailyStorage);
   const onBucketFiltered = (bucketNames: string[]) => {

@@ -3,29 +3,29 @@ import { Loading } from '@/components/common/Loading';
 import { FilterContainer } from '@/modules/accounts/components/Common';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setBucketDailyQuotaFilter } from '@/store/slices/dashboard';
-import { formatChartTime, mergeArr } from '@/utils/dashboard';
+import { formatChartTime } from '@/utils/dashboard';
 import { formatBytes } from '@/utils/formatter';
 import { getMillisecond, getUtcDayjs } from '@/utils/time';
 import { Box, Flex } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import { useMemo } from 'react';
 import { LABEL_STYLES, VALUE_STYLES } from '../constants';
-import {
-  selectBucketDailyQuotaUsage,
-  selectFilterQuotaUsageBuckets,
-} from '@/store/slices/dashboard';
+import { selectFilterQuotaUsageBuckets } from '@/store/slices/dashboard';
 import { BN } from '@/utils/math';
 import { BucketsFilter } from './BucketsFilter';
 
 export const BucketQuotaUsage = () => {
   const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-  const bucketDailyQuotaUsage = useAppSelector(selectBucketDailyQuotaUsage());
+  const bucketDailyQuotaUsageRecords = useAppSelector(
+    (root) => root.dashboard.bucketDailyQuotaUsageRecords,
+  );
+  const bucketDailyQuotaUsage = bucketDailyQuotaUsageRecords[loginAccount];
   const filteredBuckets = useAppSelector(selectFilterQuotaUsageBuckets());
   const isLoading = bucketDailyQuotaUsage === undefined;
   const dayjs = getUtcDayjs();
   const noData = !isLoading && isEmpty(bucketDailyQuotaUsage);
-  const bucketNames = Object.keys(bucketDailyQuotaUsage);
+  const bucketNames = (!isLoading && Object.keys(bucketDailyQuotaUsage)) || [''];
 
   const onBucketFiltered = (bucketNames: string[]) => {
     dispatch(setBucketDailyQuotaFilter({ loginAccount, bucketNames }));
