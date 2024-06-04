@@ -121,6 +121,9 @@ export const setupBucketDailyQuotaUsage =
     }
     const formatData = Object.entries(data).reduce(
       (acc, [key, value]) => {
+        if (!data[key]) {
+          return acc;
+        }
         const bucketName = data[key][0].BucketName;
         if (!acc[bucketName]) {
           acc[bucketName] = [];

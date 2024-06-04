@@ -31,40 +31,38 @@ export const BucketQuotaUsage = () => {
     dispatch(setBucketDailyQuotaFilter({ loginAccount, bucketNames }));
   };
 
-  const groupDataByTime = useMemo(() => {
+  const quotaUsageByTime = useMemo(() => {
     const data = bucketDailyQuotaUsage || {};
     const filterData = isEmpty(filteredBuckets)
       ? data
       : filteredBuckets.map((item) => data[item]).filter((item) => item !== undefined);
-    const groupDataByTime: Record<
+    const quotaUsageByTime: Record<
       string,
       { MonthlyQuotaSize: string; MonthlyQuotaConsumedSize: string }
     > = {};
     Object.values(filterData).forEach((quotaUsages) => {
       quotaUsages.forEach((item) => {
-        if (!groupDataByTime[item.Date]) {
-          groupDataByTime[item.Date] = {
+        if (!quotaUsageByTime[item.Date]) {
+          return (quotaUsageByTime[item.Date] = {
             MonthlyQuotaSize: String(item.MonthlyQuotaSize),
             MonthlyQuotaConsumedSize: String(item.MonthlyQuotaConsumedSize),
-          };
+          });
         }
-        if (groupDataByTime[item.Date]) {
-          groupDataByTime[item.Date] = {
-            MonthlyQuotaSize: BN(groupDataByTime[item.Date].MonthlyQuotaSize)
-              .plus(item.MonthlyQuotaSize)
-              .toString(),
-            MonthlyQuotaConsumedSize: BN(groupDataByTime[item.Date].MonthlyQuotaConsumedSize)
-              .plus(BN(item.MonthlyQuotaConsumedSize))
-              .toString(),
-          };
-        }
+        quotaUsageByTime[item.Date] = {
+          MonthlyQuotaSize: BN(quotaUsageByTime[item.Date].MonthlyQuotaSize)
+            .plus(item.MonthlyQuotaSize)
+            .toString(),
+          MonthlyQuotaConsumedSize: BN(quotaUsageByTime[item.Date].MonthlyQuotaConsumedSize)
+            .plus(BN(item.MonthlyQuotaConsumedSize))
+            .toString(),
+        };
       });
     });
-    return groupDataByTime;
+    return quotaUsageByTime;
   }, [bucketDailyQuotaUsage, filteredBuckets]);
 
   const lineOptions = useMemo(() => {
-    const lineData = Object.entries(groupDataByTime).map(([time, quotaData]) => ({
+    const lineData = Object.entries(quotaUsageByTime).map(([time, quotaData]) => ({
       time: getMillisecond(+time),
       totalQuota: quotaData.MonthlyQuotaSize,
       quotaUsage: quotaData.MonthlyQuotaConsumedSize,
@@ -151,7 +149,7 @@ export const BucketQuotaUsage = () => {
         },
       ],
     };
-  }, [groupDataByTime, dayjs]);
+  }, [quotaUsageByTime, dayjs]);
 
   return (
     <Flex gap={12} flexDirection={'column'}>
