@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.0",
+      "tag": "dcellar-web-ui_v1.7.0",
+      "date": "Thu, 06 Jun 2024 03:14:47 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add the download quota usage chart"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.1",
       "tag": "dcellar-web-ui_v1.6.1",
       "date": "Thu, 30 May 2024 10:00:54 GMT",
