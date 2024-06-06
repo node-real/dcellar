@@ -4,16 +4,16 @@ import { TotalBalance } from './components/TotalBalance';
 import { Stats } from './components/Stats';
 import { CurMonthCost } from '../accounts/components/CurMonthCost';
 import { CurForecastCost } from '../accounts/components/CurForecastCost';
-import { BucketStorageChart } from './components/BucketStorageChart';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setupOwnerAccount, setupPaymentAccounts } from '@/store/slices/accounts';
 import { setupAllCostTrend, setupTotalCost } from '@/store/slices/billing';
 import { useMount } from 'ahooks';
 import { setupBucketList } from '@/store/slices/bucket';
-import { setupBucketDailyStorage } from '@/store/slices/dashboard';
+import { setupBucketDailyQuotaUsage, setupBucketDailyStorageUsage } from '@/store/slices/dashboard';
 import { getCurMonthDetailUrl } from '@/utils/accounts';
 import { useRouter } from 'next/router';
 import { TutorialCard } from './components/TutorialCard';
+import { BucketUsageStatistics } from './components/BucketUsageStatistics';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -32,7 +32,8 @@ export const Dashboard = () => {
     dispatch(setupAllCostTrend());
     dispatch(setupPaymentAccounts());
     dispatch(setupBucketList(loginAccount));
-    dispatch(setupBucketDailyStorage());
+    dispatch(setupBucketDailyStorageUsage());
+    dispatch(setupBucketDailyQuotaUsage());
   });
 
   return (
@@ -62,7 +63,7 @@ export const Dashboard = () => {
               <ToolBox />
             </Flex>
           )}
-          <BucketStorageChart />
+          <BucketUsageStatistics />
           <Stats />
         </Flex>
         {!isLessThan1200 && (

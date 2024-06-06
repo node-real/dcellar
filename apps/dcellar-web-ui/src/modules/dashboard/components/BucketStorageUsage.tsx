@@ -1,9 +1,8 @@
 import { LineChart } from '@/components/charts/LineChart';
-import { DCButton } from '@/components/common/DCButton';
 import { Loading } from '@/components/common/Loading';
 import { FilterContainer } from '@/modules/accounts/components/Common';
-import { useAppSelector } from '@/store';
-import { selectFilterBuckets } from '@/store/slices/dashboard';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { selectFilterBuckets, setBucketFilter } from '@/store/slices/dashboard';
 import { formatChartTime, mergeArr } from '@/utils/dashboard';
 import { formatBytes } from '@/utils/formatter';
 import { getUtcDayjs } from '@/utils/time';
@@ -11,23 +10,25 @@ import { Box, Flex } from '@node-real/uikit';
 import { isEmpty } from 'lodash-es';
 import { useMemo } from 'react';
 import { LABEL_STYLES, VALUE_STYLES } from '../constants';
-import { Card, CardTitle } from './Common';
-import { FilterBuckets } from './FilterBuckets';
+import { BucketsFilter } from './BucketsFilter';
 
-export const BucketStorageChart = () => {
+export const BucketStorageUsage = () => {
+  const dispatch = useAppDispatch();
   const loginAccount = useAppSelector((root) => root.persist.loginAccount);
   const filterBuckets = useAppSelector(selectFilterBuckets());
   const bucketDailyStorageRecords = useAppSelector(
-    (root) => root.dashboard.bucketDailyStorageRecords,
+    (root) => root.dashboard.bucketDailyStorageUsageRecords,
   );
-
   const bucketDailyStorage = bucketDailyStorageRecords[loginAccount];
   const isLoading = bucketDailyStorage === undefined;
+  const bucketNames = !isLoading ? bucketDailyStorage.map((item) => item.BucketName) : [''];
   const dayjs = getUtcDayjs();
   const noData = !isLoading && isEmpty(bucketDailyStorage);
+  const onBucketFiltered = (bucketNames: string[]) => {
+    dispatch(setBucketFilter({ loginAccount, bucketNames }));
+  };
 
   const lineOptions = useMemo(() => {
-    // line data according to day to generate;
     const data = bucketDailyStorage || [];
     const filterData = isEmpty(filterBuckets)
       ? data
@@ -68,6 +69,15 @@ export const BucketStorageChart = () => {
           `;
         },
       },
+      legend: {
+        icon: 'circle',
+        itemHeight: 8,
+        itemWidth: 8,
+        itemGap: 16,
+        right: 12,
+        textStyle: { fontWeight: 400 },
+        data: ['Storage Usage', 'Quota Usage'],
+      },
       xAxis: {
         data: xData,
       },
@@ -80,6 +90,18 @@ export const BucketStorageChart = () => {
       },
       series: [
         {
+          symbolSize: 5,
+          lineStyle: { color: '#00BA34' },
+          itemStyle: {
+            color: '#00BA34',
+            opacity: 1,
+          },
+          emphasis: { itemStyle: { opacity: 1 } },
+          animationDuration: 600,
+          name: 'Storage Usage',
+          type: 'line',
+          smooth: false,
+          stack: 'Storage Usage',
           data: yData,
         },
       ],
@@ -87,20 +109,13 @@ export const BucketStorageChart = () => {
   }, [bucketDailyStorage, dayjs, filterBuckets]);
 
   return (
-    <Card flex={1} gap={24}>
-      <Flex alignItems={'center'} justifyContent={'space-between'}>
-        <CardTitle>Usage Statistics</CardTitle>
-        <Flex>
-          <DCButton bgColor={'opacity1'} color={'readable.normal'} _hover={{ bgColor: 'opacity1' }}>
-            Storage Usage
-          </DCButton>
-          <DCButton variant="ghost" disabled={true} border={'none'}>
-            Download Quota Usage
-          </DCButton>
-        </Flex>
-      </Flex>
+    <Flex gap={12} flexDirection={'column'}>
       <FilterContainer>
-        <FilterBuckets />
+        <BucketsFilter
+          filteredBuckets={filterBuckets}
+          bucketNames={bucketNames}
+          onBucketFiltered={onBucketFiltered}
+        />
       </FilterContainer>
       <Box h={290} minW={0}>
         <Box w={'100%'} h={'100%'}>
@@ -108,6 +123,6 @@ export const BucketStorageChart = () => {
           {!isLoading && <LineChart options={lineOptions} noData={noData} />}
         </Box>
       </Box>
-    </Card>
+    </Flex>
   );
 };

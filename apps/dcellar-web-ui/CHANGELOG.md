@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 30 May 2024 10:00:54 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jun 2024 03:14:47 GMT and should not be manually modified.
+
+## 1.7.0
+Thu, 06 Jun 2024 03:14:47 GMT
+
+### Minor changes
+
+- Add the download quota usage chart
 
 ## 1.6.1
 Thu, 30 May 2024 10:00:54 GMT

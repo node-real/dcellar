@@ -5,53 +5,44 @@ import { DCMenu } from '@/components/common/DCMenu';
 import { MenuOption } from '@/components/common/DCMenuList';
 import { InputItem } from '@/components/formitems/InputItem';
 import { Badge, MenuFooter, MenuHeader } from '@/modules/accounts/components/Common';
-import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  selectBucketDailyStorage,
-  selectFilterBuckets,
-  setBucketFilter,
-} from '@/store/slices/dashboard';
 import { trimLongStr } from '@/utils/string';
 import { SearchIcon } from '@node-real/icons';
 import { InputLeftElement, MenuButton, Text, Tooltip } from '@node-real/uikit';
 import cn from 'classnames';
 import { xor } from 'lodash-es';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-export const FilterBuckets = () => {
-  const dispatch = useAppDispatch();
-  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
+export type BucketsFilterProps = {
+  bucketNames: string[];
+  filteredBuckets: string[];
+  onBucketFiltered: (bucketNames: string[]) => void;
+};
 
-  const router = useRouter();
-  const bucketDailyStorage = useAppSelector(selectBucketDailyStorage());
-  const filterBuckets = useAppSelector(selectFilterBuckets());
+export const BucketsFilter = ({
+  filteredBuckets,
+  bucketNames,
+  onBucketFiltered,
+}: BucketsFilterProps) => {
   const [nameFilter, setNameFilter] = useState('');
-  const [selectedBucket, setSelectedBucket] = useState<Array<string>>([]);
+  const [selectedBucket, setSelectedBucket] = useState<Array<string>>(filteredBuckets);
 
   const nameToOptions = (name: string) => ({
     label: name,
     value: name,
   });
-  const bucketNames = bucketDailyStorage.map((item) => item.BucketName);
-  // bucket name will 63 characters
   const names = bucketNames.filter((name) =>
     !nameFilter.trim() ? true : name.toLowerCase().includes(nameFilter.trim().toLowerCase()),
   );
   const typeOptions: MenuOption[] = names.map(nameToOptions);
-  const selectedTypeOptions = filterBuckets.map(nameToOptions);
+  const selectedTypeOptions = filteredBuckets.map(nameToOptions);
 
-  const accountClose = () => {
-    dispatch(setBucketFilter({ loginAccount, buckets: selectedBucket }));
+  const onSelectClose = useCallback(() => {
+    onBucketFiltered(selectedBucket);
+  }, [onBucketFiltered, selectedBucket]);
+
+  const onSelectOpen = () => {
+    setSelectedBucket(filteredBuckets);
   };
-
-  const accountOpen = () => {
-    setSelectedBucket(filterBuckets);
-  };
-
-  useEffect(() => {
-    setSelectedBucket(filterBuckets);
-  }, [router.asPath]);
 
   return (
     <DCMenu
@@ -64,8 +55,8 @@ export const FilterBuckets = () => {
         minH: 226,
       }}
       scrollH={150}
-      onClose={accountClose}
-      onOpen={accountOpen}
+      onClose={() => onSelectClose()}
+      onOpen={() => onSelectOpen()}
       renderHeader={() => (
         <MenuHeader>
           <InputItem
@@ -89,7 +80,9 @@ export const FilterBuckets = () => {
       )}
       renderOption={({ label, value }) => (
         <DCCheckbox
-          checked={selectedBucket.includes(value)}
+          checked={(() => {
+            return selectedBucket.includes(value);
+          })()}
           onClick={(e) => {
             e.stopPropagation();
             setSelectedBucket(xor(selectedBucket, [value]));
@@ -111,7 +104,7 @@ export const FilterBuckets = () => {
         >
           <MenuButton
             className={cn(
-              { 'menu-open': isOpen, 'button-filtered': !!filterBuckets.length && !isOpen },
+              { 'menu-open': isOpen, 'button-filtered': !!filteredBuckets.length && !isOpen },
               'type-button',
             )}
             as={DCButton}
@@ -128,7 +121,7 @@ export const FilterBuckets = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedBucket([]);
-                    dispatch(setBucketFilter({ loginAccount, buckets: [] }));
+                    onBucketFiltered([]);
                   }}
                   className={'icon-selected'}
                   w={24}
@@ -142,7 +135,7 @@ export const FilterBuckets = () => {
             ) : (
               <>
                 {trimLongStr(selectedTypeOptions[0].label, 6, 6, 0)}{' '}
-                <Badge>{filterBuckets.length}</Badge>
+                <Badge>{filteredBuckets.length}</Badge>
               </>
             )}
           </MenuButton>
