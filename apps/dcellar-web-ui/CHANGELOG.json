@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.1",
+      "tag": "dcellar-web-ui_v1.7.1",
+      "date": "Fri, 21 Jun 2024 06:15:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix the get-testnet-tokens card style"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.0",
       "tag": "dcellar-web-ui_v1.7.0",
       "date": "Thu, 06 Jun 2024 03:14:47 GMT",
