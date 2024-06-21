@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 06 Jun 2024 03:14:47 GMT and should not be manually modified.
+This log was last generated on Fri, 21 Jun 2024 06:15:11 GMT and should not be manually modified.
+
+## 1.7.1
+Fri, 21 Jun 2024 06:15:11 GMT
+
+### Patches
+
+- Fix the get-testnet-tokens card style
 
 ## 1.7.0
 Thu, 06 Jun 2024 03:14:47 GMT

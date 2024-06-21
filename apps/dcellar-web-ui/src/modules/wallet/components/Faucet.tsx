@@ -11,7 +11,6 @@ export const Faucet = memo(function Faucet() {
   return (
     <Flex
       margin="16px auto 0"
-      w={'484px'}
       h={'auto'}
       p={'12px 24px'}
       borderRadius="8px"
