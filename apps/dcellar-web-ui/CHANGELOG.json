@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.2",
+      "tag": "dcellar-web-ui_v1.7.2",
+      "date": "Wed, 21 Aug 2024 03:41:57 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add Apollo configuration tip"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.1",
       "tag": "dcellar-web-ui_v1.7.1",
       "date": "Fri, 21 Jun 2024 06:15:11 GMT",

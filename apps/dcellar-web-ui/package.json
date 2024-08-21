@@ -1,6 +1,6 @@
 {
   "name": "dcellar-web-ui",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "private": false,
   "scripts": {
     "dev": "node ./scripts/dev.js -p 3200",
@@ -92,5 +92,6 @@
       "prettier --write"
     ],
     "*.ts?(x)": "tsc-files --noEmit"
-  }
+  },
+  "packageManager": "pnpm@8.5.0+sha1.83c41fe4ebdb61e08446f8bb68a75fb48756b330"
 }
