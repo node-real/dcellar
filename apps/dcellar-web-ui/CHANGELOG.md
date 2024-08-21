@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Fri, 21 Jun 2024 06:15:11 GMT and should not be manually modified.
+This log was last generated on Wed, 21 Aug 2024 03:41:57 GMT and should not be manually modified.
+
+## 1.7.2
+Wed, 21 Aug 2024 03:41:57 GMT
+
+### Patches
+
+- Add Apollo configuration tip
 
 ## 1.7.1
 Fri, 21 Jun 2024 06:15:11 GMT
