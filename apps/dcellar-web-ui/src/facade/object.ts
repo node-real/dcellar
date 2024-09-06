@@ -13,6 +13,7 @@ import {
   commonFault,
   createTxFault,
   queryLockFeeFault,
+  semanticRPCError,
   simulateFault,
 } from '@/facade/error';
 import { getClient } from '@/facade/index';
@@ -720,8 +721,8 @@ export const delegateCreateFolder = async (
     .delegateCreateFolder(request, auth)
     .then(resolve, commonFault);
 
-  if (!result || error) return [null, error];
-  if (result.code !== 0 || !result.body) return [null, result.message ?? ''];
+  if (!result || error) return [null, semanticRPCError(error)];
+  if (result.code !== 0 || !result.body) return [null, semanticRPCError(result.message ?? '')];
 
   return [result.body, null];
 };
