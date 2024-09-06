@@ -149,3 +149,13 @@ export const queryLockFeeFault = (e: any): ErrorResponse => {
 
   return [null, E_UNKNOWN_ERROR];
 };
+
+export const semanticRPCError = (err: string): string => {
+  if (!err) return E_UNKNOWN_ERROR;
+  const errorList = [
+    { key: 'is frozen', message: 'Your account is frozen. Please deposit to reactivate it.' },
+  ];
+  const foundError = errorList.find(({ key }) => err.includes(key));
+
+  return foundError?.message ?? err;
+};

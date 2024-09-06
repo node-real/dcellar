@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.3",
+      "tag": "dcellar-web-ui_v1.7.3",
+      "date": "Fri, 06 Sep 2024 07:48:42 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "semantic delegate create folder error message"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.2",
       "tag": "dcellar-web-ui_v1.7.2",
       "date": "Wed, 21 Aug 2024 03:41:57 GMT",
