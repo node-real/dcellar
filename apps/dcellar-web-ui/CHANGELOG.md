@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Wed, 21 Aug 2024 03:41:57 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Sep 2024 07:48:42 GMT and should not be manually modified.
+
+## 1.7.3
+Fri, 06 Sep 2024 07:48:42 GMT
+
+### Patches
+
+- semantic delegate create folder error message
 
 ## 1.7.2
 Wed, 21 Aug 2024 03:41:57 GMT
