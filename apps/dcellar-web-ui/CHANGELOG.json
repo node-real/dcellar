@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.4",
+      "tag": "dcellar-web-ui_v1.7.4",
+      "date": "Thu, 19 Sep 2024 07:13:05 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Temporarily hide TW and add error notifications caused by the Metamask version upgrade"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.3",
       "tag": "dcellar-web-ui_v1.7.3",
       "date": "Fri, 06 Sep 2024 07:48:42 GMT",
