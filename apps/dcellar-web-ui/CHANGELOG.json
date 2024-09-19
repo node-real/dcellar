@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.7.5",
+      "tag": "dcellar-web-ui_v1.7.5",
+      "date": "Thu, 19 Sep 2024 08:01:12 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Compatiable with metamask eip-712 signature"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.4",
       "tag": "dcellar-web-ui_v1.7.4",
       "date": "Thu, 19 Sep 2024 07:13:05 GMT",
