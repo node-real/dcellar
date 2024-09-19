@@ -21,7 +21,11 @@ const config = createConfig(
     /* WC 2.0 requires a project ID (get one here: https://cloud.walletconnect.com/sign-in) */
     walletConnectProjectId: '89848e3205cafe0bf76c91aa1aaa71d0',
     chains: [bscChain, greenFieldChain],
-    connectors: [trustWallet(), metaMask(), walletConnect()],
+    connectors: [
+      // trustWallet(),
+      metaMask(),
+      walletConnect(),
+    ],
   }),
 );
 

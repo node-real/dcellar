@@ -20,7 +20,7 @@ export const DiscontinueBanner = ({
 }) => {
   return (
     <Flex
-      height={`${height}px`}
+      minHeight={`${height}px`}
       marginBottom={`${marginBottom}px`}
       alignItems={'center'}
       borderRadius={'4px'}
@@ -33,8 +33,8 @@ export const DiscontinueBanner = ({
         fontSize={'14px'}
         marginLeft={'4px'}
         overflow={'hidden'}
-        textOverflow={'ellipsis'}
-        whiteSpace={'nowrap'}
+        // textOverflow={'ellipsis'}
+        // whiteSpace={'nowrap'}
       >
         {content}
       </Text>
