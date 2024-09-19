@@ -32,7 +32,6 @@ import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
 import { BucketStatus as BucketStatusEnum } from '@bnb-chain/greenfield-js-sdk';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { MigratingBucketNoticeBanner } from './components/MigratingBucketNoticeBanner';
-import { useAccount } from 'wagmi';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -44,7 +43,6 @@ export const ObjectsPage = () => {
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
   const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
   const allSpList = useAppSelector((root) => root.sp.allSpList);
-  const { connector } = useAccount();
 
   const { path } = router.query;
   const items = path as string[];
@@ -132,13 +130,6 @@ export const ObjectsPage = () => {
 
         <ObjectFilterItems />
 
-        {connector?.id === 'metaMask' && (
-          <DiscontinueBanner
-            content="Greenfield and the Metamask extension are facing compatibility issues affecting functionalities like bucket creation on Dcellar. The BNB Chain team is working on a hotfix, expected to be released by September 23rd."
-            height={44}
-            marginBottom={16}
-          />
-        )}
         {isBucketOwner ? (
           <InsufficientBalance />
         ) : (
