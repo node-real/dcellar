@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Fri, 06 Sep 2024 07:48:42 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Sep 2024 07:13:05 GMT and should not be manually modified.
+
+## 1.7.4
+Thu, 19 Sep 2024 07:13:05 GMT
+
+### Patches
+
+- Temporarily hide TW and add error notifications caused by the Metamask version upgrade
 
 ## 1.7.3
 Fri, 06 Sep 2024 07:48:42 GMT
