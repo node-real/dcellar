@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.8.1",
+      "tag": "dcellar-web-ui_v1.8.1",
+      "date": "Thu, 10 Oct 2024 09:53:45 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update renewal notification time to 7 days"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.0",
       "tag": "dcellar-web-ui_v1.8.0",
       "date": "Thu, 10 Oct 2024 09:34:45 GMT",

@@ -138,7 +138,9 @@ export const RenewalNotification = ({ address }: RenewalNotificationProps) => {
       const fee = nextStoreFee.plus(curExtraFee);
       const isOwnerAccount = item.address.toLowerCase() === loginAccount.toLowerCase();
       const lessThan7Days =
-        item.settleTimestamp !== 0 ? item.settleTimestamp - dayjs().unix() < 1 * 60 : false;
+        item.settleTimestamp !== 0
+          ? item.settleTimestamp - dayjs().unix() < 7 * 24 * 60 * 60
+          : false;
       const notPayNextFee = isOwnerAccount
         ? BigNumber(item.staticBalance).plus(bankBalance).isLessThan(fee)
         : BigNumber(item.staticBalance).isLessThan(fee);
