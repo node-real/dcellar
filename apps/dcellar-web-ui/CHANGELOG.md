@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 10 Oct 2024 09:34:45 GMT and should not be manually modified.
+This log was last generated on Thu, 10 Oct 2024 09:53:45 GMT and should not be manually modified.
+
+## 1.8.1
+Thu, 10 Oct 2024 09:53:45 GMT
+
+### Patches
+
+- Update renewal notification time to 7 days
 
 ## 1.8.0
 Thu, 10 Oct 2024 09:34:45 GMT
