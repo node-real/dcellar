@@ -238,7 +238,7 @@ export const getPaymentAccountsByOwner = async (
     .then(resolve, commonFault);
 };
 
-export const sendToOwnerAccount = async (
+export const sendToExternalAccount = async (
   { fromAddress, toAddress, amount }: { fromAddress: string; toAddress: string; amount: string },
   connector: Connector,
 ): Promise<ErrorResponse | [any, null]> => {

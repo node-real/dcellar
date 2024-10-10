@@ -2,6 +2,7 @@ import { IconFont } from '@/components/IconFont';
 import { Tips } from '@/components/common/Tips';
 import { InternalRoutePaths } from '@/constants/paths';
 import { useAppSelector } from '@/store';
+import { EStreamRecordStatus } from '@/store/slices/accounts';
 import { selectStoreFeeParams } from '@/store/slices/global';
 import { BN } from '@/utils/math';
 import { displayTokenSymbol } from '@/utils/wallet';
@@ -19,7 +20,7 @@ export const AccountDetailNav = ({ address }: { address: string }) => {
   const curAddress = address as string;
   const isOwnerAccount = address === loginAccount;
   const accountDetail = accountInfos?.[curAddress] || {};
-  const isFrozen = accountDetail.clientFrozen;
+  const isFrozen = accountDetail.status === EStreamRecordStatus.FROZEN;
   const loading = !address || isEmpty(accountDetail);
 
   const unFreezeAmount = useMemo(() => {

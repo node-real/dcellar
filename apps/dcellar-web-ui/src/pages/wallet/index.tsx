@@ -23,6 +23,7 @@ const WalletPage = () => {
     const { type = EOperation.transfer_in, from, to, amount = '' } = query;
     const str = Array<string>().concat(type)[0];
     const _type = isTransferOperation(str) ? EOperation[str] : EOperation.transfer_in;
+    console.log('amount', amount);
     dispatch(setTransferType(_type));
     dispatch(setTransferToAddress(to as string));
     dispatch(setTransferFromAddress(from as string));

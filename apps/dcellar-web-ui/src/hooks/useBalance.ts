@@ -17,12 +17,13 @@ export const useBalance = ({
   const [balance, setBalance] = useState({} as FetchBalanceResult);
   const [timers, setTimers] = useState<Timer>({});
 
-  const refetch = useCallback(() => {
+  const refetch = useCallback(async () => {
     if (!address || !chainId) return Promise.resolve({} as FetchBalanceResult);
-    return fetchBalance({
+    const data = await fetchBalance({
       address: address,
       chainId: chainId,
     });
+    setBalance(data);
   }, [address, chainId]);
 
   useEffect(() => {
@@ -32,15 +33,14 @@ export const useBalance = ({
     if (timer) return;
     Object.values(timers).forEach((timer) => timer && clearIntervalAsync(timer));
     timers[key] = setIntervalAsync(async () => {
-      const data = await refetch();
-      setBalance(data);
+      await refetch();
     }, intervalMs);
     setTimers(timers);
 
     return () => {
       Object.values(timers).forEach((timer) => timer && clearIntervalAsync(timer));
     };
-  }, [address, chainId]);
+  }, [address, chainId, intervalMs, refetch, timers]);
 
   return {
     data: balance,

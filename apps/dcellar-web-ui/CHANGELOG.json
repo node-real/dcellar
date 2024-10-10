@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.8.0",
+      "tag": "dcellar-web-ui_v1.8.0",
+      "date": "Thu, 10 Oct 2024 09:34:45 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Support reactive the frozen account"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.5",
       "tag": "dcellar-web-ui_v1.7.5",
       "date": "Thu, 19 Sep 2024 08:01:12 GMT",

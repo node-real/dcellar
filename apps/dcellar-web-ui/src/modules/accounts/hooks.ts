@@ -5,7 +5,7 @@ import { BN } from '@/utils/math';
 import { getUtcDayjs } from '@/utils/time';
 import { isEmpty } from 'lodash-es';
 import { useMemo } from 'react';
-import { CRYPTOCURRENCY_DISPLAY_PRECISION } from '../wallet/constants';
+import { CRYPTOCURRENCY_DISPLAY_PRECISION, MIN_AMOUNT } from '../wallet/constants';
 
 export const useUnFreezeAmount = (address: string) => {
   const storeFeeParams = useAppSelector(selectStoreFeeParams);
@@ -13,9 +13,11 @@ export const useUnFreezeAmount = (address: string) => {
 
   if (isEmpty(storeFeeParams) || isEmpty(account)) return '--';
 
-  return BN(storeFeeParams.reserveTime)
-    .times(BN(account.frozenNetflowRate || account.netflowRate))
-    .toString();
+  return BN(storeFeeParams.reserveTime).times(BN(account.frozenNetflowRate)).isLessThan(MIN_AMOUNT)
+    ? MIN_AMOUNT
+    : BN(storeFeeParams.reserveTime)
+        .times(BN(account.frozenNetflowRate || account.netflowRate))
+        .toFixed(8, 0);
 };
 
 type EstimateCostType = 'cur' | 'next';

@@ -14,6 +14,7 @@ import { getCurMonthDetailUrl } from '@/utils/accounts';
 import { useRouter } from 'next/router';
 import { TutorialCard } from './components/TutorialCard';
 import { BucketUsageStatistics } from './components/BucketUsageStatistics';
+import { RenewalNotification } from '@/components/RenewalNotification';
 
 export const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -38,6 +39,7 @@ export const Dashboard = () => {
 
   return (
     <Box h={'100%'}>
+      <RenewalNotification />
       <Text as="h1" fontSize={24} fontWeight={700} mb={16}>
         Dashboard
       </Text>

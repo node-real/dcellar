@@ -26,16 +26,11 @@ export const DiscontinueBanner = ({
       borderRadius={'4px'}
       background={bg}
       color={color}
-      p={8}
+      p={'8px 12px'}
+      gap={'4px'}
     >
       {icon}
-      <Text
-        fontSize={'14px'}
-        marginLeft={'4px'}
-        overflow={'hidden'}
-        // textOverflow={'ellipsis'}
-        // whiteSpace={'nowrap'}
-      >
+      <Text fontSize={'14px'} overflow={'hidden'}>
         {content}
       </Text>
     </Flex>

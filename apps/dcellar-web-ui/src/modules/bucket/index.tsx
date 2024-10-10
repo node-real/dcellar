@@ -7,6 +7,7 @@ import { PageTitle } from '@/components/layout/PageTitle';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { BucketOperations } from '@/modules/bucket/components/BucketOperations';
 import { GAContextProvider } from '@/context/GAContext';
+import { RenewalNotification } from '@/components/RenewalNotification';
 
 export const BucketPage = () => {
   const dispatch = useAppDispatch();
@@ -32,6 +33,7 @@ export const BucketPage = () => {
       <PageTitle title={'Buckets'} metaTitle={'Buckets'}>
         <CreateBucket />
       </PageTitle>
+      <RenewalNotification />
       {hasDiscontinueBucket && (
         <DiscontinueBanner
           content="Some items were marked as discontinued and will be deleted by SP soon. Please backup your data in time. "

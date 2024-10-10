@@ -2,7 +2,7 @@ import { StreamRecord as ChainStreamRecord } from '@bnb-chain/greenfield-cosmos-
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
-import { isEmpty, keyBy } from 'lodash-es';
+import { add, capitalize, isEmpty, keyBy } from 'lodash-es';
 import { getSpOffChainData } from './persist';
 import { AppDispatch, AppState, GetState } from '..';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
@@ -33,6 +33,11 @@ export type AccountType =
   | 'error_account';
 
 export type AccountOperationsType = 'oaDetail' | 'paDetail' | 'paCreate' | '';
+
+export enum EStreamRecordStatus {
+  'ACTIVE' = 0,
+  'FROZEN' = 1,
+}
 
 export type AccountInfo = AccountEntity & {
   name: string;
@@ -159,7 +164,7 @@ export const paymentAccountSlice = createSlice({
             outFlowCount: Number(streamRecord.OutFlowCount),
             settleTimestamp: Number(streamRecord.SettleTimestamp),
             clientFrozen: getClientFrozen(+streamRecord.SettleTimestamp, +bufferTime),
-            frozenNetflowRate: streamRecord.FrozenNetflowRate,
+            frozenNetflowRate: BigNumber(streamRecord.FrozenNetflowRate).div(1e18).toString(),
             refundable: item.refundable,
             status: Number(streamRecord.Status),
           };
@@ -177,7 +182,7 @@ export const paymentAccountSlice = createSlice({
             outFlowCount: Number(streamRecord.outFlowCount?.low),
             settleTimestamp: Number(streamRecord.settleTimestamp?.low),
             clientFrozen: getClientFrozen(+streamRecord.settleTimestamp?.low, +bufferTime),
-            frozenNetflowRate: streamRecord.frozenNetflowRate,
+            frozenNetflowRate: BigNumber(streamRecord.frozenNetflowRate).div(1e18).toString(),
             refundable: item.refundable,
             status: streamRecord.status,
           };
@@ -185,6 +190,7 @@ export const paymentAccountSlice = createSlice({
       });
       state.accountInfos = data;
     },
+
     setEditingPaymentAccountRefundable: (state, { payload }: PayloadAction<string>) => {
       state.editingPaymentAccountRefundable = payload;
     },
@@ -279,7 +285,6 @@ export const setupPaymentAccounts =
       { type: 'EDDSA', address: loginAccount, domain: window.location.origin, seed: seedString },
       { endpoint: spRecords[specifiedSp].endpoint },
     );
-
     if (error || paError || paDetail?.code !== 0) {
       dispatch(setPaymentAccountsLoading(false));
       dispatch(setPaymentAccountList({ loginAccount, paymentAccounts: [] }));
@@ -298,7 +303,6 @@ export const setupPaymentAccounts =
       paDetail?.body?.GfSpListUserPaymentAccountsResponse.PaymentAccounts,
       (item) => item.PaymentAccount.Address,
     );
-
     let totalPaymentAccountNetflowRate = BN(0);
     const newPaymentAccounts = data.paymentAccounts.map((address, index) => {
       const detail = keyAccountDetail[address];

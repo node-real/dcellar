@@ -1,6 +1,6 @@
 {
   "name": "dcellar-web-ui",
-  "version": "1.7.5",
+  "version": "1.8.0",
   "private": false,
   "scripts": {
     "dev": "node ./scripts/dev.js -p 3200",

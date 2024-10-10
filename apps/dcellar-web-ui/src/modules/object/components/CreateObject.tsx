@@ -5,7 +5,7 @@ import { useHandleFolderTree } from '@/hooks/useHandleFolderTree';
 import { BatchOperations } from '@/modules/object/components/BatchOperations';
 import { UploadMenuList } from '@/modules/object/components/UploadMenuList';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount } from '@/store/slices/accounts';
+import { EStreamRecordStatus, selectAccount } from '@/store/slices/accounts';
 import { setupBucket, setupBucketQuota } from '@/store/slices/bucket';
 import {
   SELECT_OBJECT_NUM_LIMIT,
@@ -111,7 +111,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
     isFlowRateLimit ||
     isBucketMigrating ||
     loading ||
-    accountDetail.clientFrozen;
+    accountDetail.status === EStreamRecordStatus.FROZEN;
   const uploadDisabled =
     isBucketDiscontinue ||
     isFlowRateLimit ||
@@ -119,7 +119,7 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
     invalidPath ||
     pathSegments.length > MAX_FOLDER_LEVEL ||
     loading ||
-    accountDetail.clientFrozen;
+    accountDetail.status === EStreamRecordStatus.FROZEN;
 
   const onFilesChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -197,16 +197,16 @@ export const CreateObject = memo<NewObjectProps>(function NewObject({
                 isBucketDiscontinue
                   ? 'Bucket in the discontinue status cannot upload objects.'
                   : isFlowRateLimit
-                  ? "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it."
-                  : isBucketMigrating
-                  ? 'Bucket in the migrating status cannot upload objects.'
-                  : accountDetail?.clientFrozen
-                  ? 'The payment account in the frozen status cannot upload objects.'
-                  : uploadDisabled
-                  ? 'Path invalid'
-                  : `Please limit object size to ${formatBytes(
-                      SINGLE_OBJECT_MAX_SIZE,
-                    )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
+                    ? "The bucket's flow rate exceeds the payment account limit. Contact the account owner or switch accounts to increase it."
+                    : isBucketMigrating
+                      ? 'Bucket in the migrating status cannot upload objects.'
+                      : accountDetail.status === EStreamRecordStatus.FROZEN
+                        ? 'The payment account in the frozen status cannot upload objects.'
+                        : uploadDisabled
+                          ? 'Path invalid'
+                          : `Please limit object size to ${formatBytes(
+                              SINGLE_OBJECT_MAX_SIZE,
+                            )} and upload a maximum of ${SELECT_OBJECT_NUM_LIMIT} objects at a time.`
               }
             >
               <div>

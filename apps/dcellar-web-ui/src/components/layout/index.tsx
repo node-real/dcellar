@@ -2,7 +2,7 @@ import { IconFont } from '@/components/IconFont';
 import { Header } from '@/components/layout/Header';
 import { Nav } from '@/components/layout/Nav';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount } from '@/store/slices/accounts';
+import { EStreamRecordStatus, selectAccount } from '@/store/slices/accounts';
 import { setObjectOperation } from '@/store/slices/object';
 import styled from '@emotion/styled';
 import { Flex, Grid } from '@node-real/uikit';
@@ -54,7 +54,7 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
         isBucketDiscontinue ||
         isBucketMigrating ||
         !isBucketOwner ||
-        accountDetail.clientFrozen ||
+        accountDetail.status === EStreamRecordStatus.FROZEN ||
         !folderExist
       )
         return;
@@ -100,10 +100,10 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
 const Notification = styled(Flex)`
   color: #ca300e;
   font-size: 14px;
-  gap: 8px;
+  gap: 4px;
   border-radius: 4px;
   background-color: rgba(238, 57, 17, 0.1);
-  padding: 13px 20px;
+  padding: 8px 12px;
   margin-bottom: 16px;
 `;
 

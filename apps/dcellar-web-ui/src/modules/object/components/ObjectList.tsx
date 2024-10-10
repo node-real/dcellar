@@ -23,7 +23,7 @@ import { OBJECT_SEALED_STATUS } from '@/modules/object/constant';
 import { StyledRow } from '@/modules/object/objects.style';
 import { contentTypeToExtension } from '@/modules/object/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount } from '@/store/slices/accounts';
+import { EStreamRecordStatus, selectAccount } from '@/store/slices/accounts';
 import { setBucketQuota, setupBucketQuota } from '@/store/slices/bucket';
 import { setSignatureAction } from '@/store/slices/global';
 import {
@@ -257,7 +257,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
           <ObjectNameColumn
             shareMode={shareMode}
             item={record}
-            disabled={accountDetail.clientFrozen}
+            disabled={accountDetail.status === EStreamRecordStatus.FROZEN}
           />
         </StyledRow>
       ),
@@ -326,7 +326,7 @@ export const ObjectList = memo<ObjectListProps>(function ObjectList({ shareMode 
         const isSealed = record.objectStatus === OBJECT_SEALED_STATUS;
 
         // if account frozen, disabled 'download' & 'delete'
-        if (accountDetail?.clientFrozen) {
+        if (accountDetail.status === EStreamRecordStatus.FROZEN) {
           pruneActions = pickAction(pruneActions, ['delete', 'download']);
         }
 

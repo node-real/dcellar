@@ -8,7 +8,11 @@ import {
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { selectAccount, setEditingPaymentAccountRefundable } from '@/store/slices/accounts';
+import {
+  EStreamRecordStatus,
+  selectAccount,
+  setEditingPaymentAccountRefundable,
+} from '@/store/slices/accounts';
 import { selectBnbUsdtExchangeRate } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -36,7 +40,7 @@ export const MetaInfo = memo(function MetaInfo({ address }: Props) {
   const loading = !address || isEmpty(accountDetail);
   const availableBalance = isOwnerAccount ? bankBalance : accountDetail.staticBalance;
   const isRefundable = accountDetail.refundable;
-  const isFrozen = accountDetail.clientFrozen;
+  const isFrozen = accountDetail.status === EStreamRecordStatus.FROZEN;
 
   const onAction = (e: string) => {
     if (e === 'withdraw') {
