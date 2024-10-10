@@ -210,7 +210,7 @@ export const RenewalNotification = ({ address }: RenewalNotificationProps) => {
           <Flex
             key={index}
             color={item.type === 'danger' ? '#CA300E' : 'readable.label-normal'}
-            bgColor={item.type === 'danger' ? 'rgba(238, 57, 17, 0.1)' : 'opacity3'}
+            bgColor={item.type === 'danger' ? 'rgba(238, 57, 17, 0.1)' : 'opacity5'}
             borderRadius={4}
             padding={'8px 12px'}
             gap={12}
