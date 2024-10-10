@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 10 Oct 2024 09:53:45 GMT and should not be manually modified.
+This log was last generated on Thu, 10 Oct 2024 12:15:36 GMT and should not be manually modified.
+
+## 1.8.2
+Thu, 10 Oct 2024 12:15:36 GMT
+
+### Patches
+
+- Fix the background color of the renewal notification bar
 
 ## 1.8.1
 Thu, 10 Oct 2024 09:53:45 GMT
