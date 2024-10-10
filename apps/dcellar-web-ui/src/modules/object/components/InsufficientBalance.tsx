@@ -1,51 +1,33 @@
-import { InternalRoutePaths } from '@/constants/paths';
 import { useUnFreezeAmount } from '@/modules/accounts/hooks';
 import { useAppSelector } from '@/store';
-import { selectAccount } from '@/store/slices/accounts';
+import { EStreamRecordStatus, selectAccount } from '@/store/slices/accounts';
 import { selectLocateBucket } from '@/store/slices/object';
 import { displayTokenSymbol } from '@/utils/wallet';
 import { ColoredWarningIcon } from '@node-real/icons';
-import { Flex, Link } from '@node-real/uikit';
-import { useRouter } from 'next/router';
+import { Box, Flex } from '@node-real/uikit';
 
 export const InsufficientBalance = () => {
-  const loginAccount = useAppSelector((root) => root.persist.loginAccount);
-
-  const router = useRouter();
   const bucket = useAppSelector(selectLocateBucket);
   const accountDetail = useAppSelector(selectAccount(bucket.PaymentAddress));
   const amount = useUnFreezeAmount(bucket.PaymentAddress);
-
-  const isOwnerAccount = bucket.PaymentAddress === loginAccount;
-  const isFrozen = accountDetail?.clientFrozen;
-
-  const onTopUpClick = () => {
-    const topUpUrl = isOwnerAccount
-      ? InternalRoutePaths.transfer_in
-      : `${InternalRoutePaths.send}&from=${loginAccount}&to=${bucket.PaymentAddress}&amount=${amount}`;
-    router.push(topUpUrl);
-  };
+  const isFrozen = accountDetail?.status === EStreamRecordStatus.FROZEN;
 
   return (
     <>
       {isFrozen && (
-        <Flex bgColor={'#FDEBE7'} p={8} alignItems={'center'} mb={16} borderRadius={4}>
-          <ColoredWarningIcon color={'#EE3911'} width={16} mr={8} />
-          Insufficient Balance. Please deposit at least <strong>&nbsp;{amount}&nbsp;</strong>{' '}
-          {displayTokenSymbol()} to renew your service, or your objects may be permanently
-          deleted.&nbsp;
-          <Link
-            fontWeight={500}
-            textDecoration={'underline'}
-            color={'readable.normal'}
-            _hover={{ color: 'readable.normal' }}
-            cursor={'pointer'}
-            onClick={() => {
-              onTopUpClick();
-            }}
-          >
-            Top Up
-          </Link>
+        <Flex bgColor={'#FDEBE7'} p={'8px 12px'} mb={16} borderRadius={4} color={'#CA300E'} gap={4}>
+          <Flex h={20} alignItems={'center'}>
+            <ColoredWarningIcon color={'#EE3911'} width={16} />
+          </Flex>
+          <Box lineHeight={'20px'}>
+            This Bucket&apos;s Payment Account is frozen. Currently, all services are restricted. To
+            prevent data loss, please contact the owner of the associated Payment Account and
+            deposit at least{' '}
+            <Box as="span" fontWeight={600}>
+              {amount} {displayTokenSymbol()}
+            </Box>{' '}
+            to reactivate it.
+          </Box>
         </Flex>
       )}
     </>

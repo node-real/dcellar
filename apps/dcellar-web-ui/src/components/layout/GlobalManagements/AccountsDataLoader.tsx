@@ -18,7 +18,7 @@ export const AccountsDataLoader = () => {
   const currentBucketName = useAppSelector((root) => root.object.currentBucketName);
 
   const { asPath } = useRouter();
-  const { data: gnfdBalance, refetch } = useBalance({
+  const { data: gnfdBalance } = useBalance({
     address: loginAccount as any,
     chainId: GREENFIELD_CHAIN_ID,
   });
@@ -30,13 +30,6 @@ export const AccountsDataLoader = () => {
     dispatch(setupOwnerAccount());
     dispatch(setupPaymentAccounts());
   }, [dispatch, loginAccount]);
-
-  useAsyncEffect(async () => {
-    if (!loginAccount) return;
-    // update metamask
-    refetch();
-    dispatch(setBankOrWalletBalance(metamaskValue));
-  }, [asPath, refetch, loginAccount]);
 
   useThrottleEffect(() => {
     dispatch(setBankOrWalletBalance(metamaskValue));

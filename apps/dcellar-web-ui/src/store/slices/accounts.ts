@@ -2,7 +2,7 @@ import { StreamRecord as ChainStreamRecord } from '@bnb-chain/greenfield-cosmos-
 import { StreamRecord as SpStreamRecord } from '@bnb-chain/greenfield-js-sdk/dist/esm/types/sp/Common';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import BigNumber from 'bignumber.js';
-import { isEmpty, keyBy } from 'lodash-es';
+import { add, capitalize, isEmpty, keyBy } from 'lodash-es';
 import { getSpOffChainData } from './persist';
 import { AppDispatch, AppState, GetState } from '..';
 import { OWNER_ACCOUNT_NAME } from '@/constants/wallet';
@@ -33,6 +33,11 @@ export type AccountType =
   | 'error_account';
 
 export type AccountOperationsType = 'oaDetail' | 'paDetail' | 'paCreate' | '';
+
+export enum EStreamRecordStatus {
+  'ACTIVE' = 0,
+  'FROZEN' = 1,
+}
 
 export type AccountInfo = AccountEntity & {
   name: string;
@@ -159,7 +164,7 @@ export const paymentAccountSlice = createSlice({
             outFlowCount: Number(streamRecord.OutFlowCount),
             settleTimestamp: Number(streamRecord.SettleTimestamp),
             clientFrozen: getClientFrozen(+streamRecord.SettleTimestamp, +bufferTime),
-            frozenNetflowRate: streamRecord.FrozenNetflowRate,
+            frozenNetflowRate: BigNumber(streamRecord.FrozenNetflowRate).div(1e18).toString(),
             refundable: item.refundable,
             status: Number(streamRecord.Status),
           };
@@ -177,7 +182,7 @@ export const paymentAccountSlice = createSlice({
             outFlowCount: Number(streamRecord.outFlowCount?.low),
             settleTimestamp: Number(streamRecord.settleTimestamp?.low),
             clientFrozen: getClientFrozen(+streamRecord.settleTimestamp?.low, +bufferTime),
-            frozenNetflowRate: streamRecord.frozenNetflowRate,
+            frozenNetflowRate: BigNumber(streamRecord.frozenNetflowRate).div(1e18).toString(),
             refundable: item.refundable,
             status: streamRecord.status,
           };
@@ -185,6 +190,7 @@ export const paymentAccountSlice = createSlice({
       });
       state.accountInfos = data;
     },
+
     setEditingPaymentAccountRefundable: (state, { payload }: PayloadAction<string>) => {
       state.editingPaymentAccountRefundable = payload;
     },
@@ -274,12 +280,71 @@ export const setupPaymentAccounts =
 
     const [data, error] = await getPaymentAccountsByOwner(loginAccount);
     const { seedString } = await dispatch(getSpOffChainData(loginAccount, specifiedSp));
+    // const testAccounts = [
+    //   //frozen owner account
+    //   '0x6A69FAA1BD7D73D25A6A3EE1AE41A899DD8CCB8C',
+    //   '0xCDB16F541E1445150F9211DD564668EB01B26E75',
+    //   '0x40EDE296E01E1D57B25697B07D0F1C69077843D0',
+    //   '0xCEE3823C39FCC9845D7C7144A836562F37995085',
+    //   '0x1C893441AB6C1A75E01887087EA508BE8E07AAAE',
+    //   // settime less than 7 days
+    //   '0x367A4BD1606E97647F60DD15FECDCE4535B688F6',
+    //   '0xB4ADFF34EF2C22A4B2FCAA7B955B9FB7BE414E6D',
+    //   '0x78CFE6BCA29CEA13A6C3744D8B6AE86FB576940C',
+    //   '0x9AEAC93ED1444D9E82E2C15F0FD42B0D791A3156',
+    //   '0x3C1A11C54142C44E71A8302AD93AD0191FF17981',
+    //   // // payment accounts
+    //   // '0x4528E40060A22F347EA3BC7EDE62CEA29B5DD837',
+    //   // '0x1745DEB31E405C4CB2C6747E2CFCECA6E57FF77A',
+    //   // '0x258FC67F494A7F25692D02D918E99FA9B29FAEF3',
+    //   // '0x48054722312D664E4C0ADE7FC0C5BD56701BA7D4',
+    //   // '0xF00213234839FE91567E4FFE696A05A078CCF215',
+    //   // '0xFFE7F0C98BB452CD4FA56E9FBE869E502E7186D4',
+    //   // '0x08A8AF3666B39B35C429D8EBA2099B84B999160F',
+    //   // '0xE9AB711EDBBCA0605D7E78E92B14C9D95A0E9D9F',
+    //   // '0xC8B680FB0D2E5B4BEF28195D0D1EE070E271CD84'
+    // ];
     const [paDetail, paError] = await listUserPaymentAccounts(
       { account: loginAccount },
       { type: 'EDDSA', address: loginAccount, domain: window.location.origin, seed: seedString },
       { endpoint: spRecords[specifiedSp].endpoint },
     );
-
+    // const customDetail = await Promise.all(testAccounts.map(async (address) => {
+    //   const [res, err] = await getStreamRecord(address);
+    //   const [res2, err2] = await getAccount(address);
+    //   console.log('stream_record', res?.streamRecord);
+    //   console.log('account', res2);
+    //   const StreamRecord = {};
+    //   // const mapObj = {
+    //   //   account: 'Account',
+    //   //   bufferBalance: 'BufferBalance',
+    //   //   crudtimestamp: 'CrudTimestamp',
+    //   //   frozennetflowrate: 'FrozenNetflowRate',
+    //   //   lockbalance: 'LockBalance',
+    //   //   netflowrate: 'NetflowRate',
+    //   //   outflowcount: 'OutflowCount',
+    //   //   settletimestamp: 'SettleTimestamp',
+    //   //   staticbalance: 'StaticBalance',
+    //   //   status: 'Status',
+    //   // }
+    //   const capitalizeFirstLetter = (str) => {
+    //     return str.charAt(0).toUpperCase() + str.slice(1);
+    //   }
+    //   Object.entries(res?.streamRecord || {}).map(([key, value]) => {
+    //     StreamRecord[capitalizeFirstLetter(key)] = value.low ? value.low : value;
+    //   });
+    //   const PaymentAccount = {};
+    //   Object.entries(res2 || {}).map(([key, value]) => {
+    //     PaymentAccount[capitalizeFirstLetter(key)] = value
+    //   });
+    //   return {
+    //     StreamRecord,
+    //     PaymentAccount
+    //   }
+    // }
+    // ))
+    // console.log('customDetail', customDetail);
+    // console.log('paDetail', paDetail);
     if (error || paError || paDetail?.code !== 0) {
       dispatch(setPaymentAccountsLoading(false));
       dispatch(setPaymentAccountList({ loginAccount, paymentAccounts: [] }));
@@ -298,7 +363,13 @@ export const setupPaymentAccounts =
       paDetail?.body?.GfSpListUserPaymentAccountsResponse.PaymentAccounts,
       (item) => item.PaymentAccount.Address,
     );
+    // const keyCustomDetail = keyBy(
+    //   customDetail,
+    //   (item) => item.StreamRecord.Account?.toLowerCase(),
+    // );
 
+    console.log('keyAccountDetail', keyAccountDetail);
+    // console.log('keyCustomDetail', keyCustomDetail);
     let totalPaymentAccountNetflowRate = BN(0);
     const newPaymentAccounts = data.paymentAccounts.map((address, index) => {
       const detail = keyAccountDetail[address];

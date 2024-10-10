@@ -40,9 +40,6 @@ export const convertTimeStampToDate = (utcTimestamp: number) => {
 };
 
 export const formatTime = (utcZeroTimestamp = 0) => {
-  if (String(utcZeroTimestamp).length !== 13) {
-    return '--';
-  }
   dayjs.extend(utc);
   dayjs.extend(timezone);
 

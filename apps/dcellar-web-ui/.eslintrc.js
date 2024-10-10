@@ -24,6 +24,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
+    'react-hooks/exhaustive-deps': 1,
   },
   settings: {
     react: {

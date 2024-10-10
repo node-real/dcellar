@@ -13,7 +13,7 @@ import {
 } from '@/modules/object/components/renderRows';
 import { EMPTY_TX_HASH } from '@/modules/object/constant';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { AccountInfo } from '@/store/slices/accounts';
+import { AccountInfo, EStreamRecordStatus } from '@/store/slices/accounts';
 import { TBucket, setBucketQuota } from '@/store/slices/bucket';
 import {
   ObjectActionType,
@@ -274,7 +274,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
                 variant="ghost"
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.share.click"
-                isDisabled={bucketAccountDetail.clientFrozen}
+                isDisabled={bucketAccountDetail.status === EStreamRecordStatus.FROZEN}
                 onClick={() => onAction('view')}
               >
                 Preview
@@ -283,7 +283,7 @@ export const DetailObjectOperation = memo<DetailObjectOperationProps>(
                 size={'lg'}
                 flex={1}
                 gaClickName="dc.file.f_detail_pop.download.click"
-                isDisabled={bucketAccountDetail.clientFrozen}
+                isDisabled={bucketAccountDetail.status === EStreamRecordStatus.FROZEN}
                 onClick={() => onAction('download')}
               >
                 Download

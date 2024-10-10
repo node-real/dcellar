@@ -3,6 +3,7 @@ import { HYDRATE } from 'next-redux-wrapper';
 import { persistReducer } from 'redux-persist';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import storage from 'redux-persist/lib/storage';
+import sessionStorage from 'redux-persist/lib/storage/session';
 
 import { runtimeEnv } from '@/base/env';
 import accounts from '@/store/slices/accounts';
@@ -16,10 +17,18 @@ import object from '@/store/slices/object';
 import persist from '@/store/slices/persist';
 import sp from '@/store/slices/sp';
 import wallet from '@/store/slices/wallet';
+import sessionPersist from '@/store/slices/session-persist';
+
+export const sessionPersistConfig = {
+  key: 'SESSION_1',
+  storage: sessionStorage,
+  whilelist: ['sessionPersist'],
+};
 
 const rootReducer = combineReducers({
   global,
   persist,
+  sessionPersist: persistReducer(sessionPersistConfig, sessionPersist),
   sp,
   bucket,
   wallet,

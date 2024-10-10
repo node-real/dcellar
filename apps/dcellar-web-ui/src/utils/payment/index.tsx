@@ -57,9 +57,7 @@ export const getQuotaNetflowRate = (size: number, storeFeeParams: StoreFeeParams
 };
 
 export const getClientFrozen = (settleTime: number, bufferTime: number) => {
-  if (String(settleTime).length !== 13) {
-    return false;
-  }
   const curTime = getTimestampInSeconds();
+
   return curTime + bufferTime > settleTime;
 };

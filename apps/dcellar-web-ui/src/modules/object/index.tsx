@@ -23,7 +23,7 @@ import {
   SelectedText,
 } from '@/modules/object/objects.style';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setupAccountRecords } from '@/store/slices/accounts';
+import { setupAccountRecords, selectPaymentAccounts } from '@/store/slices/accounts';
 import { setBucketStatus, setupBucket } from '@/store/slices/bucket';
 import { setPathSegments } from '@/store/slices/object';
 import { setPrimarySpInfo, SpEntity } from '@/store/slices/sp';
@@ -32,6 +32,7 @@ import { ObjectOperations } from '@/modules/object/components/ObjectOperations';
 import { BucketStatus as BucketStatusEnum } from '@bnb-chain/greenfield-js-sdk';
 import { DiscontinueBanner } from '@/components/common/DiscontinueBanner';
 import { MigratingBucketNoticeBanner } from './components/MigratingBucketNoticeBanner';
+import { RenewalNotification } from '@/components/RenewalNotification';
 
 export const ObjectsPage = () => {
   const dispatch = useAppDispatch();
@@ -42,15 +43,16 @@ export const ObjectsPage = () => {
   const objectSelectedKeys = useAppSelector((root) => root.object.objectSelectedKeys);
   const isBucketDiscontinue = useAppSelector((root) => root.bucket.isBucketDiscontinue);
   const isBucketMigrating = useAppSelector((root) => root.bucket.isBucketMigrating);
+  const paymentAccountList = useAppSelector(selectPaymentAccounts(loginAccount));
   const allSpList = useAppSelector((root) => root.sp.allSpList);
-
+  const ownAccounts = [loginAccount, ...paymentAccountList.map((item) => item.address)];
   const { path } = router.query;
   const items = path as string[];
   const title = last(items)!;
   const [bucketName, ...folders] = items;
   const bucket = bucketRecords[bucketName];
   const isFlowRateLimit = ['1', '3'].includes(bucket?.OffChainStatus);
-
+  const isOwnAccount = ownAccounts.includes(bucket?.PaymentAddress);
   const selected = objectSelectedKeys.length;
 
   const goBack = () => {
@@ -131,7 +133,13 @@ export const ObjectsPage = () => {
         <ObjectFilterItems />
 
         {isBucketOwner ? (
-          <InsufficientBalance />
+          <>
+            {isOwnAccount ? (
+              <RenewalNotification address={bucket?.PaymentAddress} />
+            ) : (
+              <InsufficientBalance />
+            )}
+          </>
         ) : (
           <DiscontinueBanner
             bg={'#FDF9E7'}

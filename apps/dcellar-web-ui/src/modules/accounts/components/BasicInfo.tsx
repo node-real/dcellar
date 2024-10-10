@@ -9,7 +9,7 @@ import {
   FULL_DISPLAY_PRECISION,
 } from '@/modules/wallet/constants';
 import { useAppSelector } from '@/store';
-import { AccountInfo } from '@/store/slices/accounts';
+import { AccountInfo, EStreamRecordStatus } from '@/store/slices/accounts';
 import { selectBnbUsdtExchangeRate, selectStoreFeeParams } from '@/store/slices/global';
 import { currencyFormatter } from '@/utils/formatter';
 import { BN } from '@/utils/math';
@@ -42,7 +42,7 @@ export const BasicInfo = ({ loading, title, accountDetail, availableBalance }: P
         .plus(BN(bankBalance))
         .toString(DECIMAL_NUMBER)
     : BN(accountDetail?.staticBalance || 0).toString(DECIMAL_NUMBER);
-  const isFrozen = accountDetail?.clientFrozen;
+  const isFrozen = accountDetail.status === EStreamRecordStatus.FROZEN;
 
   const unFreezeAmount = useMemo(() => {
     return BN(storeFeeParams.reserveTime).times(BN(accountDetail?.frozenNetflowRate)).toString();

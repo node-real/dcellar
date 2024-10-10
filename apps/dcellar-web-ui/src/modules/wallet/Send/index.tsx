@@ -36,13 +36,14 @@ import { Tips } from '@/components/common/Tips';
 import { InternalRoutePaths } from '@/constants/paths';
 import {
   depositToPaymentAccount,
-  sendToOwnerAccount,
+  sendToExternalAccount,
   withdrawFromPaymentAccount,
 } from '@/facade/account';
 import { useSettlementFee } from '@/hooks/useSettlementFee';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   AccountEntity,
+  EStreamRecordStatus,
   selectPaymentAccounts,
   setAccountType,
   setupAccountRecords,
@@ -57,8 +58,9 @@ import { removeTrailingSlash } from '@/utils/string';
 
 export type TxType =
   | 'withdraw_from_payment_account'
-  | 'send_to_owner_account'
-  | 'send_to_payment_account';
+  | 'send_to_external_account'
+  | 'deposit_to_payment_account'
+  | 'deposit_to_owner_account';
 
 interface SendProps {}
 
@@ -140,14 +142,20 @@ export const Send = memo<SendProps>(function Send() {
   };
 
   const txType = useMemo(() => {
-    if (isEmpty(transferToAccount) || isEmpty(transferFromAccount)) return;
+    if (isEmpty(transferToAccount) || isEmpty(transferFromAccount) || isEmpty(loginAccount)) return;
+    if (
+      transferFromAccount.address.toLowerCase() === loginAccount.toLowerCase() &&
+      transferToAccount.address.toLowerCase() === loginAccount.toLowerCase()
+    ) {
+      return 'deposit_to_owner_account';
+    }
     if (
       transferFromAccount.name.toLowerCase() === 'owner account' &&
       ['payment_account', 'non_refundable_payment_account'].includes(
         accountTypeRecords[transferToAccount.address],
       )
     ) {
-      return 'send_to_payment_account';
+      return 'deposit_to_payment_account';
     }
     if (transferFromAccount.name.toLowerCase().includes('payment account')) {
       return 'withdraw_from_payment_account';
@@ -156,10 +164,11 @@ export const Send = memo<SendProps>(function Send() {
       transferFromAccount.name.toLowerCase() === 'owner account' &&
       ['gnfd_account', 'unknown_account'].includes(accountTypeRecords[transferToAccount.address])
     ) {
-      return 'send_to_owner_account';
+      return 'send_to_external_account';
     }
-  }, [accountTypeRecords, transferFromAccount, transferToAccount]);
+  }, [accountTypeRecords, loginAccount, transferFromAccount, transferToAccount]);
 
+  console.log('txType', txType);
   const txCallback = ({
     res,
     error,
@@ -201,6 +210,7 @@ export const Send = memo<SendProps>(function Send() {
     if (!connector) return;
     if (
       txType !== 'withdraw_from_payment_account' &&
+      txType !== 'deposit_to_owner_account' &&
       transferFromAccount.address === transferToAccount.address
     ) {
       return toast.error({
@@ -209,7 +219,8 @@ export const Send = memo<SendProps>(function Send() {
       });
     }
     switch (txType) {
-      case 'send_to_payment_account': {
+      case 'deposit_to_owner_account':
+      case 'deposit_to_payment_account': {
         onOpen();
         const [pRes, pError] = await depositToPaymentAccount(
           {
@@ -235,9 +246,9 @@ export const Send = memo<SendProps>(function Send() {
         txCallback({ res: wRes, error: wError, freshAddress: [transferFromAccount.address] });
         break;
       }
-      case 'send_to_owner_account': {
+      case 'send_to_external_account': {
         onOpen();
-        const [sRes, sError] = await sendToOwnerAccount(
+        const [sRes, sError] = await sendToExternalAccount(
           {
             fromAddress: transferFromAccount.address,
             toAddress: transferToAccount.address,
@@ -300,7 +311,7 @@ export const Send = memo<SendProps>(function Send() {
     if (!isPaymentAccount) {
       return errors;
     }
-    if (fromAccountDetail?.clientFrozen) {
+    if (fromAccountDetail?.status === EStreamRecordStatus.FROZEN) {
       errors.push('This account is frozen due to insufficient balance.');
     }
     if (fromAccountDetail.refundable === false) {
