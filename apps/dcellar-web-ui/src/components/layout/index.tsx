@@ -100,7 +100,7 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
 const Notification = styled(Flex)`
   color: #ca300e;
   font-size: 14px;
-  gap: 8px;
+  gap: 4px;
   border-radius: 4px;
   background-color: rgba(238, 57, 17, 0.1);
   padding: 8px 12px;

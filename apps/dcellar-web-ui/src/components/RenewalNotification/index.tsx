@@ -66,7 +66,6 @@ export const RenewalNotification = ({ address }: RenewalNotificationProps) => {
     for (const _account of accounts) {
       const item = accountInfos[_account];
 
-      // item.id === '' means the account is not belong to loginAccount
       if (!item || closeRenewalAddresses.includes(item.address)) {
         continue;
       }

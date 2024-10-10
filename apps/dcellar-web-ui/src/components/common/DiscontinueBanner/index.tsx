@@ -27,7 +27,7 @@ export const DiscontinueBanner = ({
       background={bg}
       color={color}
       p={'8px 12px'}
-      gap={8}
+      gap={'4px'}
     >
       {icon}
       <Text fontSize={'14px'} overflow={'hidden'}>

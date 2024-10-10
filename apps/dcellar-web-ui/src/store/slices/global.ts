@@ -123,7 +123,6 @@ export interface GlobalState {
   walletDisconnected: boolean;
   walletConnected: boolean;
   signatureAction: SignatureAction | object;
-  closeRenewalAddresses: string[];
 }
 
 const defaultStoreFeeParams: StoreFeeParams = {
@@ -155,7 +154,6 @@ const initialState: GlobalState = {
   walletDisconnected: false,
   walletConnected: false,
   signatureAction: {},
-  closeRenewalAddresses: [],
 };
 
 export const globalSlice = createSlice({
@@ -445,9 +443,6 @@ export const globalSlice = createSlice({
         (task: UploadObject) => !ids.includes(task.id),
       );
     },
-    setCloseRenewalAddresses(state, { payload }: PayloadAction<string[]>) {
-      state.closeRenewalAddresses = payload;
-    },
   },
 });
 
@@ -474,7 +469,6 @@ export const {
   setSignatureAction,
   setWaitQueue,
   clearUploadRecords,
-  setCloseRenewalAddresses,
 } = globalSlice.actions;
 
 const _emptyUploadQueue = Array<UploadObject>();
