@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.8.2",
+      "tag": "dcellar-web-ui_v1.8.2",
+      "date": "Thu, 10 Oct 2024 12:15:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix the background color of the renewal notification bar"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.1",
       "tag": "dcellar-web-ui_v1.8.1",
       "date": "Thu, 10 Oct 2024 09:53:45 GMT",
