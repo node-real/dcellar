@@ -1,13 +1,20 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 19 Sep 2024 08:01:12 GMT and should not be manually modified.
+This log was last generated on Thu, 10 Oct 2024 09:34:45 GMT and should not be manually modified.
+
+## 1.8.0
+Thu, 10 Oct 2024 09:34:45 GMT
+
+### Minor changes
+
+- Support reactive the frozen account
 
 ## 1.7.5
 Thu, 19 Sep 2024 08:01:12 GMT
 
 ### Patches
 
-- Compatible with metamask eip-712 signature
+- Compatiable with metamask eip-712 signature
 
 ## 1.7.4
 Thu, 19 Sep 2024 07:13:05 GMT
