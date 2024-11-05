@@ -6,15 +6,8 @@ import * as flatted from 'flatted';
 
 export default function Document() {
   return (
-    <Html lang="en" className="light-theme" data-theme="light">
+    <Html lang="en" style={{ colorScheme: 'light' }} data-theme="light">
       <Head>
-        <style>
-          {`
-            .light-theme {
-              color-scheme: light;
-            }
-          `}
-        </style>
         <meta
           name="google-site-verification"
           content="9P1xIkjIzkjS3UiiTBjcjN5tfyh4Yk6FDKELgtTdMGE"
