@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.0",
+      "tag": "dcellar-web-ui_v1.9.0",
+      "date": "Tue, 05 Nov 2024 07:18:43 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add CSP"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.2",
       "tag": "dcellar-web-ui_v1.8.2",
       "date": "Thu, 10 Oct 2024 12:15:36 GMT",

@@ -1,7 +1,7 @@
 import { removeTrailingSlash } from '@/utils/string';
 import getConfig from 'next/config';
 
-const { publicRuntimeConfig, serverRuntimeConfig } = getConfig();
+const { publicRuntimeConfig, serverRuntimeConfig } = getConfig() || {};
 const {
   NEXT_PUBLIC_ENV,
   NEXT_PUBLIC_STATIC_HOST,

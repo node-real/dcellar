@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 10 Oct 2024 12:15:36 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Nov 2024 07:18:43 GMT and should not be manually modified.
+
+## 1.9.0
+Tue, 05 Nov 2024 07:18:43 GMT
+
+### Minor changes
+
+- Add CSP
 
 ## 1.8.2
 Thu, 10 Oct 2024 12:15:36 GMT
