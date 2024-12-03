@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self' https://*.walletconnect.com https://verify.walletconnect.com;
+    frame-src 'self' https://*.walletconnect.com https://verify.walletconnect.com https://verify.walletconnect.org;
     media-src 'self';
     manifest-src 'self';
     worker-src 'self' blob:;
