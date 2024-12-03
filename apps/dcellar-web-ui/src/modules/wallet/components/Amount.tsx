@@ -265,7 +265,7 @@ export const Amount = ({
           />
 
           <InputRightElement width={'80px'} zIndex="0">
-            <IconFont type={'bnb'} color="#F0B90B" w={24} />
+            <IconFont type={'line-bsc'} color="#F0B90B" w={24} />
             <Text fontSize={'14px'} fontWeight="600" ml="4px" mr={'12px'}>
               {displayTokenSymbol()}
             </Text>
