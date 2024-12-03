@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Tue, 05 Nov 2024 07:18:43 GMT and should not be manually modified.
+This log was last generated on Tue, 03 Dec 2024 06:37:27 GMT and should not be manually modified.
+
+## 1.9.1
+Tue, 03 Dec 2024 06:37:27 GMT
+
+### Patches
+
+- Change get bnb price api & several styles
 
 ## 1.9.0
 Tue, 05 Nov 2024 07:18:43 GMT

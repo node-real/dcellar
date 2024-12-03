@@ -254,7 +254,7 @@ const Container = styled.div<{ rowCursor: string }>`
   }
 
   .ant-spin-nested-loading > div > .ant-spin {
-    max-height: max-content;
+    max-height: 400px;
   }
 
   .ant-table-ping-left:not(.ant-table-has-fix-left) .ant-table-container::before {
