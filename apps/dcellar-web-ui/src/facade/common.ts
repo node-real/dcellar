@@ -77,7 +77,7 @@ export const getObjectInfoAndBucketQuota = async ({
 
 export const getBnbUsdtExchangeRate = async (): Promise<string> => {
   const [res, error] = await get({
-    url: 'https://bsc-explorer-api.nodereal.io/api/token/getPrice?symbol=bnb',
+    url: '/api/bnb_price',
     customOptions: { needNotify: false },
   }).then(resolve, commonFault);
 
