@@ -77,12 +77,12 @@ export const getObjectInfoAndBucketQuota = async ({
 
 export const getBnbUsdtExchangeRate = async (): Promise<string> => {
   const [res, error] = await get({
-    url: 'https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT',
+    url: 'https://bsc-explorer-api.nodereal.io/api/token/getPrice?symbol=bnb',
     customOptions: { needNotify: false },
   }).then(resolve, commonFault);
 
   if (error) return BNB_USDT_EXCHANGE_RATE;
-  return res.price;
+  return res.data;
 };
 
 export const getGasFees = async (network?: 'mainnet') => {
