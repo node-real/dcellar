@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
     img-src 'self' blob: data: https: https://www.google-analytics.com https://www.googletagmanager.com;
     font-src 'self' https://fonts.gstatic.com;
     connect-src *;
-    object-src 'none';
+    object-src 'self' data:;
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
