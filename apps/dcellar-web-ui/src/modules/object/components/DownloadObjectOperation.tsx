@@ -12,6 +12,7 @@ import { Checkbox, Flex, ModalBody, ModalFooter, ModalHeader, Text } from '@node
 import { memo, useEffect, useState } from 'react';
 import { OBJECT_ERROR_TYPES, ObjectErrorType } from '../ObjectError';
 import { setSignatureAction } from '@/store/slices/global';
+import { getRemainingQuota } from '@/modules/object/utils/getRemainingQuota';
 
 const renderProp = (key: string, value: string) => {
   return (
@@ -68,8 +69,9 @@ export const DownloadObjectOperation = memo<DownloadObjectOperationProps>(functi
     dispatch(setSignatureAction(errorData));
   };
 
-  const remainingQuota = +quotaData?.readQuota + +quotaData?.freeQuota - +quotaData?.consumedQuota;
-  const transformedRemainingQuota = remainingQuota ? formatBytes(remainingQuota, true) : '--';
+  const remainingQuota = getRemainingQuota(quotaData);
+
+  const transformedRemainingQuota = remainingQuota ? formatBytes(remainingQuota) : '--';
 
   const onAction = async () => {
     setLoading(true);

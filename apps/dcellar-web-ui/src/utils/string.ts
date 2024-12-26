@@ -185,6 +185,7 @@ export const formatQuota = (quota: IQuotaProps, removeSpace = true) => {
     oneTimeFreeConsumedSize: freeConsumedSize,
     oneTimeFreeRemain: freeQuota,
   };
+  console.log('value', value.remain);
 
   const f = (v: number, _removeSpace = removeSpace) => {
     if (!quota) return '--';
