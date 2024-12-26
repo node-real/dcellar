@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Tue, 03 Dec 2024 06:37:27 GMT and should not be manually modified.
+This log was last generated on Thu, 26 Dec 2024 02:37:36 GMT and should not be manually modified.
+
+## 1.9.2
+Thu, 26 Dec 2024 02:37:36 GMT
+
+### Patches
+
+- Fix remainingQuota display error
 
 ## 1.9.1
 Tue, 03 Dec 2024 06:37:27 GMT

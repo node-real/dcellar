@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.2",
+      "tag": "dcellar-web-ui_v1.9.2",
+      "date": "Thu, 26 Dec 2024 02:37:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix remainingQuota display error"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.1",
       "tag": "dcellar-web-ui_v1.9.1",
       "date": "Tue, 03 Dec 2024 06:37:27 GMT",
