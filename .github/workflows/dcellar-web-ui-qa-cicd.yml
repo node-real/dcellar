@@ -1,7 +1,7 @@
 name: dcellar-web-ui qa CICD
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       app_name:
         description: 'App name in GitOps is used for branch naming only.'
