@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 26 Dec 2024 02:37:36 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Mar 2025 11:30:06 GMT and should not be manually modified.
+
+## 1.9.3
+Thu, 06 Mar 2025 11:30:06 GMT
+
+### Patches
+
+- upgrade elliptic to v6.6.1
 
 ## 1.9.2
 Thu, 26 Dec 2024 02:37:36 GMT
