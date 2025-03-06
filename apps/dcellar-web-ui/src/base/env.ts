@@ -4,7 +4,6 @@ import getConfig from 'next/config';
 const { publicRuntimeConfig, serverRuntimeConfig } = getConfig() || {};
 const {
   NEXT_PUBLIC_ENV,
-  NEXT_PUBLIC_STATIC_HOST,
   NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
   NEXT_PUBLIC_BSC_CHAIN_ID,
   NEXT_PUBLIC_GREENFIELD_CHAIN_ID,
@@ -33,7 +32,7 @@ export type TRuntimeEnv = 'development' | 'qa' | 'testnet' | 'mainnet';
 export const NODE_ENV = process.env.NODE_ENV;
 export const runtimeEnv: TRuntimeEnv = NEXT_PUBLIC_ENV || 'qa';
 
-export const assetPrefix = NEXT_PUBLIC_STATIC_HOST || '';
+export const assetPrefix = '';
 export const GA_ID = NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 // This default values for compatible wagmi build error.
 export const GREENFIELD_CHAIN_ID = +NEXT_PUBLIC_GREENFIELD_CHAIN_ID || 5600;

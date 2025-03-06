@@ -72,7 +72,7 @@ const nextConfig = {
   reactStrictMode: false,
   distDir: '.next',
   webpack,
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/static/dcellar-web-ui' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/' : '',
   pageExtensions: ['mdx', 'jsx', 'js', 'ts', 'tsx'],
   generateBuildId: async () => {
     return commitHash;
