@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.3",
+      "tag": "dcellar-web-ui_v1.9.3",
+      "date": "Thu, 06 Mar 2025 11:30:06 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "upgrade elliptic to v6.6.1"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.2",
       "tag": "dcellar-web-ui_v1.9.2",
       "date": "Thu, 26 Dec 2024 02:37:36 GMT",
