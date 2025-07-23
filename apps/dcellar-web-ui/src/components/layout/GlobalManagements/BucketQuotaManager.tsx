@@ -52,6 +52,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/router';
 import { useAccountType } from '@/hooks/useAccountType';
+import { getTimestampInSeconds } from '@/utils/time';
 
 const EMPTY_BUCKET = {} as TBucket;
 
@@ -90,7 +91,20 @@ export const BucketQuotaManager = memo<ManageQuotaProps>(function ManageQuota({ 
   const quota = bucketQuotaRecords[bucketName];
   const currentQuota = quota?.readQuota;
   const formattedQuota = formatQuota(quota);
-  const valid = balanceEnough && !loading && newChargedQuota * G_BYTES > (currentQuota || 0);
+  const now = getTimestampInSeconds();
+  const daysSinceUpdate = (now - (quotaUpdateTime || 0)) / 86400;
+
+  const valid = useMemo(() => {
+    if (!balanceEnough || loading) {
+      return false;
+    }
+
+    if (daysSinceUpdate < 30) {
+      return newChargedQuota * G_BYTES > (currentQuota || 0);
+    } else {
+      return newChargedQuota * G_BYTES >= 0;
+    }
+  }, [newChargedQuota, currentQuota, balanceEnough, loading, daysSinceUpdate]);
 
   const totalFee = useMemo(() => {
     if (isEmpty(storeFeeParams) || isEmpty(preStoreFeeParams) || isSponsor) return '-1';
