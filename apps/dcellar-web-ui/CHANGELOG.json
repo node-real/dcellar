@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.5",
+      "tag": "dcellar-web-ui_v1.9.5",
+      "date": "Mon, 26 Jan 2026 08:23:03 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix: use pnpm instead of yarn in dockerfile"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.4",
       "tag": "dcellar-web-ui_v1.9.4",
       "date": "Mon, 26 Jan 2026 04:09:00 GMT",

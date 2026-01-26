@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 26 Jan 2026 04:09:00 GMT and should not be manually modified.
+This log was last generated on Mon, 26 Jan 2026 08:23:03 GMT and should not be manually modified.
+
+## 1.9.5
+Mon, 26 Jan 2026 08:23:03 GMT
+
+### Patches
+
+- fix: use pnpm instead of yarn in dockerfile
 
 ## 1.9.4
 Mon, 26 Jan 2026 04:09:00 GMT
