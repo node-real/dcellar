@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Thu, 06 Mar 2025 11:30:06 GMT and should not be manually modified.
+This log was last generated on Mon, 26 Jan 2026 04:09:00 GMT and should not be manually modified.
+
+## 1.9.4
+Mon, 26 Jan 2026 04:09:00 GMT
+
+### Patches
+
+- fix: upgrade node.js to 20.20.0 for security update
 
 ## 1.9.3
 Thu, 06 Mar 2025 11:30:06 GMT

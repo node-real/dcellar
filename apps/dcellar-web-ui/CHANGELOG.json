@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.4",
+      "tag": "dcellar-web-ui_v1.9.4",
+      "date": "Mon, 26 Jan 2026 04:09:00 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix: upgrade node.js to 20.20.0 for security update"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.3",
       "tag": "dcellar-web-ui_v1.9.3",
       "date": "Thu, 06 Mar 2025 11:30:06 GMT",
