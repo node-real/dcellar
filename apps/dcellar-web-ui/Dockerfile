@@ -1,5 +1,8 @@
 FROM node:20.20.0-bookworm-slim
 
+# Enable Corepack to use the packageManager specified in package.json
+RUN corepack enable
+
 WORKDIR /opt/deploy
 
 COPY /common/deploy .
@@ -10,4 +13,4 @@ EXPOSE 3000
 
 ENV NODE_ENV production
 
-CMD [ "yarn", "start" ]
+CMD [ "pnpm", "start" ]
