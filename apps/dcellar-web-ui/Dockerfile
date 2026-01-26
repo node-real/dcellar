@@ -1,4 +1,4 @@
-FROM node:20.10.0-buster-slim
+FROM node:20.20.0-bookworm-slim
 
 WORKDIR /opt/deploy
 
