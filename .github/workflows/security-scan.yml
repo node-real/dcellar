@@ -6,7 +6,7 @@ on:
       - opened
       - synchronize
     branches:
-      - master
+      - main
 permissions:
   contents: read
   checks: write
