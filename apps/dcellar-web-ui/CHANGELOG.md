@@ -1,6 +1,13 @@
 # Change Log - dcellar-web-ui
 
-This log was last generated on Mon, 26 Jan 2026 08:23:03 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Nov 2026 02:57:50 GMT and should not be manually modified.
+
+## 1.9.6
+Mon, 23 Nov 2026 02:57:50 GMT
+
+### Patches
+
+- Upgrade @node-real/walletkit from 1.0.12-alpha.1 to 1.3.0 to show a security warning before wallet selection on affected iOS and iPadOS versions.
 
 ## 1.9.5
 Mon, 26 Jan 2026 08:23:03 GMT
