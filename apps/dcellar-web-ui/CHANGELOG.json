@@ -2,6 +2,18 @@
   "name": "dcellar-web-ui",
   "entries": [
     {
+      "version": "1.9.6",
+      "tag": "dcellar-web-ui_v1.9.6",
+      "date": "Mon, 23 Nov 2026 02:57:50 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Upgrade @node-real/walletkit from 1.0.12-alpha.1 to 1.3.0 to show a security warning before wallet selection on affected iOS and iPadOS versions."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.5",
       "tag": "dcellar-web-ui_v1.9.5",
       "date": "Mon, 26 Jan 2026 08:23:03 GMT",
